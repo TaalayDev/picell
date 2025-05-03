@@ -1,6 +1,8 @@
 # Picell
 
-Picell is a powerful and intuitive pixel art creation tool designed for both beginners and experienced pixel artists. With a wide range of features and a user-friendly interface, Picell makes it easy to bring your pixelated visions to life.
+PixelVerse is a powerful and intuitive pixel art creation tool designed for both beginners and experienced pixel artists. With a wide range of features and a user-friendly interface, PixelVerse makes it easy to bring your pixelated visions to life.
+
+![PixelVerse Logo](assets/images/logo.png)
 
 ## Features
 
