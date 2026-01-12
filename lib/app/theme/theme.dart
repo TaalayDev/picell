@@ -210,7 +210,7 @@ class AppTheme {
         color: surface,
         textStyle: TextStyle(color: textPrimary),
       ),
-      bottomAppBarTheme: BottomAppBarTheme(
+      bottomAppBarTheme: BottomAppBarThemeData(
         color: toolbarColor,
       ),
       cardTheme: CardThemeData(

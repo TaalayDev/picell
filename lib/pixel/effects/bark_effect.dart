@@ -7,28 +7,65 @@ class TreeBarkEffect extends Effect {
           EffectType.treeBark,
           parameters ??
               const {
-                'barkType': 0, // 0=Oak, 1=Birch, 2=Pine, 3=Redwood, 4=Willow, 5=Palm
-                'roughness': 0.7, // Surface roughness (0-1)
-                'grooving': 0.6, // Vertical groove depth (0-1)
-                'colorVariation': 0.5, // Random color variation (0-1)
-                'scale': 0.5, // Texture scale (0-1)
-                'weathering': 0.4, // Age/weathering effects (0-1)
-                'mossAmount': 0.1, // Amount of moss/lichen (0-1)
-                'crackiness': 0.3, // Amount of cracks and fissures (0-1)
+                'barkType': 0,
+                'roughness': 0.7,
+                'grooving': 0.6,
+                'colorVariation': 0.5,
+                'scale': 0.5,
+                'weathering': 0.4,
+                'mossAmount': 0.1,
+                'crackiness': 0.3,
+                'lightDirection': 0.5, // New: lighting angle (0-1 maps to 0-360°)
+                'depth': 0.5, // New: 3D depth perception
+                'peeling': 0.0, // New: bark peeling effect
               },
         );
+
+  // Permutation table for improved Perlin noise
+  late List<int> _perm;
+
+  // Gradient vectors for 2D Perlin noise
+  static const List<List<double>> _gradients = [
+    [1.0, 0.0],
+    [0.0, 1.0],
+    [-1.0, 0.0],
+    [0.0, -1.0],
+    [0.7071, 0.7071],
+    [-0.7071, 0.7071],
+    [0.7071, -0.7071],
+    [-0.7071, -0.7071],
+  ];
+
+  void _initPermutationTable(int seed) {
+    final random = Random(seed);
+    _perm = List<int>.generate(512, (i) => i < 256 ? i : 0);
+    // Shuffle first 256 entries
+    for (int i = 255; i > 0; i--) {
+      final j = random.nextInt(i + 1);
+      final temp = _perm[i];
+      _perm[i] = _perm[j];
+      _perm[j] = temp;
+    }
+    // Duplicate for overflow handling
+    for (int i = 0; i < 256; i++) {
+      _perm[256 + i] = _perm[i];
+    }
+  }
 
   @override
   Map<String, dynamic> getDefaultParameters() {
     return {
-      'barkType': 0, // Bark species
-      'roughness': 0.7, // Surface roughness
-      'grooving': 0.6, // Vertical grooves
-      'colorVariation': 0.5, // Color variation
-      'scale': 0.5, // Texture scale
-      'weathering': 0.4, // Weathering/aging
-      'mossAmount': 0.1, // Moss/lichen
-      'crackiness': 0.3, // Cracks and fissures
+      'barkType': 0,
+      'roughness': 0.7,
+      'grooving': 0.6,
+      'colorVariation': 0.5,
+      'scale': 0.5,
+      'weathering': 0.4,
+      'mossAmount': 0.1,
+      'crackiness': 0.3,
+      'lightDirection': 0.5,
+      'depth': 0.5,
+      'peeling': 0.0,
     };
   }
 
@@ -45,7 +82,9 @@ class TreeBarkEffect extends Effect {
           2: 'Pine (Plated)',
           3: 'Redwood (Fibrous)',
           4: 'Willow (Furrowed)',
-          5: 'Palm (Fibrous)',
+          5: 'Palm (Ringed)',
+          6: 'Cherry (Horizontal Lenticels)',
+          7: 'Eucalyptus (Peeling)',
         },
       },
       'roughness': {
@@ -74,7 +113,7 @@ class TreeBarkEffect extends Effect {
       },
       'scale': {
         'label': 'Texture Scale',
-        'description': 'Size of bark texture features. Smaller values create finer detail.',
+        'description': 'Size of bark texture features.  Smaller values create finer detail.',
         'type': 'slider',
         'min': 0.0,
         'max': 1.0,
@@ -104,20 +143,50 @@ class TreeBarkEffect extends Effect {
         'max': 1.0,
         'divisions': 100,
       },
+      'lightDirection': {
+        'label': 'Light Direction',
+        'description': 'Direction of simulated light for 3D depth effect.',
+        'type': 'slider',
+        'min': 0.0,
+        'max': 1.0,
+        'divisions': 100,
+      },
+      'depth': {
+        'label': 'Depth Intensity',
+        'description': 'Intensity of the 3D depth/shadow effect.',
+        'type': 'slider',
+        'min': 0.0,
+        'max': 1.0,
+        'divisions': 100,
+      },
+      'peeling': {
+        'label': 'Bark Peeling',
+        'description': 'Amount of peeling bark effect (works best with Birch/Eucalyptus).',
+        'type': 'slider',
+        'min': 0.0,
+        'max': 1.0,
+        'divisions': 100,
+      },
     };
   }
 
   @override
   Uint32List apply(Uint32List pixels, int width, int height) {
+    // Initialize permutation table for consistent noise
+    _initPermutationTable(42);
+
     // Get parameters
-    final barkType = (parameters['barkType'] as int).clamp(0, 5);
-    final roughness = parameters['roughness'] as double;
-    final grooving = parameters['grooving'] as double;
-    final colorVariation = parameters['colorVariation'] as double;
-    final scale = parameters['scale'] as double;
-    final weathering = parameters['weathering'] as double;
-    final mossAmount = parameters['mossAmount'] as double;
-    final crackiness = parameters['crackiness'] as double;
+    final barkType = (parameters['barkType'] as int).clamp(0, 7);
+    final roughness = (parameters['roughness'] as double).clamp(0.0, 1.0);
+    final grooving = (parameters['grooving'] as double).clamp(0.0, 1.0);
+    final colorVariation = (parameters['colorVariation'] as double).clamp(0.0, 1.0);
+    final scale = (parameters['scale'] as double).clamp(0.01, 1.0);
+    final weathering = (parameters['weathering'] as double).clamp(0.0, 1.0);
+    final mossAmount = (parameters['mossAmount'] as double).clamp(0.0, 1.0);
+    final crackiness = (parameters['crackiness'] as double).clamp(0.0, 1.0);
+    final lightDirection = (parameters['lightDirection'] as double).clamp(0.0, 1.0);
+    final depth = (parameters['depth'] as double).clamp(0.0, 1.0);
+    final peeling = (parameters['peeling'] as double).clamp(0.0, 1.0);
 
     // Create result buffer
     final result = Uint32List(pixels.length);
@@ -125,8 +194,16 @@ class TreeBarkEffect extends Effect {
     // Get bark colors based on type
     final barkColors = _getBarkColors(barkType);
 
-    // Random generator with fixed seed for consistent results
-    final random = Random(42);
+    // Pre-calculate light vector
+    final lightAngle = lightDirection * 2 * pi;
+    final lightX = cos(lightAngle);
+    final lightY = sin(lightAngle);
+
+    // Calculate texture scale factor
+    final textureScale = 0.05 / (scale + 0.05);
+
+    // Pre-compute height map for lighting calculations
+    final heightMap = _generateHeightMap(width, height, textureScale, barkType, grooving, roughness);
 
     // Process each pixel
     for (int y = 0; y < height; y++) {
@@ -143,20 +220,24 @@ class TreeBarkEffect extends Effect {
 
         // Calculate bark texture for this pixel
         final barkColor = _calculateBarkTexture(
-          x.toDouble(),
-          y.toDouble(),
-          width,
-          height,
-          barkColors,
-          barkType,
-          roughness,
-          grooving,
-          colorVariation,
-          scale,
-          weathering,
-          mossAmount,
-          crackiness,
-          random,
+          x: x,
+          y: y,
+          width: width,
+          height: height,
+          colors: barkColors,
+          barkType: barkType,
+          roughness: roughness,
+          grooving: grooving,
+          colorVariation: colorVariation,
+          textureScale: textureScale,
+          weathering: weathering,
+          mossAmount: mossAmount,
+          crackiness: crackiness,
+          lightX: lightX,
+          lightY: lightY,
+          depth: depth,
+          peeling: peeling,
+          heightMap: heightMap,
         );
 
         // Preserve original alpha
@@ -168,267 +249,541 @@ class TreeBarkEffect extends Effect {
     return result;
   }
 
+  // Generate height map for normal/lighting calculations
+  List<double> _generateHeightMap(
+    int width,
+    int height,
+    double scale,
+    int barkType,
+    double grooving,
+    double roughness,
+  ) {
+    final heightMap = List<double>.filled(width * height, 0.0);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final index = y * width + x;
+
+        // Base height from bark noise
+        var heightValue = _fbm(x * scale, y * scale, 4, 0.5, 2.0, 0);
+
+        // Add groove contribution
+        if (grooving > 0) {
+          final grooveHeight = _calculateGrooveHeight(x.toDouble(), y.toDouble(), scale, barkType);
+          heightValue += grooveHeight * grooving;
+        }
+
+        // Add roughness detail
+        if (roughness > 0) {
+          final roughnessHeight = _fbm(x * scale * 4, y * scale * 4, 2, 0.5, 2.0, 1);
+          heightValue += roughnessHeight * roughness * 0.3;
+        }
+
+        heightMap[index] = heightValue;
+      }
+    }
+
+    return heightMap;
+  }
+
+  // Improved Perlin noise implementation
+  double _perlinNoise(double x, double y, int seed) {
+    // Offset by seed for variation
+    x += seed * 17.0;
+    y += seed * 31.0;
+
+    // Grid cell coordinates
+    final x0 = x.floor();
+    final y0 = y.floor();
+    final x1 = x0 + 1;
+    final y1 = y0 + 1;
+
+    // Interpolation weights
+    final sx = _smootherstep(x - x0);
+    final sy = _smootherstep(y - y0);
+
+    // Get gradient indices
+    final i00 = _perm[(_perm[x0 & 255] + y0) & 255] & 7;
+    final i10 = _perm[(_perm[x1 & 255] + y0) & 255] & 7;
+    final i01 = _perm[(_perm[x0 & 255] + y1) & 255] & 7;
+    final i11 = _perm[(_perm[x1 & 255] + y1) & 255] & 7;
+
+    // Compute dot products
+    final n00 = _dot(_gradients[i00], x - x0, y - y0);
+    final n10 = _dot(_gradients[i10], x - x1, y - y0);
+    final n01 = _dot(_gradients[i01], x - x0, y - y1);
+    final n11 = _dot(_gradients[i11], x - x1, y - y1);
+
+    // Bilinear interpolation
+    final nx0 = _lerp(n00, n10, sx);
+    final nx1 = _lerp(n01, n11, sx);
+
+    return _lerp(nx0, nx1, sy);
+  }
+
+  // Fractal Brownian Motion for natural-looking noise
+  double _fbm(double x, double y, int octaves, double persistence, double lacunarity, int seed) {
+    double total = 0.0;
+    double amplitude = 1.0;
+    double frequency = 1.0;
+    double maxValue = 0.0;
+
+    for (int i = 0; i < octaves; i++) {
+      total += _perlinNoise(x * frequency, y * frequency, seed + i) * amplitude;
+      maxValue += amplitude;
+      amplitude *= persistence;
+      frequency *= lacunarity;
+    }
+
+    return total / maxValue;
+  }
+
+  // Ridged multifractal noise for cracks
+  double _ridgedNoise(double x, double y, int octaves, double persistence, double lacunarity, int seed) {
+    double total = 0.0;
+    double amplitude = 1.0;
+    double frequency = 1.0;
+    double maxValue = 0.0;
+
+    for (int i = 0; i < octaves; i++) {
+      final noise = _perlinNoise(x * frequency, y * frequency, seed + i);
+      // Ridge transformation:  1 - |noise|
+      total += (1.0 - noise.abs()) * amplitude;
+      maxValue += amplitude;
+      amplitude *= persistence;
+      frequency *= lacunarity;
+    }
+
+    return total / maxValue;
+  }
+
+  // Voronoi/Worley noise for cellular patterns (useful for some bark types)
+  double _voronoiNoise(double x, double y, int seed) {
+    final ix = x.floor();
+    final iy = y.floor();
+
+    double minDist = double.infinity;
+
+    for (int dy = -1; dy <= 1; dy++) {
+      for (int dx = -1; dx <= 1; dx++) {
+        final cx = ix + dx;
+        final cy = iy + dy;
+
+        // Pseudo-random point position within cell
+        final hash = _perm[(_perm[(cx & 255)] + (cy & 255)) & 255];
+        final px = cx + (hash / 255.0);
+        final py = cy + (_perm[(hash + seed) & 255] / 255.0);
+
+        final dist = sqrt(pow(x - px, 2) + pow(y - py, 2));
+        minDist = min(minDist, dist);
+      }
+    }
+
+    return minDist;
+  }
+
+  double _smootherstep(double t) {
+    return t * t * t * (t * (t * 6 - 15) + 10);
+  }
+
+  double _lerp(double a, double b, double t) {
+    return a + t * (b - a);
+  }
+
+  double _dot(List<double> g, double x, double y) {
+    return g[0] * x + g[1] * y;
+  }
+
   // Get color palette for different bark types
   _BarkColors _getBarkColors(int barkType) {
     switch (barkType) {
       case 0: // Oak - Dark, rough bark
         return _BarkColors(
-          baseColor: const Color(0xFF5D4037), // Dark brown
-          darkColor: const Color(0xFF3E2723), // Very dark brown
-          lightColor: const Color(0xFF8D6E63), // Light brown
-          accentColor: const Color(0xFF6D4C41), // Medium brown
+          baseColor: const Color(0xFF5D4037),
+          darkColor: const Color(0xFF3E2723),
+          lightColor: const Color(0xFF8D6E63),
+          accentColor: const Color(0xFF6D4C41),
+          highlightColor: const Color(0xFFA1887F),
+          shadowColor: const Color(0xFF2E1B12),
         );
       case 1: // Birch - Light, smooth bark with dark horizontal lines
         return _BarkColors(
-          baseColor: const Color(0xFFF5F5DC), // Beige/cream
-          darkColor: const Color(0xFF2E2E2E), // Dark gray for lines
-          lightColor: const Color(0xFFFFFFFF), // White
-          accentColor: const Color(0xFFE0E0E0), // Light gray
+          baseColor: const Color(0xFFF5F5DC),
+          darkColor: const Color(0xFF2E2E2E),
+          lightColor: const Color(0xFFFFFFFF),
+          accentColor: const Color(0xFFE8E8D0),
+          highlightColor: const Color(0xFFFFFFFF),
+          shadowColor: const Color(0xFFBDBDAA),
         );
       case 2: // Pine - Orange-brown plated bark
         return _BarkColors(
-          baseColor: const Color(0xFFD4A574), // Orange-brown
-          darkColor: const Color(0xFF8B4513), // Saddle brown
-          lightColor: const Color(0xFFF4E4BC), // Light tan
-          accentColor: const Color(0xFFCD853F), // Peru
+          baseColor: const Color(0xFFD4A574),
+          darkColor: const Color(0xFF8B4513),
+          lightColor: const Color(0xFFF4E4BC),
+          accentColor: const Color(0xFFCD853F),
+          highlightColor: const Color(0xFFFFE4C4),
+          shadowColor: const Color(0xFF5D3A1A),
         );
       case 3: // Redwood - Reddish fibrous bark
         return _BarkColors(
-          baseColor: const Color(0xFFA0522D), // Sienna
-          darkColor: const Color(0xFF8B0000), // Dark red
-          lightColor: const Color(0xFFDEB887), // Burlywood
-          accentColor: const Color(0xFFB22222), // Fire brick
+          baseColor: const Color(0xFFA0522D),
+          darkColor: const Color(0xFF6B1C1C),
+          lightColor: const Color(0xFFDEB887),
+          accentColor: const Color(0xFFB22222),
+          highlightColor: const Color(0xFFE6A88C),
+          shadowColor: const Color(0xFF4A1010),
         );
       case 4: // Willow - Gray-brown furrowed bark
         return _BarkColors(
-          baseColor: const Color(0xFF696969), // Dim gray
-          darkColor: const Color(0xFF2F4F4F), // Dark slate gray
-          lightColor: const Color(0xFFA9A9A9), // Dark gray
-          accentColor: const Color(0xFF708090), // Slate gray
+          baseColor: const Color(0xFF696969),
+          darkColor: const Color(0xFF2F4F4F),
+          lightColor: const Color(0xFFA9A9A9),
+          accentColor: const Color(0xFF708090),
+          highlightColor: const Color(0xFFC0C0C0),
+          shadowColor: const Color(0xFF1C3030),
         );
-      case 5: // Palm - Fibrous, textured bark
+      case 5: // Palm - Ringed texture
         return _BarkColors(
-          baseColor: const Color(0xFF8B7355), // Brown
-          darkColor: const Color(0xFF654321), // Dark brown
-          lightColor: const Color(0xFFDEB887), // Burlywood
-          accentColor: const Color(0xFFBC9A6A), // Tan
+          baseColor: const Color(0xFF8B7355),
+          darkColor: const Color(0xFF654321),
+          lightColor: const Color(0xFFDEB887),
+          accentColor: const Color(0xFFBC9A6A),
+          highlightColor: const Color(0xFFF5DEB3),
+          shadowColor: const Color(0xFF3D2914),
+        );
+      case 6: // Cherry - Horizontal lenticels
+        return _BarkColors(
+          baseColor: const Color(0xFF8B4513),
+          darkColor: const Color(0xFF5D2906),
+          lightColor: const Color(0xFFCD853F),
+          accentColor: const Color(0xFFA0522D),
+          highlightColor: const Color(0xFFDEB887),
+          shadowColor: const Color(0xFF3D1F0D),
+        );
+      case 7: // Eucalyptus - Smooth, peeling, multicolored
+        return _BarkColors(
+          baseColor: const Color(0xFFC4B7A6),
+          darkColor: const Color(0xFF6B8E6B),
+          lightColor: const Color(0xFFF5F5DC),
+          accentColor: const Color(0xFFE6D5B8),
+          highlightColor: const Color(0xFFFFFFE0),
+          shadowColor: const Color(0xFF8B7355),
         );
       default:
-        return _getBarkColors(0); // Default to oak
+        return _getBarkColors(0);
+    }
+  }
+
+  // Calculate groove height for height map
+  double _calculateGrooveHeight(double x, double y, double scale, int barkType) {
+    switch (barkType) {
+      case 0: // Oak - irregular vertical grooves
+        final noise = _fbm(x * scale * 0.3, y * scale * 0.1, 2, 0.5, 2.0, 20);
+        final groove = sin((x + noise * 15) * scale * 0.8);
+        return pow(groove.abs(), 0.5) - 0.5;
+
+      case 1: // Birch - minimal grooves, horizontal emphasis
+        return _fbm(x * scale * 0.1, y * scale * 0.5, 2, 0.5, 2.0, 21) * 0.2;
+
+      case 2: // Pine - plated grooves
+        final plateX = _voronoiNoise(x * scale * 0.3, y * scale * 0.15, 22);
+        return plateX * 2 - 1;
+
+      case 3: // Redwood - deep vertical furrows
+        final furrow = sin(x * scale * 0.5) * 0.7;
+        final variation = _fbm(x * scale * 0.2, y * scale * 2, 2, 0.5, 2.0, 23) * 0.3;
+        return furrow + variation;
+
+      case 4: // Willow - deep irregular furrows
+        final noise = _fbm(x * scale * 0.2, y * scale * 0.3, 3, 0.5, 2.0, 24);
+        final furrow = sin((x + noise * 20) * scale * 0.4);
+        return pow(furrow.abs(), 0.3) - 0.5;
+
+      case 5: // Palm - horizontal rings
+        final ring = sin(y * scale * 1.5);
+        return ring * 0.5;
+
+      case 6: // Cherry - subtle horizontal bands
+        final band = sin(y * scale * 0.8) * 0.3;
+        return band;
+
+      case 7: // Eucalyptus - smooth with peeling edges
+        return _fbm(x * scale * 0.2, y * scale * 0.2, 2, 0.5, 2.0, 27) * 0.3;
+
+      default:
+        return 0.0;
     }
   }
 
   // Calculate the bark texture for a specific pixel
-  int _calculateBarkTexture(
-    double x,
-    double y,
-    int width,
-    int height,
-    _BarkColors colors,
-    int barkType,
-    double roughness,
-    double grooving,
-    double colorVariation,
-    double scale,
-    double weathering,
-    double mossAmount,
-    double crackiness,
-    Random random,
-  ) {
-    final textureScale = 0.1 / (scale + 0.1);
+  int _calculateBarkTexture({
+    required int x,
+    required int y,
+    required int width,
+    required int height,
+    required _BarkColors colors,
+    required int barkType,
+    required double roughness,
+    required double grooving,
+    required double colorVariation,
+    required double textureScale,
+    required double weathering,
+    required double mossAmount,
+    required double crackiness,
+    required double lightX,
+    required double lightY,
+    required double depth,
+    required double peeling,
+    required List<double> heightMap,
+  }) {
+    final fx = x.toDouble();
+    final fy = y.toDouble();
 
-    // Base bark pattern using multiple noise layers
-    final barkNoise = _generateBarkNoise(x, y, textureScale, barkType);
+    // Generate base bark pattern
+    final barkPattern = _generateBarkPattern(fx, fy, textureScale, barkType);
 
-    // Vertical grooves (common to most bark types)
-    final groovePattern = _calculateGrooves(x, y, grooving, textureScale);
+    // Calculate cracks using ridged noise
+    double crackPattern = 0.0;
+    if (crackiness > 0) {
+      crackPattern = _calculateCrackPattern(fx, fy, textureScale, crackiness);
+    }
 
-    // Surface roughness
-    final roughnessPattern = _calculateRoughness(x, y, roughness, textureScale);
+    // Calculate peeling effect
+    double peelingPattern = 0.0;
+    if (peeling > 0) {
+      peelingPattern = _calculatePeelingPattern(fx, fy, textureScale, barkType, peeling);
+    }
 
-    // Weathering effects
-    final weatheringPattern = _calculateWeathering(x, y, weathering, textureScale);
+    // Calculate normal from height map for lighting
+    final normal = _calculateNormal(x, y, width, height, heightMap);
 
-    // Cracks and fissures
-    final crackPattern = _calculateCracks(x, y, crackiness, textureScale);
+    // Calculate lighting intensity
+    final lightIntensity = _calculateLighting(normal, lightX, lightY, depth);
 
-    // Moss and lichen
-    final mossPattern = _calculateMoss(x, y, mossAmount, textureScale);
+    // Combine patterns to determine base color
+    var pattern = barkPattern;
 
-    // Combine all patterns
-    var pattern = barkNoise * 0.4 + groovePattern * 0.3 + roughnessPattern * 0.2 + weatheringPattern * 0.1;
-    pattern = pattern.clamp(0.0, 1.0);
-
-    // Apply cracks (darkening effect)
+    // Darken cracks significantly
     if (crackPattern > 0.7) {
-      pattern *= 0.3; // Darken cracks significantly
+      pattern *= (1.0 - (crackPattern - 0.7) * 3.0).clamp(0.1, 1.0);
     }
 
     // Select base color based on pattern
-    Color baseColor;
-    if (pattern < 0.2) {
-      baseColor = colors.darkColor;
-    } else if (pattern < 0.5) {
-      baseColor = Color.lerp(colors.darkColor, colors.baseColor, (pattern - 0.2) / 0.3)!;
-    } else if (pattern < 0.8) {
-      baseColor = Color.lerp(colors.baseColor, colors.accentColor, (pattern - 0.5) / 0.3)!;
-    } else {
-      baseColor = Color.lerp(colors.accentColor, colors.lightColor, (pattern - 0.8) / 0.2)!;
+    Color baseColor = _selectBaseColor(colors, pattern, barkType);
+
+    // Apply bark-type specific effects
+    baseColor = _applyBarkTypeEffects(baseColor, fx, fy, barkType, textureScale, colors);
+
+    // Apply peeling effect (lighter exposed wood underneath)
+    if (peelingPattern > 0.6 && peeling > 0) {
+      final peelIntensity = ((peelingPattern - 0.6) * 2.5 * peeling).clamp(0.0, 1.0);
+      baseColor = Color.lerp(baseColor, colors.lightColor, peelIntensity)!;
     }
 
-    // Apply bark-type specific modifications
-    baseColor = _applyBarkTypeEffects(baseColor, x, y, barkType, textureScale);
-
-    // Apply color variation
+    // Apply color variation using low-frequency noise
     if (colorVariation > 0) {
-      final variation = (_perlinNoise(x * 0.02, y * 0.02, 5) - 0.5) * colorVariation * 0.3;
-      final hsv = HSVColor.fromColor(baseColor);
-      final newValue = (hsv.value + variation).clamp(0.0, 1.0);
-      final newSaturation = (hsv.saturation + variation * 0.1).clamp(0.0, 1.0);
-      baseColor = hsv.withValue(newValue).withSaturation(newSaturation).toColor();
+      baseColor = _applyColorVariation(baseColor, fx, fy, colorVariation);
     }
 
-    // Apply moss effect
-    if (mossPattern > 0.8 && mossAmount > 0) {
-      final mossColor = Color.fromARGB(255, 85, 107, 47); // Dark olive green
-      final mossIntensity = (mossPattern - 0.8) * 5 * mossAmount;
-      baseColor = Color.lerp(baseColor, mossColor, mossIntensity.clamp(0.0, 0.7))!;
+    // Apply weathering (desaturation and lightening)
+    if (weathering > 0) {
+      baseColor = _applyWeathering(baseColor, fx, fy, textureScale, weathering);
     }
+
+    // Apply moss and lichen
+    if (mossAmount > 0) {
+      baseColor = _applyMoss(baseColor, fx, fy, textureScale, mossAmount);
+    }
+
+    // Apply lighting
+    baseColor = _applyLighting(baseColor, lightIntensity, colors);
 
     return baseColor.value;
   }
 
-  // Generate base bark noise pattern
-  double _generateBarkNoise(double x, double y, double scale, int barkType) {
-    // Different noise patterns for different bark types
+  // Generate base bark pattern using appropriate noise for bark type
+  double _generateBarkPattern(double x, double y, double scale, int barkType) {
     switch (barkType) {
       case 0: // Oak - Rough, irregular
-        final noise1 = _perlinNoise(x * scale * 2, y * scale * 0.5, 0);
-        final noise2 = _perlinNoise(x * scale * 4, y * scale * 1, 1);
-        final noise3 = _perlinNoise(x * scale * 8, y * scale * 2, 2);
-        return (noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2 + 1) * 0.5;
+        final noise1 = _fbm(x * scale * 2, y * scale * 0.5, 4, 0.5, 2.0, 0);
+        final noise2 = _fbm(x * scale * 4, y * scale * 1, 3, 0.5, 2.0, 1);
+        return ((noise1 * 0.6 + noise2 * 0.4) + 1) * 0.5;
 
       case 1: // Birch - Smooth with horizontal features
-        final horizontal = sin(y * scale * 20) * 0.3;
-        final noise = _perlinNoise(x * scale * 0.5, y * scale * 2, 0);
-        return (noise * 0.7 + horizontal + 1) * 0.5;
+        final horizontal = sin(y * scale * 15) * 0.2;
+        final noise = _fbm(x * scale * 0.3, y * scale * 1.5, 3, 0.5, 2.0, 0);
+        return ((noise * 0.8 + horizontal) + 1) * 0.5;
 
       case 2: // Pine - Plated, scaly pattern
-        final plateNoise1 = _perlinNoise(x * scale * 3, y * scale * 1.5, 0);
-        final plateNoise2 = _perlinNoise(x * scale * 6, y * scale * 3, 1);
-        return (plateNoise1 * 0.6 + plateNoise2 * 0.4 + 1) * 0.5;
+        final plate = _voronoiNoise(x * scale * 0.4, y * scale * 0.2, 0);
+        final detail = _fbm(x * scale * 3, y * scale * 1.5, 3, 0.5, 2.0, 1);
+        return (plate * 0.7 + detail * 0.3).clamp(0.0, 1.0);
 
-      case 3: // Redwood - Fibrous, vertical emphasis
-        final vertical = _perlinNoise(x * scale * 0.3, y * scale * 8, 0);
-        final fiber = _perlinNoise(x * scale * 2, y * scale * 4, 1);
-        return (vertical * 0.4 + fiber * 0.6 + 1) * 0.5;
+      case 3: // Redwood - Fibrous, strong vertical emphasis
+        final vertical = _fbm(x * scale * 0.2, y * scale * 4, 4, 0.6, 2.0, 0);
+        final fiber = _fbm(x * scale * 1, y * scale * 8, 3, 0.5, 2.0, 1);
+        return ((vertical * 0.5 + fiber * 0.5) + 1) * 0.5;
 
       case 4: // Willow - Deep furrows
-        final furrow = sin(x * scale * 15) * cos(x * scale * 8);
-        final noise = _perlinNoise(x * scale * 1, y * scale * 2, 0);
-        return (furrow * 0.5 + noise * 0.5 + 1) * 0.5;
+        final noise = _fbm(x * scale * 0.3, y * scale * 0.5, 3, 0.5, 2.0, 0);
+        final furrow = sin((x + noise * 20) * scale * 0.6);
+        return (pow(furrow.abs(), 0.4) + noise * 0.3).clamp(0.0, 1.0);
 
-      case 5: // Palm - Fibrous texture
-        final fiber1 = _perlinNoise(x * scale * 1, y * scale * 8, 0);
-        final fiber2 = _perlinNoise(x * scale * 2, y * scale * 16, 1);
-        return (fiber1 * 0.6 + fiber2 * 0.4 + 1) * 0.5;
+      case 5: // Palm - Horizontal rings
+        final ring = sin(y * scale * 2) * 0.5 + 0.5;
+        final noise = _fbm(x * scale * 0.5, y * scale * 0.3, 2, 0.5, 2.0, 0);
+        return (ring * 0.7 + noise * 0.3).clamp(0.0, 1.0);
+
+      case 6: // Cherry - Smooth with horizontal lenticels
+        final base = _fbm(x * scale * 0.2, y * scale * 0.2, 3, 0.5, 2.0, 0);
+        final lenticel = _calculateLenticels(x, y, scale);
+        return ((base + 1) * 0.5 * 0.8 + lenticel * 0.2).clamp(0.0, 1.0);
+
+      case 7: // Eucalyptus - Smooth, multicolored patches
+        final patch = _voronoiNoise(x * scale * 0.15, y * scale * 0.15, 0);
+        final smooth = _fbm(x * scale * 0.1, y * scale * 0.1, 2, 0.5, 2.0, 1);
+        return (patch * 0.6 + smooth * 0.4).clamp(0.0, 1.0);
 
       default:
-        return (_perlinNoise(x * scale, y * scale, 0) + 1) * 0.5;
+        return (_fbm(x * scale, y * scale, 4, 0.5, 2.0, 0) + 1) * 0.5;
     }
   }
 
-  // Calculate vertical groove patterns
-  double _calculateGrooves(double x, double y, double intensity, double scale) {
-    if (intensity <= 0) return 0;
+  // Calculate horizontal lenticels for cherry bark
+  double _calculateLenticels(double x, double y, double scale) {
+    final spacing = 8.0 / scale;
+    final yMod = y % spacing;
+    final noise = _perlinNoise(x * scale * 0.5, y * scale * 0.1, 50);
 
-    // Vertical groove pattern with some irregularity
-    final grooveSpacing = 20 / scale;
-    final grooveNoise = _perlinNoise(x * scale * 0.1, y * scale * 0.05, 3);
-    final adjustedX = x + grooveNoise * 10;
+    // Create horizontal dash pattern
+    final dashPhase = (x + noise * 10) * scale * 0.3;
+    final inDash = (sin(dashPhase) > 0.3) ? 1.0 : 0.0;
 
-    final groove = sin(adjustedX * pi / grooveSpacing);
-    return pow(groove.abs(), 2) * intensity;
+    // Narrow horizontal band
+    final bandWidth = 1.5;
+    final inBand = (yMod < bandWidth) ? 1.0 : 0.0;
+
+    return inDash * inBand;
   }
 
-  // Calculate surface roughness
-  double _calculateRoughness(double x, double y, double intensity, double scale) {
-    if (intensity <= 0) return 0;
+  // Calculate crack pattern using ridged noise
+  double _calculateCrackPattern(double x, double y, double scale, double intensity) {
+    final crack1 = _ridgedNoise(x * scale * 0.3, y * scale * 1.5, 3, 0.5, 2.0, 30);
+    final crack2 = _ridgedNoise(x * scale * 0.8, y * scale * 0.4, 2, 0.5, 2.0, 31);
 
-    final roughness1 = _perlinNoise(x * scale * 8, y * scale * 8, 4);
-    final roughness2 = _perlinNoise(x * scale * 16, y * scale * 16, 5);
+    final crackValue = (crack1 * 0.7 + crack2 * 0.3);
 
-    return (roughness1 * 0.7 + roughness2 * 0.3) * intensity;
+    // Threshold to create distinct cracks
+    return crackValue > (1.0 - intensity * 0.5) ? crackValue : 0.0;
   }
 
-  // Calculate weathering patterns
-  double _calculateWeathering(double x, double y, double intensity, double scale) {
-    if (intensity <= 0) return 0;
+  // Calculate peeling bark pattern
+  double _calculatePeelingPattern(double x, double y, double scale, int barkType, double intensity) {
+    // Peeling tends to happen in patches with curled edges
+    final patchNoise = _voronoiNoise(x * scale * 0.2, y * scale * 0.1, 40);
+    final edgeNoise = _fbm(x * scale * 0.5, y * scale * 0.3, 3, 0.5, 2.0, 41);
 
-    // Weathering creates worn, smooth patches
-    final weatherNoise = _perlinNoise(x * scale * 0.5, y * scale * 0.3, 6);
-    final weatherPatches = _perlinNoise(x * scale * 0.2, y * scale * 0.2, 7);
+    // Create peeling edge effect
+    final peelEdge = (patchNoise + edgeNoise * 0.3);
 
-    // Weathering reduces texture variation
-    return (weatherNoise * 0.6 + weatherPatches * 0.4) * intensity;
+    return peelEdge * intensity;
   }
 
-  // Calculate crack and fissure patterns
-  double _calculateCracks(double x, double y, double intensity, double scale) {
-    if (intensity <= 0) return 0;
+  // Calculate surface normal from height map
+  List<double> _calculateNormal(int x, int y, int width, int height, List<double> heightMap) {
+    // Sample neighboring heights
+    final left = x > 0 ? heightMap[y * width + (x - 1)] : heightMap[y * width + x];
+    final right = x < width - 1 ? heightMap[y * width + (x + 1)] : heightMap[y * width + x];
+    final up = y > 0 ? heightMap[(y - 1) * width + x] : heightMap[y * width + x];
+    final down = y < height - 1 ? heightMap[(y + 1) * width + x] : heightMap[y * width + x];
 
-    // Create irregular crack patterns
-    final crackNoise1 = _perlinNoise(x * scale * 0.5, y * scale * 2, 8);
-    final crackNoise2 = _perlinNoise(x * scale * 1, y * scale * 4, 9);
+    // Calculate gradient
+    final dx = right - left;
+    final dy = down - up;
 
-    // Cracks are thin, dark lines
-    final crackValue = (crackNoise1 * 0.6 + crackNoise2 * 0.4 + 1) * 0.5;
-
-    return crackValue * intensity;
+    // Normal vector (simplified - not fully normalized for performance)
+    final length = sqrt(dx * dx + dy * dy + 1);
+    return [-dx / length, -dy / length, 1.0 / length];
   }
 
-  // Calculate moss and lichen patterns
-  double _calculateMoss(double x, double y, double amount, double scale) {
-    if (amount <= 0) return 0;
+  // Calculate lighting based on normal and light direction
+  double _calculateLighting(List<double> normal, double lightX, double lightY, double depth) {
+    if (depth <= 0) return 0.5;
 
-    // Moss grows in patches, often in grooves
-    final mossNoise = _perlinNoise(x * scale * 0.3, y * scale * 0.3, 10);
-    final mossPatches = _perlinNoise(x * scale * 0.1, y * scale * 0.1, 11);
+    // Light vector (coming from above at an angle)
+    final lightZ = 0.7;
+    final lightLength = sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ);
+    final lx = lightX / lightLength;
+    final ly = lightY / lightLength;
+    final lz = lightZ / lightLength;
 
-    // Moss is more likely in certain areas
-    return (mossNoise * 0.7 + mossPatches * 0.3 + 1) * 0.5 * amount;
+    // Dot product for diffuse lighting
+    final diffuse = (normal[0] * lx + normal[1] * ly + normal[2] * lz).clamp(0.0, 1.0);
+
+    // Combine ambient and diffuse
+    final ambient = 0.3;
+    final lighting = ambient + (1.0 - ambient) * diffuse;
+
+    // Apply depth intensity
+    return 0.5 + (lighting - 0.5) * depth;
+  }
+
+  // Select base color based on pattern value
+  Color _selectBaseColor(_BarkColors colors, double pattern, int barkType) {
+    if (pattern < 0.25) {
+      return Color.lerp(colors.shadowColor, colors.darkColor, pattern / 0.25)!;
+    } else if (pattern < 0.5) {
+      return Color.lerp(colors.darkColor, colors.baseColor, (pattern - 0.25) / 0.25)!;
+    } else if (pattern < 0.75) {
+      return Color.lerp(colors.baseColor, colors.accentColor, (pattern - 0.5) / 0.25)!;
+    } else {
+      return Color.lerp(colors.accentColor, colors.lightColor, (pattern - 0.75) / 0.25)!;
+    }
   }
 
   // Apply bark-type specific visual effects
-  Color _applyBarkTypeEffects(Color baseColor, double x, double y, int barkType, double scale) {
+  Color _applyBarkTypeEffects(Color baseColor, double x, double y, int barkType, double scale, _BarkColors colors) {
     switch (barkType) {
-      case 1: // Birch - Add characteristic dark horizontal marks
-        final horizontalLines = sin(y * scale * 25);
-        if (horizontalLines > 0.8) {
-          return Color.lerp(baseColor, const Color(0xFF2E2E2E), 0.8)!;
+      case 1: // Birch - Dark horizontal marks and peeling hints
+        final horizontalLines = sin(y * scale * 20);
+        final lineNoise = _perlinNoise(x * scale * 0.5, y * scale * 0.1, 100);
+        if (horizontalLines > 0.75 + lineNoise * 0.2) {
+          return Color.lerp(baseColor, colors.darkColor, 0.85)!;
         }
         break;
 
-      case 2: // Pine - Add reddish tint to plates
-        final plateEffect = _perlinNoise(x * scale * 5, y * scale * 2, 12);
-        if (plateEffect > 0.3) {
+      case 2: // Pine - Reddish tint in plate centers
+        final plateCenter = _voronoiNoise(x * scale * 0.4, y * scale * 0.2, 0);
+        if (plateCenter < 0.3) {
           final hsv = HSVColor.fromColor(baseColor);
-          final newHue = (hsv.hue + 10).clamp(0.0, 360.0); // Shift toward red
-          return hsv.withHue(newHue).toColor();
+          final newHue = (hsv.hue + 8).clamp(0.0, 360.0);
+          final newSat = (hsv.saturation * 1.2).clamp(0.0, 1.0);
+          return hsv.withHue(newHue).withSaturation(newSat).toColor();
         }
         break;
 
-      case 3: // Redwood - Enhance reddish fibers
-        final fiberEffect = _perlinNoise(x * scale * 0.5, y * scale * 6, 13);
-        if (fiberEffect > 0.4) {
-          return Color.lerp(baseColor, const Color(0xFFB22222), 0.3)!;
+      case 3: // Redwood - Enhanced reddish fibers
+        final fiberEffect = _fbm(x * scale * 0.3, y * scale * 5, 2, 0.5, 2.0, 110);
+        if (fiberEffect > 0.3) {
+          return Color.lerp(baseColor, colors.accentColor, 0.4)!;
         }
         break;
 
-      case 5: // Palm - Add fibrous texture
-        final fiberNoise = _perlinNoise(x * scale * 3, y * scale * 12, 14);
-        if (fiberNoise > 0.5) {
-          return Color.lerp(baseColor, const Color(0xFFDEB887), 0.2)!;
+      case 6: // Cherry - Shiny lenticels
+        final lenticel = _calculateLenticels(x, y, scale);
+        if (lenticel > 0.5) {
+          return Color.lerp(baseColor, colors.darkColor, 0.6)!;
+        }
+        break;
+
+      case 7: // Eucalyptus - Multicolored patches
+        final colorPatch = _voronoiNoise(x * scale * 0.12, y * scale * 0.12, 120);
+        if (colorPatch < 0.4) {
+          // Green-gray patches (exposed inner bark)
+          return Color.lerp(baseColor, const Color(0xFF8FAF8F), 0.4)!;
+        } else if (colorPatch < 0.6) {
+          // Tan/orange patches
+          return Color.lerp(baseColor, const Color(0xFFDEB887), 0.3)!;
         }
         break;
     }
@@ -436,25 +791,87 @@ class TreeBarkEffect extends Effect {
     return baseColor;
   }
 
-  // Simple Perlin-like noise function
-  double _perlinNoise(double x, double y, int seed) {
-    // Simple pseudo-random noise based on position and seed
-    final n = (sin(x * 12.9898 + y * 78.233 + seed * 37.719) * 43758.5453);
-    return (n - n.floor()) * 2 - 1; // Return value between -1 and 1
+  // Apply color variation
+  Color _applyColorVariation(Color baseColor, double x, double y, double intensity) {
+    final variation = _fbm(x * 0.02, y * 0.02, 2, 0.5, 2.0, 200);
+
+    final hsv = HSVColor.fromColor(baseColor);
+    final valueChange = variation * intensity * 0.25;
+    final satChange = variation * intensity * 0.1;
+    final hueChange = variation * intensity * 5;
+
+    return hsv
+        .withValue((hsv.value + valueChange).clamp(0.0, 1.0))
+        .withSaturation((hsv.saturation + satChange).clamp(0.0, 1.0))
+        .withHue((hsv.hue + hueChange) % 360)
+        .toColor();
+  }
+
+  // Apply weathering effects
+  Color _applyWeathering(Color baseColor, double x, double y, double scale, double intensity) {
+    final weatherNoise = _fbm(x * scale * 0.3, y * scale * 0.2, 3, 0.5, 2.0, 210);
+    final weatherAmount = ((weatherNoise + 1) * 0.5 * intensity).clamp(0.0, 1.0);
+
+    // Weathering desaturates and lightens
+    final hsv = HSVColor.fromColor(baseColor);
+    final newSat = hsv.saturation * (1.0 - weatherAmount * 0.5);
+    final newValue = hsv.value + weatherAmount * 0.1;
+
+    return hsv.withSaturation(newSat.clamp(0.0, 1.0)).withValue(newValue.clamp(0.0, 1.0)).toColor();
+  }
+
+  // Apply moss and lichen
+  Color _applyMoss(Color baseColor, double x, double y, double scale, double amount) {
+    // Moss grows in patches
+    final mossNoise = _fbm(x * scale * 0.25, y * scale * 0.25, 3, 0.5, 2.0, 220);
+    final lichNoise = _fbm(x * scale * 0.4, y * scale * 0.4, 2, 0.5, 2.0, 221);
+
+    final mossThreshold = 1.0 - amount;
+
+    if (mossNoise > mossThreshold) {
+      final mossIntensity = ((mossNoise - mossThreshold) / amount).clamp(0.0, 0.8);
+      final mossColor = Color.fromARGB(255, 70, 100, 50); // Dark green moss
+      baseColor = Color.lerp(baseColor, mossColor, mossIntensity)!;
+    }
+
+    if (lichNoise > mossThreshold + 0.1) {
+      final lichIntensity = ((lichNoise - mossThreshold - 0.1) / amount).clamp(0.0, 0.5);
+      final lichColor = Color.fromARGB(255, 180, 190, 150); // Pale green-gray lichen
+      baseColor = Color.lerp(baseColor, lichColor, lichIntensity * amount)!;
+    }
+
+    return baseColor;
+  }
+
+  // Apply lighting to final color
+  Color _applyLighting(Color baseColor, double lightIntensity, _BarkColors colors) {
+    if (lightIntensity < 0.5) {
+      // In shadow
+      final shadowAmount = (0.5 - lightIntensity) * 2;
+      return Color.lerp(baseColor, colors.shadowColor, shadowAmount * 0.5)!;
+    } else {
+      // In light
+      final highlightAmount = (lightIntensity - 0.5) * 2;
+      return Color.lerp(baseColor, colors.highlightColor, highlightAmount * 0.3)!;
+    }
   }
 }
 
-// Helper classes for bark effect
+// Enhanced bark color palette
 class _BarkColors {
   final Color baseColor;
   final Color darkColor;
   final Color lightColor;
   final Color accentColor;
+  final Color highlightColor;
+  final Color shadowColor;
 
   _BarkColors({
     required this.baseColor,
     required this.darkColor,
     required this.lightColor,
     required this.accentColor,
+    required this.highlightColor,
+    required this.shadowColor,
   });
 }

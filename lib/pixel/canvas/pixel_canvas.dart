@@ -92,10 +92,7 @@ class _PixelCanvasState extends State<PixelCanvas> {
   late final LayerCacheManager _cacheManager;
   late final ToolDrawingManager _toolManager;
 
-  List<PixelPoint<int>>? _resizeOriginalSelection;
-
   List<PixelPoint<int>>? _rotationOriginalSelection;
-  double _rotationAngle = 0.0;
   Offset? _rotationCenter;
 
   @override
@@ -324,9 +321,7 @@ class _PixelCanvasState extends State<PixelCanvas> {
                   onSelectionMoveEnd: () {
                     widget.onSelectionChanged?.call(_controller.selectionPoints);
                   },
-                  onSelectionResizeStart: (original) {
-                    _resizeOriginalSelection = List<PixelPoint<int>>.from(original);
-                  },
+                  onSelectionResizeStart: (original) {},
                   onSelectionResize: (selection, scaleX, scaleY, pivot) {
                     final oldSelection = _controller.selectionPoints;
 
@@ -341,7 +336,6 @@ class _PixelCanvasState extends State<PixelCanvas> {
                   onSelectionRotate: (rotatedSelection, angle) {
                     _rotationOriginalSelection ??= List<PixelPoint<int>>.from(_controller.selectionPoints);
 
-                    _rotationAngle = angle;
                     _rotationCenter ??= _centerOf(rotatedSelection);
 
                     _controller.setSelection(rotatedSelection);
@@ -447,7 +441,6 @@ class _PixelCanvasState extends State<PixelCanvas> {
 
   void _clearRotationState() {
     _rotationOriginalSelection = null;
-    _rotationAngle = 0.0;
     _rotationCenter = null;
   }
 }

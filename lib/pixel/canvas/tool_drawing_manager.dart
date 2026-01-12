@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:pixelverse/pixel/tools/eraser_tool.dart';
 
 import '../../data.dart';
 import '../tools.dart';
@@ -35,6 +36,7 @@ class ToolDrawingManager {
   late final FillTool _fillTool;
   late final PencilTool _pencilTool;
   late final PenTool _penTool;
+  late final EraserTool _eraserTool;
   late final CurveTool _curveTool;
   late final LineTool _lineTool;
   late final RectangleTool _rectangleTool;
@@ -110,6 +112,7 @@ class ToolDrawingManager {
     _fillTool = FillTool();
     _pencilTool = PencilTool();
     _penTool = PenTool();
+    _eraserTool = EraserTool();
     _curveTool = CurveTool();
     _lineTool = LineTool();
     _rectangleTool = RectangleTool();
@@ -137,6 +140,7 @@ class ToolDrawingManager {
     return switch (toolType) {
       PixelTool.pencil => _pencilTool,
       PixelTool.pen => _penTool,
+      PixelTool.eraser => _eraserTool,
       PixelTool.curve => _curveTool,
       PixelTool.line => _lineTool,
       PixelTool.rectangle => _rectangleTool,

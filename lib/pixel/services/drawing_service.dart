@@ -35,7 +35,8 @@ class DrawingService {
     for (final point in points) {
       final index = point.y * width + point.x;
       if (index >= 0 && index < pixels.length && _isInSelectionBounds(point.x, point.y, selection)) {
-        pixels[index] = color.value;
+        // Use point.color since each PixelPoint carries its intended color
+        pixels[index] = point.color;
       }
     }
   }
@@ -98,7 +99,9 @@ class DrawingService {
     for (final point in points) {
       final index = point.y * width + point.x;
       if (index >= 0 && index < newPixels.length && _isInSelectionBounds(point.x, point.y, selection)) {
-        newPixels[index] = color.value;
+        // Use point.color since each PixelPoint carries its intended color
+        // (e.g., eraser sets it to 0x00000000 for transparent)
+        newPixels[index] = point.color;
       }
     }
 

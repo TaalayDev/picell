@@ -307,7 +307,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
         parameterControl = _buildBooleanControl(key, value, metadata);
         break;
       default:
-        parameterControl = _buildSliderControl(key, value, metadata);
+        parameterControl = const SizedBox(); // _buildSliderControl(key, value, metadata);
     }
 
     return Card(
@@ -609,13 +609,13 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
           ),
         ),
       _ => () {
+          final minValue = _getMinValue(paramName, type);
           final maxValue = _getMaxValue(paramName, type);
           return Slider(
-            value: value.toDouble(),
-            min: _getMinValue(paramName, widget.effect.type),
+            value: value.toDouble().clamp(minValue, maxValue),
+            min: minValue,
             max: maxValue,
-            divisions: _getMaxValue(paramName, widget.effect.type).toInt() -
-                _getMinValue(paramName, widget.effect.type).toInt(),
+            divisions: maxValue.toInt() - minValue.toInt(),
             label: value.toString(),
             onChanged: (newValue) {
               setState(() {
