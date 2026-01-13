@@ -4,6 +4,19 @@ import 'package:equatable/equatable.dart';
 
 import 'animation_frame_model.dart';
 
+/// The type of project - determines which editor is used
+enum ProjectType {
+  /// Standard pixel art project (default)
+  pixelArt,
+
+  /// Tile generator project - generate a single tile then edit
+  tileGenerator,
+
+  /// Legacy tilemap type - maps to tileGenerator
+  @Deprecated('Use tileGenerator instead')
+  tilemap,
+}
+
 class Project with EquatableMixin {
   final int id;
   final String name;
@@ -18,6 +31,15 @@ class Project with EquatableMixin {
   final DateTime createdAt;
   final DateTime editedAt;
 
+  /// The type of project (pixelArt or tilemap)
+  final ProjectType type;
+
+  /// For tile generator projects: width of tile in pixels (defaults to width)
+  final int? tileWidth;
+
+  /// For tile generator projects: height of tile in pixels (defaults to height)
+  final int? tileHeight;
+
   Project({
     required this.id,
     required this.name,
@@ -30,6 +52,9 @@ class Project with EquatableMixin {
     this.remoteId,
     this.states = const [],
     this.frames = const [],
+    this.type = ProjectType.pixelArt,
+    this.tileWidth,
+    this.tileHeight,
   });
 
   Project copyWith({
@@ -44,6 +69,9 @@ class Project with EquatableMixin {
     int? remoteId,
     DateTime? createdAt,
     DateTime? editedAt,
+    ProjectType? type,
+    int? tileWidth,
+    int? tileHeight,
   }) {
     return Project(
       id: id ?? this.id,
@@ -57,6 +85,9 @@ class Project with EquatableMixin {
       thumbnail: thumbnail ?? this.thumbnail,
       createdAt: createdAt ?? this.createdAt,
       editedAt: editedAt ?? this.editedAt,
+      type: type ?? this.type,
+      tileWidth: tileWidth ?? this.tileWidth,
+      tileHeight: tileHeight ?? this.tileHeight,
     );
   }
 
@@ -66,6 +97,9 @@ class Project with EquatableMixin {
       'name': name,
       'width': width,
       'height': height,
+      'type': type.name,
+      'tileWidth': tileWidth,
+      'tileHeight': tileHeight,
       'states': states.map((state) => state.toJson()).toList(),
       'frames': frames.map((frame) => frame.toJson()).toList(),
       'thumbnail': thumbnail?.toList(),
@@ -82,6 +116,14 @@ class Project with EquatableMixin {
       name: json['name'] as String,
       width: json['width'] as int,
       height: json['height'] as int,
+      type: json['type'] != null
+          ? ProjectType.values.firstWhere(
+              (e) => e.name == json['type'],
+              orElse: () => ProjectType.pixelArt,
+            )
+          : ProjectType.pixelArt,
+      tileWidth: json['tileWidth'] as int?,
+      tileHeight: json['tileHeight'] as int?,
       states: (json['states'] as List)
           .map(
             (state) => AnimationStateModel.fromJson(state as Map<String, dynamic>),
@@ -106,6 +148,9 @@ class Project with EquatableMixin {
         name,
         width,
         height,
+        type,
+        tileWidth,
+        tileHeight,
         frames,
         states,
         thumbnail,

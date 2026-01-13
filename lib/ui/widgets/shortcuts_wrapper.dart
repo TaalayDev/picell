@@ -22,6 +22,8 @@ class ShortcutsWrapper extends StatefulWidget {
     this.onToggleUI,
     this.onPanStart,
     this.onPanEnd,
+    this.onPipetteStart,
+    this.onPipetteEnd,
     this.onLayerChanged,
     this.onColorPicker,
     this.onNewLayer,
@@ -67,6 +69,8 @@ class ShortcutsWrapper extends StatefulWidget {
   final VoidCallback? onToggleUI;
   final VoidCallback? onPanStart;
   final VoidCallback? onPanEnd;
+  final VoidCallback? onPipetteStart;
+  final VoidCallback? onPipetteEnd;
 
   // Layer actions
   final Function(int)? onLayerChanged;
@@ -99,6 +103,7 @@ class ShortcutsWrapper extends StatefulWidget {
 class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
   late FocusNode _focusNode;
   bool _isSpacePressed = false;
+  bool _isAltPressed = false;
 
   @override
   void initState() {
@@ -144,30 +149,44 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           _focusNode.requestFocus();
         }
       },
-      child: Shortcuts(
-        shortcuts: _buildShortcuts(),
-        child: Actions(
-          actions: _buildActions(),
-          child: Focus(
-            focusNode: _focusNode,
-            autofocus: true,
-            canRequestFocus: true,
-            skipTraversal: false,
-            onFocusChange: (hasFocus) {
-              // if (!hasFocus) {
-              //   // Try to regain focus after a short delay
-              //   Future.delayed(const Duration(milliseconds: 100), () {
-              //     if (mounted && _focusNode.canRequestFocus) {
-              //       _focusNode.requestFocus();
-              //     }
-              //   });
-              // }
-            },
+      child: KeyboardListener(
+        focusNode: _focusNode,
+        autofocus: true,
+        onKeyEvent: _handleKeyEvent,
+        child: Shortcuts(
+          shortcuts: _buildShortcuts(),
+          child: Actions(
+            actions: _buildActions(),
             child: widget.child,
           ),
         ),
       ),
     );
+  }
+
+  void _handleKeyEvent(KeyEvent event) {
+    // Handle spacebar for temporary pan mode
+    if (event.logicalKey == LogicalKeyboardKey.space) {
+      if (event is KeyDownEvent && !_isSpacePressed) {
+        _isSpacePressed = true;
+        widget.onPanStart?.call();
+      } else if (event is KeyUpEvent && _isSpacePressed) {
+        _isSpacePressed = false;
+        widget.onPanEnd?.call();
+      }
+    }
+    
+    // Handle Alt key for temporary pipette/eyedropper mode
+    if (event.logicalKey == LogicalKeyboardKey.altLeft ||
+        event.logicalKey == LogicalKeyboardKey.altRight) {
+      if (event is KeyDownEvent && !_isAltPressed) {
+        _isAltPressed = true;
+        widget.onPipetteStart?.call();
+      } else if (event is KeyUpEvent && _isAltPressed) {
+        _isAltPressed = false;
+        widget.onPipetteEnd?.call();
+      }
+    }
   }
 
   Map<LogicalKeySet, Intent> _buildShortcuts() {
@@ -212,7 +231,7 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
 
       // UI
       LogicalKeySet(LogicalKeyboardKey.tab): const ToggleUIIntent(),
-      LogicalKeySet(LogicalKeyboardKey.space): const PanStartIntent(),
+      // Note: Space is handled directly in _handleKeyEvent for key up support
 
       // Layers (1-9)
       LogicalKeySet(LogicalKeyboardKey.digit1): const LayerIntent(0),

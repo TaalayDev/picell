@@ -9,6 +9,7 @@ import 'cyberpunk.dart';
 import 'dark.dart';
 import 'forest.dart';
 import 'golden_hour.dart';
+import 'gothic_theme.dart';
 import 'ice_crystal.dart';
 import 'light.dart';
 import 'midnight.dart';
@@ -20,6 +21,7 @@ import 'prismatic.dart';
 import 'purple_rain.dart';
 import 'retro_wave.dart';
 import 'rose_quartz_garden.dart';
+import 'steampunk.dart';
 import 'sunset.dart';
 import 'theme_type.dart';
 
@@ -172,6 +174,10 @@ class AppTheme {
         return buildAutumnHarvestTheme();
       case ThemeType.halloween:
         return buildHalloweenTheme();
+      case ThemeType.steampunk:
+        return buildSteampunkTheme();
+      case ThemeType.gothic:
+        return buildGothicTheme();
     }
   }
 

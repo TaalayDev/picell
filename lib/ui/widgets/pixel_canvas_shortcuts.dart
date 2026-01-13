@@ -44,6 +44,8 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isPanMode = useState(false);
+    final isPipetteMode = useState(false);
+    final previousTool = useState<PixelTool?>(null);
 
     return ShortcutsWrapper(
       focusNode: shortcutsFocusNode,
@@ -86,14 +88,34 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       onToggleUI: toggleUI,
       onPanStart: () {
         if (!isPanMode.value) {
+          // Store the current tool before switching to pan mode
+          previousTool.value = currentTool.value;
           currentTool.value = PixelTool.drag;
           isPanMode.value = true;
         }
       },
       onPanEnd: () {
         if (isPanMode.value) {
-          currentTool.value = PixelTool.pencil;
+          // Restore the previous tool
+          currentTool.value = previousTool.value ?? PixelTool.pencil;
+          previousTool.value = null;
           isPanMode.value = false;
+        }
+      },
+      onPipetteStart: () {
+        if (!isPipetteMode.value && !isPanMode.value) {
+          // Store the current tool before switching to pipette mode
+          previousTool.value = currentTool.value;
+          currentTool.value = PixelTool.eyedropper;
+          isPipetteMode.value = true;
+        }
+      },
+      onPipetteEnd: () {
+        if (isPipetteMode.value) {
+          // Restore the previous tool
+          currentTool.value = previousTool.value ?? PixelTool.pencil;
+          previousTool.value = null;
+          isPipetteMode.value = false;
         }
       },
       onLayerChanged: (layerIndex) {

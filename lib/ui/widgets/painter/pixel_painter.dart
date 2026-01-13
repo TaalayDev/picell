@@ -27,6 +27,7 @@ class PixelPainter extends HookConsumerWidget {
     required this.brushSize,
     required this.sprayIntensity,
     this.showPrevFrames = false,
+    this.onToolAutoSwitch,
   });
 
   final Project project;
@@ -40,6 +41,7 @@ class PixelPainter extends HookConsumerWidget {
   final ValueNotifier<int> brushSize;
   final ValueNotifier<int> sprayIntensity;
   final bool showPrevFrames;
+  final Function(PixelTool)? onToolAutoSwitch;
 
   double calculateOnionSkinOpacity(int forIndex, int count) {
     if (count <= 0 || forIndex.abs() > count) {
@@ -193,9 +195,21 @@ class PixelPainter extends HookConsumerWidget {
                     .read(pixelCanvasNotifierProvider(project).notifier)
                     .rotateSelection(selection, oldSelection, angle, center);
               },
+              onTransformStart: (selection) {
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .startTransformSelection(selection);
+              },
+              onTransformEnd: () {
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .endTransformSelection();
+              },
               onColorPicked: (color) {
                 ref.read(pixelCanvasNotifierProvider(project).notifier).currentColor =
                     color == Colors.transparent ? Colors.white : color;
+                // Auto-switch back to pencil after picking a color
+                onToolAutoSwitch?.call(PixelTool.pencil);
               },
               onGradientApplied: (gradientColors) {
                 ref.read(pixelCanvasNotifierProvider(project).notifier).applyGradient(gradientColors);

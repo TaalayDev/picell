@@ -309,6 +309,38 @@ class PixelDrawController extends _$PixelDrawController {
     _originalPixels = null;
   }
 
+  // Selection transformation caching
+  // These store the original pixels and bounds before any transformation
+  // to avoid extracting from already-modified layer data during drag updates
+  Uint32List? _transformCachedPixels;
+  Rect? _transformCachedBounds;
+  List<PixelPoint<int>>? _transformCachedSelection;
+
+  /// Call this at the start of a rotation or resize operation to cache pixel data
+  void startTransformSelection(List<PixelPoint<int>> selection) {
+    if (selection.isEmpty || currentLayer.pixels.isEmpty) return;
+    
+    final bounds = _getSelectionBounds(selection);
+    if (bounds == null || bounds.width <= 0 || bounds.height <= 0) return;
+    
+    _saveState();
+    _transformCachedSelection = List<PixelPoint<int>>.from(selection);
+    _transformCachedBounds = bounds;
+    _transformCachedPixels = _extractSelectedPixels(
+      currentLayer.pixels,
+      selection,
+      bounds,
+      respectSelectionShape: false,
+    );
+  }
+
+  /// Call this at the end of a rotation or resize operation to clear cached data
+  void endTransformSelection() {
+    _transformCachedPixels = null;
+    _transformCachedBounds = null;
+    _transformCachedSelection = null;
+  }
+
   // Layer operations
   Future<void> addLayer(String name) async {
     final order = _layerService.calculateNextLayerOrder(currentFrame.layers);
@@ -909,21 +941,35 @@ class PixelDrawController extends _$PixelDrawController {
       return;
     }
 
-    final originalBounds = _getSelectionBounds(oldSelection);
-    if (originalBounds == null) return;
-
     // Get bounds of NEW selection (after resize)
     final targetBounds = _getSelectionBounds(selection);
     if (targetBounds == null) return;
 
-    _saveState();
+    // Use cached data if available (from startTransformSelection),
+    // otherwise extract from the current layer (for backwards compatibility)
+    final Uint32List selectedPixels;
+    final Rect originalBounds;
+    final List<PixelPoint<int>> originalSelection;
 
-    final selectedPixels = _extractSelectedPixels(
-      currentLayer.pixels,
-      oldSelection,
-      originalBounds,
-      respectSelectionShape: false,
-    );
+    if (_transformCachedPixels != null && _transformCachedBounds != null && _transformCachedSelection != null) {
+      // Use cached data - this prevents extracting from already-modified layer
+      selectedPixels = _transformCachedPixels!;
+      originalBounds = _transformCachedBounds!;
+      originalSelection = _transformCachedSelection!;
+    } else {
+      // Fallback: extract from layer (single-shot resize without caching)
+      final bounds = _getSelectionBounds(oldSelection);
+      if (bounds == null) return;
+      originalBounds = bounds;
+      originalSelection = oldSelection;
+      selectedPixels = _extractSelectedPixels(
+        currentLayer.pixels,
+        oldSelection,
+        originalBounds,
+        respectSelectionShape: false,
+      );
+      _saveState();
+    }
 
     final srcWidth = originalBounds.width.toInt().clamp(1, state.width);
     final srcHeight = originalBounds.height.toInt().clamp(1, state.height);
@@ -942,7 +988,7 @@ class PixelDrawController extends _$PixelDrawController {
 
     final clearedPixels = _clearSelectionArea(
       currentLayer.pixels,
-      oldSelection,
+      originalSelection,
     );
 
     // Constrain target bounds to canvas
@@ -967,33 +1013,48 @@ class PixelDrawController extends _$PixelDrawController {
 
   void rotateSelection(
     List<PixelPoint<int>> selection,
-    List<PixelPoint<int>> oldSelection, // kept for parity; not needed here
+    List<PixelPoint<int>> oldSelection,
     double angle,
     Offset? center,
   ) {
-    if (selection.isEmpty || currentLayer.pixels.isEmpty) return;
+    if (oldSelection.isEmpty || currentLayer.pixels.isEmpty) return;
 
-    final bounds = _getSelectionBounds(selection);
-    if (bounds == null || bounds.width <= 0 || bounds.height <= 0) return;
+    // Use cached data if available (from startTransformSelection),
+    // otherwise extract from the current layer (for backwards compatibility)
+    final Uint32List selectedPixels;
+    final Rect originalBounds;
+    final List<PixelPoint<int>> originalSelection;
 
-    _saveState();
+    if (_transformCachedPixels != null && _transformCachedBounds != null && _transformCachedSelection != null) {
+      // Use cached data - this prevents extracting from already-modified layer
+      selectedPixels = _transformCachedPixels!;
+      originalBounds = _transformCachedBounds!;
+      originalSelection = _transformCachedSelection!;
+    } else {
+      // Fallback: extract from layer (single-shot rotation without caching)
+      final bounds = _getSelectionBounds(oldSelection);
+      if (bounds == null || bounds.width <= 0 || bounds.height <= 0) return;
+      originalBounds = bounds;
+      originalSelection = oldSelection;
+      selectedPixels = _extractSelectedPixels(
+        currentLayer.pixels,
+        oldSelection,
+        originalBounds,
+        respectSelectionShape: false,
+      );
+      _saveState();
+    }
+
+    if (originalBounds.width <= 0 || originalBounds.height <= 0) return;
 
     // Rotation center in world coords (pixels/canvas space)
-    final rotCenter = center ?? bounds.center;
+    final rotCenter = center ?? originalBounds.center;
 
-    // Extract the selected pixels as a tight bitmap of size bounds.w × bounds.h
-    final selectedPixels = _extractSelectedPixels(
-      currentLayer.pixels,
-      selection,
-      bounds,
-      respectSelectionShape: false,
-    );
-
-    final srcWidth = bounds.width.round().clamp(1, state.width);
-    final srcHeight = bounds.height.round().clamp(1, state.height);
+    final srcWidth = originalBounds.width.round().clamp(1, state.width);
+    final srcHeight = originalBounds.height.round().clamp(1, state.height);
 
     // Compute the rotated bounding box in world coords
-    final rotatedBounds = _computeRotatedBounds(bounds, rotCenter, angle);
+    final rotatedBounds = _computeRotatedBounds(originalBounds, rotCenter, angle);
 
     // Produce the rotated pixel buffer sized to rotatedBounds.w × rotatedBounds.h
     final rotatedPixels = PixelUtils.applyRotationWithBounds(
@@ -1001,7 +1062,7 @@ class PixelDrawController extends _$PixelDrawController {
       srcWidth,
       srcHeight,
       angle,
-      bounds, // original (unrotated) world bounds
+      originalBounds, // original (unrotated) world bounds
       rotatedBounds, // rotated world bounds (can be outside canvas)
       rotCenter,
       1, // bilinear
@@ -1009,10 +1070,10 @@ class PixelDrawController extends _$PixelDrawController {
     );
     if (rotatedPixels.isEmpty) return;
 
-    // Clear the original selection area on the layer
+    // Clear the ORIGINAL selection area on the layer (before rotation)
     final clearedPixels = _clearSelectionArea(
       currentLayer.pixels,
-      selection,
+      originalSelection,
     );
 
     // Clamp destination rect to canvas; _placeTransformedPixels should clip if needed

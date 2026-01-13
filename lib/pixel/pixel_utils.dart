@@ -94,8 +94,9 @@ abstract final class PixelUtils {
   ) {
     final result = Uint32List(pixels.length);
 
-    final cosAngle = math.cos(angle);
-    final sinAngle = math.sin(angle);
+    // Use negative angle for inverse rotation (mapping destination -> source)
+    final cosAngle = math.cos(-angle);
+    final sinAngle = math.sin(-angle);
 
     final invZoom = 1.0 / zoom;
 
@@ -103,9 +104,11 @@ abstract final class PixelUtils {
       for (int x = 0; x < width; x++) {
         final destIndex = y * width + x;
 
+        // Offset from center, scaled by inverse zoom
         final dx = (x - centerX) * invZoom;
         final dy = (y - centerY) * invZoom;
 
+        // Apply inverse rotation to find source position
         final sourceX = centerX + dx * cosAngle - dy * sinAngle;
         final sourceY = centerY + dx * sinAngle + dy * cosAngle;
 
@@ -303,20 +306,25 @@ abstract final class PixelUtils {
 
     final result = Uint32List(targetWidth * targetHeight);
 
-    final cosAngle = math.cos(angle);
-    final sinAngle = math.sin(angle);
+    // Use negative angle for inverse rotation (mapping destination -> source)
+    final cosAngle = math.cos(-angle);
+    final sinAngle = math.sin(-angle);
 
     for (int y = 0; y < targetHeight; y++) {
       for (int x = 0; x < targetWidth; x++) {
+        // Destination pixel in world coordinates
         final worldDestX = rotatedBounds.left + x;
         final worldDestY = rotatedBounds.top + y;
 
+        // Offset from rotation center
         final dx = worldDestX - center.dx;
         final dy = worldDestY - center.dy;
 
+        // Apply inverse rotation to find source position in world coordinates
         final sourceWorldX = center.dx + dx * cosAngle - dy * sinAngle;
         final sourceWorldY = center.dy + dx * sinAngle + dy * cosAngle;
 
+        // Convert to source image local coordinates
         final sourceX = sourceWorldX - originalBounds.left;
         final sourceY = sourceWorldY - originalBounds.top;
 

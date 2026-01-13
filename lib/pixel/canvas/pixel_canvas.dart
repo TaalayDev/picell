@@ -42,6 +42,8 @@ class PixelCanvas extends StatefulWidget {
   final Function(List<PixelPoint<int>>, Point)? onMoveSelection;
   final Function(List<PixelPoint<int>>, List<PixelPoint<int>>, Rect, Offset?)? onSelectionResize;
   final Function(List<PixelPoint<int>>, List<PixelPoint<int>>, double, Offset?)? onSelectionRotate;
+  final Function(List<PixelPoint<int>>)? onTransformStart;
+  final Function()? onTransformEnd;
   final Function(Color)? onColorPicked;
   final Function(List<Color>)? onGradientApplied;
   final Function(double, Offset)? onStartDrag;
@@ -68,6 +70,8 @@ class PixelCanvas extends StatefulWidget {
     this.onMoveSelection,
     this.onSelectionResize,
     this.onSelectionRotate,
+    this.onTransformStart,
+    this.onTransformEnd,
     this.onGradientApplied,
     this.sprayIntensity = 5,
     this.zoomLevel = 1.0,
@@ -94,6 +98,9 @@ class _PixelCanvasState extends State<PixelCanvas> {
 
   List<PixelPoint<int>>? _rotationOriginalSelection;
   Offset? _rotationCenter;
+  double _rotationAngle = 0.0;
+
+  List<PixelPoint<int>>? _resizeOriginalSelection;
 
   @override
   void initState() {
@@ -115,6 +122,7 @@ class _PixelCanvasState extends State<PixelCanvas> {
           _controller.clearSelection();
           widget.onSelectionChanged?.call(null);
           _clearRotationState();
+          _resizeOriginalSelection = null;
         }
       });
     });
@@ -320,10 +328,18 @@ class _PixelCanvasState extends State<PixelCanvas> {
                   },
                   onSelectionMoveEnd: () {
                     widget.onSelectionChanged?.call(_controller.selectionPoints);
+                    widget.onTransformEnd?.call();
+                    _resizeOriginalSelection = null;
+                    _clearRotationState();
                   },
-                  onSelectionResizeStart: (original) {},
+                  onSelectionResizeStart: (original) {
+                    _resizeOriginalSelection = List<PixelPoint<int>>.from(original);
+                    // Cache the original pixels for the entire resize operation
+                    widget.onTransformStart?.call(original);
+                  },
                   onSelectionResize: (selection, scaleX, scaleY, pivot) {
-                    final oldSelection = _controller.selectionPoints;
+                    // Use the stored original selection from resize start
+                    final oldSelection = _resizeOriginalSelection ?? _controller.selectionPoints;
 
                     widget.onSelectionResize?.call(
                       selection,
@@ -334,15 +350,20 @@ class _PixelCanvasState extends State<PixelCanvas> {
                     _controller.setSelection(selection);
                   },
                   onSelectionRotate: (rotatedSelection, angle) {
-                    _rotationOriginalSelection ??= List<PixelPoint<int>>.from(_controller.selectionPoints);
-
-                    _rotationCenter ??= _centerOf(rotatedSelection);
+                    if (_rotationOriginalSelection == null) {
+                      // First rotation callback - cache the original selection
+                      _rotationOriginalSelection = List<PixelPoint<int>>.from(_controller.selectionPoints);
+                      _rotationCenter = _centerOf(_rotationOriginalSelection!);
+                      // Cache the original pixels for the entire rotation operation
+                      widget.onTransformStart?.call(_rotationOriginalSelection!);
+                    }
+                    _rotationAngle = angle;
 
                     _controller.setSelection(rotatedSelection);
 
-                    // Optional: if you want parents to react during drag (e.g., show angle), you can surface it:
+                    // Pass the ORIGINAL selection (before rotation) so pixels can be extracted correctly
                     widget.onSelectionRotate
-                        ?.call(rotatedSelection, _controller.selectionPoints, angle, _rotationCenter);
+                        ?.call(rotatedSelection, _rotationOriginalSelection!, angle, _rotationCenter);
                   },
                 );
               }),
@@ -442,5 +463,6 @@ class _PixelCanvasState extends State<PixelCanvas> {
   void _clearRotationState() {
     _rotationOriginalSelection = null;
     _rotationCenter = null;
+    _rotationAngle = 0.0;
   }
 }

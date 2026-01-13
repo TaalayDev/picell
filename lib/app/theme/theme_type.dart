@@ -28,7 +28,9 @@ enum ThemeType {
   roseQuartzGarden,
   winterWonderland,
   autumnHarvest,
-  halloween;
+  halloween,
+  steampunk,
+  gothic;
 
   static List<ThemeType> lockedThemeTypes = [
     ThemeType.ocean,
@@ -62,6 +64,10 @@ enum ThemeType {
         ThemeType.volcanic,
         ThemeType.toxicWaste,
         ThemeType.deepSea,
+        ThemeType.copperSteampunk,
+        ThemeType.prismatic,
+        ThemeType.halloween,
+        ThemeType.steampunk,
       ].contains(this);
 
   bool get isLocked => lockedThemeTypes.contains(this);
@@ -126,6 +132,10 @@ enum ThemeType {
         return 'Autumn Harvest';
       case ThemeType.halloween:
         return 'Halloween';
+      case ThemeType.steampunk:
+        return 'Steampunk';
+      case ThemeType.gothic:
+        return 'Gothic';
     }
   }
 

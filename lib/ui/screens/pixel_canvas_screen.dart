@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -33,9 +34,13 @@ class PixelCanvasScreen extends StatefulHookConsumerWidget {
   const PixelCanvasScreen({
     super.key,
     required this.project,
+    this.tilemapPixels,
   });
 
   final Project project;
+
+  /// Optional pre-rendered pixels from a tilemap editor
+  final Uint32List? tilemapPixels;
 
   @override
   ConsumerState<PixelCanvasScreen> createState() => _PixelCanvasScreenState();
@@ -48,6 +53,21 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
 
   final _shortcutsFocusNode = FocusNode();
   bool _showUI = true;
+  bool _tilemapPixelsApplied = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Apply tilemap pixels after the first frame if provided
+    if (widget.tilemapPixels != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_tilemapPixelsApplied && widget.tilemapPixels != null) {
+          notifier.setLayerPixels(widget.tilemapPixels!);
+          _tilemapPixelsApplied = true;
+        }
+      });
+    }
+  }
 
   void handleExport(
     BuildContext context,
@@ -320,6 +340,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                           brushSize: brushSize,
                                           sprayIntensity: sprayIntensity,
                                           showPrevFrames: showPrevFrames.value,
+                                          onToolAutoSwitch: (tool) {
+                                            currentTool.value = tool;
+                                          },
                                         ),
                                       ),
                                     ),

@@ -25,6 +25,12 @@ class ProjectsTable extends Table {
   IntColumn get remoteId => integer().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get editedAt => dateTime()();
+  // version 6 - tilemap support
+  TextColumn get projectType => text().withDefault(const Constant('pixelArt'))();
+  IntColumn get tileWidth => integer().nullable()();
+  IntColumn get tileHeight => integer().nullable()();
+  IntColumn get gridColumns => integer().nullable()();
+  IntColumn get gridRows => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -82,7 +88,7 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => instance;
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -112,6 +118,18 @@ class AppDatabase extends _$AppDatabase {
           await migrator.alterTable(TableMigration(
             projectsTable,
             newColumns: [projectsTable.isCloudSynced, projectsTable.remoteId],
+          ));
+        }
+        if (from < 6) {
+          await migrator.alterTable(TableMigration(
+            projectsTable,
+            newColumns: [
+              projectsTable.projectType,
+              projectsTable.tileWidth,
+              projectsTable.tileHeight,
+              projectsTable.gridColumns,
+              projectsTable.gridRows,
+            ],
           ));
         }
       },
@@ -231,6 +249,9 @@ class AppDatabase extends _$AppDatabase {
             remoteId: projectRow.remoteId,
             createdAt: projectRow.createdAt,
             editedAt: projectRow.editedAt,
+            type: _parseProjectType(projectRow.projectType),
+            tileWidth: projectRow.tileWidth,
+            tileHeight: projectRow.tileHeight,
             frames: [],
             states: [],
           );
@@ -339,6 +360,9 @@ class AppDatabase extends _$AppDatabase {
           editedAt: project.editedAt,
           isCloudSynced: project.isCloudSynced,
           remoteId: project.remoteId,
+          type: _parseProjectType(project.projectType),
+          tileWidth: project.tileWidth,
+          tileHeight: project.tileHeight,
           states: [],
           frames: [],
         );
@@ -405,6 +429,9 @@ class AppDatabase extends _$AppDatabase {
       editedAt: projectRow.editedAt,
       isCloudSynced: projectRow.isCloudSynced,
       remoteId: projectRow.remoteId,
+      type: _parseProjectType(projectRow.projectType),
+      tileWidth: projectRow.tileWidth,
+      tileHeight: projectRow.tileHeight,
     );
   }
 
@@ -418,6 +445,9 @@ class AppDatabase extends _$AppDatabase {
       editedAt: Value(project.editedAt),
       isCloudSynced: Value(project.isCloudSynced),
       remoteId: Value(project.remoteId),
+      projectType: Value(_projectTypeToString(project.type)),
+      tileWidth: Value(project.tileWidth),
+      tileHeight: Value(project.tileHeight),
     ));
 
     final states = <AnimationStateModel>[];
@@ -482,6 +512,9 @@ class AppDatabase extends _$AppDatabase {
       editedAt: Value(project.editedAt),
       isCloudSynced: Value(project.isCloudSynced),
       remoteId: Value(project.remoteId),
+      projectType: Value(project.type == ProjectType.tilemap ? 'tileGenerator' : project.type.name),
+      tileWidth: Value(project.tileWidth),
+      tileHeight: Value(project.tileHeight),
     ));
 
     for (final state in project.states) {
@@ -780,5 +813,22 @@ class AppDatabase extends _$AppDatabase {
         'parameters': e.parameters,
       };
     }).toList());
+  }
+
+  /// Parse project type from database string, handling legacy 'tilemap' values
+  ProjectType _parseProjectType(String? typeString) {
+    if (typeString == null) return ProjectType.pixelArt;
+    if (typeString == 'tilemap') return ProjectType.tileGenerator;
+    return ProjectType.values.firstWhere(
+      (e) => e.name == typeString,
+      orElse: () => ProjectType.pixelArt,
+    );
+  }
+
+  /// Convert project type to database string
+  String _projectTypeToString(ProjectType type) {
+    // Always save as tileGenerator, never as deprecated tilemap
+    if (type == ProjectType.tilemap) return 'tileGenerator';
+    return type.name;
   }
 }

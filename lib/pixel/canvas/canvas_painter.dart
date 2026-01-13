@@ -55,29 +55,6 @@ class PixelCanvasPainter extends CustomPainter {
     canvas.restore();
   }
 
-  void _drawGrid(Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
-    final paint = Paint()
-      ..color = Colors.grey.withOpacity(0.1)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.5 / controller.zoomLevel;
-
-    for (int x = 0; x <= width; x++) {
-      canvas.drawLine(
-        Offset(x * pixelWidth, 0),
-        Offset(x * pixelWidth, size.height),
-        paint,
-      );
-    }
-
-    for (int y = 0; y <= height; y++) {
-      canvas.drawLine(
-        Offset(0, y * pixelHeight),
-        Offset(size.width, y * pixelHeight),
-        paint,
-      );
-    }
-  }
-
   void _drawLayers(Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
     final canvasRect = Offset.zero & size;
 

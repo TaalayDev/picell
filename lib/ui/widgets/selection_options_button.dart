@@ -53,24 +53,51 @@ class SelectionOptionsButton extends StatelessWidget {
           ),
         ],
       ),
-      child: PopupMenuButton<String>(
-        icon: const Icon(Icons.select_all, color: Colors.blue),
-        tooltip: 'Selection Options',
-        onSelected: (value) => _handleMenuSelection(value),
-        itemBuilder: (BuildContext context) => _buildMenuItems(context),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Simple deselect button
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.red),
+            tooltip: 'Deselect',
+            onPressed: onClearSelection,
+          ),
+          // Options menu
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.select_all, color: Colors.blue),
+            tooltip: 'Selection Options',
+            onSelected: (value) => _handleMenuSelection(value),
+            itemBuilder: (BuildContext context) => _buildMenuItems(context),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildToolbarButton(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: Icon(
-        Icons.select_all,
-        color: Theme.of(context).colorScheme.primary,
-      ),
-      tooltip: 'Selection Options',
-      onSelected: (value) => _handleMenuSelection(value),
-      itemBuilder: (BuildContext context) => _buildMenuItems(context),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Simple deselect button
+        IconButton(
+          icon: Icon(
+            Icons.close,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          tooltip: 'Deselect',
+          onPressed: onClearSelection,
+        ),
+        // Options menu
+        PopupMenuButton<String>(
+          icon: Icon(
+            Icons.select_all,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          tooltip: 'Selection Options',
+          onSelected: (value) => _handleMenuSelection(value),
+          itemBuilder: (BuildContext context) => _buildMenuItems(context),
+        ),
+      ],
     );
   }
 

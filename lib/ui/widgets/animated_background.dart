@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../app/theme/gothic_theme.dart';
+import '../../app/theme/steampunk.dart';
 import '../../core.dart';
 import '../../app/theme/arctic_aurora.dart';
 import '../../app/theme/autumn_harvest.dart';
@@ -558,6 +560,19 @@ class AnimatedBackground extends HookConsumerWidget {
         );
       case ThemeType.halloween:
         return HalloweenBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+
+      case ThemeType.steampunk:
+        return SteampunkBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.gothic:
+        return GothicBackground(
           theme: theme,
           intensity: intensity,
           enableAnimation: enableAnimation,

@@ -70,6 +70,38 @@ class $ProjectsTableTable extends ProjectsTable
   late final GeneratedColumn<DateTime> editedAt = GeneratedColumn<DateTime>(
       'edited_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _projectTypeMeta =
+      const VerificationMeta('projectType');
+  @override
+  late final GeneratedColumn<String> projectType = GeneratedColumn<String>(
+      'project_type', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pixelArt'));
+  static const VerificationMeta _tileWidthMeta =
+      const VerificationMeta('tileWidth');
+  @override
+  late final GeneratedColumn<int> tileWidth = GeneratedColumn<int>(
+      'tile_width', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _tileHeightMeta =
+      const VerificationMeta('tileHeight');
+  @override
+  late final GeneratedColumn<int> tileHeight = GeneratedColumn<int>(
+      'tile_height', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _gridColumnsMeta =
+      const VerificationMeta('gridColumns');
+  @override
+  late final GeneratedColumn<int> gridColumns = GeneratedColumn<int>(
+      'grid_columns', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _gridRowsMeta =
+      const VerificationMeta('gridRows');
+  @override
+  late final GeneratedColumn<int> gridRows = GeneratedColumn<int>(
+      'grid_rows', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -80,7 +112,12 @@ class $ProjectsTableTable extends ProjectsTable
         isCloudSynced,
         remoteId,
         createdAt,
-        editedAt
+        editedAt,
+        projectType,
+        tileWidth,
+        tileHeight,
+        gridColumns,
+        gridRows
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -139,6 +176,32 @@ class $ProjectsTableTable extends ProjectsTable
     } else if (isInserting) {
       context.missing(_editedAtMeta);
     }
+    if (data.containsKey('project_type')) {
+      context.handle(
+          _projectTypeMeta,
+          projectType.isAcceptableOrUnknown(
+              data['project_type']!, _projectTypeMeta));
+    }
+    if (data.containsKey('tile_width')) {
+      context.handle(_tileWidthMeta,
+          tileWidth.isAcceptableOrUnknown(data['tile_width']!, _tileWidthMeta));
+    }
+    if (data.containsKey('tile_height')) {
+      context.handle(
+          _tileHeightMeta,
+          tileHeight.isAcceptableOrUnknown(
+              data['tile_height']!, _tileHeightMeta));
+    }
+    if (data.containsKey('grid_columns')) {
+      context.handle(
+          _gridColumnsMeta,
+          gridColumns.isAcceptableOrUnknown(
+              data['grid_columns']!, _gridColumnsMeta));
+    }
+    if (data.containsKey('grid_rows')) {
+      context.handle(_gridRowsMeta,
+          gridRows.isAcceptableOrUnknown(data['grid_rows']!, _gridRowsMeta));
+    }
     return context;
   }
 
@@ -166,6 +229,16 @@ class $ProjectsTableTable extends ProjectsTable
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       editedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}edited_at'])!,
+      projectType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}project_type'])!,
+      tileWidth: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}tile_width']),
+      tileHeight: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}tile_height']),
+      gridColumns: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}grid_columns']),
+      gridRows: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}grid_rows']),
     );
   }
 
@@ -186,6 +259,11 @@ class ProjectsTableData extends DataClass
   final int? remoteId;
   final DateTime createdAt;
   final DateTime editedAt;
+  final String projectType;
+  final int? tileWidth;
+  final int? tileHeight;
+  final int? gridColumns;
+  final int? gridRows;
   const ProjectsTableData(
       {required this.id,
       required this.name,
@@ -195,7 +273,12 @@ class ProjectsTableData extends DataClass
       required this.isCloudSynced,
       this.remoteId,
       required this.createdAt,
-      required this.editedAt});
+      required this.editedAt,
+      required this.projectType,
+      this.tileWidth,
+      this.tileHeight,
+      this.gridColumns,
+      this.gridRows});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -212,6 +295,19 @@ class ProjectsTableData extends DataClass
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['edited_at'] = Variable<DateTime>(editedAt);
+    map['project_type'] = Variable<String>(projectType);
+    if (!nullToAbsent || tileWidth != null) {
+      map['tile_width'] = Variable<int>(tileWidth);
+    }
+    if (!nullToAbsent || tileHeight != null) {
+      map['tile_height'] = Variable<int>(tileHeight);
+    }
+    if (!nullToAbsent || gridColumns != null) {
+      map['grid_columns'] = Variable<int>(gridColumns);
+    }
+    if (!nullToAbsent || gridRows != null) {
+      map['grid_rows'] = Variable<int>(gridRows);
+    }
     return map;
   }
 
@@ -230,6 +326,19 @@ class ProjectsTableData extends DataClass
           : Value(remoteId),
       createdAt: Value(createdAt),
       editedAt: Value(editedAt),
+      projectType: Value(projectType),
+      tileWidth: tileWidth == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tileWidth),
+      tileHeight: tileHeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tileHeight),
+      gridColumns: gridColumns == null && nullToAbsent
+          ? const Value.absent()
+          : Value(gridColumns),
+      gridRows: gridRows == null && nullToAbsent
+          ? const Value.absent()
+          : Value(gridRows),
     );
   }
 
@@ -246,6 +355,11 @@ class ProjectsTableData extends DataClass
       remoteId: serializer.fromJson<int?>(json['remoteId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       editedAt: serializer.fromJson<DateTime>(json['editedAt']),
+      projectType: serializer.fromJson<String>(json['projectType']),
+      tileWidth: serializer.fromJson<int?>(json['tileWidth']),
+      tileHeight: serializer.fromJson<int?>(json['tileHeight']),
+      gridColumns: serializer.fromJson<int?>(json['gridColumns']),
+      gridRows: serializer.fromJson<int?>(json['gridRows']),
     );
   }
   @override
@@ -261,6 +375,11 @@ class ProjectsTableData extends DataClass
       'remoteId': serializer.toJson<int?>(remoteId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'editedAt': serializer.toJson<DateTime>(editedAt),
+      'projectType': serializer.toJson<String>(projectType),
+      'tileWidth': serializer.toJson<int?>(tileWidth),
+      'tileHeight': serializer.toJson<int?>(tileHeight),
+      'gridColumns': serializer.toJson<int?>(gridColumns),
+      'gridRows': serializer.toJson<int?>(gridRows),
     };
   }
 
@@ -273,7 +392,12 @@ class ProjectsTableData extends DataClass
           bool? isCloudSynced,
           Value<int?> remoteId = const Value.absent(),
           DateTime? createdAt,
-          DateTime? editedAt}) =>
+          DateTime? editedAt,
+          String? projectType,
+          Value<int?> tileWidth = const Value.absent(),
+          Value<int?> tileHeight = const Value.absent(),
+          Value<int?> gridColumns = const Value.absent(),
+          Value<int?> gridRows = const Value.absent()}) =>
       ProjectsTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -284,6 +408,11 @@ class ProjectsTableData extends DataClass
         remoteId: remoteId.present ? remoteId.value : this.remoteId,
         createdAt: createdAt ?? this.createdAt,
         editedAt: editedAt ?? this.editedAt,
+        projectType: projectType ?? this.projectType,
+        tileWidth: tileWidth.present ? tileWidth.value : this.tileWidth,
+        tileHeight: tileHeight.present ? tileHeight.value : this.tileHeight,
+        gridColumns: gridColumns.present ? gridColumns.value : this.gridColumns,
+        gridRows: gridRows.present ? gridRows.value : this.gridRows,
       );
   ProjectsTableData copyWithCompanion(ProjectsTableCompanion data) {
     return ProjectsTableData(
@@ -298,6 +427,14 @@ class ProjectsTableData extends DataClass
       remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       editedAt: data.editedAt.present ? data.editedAt.value : this.editedAt,
+      projectType:
+          data.projectType.present ? data.projectType.value : this.projectType,
+      tileWidth: data.tileWidth.present ? data.tileWidth.value : this.tileWidth,
+      tileHeight:
+          data.tileHeight.present ? data.tileHeight.value : this.tileHeight,
+      gridColumns:
+          data.gridColumns.present ? data.gridColumns.value : this.gridColumns,
+      gridRows: data.gridRows.present ? data.gridRows.value : this.gridRows,
     );
   }
 
@@ -312,7 +449,12 @@ class ProjectsTableData extends DataClass
           ..write('isCloudSynced: $isCloudSynced, ')
           ..write('remoteId: $remoteId, ')
           ..write('createdAt: $createdAt, ')
-          ..write('editedAt: $editedAt')
+          ..write('editedAt: $editedAt, ')
+          ..write('projectType: $projectType, ')
+          ..write('tileWidth: $tileWidth, ')
+          ..write('tileHeight: $tileHeight, ')
+          ..write('gridColumns: $gridColumns, ')
+          ..write('gridRows: $gridRows')
           ..write(')'))
         .toString();
   }
@@ -327,7 +469,12 @@ class ProjectsTableData extends DataClass
       isCloudSynced,
       remoteId,
       createdAt,
-      editedAt);
+      editedAt,
+      projectType,
+      tileWidth,
+      tileHeight,
+      gridColumns,
+      gridRows);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -340,7 +487,12 @@ class ProjectsTableData extends DataClass
           other.isCloudSynced == this.isCloudSynced &&
           other.remoteId == this.remoteId &&
           other.createdAt == this.createdAt &&
-          other.editedAt == this.editedAt);
+          other.editedAt == this.editedAt &&
+          other.projectType == this.projectType &&
+          other.tileWidth == this.tileWidth &&
+          other.tileHeight == this.tileHeight &&
+          other.gridColumns == this.gridColumns &&
+          other.gridRows == this.gridRows);
 }
 
 class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
@@ -353,6 +505,11 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
   final Value<int?> remoteId;
   final Value<DateTime> createdAt;
   final Value<DateTime> editedAt;
+  final Value<String> projectType;
+  final Value<int?> tileWidth;
+  final Value<int?> tileHeight;
+  final Value<int?> gridColumns;
+  final Value<int?> gridRows;
   const ProjectsTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -363,6 +520,11 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.remoteId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.editedAt = const Value.absent(),
+    this.projectType = const Value.absent(),
+    this.tileWidth = const Value.absent(),
+    this.tileHeight = const Value.absent(),
+    this.gridColumns = const Value.absent(),
+    this.gridRows = const Value.absent(),
   });
   ProjectsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -374,6 +536,11 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.remoteId = const Value.absent(),
     required DateTime createdAt,
     required DateTime editedAt,
+    this.projectType = const Value.absent(),
+    this.tileWidth = const Value.absent(),
+    this.tileHeight = const Value.absent(),
+    this.gridColumns = const Value.absent(),
+    this.gridRows = const Value.absent(),
   })  : name = Value(name),
         width = Value(width),
         height = Value(height),
@@ -389,6 +556,11 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     Expression<int>? remoteId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? editedAt,
+    Expression<String>? projectType,
+    Expression<int>? tileWidth,
+    Expression<int>? tileHeight,
+    Expression<int>? gridColumns,
+    Expression<int>? gridRows,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -400,6 +572,11 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       if (remoteId != null) 'remote_id': remoteId,
       if (createdAt != null) 'created_at': createdAt,
       if (editedAt != null) 'edited_at': editedAt,
+      if (projectType != null) 'project_type': projectType,
+      if (tileWidth != null) 'tile_width': tileWidth,
+      if (tileHeight != null) 'tile_height': tileHeight,
+      if (gridColumns != null) 'grid_columns': gridColumns,
+      if (gridRows != null) 'grid_rows': gridRows,
     });
   }
 
@@ -412,7 +589,12 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       Value<bool>? isCloudSynced,
       Value<int?>? remoteId,
       Value<DateTime>? createdAt,
-      Value<DateTime>? editedAt}) {
+      Value<DateTime>? editedAt,
+      Value<String>? projectType,
+      Value<int?>? tileWidth,
+      Value<int?>? tileHeight,
+      Value<int?>? gridColumns,
+      Value<int?>? gridRows}) {
     return ProjectsTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -423,6 +605,11 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       remoteId: remoteId ?? this.remoteId,
       createdAt: createdAt ?? this.createdAt,
       editedAt: editedAt ?? this.editedAt,
+      projectType: projectType ?? this.projectType,
+      tileWidth: tileWidth ?? this.tileWidth,
+      tileHeight: tileHeight ?? this.tileHeight,
+      gridColumns: gridColumns ?? this.gridColumns,
+      gridRows: gridRows ?? this.gridRows,
     );
   }
 
@@ -456,6 +643,21 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     if (editedAt.present) {
       map['edited_at'] = Variable<DateTime>(editedAt.value);
     }
+    if (projectType.present) {
+      map['project_type'] = Variable<String>(projectType.value);
+    }
+    if (tileWidth.present) {
+      map['tile_width'] = Variable<int>(tileWidth.value);
+    }
+    if (tileHeight.present) {
+      map['tile_height'] = Variable<int>(tileHeight.value);
+    }
+    if (gridColumns.present) {
+      map['grid_columns'] = Variable<int>(gridColumns.value);
+    }
+    if (gridRows.present) {
+      map['grid_rows'] = Variable<int>(gridRows.value);
+    }
     return map;
   }
 
@@ -470,7 +672,12 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
           ..write('isCloudSynced: $isCloudSynced, ')
           ..write('remoteId: $remoteId, ')
           ..write('createdAt: $createdAt, ')
-          ..write('editedAt: $editedAt')
+          ..write('editedAt: $editedAt, ')
+          ..write('projectType: $projectType, ')
+          ..write('tileWidth: $tileWidth, ')
+          ..write('tileHeight: $tileHeight, ')
+          ..write('gridColumns: $gridColumns, ')
+          ..write('gridRows: $gridRows')
           ..write(')'))
         .toString();
   }
@@ -1821,6 +2028,11 @@ typedef $$ProjectsTableTableCreateCompanionBuilder = ProjectsTableCompanion
   Value<int?> remoteId,
   required DateTime createdAt,
   required DateTime editedAt,
+  Value<String> projectType,
+  Value<int?> tileWidth,
+  Value<int?> tileHeight,
+  Value<int?> gridColumns,
+  Value<int?> gridRows,
 });
 typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
     Function({
@@ -1833,6 +2045,11 @@ typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
   Value<int?> remoteId,
   Value<DateTime> createdAt,
   Value<DateTime> editedAt,
+  Value<String> projectType,
+  Value<int?> tileWidth,
+  Value<int?> tileHeight,
+  Value<int?> gridColumns,
+  Value<int?> gridRows,
 });
 
 final class $$ProjectsTableTableReferences extends BaseReferences<_$AppDatabase,
@@ -1937,6 +2154,31 @@ class $$ProjectsTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<String> get projectType => $state.composableBuilder(
+      column: $state.table.projectType,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get tileWidth => $state.composableBuilder(
+      column: $state.table.tileWidth,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get tileHeight => $state.composableBuilder(
+      column: $state.table.tileHeight,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get gridColumns => $state.composableBuilder(
+      column: $state.table.gridColumns,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get gridRows => $state.composableBuilder(
+      column: $state.table.gridRows,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ComposableFilter animationStateTableRefs(
       ComposableFilter Function($$AnimationStateTableTableFilterComposer f) f) {
     final $$AnimationStateTableTableFilterComposer composer =
@@ -2028,6 +2270,31 @@ class $$ProjectsTableTableOrderingComposer
       column: $state.table.editedAt,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get projectType => $state.composableBuilder(
+      column: $state.table.projectType,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get tileWidth => $state.composableBuilder(
+      column: $state.table.tileWidth,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get tileHeight => $state.composableBuilder(
+      column: $state.table.tileHeight,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get gridColumns => $state.composableBuilder(
+      column: $state.table.gridColumns,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get gridRows => $state.composableBuilder(
+      column: $state.table.gridRows,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
 class $$ProjectsTableTableTableManager extends RootTableManager<
@@ -2062,6 +2329,11 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> remoteId = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> editedAt = const Value.absent(),
+            Value<String> projectType = const Value.absent(),
+            Value<int?> tileWidth = const Value.absent(),
+            Value<int?> tileHeight = const Value.absent(),
+            Value<int?> gridColumns = const Value.absent(),
+            Value<int?> gridRows = const Value.absent(),
           }) =>
               ProjectsTableCompanion(
             id: id,
@@ -2073,6 +2345,11 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             remoteId: remoteId,
             createdAt: createdAt,
             editedAt: editedAt,
+            projectType: projectType,
+            tileWidth: tileWidth,
+            tileHeight: tileHeight,
+            gridColumns: gridColumns,
+            gridRows: gridRows,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2084,6 +2361,11 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> remoteId = const Value.absent(),
             required DateTime createdAt,
             required DateTime editedAt,
+            Value<String> projectType = const Value.absent(),
+            Value<int?> tileWidth = const Value.absent(),
+            Value<int?> tileHeight = const Value.absent(),
+            Value<int?> gridColumns = const Value.absent(),
+            Value<int?> gridRows = const Value.absent(),
           }) =>
               ProjectsTableCompanion.insert(
             id: id,
@@ -2095,6 +2377,11 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             remoteId: remoteId,
             createdAt: createdAt,
             editedAt: editedAt,
+            projectType: projectType,
+            tileWidth: tileWidth,
+            tileHeight: tileHeight,
+            gridColumns: gridColumns,
+            gridRows: gridRows,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

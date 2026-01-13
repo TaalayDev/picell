@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -187,6 +188,12 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
     updateLayer(updatedLayer);
   }
 
+  /// Set the pixels of the current layer directly (used when importing from tilemap)
+  void setLayerPixels(Uint32List pixels) {
+    final updatedLayer = _controller.currentLayer.copyWith(pixels: pixels);
+    updateLayer(updatedLayer);
+  }
+
   void resizeSelection(
     List<PixelPoint<int>> selection,
     List<PixelPoint<int>> oldSelection,
@@ -206,6 +213,16 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
     Offset? center,
   ) {
     _controller.rotateSelection(selection, oldSelection, angle, center);
+  }
+
+  /// Call at the start of a rotation or resize operation to cache the original pixels
+  void startTransformSelection(List<PixelPoint<int>> selection) {
+    _controller.startTransformSelection(selection);
+  }
+
+  /// Call at the end of a rotation or resize operation to clear the cache
+  void endTransformSelection() {
+    _controller.endTransformSelection();
   }
 
   List<PixelPoint<int>> _createSelectionFromBounds(Rect bounds) {
