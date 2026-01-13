@@ -196,14 +196,10 @@ class PixelPainter extends HookConsumerWidget {
                     .rotateSelection(selection, oldSelection, angle, center);
               },
               onTransformStart: (selection) {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .startTransformSelection(selection);
+                ref.read(pixelCanvasNotifierProvider(project).notifier).startTransformSelection(selection);
               },
               onTransformEnd: () {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .endTransformSelection();
+                ref.read(pixelCanvasNotifierProvider(project).notifier).endTransformSelection();
               },
               onColorPicked: (color) {
                 ref.read(pixelCanvasNotifierProvider(project).notifier).currentColor =

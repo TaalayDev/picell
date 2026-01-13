@@ -319,10 +319,10 @@ class PixelDrawController extends _$PixelDrawController {
   /// Call this at the start of a rotation or resize operation to cache pixel data
   void startTransformSelection(List<PixelPoint<int>> selection) {
     if (selection.isEmpty || currentLayer.pixels.isEmpty) return;
-    
+
     final bounds = _getSelectionBounds(selection);
     if (bounds == null || bounds.width <= 0 || bounds.height <= 0) return;
-    
+
     _saveState();
     _transformCachedSelection = List<PixelPoint<int>>.from(selection);
     _transformCachedBounds = bounds;

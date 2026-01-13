@@ -175,10 +175,9 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
         widget.onPanEnd?.call();
       }
     }
-    
+
     // Handle Alt key for temporary pipette/eyedropper mode
-    if (event.logicalKey == LogicalKeyboardKey.altLeft ||
-        event.logicalKey == LogicalKeyboardKey.altRight) {
+    if (event.logicalKey == LogicalKeyboardKey.altLeft || event.logicalKey == LogicalKeyboardKey.altRight) {
       if (event is KeyDownEvent && !_isAltPressed) {
         _isAltPressed = true;
         widget.onPipetteStart?.call();
