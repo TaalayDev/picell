@@ -193,35 +193,33 @@ class _SelectionOverlayState extends State<SelectionOverlay> with SingleTickerPr
           top: screenTop,
           width: screenWidth,
           height: screenHeight,
-          child: Transform.rotate(
-            angle: _isRotating ? _rotationAngle : 0.0,
-            alignment: Alignment.center,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                GestureDetector(
-                  onPanStart: _handlePanStart,
-                  onPanUpdate: _handlePanUpdate,
-                  onPanEnd: _handlePanEnd,
-                  child: AnimatedBuilder(
-                    animation: _animationController,
-                    builder: (context, _) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.blueAccent.withOpacity(0.2),
-                        ),
-                        child: CustomPaint(
-                          size: Size.infinite,
-                          painter: MarchingAntsPainter(progress: _animationController.value),
-                        ),
-                      );
-                    },
-                  ),
+          // Don't apply visual rotation transform - the selection points are already
+          // rotated, so the bounding box reflects the actual rotated selection
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              GestureDetector(
+                onPanStart: _handlePanStart,
+                onPanUpdate: _handlePanUpdate,
+                onPanEnd: _handlePanEnd,
+                child: AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, _) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent.withOpacity(0.2),
+                      ),
+                      child: CustomPaint(
+                        size: Size.infinite,
+                        painter: MarchingAntsPainter(progress: _animationController.value),
+                      ),
+                    );
+                  },
                 ),
-                ..._buildSelectionHandles(screenWidth, screenHeight),
-                _buildRotationHandle(screenWidth, screenHeight),
-              ],
-            ),
+              ),
+              ..._buildSelectionHandles(screenWidth, screenHeight),
+              _buildRotationHandle(screenWidth, screenHeight),
+            ],
           ),
         ),
       ],
