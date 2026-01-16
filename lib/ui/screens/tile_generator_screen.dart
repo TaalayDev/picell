@@ -715,6 +715,12 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
         return Icons.emoji_nature;
       case TileCategory.dungeon:
         return Icons.castle;
+      case TileCategory.urban:
+        return Icons.location_city;
+      case TileCategory.varied:
+        return Icons.color_lens;
+      case TileCategory.platformer:
+        return Icons.directions_run;
     }
   }
 

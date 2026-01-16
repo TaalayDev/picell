@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'tile_palette.dart';
+import 'tiles/extended_urban.dart';
+import 'tiles/platformer_tiles.dart';
 import 'tiles/terrain.dart';
 import 'tiles/structure.dart';
 import 'tiles/liquid.dart';
@@ -10,6 +12,8 @@ import 'tiles/nature.dart';
 import 'tiles/special.dart';
 import 'tiles/stone.dart';
 import 'tiles/extended_stone.dart';
+import 'tiles/urban_tiles.dart' hide HerringboneBrickTile;
+import 'tiles/varied.dart';
 
 /// Base class for all tile types with powerful abstraction
 abstract class TileBase {
@@ -168,7 +172,10 @@ enum TileCategory {
   liquid('Liquid', 'Water, lava, and other fluids'),
   special('Special', 'Magical and special effect tiles'),
   decoration('Decoration', 'Decorative elements'),
-  dungeon('Dungeon', 'Dungeon and cave tiles');
+  dungeon('Dungeon', 'Dungeon and cave tiles'),
+  urban('Urban', 'City and road tiles'),
+  varied('Varied', 'Tiles with varied color palettes'),
+  platformer('Platformer', 'Tiles for platformer games');
 
   final String name;
   final String description;
@@ -198,7 +205,7 @@ class TileRegistry {
   /// All registered tile types
   final Map<String, TileBase Function()> _registry = {
     // =========================================================================
-    // TERRAIN TILES
+    // TERRAIN TILES (Original)
     // =========================================================================
     'grass': () => GrassTile('grass'),
     'grass_flowers': () => GrassTile('grass_flowers', includeFlowers: true),
@@ -207,7 +214,7 @@ class TileRegistry {
     'snow': () => SnowTile('snow'),
 
     // =========================================================================
-    // STRUCTURE TILES
+    // STRUCTURE TILES (Original)
     // =========================================================================
     'wall_brick': () => WallTile('wall_brick', style: WallStyle.brick),
     'wall_stone': () => WallTile('wall_stone', style: WallStyle.stone),
@@ -218,27 +225,125 @@ class TileRegistry {
     'floor_tile': () => FloorTile('floor_tile', style: FloorStyle.tile),
 
     // =========================================================================
-    // LIQUID TILES
+    // LIQUID TILES (Original)
     // =========================================================================
     'water': () => WaterTile('water'),
     'lava': () => LavaTile('lava'),
 
     // =========================================================================
-    // NATURE TILES
+    // NATURE TILES (Original)
     // =========================================================================
     'stone': () => StoneTile('stone'),
     'stone_mossy': () => StoneTile('stone_mossy', addMoss: true),
 
     // =========================================================================
-    // SPECIAL TILES
+    // SPECIAL TILES (Original)
     // =========================================================================
     'crystal': () => CrystalTile('crystal'),
 
     // =========================================================================
-    // STONE/DUNGEON TILES (NEW - from reference image)
+    // URBAN / ROAD TILES (NEW)
     // =========================================================================
+    'asphalt': () => AsphaltTile('asphalt'),
+    'asphalt_cracked': () => AsphaltTile('asphalt_cracked', addCracks: true),
+    'asphalt_patched': () => AsphaltTile('asphalt_patched', addPatches: true),
+    'road_center_line': () => RoadCenterLineTile('road_center_line'),
+    'road_center_line_dashed': () => RoadCenterLineTile('road_center_line_dashed', dashed: true),
+    'road_double_yellow': () => RoadCenterLineTile('road_double_yellow', doubleYellow: true),
+    'road_edge_left': () => RoadEdgeLineTile('road_edge_left', leftEdge: true),
+    'road_edge_right': () => RoadEdgeLineTile('road_edge_right', leftEdge: false),
+    'parking_lot': () => ParkingLotTile('parking_lot'),
 
-    // --- Horizontal Stone Brick Variants (Row 1) ---
+    // =========================================================================
+    // CONCRETE TILES (NEW)
+    // =========================================================================
+    'concrete': () => ConcreteTile('concrete'),
+    'concrete_joints': () => ConcreteTile('concrete_joints', addJoints: true),
+    'concrete_cracked': () => ConcreteTile('concrete_cracked', addCracks: true),
+    'concrete_slab': () => ConcreteSlabTile('concrete_slab'),
+    'concrete_slab_small': () => ConcreteSlabTile('concrete_slab_small', slabSize: 4),
+
+    // =========================================================================
+    // GRASS VARIATIONS (NEW)
+    // =========================================================================
+    'lush_grass': () => LushGrassTile('lush_grass'),
+    'lush_grass_dense': () => LushGrassTile('lush_grass_dense', density: 0.6),
+    'worn_grass': () => WornGrassTile('worn_grass'),
+    'dry_grass': () => DryGrassTile('dry_grass'),
+
+    // =========================================================================
+    // DIRT AND SOIL TILES (NEW)
+    // =========================================================================
+    'soil': () => SoilTile('soil'),
+    'soil_rocky': () => SoilTile('soil_rocky', addRocks: true),
+    'cracked_earth': () => CrackedEarthTile('cracked_earth'),
+    'gravel': () => GravelTile('gravel'),
+    'fine_gravel': () => GravelTile('fine_gravel', fine: true),
+
+    // =========================================================================
+    // ROCK AND CLIFF TILES (NEW)
+    // =========================================================================
+    'rock_cliff': () => RockCliffTile('rock_cliff'),
+    'mossy_rock': () => MossyRockTile('mossy_rock'),
+
+    // =========================================================================
+    // ROOF TILES (NEW)
+    // =========================================================================
+    'roof_tile': () => RoofTileTile('roof_tile'),
+    'roof_tile_large': () => RoofTileTile('roof_tile_large', tileHeight: 6),
+    'slate_roof': () => SlateRoofTile('slate_roof'),
+    'shingle_roof': () => ShingleRoofTile('shingle_roof'),
+
+    // =========================================================================
+    // PAVING AND FLOOR TILES (NEW)
+    // =========================================================================
+    'cobblestone_paving': () => CobblestonePavingTile('cobblestone_paving'),
+    'cobblestone_irregular': () => CobblestonePavingTile('cobblestone_irregular', irregular: true),
+    'checkered_floor': () => CheckeredFloorTile('checkered_floor'),
+    'checkered_floor_small': () => CheckeredFloorTile('checkered_floor_small', tileSize: 2),
+    'square_floor_tile': () => SquareFloorTile('square_floor_tile'),
+    'beach_sand': () => BeachSandTile('beach_sand'),
+    'beach_sand_shells': () => BeachSandTile('beach_sand_shells', addShells: true),
+
+    // =========================================================================
+    // BRICK PATTERN VARIATIONS (NEW)
+    // =========================================================================
+    'running_bond_brick': () => RunningBondBrickTile('running_bond_brick'),
+    'stack_bond_brick': () => StackBondBrickTile('stack_bond_brick'),
+    'basket_weave_brick': () => BasketWeaveBrickTile('basket_weave_brick'),
+    'diagonal_brick': () => DiagonalBrickTile('diagonal_brick'),
+    'herringbone_brick': () => HerringboneBrickTile('herringbone_brick'),
+
+    // =========================================================================
+    // STONE PATTERN VARIATIONS (NEW)
+    // =========================================================================
+    'flagstone': () => FlagstoneTile('flagstone'),
+    'ashlar_stone': () => AshlarStoneTile('ashlar_stone'),
+    'river_rock': () => RiverRockTile('river_rock'),
+
+    // =========================================================================
+    // DECORATIVE FLOOR TILES (NEW)
+    // =========================================================================
+    'marble_floor': () => MarbleFloorTile('marble_floor'),
+    'marble_floor_small': () => MarbleFloorTile('marble_floor_small', tileSize: 4),
+    'granite_floor': () => GraniteFloorTile('granite_floor'),
+    'ceramic_tile': () => CeramicTileTile('ceramic_tile'),
+
+    // =========================================================================
+    // WOOD AND METAL SURFACES (NEW)
+    // =========================================================================
+    'weathered_wood': () => WeatheredWoodTile('weathered_wood'),
+    'weathered_wood_horizontal': () => WeatheredWoodTile('weathered_wood_horizontal', vertical: false),
+    'corrugated_metal': () => CorrugatedMetalTile('corrugated_metal'),
+    'corrugated_metal_horizontal': () => CorrugatedMetalTile('corrugated_metal_horizontal', vertical: false),
+    'rusty_metal': () => RustyMetalTile('rusty_metal'),
+    'diamond_plate': () => DiamondPlateTile('diamond_plate'),
+    'metal_grating': () => GratingTile('metal_grating'),
+    'metal_grating_fine': () => GratingTile('metal_grating_fine', gridSize: 2),
+
+    // =========================================================================
+    // EXISTING DUNGEON STONE TILES
+    // =========================================================================
     'horizontal_stone_brick': () => HorizontalStoneBrickTile('horizontal_stone_brick'),
     'horizontal_stone_brick_light': () => HorizontalStoneBrickTile(
           'horizontal_stone_brick_light',
@@ -248,76 +353,296 @@ class TileRegistry {
           'horizontal_stone_brick_worn',
           style: HorizontalBrickStyle.worn,
         ),
-    'horizontal_stone_brick_detailed': () => HorizontalStoneBrickTile(
-          'horizontal_stone_brick_detailed',
-          style: HorizontalBrickStyle.detailed,
-        ),
-
-    // --- Cobblestone & Textured Stone (Row 2) ---
     'irregular_cobblestone': () => IrregularCobblestoneTile('irregular_cobblestone'),
     'vine_covered_stone': () => VineCoveredStoneTile('vine_covered_stone'),
     'rough_textured_stone': () => RoughTexturedStoneTile('rough_textured_stone'),
     'stone_brick_transition': () => StoneBrickTransitionTile('stone_brick_transition'),
-
-    // --- Column & Decorative Stone (Row 3) ---
     'vertical_stone_column': () => VerticalStoneColumnTile('vertical_stone_column'),
     'stone_with_grass_top': () => StoneWithGrassTopTile('stone_with_grass_top'),
     'ornate_stone_block': () => OrnateStoneBlockTile('ornate_stone_block'),
     'large_stone_blocks': () => LargeStoneBlocksTile('large_stone_blocks'),
-
-    // --- Special Stone Types (Row 4) ---
     'dark_vertical_planks': () => DarkVerticalPlanksTile('dark_vertical_planks'),
     'ice_frost_stone': () => IceFrostStoneTile('ice_frost_stone'),
     'large_brick_pattern': () => LargeBrickPatternTile('large_brick_pattern'),
     'stone_with_door': () => StoneWithDoorTile('stone_with_door'),
-
-    // --- Additional Stone Variants ---
     'cracked_stone_floor': () => CrackedStoneFloorTile('cracked_stone_floor'),
     'mossy_dungeon_wall': () => MossyDungeonWallTile('mossy_dungeon_wall'),
     'ancient_ruin_stone': () => AncientRuinStoneTile('ancient_ruin_stone'),
     'carved_stone_tile': () => CarvedStoneTileTile('carved_stone_tile'),
 
     // =========================================================================
-    // EXTENDED GRAY STONE TILES (from second reference image)
+    // EXTENDED GRAY STONE TILES
     // =========================================================================
-
-    // --- Row 1: Cobblestone and Floor Variants ---
     'small_cobblestone_floor': () => SmallCobblestoneFloorTile('small_cobblestone_floor'),
     'medium_cobblestone_floor': () => MediumCobblestoneFloorTile('medium_cobblestone_floor'),
     'rough_stone_floor': () => RoughStoneFloorTile('rough_stone_floor'),
     'vine_stone_floor': () => VineStoneFloorTile('vine_stone_floor'),
     'regular_stone_brick': () => RegularStoneBrickTile('regular_stone_brick'),
-
-    // --- Row 2: Decorative Patterns ---
     'vertical_stone_stripes': () => VerticalStoneStripesTile('vertical_stone_stripes'),
     'concentric_square_stone': () => ConcentricSquareStoneTile('concentric_square_stone'),
     'cross_hatch_stone': () => CrossHatchStoneTile('cross_hatch_stone'),
-
-    // --- Row 3: Large Blocks ---
     'large_bordered_stone_block': () => LargeBorderedStoneBlockTile('large_bordered_stone_block'),
     'horizontal_stone_slab': () => HorizontalStoneSlabTile('horizontal_stone_slab'),
     'mossy_large_stone': () => MossyLargeStoneTile('mossy_large_stone'),
     'inset_square_stone': () => InsetSquareStoneTile('inset_square_stone'),
-
-    // --- Row 4: More Decorative ---
     'striped_border_stone': () => StripedBorderStoneTile('striped_border_stone'),
     'horizontal_lined_stone': () => HorizontalLinedStoneTile('horizontal_lined_stone'),
 
     // =========================================================================
-    // EXTENDED BROWN BRICK TILES (from second reference image)
+    // EXTENDED BROWN BRICK TILES
     // =========================================================================
-
-    // --- Row 5: Brown Brick Basics ---
     'rough_brown_brick_floor': () => RoughBrownBrickFloorTile('rough_brown_brick_floor'),
     'horizontal_brown_brick': () => HorizontalBrownBrickTile('horizontal_brown_brick'),
     'diagonal_brown_brick': () => DiagonalBrownBrickTile('diagonal_brown_brick'),
     'vine_brown_brick': () => VineBrownBrickTile('vine_brown_brick'),
     'standard_brown_brick_wall': () => StandardBrownBrickWallTile('standard_brown_brick_wall'),
-
-    // --- Row 6: Brown Brick Decorative ---
     'grid_brown_brick': () => GridBrownBrickTile('grid_brown_brick'),
     'large_bordered_brown_brick': () => LargeBorderedBrownBrickTile('large_bordered_brown_brick'),
     'horizontal_brown_brick_slab': () => HorizontalBrownBrickSlabTile('horizontal_brown_brick_slab'),
+
+    // =========================================================================
+    // RED ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_red': () => ColoredRoofShingleTile('roof_shingle_red', colorPalette: ColoredRoofPalettes.redRoof),
+    'roof_curved_red': () => ColoredRoofTileTile('roof_curved_red', colorPalette: ColoredRoofPalettes.redRoof),
+    'small_brick_red': () => ColoredSmallBrickTile('small_brick_red', colorPalette: ColoredRoofPalettes.redRoof),
+
+    // =========================================================================
+    // ORANGE ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_orange': () =>
+        ColoredRoofShingleTile('roof_shingle_orange', colorPalette: ColoredRoofPalettes.orangeRoof),
+    'roof_curved_orange': () => ColoredRoofTileTile('roof_curved_orange', colorPalette: ColoredRoofPalettes.orangeRoof),
+    'small_brick_orange': () =>
+        ColoredSmallBrickTile('small_brick_orange', colorPalette: ColoredRoofPalettes.orangeRoof),
+
+    // =========================================================================
+    // TEAL ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_teal': () => ColoredRoofShingleTile('roof_shingle_teal', colorPalette: ColoredRoofPalettes.tealRoof),
+    'roof_curved_teal': () => ColoredRoofTileTile('roof_curved_teal', colorPalette: ColoredRoofPalettes.tealRoof),
+    'small_brick_teal': () => ColoredSmallBrickTile('small_brick_teal', colorPalette: ColoredRoofPalettes.tealRoof),
+
+    // =========================================================================
+    // PURPLE ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_purple': () =>
+        ColoredRoofShingleTile('roof_shingle_purple', colorPalette: ColoredRoofPalettes.purpleRoof),
+    'roof_curved_purple': () => ColoredRoofTileTile('roof_curved_purple', colorPalette: ColoredRoofPalettes.purpleRoof),
+    'small_brick_purple': () =>
+        ColoredSmallBrickTile('small_brick_purple', colorPalette: ColoredRoofPalettes.purpleRoof),
+
+    // =========================================================================
+    // MAROON ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_maroon': () =>
+        ColoredRoofShingleTile('roof_shingle_maroon', colorPalette: ColoredRoofPalettes.maroonRoof),
+    'roof_curved_maroon': () => ColoredRoofTileTile('roof_curved_maroon', colorPalette: ColoredRoofPalettes.maroonRoof),
+    'small_brick_maroon': () =>
+        ColoredSmallBrickTile('small_brick_maroon', colorPalette: ColoredRoofPalettes.maroonRoof),
+
+    // =========================================================================
+    // BLUE ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_blue': () => ColoredRoofShingleTile('roof_shingle_blue', colorPalette: ColoredRoofPalettes.blueRoof),
+    'roof_curved_blue': () => ColoredRoofTileTile('roof_curved_blue', colorPalette: ColoredRoofPalettes.blueRoof),
+    'small_brick_blue': () => ColoredSmallBrickTile('small_brick_blue', colorPalette: ColoredRoofPalettes.blueRoof),
+
+    // =========================================================================
+    // NAVY ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_navy': () => ColoredRoofShingleTile('roof_shingle_navy', colorPalette: ColoredRoofPalettes.navyRoof),
+    'roof_curved_navy': () => ColoredRoofTileTile('roof_curved_navy', colorPalette: ColoredRoofPalettes.navyRoof),
+    'small_brick_navy': () => ColoredSmallBrickTile('small_brick_navy', colorPalette: ColoredRoofPalettes.navyRoof),
+
+    // =========================================================================
+    // GRAY ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_gray': () => ColoredRoofShingleTile('roof_shingle_gray', colorPalette: ColoredRoofPalettes.grayRoof),
+    'roof_curved_gray': () => ColoredRoofTileTile('roof_curved_gray', colorPalette: ColoredRoofPalettes.grayRoof),
+    'small_brick_gray': () => ColoredSmallBrickTile('small_brick_gray', colorPalette: ColoredRoofPalettes.grayRoof),
+
+    // =========================================================================
+    // DARK GRAY ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_dark_gray': () =>
+        ColoredRoofShingleTile('roof_shingle_dark_gray', colorPalette: ColoredRoofPalettes.darkGrayRoof),
+    'roof_curved_dark_gray': () =>
+        ColoredRoofTileTile('roof_curved_dark_gray', colorPalette: ColoredRoofPalettes.darkGrayRoof),
+    'small_brick_dark_gray': () =>
+        ColoredSmallBrickTile('small_brick_dark_gray', colorPalette: ColoredRoofPalettes.darkGrayRoof),
+
+    // =========================================================================
+    // BROWN ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_brown': () =>
+        ColoredRoofShingleTile('roof_shingle_brown', colorPalette: ColoredRoofPalettes.brownRoof),
+    'roof_curved_brown': () => ColoredRoofTileTile('roof_curved_brown', colorPalette: ColoredRoofPalettes.brownRoof),
+    'small_brick_brown': () => ColoredSmallBrickTile('small_brick_brown', colorPalette: ColoredRoofPalettes.brownRoof),
+
+    // =========================================================================
+    // GREEN ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_green': () =>
+        ColoredRoofShingleTile('roof_shingle_green', colorPalette: ColoredRoofPalettes.greenRoof),
+    'roof_curved_green': () => ColoredRoofTileTile('roof_curved_green', colorPalette: ColoredRoofPalettes.greenRoof),
+    'small_brick_green': () => ColoredSmallBrickTile('small_brick_green', colorPalette: ColoredRoofPalettes.greenRoof),
+
+    // =========================================================================
+    // DARK GREEN ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_dark_green': () =>
+        ColoredRoofShingleTile('roof_shingle_dark_green', colorPalette: ColoredRoofPalettes.darkGreenRoof),
+    'roof_curved_dark_green': () =>
+        ColoredRoofTileTile('roof_curved_dark_green', colorPalette: ColoredRoofPalettes.darkGreenRoof),
+    'small_brick_dark_green': () =>
+        ColoredSmallBrickTile('small_brick_dark_green', colorPalette: ColoredRoofPalettes.darkGreenRoof),
+
+    // =========================================================================
+    // OLIVE ROOF VARIANTS
+    // =========================================================================
+    'roof_shingle_olive': () =>
+        ColoredRoofShingleTile('roof_shingle_olive', colorPalette: ColoredRoofPalettes.oliveRoof),
+    'roof_curved_olive': () => ColoredRoofTileTile('roof_curved_olive', colorPalette: ColoredRoofPalettes.oliveRoof),
+    'small_brick_olive': () => ColoredSmallBrickTile('small_brick_olive', colorPalette: ColoredRoofPalettes.oliveRoof),
+
+    // =========================================================================
+    // WARM GRAY STONE VARIANTS
+    // =========================================================================
+    'cobble_warm_gray': () => ColoredCobblestoneTile('cobble_warm_gray', colorPalette: VariedStonePalettes.warmGray),
+    'stone_brick_warm_gray': () =>
+        ColoredStoneBrickTile('stone_brick_warm_gray', colorPalette: VariedStonePalettes.warmGray),
+    'rough_warm_gray': () => ColoredRoughStoneTile('rough_warm_gray', colorPalette: VariedStonePalettes.warmGray),
+    'large_block_warm_gray': () =>
+        ColoredLargeBlockTile('large_block_warm_gray', colorPalette: VariedStonePalettes.warmGray),
+    'weathered_warm_gray': () =>
+        ColoredWeatheredStoneTile('weathered_warm_gray', colorPalette: VariedStonePalettes.warmGray),
+
+    // =========================================================================
+    // COOL GRAY STONE VARIANTS
+    // =========================================================================
+    'cobble_cool_gray': () => ColoredCobblestoneTile('cobble_cool_gray', colorPalette: VariedStonePalettes.coolGray),
+    'stone_brick_cool_gray': () =>
+        ColoredStoneBrickTile('stone_brick_cool_gray', colorPalette: VariedStonePalettes.coolGray),
+    'rough_cool_gray': () => ColoredRoughStoneTile('rough_cool_gray', colorPalette: VariedStonePalettes.coolGray),
+    'large_block_cool_gray': () =>
+        ColoredLargeBlockTile('large_block_cool_gray', colorPalette: VariedStonePalettes.coolGray),
+    'weathered_cool_gray': () =>
+        ColoredWeatheredStoneTile('weathered_cool_gray', colorPalette: VariedStonePalettes.coolGray),
+
+    // =========================================================================
+    // TAN STONE VARIANTS
+    // =========================================================================
+    'cobble_tan': () => ColoredCobblestoneTile('cobble_tan', colorPalette: VariedStonePalettes.tanStone),
+    'stone_brick_tan': () => ColoredStoneBrickTile('stone_brick_tan', colorPalette: VariedStonePalettes.tanStone),
+    'rough_tan': () => ColoredRoughStoneTile('rough_tan', colorPalette: VariedStonePalettes.tanStone),
+    'large_block_tan': () => ColoredLargeBlockTile('large_block_tan', colorPalette: VariedStonePalettes.tanStone),
+    'weathered_tan': () => ColoredWeatheredStoneTile('weathered_tan', colorPalette: VariedStonePalettes.tanStone),
+
+    // =========================================================================
+    // CREAM STONE VARIANTS
+    // =========================================================================
+    'cobble_cream': () => ColoredCobblestoneTile('cobble_cream', colorPalette: VariedStonePalettes.creamStone),
+    'stone_brick_cream': () => ColoredStoneBrickTile('stone_brick_cream', colorPalette: VariedStonePalettes.creamStone),
+    'rough_cream': () => ColoredRoughStoneTile('rough_cream', colorPalette: VariedStonePalettes.creamStone),
+    'large_block_cream': () => ColoredLargeBlockTile('large_block_cream', colorPalette: VariedStonePalettes.creamStone),
+    'weathered_cream': () => ColoredWeatheredStoneTile('weathered_cream', colorPalette: VariedStonePalettes.creamStone),
+
+    // =========================================================================
+    // BROWN STONE VARIANTS
+    // =========================================================================
+    'cobble_brown_stone': () =>
+        ColoredCobblestoneTile('cobble_brown_stone', colorPalette: VariedStonePalettes.brownStone),
+    'stone_brick_brown_stone': () =>
+        ColoredStoneBrickTile('stone_brick_brown_stone', colorPalette: VariedStonePalettes.brownStone),
+    'rough_brown_stone': () => ColoredRoughStoneTile('rough_brown_stone', colorPalette: VariedStonePalettes.brownStone),
+    'large_block_brown_stone': () =>
+        ColoredLargeBlockTile('large_block_brown_stone', colorPalette: VariedStonePalettes.brownStone),
+    'weathered_brown_stone': () =>
+        ColoredWeatheredStoneTile('weathered_brown_stone', colorPalette: VariedStonePalettes.brownStone),
+
+    // =========================================================================
+    // DARK BROWN STONE VARIANTS
+    // =========================================================================
+    'cobble_dark_brown': () =>
+        ColoredCobblestoneTile('cobble_dark_brown', colorPalette: VariedStonePalettes.darkBrownStone),
+    'stone_brick_dark_brown': () =>
+        ColoredStoneBrickTile('stone_brick_dark_brown', colorPalette: VariedStonePalettes.darkBrownStone),
+    'rough_dark_brown': () =>
+        ColoredRoughStoneTile('rough_dark_brown', colorPalette: VariedStonePalettes.darkBrownStone),
+    'large_block_dark_brown': () =>
+        ColoredLargeBlockTile('large_block_dark_brown', colorPalette: VariedStonePalettes.darkBrownStone),
+    'weathered_dark_brown': () =>
+        ColoredWeatheredStoneTile('weathered_dark_brown', colorPalette: VariedStonePalettes.darkBrownStone),
+
+    // =========================================================================
+    // OLIVE STONE VARIANTS
+    // =========================================================================
+    'cobble_olive_stone': () =>
+        ColoredCobblestoneTile('cobble_olive_stone', colorPalette: VariedStonePalettes.oliveStone),
+    'stone_brick_olive_stone': () =>
+        ColoredStoneBrickTile('stone_brick_olive_stone', colorPalette: VariedStonePalettes.oliveStone),
+    'rough_olive_stone': () => ColoredRoughStoneTile('rough_olive_stone', colorPalette: VariedStonePalettes.oliveStone),
+    'large_block_olive_stone': () =>
+        ColoredLargeBlockTile('large_block_olive_stone', colorPalette: VariedStonePalettes.oliveStone),
+    'weathered_olive_stone': () =>
+        ColoredWeatheredStoneTile('weathered_olive_stone', colorPalette: VariedStonePalettes.oliveStone),
+
+    // =========================================================================
+    // WEATHERED STONE VARIANTS
+    // =========================================================================
+    'cobble_weathered_stone': () =>
+        ColoredCobblestoneTile('cobble_weathered_stone', colorPalette: VariedStonePalettes.weatheredStone),
+    'stone_brick_weathered_stone': () =>
+        ColoredStoneBrickTile('stone_brick_weathered_stone', colorPalette: VariedStonePalettes.weatheredStone),
+    'rough_weathered_stone': () =>
+        ColoredRoughStoneTile('rough_weathered_stone', colorPalette: VariedStonePalettes.weatheredStone),
+    'large_block_weathered_stone': () =>
+        ColoredLargeBlockTile('large_block_weathered_stone', colorPalette: VariedStonePalettes.weatheredStone),
+    'weathered_weathered_stone': () =>
+        ColoredWeatheredStoneTile('weathered_weathered_stone', colorPalette: VariedStonePalettes.weatheredStone),
+
+    // =========================================================================
+    // HAZARD TILES
+    // =========================================================================
+    'lava_drip': () => LavaDripTile('lava_drip'),
+    'lava_cracks': () => LavaCracksTile('lava_cracks'),
+    'poison_slime': () => PoisonSlimeTile('poison_slime'),
+    'cracked_electric': () => CrackedElectricTile('cracked_electric'),
+
+    // =========================================================================
+    // LIQUID TILES
+    // =========================================================================
+    'water_bubble': () => WaterBubbleTile('water_bubble'),
+    'deep_water_stones': () => DeepWaterStonesTile('deep_water_stones'),
+
+    // =========================================================================
+    // TERRAIN TILES
+    // =========================================================================
+    'grass_top_dirt': () => GrassTopDirtTile('grass_top_dirt'),
+    'grass_top_dirt_thick': () => GrassTopDirtTile('grass_top_dirt_thick', grassHeight: 6),
+    'sand_layers': () => SandLayersTile('sand_layers'),
+    'rocky_ground': () => RockyGroundTile('rocky_ground'),
+    'snow_ice_top': () => SnowIceTopTile('snow_ice_top'),
+    'snow_ice_top_thick': () => SnowIceTopTile('snow_ice_top_thick', snowHeight: 7),
+    'stone_path_grass': () => StonePathGrassTile('stone_path_grass'),
+
+    // =========================================================================
+    // STRUCTURE TILES
+    // =========================================================================
+    'metal_grate': () => MetalGrateTile('metal_grate'),
+    'metal_grate_large': () => MetalGrateTile('metal_grate_large', panelSize: 6),
+    'wood_plank_vertical': () => WoodPlankTile('wood_plank_vertical', vertical: true),
+    'wood_plank_horizontal': () => WoodPlankTile('wood_plank_horizontal', vertical: false),
+    'red_brick_platformer': () => RedBrickPlatformerTile('red_brick_platformer'),
+
+    // =========================================================================
+    // DECORATION/PATTERN TILES
+    // =========================================================================
+    'fish_scale': () => FishScaleTile('fish_scale'),
+    'honeycomb': () => HoneycombTile('honeycomb'),
+    'purple_octagon': () => PurpleOctagonTile('purple_octagon'),
+    'orange_scale': () => OrangeScaleTile('orange_scale'),
   };
 
   /// Get all registered tile IDs

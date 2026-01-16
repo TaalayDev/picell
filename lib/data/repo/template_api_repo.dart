@@ -103,6 +103,7 @@ class TemplateAPIRepo {
     if (maxWidth != null) params['max_width'] = maxWidth;
     if (minHeight != null) params['min_height'] = minHeight;
     if (maxHeight != null) params['max_height'] = maxHeight;
+    params['debug'] = '1'; // Debug parameter
 
     return _apiClient.get(
       '/api/v1/templates',

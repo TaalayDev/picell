@@ -161,7 +161,7 @@ class ProjectAPIRepo {
 
       return _apiClient.get<ProjectsResponse>(
         '/api/v1/projects',
-        params: params,
+        params: {...params, 'debug': '1'},
         converter: ProjectConverters.projectsList,
       );
     } catch (e) {

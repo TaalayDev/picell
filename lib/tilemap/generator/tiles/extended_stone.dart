@@ -9,8 +9,8 @@ import '../tile_palette.dart';
 // EXTENDED TILE PALETTES
 // ============================================================================
 
-class ExtendedTilePalettes {
-  ExtendedTilePalettes._();
+class ExtendedStoneTilePalettes {
+  ExtendedStoneTilePalettes._();
 
   /// Light gray stone palette
   static const lightGrayStone = TilePalette(
@@ -90,7 +90,7 @@ class SmallCobblestoneFloorTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.lightGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.lightGrayStone;
   @override
   List<String> get tags => ['stone', 'cobblestone', 'floor', 'small', 'dungeon'];
 
@@ -146,7 +146,7 @@ class MediumCobblestoneFloorTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.lightGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.lightGrayStone;
   @override
   List<String> get tags => ['stone', 'cobblestone', 'floor', 'medium', 'dungeon'];
 
@@ -208,7 +208,7 @@ class RoughStoneFloorTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.lightGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.lightGrayStone;
   @override
   List<String> get tags => ['stone', 'rough', 'floor', 'textured', 'dungeon'];
 
@@ -259,7 +259,7 @@ class VineStoneFloorTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.lightGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.lightGrayStone;
   @override
   List<String> get tags => ['stone', 'vine', 'moss', 'floor', 'overgrown', 'dungeon'];
 
@@ -272,7 +272,7 @@ class VineStoneFloorTile extends TileBase {
   }) {
     final random = Random(seed);
     final pixels = Uint32List(width * height);
-    final vinePal = ExtendedTilePalettes.mossGreen;
+    final vinePal = ExtendedStoneTilePalettes.mossGreen;
 
     // Base stone
     for (int y = 0; y < height; y++) {
@@ -319,7 +319,7 @@ class RegularStoneBrickTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.lightGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.lightGrayStone;
   @override
   List<String> get tags => ['stone', 'brick', 'wall', 'regular', 'dungeon'];
 
@@ -375,7 +375,7 @@ class VerticalStoneStripesTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.mediumGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.mediumGrayStone;
   @override
   List<String> get tags => ['stone', 'stripes', 'vertical', 'column', 'dungeon'];
 
@@ -422,7 +422,7 @@ class ConcentricSquareStoneTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.mediumGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.mediumGrayStone;
   @override
   List<String> get tags => ['stone', 'ornate', 'square', 'decorative', 'dungeon'];
 
@@ -479,7 +479,7 @@ class CrossHatchStoneTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.mediumGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.mediumGrayStone;
   @override
   List<String> get tags => ['stone', 'crosshatch', 'diagonal', 'pattern', 'dungeon'];
 
@@ -530,7 +530,7 @@ class LargeBorderedStoneBlockTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.lightGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.lightGrayStone;
   @override
   List<String> get tags => ['stone', 'block', 'large', 'border', 'dungeon'];
 
@@ -580,7 +580,7 @@ class HorizontalStoneSlabTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.lightGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.lightGrayStone;
   @override
   List<String> get tags => ['stone', 'slab', 'horizontal', 'floor', 'dungeon'];
 
@@ -626,7 +626,7 @@ class MossyLargeStoneTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.lightGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.lightGrayStone;
   @override
   List<String> get tags => ['stone', 'moss', 'large', 'overgrown', 'dungeon'];
 
@@ -639,7 +639,7 @@ class MossyLargeStoneTile extends TileBase {
   }) {
     final random = Random(seed);
     final pixels = Uint32List(width * height);
-    final mossPal = ExtendedTilePalettes.mossGreen;
+    final mossPal = ExtendedStoneTilePalettes.mossGreen;
 
     // Base stone with border
     for (int y = 0; y < height; y++) {
@@ -694,7 +694,7 @@ class InsetSquareStoneTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.lightGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.lightGrayStone;
   @override
   List<String> get tags => ['stone', 'inset', 'square', 'decorative', 'dungeon'];
 
@@ -754,7 +754,7 @@ class StripedBorderStoneTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.mediumGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.mediumGrayStone;
   @override
   List<String> get tags => ['stone', 'striped', 'border', 'decorative', 'dungeon'];
 
@@ -806,7 +806,7 @@ class HorizontalLinedStoneTile extends TileBase {
   @override
   TileCategory get category => TileCategory.dungeon;
   @override
-  TilePalette get palette => ExtendedTilePalettes.mediumGrayStone;
+  TilePalette get palette => ExtendedStoneTilePalettes.mediumGrayStone;
   @override
   List<String> get tags => ['stone', 'lined', 'horizontal', 'pattern', 'dungeon'];
 
@@ -856,7 +856,7 @@ class RoughBrownBrickFloorTile extends TileBase {
   @override
   TileCategory get category => TileCategory.structure;
   @override
-  TilePalette get palette => ExtendedTilePalettes.brownBrick;
+  TilePalette get palette => ExtendedStoneTilePalettes.brownBrick;
   @override
   List<String> get tags => ['brick', 'brown', 'floor', 'rough', 'dungeon'];
 
@@ -907,7 +907,7 @@ class HorizontalBrownBrickTile extends TileBase {
   @override
   TileCategory get category => TileCategory.structure;
   @override
-  TilePalette get palette => ExtendedTilePalettes.brownBrick;
+  TilePalette get palette => ExtendedStoneTilePalettes.brownBrick;
   @override
   List<String> get tags => ['brick', 'brown', 'horizontal', 'wall', 'dungeon'];
 
@@ -953,7 +953,7 @@ class DiagonalBrownBrickTile extends TileBase {
   @override
   TileCategory get category => TileCategory.structure;
   @override
-  TilePalette get palette => ExtendedTilePalettes.brownBrick;
+  TilePalette get palette => ExtendedStoneTilePalettes.brownBrick;
   @override
   List<String> get tags => ['brick', 'brown', 'diagonal', 'floor', 'dungeon'];
 
@@ -998,7 +998,7 @@ class VineBrownBrickTile extends TileBase {
   @override
   TileCategory get category => TileCategory.structure;
   @override
-  TilePalette get palette => ExtendedTilePalettes.brownBrick;
+  TilePalette get palette => ExtendedStoneTilePalettes.brownBrick;
   @override
   List<String> get tags => ['brick', 'brown', 'vine', 'overgrown', 'dungeon'];
 
@@ -1011,7 +1011,7 @@ class VineBrownBrickTile extends TileBase {
   }) {
     final random = Random(seed);
     final pixels = Uint32List(width * height);
-    final vinePal = ExtendedTilePalettes.mossGreen;
+    final vinePal = ExtendedStoneTilePalettes.mossGreen;
 
     // Base brick
     for (int y = 0; y < height; y++) {
@@ -1057,7 +1057,7 @@ class StandardBrownBrickWallTile extends TileBase {
   @override
   TileCategory get category => TileCategory.structure;
   @override
-  TilePalette get palette => ExtendedTilePalettes.brownBrick;
+  TilePalette get palette => ExtendedStoneTilePalettes.brownBrick;
   @override
   List<String> get tags => ['brick', 'brown', 'wall', 'standard', 'dungeon'];
 
@@ -1113,7 +1113,7 @@ class GridBrownBrickTile extends TileBase {
   @override
   TileCategory get category => TileCategory.structure;
   @override
-  TilePalette get palette => ExtendedTilePalettes.brownBrick;
+  TilePalette get palette => ExtendedStoneTilePalettes.brownBrick;
   @override
   List<String> get tags => ['brick', 'brown', 'grid', 'decorative', 'dungeon'];
 
@@ -1161,7 +1161,7 @@ class LargeBorderedBrownBrickTile extends TileBase {
   @override
   TileCategory get category => TileCategory.structure;
   @override
-  TilePalette get palette => ExtendedTilePalettes.brownBrick;
+  TilePalette get palette => ExtendedStoneTilePalettes.brownBrick;
   @override
   List<String> get tags => ['brick', 'brown', 'large', 'border', 'dungeon'];
 
@@ -1209,7 +1209,7 @@ class HorizontalBrownBrickSlabTile extends TileBase {
   @override
   TileCategory get category => TileCategory.structure;
   @override
-  TilePalette get palette => ExtendedTilePalettes.brownBrick;
+  TilePalette get palette => ExtendedStoneTilePalettes.brownBrick;
   @override
   List<String> get tags => ['brick', 'brown', 'slab', 'horizontal', 'dungeon'];
 
