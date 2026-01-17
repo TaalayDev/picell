@@ -4,12 +4,14 @@ import 'dart:ui';
 
 import 'tile_palette.dart';
 import 'tiles/extended_urban.dart';
+import 'tiles/platformer_blocks.dart';
 import 'tiles/platformer_tiles.dart';
 import 'tiles/terrain.dart';
 import 'tiles/structure.dart';
 import 'tiles/liquid.dart';
 import 'tiles/nature.dart';
 import 'tiles/special.dart';
+import 'tiles/specialized.dart';
 import 'tiles/stone.dart';
 import 'tiles/extended_stone.dart';
 import 'tiles/urban_tiles.dart' hide HerringboneBrickTile;
@@ -643,6 +645,168 @@ class TileRegistry {
     'honeycomb': () => HoneycombTile('honeycomb'),
     'purple_octagon': () => PurpleOctagonTile('purple_octagon'),
     'orange_scale': () => OrangeScaleTile('orange_scale'),
+
+    // =========================================================================
+    // SPECIALIZED TILES - PORTALS
+    // =========================================================================
+    'portal_purple': () => PortalTile('portal_purple', portalColor: PortalColor.purple),
+    'portal_blue': () => PortalTile('portal_blue', portalColor: PortalColor.blue),
+    'portal_green': () => PortalTile('portal_green', portalColor: PortalColor.green),
+    'portal_red': () => PortalTile('portal_red', portalColor: PortalColor.red),
+
+    // =========================================================================
+    // SPECIALIZED TILES - RUNE CIRCLES
+    // =========================================================================
+    'rune_circle_arcane': () => RuneCircleTile('rune_circle_arcane', runeStyle: RuneStyle.arcane),
+    'rune_circle_shadow': () => RuneCircleTile('rune_circle_shadow', runeStyle: RuneStyle.shadow),
+    'rune_circle_frost': () => RuneCircleTile('rune_circle_frost', runeStyle: RuneStyle.frost),
+    'rune_circle_ember': () => RuneCircleTile('rune_circle_ember', runeStyle: RuneStyle.ember),
+
+    // =========================================================================
+    // SPECIALIZED TILES - ENERGY FIELDS
+    // =========================================================================
+    'energy_field_blue': () => EnergyFieldTile('energy_field_blue', fieldColor: FieldColor.blue),
+    'energy_field_green': () => EnergyFieldTile('energy_field_green', fieldColor: FieldColor.green),
+    'energy_field_red': () => EnergyFieldTile('energy_field_red', fieldColor: FieldColor.red),
+    'energy_field_purple': () => EnergyFieldTile('energy_field_purple', fieldColor: FieldColor.purple),
+
+    // =========================================================================
+    // SPECIALIZED TILES - VOID & SPACE
+    // =========================================================================
+    'void_space': () => VoidSpaceTile('void_space'),
+    'void_space_dense': () => VoidSpaceTile('void_space_dense', starDensity: 0.06),
+
+    // =========================================================================
+    // SPECIALIZED TILES - HOLOGRAM & NEON
+    // =========================================================================
+    'hologram': () => HologramTile('hologram'),
+    'neon_grid': () => NeonGridTile('neon_grid'),
+    'neon_grid_fine': () => NeonGridTile('neon_grid_fine', gridSize: 2),
+
+    // =========================================================================
+    // SPECIALIZED TILES - MAGIC SPARKLES
+    // =========================================================================
+    'magic_sparkle_gold': () => MagicSparkleTile('magic_sparkle_gold', sparkleColor: SparkleColor.gold),
+    'magic_sparkle_blue': () => MagicSparkleTile('magic_sparkle_blue', sparkleColor: SparkleColor.blue),
+    'magic_sparkle_purple': () => MagicSparkleTile('magic_sparkle_purple', sparkleColor: SparkleColor.purple),
+    'magic_sparkle_green': () => MagicSparkleTile('magic_sparkle_green', sparkleColor: SparkleColor.green),
+
+    // =========================================================================
+    // SPECIALIZED TILES - ELEMENTAL
+    // =========================================================================
+    'flame': () => FlameTile('flame'),
+    'flame_intense': () => FlameTile('flame_intense', flameIntensity: 1.5),
+    'ice_crystal': () => IceCrystalTile('ice_crystal'),
+    'shadow_wisp': () => ShadowWispTile('shadow_wisp'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - GRASS TOP COMBINATIONS
+    // =========================================================================
+    'platformer_grass_dirt': () => GrassDirtBlockTile('platformer_grass_dirt'),
+    'platformer_grass_stone': () => GrassStoneBlockTile('platformer_grass_stone'),
+    'platformer_grass_brick': () => GrassBrickBlockTile('platformer_grass_brick'),
+    'platformer_grass_clay': () => GrassClayBlockTile('platformer_grass_clay'),
+    'platformer_grass_concrete': () => GrassConcreteBlockTile('platformer_grass_concrete'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - SNOW TOP COMBINATIONS
+    // =========================================================================
+    'platformer_snow_ice': () => SnowIceBlockTile('platformer_snow_ice'),
+    'platformer_snow_stone': () => SnowStoneBlockTile('platformer_snow_stone'),
+    'platformer_snow_dirt': () => SnowDirtBlockTile('platformer_snow_dirt'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - MOSS TOP COMBINATIONS
+    // =========================================================================
+    'platformer_moss_stone': () => MossStoneBlockTile('platformer_moss_stone'),
+    'platformer_moss_brick': () => MossBrickBlockTile('platformer_moss_brick'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - SAND TOP COMBINATIONS
+    // =========================================================================
+    'platformer_sand_sandstone': () => SandSandstoneBlockTile('platformer_sand_sandstone'),
+    'platformer_sand_stone': () => SandStoneBlockTile('platformer_sand_stone'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - METAL TOP COMBINATIONS
+    // =========================================================================
+    'platformer_metal_metal': () => MetalBlockTile('platformer_metal_metal'),
+    'platformer_metal_concrete': () => MetalConcreteBlockTile('platformer_metal_concrete'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - WOOD TOP COMBINATIONS
+    // =========================================================================
+    'platformer_wood_wood': () => WoodBlockTile('platformer_wood_wood'),
+    'platformer_wood_dirt': () => WoodDirtBlockTile('platformer_wood_dirt'),
+    'platformer_wood_stone': () => WoodStoneBlockTile('platformer_wood_stone'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - FUNGUS TOP COMBINATIONS
+    // =========================================================================
+    'platformer_fungus_dirt': () => FungusDirtBlockTile('platformer_fungus_dirt'),
+    'platformer_fungus_stone': () => FungusStoneBlockTile('platformer_fungus_stone'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - CRYSTAL TOP COMBINATIONS
+    // =========================================================================
+    'platformer_crystal_stone': () => CrystalStoneBlockTile('platformer_crystal_stone'),
+    'platformer_crystal_dark_brick': () => CrystalDarkBrickBlockTile('platformer_crystal_dark_brick'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - ICE TOP COMBINATIONS
+    // =========================================================================
+    'platformer_ice_ice': () => IceBlockTile('platformer_ice_ice'),
+    'platformer_ice_stone': () => IceStoneBlockTile('platformer_ice_stone'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - AUTUMN TOP COMBINATIONS
+    // =========================================================================
+    'platformer_autumn_dirt': () => AutumnDirtBlockTile('platformer_autumn_dirt'),
+    'platformer_autumn_stone': () => AutumnStoneBlockTile('platformer_autumn_stone'),
+
+    // =========================================================================
+    // PLATFORMER BLOCKS - CUSTOM CONFIGURABLE
+    // =========================================================================
+    'platformer_grass_wood': () => PlatformerBlockTile(
+          'platformer_grass_wood',
+          topSurface: TopSurface.grass,
+          baseMaterial: BaseMaterial.wood,
+        ),
+    'platformer_moss_dark_brick': () => PlatformerBlockTile(
+          'platformer_moss_dark_brick',
+          topSurface: TopSurface.moss,
+          baseMaterial: BaseMaterial.darkBrick,
+        ),
+    'platformer_sand_clay': () => PlatformerBlockTile(
+          'platformer_sand_clay',
+          topSurface: TopSurface.sand,
+          baseMaterial: BaseMaterial.clay,
+        ),
+    'platformer_snow_concrete': () => PlatformerBlockTile(
+          'platformer_snow_concrete',
+          topSurface: TopSurface.snow,
+          baseMaterial: BaseMaterial.concrete,
+        ),
+    'platformer_autumn_brick': () => PlatformerBlockTile(
+          'platformer_autumn_brick',
+          topSurface: TopSurface.autumn,
+          baseMaterial: BaseMaterial.brick,
+        ),
+    'platformer_fungus_dark_brick': () => PlatformerBlockTile(
+          'platformer_fungus_dark_brick',
+          topSurface: TopSurface.fungus,
+          baseMaterial: BaseMaterial.darkBrick,
+        ),
+    'platformer_crystal_ice': () => PlatformerBlockTile(
+          'platformer_crystal_ice',
+          topSurface: TopSurface.crystal,
+          baseMaterial: BaseMaterial.ice,
+        ),
+    'platformer_ice_dark_brick': () => PlatformerBlockTile(
+          'platformer_ice_dark_brick',
+          topSurface: TopSurface.ice,
+          baseMaterial: BaseMaterial.darkBrick,
+        ),
   };
 
   /// Get all registered tile IDs
