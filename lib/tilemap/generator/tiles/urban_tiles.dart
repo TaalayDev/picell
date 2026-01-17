@@ -235,7 +235,7 @@ class AsphaltTile extends TileBase {
   @override
   String get iconName => 'road';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.asphalt;
   @override
@@ -342,7 +342,7 @@ class RoadCenterLineTile extends TileBase {
   @override
   String get iconName => 'remove';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.asphalt;
   @override
@@ -414,7 +414,7 @@ class RoadEdgeLineTile extends TileBase {
   @override
   String get iconName => 'border_left';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.asphalt;
   @override
@@ -468,7 +468,7 @@ class ParkingLotTile extends TileBase {
   @override
   String get iconName => 'local_parking';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.asphalt;
   @override
@@ -529,7 +529,7 @@ class ConcreteTile extends TileBase {
   @override
   String get iconName => 'square';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.concrete;
   @override
@@ -612,7 +612,7 @@ class ConcreteSlabTile extends TileBase {
   @override
   String get iconName => 'grid_view';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.concrete;
   @override
@@ -668,7 +668,7 @@ class LushGrassTile extends TileBase {
   @override
   String get iconName => 'grass';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.lushGrass;
   @override
@@ -728,7 +728,7 @@ class WornGrassTile extends TileBase {
   @override
   String get iconName => 'grass';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.grassGreen;
   @override
@@ -780,7 +780,7 @@ class DryGrassTile extends TileBase {
   @override
   String get iconName => 'grass';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.dryGrass;
   @override
@@ -843,7 +843,7 @@ class SoilTile extends TileBase {
   @override
   String get iconName => 'terrain';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.soil;
   @override
@@ -902,7 +902,7 @@ class CrackedEarthTile extends TileBase {
   @override
   String get iconName => 'broken_image';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.crackedEarth;
   @override
@@ -974,7 +974,7 @@ class GravelTile extends TileBase {
   @override
   String get iconName => 'grain';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.gravel;
   @override
@@ -1035,7 +1035,7 @@ class RockCliffTile extends TileBase {
   @override
   String get iconName => 'landscape';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.rockCliff;
   @override
@@ -1092,7 +1092,7 @@ class MossyRockTile extends TileBase {
   @override
   String get iconName => 'park';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.mossyStone;
   @override
@@ -1150,7 +1150,7 @@ class RoofTileTile extends TileBase {
   @override
   String get iconName => 'roofing';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.roofTile;
   @override
@@ -1208,7 +1208,7 @@ class SlateRoofTile extends TileBase {
   @override
   String get iconName => 'roofing';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.slateRoof;
   @override
@@ -1260,7 +1260,7 @@ class ShingleRoofTile extends TileBase {
   @override
   String get iconName => 'roofing';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.asphalt;
   @override
@@ -1329,7 +1329,7 @@ class CobblestonePavingTile extends TileBase {
   @override
   String get iconName => 'grid_on';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.gravel;
   @override
@@ -1390,7 +1390,7 @@ class CheckeredFloorTile extends TileBase {
   @override
   String get iconName => 'grid_on';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.checkeredFloor;
   @override
@@ -1445,7 +1445,7 @@ class SquareFloorTile extends TileBase {
   @override
   String get iconName => 'grid_view';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.concrete;
   @override
@@ -1492,7 +1492,7 @@ class HerringboneBrickTile extends TileBase {
   @override
   String get iconName => 'view_quilt';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.redBrick;
   @override
@@ -1563,7 +1563,7 @@ class BeachSandTile extends TileBase {
   @override
   String get iconName => 'beach_access';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.urban;
   @override
   TilePalette get palette => UrbanTilePalettes.beachSand;
   @override

@@ -152,6 +152,7 @@ class ColorPalettePanel extends HookWidget {
   Widget build(BuildContext context) {
     final customColors = useState<List<Color>>([]);
     final selectedTab = useState(0);
+    final opacity = useState(currentColor.alpha / 255.0);
 
     final tabs = [
       const _PaletteTab(icon: Icons.palette, label: 'Basic'),
@@ -238,6 +239,44 @@ class ColorPalettePanel extends HookWidget {
                     onPressed: onSelectEyedropper,
                   ),
                 ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // Opacity slider
+          Row(
+            children: [
+              const Icon(Icons.opacity, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 8,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                    trackShape: _OpacitySliderTrackShape(color: currentColor),
+                  ),
+                  child: Slider(
+                    value: opacity.value,
+                    min: 0.0,
+                    max: 1.0,
+                    onChanged: (value) {
+                      opacity.value = value;
+                      final newColor = currentColor.withAlpha((value * 255).round());
+                      onColorSelected(newColor);
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 45,
+                child: Text(
+                  '${(opacity.value * 100).round()}%',
+                  style: const TextStyle(fontSize: 12),
+                ),
               ),
             ],
           ),
@@ -448,4 +487,87 @@ class _PaletteTab {
     required this.icon,
     required this.label,
   });
+}
+
+/// Custom slider track shape that shows a gradient from transparent to the selected color
+class _OpacitySliderTrackShape extends SliderTrackShape {
+  final Color color;
+
+  const _OpacitySliderTrackShape({required this.color});
+
+  @override
+  Rect getPreferredRect({
+    required RenderBox parentBox,
+    Offset offset = Offset.zero,
+    required SliderThemeData sliderTheme,
+    bool isEnabled = false,
+    bool isDiscrete = false,
+  }) {
+    final trackHeight = sliderTheme.trackHeight ?? 4;
+    final trackLeft = offset.dx + 8;
+    final trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
+    final trackWidth = parentBox.size.width - 16;
+    return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
+  }
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset offset, {
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required Animation<double> enableAnimation,
+    required Offset thumbCenter,
+    Offset? secondaryOffset,
+    bool isEnabled = false,
+    bool isDiscrete = false,
+    required TextDirection textDirection,
+  }) {
+    final rect = getPreferredRect(
+      parentBox: parentBox,
+      offset: offset,
+      sliderTheme: sliderTheme,
+    );
+
+    final canvas = context.canvas;
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(4));
+
+    // Draw checkerboard pattern for transparency visualization
+    canvas.save();
+    canvas.clipRRect(rrect);
+    const checkerSize = 4.0;
+    for (double x = rect.left; x < rect.right; x += checkerSize) {
+      for (double y = rect.top; y < rect.bottom; y += checkerSize) {
+        final isLight = ((x - rect.left) ~/ checkerSize + (y - rect.top) ~/ checkerSize) % 2 == 0;
+        final paint = Paint()..color = isLight ? Colors.white : Colors.grey.shade300;
+        canvas.drawRect(
+          Rect.fromLTWH(x, y, checkerSize, checkerSize),
+          paint,
+        );
+      }
+    }
+    canvas.restore();
+
+    // Draw gradient from transparent to opaque
+    final gradient = LinearGradient(
+      colors: [
+        color.withAlpha(0),
+        color.withAlpha(255),
+      ],
+    );
+
+    final paint = Paint()
+      ..shader = gradient.createShader(rect)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRRect(rrect, paint);
+
+    // Draw border
+    final borderPaint = Paint()
+      ..color = Colors.grey.shade400
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    canvas.drawRRect(rrect, borderPaint);
+  }
 }

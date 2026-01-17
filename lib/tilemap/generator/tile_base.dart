@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'tile_palette.dart';
+import 'tiles/decoration_tiles.dart';
 import 'tiles/environment_tiles.dart';
 import 'tiles/extended_urban.dart';
 import 'tiles/platformer_blocks.dart';
@@ -234,10 +235,63 @@ class TileRegistry {
     'lava': () => LavaTile('lava'),
 
     // =========================================================================
-    // NATURE TILES (Original)
+    // NATURE TILES
     // =========================================================================
+    // Rocks and Stones
     'stone': () => StoneTile('stone'),
     'stone_mossy': () => StoneTile('stone_mossy', addMoss: true),
+    'stone_large': () => StoneTile('stone_large', large: true),
+    'stone_brown': () => StoneTile('stone_brown', rockPalette: NaturePalettes.brownRock),
+    'rock_pile': () => RockPileTile('rock_pile'),
+    'boulder': () => BoulderTile('boulder'),
+    'boulder_cracked': () => BoulderTile('boulder_cracked', cracked: true),
+
+    // Trees
+    'tree_trunk_oak': () => TreeTrunkTile('tree_trunk_oak', oak: true),
+    'tree_trunk_pine': () => TreeTrunkTile('tree_trunk_pine', oak: false),
+    'tree_foliage': () => TreeFoliageTile('tree_foliage'),
+    'tree_foliage_autumn': () => TreeFoliageTile('tree_foliage_autumn', autumn: true),
+    'tree_foliage_cherry': () => TreeFoliageTile('tree_foliage_cherry', cherry: true),
+    'pine_tree': () => PineTreeTile('pine_tree'),
+    'pine_tree_snowy': () => PineTreeTile('pine_tree_snowy', snow: true),
+
+    // Flowers
+    'flower_red': () => FlowerTile('flower_red', colorPalette: NaturePalettes.flowerRed),
+    'flower_yellow': () => FlowerTile('flower_yellow', colorPalette: NaturePalettes.flowerYellow),
+    'flower_blue': () => FlowerTile('flower_blue', colorPalette: NaturePalettes.flowerBlue),
+    'flower_purple': () => FlowerTile('flower_purple', colorPalette: NaturePalettes.flowerPurple),
+    'flower_patch_red': () => FlowerPatchTile('flower_patch_red', colorPalette: NaturePalettes.flowerRed),
+    'flower_patch_yellow': () => FlowerPatchTile('flower_patch_yellow', colorPalette: NaturePalettes.flowerYellow),
+    'flower_patch_mixed': () => FlowerPatchTile('flower_patch_mixed', flowerCount: 5),
+
+    // Grass and Vegetation
+    'tall_grass': () => TallGrassTile('tall_grass'),
+    'tall_grass_dense': () => TallGrassTile('tall_grass_dense', dense: true),
+    'reed': () => ReedTile('reed'),
+    'cattail': () => ReedTile('cattail', cattail: true),
+    'bush': () => BushTile('bush'),
+    'berry_bush': () => BushTile('berry_bush', berries: true),
+
+    // Mushrooms
+    'mushroom': () => MushroomTile('mushroom'),
+    'mushroom_glowing': () => MushroomTile('mushroom_glowing', glowing: true),
+    'mushroom_cluster': () => MushroomTile('mushroom_cluster', cluster: true),
+
+    // Crystals
+    'crystal_blue': () => NatureCrystalTile('crystal_blue'),
+    'crystal_purple': () => NatureCrystalTile('crystal_purple', crystalPalette: NaturePalettes.amethyst),
+    'crystal_green': () => NatureCrystalTile('crystal_green', crystalPalette: NaturePalettes.emerald),
+
+    // Wood
+    'log': () => LogTile('log'),
+    'log_mossy': () => LogTile('log_mossy', mossy: true),
+    'tree_stump': () => StumpTile('tree_stump'),
+
+    // Water Plants
+    'lily_pad': () => NatureLilyPadTile('lily_pad'),
+    'lily_pad_flower': () => NatureLilyPadTile('lily_pad_flower', withFlower: true),
+    'vine_hanging': () => VineTile('vine_hanging', hanging: true),
+    'vine_climbing': () => VineTile('vine_climbing', hanging: false),
 
     // =========================================================================
     // SPECIAL TILES (Original)
@@ -643,6 +697,110 @@ class TileRegistry {
     'honeycomb': () => HoneycombTile('honeycomb'),
     'purple_octagon': () => PurpleOctagonTile('purple_octagon'),
     'orange_scale': () => OrangeScaleTile('orange_scale'),
+
+    // =========================================================================
+    // DECORATION TILES - CONTAINERS
+    // =========================================================================
+    'wooden_crate': () => WoodenCrateTile('wooden_crate'),
+    'wooden_crate_open': () => WoodenCrateTile('wooden_crate_open', open: true),
+    'barrel': () => BarrelTile('barrel'),
+    'barrel_sideways': () => BarrelTile('barrel_sideways', sideways: true),
+    'treasure_chest': () => TreasureChestTile('treasure_chest'),
+    'treasure_chest_open': () => TreasureChestTile('treasure_chest_open', open: true),
+    'mimic_chest': () => TreasureChestTile('mimic_chest', open: true, mimic: true),
+    'pot': () => PotTile('pot'),
+    'pot_broken': () => PotTile('pot_broken', broken: true),
+    'sack': () => SackTile('sack'),
+    'sack_open': () => SackTile('sack_open', open: true),
+
+    // =========================================================================
+    // DECORATION TILES - LIGHTING
+    // =========================================================================
+    'torch_lit': () => TorchTile('torch_lit'),
+    'torch_unlit': () => TorchTile('torch_unlit', lit: false),
+    'lantern_lit': () => LanternTile('lantern_lit'),
+    'lantern_unlit': () => LanternTile('lantern_unlit', lit: false),
+    'candle': () => CandleTile('candle'),
+    'candle_unlit': () => CandleTile('candle_unlit', lit: false),
+    'candle_holder': () => CandleTile('candle_holder', inHolder: true),
+    'brazier_lit': () => BrazierTile('brazier_lit'),
+    'brazier': () => BrazierTile('brazier', lit: false),
+
+    // =========================================================================
+    // DECORATION TILES - FURNITURE
+    // =========================================================================
+    'table': () => TableTile('table'),
+    'small_table': () => TableTile('small_table', small: true),
+    'chair': () => ChairTile('chair'),
+    'bookshelf': () => BookshelfTile('bookshelf'),
+    'bed': () => BedTile('bed'),
+
+    // =========================================================================
+    // DECORATION TILES - WALL DECORATIONS
+    // =========================================================================
+    'painting': () => PaintingTile('painting'),
+    'painting_landscape': () => PaintingTile('painting_landscape', style: 0),
+    'painting_portrait': () => PaintingTile('painting_portrait', style: 1),
+    'painting_abstract': () => PaintingTile('painting_abstract', style: 2),
+    'banner': () => BannerTile('banner'),
+    'rug': () => RugTile('rug'),
+    'rug_ornate': () => RugTile('rug_ornate', ornate: true),
+    'curtain': () => CurtainTile('curtain'),
+    'curtain_open': () => CurtainTile('curtain_open', open: true),
+    'clock': () => ClockTile('clock'),
+
+    // =========================================================================
+    // DECORATION TILES - SIGNS
+    // =========================================================================
+    'wood_sign': () => WoodSignTile('wood_sign'),
+    'hanging_sign': () => WoodSignTile('hanging_sign', hanging: true),
+
+    // =========================================================================
+    // DECORATION TILES - TREASURE & LOOT
+    // =========================================================================
+    'coin_pile': () => CoinPileTile('coin_pile'),
+    'coin_pile_large': () => CoinPileTile('coin_pile_large', large: true),
+    'gem_ruby': () => GemTile('gem_ruby', gemType: 0),
+    'gem_emerald': () => GemTile('gem_emerald', gemType: 1),
+    'gem_sapphire': () => GemTile('gem_sapphire', gemType: 2),
+    'gem_amethyst': () => GemTile('gem_amethyst', gemType: 3),
+
+    // =========================================================================
+    // DECORATION TILES - BONES & REMAINS
+    // =========================================================================
+    'skull': () => SkullTile('skull'),
+    'bone_pile': () => BonePileTile('bone_pile'),
+
+    // =========================================================================
+    // DECORATION TILES - WEAPONS & ARMOR
+    // =========================================================================
+    'weapon_rack': () => WeaponRackTile('weapon_rack'),
+    'wall_shield': () => WallShieldTile('wall_shield'),
+
+    // =========================================================================
+    // DECORATION TILES - FOOD & DRINK
+    // =========================================================================
+    'food_plate': () => FoodPlateTile('food_plate'),
+    'mug_full': () => MugTile('mug_full'),
+    'mug_empty': () => MugTile('mug_empty', full: false),
+
+    // =========================================================================
+    // DECORATION TILES - TROPHIES & DISPLAYS
+    // =========================================================================
+    'trophy_gold': () => TrophyTile('trophy_gold'),
+    'trophy_silver': () => TrophyTile('trophy_silver', gold: false),
+    'statue': () => StatueTile('statue'),
+
+    // =========================================================================
+    // DECORATION TILES - MISC
+    // =========================================================================
+    'anvil': () => AnvilTile('anvil'),
+    'rope_coil': () => RopeCoilTile('rope_coil'),
+    'spider_web': () => SpiderWebTile('spider_web'),
+    'lever_off': () => LeverTile('lever_off'),
+    'lever_on': () => LeverTile('lever_on', activated: true),
+    'key': () => KeyTile('key'),
+    'golden_key': () => KeyTile('golden_key', golden: true),
 
     // =========================================================================
     // SPECIALIZED TILES - PORTALS

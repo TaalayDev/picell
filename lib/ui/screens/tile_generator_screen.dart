@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart';
@@ -51,6 +52,15 @@ class TileGeneratorState {
   final List<Uint32List> undoHistory;
   final int undoIndex;
 
+  // Generation settings
+  final double noiseIntensity;
+  final int noiseOctaves;
+  final double topLeftRadius;
+  final double topRightRadius;
+  final double bottomLeftRadius;
+  final double bottomRightRadius;
+  final List<Color> paletteColors;
+
   const TileGeneratorState({
     required this.tileWidth,
     required this.tileHeight,
@@ -66,6 +76,14 @@ class TileGeneratorState {
     this.displayMode = CanvasDisplayMode.single,
     this.undoHistory = const [],
     this.undoIndex = -1,
+    // Generation settings defaults
+    this.noiseIntensity = 0.08,
+    this.noiseOctaves = 3,
+    this.topLeftRadius = 0,
+    this.topRightRadius = 0,
+    this.bottomLeftRadius = 0,
+    this.bottomRightRadius = 0,
+    this.paletteColors = const [],
   });
 
   bool get canUndo => undoIndex > 0;
@@ -86,6 +104,13 @@ class TileGeneratorState {
     CanvasDisplayMode? displayMode,
     List<Uint32List>? undoHistory,
     int? undoIndex,
+    double? noiseIntensity,
+    int? noiseOctaves,
+    double? topLeftRadius,
+    double? topRightRadius,
+    double? bottomLeftRadius,
+    double? bottomRightRadius,
+    List<Color>? paletteColors,
   }) {
     return TileGeneratorState(
       tileWidth: tileWidth ?? this.tileWidth,
@@ -102,6 +127,13 @@ class TileGeneratorState {
       displayMode: displayMode ?? this.displayMode,
       undoHistory: undoHistory ?? this.undoHistory,
       undoIndex: undoIndex ?? this.undoIndex,
+      noiseIntensity: noiseIntensity ?? this.noiseIntensity,
+      noiseOctaves: noiseOctaves ?? this.noiseOctaves,
+      topLeftRadius: topLeftRadius ?? this.topLeftRadius,
+      topRightRadius: topRightRadius ?? this.topRightRadius,
+      bottomLeftRadius: bottomLeftRadius ?? this.bottomLeftRadius,
+      bottomRightRadius: bottomRightRadius ?? this.bottomRightRadius,
+      paletteColors: paletteColors ?? this.paletteColors,
     );
   }
 }
@@ -119,10 +151,14 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
 
   /// Select a tile type to generate
   void selectTileType(String tileId) {
+    final tile = _registry.getTile(tileId);
+    final paletteColors = tile != null ? tile.palette.colors : <Color>[];
+
     state = state.copyWith(
       selectedTileId: tileId,
       variants: [],
       selectedVariantIndex: 0,
+      paletteColors: paletteColors,
     );
     _generateVariants();
   }
@@ -135,6 +171,50 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
   /// Change the variation style
   void setVariation(TileVariation variation) {
     state = state.copyWith(variation: variation);
+    _generateVariants();
+  }
+
+  /// Set noise intensity
+  void setNoiseIntensity(double value) {
+    state = state.copyWith(noiseIntensity: value);
+    _generateVariants();
+  }
+
+  /// Set noise octaves
+  void setNoiseOctaves(int value) {
+    state = state.copyWith(noiseOctaves: value);
+    _generateVariants();
+  }
+
+  /// Set corner radii
+  void setTopLeftRadius(double value) {
+    state = state.copyWith(topLeftRadius: value);
+    _generateVariants();
+  }
+
+  void setTopRightRadius(double value) {
+    state = state.copyWith(topRightRadius: value);
+    _generateVariants();
+  }
+
+  void setBottomLeftRadius(double value) {
+    state = state.copyWith(bottomLeftRadius: value);
+    _generateVariants();
+  }
+
+  void setBottomRightRadius(double value) {
+    state = state.copyWith(bottomRightRadius: value);
+    _generateVariants();
+  }
+
+  /// Set all corners at once
+  void setAllCornerRadii(double value) {
+    state = state.copyWith(
+      topLeftRadius: value,
+      topRightRadius: value,
+      bottomLeftRadius: value,
+      bottomRightRadius: value,
+    );
     _generateVariants();
   }
 
@@ -315,15 +395,165 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
       baseSeed: state.seed,
     );
 
-    if (variants.isNotEmpty) {
-      _pushUndoState(Uint32List.fromList(variants[0]));
+    // Apply noise and corner radii to all variants
+    final processedVariants = variants.map((pixels) {
+      var processed = Uint32List.fromList(pixels);
+      processed = _applyNoiseProcessing(processed);
+      processed = _applyCornerRadii(processed);
+      return processed;
+    }).toList();
+
+    if (processedVariants.isNotEmpty) {
+      _pushUndoState(Uint32List.fromList(processedVariants[0]));
     }
 
     state = state.copyWith(
-      variants: variants,
+      variants: processedVariants,
       selectedVariantIndex: 0,
-      currentTile: variants.isNotEmpty ? Uint32List.fromList(variants[0]) : null,
+      currentTile: processedVariants.isNotEmpty ? Uint32List.fromList(processedVariants[0]) : null,
     );
+  }
+
+  /// Apply noise processing based on settings
+  Uint32List _applyNoiseProcessing(Uint32List pixels) {
+    final w = state.tileWidth;
+    final h = state.tileHeight;
+    final result = Uint32List.fromList(pixels);
+    final random = Random(state.seed);
+    final intensity = state.noiseIntensity;
+    final octaves = state.noiseOctaves;
+
+    // Skip if no additional noise needed (default is 0.08)
+    if (intensity <= 0.08 && octaves <= 3) return result;
+
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x++) {
+        final index = y * w + x;
+        final pixel = result[index];
+
+        // Skip transparent pixels
+        if ((pixel >> 24) == 0) continue;
+
+        // Extract ARGB
+        final a = (pixel >> 24) & 0xFF;
+        final r = (pixel >> 16) & 0xFF;
+        final g = (pixel >> 8) & 0xFF;
+        final b = pixel & 0xFF;
+
+        // Generate noise based on octaves
+        double noiseValue = 0;
+        double amplitude = 1;
+        double frequency = 1;
+        double maxValue = 0;
+
+        for (int i = 0; i < octaves; i++) {
+          noiseValue += amplitude * _smoothNoise(x * frequency / 4.0, y * frequency / 4.0, random);
+          maxValue += amplitude;
+          amplitude *= 0.5;
+          frequency *= 2;
+        }
+        noiseValue = noiseValue / maxValue;
+
+        // Apply noise variation
+        final variation = ((noiseValue - 0.5) * 2 * intensity * 255).round();
+        final nr = (r + variation).clamp(0, 255);
+        final ng = (g + variation).clamp(0, 255);
+        final nb = (b + variation).clamp(0, 255);
+
+        result[index] = (a << 24) | (nr << 16) | (ng << 8) | nb;
+      }
+    }
+
+    return result;
+  }
+
+  /// Simple smooth noise function
+  double _smoothNoise(double x, double y, Random random) {
+    final ix = x.floor();
+    final iy = y.floor();
+    final fx = x - ix;
+    final fy = y - iy;
+
+    double hash(int x, int y) {
+      final n = x + y * 57;
+      final h = (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff;
+      return h / 0x7fffffff;
+    }
+
+    final v1 = hash(ix, iy);
+    final v2 = hash(ix + 1, iy);
+    final v3 = hash(ix, iy + 1);
+    final v4 = hash(ix + 1, iy + 1);
+
+    final i1 = v1 + fx * (v2 - v1);
+    final i2 = v3 + fx * (v4 - v3);
+
+    return i1 + fy * (i2 - i1);
+  }
+
+  /// Apply corner radii to the tile pixels
+  Uint32List _applyCornerRadii(Uint32List pixels) {
+    final w = state.tileWidth;
+    final h = state.tileHeight;
+    final result = Uint32List.fromList(pixels);
+
+    // Apply top-left radius
+    if (state.topLeftRadius > 0) {
+      final r = state.topLeftRadius.round();
+      for (int y = 0; y < r; y++) {
+        for (int x = 0; x < r; x++) {
+          final dx = r - x - 1;
+          final dy = r - y - 1;
+          if (dx * dx + dy * dy > r * r) {
+            result[y * w + x] = 0x00000000; // Transparent
+          }
+        }
+      }
+    }
+
+    // Apply top-right radius
+    if (state.topRightRadius > 0) {
+      final r = state.topRightRadius.round();
+      for (int y = 0; y < r; y++) {
+        for (int x = w - r; x < w; x++) {
+          final dx = x - (w - r);
+          final dy = r - y - 1;
+          if (dx * dx + dy * dy > r * r) {
+            result[y * w + x] = 0x00000000;
+          }
+        }
+      }
+    }
+
+    // Apply bottom-left radius
+    if (state.bottomLeftRadius > 0) {
+      final r = state.bottomLeftRadius.round();
+      for (int y = h - r; y < h; y++) {
+        for (int x = 0; x < r; x++) {
+          final dx = r - x - 1;
+          final dy = y - (h - r);
+          if (dx * dx + dy * dy > r * r) {
+            result[y * w + x] = 0x00000000;
+          }
+        }
+      }
+    }
+
+    // Apply bottom-right radius
+    if (state.bottomRightRadius > 0) {
+      final r = state.bottomRightRadius.round();
+      for (int y = h - r; y < h; y++) {
+        for (int x = w - r; x < w; x++) {
+          final dx = x - (w - r);
+          final dy = y - (h - r);
+          if (dx * dx + dy * dy > r * r) {
+            result[y * w + x] = 0x00000000;
+          }
+        }
+      }
+    }
+
+    return result;
   }
 
   /// Get all available tile types
@@ -348,9 +578,14 @@ class TileGeneratorScreen extends StatefulHookConsumerWidget {
   const TileGeneratorScreen({
     super.key,
     required this.project,
+    this.returnResultForTilemap = false,
   });
 
   final Project project;
+
+  /// When true, shows "Add to Tilemap" button instead of "Edit in Studio"
+  /// and returns the tile data via Navigator.pop instead of opening the editor
+  final bool returnResultForTilemap;
 
   @override
   ConsumerState<TileGeneratorScreen> createState() => _TileGeneratorScreenState();
@@ -501,11 +736,19 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Continue to editor button
+          // Continue to editor button or return for tilemap
           FilledButton.icon(
-            onPressed: state.currentTile != null ? () => _continueToEditor(context, state.currentTile!) : null,
-            icon: const Icon(Icons.arrow_forward),
-            label: const Text('Edit in Studio'),
+            onPressed: state.currentTile != null
+                ? () {
+                    if (widget.returnResultForTilemap) {
+                      _returnResultForTilemap(context, state);
+                    } else {
+                      _continueToEditor(context, state.currentTile!);
+                    }
+                  }
+                : null,
+            icon: Icon(widget.returnResultForTilemap ? Icons.add : Icons.arrow_forward),
+            label: Text(widget.returnResultForTilemap ? 'Add to Tilemap' : 'Edit in Studio'),
           ),
           const SizedBox(width: 16),
         ],
@@ -969,7 +1212,7 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      width: 200,
+      width: 220,
       decoration: BoxDecoration(
         color: colorScheme.surface.withValues(alpha: 0.8),
         border: Border(
@@ -991,14 +1234,32 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
             _buildSectionHeader(context, 'Color', Icons.palette),
             const SizedBox(height: 8),
             _buildColorPicker(context, state, notifier, colorScheme),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            // Tile Palette Colors (auto-populated)
+            if (state.paletteColors.isNotEmpty) ...[
+              _buildPaletteColorsSection(context, state, notifier, colorScheme),
+              const SizedBox(height: 12),
+            ],
 
             // Quick Colors
             _buildQuickColors(context, state, notifier, colorScheme),
             const SizedBox(height: 16),
 
-            // Tile Info (if selected)
+            // Generation Settings (if tile selected)
             if (state.selectedTileId != null) ...[
+              _buildSectionHeader(context, 'Generation', Icons.tune),
+              const SizedBox(height: 8),
+              _buildGenerationSettings(context, state, notifier, colorScheme),
+              const SizedBox(height: 16),
+
+              // Corner Radii Section
+              _buildSectionHeader(context, 'Corner Radii', Icons.rounded_corner),
+              const SizedBox(height: 8),
+              _buildCornerRadiiSettings(context, state, notifier, colorScheme),
+              const SizedBox(height: 16),
+
+              // Tile Info
               _buildSectionHeader(context, 'Tile Info', Icons.info_outline),
               const SizedBox(height: 8),
               _buildCompactTileInfo(context, state),
@@ -1006,6 +1267,292 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPaletteColorsSection(
+    BuildContext context,
+    TileGeneratorState state,
+    TileGeneratorNotifier notifier,
+    ColorScheme colorScheme,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.color_lens, size: 14, color: colorScheme.primary),
+            const SizedBox(width: 4),
+            Text(
+              'Tile Palette',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: state.paletteColors.map((color) {
+            final isSelected = state.currentColor.value == color.value;
+            return GestureDetector(
+              onTap: () => notifier.setColor(color),
+              child: Tooltip(
+                message: '#${color.value.toRadixString(16).substring(2).toUpperCase()}',
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isSelected ? colorScheme.primary : colorScheme.outline,
+                      width: isSelected ? 2 : 1,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: colorScheme.primary.withValues(alpha: 0.4),
+                              blurRadius: 4,
+                            ),
+                          ]
+                        : null,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenerationSettings(
+    BuildContext context,
+    TileGeneratorState state,
+    TileGeneratorNotifier notifier,
+    ColorScheme colorScheme,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Noise Intensity
+        _buildSliderSetting(
+          context,
+          label: 'Noise Intensity',
+          value: state.noiseIntensity,
+          min: 0,
+          max: 0.3,
+          onChanged: notifier.setNoiseIntensity,
+          colorScheme: colorScheme,
+          valueLabel: '${(state.noiseIntensity * 100).toInt()}%',
+        ),
+        const SizedBox(height: 8),
+
+        // Noise Octaves
+        _buildSliderSetting(
+          context,
+          label: 'Noise Detail',
+          value: state.noiseOctaves.toDouble(),
+          min: 1,
+          max: 6,
+          onChanged: (v) => notifier.setNoiseOctaves(v.round()),
+          colorScheme: colorScheme,
+          valueLabel: '${state.noiseOctaves}',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCornerRadiiSettings(
+    BuildContext context,
+    TileGeneratorState state,
+    TileGeneratorNotifier notifier,
+    ColorScheme colorScheme,
+  ) {
+    final maxRadius = (state.tileWidth < state.tileHeight ? state.tileWidth : state.tileHeight) / 2;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Quick set all corners
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'All Corners',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ),
+            SizedBox(
+              width: 100,
+              child: Slider(
+                value: state.topLeftRadius,
+                min: 0,
+                max: maxRadius,
+                onChanged: notifier.setAllCornerRadii,
+              ),
+            ),
+          ],
+        ),
+
+        const Divider(height: 16),
+
+        // Individual corners in a 2x2 grid
+        Row(
+          children: [
+            Expanded(
+              child: _buildCornerRadiusControl(
+                context,
+                label: 'TL',
+                value: state.topLeftRadius,
+                max: maxRadius,
+                onChanged: notifier.setTopLeftRadius,
+                colorScheme: colorScheme,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildCornerRadiusControl(
+                context,
+                label: 'TR',
+                value: state.topRightRadius,
+                max: maxRadius,
+                onChanged: notifier.setTopRightRadius,
+                colorScheme: colorScheme,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildCornerRadiusControl(
+                context,
+                label: 'BL',
+                value: state.bottomLeftRadius,
+                max: maxRadius,
+                onChanged: notifier.setBottomLeftRadius,
+                colorScheme: colorScheme,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildCornerRadiusControl(
+                context,
+                label: 'BR',
+                value: state.bottomRightRadius,
+                max: maxRadius,
+                onChanged: notifier.setBottomRightRadius,
+                colorScheme: colorScheme,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCornerRadiusControl(
+    BuildContext context, {
+    required String label,
+    required double value,
+    required double max,
+    required ValueChanged<double> onChanged,
+    required ColorScheme colorScheme,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            Text(
+              '${value.round()}',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colorScheme.primary,
+                  ),
+            ),
+          ],
+        ),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+          ),
+          child: Slider(
+            value: value,
+            min: 0,
+            max: max,
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSliderSetting(
+    BuildContext context, {
+    required String label,
+    required double value,
+    required double min,
+    required double max,
+    required ValueChanged<double> onChanged,
+    required ColorScheme colorScheme,
+    required String valueLabel,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                valueLabel,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+          ),
+          child: Slider(
+            value: value,
+            min: min,
+            max: max,
+            onChanged: onChanged,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1394,6 +1941,21 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
         ),
       ),
     );
+  }
+
+  void _returnResultForTilemap(BuildContext context, TileGeneratorState state) {
+    if (state.currentTile == null) return;
+
+    // Return the tile data for use in tilemap
+    Navigator.of(context).pop<Map<String, dynamic>>({
+      'pixels': Uint32List.fromList(state.currentTile!),
+      'width': state.tileWidth,
+      'height': state.tileHeight,
+      'name': state.selectedTileId != null
+          ? TileRegistry.instance.getTile(state.selectedTileId!)?.name ?? 'Tile'
+          : 'Custom Tile',
+      'templateId': state.selectedTileId,
+    });
   }
 }
 

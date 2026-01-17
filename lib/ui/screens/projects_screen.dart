@@ -41,6 +41,7 @@ import 'about_screen.dart';
 import 'pixel_canvas_screen.dart';
 import 'project_detail_screen.dart' hide CheckerboardPainter;
 import 'tile_generator_screen.dart';
+import 'tilemap_screen.dart';
 
 class ProjectsScreen extends HookConsumerWidget {
   const ProjectsScreen({super.key});
@@ -508,7 +509,7 @@ class ProjectsScreen extends HookConsumerWidget {
         if (newProject.type == ProjectType.tileGenerator || newProject.type == ProjectType.tilemap) {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => TileGeneratorScreen(project: newProject),
+              builder: (context) => TileMapScreen(project: newProject),
             ),
           );
         } else {
@@ -540,7 +541,7 @@ class ProjectsScreen extends HookConsumerWidget {
       if (project.type == ProjectType.tileGenerator || project.type == ProjectType.tilemap) {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => TileGeneratorScreen(project: project),
+            builder: (context) => TileMapScreen(project: project),
           ),
         );
       } else {

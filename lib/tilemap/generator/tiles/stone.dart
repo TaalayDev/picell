@@ -206,30 +206,83 @@ class HorizontalStoneBrickTile extends StoneTileBase {
   }
 
   void _addWeathering(Uint32List pixels, int width, int height, Random random) {
-    final count = (width * height * 0.05).round();
-    for (int i = 0; i < count; i++) {
+    // Improved weathering with noise-based distribution
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final weatherNoise = noise2D(x / 3.0 + 100, y / 3.0, 3);
+        if (weatherNoise > 0.7 && random.nextDouble() < 0.4) {
+          final current = pixels[y * width + x];
+          if (current != 0) {
+            pixels[y * width + x] = addNoise(palette.shadow, random, 0.15);
+          }
+        }
+      }
+    }
+    // Add scattered dark spots
+    final spotCount = (width * height * 0.03).round();
+    for (int i = 0; i < spotCount; i++) {
       final x = random.nextInt(width);
       final y = random.nextInt(height);
-      pixels[y * width + x] = addNoise(palette.shadow, random, 0.1);
+      pixels[y * width + x] = colorToInt(palette.shadow);
     }
   }
 
   void _addMoss(Uint32List pixels, int width, int height, Random random) {
-    final count = (width * height * 0.08).round();
-    for (int i = 0; i < count; i++) {
-      final x = random.nextInt(width);
-      final y = random.nextInt(height);
-      pixels[y * width + x] = colorToInt(StoneTilePalettes.vineGreen.primary);
+    // Improved moss with clustered growth pattern
+    final mossSeeds = <List<int>>[];
+    final seedCount = 3 + random.nextInt(3);
+    for (int i = 0; i < seedCount; i++) {
+      mossSeeds.add([random.nextInt(width), random.nextInt(height)]);
+    }
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        // Check distance to nearest moss seed
+        var minDist = double.infinity;
+        for (final seed in mossSeeds) {
+          final dist = sqrt(pow(x - seed[0], 2) + pow(y - seed[1], 2));
+          if (dist < minDist) minDist = dist;
+        }
+
+        final mossNoise = noise2D(x / 2.0 + 50, y / 2.0, 2);
+        if (minDist < 4 + mossNoise * 3 && random.nextDouble() < 0.6) {
+          final mossColor =
+              mossNoise > 0.5 ? StoneTilePalettes.vineGreen.highlight : StoneTilePalettes.vineGreen.primary;
+          pixels[y * width + x] = addNoise(mossColor, random, 0.1);
+        }
+      }
     }
   }
 
   void _addCracks(Uint32List pixels, int width, int height, Random random) {
-    var cx = random.nextInt(width);
-    var cy = 0;
-    while (cy < height && cx >= 0 && cx < width) {
-      pixels[cy * width + cx] = colorToInt(palette.shadow);
-      cy++;
-      cx += random.nextInt(3) - 1;
+    // Improved crack generation with branching
+    final crackCount = 1 + random.nextInt(2);
+    for (int c = 0; c < crackCount; c++) {
+      var cx = random.nextInt(width);
+      var cy = random.nextBool() ? 0 : random.nextInt(height ~/ 2);
+      final targetY = height;
+
+      while (cy < targetY && cx >= 0 && cx < width) {
+        pixels[cy * width + cx] = colorToInt(palette.shadow);
+
+        // Occasional branch
+        if (random.nextDouble() < 0.15) {
+          var bx = cx;
+          var by = cy;
+          final branchDir = random.nextBool() ? 1 : -1;
+          final branchLen = 2 + random.nextInt(4);
+          for (int i = 0; i < branchLen; i++) {
+            bx += branchDir;
+            by += random.nextInt(2);
+            if (bx >= 0 && bx < width && by >= 0 && by < height) {
+              pixels[by * width + bx] = colorToInt(palette.shadow);
+            }
+          }
+        }
+
+        cy++;
+        cx += random.nextInt(3) - 1;
+      }
     }
   }
 }

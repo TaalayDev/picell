@@ -324,7 +324,7 @@ class ColoredRoofShingleTile extends TileBase {
   @override
   String get iconName => 'roofing';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.varied;
   @override
   TilePalette get palette => colorPalette;
   @override
@@ -403,7 +403,7 @@ class ColoredRoofTileTile extends TileBase {
   @override
   String get iconName => 'roofing';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.varied;
   @override
   TilePalette get palette => colorPalette;
   @override
@@ -473,7 +473,7 @@ class ColoredSmallBrickTile extends TileBase {
   @override
   String get iconName => 'grid_view';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.varied;
   @override
   TilePalette get palette => colorPalette;
   @override
@@ -536,7 +536,7 @@ class ColoredCobblestoneTile extends TileBase {
   @override
   String get iconName => 'grid_on';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.varied;
   @override
   TilePalette get palette => colorPalette;
   @override
@@ -609,7 +609,7 @@ class ColoredStoneBrickTile extends TileBase {
   @override
   String get iconName => 'view_module';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.varied;
   @override
   TilePalette get palette => colorPalette;
   @override
@@ -673,7 +673,7 @@ class ColoredRoughStoneTile extends TileBase {
   @override
   String get iconName => 'texture';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.varied;
   @override
   TilePalette get palette => colorPalette;
   @override
@@ -734,7 +734,7 @@ class ColoredLargeBlockTile extends TileBase {
   @override
   String get iconName => 'view_module';
   @override
-  TileCategory get category => TileCategory.structure;
+  TileCategory get category => TileCategory.varied;
   @override
   TilePalette get palette => colorPalette;
   @override
@@ -801,7 +801,7 @@ class ColoredWeatheredStoneTile extends TileBase {
   @override
   String get iconName => 'blur_on';
   @override
-  TileCategory get category => TileCategory.terrain;
+  TileCategory get category => TileCategory.varied;
   @override
   TilePalette get palette => colorPalette;
   @override
@@ -855,38 +855,32 @@ class ColoredWeatheredStoneTile extends TileBase {
 
 /// Factory to create all colored roof tile variants
 class ColoredRoofFactory {
-  static List<TileBase> createAllShingles(int startId) {
+  static List<TileBase> createAllShingles() {
     final tiles = <TileBase>[];
-    int id = startId;
 
     for (final palette in ColoredRoofPalettes.all) {
       tiles.add(ColoredRoofShingleTile('roof_shingle_${palette.name.toLowerCase().replaceAll(' ', '_')}',
           colorPalette: palette));
-      id++;
     }
     return tiles;
   }
 
-  static List<TileBase> createAllCurvedTiles(int startId) {
+  static List<TileBase> createAllCurvedTiles() {
     final tiles = <TileBase>[];
-    int id = startId;
 
     for (final palette in ColoredRoofPalettes.all) {
       tiles.add(
           ColoredRoofTileTile('roof_curved_${palette.name.toLowerCase().replaceAll(' ', '_')}', colorPalette: palette));
-      id++;
     }
     return tiles;
   }
 
-  static List<TileBase> createAllSmallBricks(int startId) {
+  static List<TileBase> createAllSmallBricks() {
     final tiles = <TileBase>[];
-    int id = startId;
 
     for (final palette in ColoredRoofPalettes.all) {
       tiles.add(ColoredSmallBrickTile('small_brick_${palette.name.toLowerCase().replaceAll(' ', '_')}',
           colorPalette: palette));
-      id++;
     }
     return tiles;
   }
@@ -894,62 +888,52 @@ class ColoredRoofFactory {
 
 /// Factory to create all stone color variants
 class ColoredStoneFactory {
-  static List<TileBase> createAllCobblestones(int startId) {
+  static List<TileBase> createAllCobblestones() {
     final tiles = <TileBase>[];
-    int id = startId;
 
     for (final palette in VariedStonePalettes.all) {
       tiles.add(
           ColoredCobblestoneTile('cobble_${palette.name.toLowerCase().replaceAll(' ', '_')}', colorPalette: palette));
-      id++;
     }
     return tiles;
   }
 
-  static List<TileBase> createAllStoneBricks(int startId) {
+  static List<TileBase> createAllStoneBricks() {
     final tiles = <TileBase>[];
-    int id = startId;
 
     for (final palette in VariedStonePalettes.all) {
       tiles.add(ColoredStoneBrickTile('stone_brick_${palette.name.toLowerCase().replaceAll(' ', '_')}',
           colorPalette: palette));
-      id++;
     }
     return tiles;
   }
 
-  static List<TileBase> createAllRoughStones(int startId) {
+  static List<TileBase> createAllRoughStones() {
     final tiles = <TileBase>[];
-    int id = startId;
 
     for (final palette in VariedStonePalettes.all) {
       tiles.add(
           ColoredRoughStoneTile('rough_${palette.name.toLowerCase().replaceAll(' ', '_')}', colorPalette: palette));
-      id++;
     }
     return tiles;
   }
 
-  static List<TileBase> createAllLargeBlocks(int startId) {
+  static List<TileBase> createAllLargeBlocks() {
     final tiles = <TileBase>[];
-    int id = startId;
 
     for (final palette in VariedStonePalettes.all) {
       tiles.add(ColoredLargeBlockTile('large_block_${palette.name.toLowerCase().replaceAll(' ', '_')}',
           colorPalette: palette));
-      id++;
     }
     return tiles;
   }
 
-  static List<TileBase> createAllWeatheredStones(int startId) {
+  static List<TileBase> createAllWeatheredStones() {
     final tiles = <TileBase>[];
-    int id = startId;
 
     for (final palette in VariedStonePalettes.all) {
       tiles.add(ColoredWeatheredStoneTile('weathered_${palette.name.toLowerCase().replaceAll(' ', '_')}',
           colorPalette: palette));
-      id++;
     }
     return tiles;
   }
