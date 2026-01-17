@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'tile_palette.dart';
+import 'tiles/environment_tiles.dart';
 import 'tiles/extended_urban.dart';
 import 'tiles/platformer_blocks.dart';
 import 'tiles/platformer_tiles.dart';
@@ -355,7 +356,6 @@ class TileRegistry {
           'horizontal_stone_brick_worn',
           style: HorizontalBrickStyle.worn,
         ),
-    'irregular_cobblestone': () => IrregularCobblestoneTile('irregular_cobblestone'),
     'vine_covered_stone': () => VineCoveredStoneTile('vine_covered_stone'),
     'rough_textured_stone': () => RoughTexturedStoneTile('rough_textured_stone'),
     'stone_brick_transition': () => StoneBrickTransitionTile('stone_brick_transition'),
@@ -375,8 +375,6 @@ class TileRegistry {
     // =========================================================================
     // EXTENDED GRAY STONE TILES
     // =========================================================================
-    'small_cobblestone_floor': () => SmallCobblestoneFloorTile('small_cobblestone_floor'),
-    'medium_cobblestone_floor': () => MediumCobblestoneFloorTile('medium_cobblestone_floor'),
     'rough_stone_floor': () => RoughStoneFloorTile('rough_stone_floor'),
     'vine_stone_floor': () => VineStoneFloorTile('vine_stone_floor'),
     'regular_stone_brick': () => RegularStoneBrickTile('regular_stone_brick'),
@@ -807,6 +805,59 @@ class TileRegistry {
           topSurface: TopSurface.ice,
           baseMaterial: BaseMaterial.darkBrick,
         ),
+
+    // =========================================================================
+    // ENVIRONMENT TILES - CAVE/UNDERGROUND
+    // =========================================================================
+    'cave_floor': () => CaveFloorTile('cave_floor'),
+    'cave_floor_wet': () => CaveFloorTile('cave_floor_wet', hasPuddles: true),
+    'stalactite': () => StalactiteTile('stalactite'),
+    'stalagmite': () => StalactiteTile('stalagmite', pointingDown: false),
+    'glowing_fungus': () => GlowingFungusTile('glowing_fungus'),
+    'glowing_fungus_dense': () => GlowingFungusTile('glowing_fungus_dense', density: 0.6),
+    'underground_lake': () => UndergroundLakeTile('underground_lake'),
+
+    // =========================================================================
+    // ENVIRONMENT TILES - SWAMP/MARSH
+    // =========================================================================
+    'swamp_mud': () => SwampMudTile('swamp_mud'),
+    'swamp_mud_wet': () => SwampMudTile('swamp_mud_wet', hasRipples: true),
+    'swamp_water': () => SwampWaterTile('swamp_water'),
+    'lily_pads': () => LilyPadTile('lily_pads'),
+    'lily_pads_flowering': () => LilyPadTile('lily_pads_flowering', hasFlowers: true),
+    'bog': () => BogTile('bog'),
+
+    // =========================================================================
+    // ENVIRONMENT TILES - INTERIOR
+    // =========================================================================
+    'carpet_red': () => CarpetTile('carpet_red', color: CarpetColor.red),
+    'carpet_blue': () => CarpetTile('carpet_blue', color: CarpetColor.blue),
+    'carpet_green': () => CarpetTile('carpet_green', color: CarpetColor.green),
+    'carpet_purple': () => CarpetTile('carpet_purple', color: CarpetColor.purple),
+    'wallpaper_striped': () => WallpaperTile('wallpaper_striped', pattern: WallpaperPattern.striped),
+    'wallpaper_damask': () => WallpaperTile('wallpaper_damask', pattern: WallpaperPattern.damask),
+    'wallpaper_floral': () => WallpaperTile('wallpaper_floral', pattern: WallpaperPattern.floral),
+    'mosaic': () => MosaicTile('mosaic'),
+
+    // =========================================================================
+    // ENVIRONMENT TILES - FARM/RURAL
+    // =========================================================================
+    'tilled_soil': () => TilledSoilTile('tilled_soil'),
+    'tilled_soil_seeded': () => TilledSoilTile('tilled_soil_seeded', hasSeeds: true),
+    'hay_loose': () => HayTile('hay_loose'),
+    'hay_bale': () => HayTile('hay_bale', isBaled: true),
+    'wheat_field_mature': () => WheatFieldTile('wheat_field_mature', mature: true),
+    'wheat_field_young': () => WheatFieldTile('wheat_field_young', mature: false),
+
+    // =========================================================================
+    // ENVIRONMENT TILES - TRANSITIONS/EDGES
+    // =========================================================================
+    'shoreline_top': () => ShorelineTile('shoreline_top', direction: EdgeDirection.top),
+    'shoreline_bottom': () => ShorelineTile('shoreline_bottom', direction: EdgeDirection.bottom),
+    'path_edge_top': () => PathEdgeTile('path_edge_top', direction: EdgeDirection.top),
+    'path_edge_bottom': () => PathEdgeTile('path_edge_bottom', direction: EdgeDirection.bottom),
+    'snow_edge_top': () => SnowEdgeTile('snow_edge_top', direction: EdgeDirection.top),
+    'snow_edge_bottom': () => SnowEdgeTile('snow_edge_bottom', direction: EdgeDirection.bottom),
   };
 
   /// Get all registered tile IDs

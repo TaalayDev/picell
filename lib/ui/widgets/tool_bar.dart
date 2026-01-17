@@ -9,11 +9,12 @@ import '../../data.dart';
 import '../../l10n/strings.dart';
 import '../../config/assets.dart';
 import '../../data/models/subscription_model.dart';
-import '../../pixel/pixel_canvas_state.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/tools.dart';
 import '../../pixel/tools/texture_brush_tool.dart';
+import '../../providers/editor_settings_provider.dart';
 import 'app_icon.dart';
+import 'dialogs/editor_settings_dialog.dart';
 import 'menu_value_field.dart';
 import 'selection_options_button.dart';
 
@@ -283,6 +284,8 @@ class ToolBar extends ConsumerWidget {
             icon: const AppIcon(AppIcons.gallery_wide, size: 20),
             tooltip: 'Templates',
           ),
+          const SizedBox(width: 4),
+          _EditorSettingsButton(),
           const SizedBox(width: 8),
           Row(
             children: [
@@ -300,6 +303,41 @@ class ToolBar extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _EditorSettingsButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(editorSettingsNotifierProvider);
+    final isStylusMode = settings.inputMode == InputMode.stylusOnly;
+
+    return IconButton(
+      onPressed: () => EditorSettingsDialog.show(context),
+      icon: Stack(
+        children: [
+          const Icon(Icons.settings, size: 20),
+          if (isStylusMode)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.surface,
+                    width: 1,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+      tooltip: isStylusMode ? 'Settings (Stylus Mode)' : 'Editor Settings',
     );
   }
 }

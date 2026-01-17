@@ -1,9 +1,19 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../pixel/tools.dart';
 import '../pixel_point.dart';
 import 'canvas_controller.dart';
 import 'tool_drawing_manager.dart';
+
+/// Input mode for touch/stylus handling
+enum GestureInputMode {
+  /// Both touch and stylus can draw
+  standard,
+
+  /// Only stylus can draw, touch is for navigation only
+  stylusOnly,
+}
 
 class CanvasGestureHandler {
   final PixelCanvasController controller;
@@ -16,6 +26,12 @@ class CanvasGestureHandler {
   final Function(double, Offset)? onDrag;
   final Function(double, Offset)? onDragEnd;
   final VoidCallback? onUndo;
+
+  /// Current input mode - determines how touch vs stylus is handled
+  GestureInputMode inputMode = GestureInputMode.standard;
+
+  /// Whether two-finger tap undo is enabled
+  bool twoFingerUndoEnabled = true;
 
   int _pointerCount = 0;
   Offset? _panStartPosition;
@@ -32,6 +48,24 @@ class CanvasGestureHandler {
 
   bool get hasActivePointers => _activePointers.isNotEmpty;
   int get activePointerCount => _activePointers.length;
+
+  /// Check if drawing is allowed based on input mode and pointer type
+  bool _canDrawWithPointer(PointerDeviceKind kind) {
+    if (inputMode == GestureInputMode.standard) {
+      return true;
+    }
+    // In stylus mode, only stylus and inverted stylus can draw
+    return kind == PointerDeviceKind.stylus || kind == PointerDeviceKind.invertedStylus;
+  }
+
+  /// Check if pointer should be used for navigation (pan/zoom)
+  bool _shouldUseForNavigation(PointerDeviceKind kind) {
+    if (inputMode == GestureInputMode.standard) {
+      return false; // In standard mode, single touch draws
+    }
+    // In stylus mode, touch is for navigation
+    return kind == PointerDeviceKind.touch;
+  }
 
   CanvasGestureHandler({
     required this.controller,
@@ -251,6 +285,11 @@ class CanvasGestureHandler {
   }
 
   bool _handleUndoGesture(int startTimeForUndo) {
+    // Check if two-finger undo is enabled
+    if (!twoFingerUndoEnabled) {
+      return false;
+    }
+
     final endTimeMs = DateTime.now().millisecondsSinceEpoch;
     final durationMs = endTimeMs - startTimeForUndo;
 
@@ -353,10 +392,23 @@ class CanvasGestureHandler {
     PixelTool currentTool,
     PixelDrawDetails drawDetails,
   ) {
-    if (currentTool == PixelTool.drag) {
+    final pointerKind = event.kind;
+    final canDraw = _canDrawWithPointer(pointerKind);
+    final shouldNavigate = _shouldUseForNavigation(pointerKind);
+
+    // In stylus mode, touch initiates pan/drag instead of drawing
+    if (shouldNavigate || currentTool == PixelTool.drag) {
       _panStartPosition = event.position - controller.offset;
       onStartDrag?.call(controller.zoomLevel, controller.offset);
-    } else if (_shouldHandleDirectTap(currentTool)) {
+      return;
+    }
+
+    // If we can't draw with this pointer type, ignore
+    if (!canDraw) {
+      return;
+    }
+
+    if (_shouldHandleDirectTap(currentTool)) {
       onStartDrawing();
       toolManager.handleSelectionEnd(drawDetails);
       toolManager.handleTap(currentTool, drawDetails);
@@ -393,6 +445,17 @@ class CanvasGestureHandler {
     PixelTool currentTool,
     PixelDrawDetails drawDetails,
   ) {
+    final pointerKind = event.kind;
+    final shouldNavigate = _shouldUseForNavigation(pointerKind);
+
+    // Handle navigation (pan) in stylus mode when using touch
+    if (shouldNavigate && _panStartPosition != null) {
+      final newOffset = event.position - _panStartPosition!;
+      controller.setOffset(newOffset);
+      onDrag?.call(controller.zoomLevel, newOffset);
+      return;
+    }
+
     if (currentTool == PixelTool.drag && _panStartPosition != null) {
       final newOffset = event.position - _panStartPosition!;
       controller.setOffset(newOffset);

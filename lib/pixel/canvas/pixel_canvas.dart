@@ -33,6 +33,9 @@ class PixelCanvas extends StatefulWidget {
 
   final Stream<PixelDrawEvent>? eventStream;
 
+  final GestureInputMode inputMode;
+  final bool twoFingerUndoEnabled;
+
   // Callbacks
   final Function(int x, int y) onTapPixel;
   final Function() onStartDrawing;
@@ -82,6 +85,8 @@ class PixelCanvas extends StatefulWidget {
     this.onDrag,
     this.onDragEnd,
     this.onUndo,
+    this.inputMode = GestureInputMode.standard,
+    this.twoFingerUndoEnabled = true,
   });
 
   @override
@@ -186,6 +191,10 @@ class _PixelCanvasState extends State<PixelCanvas> {
     );
 
     _controller.initialize(widget.layers);
+
+    // Apply initial settings
+    _gestureHandler.inputMode = widget.inputMode;
+    _gestureHandler.twoFingerUndoEnabled = widget.twoFingerUndoEnabled;
   }
 
   @override
@@ -210,6 +219,15 @@ class _PixelCanvasState extends State<PixelCanvas> {
 
     if (widget.currentOffset != oldWidget.currentOffset) {
       _controller.setOffset(widget.currentOffset);
+    }
+
+    // Update gesture handler settings
+    if (widget.inputMode != oldWidget.inputMode) {
+      _gestureHandler.inputMode = widget.inputMode;
+    }
+
+    if (widget.twoFingerUndoEnabled != oldWidget.twoFingerUndoEnabled) {
+      _gestureHandler.twoFingerUndoEnabled = widget.twoFingerUndoEnabled;
     }
   }
 

@@ -288,35 +288,35 @@ class AppTheme {
       sliderTheme: SliderThemeData(
         activeTrackColor: primaryColor,
         inactiveTrackColor: primaryColor.withOpacity(0.3),
-        thumbColor: primaryColor,
+        thumbColor: onPrimary,
       ),
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
             return primaryColor;
           }
           return isDark ? Colors.grey.shade800 : Colors.grey.shade200;
         }),
-        checkColor: MaterialStateProperty.all(onPrimary),
+        checkColor: WidgetStateProperty.all(onPrimary),
       ),
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
             return primaryColor;
           }
           return isDark ? Colors.grey.shade800 : Colors.grey.shade200;
         }),
       ),
       switchTheme: SwitchThemeData(
-        trackColor: MaterialStateProperty.resolveWith<Color>((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
             return primaryColor;
           }
           return isDark ? Colors.grey.shade800 : Colors.grey.shade300;
         }),
-        thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
-          if (states.contains(MaterialState.selected)) {
-            return primaryColor;
+        thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return onPrimary;
           }
           return isDark ? Colors.grey.shade200 : Colors.white;
         }),

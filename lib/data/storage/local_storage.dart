@@ -14,6 +14,15 @@ enum StorageKey {
   currentUser,
   hasBioAuth,
   feedbackPromptNeverAskAgain,
+  // Editor settings
+  editorInputMode,
+  editorShowGrid,
+  editorZoomSensitivity,
+  editorMinZoom,
+  editorMaxZoom,
+  editorTwoFingerUndo,
+  editorShowPixelGrid,
+  editorPixelGridOpacity,
 }
 
 /// A singleton class to handle simple storage operations.

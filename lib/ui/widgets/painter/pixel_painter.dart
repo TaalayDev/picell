@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../data.dart';
+import '../../../pixel/canvas/canvas_gesture_handler.dart';
 import '../../../pixel/canvas/pixel_canvas.dart';
 import '../../../pixel/image_painter.dart';
 import '../../../pixel/pixel_canvas_state.dart';
 import '../../../pixel/providers/pixel_canvas_provider.dart';
 import '../../../pixel/tools.dart';
 import '../../../providers/background_image_provider.dart';
+import '../../../providers/editor_settings_provider.dart';
 import '../layers_preview.dart';
 import 'grid_painter.dart';
 
@@ -59,6 +61,11 @@ class PixelPainter extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final backgroundImage = ref.watch(backgroundImageProvider);
+    final editorSettings = ref.watch(editorSettingsNotifierProvider);
+
+    // Map editor settings to gesture handler input mode
+    final inputMode =
+        editorSettings.inputMode == InputMode.stylusOnly ? GestureInputMode.stylusOnly : GestureInputMode.standard;
 
     return CustomPaint(
       painter: GridPainter(
@@ -170,6 +177,8 @@ class PixelPainter extends HookConsumerWidget {
               zoomLevel: gridScale.value,
               currentOffset: gridOffset.value,
               eventStream: notifier.eventStream,
+              inputMode: inputMode,
+              twoFingerUndoEnabled: editorSettings.twoFingerUndoEnabled,
               onDrawShape: (points) {
                 ref.read(pixelCanvasNotifierProvider(project).notifier).fillPixels(points);
               },
