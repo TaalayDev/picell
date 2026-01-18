@@ -965,6 +965,37 @@ class TileRegistry {
         ),
 
     // =========================================================================
+    // PLATFORMER BLOCKS - NO-TOP FILL VERSIONS
+    // =========================================================================
+    'platformer_fill_dirt': () => DirtFillBlockTile('platformer_fill_dirt'),
+    'platformer_fill_stone': () => StoneFillBlockTile('platformer_fill_stone'),
+    'platformer_fill_brick': () => BrickFillBlockTile('platformer_fill_brick'),
+    'platformer_fill_wood': () => WoodFillBlockTile('platformer_fill_wood'),
+    'platformer_fill_concrete': () => ConcreteFillBlockTile('platformer_fill_concrete'),
+    'platformer_fill_sandstone': () => SandstoneFillBlockTile('platformer_fill_sandstone'),
+    'platformer_fill_ice': () => IceFillBlockTile('platformer_fill_ice'),
+    'platformer_fill_metal': () => MetalFillBlockTile('platformer_fill_metal'),
+    'platformer_fill_dark_brick': () => DarkBrickFillBlockTile('platformer_fill_dark_brick'),
+    'platformer_fill_clay': () => ClayFillBlockTile('platformer_fill_clay'),
+
+    // =========================================================================
+    // PLATFORMER TILES - NO-TOP FILL VERSIONS
+    // =========================================================================
+    'dirt_fill': () => DirtFillTile('dirt_fill'),
+    'ice_fill': () => IceFillTile('ice_fill'),
+    'sand_fill': () => SandFillTile('sand_fill'),
+    'water_fill': () => WaterFillTile('water_fill'),
+    'deep_water_fill': () => DeepWaterFillTile('deep_water_fill'),
+    'lava_fill': () => LavaFillTile('lava_fill'),
+    'lava_cracks_fill': () => LavaCracksFillTile('lava_cracks_fill'),
+    'poison_slime_fill': () => PoisonSlimeFillTile('poison_slime_fill'),
+    'stone_path_fill': () => StonePathFillTile('stone_path_fill'),
+    'rocky_ground_fill': () => RockyGroundFillTile('rocky_ground_fill'),
+    'metal_panel_fill': () => MetalPanelFillTile('metal_panel_fill'),
+    'wood_fill': () => WoodFillTile('wood_fill'),
+    'brick_fill': () => BrickFillTile('brick_fill'),
+
+    // =========================================================================
     // ENVIRONMENT TILES - CAVE/UNDERGROUND
     // =========================================================================
     'cave_floor': () => CaveFloorTile('cave_floor'),

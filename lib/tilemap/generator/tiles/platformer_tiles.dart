@@ -1605,3 +1605,759 @@ class RedBrickPlatformerTile extends TileBase {
     return pixels;
   }
 }
+
+// ============================================================================
+// NO-TOP VERSIONS (Solid fill without surface layer)
+// ============================================================================
+
+/// Dirt fill tile (no grass top)
+class DirtFillTile extends TileBase {
+  DirtFillTile(super.id);
+
+  @override
+  String get name => 'Dirt Fill';
+  @override
+  String get description => 'Solid dirt without grass surface';
+  @override
+  String get iconName => 'square';
+  @override
+  TileCategory get category => TileCategory.terrain;
+  @override
+  TilePalette get palette => PlatformerPalettes.grassDirt;
+  @override
+  List<String> get tags => ['dirt', 'ground', 'fill', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        // Full dirt layer
+        final dirtNoise = noise2D(x / 3.0 + seed, y / 3.0, 2);
+        Color dirtColor;
+        if (dirtNoise < 0.3) {
+          dirtColor = palette.shadow;
+        } else if (dirtNoise < 0.6) {
+          dirtColor = palette.colors[3]; // Dark dirt
+        } else {
+          dirtColor = palette.accent; // Light dirt
+        }
+
+        // Add small rocks/pebbles
+        if (random.nextDouble() < 0.05) {
+          dirtColor = palette.shadow;
+        }
+
+        pixels[y * width + x] = addNoise(dirtColor, random, 0.05);
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Ice fill tile (no snow top)
+class IceFillTile extends TileBase {
+  IceFillTile(super.id);
+
+  @override
+  String get name => 'Ice Fill';
+  @override
+  String get description => 'Solid ice without snow surface';
+  @override
+  String get iconName => 'ac_unit';
+  @override
+  TileCategory get category => TileCategory.terrain;
+  @override
+  TilePalette get palette => PlatformerPalettes.snowIce;
+  @override
+  List<String> get tags => ['ice', 'frozen', 'fill', 'winter', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        // Full ice layer
+        final iceNoise = noise2D(x / 4.0 + seed, y / 4.0, 2);
+        Color iceColor;
+        if (iceNoise < 0.3) {
+          iceColor = palette.shadow;
+        } else if (iceNoise < 0.5) {
+          iceColor = palette.colors[2];
+        } else if (iceNoise < 0.7) {
+          iceColor = palette.secondary;
+        } else {
+          iceColor = palette.primary; // Lighter spots
+        }
+        pixels[y * width + x] = addNoise(iceColor, random, 0.03);
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Sand fill tile (no surface highlights)
+class SandFillTile extends TileBase {
+  SandFillTile(super.id);
+
+  @override
+  String get name => 'Sand Fill';
+  @override
+  String get description => 'Solid desert sand without surface layer';
+  @override
+  String get iconName => 'terrain';
+  @override
+  TileCategory get category => TileCategory.terrain;
+  @override
+  TilePalette get palette => PlatformerPalettes.sandLayers;
+  @override
+  List<String> get tags => ['sand', 'desert', 'fill', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        // Uniform sand texture
+        final sandNoise = noise2D(x / 3.0 + seed, y / 3.0, 2);
+        Color sandColor;
+        if (sandNoise < 0.3) {
+          sandColor = palette.colors[2]; // Darker sand
+        } else if (sandNoise < 0.6) {
+          sandColor = palette.secondary;
+        } else {
+          sandColor = palette.primary;
+        }
+
+        pixels[y * width + x] = addNoise(sandColor, random, 0.04);
+      }
+    }
+
+    // Add small stones/dots
+    final dotCount = (width * height * 0.02).round();
+    for (int i = 0; i < dotCount; i++) {
+      final dx = random.nextInt(width);
+      final dy = random.nextInt(height);
+      pixels[dy * width + dx] = colorToInt(palette.shadow);
+    }
+
+    return pixels;
+  }
+}
+
+/// Water fill tile (no surface highlights)
+class WaterFillTile extends TileBase {
+  WaterFillTile(super.id);
+
+  @override
+  String get name => 'Water Fill';
+  @override
+  String get description => 'Solid water without surface';
+  @override
+  String get iconName => 'water';
+  @override
+  TileCategory get category => TileCategory.liquid;
+  @override
+  TilePalette get palette => PlatformerPalettes.waterClear;
+  @override
+  List<String> get tags => ['water', 'liquid', 'fill', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        // Uniform water depth
+        final waterNoise = noise2D(x / 4.0 + seed, y / 4.0, 2);
+        Color waterColor;
+        if (waterNoise < 0.3) {
+          waterColor = palette.colors[2]; // Darker blue
+        } else if (waterNoise < 0.6) {
+          waterColor = palette.primary;
+        } else {
+          waterColor = palette.secondary;
+        }
+
+        pixels[y * width + x] = addNoise(waterColor, random, 0.03);
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Deep water fill tile (no surface/stones)
+class DeepWaterFillTile extends TileBase {
+  DeepWaterFillTile(super.id);
+
+  @override
+  String get name => 'Deep Water Fill';
+  @override
+  String get description => 'Solid deep water without surface or stones';
+  @override
+  String get iconName => 'water';
+  @override
+  TileCategory get category => TileCategory.liquid;
+  @override
+  TilePalette get palette => PlatformerPalettes.deepWater;
+  @override
+  List<String> get tags => ['water', 'deep', 'fill', 'underwater', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        // Uniform deep water
+        final waterNoise = noise2D(x / 4.0 + seed, y / 4.0, 2);
+        Color waterColor;
+        if (waterNoise < 0.3) {
+          waterColor = palette.shadow; // Abyss
+        } else if (waterNoise < 0.5) {
+          waterColor = palette.colors[2]; // Dark blue
+        } else if (waterNoise < 0.7) {
+          waterColor = palette.primary;
+        } else {
+          waterColor = palette.secondary;
+        }
+
+        pixels[y * width + x] = addNoise(waterColor, random, 0.04);
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Lava fill tile (no drip effects)
+class LavaFillTile extends TileBase {
+  LavaFillTile(super.id);
+
+  @override
+  String get name => 'Lava Fill';
+  @override
+  String get description => 'Solid lava/magma without drips';
+  @override
+  String get iconName => 'local_fire_department';
+  @override
+  TileCategory get category => TileCategory.special;
+  @override
+  TilePalette get palette => PlatformerPalettes.lava;
+  @override
+  List<String> get tags => ['lava', 'magma', 'fill', 'hazard', 'platformer', 'no-top'];
+  @override
+  bool get animated => true;
+  @override
+  int get frameCount => 4;
+  @override
+  int get frameSpeed => 200;
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    return generateFrame(width: width, height: height, seed: seed, frameIndex: 0);
+  }
+
+  @override
+  Uint32List generateFrame({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+    int frameIndex = 0,
+  }) {
+    final random = Random(seed + frameIndex);
+    final pixels = Uint32List(width * height);
+
+    // Flowing lava pattern
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final flow = sin((x + y + frameIndex * 2) / 3.0) * 0.2;
+        final noiseVal = noise2D(x / 3.0 + seed, y / 3.0, 2) + flow;
+
+        Color lavaColor;
+        if (noiseVal < 0.3) {
+          lavaColor = palette.shadow; // Dark crust
+        } else if (noiseVal < 0.5) {
+          lavaColor = palette.primary; // Dark purple
+        } else if (noiseVal < 0.7) {
+          lavaColor = palette.accent; // Orange
+        } else {
+          lavaColor = palette.highlight; // Yellow hot
+        }
+
+        pixels[y * width + x] = addNoise(lavaColor, random, 0.05);
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Lava cracks fill tile (uniform cracked rock)
+class LavaCracksFillTile extends TileBase {
+  LavaCracksFillTile(super.id);
+
+  @override
+  String get name => 'Volcanic Rock Fill';
+  @override
+  String get description => 'Solid volcanic rock with lava cracks';
+  @override
+  String get iconName => 'whatshot';
+  @override
+  TileCategory get category => TileCategory.special;
+  @override
+  TilePalette get palette => PlatformerPalettes.lavaCracks;
+  @override
+  List<String> get tags => ['lava', 'volcanic', 'rock', 'fill', 'platformer', 'no-top'];
+  @override
+  bool get animated => true;
+  @override
+  int get frameCount => 4;
+  @override
+  int get frameSpeed => 200;
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    return generateFrame(width: width, height: height, seed: seed, frameIndex: 0);
+  }
+
+  @override
+  Uint32List generateFrame({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+    int frameIndex = 0,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+
+    // Black rock base with texture
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final noiseVal = noise2D(x / 3.0 + seed, y / 3.0, 2);
+        Color rockColor;
+        if (noiseVal < 0.4) {
+          rockColor = palette.shadow;
+        } else if (noiseVal < 0.7) {
+          rockColor = palette.primary;
+        } else {
+          rockColor = palette.secondary;
+        }
+        pixels[y * width + x] = addNoise(rockColor, random, 0.05);
+      }
+    }
+
+    // Generate uniform lava crack pattern
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final crackNoise = noise2D(x / 4.0 + seed * 3, y / 4.0, 3);
+        final pulse = sin(frameIndex * 0.5) * 0.1;
+
+        if (crackNoise > 0.6 + pulse) {
+          if (crackNoise > 0.75 + pulse) {
+            pixels[y * width + x] = colorToInt(palette.highlight); // Yellow hot
+          } else {
+            pixels[y * width + x] = colorToInt(palette.accent); // Orange
+          }
+        }
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Poison slime fill tile (no surface bubbles)
+class PoisonSlimeFillTile extends TileBase {
+  PoisonSlimeFillTile(super.id);
+
+  @override
+  String get name => 'Poison Slime Fill';
+  @override
+  String get description => 'Solid toxic slime without surface bubbles';
+  @override
+  String get iconName => 'bubble_chart';
+  @override
+  TileCategory get category => TileCategory.liquid;
+  @override
+  TilePalette get palette => PlatformerPalettes.poisonSlime;
+  @override
+  List<String> get tags => ['poison', 'slime', 'toxic', 'fill', 'platformer', 'no-top'];
+  @override
+  bool get animated => true;
+  @override
+  int get frameCount => 4;
+  @override
+  int get frameSpeed => 300;
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    return generateFrame(width: width, height: height, seed: seed, frameIndex: 0);
+  }
+
+  @override
+  Uint32List generateFrame({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+    int frameIndex = 0,
+  }) {
+    final random = Random(seed + frameIndex);
+    final pixels = Uint32List(width * height);
+
+    // Purple slime with swirling pattern
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final swirl = sin(x / 3.0 + y / 4.0 + frameIndex * 0.3) * 0.3;
+        final noiseVal = noise2D(x / 4.0 + seed, y / 4.0, 2) + swirl;
+
+        Color baseColor;
+        if (noiseVal < 0.3) {
+          baseColor = palette.shadow;
+        } else if (noiseVal < 0.5) {
+          baseColor = palette.colors[2];
+        } else if (noiseVal < 0.7) {
+          baseColor = palette.primary;
+        } else {
+          baseColor = palette.secondary;
+        }
+
+        pixels[y * width + x] = addNoise(baseColor, random, 0.04);
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Stone path fill tile (no grass in cracks)
+class StonePathFillTile extends TileBase {
+  StonePathFillTile(super.id);
+
+  @override
+  String get name => 'Stone Path Fill';
+  @override
+  String get description => 'Stone path without grass in cracks';
+  @override
+  String get iconName => 'grid_view';
+  @override
+  TileCategory get category => TileCategory.terrain;
+  @override
+  TilePalette get palette => PlatformerPalettes.stonePath;
+  @override
+  List<String> get tags => ['stone', 'path', 'fill', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+    final stoneW = 5;
+    final stoneH = 4;
+
+    // Fill with gap color (dark mortar)
+    for (int i = 0; i < pixels.length; i++) {
+      pixels[i] = colorToInt(palette.shadow);
+    }
+
+    // Draw stones
+    for (int sy = 0; sy < height; sy += stoneH + 1) {
+      for (int sx = 0; sx < width; sx += stoneW + 1) {
+        final offset = (sy ~/ (stoneH + 1)) % 2 == 1 ? stoneW ~/ 2 : 0;
+        final stoneStartX = (sx + offset) % width;
+
+        for (int dy = 0; dy < stoneH; dy++) {
+          for (int dx = 0; dx < stoneW; dx++) {
+            final px = (stoneStartX + dx) % width;
+            final py = sy + dy;
+            if (py < height) {
+              final colorIdx = random.nextInt(3);
+              final stoneColor = palette.colors[colorIdx];
+
+              // Edge shading
+              Color finalColor = stoneColor;
+              if (dy == 0 || dx == 0) {
+                finalColor = palette.highlight;
+              } else if (dy == stoneH - 1 || dx == stoneW - 1) {
+                finalColor = palette.colors[2];
+              }
+
+              pixels[py * width + px] = addNoise(finalColor, random, 0.04);
+            }
+          }
+        }
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Rocky ground fill tile (uniform texture)
+class RockyGroundFillTile extends TileBase {
+  RockyGroundFillTile(super.id);
+
+  @override
+  String get name => 'Rocky Ground Fill';
+  @override
+  String get description => 'Uniform rocky ground texture';
+  @override
+  String get iconName => 'landscape';
+  @override
+  TileCategory get category => TileCategory.terrain;
+  @override
+  TilePalette get palette => PlatformerPalettes.rockyGround;
+  @override
+  List<String> get tags => ['rock', 'ground', 'fill', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+
+    // Fill with rocky texture
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final noiseVal = noise2D(x / 4.0 + seed, y / 4.0, 2);
+        Color baseColor;
+        if (noiseVal < 0.3) {
+          baseColor = palette.shadow;
+        } else if (noiseVal < 0.5) {
+          baseColor = palette.colors[2];
+        } else if (noiseVal < 0.7) {
+          baseColor = palette.primary;
+        } else {
+          baseColor = palette.secondary;
+        }
+        pixels[y * width + x] = addNoise(baseColor, random, 0.05);
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Metal panel fill tile (without rivets pattern)
+class MetalPanelFillTile extends TileBase {
+  MetalPanelFillTile(super.id);
+
+  @override
+  String get name => 'Metal Panel Fill';
+  @override
+  String get description => 'Solid metal panel texture';
+  @override
+  String get iconName => 'grid_on';
+  @override
+  TileCategory get category => TileCategory.structure;
+  @override
+  TilePalette get palette => PlatformerPalettes.metal;
+  @override
+  List<String> get tags => ['metal', 'panel', 'fill', 'industrial', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final noiseVal = noise2D(x / 3.0 + seed, y / 3.0, 2);
+        Color metalColor;
+        if (noiseVal < 0.3) {
+          metalColor = palette.shadow;
+        } else if (noiseVal < 0.5) {
+          metalColor = palette.secondary;
+        } else if (noiseVal < 0.7) {
+          metalColor = palette.primary;
+        } else {
+          metalColor = palette.highlight;
+        }
+
+        pixels[y * width + x] = addNoise(metalColor, random, 0.03);
+      }
+    }
+
+    return pixels;
+  }
+}
+
+/// Wood fill tile (no plank gaps)
+class WoodFillTile extends TileBase {
+  WoodFillTile(super.id);
+
+  @override
+  String get name => 'Wood Fill';
+  @override
+  String get description => 'Solid wood texture without plank gaps';
+  @override
+  String get iconName => 'carpenter';
+  @override
+  TileCategory get category => TileCategory.structure;
+  @override
+  TilePalette get palette => PlatformerPalettes.woodPlank;
+  @override
+  List<String> get tags => ['wood', 'fill', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        // Wood grain pattern
+        final grain = sin((y + seed) / 2.5 + x * 0.1);
+        Color baseColor;
+        if (grain < -0.3) {
+          baseColor = palette.colors[2]; // Dark grain
+        } else if (grain < 0.3) {
+          baseColor = palette.primary;
+        } else {
+          baseColor = palette.secondary; // Light
+        }
+
+        pixels[y * width + x] = addNoise(baseColor, random, 0.04);
+      }
+    }
+
+    // Add occasional knots
+    final knotCount = random.nextInt(2) + 1;
+    for (int i = 0; i < knotCount; i++) {
+      final kx = random.nextInt(width - 1);
+      final ky = random.nextInt(height - 1);
+      pixels[ky * width + kx] = colorToInt(palette.shadow);
+      if (kx + 1 < width) pixels[ky * width + kx + 1] = colorToInt(palette.colors[2]);
+      if (ky + 1 < height) pixels[(ky + 1) * width + kx] = colorToInt(palette.colors[2]);
+    }
+
+    return pixels;
+  }
+}
+
+/// Brick fill tile (solid brick without mortar emphasis)
+class BrickFillTile extends TileBase {
+  BrickFillTile(super.id);
+
+  @override
+  String get name => 'Brick Fill';
+  @override
+  String get description => 'Dense brick pattern';
+  @override
+  String get iconName => 'grid_view';
+  @override
+  TileCategory get category => TileCategory.structure;
+  @override
+  TilePalette get palette => PlatformerPalettes.redBrick;
+  @override
+  List<String> get tags => ['brick', 'fill', 'wall', 'platformer', 'no-top'];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+    final brickW = 5;
+    final brickH = 3;
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final row = y ~/ brickH;
+        final offset = row % 2 == 1 ? brickW ~/ 2 : 0;
+        final adjustedX = (x + offset) % width;
+        final brickIdx = (row + adjustedX ~/ brickW + seed) % 3;
+
+        Color brickColor = palette.colors[brickIdx];
+
+        // Subtle shading
+        final posInBrickX = adjustedX % brickW;
+        final posInBrickY = y % brickH;
+        if (posInBrickX == 0 || posInBrickY == 0) {
+          brickColor = palette.shadow; // Thin mortar lines
+        } else if (posInBrickX == 1 || posInBrickY == 1) {
+          brickColor = palette.highlight;
+        }
+
+        pixels[y * width + x] = addNoise(brickColor, random, 0.05);
+      }
+    }
+
+    return pixels;
+  }
+}

@@ -1689,7 +1689,7 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              '#${state.currentColor.value.toRadixString(16).substring(2).toUpperCase()}',
+              _getColorHex(state.currentColor),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 11,
@@ -1700,6 +1700,13 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
         ),
       ),
     );
+  }
+
+  String _getColorHex(Color color) {
+    if (color.alpha < 255) {
+      return '#${color.value.toRadixString(16).toUpperCase()}';
+    }
+    return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
   }
 
   void _showColorPickerDialog(
@@ -2181,7 +2188,7 @@ class _TileEditorPainter extends CustomPainter {
           canvas.translate(offsetX, offsetY);
 
           // Draw tile with dimming for non-center tiles
-          _drawTile(canvas, Size(tileWidth, tileHeight), isCenter ? 1.0 : 0.5);
+          _drawTile(canvas, Size(tileWidth, tileHeight), isCenter ? 1.0 : 0.8);
 
           canvas.restore();
         }

@@ -1187,3 +1187,371 @@ class SnowDirtBlockTile extends PlatformerBlockTile {
           baseMaterial: BaseMaterial.dirt,
         );
 }
+
+// ============================================================================
+// NO-TOP VERSIONS (Base material only, no top surface)
+// ============================================================================
+
+/// A platformer block showing only the base material without a top surface.
+/// Useful for underground/inner sections of platforms.
+class PlatformerBlockFillTile extends TileBase {
+  final BaseMaterial baseMaterial;
+
+  PlatformerBlockFillTile(
+    super.id, {
+    required this.baseMaterial,
+  });
+
+  @override
+  String get name => '${baseMaterial.displayName} Fill';
+
+  @override
+  String get description => 'Solid ${baseMaterial.displayName} without top surface';
+
+  @override
+  String get iconName => 'square';
+
+  @override
+  TileCategory get category => TileCategory.platformer;
+
+  @override
+  TilePalette get palette => baseMaterial.palette;
+
+  @override
+  List<String> get tags => [
+        'platformer',
+        'block',
+        'fill',
+        'no-top',
+        baseMaterial.displayName.toLowerCase(),
+      ];
+
+  @override
+  Uint32List generate({
+    required int width,
+    required int height,
+    int seed = 0,
+    TileVariation variation = TileVariation.standard,
+  }) {
+    final random = Random(seed);
+    final pixels = Uint32List(width * height);
+    final pal = baseMaterial.palette;
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        pixels[y * width + x] = _generateBasePixel(x, y, width, height, pal, random, seed);
+      }
+    }
+
+    return pixels;
+  }
+
+  int _generateBasePixel(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    switch (baseMaterial) {
+      case BaseMaterial.dirt:
+        return _generateDirtBase(x, y, width, height, pal, random, seed);
+      case BaseMaterial.stone:
+        return _generateStoneBase(x, y, width, height, pal, random, seed);
+      case BaseMaterial.brick:
+        return _generateBrickBase(x, y, width, height, pal, random, seed);
+      case BaseMaterial.wood:
+        return _generateWoodBase(x, y, width, height, pal, random, seed);
+      case BaseMaterial.concrete:
+        return _generateConcreteBase(x, y, width, height, pal, random, seed);
+      case BaseMaterial.sandstone:
+        return _generateSandstoneBase(x, y, width, height, pal, random, seed);
+      case BaseMaterial.ice:
+        return _generateIceBase(x, y, width, height, pal, random, seed);
+      case BaseMaterial.metal:
+        return _generateMetalBase(x, y, width, height, pal, random, seed);
+      case BaseMaterial.darkBrick:
+        return _generateDarkBrickBase(x, y, width, height, pal, random, seed);
+      case BaseMaterial.clay:
+        return _generateClayBase(x, y, width, height, pal, random, seed);
+    }
+  }
+
+  int _generateDirtBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final noiseVal = noise2D(x / 3.0 + seed, y / 3.0, 2);
+    Color dirtColor;
+
+    if (noiseVal < 0.3) {
+      dirtColor = pal.shadow;
+    } else if (noiseVal < 0.5) {
+      dirtColor = pal.colors[2];
+    } else if (noiseVal < 0.7) {
+      dirtColor = pal.primary;
+    } else {
+      dirtColor = pal.secondary;
+    }
+
+    if (random.nextDouble() > 0.96) {
+      dirtColor = pal.shadow;
+    }
+
+    return addNoise(dirtColor, random, 0.06);
+  }
+
+  int _generateStoneBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final noiseVal = noise2D(x / 4.0 + seed, y / 4.0, 3);
+    Color stoneColor;
+
+    if (noiseVal > 0.6) {
+      stoneColor = pal.secondary;
+    } else if (noiseVal > 0.3) {
+      stoneColor = pal.primary;
+    } else {
+      stoneColor = pal.colors[2];
+    }
+
+    if ((x * 7 + y * 13) % 17 == 0 && random.nextDouble() > 0.6) {
+      stoneColor = pal.shadow;
+    }
+
+    return addNoise(stoneColor, random, 0.05);
+  }
+
+  int _generateBrickBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final brickW = 5;
+    final brickH = 3;
+    final row = y ~/ brickH;
+    final offset = row % 2 == 1 ? brickW ~/ 2 : 0;
+    final adjustedX = (x + offset) % width;
+
+    final isHMortar = y % brickH == 0;
+    final isVMortar = adjustedX % brickW == 0;
+
+    Color brickColor;
+    if (isHMortar || isVMortar) {
+      brickColor = pal.shadow;
+    } else {
+      final brickIdx = (row + adjustedX ~/ brickW + seed) % 3;
+      brickColor = pal.colors[brickIdx];
+
+      final posInX = adjustedX % brickW;
+      final posInY = y % brickH;
+      if (posInX == 1 || posInY == 1) {
+        brickColor = pal.highlight;
+      } else if (posInX == brickW - 2 || posInY == brickH - 2) {
+        brickColor = pal.colors[2];
+      }
+    }
+
+    return addNoise(brickColor, random, 0.04);
+  }
+
+  int _generateWoodBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final plankWidth = 4;
+    final withinPlank = x % plankWidth;
+
+    Color woodColor;
+    if (withinPlank == 0) {
+      woodColor = pal.shadow;
+    } else {
+      final grainNoise = noise2D(x / 2.0 + seed, y / 6.0 + seed, 2);
+      if (withinPlank == 1) {
+        woodColor = pal.highlight;
+      } else if (grainNoise > 0.6) {
+        woodColor = pal.secondary;
+      } else if (grainNoise > 0.3) {
+        woodColor = pal.primary;
+      } else {
+        woodColor = pal.colors[2];
+      }
+
+      if (random.nextDouble() > 0.98) {
+        woodColor = pal.shadow;
+      }
+    }
+
+    return addNoise(woodColor, random, 0.05);
+  }
+
+  int _generateConcreteBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final noiseVal = noise2D(x / 5.0 + seed, y / 5.0, 2);
+    Color concreteColor;
+
+    if (noiseVal > 0.6) {
+      concreteColor = pal.secondary;
+    } else if (noiseVal > 0.3) {
+      concreteColor = pal.primary;
+    } else {
+      concreteColor = pal.colors[2];
+    }
+
+    if (x % 8 == 0 || y % 8 == 0) {
+      concreteColor = pal.shadow;
+    }
+
+    if (random.nextDouble() > 0.95) {
+      concreteColor = random.nextBool() ? pal.highlight : pal.shadow;
+    }
+
+    return addNoise(concreteColor, random, 0.04);
+  }
+
+  int _generateSandstoneBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final layerHeight = 3;
+    final layer = y ~/ layerHeight;
+    final noiseVal = noise2D(x / 4.0 + seed, y / 4.0, 2);
+
+    Color sandstoneColor;
+    final layerColor = layer % 2 == 0 ? pal.primary : pal.secondary;
+
+    if (y % layerHeight == 0) {
+      sandstoneColor = pal.shadow;
+    } else if (noiseVal > 0.6) {
+      sandstoneColor = pal.highlight;
+    } else {
+      sandstoneColor = layerColor;
+    }
+
+    return addNoise(sandstoneColor, random, 0.05);
+  }
+
+  int _generateIceBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final noiseVal = noise2D(x / 4.0 + seed, y / 4.0, 2);
+    Color iceColor;
+
+    if (noiseVal > 0.65) {
+      iceColor = pal.highlight;
+    } else if (noiseVal > 0.4) {
+      iceColor = pal.secondary;
+    } else if (noiseVal > 0.2) {
+      iceColor = pal.primary;
+    } else {
+      iceColor = pal.colors[2];
+    }
+
+    if ((x * 5 + y * 11) % 13 == 0) {
+      iceColor = pal.shadow;
+    }
+
+    return addNoise(iceColor, random, 0.03);
+  }
+
+  int _generateMetalBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final panelSize = 5;
+    final onEdge = x % panelSize == 0 || y % panelSize == 0;
+    final panelX = x ~/ panelSize;
+    final panelY = y ~/ panelSize;
+
+    Color metalColor;
+    if (onEdge) {
+      metalColor = pal.shadow;
+    } else {
+      final panelIdx = (panelX + panelY + seed) % 2;
+      metalColor = panelIdx == 0 ? pal.primary : pal.secondary;
+
+      if (x % panelSize == 1 || y % panelSize == 1) {
+        metalColor = pal.highlight;
+      }
+    }
+
+    if (random.nextDouble() > 0.97) {
+      metalColor = const Color(0xFF8A5A3A);
+    }
+
+    return addNoise(metalColor, random, 0.03);
+  }
+
+  int _generateDarkBrickBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final brickW = 4;
+    final brickH = 2;
+    final row = y ~/ brickH;
+    final offset = row % 2 == 1 ? brickW ~/ 2 : 0;
+    final adjustedX = (x + offset) % width;
+
+    final isHMortar = y % brickH == 0;
+    final isVMortar = adjustedX % brickW == 0;
+
+    Color brickColor;
+    if (isHMortar || isVMortar) {
+      brickColor = pal.shadow;
+    } else {
+      final noiseVal = noise2D(x / 2.0 + seed, y / 2.0, 2);
+      if (noiseVal > 0.6) {
+        brickColor = pal.secondary;
+      } else if (noiseVal > 0.3) {
+        brickColor = pal.primary;
+      } else {
+        brickColor = pal.colors[2];
+      }
+    }
+
+    return addNoise(brickColor, random, 0.04);
+  }
+
+  int _generateClayBase(int x, int y, int width, int height, TilePalette pal, Random random, int seed) {
+    final noiseVal = noise2D(x / 3.0 + seed, y / 3.0, 2);
+    Color clayColor;
+
+    if (noiseVal > 0.6) {
+      clayColor = pal.secondary;
+    } else if (noiseVal > 0.35) {
+      clayColor = pal.primary;
+    } else {
+      clayColor = pal.colors[2];
+    }
+
+    if (random.nextDouble() > 0.95) {
+      clayColor = pal.shadow;
+    }
+
+    return addNoise(clayColor, random, 0.05);
+  }
+}
+
+// ============================================================================
+// PRE-BUILT NO-TOP FILL BLOCKS
+// ============================================================================
+
+/// Solid dirt fill block (no grass/surface)
+class DirtFillBlockTile extends PlatformerBlockFillTile {
+  DirtFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.dirt);
+}
+
+/// Solid stone fill block
+class StoneFillBlockTile extends PlatformerBlockFillTile {
+  StoneFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.stone);
+}
+
+/// Solid brick fill block
+class BrickFillBlockTile extends PlatformerBlockFillTile {
+  BrickFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.brick);
+}
+
+/// Solid wood fill block
+class WoodFillBlockTile extends PlatformerBlockFillTile {
+  WoodFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.wood);
+}
+
+/// Solid concrete fill block
+class ConcreteFillBlockTile extends PlatformerBlockFillTile {
+  ConcreteFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.concrete);
+}
+
+/// Solid sandstone fill block
+class SandstoneFillBlockTile extends PlatformerBlockFillTile {
+  SandstoneFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.sandstone);
+}
+
+/// Solid ice fill block
+class IceFillBlockTile extends PlatformerBlockFillTile {
+  IceFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.ice);
+}
+
+/// Solid metal fill block
+class MetalFillBlockTile extends PlatformerBlockFillTile {
+  MetalFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.metal);
+}
+
+/// Solid dark brick fill block
+class DarkBrickFillBlockTile extends PlatformerBlockFillTile {
+  DarkBrickFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.darkBrick);
+}
+
+/// Solid clay fill block
+class ClayFillBlockTile extends PlatformerBlockFillTile {
+  ClayFillBlockTile(super.id) : super(baseMaterial: BaseMaterial.clay);
+}

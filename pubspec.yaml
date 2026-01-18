@@ -96,6 +96,7 @@ dependencies:
   flutter_box_transform: ^0.4.7
   animated_glitch: ^2.0.0+2
   vector_math: ^2.1.4
+  visibility_detector: ^0.4.0+2
 
 
 dependency_overrides:
