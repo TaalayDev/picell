@@ -43,15 +43,20 @@ class ProjectLocalRepo extends ProjectRepo {
   Future<void> updateProject(Project project) async {
     final completer = Completer<void>();
     queueManager.add(() async {
-      final pixels = PixelUtils.mergeLayersPixels(
-        width: project.width,
-        height: project.height,
-        layers: project.frames.first.layers,
-      );
+      Project projectToSave = project;
 
-      await db.updateProject(
-        project.copyWith(thumbnail: ImageHelper.convertToBytes(pixels)),
-      );
+      // For tile generator projects, the thumbnail is provided by the caller
+      // For pixel art projects, regenerate thumbnail from layers
+      if (project.type == ProjectType.pixelArt && project.frames.isNotEmpty && project.frames.first.layers.isNotEmpty) {
+        final pixels = PixelUtils.mergeLayersPixels(
+          width: project.width,
+          height: project.height,
+          layers: project.frames.first.layers,
+        );
+        projectToSave = project.copyWith(thumbnail: ImageHelper.convertToBytes(pixels));
+      }
+
+      await db.updateProject(projectToSave);
       completer.complete();
     });
     return completer.future;

@@ -31,6 +31,8 @@ class ProjectsTable extends Table {
   IntColumn get tileHeight => integer().nullable()();
   IntColumn get gridColumns => integer().nullable()();
   IntColumn get gridRows => integer().nullable()();
+  // version 7 - tilemap state data
+  TextColumn get tilemapData => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -88,7 +90,7 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => instance;
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -130,6 +132,12 @@ class AppDatabase extends _$AppDatabase {
               projectsTable.gridColumns,
               projectsTable.gridRows,
             ],
+          ));
+        }
+        if (from < 7) {
+          await migrator.alterTable(TableMigration(
+            projectsTable,
+            newColumns: [projectsTable.tilemapData],
           ));
         }
       },
@@ -252,6 +260,7 @@ class AppDatabase extends _$AppDatabase {
             type: _parseProjectType(projectRow.projectType),
             tileWidth: projectRow.tileWidth,
             tileHeight: projectRow.tileHeight,
+            tilemapData: projectRow.tilemapData,
             frames: [],
             states: [],
           );
@@ -363,6 +372,7 @@ class AppDatabase extends _$AppDatabase {
           type: _parseProjectType(project.projectType),
           tileWidth: project.tileWidth,
           tileHeight: project.tileHeight,
+          tilemapData: project.tilemapData,
           states: [],
           frames: [],
         );
@@ -432,6 +442,7 @@ class AppDatabase extends _$AppDatabase {
       type: _parseProjectType(projectRow.projectType),
       tileWidth: projectRow.tileWidth,
       tileHeight: projectRow.tileHeight,
+      tilemapData: projectRow.tilemapData,
     );
   }
 
@@ -448,6 +459,7 @@ class AppDatabase extends _$AppDatabase {
       projectType: Value(_projectTypeToString(project.type)),
       tileWidth: Value(project.tileWidth),
       tileHeight: Value(project.tileHeight),
+      tilemapData: Value(project.tilemapData),
     ));
 
     final states = <AnimationStateModel>[];
@@ -515,6 +527,7 @@ class AppDatabase extends _$AppDatabase {
       projectType: Value(project.type == ProjectType.tilemap ? 'tileGenerator' : project.type.name),
       tileWidth: Value(project.tileWidth),
       tileHeight: Value(project.tileHeight),
+      tilemapData: Value(project.tilemapData),
     ));
 
     for (final state in project.states) {

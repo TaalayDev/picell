@@ -40,6 +40,9 @@ class Project with EquatableMixin {
   /// For tile generator projects: height of tile in pixels (defaults to height)
   final int? tileHeight;
 
+  /// JSON string containing tilemap state data (tiles, layers, grid)
+  final String? tilemapData;
+
   Project({
     required this.id,
     required this.name,
@@ -55,6 +58,7 @@ class Project with EquatableMixin {
     this.type = ProjectType.pixelArt,
     this.tileWidth,
     this.tileHeight,
+    this.tilemapData,
   });
 
   Project copyWith({
@@ -72,6 +76,8 @@ class Project with EquatableMixin {
     ProjectType? type,
     int? tileWidth,
     int? tileHeight,
+    String? tilemapData,
+    bool clearTilemapData = false,
   }) {
     return Project(
       id: id ?? this.id,
@@ -88,6 +94,7 @@ class Project with EquatableMixin {
       type: type ?? this.type,
       tileWidth: tileWidth ?? this.tileWidth,
       tileHeight: tileHeight ?? this.tileHeight,
+      tilemapData: clearTilemapData ? null : (tilemapData ?? this.tilemapData),
     );
   }
 
@@ -100,6 +107,7 @@ class Project with EquatableMixin {
       'type': type.name,
       'tileWidth': tileWidth,
       'tileHeight': tileHeight,
+      'tilemapData': tilemapData,
       'states': states.map((state) => state.toJson()).toList(),
       'frames': frames.map((frame) => frame.toJson()).toList(),
       'thumbnail': thumbnail?.toList(),
@@ -124,6 +132,7 @@ class Project with EquatableMixin {
           : ProjectType.pixelArt,
       tileWidth: json['tileWidth'] as int?,
       tileHeight: json['tileHeight'] as int?,
+      tilemapData: json['tilemapData'] as String?,
       states: (json['states'] as List)
           .map(
             (state) => AnimationStateModel.fromJson(state as Map<String, dynamic>),
@@ -151,6 +160,7 @@ class Project with EquatableMixin {
         type,
         tileWidth,
         tileHeight,
+        tilemapData,
         frames,
         states,
         thumbnail,

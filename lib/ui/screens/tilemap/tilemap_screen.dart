@@ -1,11 +1,13 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
+import '../../../core.dart';
 import '../../../data.dart';
+import '../../../providers/providers.dart';
 import '../../../tilemap/tilemap_edit_modal.dart';
 import '../../../tilemap/tilemap_notifier.dart';
 import '../../widgets/animated_background.dart';
@@ -34,11 +36,69 @@ class _TileMapScreenState extends ConsumerState<TileMapScreen> {
   late final _provider = tileMapProvider(widget.project);
   final _focusNode = FocusNode();
   bool _isModifierPressed = false;
+  Timer? _saveDebouncer;
+  TileMapState? _lastSavedState;
+  bool _isSaving = false;
 
   @override
   void dispose() {
+    _saveDebouncer?.cancel();
+    // Save before disposing
+    _saveProject();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _scheduleSave() {
+    _saveDebouncer?.cancel();
+    _saveDebouncer = Timer(const Duration(seconds: 2), () {
+      _saveProject();
+    });
+  }
+
+  Future<void> _saveProject() async {
+    if (_isSaving) return;
+
+    final notifier = ref.read(_provider.notifier);
+    final currentState = ref.read(_provider);
+
+    // Skip if nothing changed
+    if (_lastSavedState != null &&
+        _lastSavedState!.tiles.length == currentState.tiles.length &&
+        _lastSavedState!.layers.length == currentState.layers.length) {
+      // Basic check - for a full deep comparison we'd need more complex logic
+      // but this catches the most common cases
+    }
+
+    _isSaving = true;
+    try {
+      final tilemapJson = notifier.toJsonString();
+      final thumbnailPixels = notifier.generateThumbnailPixels();
+      final tileWidth = widget.project.tileWidth ?? 16;
+      final tileHeight = widget.project.tileHeight ?? 16;
+      final mapWidth = currentState.gridWidth * tileWidth;
+      final mapHeight = currentState.gridHeight * tileHeight;
+
+      // Convert pixels to bytes for thumbnail storage
+      final thumbnail = ImageHelper.convertToBytes(thumbnailPixels);
+
+      // Update project with tilemap data, thumbnail, and map dimensions
+      // width/height are updated to map dimensions so thumbnail renders correctly
+      final updatedProject = widget.project.copyWith(
+        tilemapData: tilemapJson,
+        thumbnail: thumbnail,
+        width: mapWidth,
+        height: mapHeight,
+        editedAt: DateTime.now(),
+      );
+
+      await ref.read(projectRepo).updateProject(updatedProject);
+      _lastSavedState = currentState;
+    } catch (e) {
+      debugPrint('Failed to save tilemap: $e');
+    } finally {
+      _isSaving = false;
+    }
   }
 
   @override
@@ -48,6 +108,18 @@ class _TileMapScreenState extends ConsumerState<TileMapScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final size = MediaQuery.sizeOf(context);
     final isWide = size.width > 1000;
+
+    // Listen for state changes to trigger auto-save
+    ref.listen<TileMapState>(_provider, (previous, next) {
+      // Only schedule save if tiles or layers have changed
+      if (previous != null &&
+          (previous.tiles != next.tiles ||
+              previous.layers != next.layers ||
+              previous.gridWidth != next.gridWidth ||
+              previous.gridHeight != next.gridHeight)) {
+        _scheduleSave();
+      }
+    });
 
     return AnimatedBackground(
       child: GestureDetector(

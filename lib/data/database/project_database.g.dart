@@ -102,6 +102,12 @@ class $ProjectsTableTable extends ProjectsTable
   late final GeneratedColumn<int> gridRows = GeneratedColumn<int>(
       'grid_rows', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _tilemapDataMeta =
+      const VerificationMeta('tilemapData');
+  @override
+  late final GeneratedColumn<String> tilemapData = GeneratedColumn<String>(
+      'tilemap_data', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -117,7 +123,8 @@ class $ProjectsTableTable extends ProjectsTable
         tileWidth,
         tileHeight,
         gridColumns,
-        gridRows
+        gridRows,
+        tilemapData
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -202,6 +209,12 @@ class $ProjectsTableTable extends ProjectsTable
       context.handle(_gridRowsMeta,
           gridRows.isAcceptableOrUnknown(data['grid_rows']!, _gridRowsMeta));
     }
+    if (data.containsKey('tilemap_data')) {
+      context.handle(
+          _tilemapDataMeta,
+          tilemapData.isAcceptableOrUnknown(
+              data['tilemap_data']!, _tilemapDataMeta));
+    }
     return context;
   }
 
@@ -239,6 +252,8 @@ class $ProjectsTableTable extends ProjectsTable
           .read(DriftSqlType.int, data['${effectivePrefix}grid_columns']),
       gridRows: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}grid_rows']),
+      tilemapData: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tilemap_data']),
     );
   }
 
@@ -264,6 +279,7 @@ class ProjectsTableData extends DataClass
   final int? tileHeight;
   final int? gridColumns;
   final int? gridRows;
+  final String? tilemapData;
   const ProjectsTableData(
       {required this.id,
       required this.name,
@@ -278,7 +294,8 @@ class ProjectsTableData extends DataClass
       this.tileWidth,
       this.tileHeight,
       this.gridColumns,
-      this.gridRows});
+      this.gridRows,
+      this.tilemapData});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -307,6 +324,9 @@ class ProjectsTableData extends DataClass
     }
     if (!nullToAbsent || gridRows != null) {
       map['grid_rows'] = Variable<int>(gridRows);
+    }
+    if (!nullToAbsent || tilemapData != null) {
+      map['tilemap_data'] = Variable<String>(tilemapData);
     }
     return map;
   }
@@ -339,6 +359,9 @@ class ProjectsTableData extends DataClass
       gridRows: gridRows == null && nullToAbsent
           ? const Value.absent()
           : Value(gridRows),
+      tilemapData: tilemapData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tilemapData),
     );
   }
 
@@ -360,6 +383,7 @@ class ProjectsTableData extends DataClass
       tileHeight: serializer.fromJson<int?>(json['tileHeight']),
       gridColumns: serializer.fromJson<int?>(json['gridColumns']),
       gridRows: serializer.fromJson<int?>(json['gridRows']),
+      tilemapData: serializer.fromJson<String?>(json['tilemapData']),
     );
   }
   @override
@@ -380,6 +404,7 @@ class ProjectsTableData extends DataClass
       'tileHeight': serializer.toJson<int?>(tileHeight),
       'gridColumns': serializer.toJson<int?>(gridColumns),
       'gridRows': serializer.toJson<int?>(gridRows),
+      'tilemapData': serializer.toJson<String?>(tilemapData),
     };
   }
 
@@ -397,7 +422,8 @@ class ProjectsTableData extends DataClass
           Value<int?> tileWidth = const Value.absent(),
           Value<int?> tileHeight = const Value.absent(),
           Value<int?> gridColumns = const Value.absent(),
-          Value<int?> gridRows = const Value.absent()}) =>
+          Value<int?> gridRows = const Value.absent(),
+          Value<String?> tilemapData = const Value.absent()}) =>
       ProjectsTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -413,6 +439,7 @@ class ProjectsTableData extends DataClass
         tileHeight: tileHeight.present ? tileHeight.value : this.tileHeight,
         gridColumns: gridColumns.present ? gridColumns.value : this.gridColumns,
         gridRows: gridRows.present ? gridRows.value : this.gridRows,
+        tilemapData: tilemapData.present ? tilemapData.value : this.tilemapData,
       );
   ProjectsTableData copyWithCompanion(ProjectsTableCompanion data) {
     return ProjectsTableData(
@@ -435,6 +462,8 @@ class ProjectsTableData extends DataClass
       gridColumns:
           data.gridColumns.present ? data.gridColumns.value : this.gridColumns,
       gridRows: data.gridRows.present ? data.gridRows.value : this.gridRows,
+      tilemapData:
+          data.tilemapData.present ? data.tilemapData.value : this.tilemapData,
     );
   }
 
@@ -454,7 +483,8 @@ class ProjectsTableData extends DataClass
           ..write('tileWidth: $tileWidth, ')
           ..write('tileHeight: $tileHeight, ')
           ..write('gridColumns: $gridColumns, ')
-          ..write('gridRows: $gridRows')
+          ..write('gridRows: $gridRows, ')
+          ..write('tilemapData: $tilemapData')
           ..write(')'))
         .toString();
   }
@@ -474,7 +504,8 @@ class ProjectsTableData extends DataClass
       tileWidth,
       tileHeight,
       gridColumns,
-      gridRows);
+      gridRows,
+      tilemapData);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -492,7 +523,8 @@ class ProjectsTableData extends DataClass
           other.tileWidth == this.tileWidth &&
           other.tileHeight == this.tileHeight &&
           other.gridColumns == this.gridColumns &&
-          other.gridRows == this.gridRows);
+          other.gridRows == this.gridRows &&
+          other.tilemapData == this.tilemapData);
 }
 
 class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
@@ -510,6 +542,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
   final Value<int?> tileHeight;
   final Value<int?> gridColumns;
   final Value<int?> gridRows;
+  final Value<String?> tilemapData;
   const ProjectsTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -525,6 +558,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.tileHeight = const Value.absent(),
     this.gridColumns = const Value.absent(),
     this.gridRows = const Value.absent(),
+    this.tilemapData = const Value.absent(),
   });
   ProjectsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -541,6 +575,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.tileHeight = const Value.absent(),
     this.gridColumns = const Value.absent(),
     this.gridRows = const Value.absent(),
+    this.tilemapData = const Value.absent(),
   })  : name = Value(name),
         width = Value(width),
         height = Value(height),
@@ -561,6 +596,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     Expression<int>? tileHeight,
     Expression<int>? gridColumns,
     Expression<int>? gridRows,
+    Expression<String>? tilemapData,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -577,6 +613,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       if (tileHeight != null) 'tile_height': tileHeight,
       if (gridColumns != null) 'grid_columns': gridColumns,
       if (gridRows != null) 'grid_rows': gridRows,
+      if (tilemapData != null) 'tilemap_data': tilemapData,
     });
   }
 
@@ -594,7 +631,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       Value<int?>? tileWidth,
       Value<int?>? tileHeight,
       Value<int?>? gridColumns,
-      Value<int?>? gridRows}) {
+      Value<int?>? gridRows,
+      Value<String?>? tilemapData}) {
     return ProjectsTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -610,6 +648,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       tileHeight: tileHeight ?? this.tileHeight,
       gridColumns: gridColumns ?? this.gridColumns,
       gridRows: gridRows ?? this.gridRows,
+      tilemapData: tilemapData ?? this.tilemapData,
     );
   }
 
@@ -658,6 +697,9 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     if (gridRows.present) {
       map['grid_rows'] = Variable<int>(gridRows.value);
     }
+    if (tilemapData.present) {
+      map['tilemap_data'] = Variable<String>(tilemapData.value);
+    }
     return map;
   }
 
@@ -677,7 +719,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
           ..write('tileWidth: $tileWidth, ')
           ..write('tileHeight: $tileHeight, ')
           ..write('gridColumns: $gridColumns, ')
-          ..write('gridRows: $gridRows')
+          ..write('gridRows: $gridRows, ')
+          ..write('tilemapData: $tilemapData')
           ..write(')'))
         .toString();
   }
@@ -2033,6 +2076,7 @@ typedef $$ProjectsTableTableCreateCompanionBuilder = ProjectsTableCompanion
   Value<int?> tileHeight,
   Value<int?> gridColumns,
   Value<int?> gridRows,
+  Value<String?> tilemapData,
 });
 typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
     Function({
@@ -2050,6 +2094,7 @@ typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
   Value<int?> tileHeight,
   Value<int?> gridColumns,
   Value<int?> gridRows,
+  Value<String?> tilemapData,
 });
 
 final class $$ProjectsTableTableReferences extends BaseReferences<_$AppDatabase,
@@ -2179,6 +2224,11 @@ class $$ProjectsTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<String> get tilemapData => $state.composableBuilder(
+      column: $state.table.tilemapData,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ComposableFilter animationStateTableRefs(
       ComposableFilter Function($$AnimationStateTableTableFilterComposer f) f) {
     final $$AnimationStateTableTableFilterComposer composer =
@@ -2295,6 +2345,11 @@ class $$ProjectsTableTableOrderingComposer
       column: $state.table.gridRows,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get tilemapData => $state.composableBuilder(
+      column: $state.table.tilemapData,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
 class $$ProjectsTableTableTableManager extends RootTableManager<
@@ -2334,6 +2389,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> tileHeight = const Value.absent(),
             Value<int?> gridColumns = const Value.absent(),
             Value<int?> gridRows = const Value.absent(),
+            Value<String?> tilemapData = const Value.absent(),
           }) =>
               ProjectsTableCompanion(
             id: id,
@@ -2350,6 +2406,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             tileHeight: tileHeight,
             gridColumns: gridColumns,
             gridRows: gridRows,
+            tilemapData: tilemapData,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2366,6 +2423,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> tileHeight = const Value.absent(),
             Value<int?> gridColumns = const Value.absent(),
             Value<int?> gridRows = const Value.absent(),
+            Value<String?> tilemapData = const Value.absent(),
           }) =>
               ProjectsTableCompanion.insert(
             id: id,
@@ -2382,6 +2440,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             tileHeight: tileHeight,
             gridColumns: gridColumns,
             gridRows: gridRows,
+            tilemapData: tilemapData,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

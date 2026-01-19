@@ -44,6 +44,32 @@ class SavedTile {
       tags: tags ?? this.tags,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'width': width,
+      'height': height,
+      'pixels': pixels.toList(),
+      'createdAt': createdAt.toIso8601String(),
+      'sourceTemplateId': sourceTemplateId,
+      'tags': tags,
+    };
+  }
+
+  factory SavedTile.fromJson(Map<String, dynamic> json) {
+    return SavedTile(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      width: json['width'] as int,
+      height: json['height'] as int,
+      pixels: Uint32List.fromList((json['pixels'] as List).cast<int>()),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      sourceTemplateId: json['sourceTemplateId'] as String?,
+      tags: (json['tags'] as List?)?.cast<String>() ?? const [],
+    );
+  }
 }
 
 /// Tilemap layer data
@@ -75,6 +101,26 @@ class TilemapLayer {
       tileIds: tileIds ?? this.tileIds,
       visible: visible ?? this.visible,
       opacity: opacity ?? this.opacity,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'tileIds': tileIds,
+      'visible': visible,
+      'opacity': opacity,
+    };
+  }
+
+  factory TilemapLayer.fromJson(Map<String, dynamic> json) {
+    return TilemapLayer(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      tileIds: (json['tileIds'] as List).map((row) => (row as List).map((e) => e as String?).toList()).toList(),
+      visible: json['visible'] as bool? ?? true,
+      opacity: (json['opacity'] as num?)?.toDouble() ?? 1.0,
     );
   }
 }
@@ -236,6 +282,31 @@ class TileMapState {
       editColor: editColor ?? this.editColor,
       editUndoHistory: editUndoHistory ?? this.editUndoHistory,
       editUndoIndex: editUndoIndex ?? this.editUndoIndex,
+    );
+  }
+
+  /// Serializes the persistable state to JSON (tiles, layers, grid size)
+  Map<String, dynamic> toJson() {
+    return {
+      'tiles': tiles.map((t) => t.toJson()).toList(),
+      'layers': layers.map((l) => l.toJson()).toList(),
+      'gridWidth': gridWidth,
+      'gridHeight': gridHeight,
+      'selectedTileId': selectedTileId,
+      'activeLayerIndex': activeLayerIndex,
+    };
+  }
+
+  /// Creates a TileMapState from JSON data
+  factory TileMapState.fromJson(Map<String, dynamic> json) {
+    return TileMapState(
+      tiles: (json['tiles'] as List?)?.map((t) => SavedTile.fromJson(t as Map<String, dynamic>)).toList() ?? const [],
+      layers:
+          (json['layers'] as List?)?.map((l) => TilemapLayer.fromJson(l as Map<String, dynamic>)).toList() ?? const [],
+      gridWidth: json['gridWidth'] as int? ?? 16,
+      gridHeight: json['gridHeight'] as int? ?? 16,
+      selectedTileId: json['selectedTileId'] as String?,
+      activeLayerIndex: json['activeLayerIndex'] as int? ?? 0,
     );
   }
 }

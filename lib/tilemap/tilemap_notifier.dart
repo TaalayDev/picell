@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' show Offset;
 
-import 'package:flutter/material.dart' show Color;
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../data.dart';
@@ -21,6 +22,20 @@ class TileMapNotifier extends StateNotifier<TileMapState> {
   final Project project;
 
   TileMapNotifier(this.project) : super(const TileMapState()) {
+    _loadFromProject();
+  }
+
+  void _loadFromProject() {
+    if (project.tilemapData != null && project.tilemapData!.isNotEmpty) {
+      try {
+        final json = jsonDecode(project.tilemapData!) as Map<String, dynamic>;
+        state = TileMapState.fromJson(json);
+        return;
+      } catch (e) {
+        debugPrint('Failed to load tilemap data: $e');
+        // If loading fails, initialize with default layer
+      }
+    }
     _initializeDefaultLayer();
   }
 
@@ -34,6 +49,84 @@ class TileMapNotifier extends StateNotifier<TileMapState> {
       ),
     );
     state = state.copyWith(layers: [layer]);
+  }
+
+  /// Serializes the current state to JSON string
+  String toJsonString() {
+    return jsonEncode(state.toJson());
+  }
+
+  /// Generates thumbnail pixels from the current tilemap state
+  Uint32List generateThumbnailPixels() {
+    final tileWidth = project.tileWidth ?? 16;
+    final tileHeight = project.tileHeight ?? 16;
+    final mapWidth = state.gridWidth * tileWidth;
+    final mapHeight = state.gridHeight * tileHeight;
+    final pixels = Uint32List(mapWidth * mapHeight);
+
+    // Render all visible layers
+    for (final layer in state.layers) {
+      if (!layer.visible) continue;
+
+      for (int gridY = 0; gridY < layer.tileIds.length; gridY++) {
+        for (int gridX = 0; gridX < layer.tileIds[gridY].length; gridX++) {
+          final tileId = layer.tileIds[gridY][gridX];
+          if (tileId == null) continue;
+
+          final tile = getTileById(tileId);
+          if (tile == null) continue;
+
+          // Copy tile pixels to the output
+          for (int py = 0; py < tile.height && py < tileHeight; py++) {
+            for (int px = 0; px < tile.width && px < tileWidth; px++) {
+              final srcIdx = py * tile.width + px;
+              if (srcIdx >= tile.pixels.length) continue;
+
+              final color = tile.pixels[srcIdx];
+              final alpha = (color >> 24) & 0xFF;
+              if (alpha == 0) continue;
+
+              final destX = gridX * tileWidth + px;
+              final destY = gridY * tileHeight + py;
+              if (destX >= mapWidth || destY >= mapHeight) continue;
+
+              final destIdx = destY * mapWidth + destX;
+
+              // Simple alpha blending
+              if (alpha == 255 || layer.opacity >= 1.0) {
+                pixels[destIdx] = color;
+              } else {
+                final existingColor = pixels[destIdx];
+                final blendedAlpha = ((alpha * layer.opacity).round()).clamp(0, 255);
+                if (blendedAlpha > 0) {
+                  pixels[destIdx] = _blendColors(existingColor, color, blendedAlpha / 255.0);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return pixels;
+  }
+
+  int _blendColors(int bg, int fg, double alpha) {
+    final bgA = (bg >> 24) & 0xFF;
+    final bgR = (bg >> 16) & 0xFF;
+    final bgG = (bg >> 8) & 0xFF;
+    final bgB = bg & 0xFF;
+
+    final fgR = (fg >> 16) & 0xFF;
+    final fgG = (fg >> 8) & 0xFF;
+    final fgB = fg & 0xFF;
+
+    final outR = ((fgR * alpha) + (bgR * (1 - alpha))).round().clamp(0, 255);
+    final outG = ((fgG * alpha) + (bgG * (1 - alpha))).round().clamp(0, 255);
+    final outB = ((fgB * alpha) + (bgB * (1 - alpha))).round().clamp(0, 255);
+    final outA = ((255 * alpha) + (bgA * (1 - alpha))).round().clamp(0, 255);
+
+    return (outA << 24) | (outR << 16) | (outG << 8) | outB;
   }
 
   String _generateId() => DateTime.now().millisecondsSinceEpoch.toString() + Random().nextInt(10000).toString();
