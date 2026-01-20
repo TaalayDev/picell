@@ -57,7 +57,7 @@ class _TileMapScreenState extends ConsumerState<TileMapScreen> {
   }
 
   Future<void> _saveProject() async {
-    if (_isSaving) return;
+    if (_isSaving || !mounted) return;
 
     final notifier = ref.read(_provider.notifier);
     final currentState = ref.read(_provider);

@@ -260,6 +260,8 @@ class AppDatabase extends _$AppDatabase {
             type: _parseProjectType(projectRow.projectType),
             tileWidth: projectRow.tileWidth,
             tileHeight: projectRow.tileHeight,
+            gridColumns: projectRow.gridColumns,
+            gridRows: projectRow.gridRows,
             tilemapData: projectRow.tilemapData,
             frames: [],
             states: [],
@@ -372,6 +374,8 @@ class AppDatabase extends _$AppDatabase {
           type: _parseProjectType(project.projectType),
           tileWidth: project.tileWidth,
           tileHeight: project.tileHeight,
+          gridColumns: project.gridColumns,
+          gridRows: project.gridRows,
           tilemapData: project.tilemapData,
           states: [],
           frames: [],
@@ -442,6 +446,8 @@ class AppDatabase extends _$AppDatabase {
       type: _parseProjectType(projectRow.projectType),
       tileWidth: projectRow.tileWidth,
       tileHeight: projectRow.tileHeight,
+      gridColumns: projectRow.gridColumns,
+      gridRows: projectRow.gridRows,
       tilemapData: projectRow.tilemapData,
     );
   }
@@ -459,6 +465,8 @@ class AppDatabase extends _$AppDatabase {
       projectType: Value(_projectTypeToString(project.type)),
       tileWidth: Value(project.tileWidth),
       tileHeight: Value(project.tileHeight),
+      gridColumns: Value(project.gridColumns),
+      gridRows: Value(project.gridRows),
       tilemapData: Value(project.tilemapData),
     ));
 
@@ -527,6 +535,8 @@ class AppDatabase extends _$AppDatabase {
       projectType: Value(project.type == ProjectType.tilemap ? 'tileGenerator' : project.type.name),
       tileWidth: Value(project.tileWidth),
       tileHeight: Value(project.tileHeight),
+      gridColumns: Value(project.gridColumns),
+      gridRows: Value(project.gridRows),
       tilemapData: Value(project.tilemapData),
     ));
 

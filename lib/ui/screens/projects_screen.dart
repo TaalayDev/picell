@@ -476,6 +476,8 @@ class ProjectsScreen extends HookConsumerWidget {
           ProjectType type,
           int? tileWidth,
           int? tileHeight,
+          int? gridColumns,
+          int? gridRows,
         })>(
       context: context,
       builder: (BuildContext context) => NewProjectDialog(
@@ -492,6 +494,8 @@ class ProjectsScreen extends HookConsumerWidget {
         type: result.type,
         tileWidth: result.tileWidth,
         tileHeight: result.tileHeight,
+        gridColumns: result.gridColumns,
+        gridRows: result.gridRows,
         createdAt: DateTime.now(),
         editedAt: DateTime.now(),
       );

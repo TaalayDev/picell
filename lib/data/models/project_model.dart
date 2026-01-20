@@ -40,6 +40,12 @@ class Project with EquatableMixin {
   /// For tile generator projects: height of tile in pixels (defaults to height)
   final int? tileHeight;
 
+  /// For tilemap projects: number of columns in the tilemap grid
+  final int? gridColumns;
+
+  /// For tilemap projects: number of rows in the tilemap grid
+  final int? gridRows;
+
   /// JSON string containing tilemap state data (tiles, layers, grid)
   final String? tilemapData;
 
@@ -58,6 +64,8 @@ class Project with EquatableMixin {
     this.type = ProjectType.pixelArt,
     this.tileWidth,
     this.tileHeight,
+    this.gridColumns,
+    this.gridRows,
     this.tilemapData,
   });
 
@@ -76,6 +84,8 @@ class Project with EquatableMixin {
     ProjectType? type,
     int? tileWidth,
     int? tileHeight,
+    int? gridColumns,
+    int? gridRows,
     String? tilemapData,
     bool clearTilemapData = false,
   }) {
@@ -94,6 +104,8 @@ class Project with EquatableMixin {
       type: type ?? this.type,
       tileWidth: tileWidth ?? this.tileWidth,
       tileHeight: tileHeight ?? this.tileHeight,
+      gridColumns: gridColumns ?? this.gridColumns,
+      gridRows: gridRows ?? this.gridRows,
       tilemapData: clearTilemapData ? null : (tilemapData ?? this.tilemapData),
     );
   }
@@ -107,6 +119,8 @@ class Project with EquatableMixin {
       'type': type.name,
       'tileWidth': tileWidth,
       'tileHeight': tileHeight,
+      'gridColumns': gridColumns,
+      'gridRows': gridRows,
       'tilemapData': tilemapData,
       'states': states.map((state) => state.toJson()).toList(),
       'frames': frames.map((frame) => frame.toJson()).toList(),
@@ -132,6 +146,8 @@ class Project with EquatableMixin {
           : ProjectType.pixelArt,
       tileWidth: json['tileWidth'] as int?,
       tileHeight: json['tileHeight'] as int?,
+      gridColumns: json['gridColumns'] as int?,
+      gridRows: json['gridRows'] as int?,
       tilemapData: json['tilemapData'] as String?,
       states: (json['states'] as List)
           .map(
@@ -160,6 +176,8 @@ class Project with EquatableMixin {
         type,
         tileWidth,
         tileHeight,
+        gridColumns,
+        gridRows,
         tilemapData,
         frames,
         states,

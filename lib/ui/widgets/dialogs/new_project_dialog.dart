@@ -41,6 +41,10 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
   int _tileWidth = 16;
   int _tileHeight = 16;
 
+  // Tilemap canvas size (grid dimensions)
+  int _gridColumns = 16;
+  int _gridRows = 16;
+
   final List<ProjectTemplate> _templates = [
     ProjectTemplate(name: 'Tiny Icon', width: 16, height: 16),
     ProjectTemplate(name: 'Small Sprite', width: 32, height: 32),
@@ -114,14 +118,18 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
             if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
               if (_projectType == ProjectType.tileGenerator) {
-                // For tile generator, tile size is the project size
+                // For tile generator, canvas size is grid * tile size
+                final canvasWidth = _gridColumns * _tileWidth;
+                final canvasHeight = _gridRows * _tileHeight;
                 Navigator.of(context).pop((
                   name: _projectName,
-                  width: _tileWidth,
-                  height: _tileHeight,
+                  width: canvasWidth,
+                  height: canvasHeight,
                   type: _projectType,
                   tileWidth: _tileWidth,
                   tileHeight: _tileHeight,
+                  gridColumns: _gridColumns,
+                  gridRows: _gridRows,
                 ));
               } else {
                 Navigator.of(context).pop((
@@ -131,6 +139,8 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                   type: _projectType,
                   tileWidth: null as int?,
                   tileHeight: null as int?,
+                  gridColumns: null as int?,
+                  gridRows: null as int?,
                 ));
               }
             }
@@ -273,6 +283,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Tile Size Section
         Text(
           'Tile Size',
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -345,6 +356,80 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
             ),
           ],
         ),
+        const SizedBox(height: 20),
+        // Canvas Size Section
+        Text(
+          'Canvas Size (Grid)',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Columns',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.view_column),
+                  suffixText: 'tiles',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                initialValue: _gridColumns.toString(),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Required';
+                  }
+                  int? cols = int.tryParse(value);
+                  if (cols == null || cols < 1 || cols > 256) {
+                    return '1-256';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _gridColumns = int.parse(value!),
+                onChanged: (value) {
+                  final parsed = int.tryParse(value);
+                  if (parsed != null) {
+                    setState(() => _gridColumns = parsed);
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Rows',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.table_rows),
+                  suffixText: 'tiles',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                initialValue: _gridRows.toString(),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Required';
+                  }
+                  int? rows = int.tryParse(value);
+                  if (rows == null || rows < 1 || rows > 256) {
+                    return '1-256';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _gridRows = int.parse(value!),
+                onChanged: (value) {
+                  final parsed = int.tryParse(value);
+                  if (parsed != null) {
+                    setState(() => _gridRows = parsed);
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(12),
@@ -362,7 +447,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                    'Generate a ${_tileWidth}×${_tileHeight} tile using procedural generation, then edit it in the pixel editor.',
+                    'Tilemap: ${_gridColumns}×${_gridRows} tiles, each ${_tileWidth}×${_tileHeight}px. Total canvas: ${_gridColumns * _tileWidth}×${_gridRows * _tileHeight}px.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         )),

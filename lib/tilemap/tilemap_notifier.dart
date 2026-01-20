@@ -26,17 +26,50 @@ class TileMapNotifier extends StateNotifier<TileMapState> {
   }
 
   void _loadFromProject() {
+    // Get grid size from project, defaulting to 16x16
+    final gridColumns = project.gridColumns ?? 16;
+    final gridRows = project.gridRows ?? 16;
+
     if (project.tilemapData != null && project.tilemapData!.isNotEmpty) {
       try {
         final json = jsonDecode(project.tilemapData!) as Map<String, dynamic>;
-        state = TileMapState.fromJson(json);
+        // Load from JSON but use project's grid size if available
+        var loadedState = TileMapState.fromJson(json);
+        // Override grid size with project's values
+        state = loadedState.copyWith(
+          gridWidth: gridColumns,
+          gridHeight: gridRows,
+        );
+        // Resize layers if needed to match project grid size
+        _resizeLayersToGrid(gridColumns, gridRows);
         return;
       } catch (e) {
         debugPrint('Failed to load tilemap data: $e');
         // If loading fails, initialize with default layer
       }
     }
+    // Initialize with project's grid size
+    state = state.copyWith(gridWidth: gridColumns, gridHeight: gridRows);
     _initializeDefaultLayer();
+  }
+
+  void _resizeLayersToGrid(int columns, int rows) {
+    if (state.layers.isEmpty) return;
+
+    final resizedLayers = state.layers.map((layer) {
+      final newTileIds = List.generate(rows, (y) {
+        return List.generate(columns, (x) {
+          // Preserve existing tiles if within bounds
+          if (y < layer.tileIds.length && x < layer.tileIds[y].length) {
+            return layer.tileIds[y][x];
+          }
+          return null;
+        });
+      });
+      return layer.copyWith(tileIds: newTileIds);
+    }).toList();
+
+    state = state.copyWith(layers: resizedLayers);
   }
 
   void _initializeDefaultLayer() {
