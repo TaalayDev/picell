@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../../../tilemap/tilemap_notifier.dart';
 import 'tilemap_painters.dart';
+import 'tilemap_screen.dart';
 
 /// The main canvas widget for the tilemap editor
 class TilemapCanvasWidget extends HookWidget {
@@ -13,8 +14,10 @@ class TilemapCanvasWidget extends HookWidget {
   final TileMapNotifier notifier;
   final BoxConstraints constraints;
   final bool isModifierPressed;
+  final ScreenSize screenSize;
   final void Function(int x, int y) onTileTap;
   final void Function(int x, int y) onTileDrag;
+  final void Function(int x, int y)? onTileLongPress;
 
   const TilemapCanvasWidget({
     super.key,
@@ -22,9 +25,14 @@ class TilemapCanvasWidget extends HookWidget {
     required this.notifier,
     required this.constraints,
     required this.isModifierPressed,
+    required this.screenSize,
     required this.onTileTap,
     required this.onTileDrag,
+    this.onTileLongPress,
   });
+
+  bool get isMobile => screenSize == ScreenSize.mobile;
+  bool get isTablet => screenSize == ScreenSize.tablet;
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +49,22 @@ class TilemapCanvasWidget extends HookWidget {
     final initialPinchFocalPoint = useState<Offset?>(null);
     final initialPinchOffset = useState<Offset?>(null);
 
+    // Long press tracking for mobile
+    final longPressTimer = useState<int?>(null);
+    final longPressPosition = useState<Offset?>(null);
+
     final availableWidth = constraints.maxWidth;
     final availableHeight = constraints.maxHeight;
 
+    // Adjust base tile size based on screen size
+    final minTileSize = isMobile ? 24.0 : 16.0;
+    final maxTileSize = isMobile ? 48.0 : 64.0;
+    final padding = isMobile ? 20.0 : 40.0;
+
     final baseTileSize = min(
-      (availableWidth - 40) / state.gridWidth,
-      (availableHeight - 40) / state.gridHeight,
-    ).clamp(16.0, 64.0);
+      (availableWidth - padding) / state.gridWidth,
+      (availableHeight - padding) / state.gridHeight,
+    ).clamp(minTileSize, maxTileSize);
 
     final tileSize = baseTileSize * state.zoom * scale.value;
     final canvasWidth = state.gridWidth * tileSize;
@@ -67,6 +84,13 @@ class TilemapCanvasWidget extends HookWidget {
       return null;
     }
 
+    void cancelLongPress() {
+      if (longPressTimer.value != null) {
+        longPressTimer.value = null;
+        longPressPosition.value = null;
+      }
+    }
+
     return Stack(
       children: [
         Positioned.fill(
@@ -79,22 +103,30 @@ class TilemapCanvasWidget extends HookWidget {
             onPointerDown: (event) {
               pointers.value = {...pointers.value, event.pointer: event.position};
 
-              if (pointers.value.length == 1 && !isModifierPressed) {
-                isPainting.value = true;
-                final tile = screenToTile(event.localPosition);
-                if (tile != null) {
-                  lastPaintedCell.value = tile;
-                  onTileTap(tile.$1, tile.$2);
+              if (pointers.value.length == 1) {
+                if (isMobile && onTileLongPress != null) {
+                  // Start long press timer for mobile
+                  longPressPosition.value = event.localPosition;
+                  longPressTimer.value = DateTime.now().millisecondsSinceEpoch;
                 }
-              }
-              if (pointers.value.length == 1 && isModifierPressed) {
-                final tile = screenToTile(event.localPosition);
-                if (tile != null) {
-                  onTileTap(tile.$1, tile.$2);
+
+                if (!isModifierPressed) {
+                  isPainting.value = true;
+                  final tile = screenToTile(event.localPosition);
+                  if (tile != null) {
+                    lastPaintedCell.value = tile;
+                    onTileTap(tile.$1, tile.$2);
+                  }
+                } else {
+                  final tile = screenToTile(event.localPosition);
+                  if (tile != null) {
+                    onTileTap(tile.$1, tile.$2);
+                  }
                 }
               }
 
               if (pointers.value.length == 2) {
+                cancelLongPress();
                 isPainting.value = false;
                 lastPaintedCell.value = null;
                 final points = pointers.value.values.toList();
@@ -109,9 +141,16 @@ class TilemapCanvasWidget extends HookWidget {
 
               pointers.value = {...pointers.value, event.pointer: event.position};
 
+              // Cancel long press if moved too far
+              if (longPressPosition.value != null) {
+                final distance = (event.localPosition - longPressPosition.value!).distance;
+                if (distance > 10) {
+                  cancelLongPress();
+                }
+              }
+
               if (pointers.value.length == 1) {
                 if (isModifierPressed) {
-                  // offset.value += event.delta;
                   onTileTap(
                     -event.delta.dx ~/ tileSize,
                     -event.delta.dy ~/ tileSize,
@@ -132,8 +171,12 @@ class TilemapCanvasWidget extends HookWidget {
                 final currentDistance = (points[0] - points[1]).distance;
                 final currentFocalPoint = (points[0] + points[1]) / 2;
 
-                final newScale =
-                    (initialPinchScale.value! * currentDistance / initialPinchDistance.value!).clamp(0.5, 4.0);
+                // Wider zoom range for touch
+                final minScale = isMobile ? 0.3 : 0.5;
+                final maxScale = isMobile ? 5.0 : 4.0;
+
+                final newScale = (initialPinchScale.value! * currentDistance / initialPinchDistance.value!)
+                    .clamp(minScale, maxScale);
 
                 final focalDelta = currentFocalPoint - initialPinchFocalPoint.value!;
                 final scaleDelta = newScale / initialPinchScale.value!;
@@ -150,6 +193,21 @@ class TilemapCanvasWidget extends HookWidget {
               }
             },
             onPointerUp: (event) {
+              // Check for long press on mobile
+              if (isMobile &&
+                  longPressTimer.value != null &&
+                  longPressPosition.value != null &&
+                  onTileLongPress != null) {
+                final pressDuration = DateTime.now().millisecondsSinceEpoch - longPressTimer.value!;
+                if (pressDuration >= 500) {
+                  final tile = screenToTile(longPressPosition.value!);
+                  if (tile != null) {
+                    onTileLongPress!(tile.$1, tile.$2);
+                  }
+                }
+              }
+              cancelLongPress();
+
               pointers.value = Map.from(pointers.value)..remove(event.pointer);
               if (pointers.value.isEmpty) {
                 isPainting.value = false;
@@ -158,6 +216,7 @@ class TilemapCanvasWidget extends HookWidget {
               _resetPinchState(initialPinchDistance, initialPinchScale, initialPinchFocalPoint, initialPinchOffset);
             },
             onPointerCancel: (event) {
+              cancelLongPress();
               pointers.value = Map.from(pointers.value)..remove(event.pointer);
               if (pointers.value.isEmpty) {
                 isPainting.value = false;
@@ -168,7 +227,9 @@ class TilemapCanvasWidget extends HookWidget {
             onPointerSignal: (event) {
               if (event is PointerScrollEvent) {
                 final scaleFactor = event.scrollDelta.dy > 0 ? 0.9 : 1.1;
-                final newScale = (scale.value * scaleFactor).clamp(0.5, 4.0);
+                final minScale = isMobile ? 0.3 : 0.5;
+                final maxScale = isMobile ? 5.0 : 4.0;
+                final newScale = (scale.value * scaleFactor).clamp(minScale, maxScale);
 
                 final focalPoint = event.localPosition;
                 final centerX = availableWidth / 2;
@@ -205,13 +266,15 @@ class TilemapCanvasWidget extends HookWidget {
             ),
           ),
         ),
-        if (state.selectedTile != null)
+        // Selected tile preview - adjusted for mobile
+        if (state.selectedTile != null && !isMobile)
           Positioned(
             left: 16,
             bottom: 16,
             child: _buildSelectedTilePreview(context, state.selectedTile!, colorScheme),
           ),
-        if (hoverCell.value != null)
+        // Hover coordinates - hide on mobile
+        if (hoverCell.value != null && !isMobile)
           Positioned(
             right: 16,
             bottom: 16,
@@ -224,6 +287,29 @@ class TilemapCanvasWidget extends HookWidget {
               child: Text(
                 'X: ${hoverCell.value!.$1}, Y: ${hoverCell.value!.$2}',
                 style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              ),
+            ),
+          ),
+        // Mobile: Touch hint on first use
+        if (isMobile && state.tiles.isNotEmpty && state.selectedTile != null)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 8,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  'Long press tile to edit • Pinch to zoom',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ),
             ),
           ),
@@ -244,6 +330,8 @@ class TilemapCanvasWidget extends HookWidget {
   }
 
   Widget _buildSelectedTilePreview(BuildContext context, SavedTile tile, ColorScheme colorScheme) {
+    final previewSize = isTablet ? 40.0 : 48.0;
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -258,8 +346,8 @@ class TilemapCanvasWidget extends HookWidget {
           Text('Selected', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
           const SizedBox(height: 4),
           Container(
-            width: 48,
-            height: 48,
+            width: previewSize,
+            height: previewSize,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: colorScheme.outline),

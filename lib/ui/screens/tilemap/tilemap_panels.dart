@@ -4,13 +4,16 @@ import '../../../data.dart';
 import '../../../tilemap/tilemap_notifier.dart';
 import 'tilemap_painters.dart';
 
-/// Panel showing the tile collection on the left side
+/// Panel showing the tile collection
 class TileCollectionPanel extends StatelessWidget {
   final TileMapState state;
   final TileMapNotifier notifier;
   final Project project;
   final VoidCallback onAddTile;
   final void Function(SavedTile tile)? onEditTile;
+  final VoidCallback? onClose;
+  final ScrollController? scrollController;
+  final bool isBottomSheet;
 
   const TileCollectionPanel({
     super.key,
@@ -19,35 +22,79 @@ class TileCollectionPanel extends StatelessWidget {
     required this.project,
     required this.onAddTile,
     this.onEditTile,
+    this.onClose,
+    this.scrollController,
+    this.isBottomSheet = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final size = MediaQuery.sizeOf(context);
+    final isCompact = size.width < 600;
+
+    if (isBottomSheet) {
+      return _buildBottomSheetContent(context, colorScheme);
+    }
 
     return Container(
-      width: 280,
+      width: isCompact ? size.width * 0.85 : 280,
+      constraints: BoxConstraints(maxWidth: isCompact ? 300 : 280),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.8),
+        color: colorScheme.surface.withValues(alpha: 0.95),
         border: Border(right: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildHeader(context, colorScheme),
+          _buildHeader(context, colorScheme, showClose: onClose != null),
           _buildSearchField(context, colorScheme),
           const Divider(height: 16),
           Expanded(
             child: state.filteredTiles.isEmpty
                 ? _buildEmptyPlaceholder(context, colorScheme)
-                : _buildTileGrid(context, colorScheme),
+                : _buildTileGrid(context, colorScheme, isCompact: isCompact),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildBottomSheetContent(BuildContext context, ColorScheme colorScheme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          _buildDragHandle(colorScheme),
+          _buildHeader(context, colorScheme, showClose: false),
+          _buildSearchField(context, colorScheme),
+          const Divider(height: 16),
+          Expanded(
+            child: state.filteredTiles.isEmpty
+                ? _buildEmptyPlaceholder(context, colorScheme)
+                : _buildTileGrid(context, colorScheme, isCompact: true, useScrollController: true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDragHandle(ColorScheme colorScheme) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      width: 32,
+      height: 4,
+      decoration: BoxDecoration(
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, ColorScheme colorScheme, {bool showClose = false}) {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -87,6 +134,14 @@ class TileCollectionPanel extends StatelessWidget {
               foregroundColor: colorScheme.onPrimary,
             ),
           ),
+          if (showClose) ...[
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: onClose,
+              tooltip: 'Close',
+            ),
+          ],
         ],
       ),
     );
@@ -134,11 +189,15 @@ class TileCollectionPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildTileGrid(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildTileGrid(BuildContext context, ColorScheme colorScheme,
+      {bool isCompact = false, bool useScrollController = false}) {
+    final crossAxisCount = isCompact ? 4 : 3;
+
     return GridView.builder(
+      controller: useScrollController ? scrollController : null,
       padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
       ),
@@ -149,10 +208,14 @@ class TileCollectionPanel extends StatelessWidget {
         return TileCard(
           tile: tile,
           isSelected: isSelected,
-          onTap: () => notifier.selectTile(tile.id),
+          onTap: () {
+            notifier.selectTile(tile.id);
+            if (isBottomSheet) Navigator.pop(context);
+          },
           onLongPress: () => _showTileOptionsDialog(context, tile),
           onEdit: () => onEditTile?.call(tile),
           onDelete: () => notifier.deleteTile(tile.id),
+          compact: isCompact,
         );
       },
     );
@@ -161,34 +224,36 @@ class TileCollectionPanel extends StatelessWidget {
   void _showTileOptionsDialog(BuildContext context, SavedTile tile) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.drive_file_rename_outline),
-            title: const Text('Rename'),
-            onTap: () {
-              Navigator.pop(context);
-              _showRenameDialog(context, tile);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.copy),
-            title: const Text('Duplicate'),
-            onTap: () {
-              Navigator.pop(context);
-              notifier.duplicateTile(tile.id);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-            title: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-            onTap: () {
-              Navigator.pop(context);
-              notifier.deleteTile(tile.id);
-            },
-          ),
-        ],
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.drive_file_rename_outline),
+              title: const Text('Rename'),
+              onTap: () {
+                Navigator.pop(context);
+                _showRenameDialog(context, tile);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('Duplicate'),
+              onTap: () {
+                Navigator.pop(context);
+                notifier.duplicateTile(tile.id);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+              title: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              onTap: () {
+                Navigator.pop(context);
+                notifier.deleteTile(tile.id);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -229,6 +294,7 @@ class TileCard extends StatelessWidget {
   final VoidCallback onLongPress;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final bool compact;
 
   const TileCard({
     super.key,
@@ -238,6 +304,7 @@ class TileCard extends StatelessWidget {
     required this.onLongPress,
     this.onEdit,
     this.onDelete,
+    this.compact = false,
   });
 
   @override
@@ -251,7 +318,7 @@ class TileCard extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         decoration: BoxDecoration(
           color: isSelected ? colorScheme.primaryContainer : colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(compact ? 6 : 8),
           border: Border.all(
             color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
             width: isSelected ? 2 : 1,
@@ -260,7 +327,7 @@ class TileCard extends StatelessWidget {
         child: Stack(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(7),
+              borderRadius: BorderRadius.circular(compact ? 5 : 7),
               child: CustomPaint(
                 painter: TilePreviewPainter(
                   pixels: tile.pixels,
@@ -270,74 +337,54 @@ class TileCard extends StatelessWidget {
                 size: Size.infinite,
               ),
             ),
+            if (!compact)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.7),
+                      ],
+                    ),
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(7)),
+                  ),
+                  child: Text(
+                    tile.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
             if (isSelected)
               Positioned(
-                top: -8,
-                right: -8,
-                child: PopupMenuButton<String>(
-                  padding: EdgeInsets.zero,
-                  iconSize: 20,
-                  splashRadius: 16,
-                  icon: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Icon(Icons.more_vert, size: 14, color: colorScheme.onPrimary),
+                top: 2,
+                right: 2,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    shape: BoxShape.circle,
                   ),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      onEdit?.call();
-                    } else if (value == 'delete') {
-                      onDelete?.call();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'edit',
-                      height: 40,
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 18, color: colorScheme.onSurface),
-                          const SizedBox(width: 8),
-                          const Text('Edit'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      height: 40,
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 18, color: colorScheme.error),
-                          const SizedBox(width: 8),
-                          Text('Delete', style: TextStyle(color: colorScheme.error)),
-                        ],
-                      ),
-                    ),
-                  ],
+                  child: Icon(
+                    Icons.check,
+                    size: compact ? 10 : 12,
+                    color: colorScheme.onPrimary,
+                  ),
                 ),
               ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: const BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(7)),
-                ),
-                child: Text(
-                  tile.name,
-                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -345,32 +392,44 @@ class TileCard extends StatelessWidget {
   }
 }
 
-/// Panel showing layers on the right side
+/// Panel showing the layers
 class LayersPanel extends StatelessWidget {
   final TileMapState state;
   final TileMapNotifier notifier;
+  final VoidCallback? onClose;
+  final ScrollController? scrollController;
+  final bool isBottomSheet;
 
   const LayersPanel({
     super.key,
     required this.state,
     required this.notifier,
+    this.onClose,
+    this.scrollController,
+    this.isBottomSheet = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final size = MediaQuery.sizeOf(context);
+    final isCompact = size.width < 600;
+
+    if (isBottomSheet) {
+      return _buildBottomSheetContent(context, colorScheme);
+    }
 
     return Container(
-      width: 220,
+      width: isCompact ? size.width * 0.7 : 220,
+      constraints: BoxConstraints(maxWidth: isCompact ? 260 : 220),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.8),
+        color: colorScheme.surface.withValues(alpha: 0.95),
         border: Border(left: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildHeader(context, colorScheme),
-          const Divider(height: 1),
+          _buildHeader(context, colorScheme, showClose: onClose != null),
           Expanded(child: _buildLayerList(context, colorScheme)),
           _buildFooter(context, colorScheme),
         ],
@@ -378,34 +437,97 @@ class LayersPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, ColorScheme colorScheme) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
+  Widget _buildBottomSheetContent(BuildContext context, ColorScheme colorScheme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
         children: [
-          Icon(Icons.layers, color: colorScheme.primary, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Layers',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add, size: 20),
-            onPressed: () => notifier.addLayer(),
-            visualDensity: VisualDensity.compact,
-          ),
+          _buildDragHandle(colorScheme),
+          _buildHeader(context, colorScheme, showClose: false),
+          Expanded(child: _buildLayerList(context, colorScheme, useScrollController: true)),
+          _buildFooter(context, colorScheme),
         ],
       ),
     );
   }
 
-  Widget _buildLayerList(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildDragHandle(ColorScheme colorScheme) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      width: 32,
+      height: 4,
+      decoration: BoxDecoration(
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, ColorScheme colorScheme, {bool showClose = false}) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.layers, color: colorScheme.onSecondaryContainer, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Layers',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  '${state.layers.length} layers',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => notifier.addLayer(),
+            tooltip: 'Add Layer',
+            style: IconButton.styleFrom(
+              backgroundColor: colorScheme.secondary,
+              foregroundColor: colorScheme.onSecondary,
+            ),
+          ),
+          if (showClose) ...[
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: onClose,
+              tooltip: 'Close',
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLayerList(BuildContext context, ColorScheme colorScheme, {bool useScrollController = false}) {
     return ReorderableListView.builder(
-      padding: const EdgeInsets.all(8),
+      scrollController: useScrollController ? scrollController : null,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       itemCount: state.layers.length,
-      onReorder: notifier.reorderLayer,
+      onReorder: (oldIndex, newIndex) {
+        if (newIndex > oldIndex) newIndex--;
+        notifier.reorderLayer(oldIndex, newIndex);
+      },
       itemBuilder: (context, index) {
         final layer = state.layers[index];
         final isActive = index == state.activeLayerIndex;
@@ -422,18 +544,23 @@ class LayersPanel extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context, ColorScheme colorScheme) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: state.layers.length > 1 ? () => notifier.removeLayer(state.activeLayerIndex) : null,
+            tooltip: 'Delete Layer',
           ),
           IconButton(
             icon: const Icon(Icons.clear_all),
             onPressed: () => notifier.clearActiveLayer(),
+            tooltip: 'Clear Layer',
           ),
         ],
       ),
@@ -510,12 +637,14 @@ class TilemapToolbar extends StatelessWidget {
   final TileMapState state;
   final TileMapNotifier notifier;
   final bool isModifierPressed;
+  final bool compact;
 
   const TilemapToolbar({
     super.key,
     required this.state,
     required this.notifier,
     required this.isModifierPressed,
+    this.compact = false,
   });
 
   @override
@@ -523,10 +652,10 @@ class TilemapToolbar extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(compact ? 2 : 4),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(compact ? 8 : 12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -536,17 +665,17 @@ class TilemapToolbar extends StatelessWidget {
             message: _toolName(tool),
             child: InkWell(
               onTap: () => notifier.setTool(tool),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(compact ? 6 : 8),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(compact ? 6 : 10),
                 decoration: BoxDecoration(
                   color: isSelected ? colorScheme.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(compact ? 6 : 8),
                 ),
                 child: Icon(
                   _toolIcon(tool),
-                  size: 20,
+                  size: compact ? 16 : 20,
                   color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -630,16 +759,43 @@ class EditHintWidget extends StatelessWidget {
 class ViewControlsWidget extends StatelessWidget {
   final TileMapState state;
   final TileMapNotifier notifier;
+  final bool compact;
 
   const ViewControlsWidget({
     super.key,
     required this.state,
     required this.notifier,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    if (compact) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(state.showGrid ? Icons.grid_on : Icons.grid_off, size: 20),
+            onPressed: notifier.toggleGrid,
+            tooltip: 'Toggle Grid',
+            visualDensity: VisualDensity.compact,
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              '${(state.zoom * 100).toInt()}%',
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 10),
+            ),
+          ),
+        ],
+      );
+    }
 
     return Row(
       children: [
