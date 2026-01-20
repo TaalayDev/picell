@@ -964,6 +964,8 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
         return Icons.color_lens;
       case TileCategory.platformer:
         return Icons.directions_run;
+      case TileCategory.scifi:
+        return Icons.rocket_launch;
     }
   }
 

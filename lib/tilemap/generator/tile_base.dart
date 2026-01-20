@@ -2,12 +2,16 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
+
 import 'tile_palette.dart';
 import 'tiles/decoration_tiles.dart';
 import 'tiles/environment_tiles.dart';
+import 'tiles/extended_nature.dart';
 import 'tiles/extended_urban.dart';
 import 'tiles/platformer_blocks.dart';
 import 'tiles/platformer_tiles.dart';
+import 'tiles/scifi_tiles.dart';
 import 'tiles/terrain.dart';
 import 'tiles/structure.dart';
 import 'tiles/liquid.dart';
@@ -179,7 +183,8 @@ enum TileCategory {
   dungeon('Dungeon', 'Dungeon and cave tiles'),
   urban('Urban', 'City and road tiles'),
   varied('Varied', 'Tiles with varied color palettes'),
-  platformer('Platformer', 'Tiles for platformer games');
+  platformer('Platformer', 'Tiles for platformer games'),
+  scifi('Sci-Fi', 'Futuristic and sci-fi themed tiles');
 
   final String name;
   final String description;
@@ -1047,6 +1052,98 @@ class TileRegistry {
     'path_edge_bottom': () => PathEdgeTile('path_edge_bottom', direction: EdgeDirection.bottom),
     'snow_edge_top': () => SnowEdgeTile('snow_edge_top', direction: EdgeDirection.top),
     'snow_edge_bottom': () => SnowEdgeTile('snow_edge_bottom', direction: EdgeDirection.bottom),
+
+    // =========================================================================
+    // SCI-FI TILES - METAL FLOORS
+    // =========================================================================
+    'metal_floor': () => MetalFloorTile('metal_floor'),
+    'metal_floor_dark': () => MetalFloorTile('metal_floor_dark', metalPalette: SciFiPalettes.darkMetal),
+    'metal_floor_steel': () => MetalFloorTile('metal_floor_steel', metalPalette: SciFiPalettes.brushedSteel),
+    'metal_floor_rusty': () =>
+        MetalFloorTile('metal_floor_rusty', metalPalette: SciFiPalettes.rustyMetal, addScratches: true),
+    'scifi_diamond_plate': () => SciFiDiamondPlateTile('scifi_diamond_plate'),
+    'scifi_diamond_plate_dark': () =>
+        SciFiDiamondPlateTile('scifi_diamond_plate_dark', metalPalette: SciFiPalettes.darkMetal),
+    'scifi_grating': () => SciFiGratingTile('scifi_grating'),
+    'scifi_grating_fine': () => SciFiGratingTile('scifi_grating_fine', gridSize: 2),
+
+    // =========================================================================
+    // SCI-FI TILES - WALL PANELS
+    // =========================================================================
+    'tech_wall': () => TechWallTile('tech_wall'),
+    'tech_wall_cyan': () => TechWallTile('tech_wall_cyan', accentPalette: SciFiPalettes.neonCyan),
+    'tech_wall_pink': () => TechWallTile('tech_wall_pink', accentPalette: SciFiPalettes.neonPink),
+    'tech_wall_green': () => TechWallTile('tech_wall_green', accentPalette: SciFiPalettes.neonGreen),
+    'tech_wall_vents': () => TechWallTile('tech_wall_vents', addVents: true, addLights: false),
+    'hex_panel': () => HexPanelTile('hex_panel'),
+    'hex_panel_steel': () => HexPanelTile('hex_panel_steel', metalPalette: SciFiPalettes.brushedSteel),
+
+    // =========================================================================
+    // SCI-FI TILES - CIRCUITS & TECH
+    // =========================================================================
+    'circuit_board': () => CircuitBoardTile('circuit_board'),
+    'circuit_board_simple': () => CircuitBoardTile('circuit_board_simple', addComponents: false),
+    'data_stream': () => DataStreamTile('data_stream'),
+    'data_stream_cyan': () => DataStreamTile('data_stream_cyan', streamPalette: SciFiPalettes.neonCyan),
+
+    // =========================================================================
+    // SCI-FI TILES - ENERGY & FORCE FIELDS
+    // =========================================================================
+    'force_field_blue': () => ForceFieldTile('force_field_blue'),
+    'force_field_green': () => ForceFieldTile('force_field_green', energyPalette: SciFiPalettes.neonGreen),
+    'force_field_pink': () => ForceFieldTile('force_field_pink', energyPalette: SciFiPalettes.neonPink),
+    'force_field_horizontal': () => ForceFieldTile('force_field_horizontal', horizontal: true),
+    'plasma_conduit': () => PlasmaConduitTile('plasma_conduit'),
+    'plasma_conduit_cyan': () => PlasmaConduitTile('plasma_conduit_cyan', plasmaPalette: SciFiPalettes.neonCyan),
+    'plasma_conduit_horizontal': () => PlasmaConduitTile('plasma_conduit_horizontal', vertical: false),
+
+    // =========================================================================
+    // SCI-FI TILES - HAZARD & WARNING
+    // =========================================================================
+    'hazard_stripes': () => HazardStripesTile('hazard_stripes'),
+    'hazard_stripes_vertical': () => HazardStripesTile('hazard_stripes_vertical', diagonal: false),
+    'biohazard': () => BiohazardTile('biohazard'),
+
+    // =========================================================================
+    // SCI-FI TILES - SPACE & DISPLAYS
+    // =========================================================================
+    'space_window': () => SpaceWindowTile('space_window'),
+    'space_window_empty': () => SpaceWindowTile('space_window_empty', addStars: false),
+    'scifi_hologram': () => SciFiHologramTile('scifi_hologram'),
+
+    // =========================================================================
+    // SCI-FI TILES - MECHANICAL
+    // =========================================================================
+    'gear': () => GearTile('gear'),
+    'gear_copper': () => GearTile('gear_copper', metalPalette: SciFiPalettes.copper),
+    'vent_horizontal': () => VentTile('vent_horizontal'),
+    'vent_vertical': () => VentTile('vent_vertical', horizontal: false),
+    'pipe_vertical': () => PipeTile('pipe_vertical'),
+    'pipe_horizontal': () => PipeTile('pipe_horizontal', vertical: false),
+    'pipe_rusty': () => PipeTile('pipe_rusty', addRust: true),
+    'pipe_copper': () => PipeTile('pipe_copper', pipePalette: SciFiPalettes.copper),
+
+    // =========================================================================
+    // SCI-FI TILES - LIGHTS & NEON
+    // =========================================================================
+    'neon_strip_cyan': () => NeonStripTile('neon_strip_cyan'),
+    'neon_strip_pink': () => NeonStripTile('neon_strip_pink', neonPalette: SciFiPalettes.neonPink),
+    'neon_strip_green': () => NeonStripTile('neon_strip_green', neonPalette: SciFiPalettes.neonGreen),
+    'neon_strip_orange': () => NeonStripTile('neon_strip_orange', neonPalette: SciFiPalettes.neonOrange),
+    'neon_strip_vertical': () => NeonStripTile('neon_strip_vertical', vertical: true),
+    'led_panel_green': () => LedPanelTile('led_panel_green'),
+    'led_panel_cyan': () => LedPanelTile('led_panel_cyan', ledPalette: SciFiPalettes.neonCyan),
+    'led_panel_pink': () => LedPanelTile('led_panel_pink', ledPalette: SciFiPalettes.neonPink),
+
+    // =========================================================================
+    // ADVANCED NATURE TILES
+    // =========================================================================
+    'cactus': () => CactusTile('cactus'),
+    'cactus_dense': () => CactusTile('cactus_dense', density: 0.8),
+    'bamboo': () => BambooTile('bamboo'),
+    'mushroom_giant': () => GiantMushroomTile('mushroom_giant'),
+    'coral_reef': () => CoralTile('coral_reef'),
+    'vines_flowering': () => FloweringVineTile('vines_flowering'),
   };
 
   /// Get all registered tile IDs

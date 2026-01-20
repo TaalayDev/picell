@@ -11,6 +11,7 @@ import '../../../providers/providers.dart';
 import '../../../tilemap/tilemap_edit_modal.dart';
 import '../../../tilemap/tilemap_notifier.dart';
 import '../../widgets/animated_background.dart';
+import '../../widgets/dialogs/tilemap_export_dialog.dart';
 import '../tile_generator_screen.dart';
 import 'tilemap_canvas_widget.dart';
 import 'tilemap_panels.dart';
@@ -326,8 +327,13 @@ class _TileMapScreenState extends ConsumerState<TileMapScreen> {
   }
 
   void _exportTilemap(BuildContext context, TileMapState state, TileMapNotifier notifier) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Export coming soon!')),
+    TilemapExportDialog.show(
+      context: context,
+      state: state,
+      notifier: notifier,
+      tileWidth: widget.project.tileWidth ?? 16,
+      tileHeight: widget.project.tileHeight ?? 16,
+      projectName: widget.project.name,
     );
   }
 }
