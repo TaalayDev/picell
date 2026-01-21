@@ -1165,6 +1165,12 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
                     color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
             ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: notifier.createBlankTile,
+              icon: const Icon(Icons.add),
+              label: const Text('Create Blank Tile'),
+            ),
           ],
         ),
       );
@@ -2106,16 +2112,49 @@ class _TileEditorCanvas extends HookWidget {
   }
 
   (int, int)? _getPixelFromOffset(Offset offset, double canvasWidth, double canvasHeight) {
-    final pixelWidth = canvasWidth / width;
-    final pixelHeight = canvasHeight / height;
+    if (displayMode == CanvasDisplayMode.tilemap) {
+      // In tilemap mode, only the center tile (1,1) is editable
+      final tileWidth = canvasWidth / 3;
+      final tileHeight = canvasHeight / 3;
 
-    final x = (offset.dx / pixelWidth).floor();
-    final y = (offset.dy / pixelHeight).floor();
+      // Calculate which tile was clicked
+      final tileX = (offset.dx / tileWidth).floor();
+      final tileY = (offset.dy / tileHeight).floor();
 
-    if (x >= 0 && x < width && y >= 0 && y < height) {
-      return (x, y);
+      // Only allow drawing on the center tile
+      if (tileX != 1 || tileY != 1) {
+        return null;
+      }
+
+      // Calculate position relative to the center tile
+      final centerTileLeft = tileWidth;
+      final centerTileTop = tileHeight;
+      final localX = offset.dx - centerTileLeft;
+      final localY = offset.dy - centerTileTop;
+
+      final pixelWidth = tileWidth / width;
+      final pixelHeight = tileHeight / height;
+
+      final x = (localX / pixelWidth).floor();
+      final y = (localY / pixelHeight).floor();
+
+      if (x >= 0 && x < width && y >= 0 && y < height) {
+        return (x, y);
+      }
+      return null;
+    } else {
+      // Single mode - full canvas is one tile
+      final pixelWidth = canvasWidth / width;
+      final pixelHeight = canvasHeight / height;
+
+      final x = (offset.dx / pixelWidth).floor();
+      final y = (offset.dy / pixelHeight).floor();
+
+      if (x >= 0 && x < width && y >= 0 && y < height) {
+        return (x, y);
+      }
+      return null;
     }
-    return null;
   }
 
   void _drawLine((int, int) from, (int, int) to) {
@@ -2205,6 +2244,61 @@ class _TileEditorPainter extends CustomPainter {
         Rect.fromLTWH(size.width / 3, size.height / 3, size.width / 3, size.height / 3),
         centerPaint,
       );
+
+      // Draw hover preview for tilemap mode (only in center tile)
+      if (hoverPos != null) {
+        final tileWidth = size.width / 3;
+        final tileHeight = size.height / 3;
+
+        // Calculate which tile is being hovered
+        final tileX = (hoverPos!.dx / tileWidth).floor();
+        final tileY = (hoverPos!.dy / tileHeight).floor();
+
+        // Only show hover in center tile
+        if (tileX == 1 && tileY == 1) {
+          final centerTileLeft = tileWidth;
+          final centerTileTop = tileHeight;
+          final localX = hoverPos!.dx - centerTileLeft;
+          final localY = hoverPos!.dy - centerTileTop;
+
+          final tilePixelWidth = tileWidth / width;
+          final tilePixelHeight = tileHeight / height;
+
+          final hx = (localX / tilePixelWidth).floor();
+          final hy = (localY / tilePixelHeight).floor();
+
+          if (hx >= 0 && hx < width && hy >= 0 && hy < height) {
+            final hoverPaint = Paint()
+              ..color = currentTool == TileDrawTool.eraser
+                  ? Colors.red.withValues(alpha: 0.5)
+                  : currentColor.withValues(alpha: 0.5);
+            canvas.drawRect(
+              Rect.fromLTWH(
+                centerTileLeft + hx * tilePixelWidth,
+                centerTileTop + hy * tilePixelHeight,
+                tilePixelWidth,
+                tilePixelHeight,
+              ),
+              hoverPaint,
+            );
+
+            // Draw hover outline
+            final outlinePaint = Paint()
+              ..color = Colors.white
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1;
+            canvas.drawRect(
+              Rect.fromLTWH(
+                centerTileLeft + hx * tilePixelWidth,
+                centerTileTop + hy * tilePixelHeight,
+                tilePixelWidth,
+                tilePixelHeight,
+              ),
+              outlinePaint,
+            );
+          }
+        }
+      }
     } else {
       // Single tile mode - draw at full size
       _drawTile(canvas, size, 1.0);
