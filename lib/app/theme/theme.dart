@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:pixelverse/data.dart';
 
+import 'art_deco.dart';
 import 'autumn_harvest.dart';
 import 'cherry_blossom.dart';
 import 'copper_steampunk.dart';
+import 'coral_reef.dart';
 import 'cosmic.dart';
+import 'crystaline.dart';
 import 'cyberpunk.dart';
 import 'dark.dart';
+import 'enchanted_forest.dart';
 import 'forest.dart';
 import 'golden_hour.dart';
 import 'gothic_theme.dart';
@@ -31,6 +35,7 @@ import 'dream_scape.dart';
 import 'toxic_waste.dart';
 import 'volcanic.dart';
 import 'emerald_forest.dart';
+import 'volcanic_lava_lamp.dart';
 import 'winter_wonderland.dart';
 import 'halloween.dart';
 
@@ -178,6 +183,16 @@ class AppTheme {
         return buildSteampunkTheme();
       case ThemeType.gothic:
         return buildGothicTheme();
+      case ThemeType.artDeco:
+        return buildArtDecoTheme();
+      case ThemeType.crystalline:
+        return buildCrystallineTheme();
+      case ThemeType.enchantedForest:
+        return buildEnchantedForestTheme();
+      case ThemeType.volcanicLavaLamp:
+        return buildVolcanicLavaLampTheme();
+      case ThemeType.coralReef:
+        return buildCoralReefTheme();
     }
   }
 

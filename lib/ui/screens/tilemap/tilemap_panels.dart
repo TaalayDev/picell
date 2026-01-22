@@ -774,7 +774,8 @@ class ViewControlsWidget extends StatelessWidget {
 
     if (compact) {
       return Row(
-        mainAxisSize: MainAxisSize.min,
+        //  mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           IconButton(
             icon: Icon(state.showGrid ? Icons.grid_on : Icons.grid_off, size: 20),

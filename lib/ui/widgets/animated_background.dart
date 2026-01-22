@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../app/theme/art_deco.dart';
+import '../../app/theme/coral_reef.dart';
+import '../../app/theme/crystaline.dart';
+import '../../app/theme/enchanted_forest.dart';
 import '../../app/theme/gothic_theme.dart';
 import '../../app/theme/steampunk.dart';
+import '../../app/theme/volcanic_lava_lamp.dart';
 import '../../core.dart';
 import '../../app/theme/arctic_aurora.dart';
 import '../../app/theme/autumn_harvest.dart';
@@ -573,6 +578,36 @@ class AnimatedBackground extends HookConsumerWidget {
         );
       case ThemeType.gothic:
         return GothicBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.artDeco:
+        return ArtDecoBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.crystalline:
+        return CrystallineBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.enchantedForest:
+        return EnchantedForestBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.volcanicLavaLamp:
+        return VolcanicLavaLampBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.coralReef:
+        return CoralReefBackground(
           theme: theme,
           intensity: intensity,
           enableAnimation: enableAnimation,

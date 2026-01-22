@@ -1,7 +1,5 @@
-import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -42,39 +40,41 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
     return AnimatedBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Column(
-          children: [
-            // Top toolbar
-            _buildTopBar(context, state, notifier, colorScheme),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Top toolbar
+              _buildTopBar(context, state, notifier, colorScheme),
 
-            // Main content
-            Expanded(
-              child: Row(
-                children: [
-                  // Left panel - Tile type selector (collapsible on small screens)
-                  if (isWide) _buildTileSelector(context, state, notifier),
+              // Main content
+              Expanded(
+                child: Row(
+                  children: [
+                    // Left panel - Tile type selector (collapsible on small screens)
+                    if (isWide) _buildTileSelector(context, state, notifier),
 
-                  // Main canvas area
-                  Expanded(
-                    child: Column(
-                      children: [
-                        // Canvas with tools
-                        Expanded(
-                          child: _buildCanvasArea(context, state, notifier),
-                        ),
+                    // Main canvas area
+                    Expanded(
+                      child: Column(
+                        children: [
+                          // Canvas with tools
+                          Expanded(
+                            child: _buildCanvasArea(context, state, notifier),
+                          ),
 
-                        // Variants row
-                        if (state.variants.isNotEmpty) _buildVariantsRow(context, state, notifier),
-                      ],
+                          // Variants row
+                          if (state.variants.isNotEmpty) _buildVariantsRow(context, state, notifier),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // Right panel - Color palette and tools
-                  _buildToolsPanel(context, state, notifier),
-                ],
+                    // Right panel - Color palette and tools
+                    _buildToolsPanel(context, state, notifier),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

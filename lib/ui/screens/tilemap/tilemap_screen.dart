@@ -148,86 +148,88 @@ class _TileMapScreenState extends ConsumerState<TileMapScreen> {
               });
             }
           },
-          child: Stack(
-            children: [
-              Scaffold(
-                backgroundColor: Colors.transparent,
-                body: Column(
-                  children: [
-                    _buildTopBar(context, state, notifier, colorScheme, screenSize),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          // Desktop: Always show tile panel
-                          // Tablet: Show as overlay when toggled
-                          if (isDesktop)
-                            TileCollectionPanel(
-                              state: state,
-                              notifier: notifier,
-                              project: widget.project,
-                              onAddTile: () => _navigateToTileGenerator(context, notifier, state),
-                              onEditTile: (tile) => notifier.startEditingTileById(tile.id),
-                            ),
-                          Expanded(
-                            child: Stack(
-                              children: [
-                                _buildTilemapCanvas(context, state, notifier, colorScheme, screenSize),
-                                // Tablet overlay panels
-                                if (isTablet && _showTilesPanel)
-                                  Positioned(
-                                    left: 0,
-                                    top: 0,
-                                    bottom: 0,
-                                    child: Material(
-                                      elevation: 8,
-                                      child: TileCollectionPanel(
-                                        state: state,
-                                        notifier: notifier,
-                                        project: widget.project,
-                                        onAddTile: () => _navigateToTileGenerator(context, notifier, state),
-                                        onEditTile: (tile) => notifier.startEditingTileById(tile.id),
-                                        onClose: () => setState(() => _showTilesPanel = false),
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: Column(
+                    children: [
+                      _buildTopBar(context, state, notifier, colorScheme, screenSize),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            // Desktop: Always show tile panel
+                            // Tablet: Show as overlay when toggled
+                            if (isDesktop)
+                              TileCollectionPanel(
+                                state: state,
+                                notifier: notifier,
+                                project: widget.project,
+                                onAddTile: () => _navigateToTileGenerator(context, notifier, state),
+                                onEditTile: (tile) => notifier.startEditingTileById(tile.id),
+                              ),
+                            Expanded(
+                              child: Stack(
+                                children: [
+                                  _buildTilemapCanvas(context, state, notifier, colorScheme, screenSize),
+                                  // Tablet overlay panels
+                                  if (isTablet && _showTilesPanel)
+                                    Positioned(
+                                      left: 0,
+                                      top: 0,
+                                      bottom: 0,
+                                      child: Material(
+                                        elevation: 8,
+                                        child: TileCollectionPanel(
+                                          state: state,
+                                          notifier: notifier,
+                                          project: widget.project,
+                                          onAddTile: () => _navigateToTileGenerator(context, notifier, state),
+                                          onEditTile: (tile) => notifier.startEditingTileById(tile.id),
+                                          onClose: () => setState(() => _showTilesPanel = false),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                if (isTablet && _showLayersPanel)
-                                  Positioned(
-                                    right: 0,
-                                    top: 0,
-                                    bottom: 0,
-                                    child: Material(
-                                      elevation: 8,
-                                      child: LayersPanel(
-                                        state: state,
-                                        notifier: notifier,
-                                        onClose: () => setState(() => _showLayersPanel = false),
+                                  if (isTablet && _showLayersPanel)
+                                    Positioned(
+                                      right: 0,
+                                      top: 0,
+                                      bottom: 0,
+                                      child: Material(
+                                        elevation: 8,
+                                        child: LayersPanel(
+                                          state: state,
+                                          notifier: notifier,
+                                          onClose: () => setState(() => _showLayersPanel = false),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          if (isDesktop)
-                            LayersPanel(
-                              state: state,
-                              notifier: notifier,
-                            ),
-                        ],
+                            if (isDesktop)
+                              LayersPanel(
+                                state: state,
+                                notifier: notifier,
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  // Mobile bottom navigation
+                  bottomNavigationBar: isMobile ? _buildMobileBottomBar(context, state, notifier, colorScheme) : null,
                 ),
-                // Mobile bottom navigation
-                bottomNavigationBar: isMobile ? _buildMobileBottomBar(context, state, notifier, colorScheme) : null,
-              ),
-              if (state.isEditingTile)
-                TileEditModal(
-                  state: state,
-                  notifier: notifier,
-                  tileWidth: widget.project.tileWidth ?? 16,
-                  tileHeight: widget.project.tileHeight ?? 16,
-                ),
-            ],
+                if (state.isEditingTile)
+                  TileEditModal(
+                    state: state,
+                    notifier: notifier,
+                    tileWidth: widget.project.tileWidth ?? 16,
+                    tileHeight: widget.project.tileHeight ?? 16,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -299,13 +301,11 @@ class _TileMapScreenState extends ConsumerState<TileMapScreen> {
             const SizedBox(width: 8),
           ],
           // Tools - compact on mobile/tablet
-          Flexible(
-            child: TilemapToolbar(
-              state: state,
-              notifier: notifier,
-              isModifierPressed: _isModifierPressed,
-              compact: isMobile,
-            ),
+          TilemapToolbar(
+            state: state,
+            notifier: notifier,
+            isModifierPressed: _isModifierPressed,
+            compact: isMobile,
           ),
           const Spacer(),
           // Hide hint on mobile

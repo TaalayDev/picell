@@ -30,7 +30,12 @@ enum ThemeType {
   autumnHarvest,
   halloween,
   steampunk,
-  gothic;
+  gothic,
+  artDeco,
+  crystalline,
+  enchantedForest,
+  volcanicLavaLamp,
+  coralReef;
 
   static List<ThemeType> lockedThemeTypes = [
     ThemeType.ocean,
@@ -50,6 +55,13 @@ enum ThemeType {
     ThemeType.copperSteampunk,
     ThemeType.prismatic,
     ThemeType.autumnHarvest,
+    ThemeType.steampunk,
+    ThemeType.gothic,
+    ThemeType.artDeco,
+    ThemeType.crystalline,
+    ThemeType.enchantedForest,
+    ThemeType.volcanicLavaLamp,
+    ThemeType.coralReef,
   ];
 
   bool get isDark => [
@@ -68,6 +80,11 @@ enum ThemeType {
         ThemeType.prismatic,
         ThemeType.halloween,
         ThemeType.steampunk,
+        ThemeType.gothic,
+        ThemeType.artDeco,
+        ThemeType.crystalline,
+        ThemeType.enchantedForest,
+        ThemeType.volcanicLavaLamp,
       ].contains(this);
 
   bool get isLocked => lockedThemeTypes.contains(this);
@@ -136,6 +153,16 @@ enum ThemeType {
         return 'Steampunk';
       case ThemeType.gothic:
         return 'Gothic';
+      case ThemeType.artDeco:
+        return 'Art Deco';
+      case ThemeType.crystalline:
+        return 'Crystalline';
+      case ThemeType.enchantedForest:
+        return 'Enchanted Forest';
+      case ThemeType.volcanicLavaLamp:
+        return 'Volcanic Lava Lamp';
+      case ThemeType.coralReef:
+        return 'Coral Reef';
     }
   }
 
@@ -186,6 +213,16 @@ enum ThemeType {
         return const Duration(seconds: 18);
       case ThemeType.autumnHarvest:
         return const Duration(seconds: 20);
+      case ThemeType.artDeco:
+        return const Duration(seconds: 20);
+      case ThemeType.crystalline:
+        return const Duration(seconds: 15);
+      case ThemeType.enchantedForest:
+        return const Duration(seconds: 25);
+      case ThemeType.volcanicLavaLamp:
+        return const Duration(seconds: 12);
+      case ThemeType.coralReef:
+        return const Duration(minutes: 5);
       default:
         return const Duration(seconds: 10);
     }
