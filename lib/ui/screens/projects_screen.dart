@@ -40,8 +40,8 @@ import 'subscription_screen.dart';
 import 'about_screen.dart';
 import 'pixel_canvas_screen.dart';
 import 'project_detail_screen.dart' hide CheckerboardPainter;
-import 'tile_generator_screen.dart';
 import 'tilemap_screen.dart';
+import '../../features/node_tile_creator/ui/node_graph_screen.dart';
 
 class ProjectsScreen extends HookConsumerWidget {
   const ProjectsScreen({super.key});
@@ -172,6 +172,17 @@ class ProjectsScreen extends HookConsumerWidget {
           ),
           leadingWidth: 200,
           actions: [
+            IconButton(
+              icon: const Icon(Icons.hub),
+              tooltip: 'Node Tile Creator',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const NodeGraphScreen(),
+                  ),
+                );
+              },
+            ),
             if (!subscription.isPro && !showBadge.value) ...[
               AnimatedProButton(
                 onTap: () => _showSubscriptionScreen(context),
