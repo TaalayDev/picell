@@ -46,21 +46,19 @@ class _LivePreviewWidgetState extends ConsumerState<LivePreviewWidget> {
   Widget build(BuildContext context) {
     final previewAsync = ref.watch(previewProvider);
 
-    return Container(
-      child: previewAsync.when(
-        skipLoadingOnRefresh: true,
-        skipLoadingOnReload: true,
-        data: (tileData) {
-          if (tileData == null) {
-            return _buildEmptyState();
-          }
-          return _TilePreview(tileData: tileData);
-        },
-        loading: () => const Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        error: (error, stack) => _buildErrorState(error.toString()),
+    return previewAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
+      data: (tileData) {
+        if (tileData == null) {
+          return _buildEmptyState();
+        }
+        return _TilePreview(tileData: tileData);
+      },
+      loading: () => const Center(
+        child: CircularProgressIndicator(strokeWidth: 2),
       ),
+      error: (error, stack) => _buildErrorState(error.toString()),
     );
   }
 

@@ -11,10 +11,20 @@ final nodeGraphProvider = StateNotifierProvider<NodeGraphController, NodeGraph>(
 
 class NodeGraphController extends StateNotifier<NodeGraph> {
   final Ref _ref;
+  int _previewSize = 32;
+
+  int get previewSize => _previewSize;
 
   NodeGraphController(this._ref) : super(NodeGraph()) {
     // initialize with a default output node
     addNode(OutputNode(position: const Offset(500, 300)), triggerPreview: false);
+  }
+
+  void setPreviewSize(int size) {
+    if (_previewSize != size) {
+      _previewSize = size;
+      _triggerPreviewRefresh();
+    }
   }
 
   void _triggerPreviewRefresh() {
@@ -86,7 +96,7 @@ class NodeGraphController extends StateNotifier<NodeGraph> {
   Future<TileData?> evaluateForPreview() async {
     try {
       final outputNode = state.nodes.firstWhere((n) => n is OutputNode);
-      final context = NodeEvaluationContext(state);
+      final context = NodeEvaluationContext(state, width: _previewSize, height: _previewSize);
       final result = await outputNode.evaluate(context);
       if (result is TileData) {
         return result;

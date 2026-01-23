@@ -83,6 +83,40 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
       return _buildShapeNodeProperties(widget.node as ShapeNode);
     } else if (widget.node is MixNode) {
       return _buildMixNodeProperties();
+    } else if (widget.node is CheckerboardNode) {
+      return _buildCheckerboardNodeProperties(widget.node as CheckerboardNode);
+    } else if (widget.node is StripesNode) {
+      return _buildStripesNodeProperties(widget.node as StripesNode);
+    } else if (widget.node is BricksNode) {
+      return _buildBricksNodeProperties(widget.node as BricksNode);
+    } else if (widget.node is GridNode) {
+      return _buildGridNodeProperties(widget.node as GridNode);
+    } else if (widget.node is GradientNode) {
+      return _buildGradientNodeProperties(widget.node as GradientNode);
+    } else if (widget.node is VoronoiNode) {
+      return _buildVoronoiNodeProperties(widget.node as VoronoiNode);
+    } else if (widget.node is WaveNode) {
+      return _buildWaveNodeProperties(widget.node as WaveNode);
+    } else if (widget.node is GroundNode) {
+      return _buildGroundNodeProperties(widget.node as GroundNode);
+    } else if (widget.node is WallNode) {
+      return _buildWallNodeProperties(widget.node as WallNode);
+    } else if (widget.node is WaterNode) {
+      return _buildWaterNodeProperties(widget.node as WaterNode);
+    } else if (widget.node is WoodNode) {
+      return _buildWoodNodeProperties(widget.node as WoodNode);
+    } else if (widget.node is LavaNode) {
+      return _buildLavaNodeProperties(widget.node as LavaNode);
+    } else if (widget.node is SnowNode) {
+      return _buildSnowNodeProperties(widget.node as SnowNode);
+    } else if (widget.node is MetalFloorNode) {
+      return _buildMetalFloorNodeProperties(widget.node as MetalFloorNode);
+    } else if (widget.node is MossyStoneNode) {
+      return _buildMossyStoneNodeProperties(widget.node as MossyStoneNode);
+    } else if (widget.node is MudNode) {
+      return _buildMudNodeProperties(widget.node as MudNode);
+    } else if (widget.node is PlatformNode) {
+      return _buildPlatformNodeProperties(widget.node as PlatformNode);
     } else if (widget.node is OutputNode) {
       return _buildOutputNodeProperties();
     }
@@ -342,6 +376,525 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
     );
   }
 
+  Widget _buildCheckerboardNodeProperties(CheckerboardNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Checkerboard Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scale',
+          value: node.scale,
+          min: 1.0,
+          max: 20.0,
+          onChanged: (value) {
+            setState(() {
+              node.scale = value;
+            });
+            ref.read(nodeGraphProvider.notifier).updateNodeProperty(node.id);
+          },
+        ),
+        const SizedBox(height: 12),
+        const Text('Colors are controlled via inputs.', style: TextStyle(color: Colors.white54, fontSize: 12)),
+      ],
+    );
+  }
+
+  Widget _buildStripesNodeProperties(StripesNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Stripes Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scale',
+          value: node.scale,
+          min: 1.0,
+          max: 20.0,
+          onChanged: (value) {
+            setState(() {
+              node.scale = value;
+            });
+            ref.read(nodeGraphProvider.notifier).updateNodeProperty(node.id);
+          },
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Angle',
+          value: node.angle,
+          min: 0.0,
+          max: 360.0,
+          onChanged: (value) {
+            setState(() {
+              node.angle = value;
+            });
+            ref.read(nodeGraphProvider.notifier).updateNodeProperty(node.id);
+          },
+        ),
+        const SizedBox(height: 12),
+        const Text('Colors are controlled via inputs.', style: TextStyle(color: Colors.white54, fontSize: 12)),
+      ],
+    );
+  }
+
+  Widget _buildBricksNodeProperties(BricksNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Bricks Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scale',
+          value: node.scale,
+          min: 1.0,
+          max: 20.0,
+          onChanged: (value) => _updateNode(() => node.scale = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Ratio',
+          value: node.ratio,
+          min: 0.5,
+          max: 4.0,
+          onChanged: (value) => _updateNode(() => node.ratio = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Mortar',
+          value: node.mortar,
+          min: 0.0,
+          max: 0.5,
+          onChanged: (value) => _updateNode(() => node.mortar = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Stagger',
+          value: node.stagger,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.stagger = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGridNodeProperties(GridNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Grid Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scale',
+          value: node.scale,
+          min: 1.0,
+          max: 20.0,
+          onChanged: (value) => _updateNode(() => node.scale = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Thickness',
+          value: node.thickness,
+          min: 0.0,
+          max: 0.5,
+          onChanged: (value) => _updateNode(() => node.thickness = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGradientNodeProperties(GradientNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Gradient Settings'),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () => _updateNode(() =>
+              node.gradientType = node.gradientType == GradientType.linear ? GradientType.radial : GradientType.linear),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Type', style: TextStyle(color: Colors.white70)),
+                Text(
+                  node.gradientType.name.toUpperCase(),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVoronoiNodeProperties(VoronoiNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Voronoi Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scale',
+          value: node.scale,
+          min: 2.0,
+          max: 20.0,
+          onChanged: (value) => _updateNode(() => node.scale = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Randomness',
+          value: node.randomness,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.randomness = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Seed',
+          value: node.seed,
+          min: 0.0,
+          max: 100.0,
+          onChanged: (value) => _updateNode(() => node.seed = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWaveNodeProperties(WaveNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Wave Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scale/Freq',
+          value: node.scale,
+          min: 0.1,
+          max: 2.0,
+          onChanged: (value) => _updateNode(() => node.scale = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Angle',
+          value: node.angle,
+          min: 0.0,
+          max: 360.0,
+          onChanged: (value) => _updateNode(() => node.angle = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGroundNodeProperties(GroundNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Ground Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Roughness',
+          value: node.roughness,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.roughness = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Seed',
+          value: node.seed,
+          min: 0.0,
+          max: 100.0,
+          onChanged: (value) => _updateNode(() => node.seed = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWallNodeProperties(WallNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Wall Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scale',
+          value: node.scale,
+          min: 1.0,
+          max: 20.0,
+          onChanged: (value) => _updateNode(() => node.scale = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Roughness',
+          value: node.roughness,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.roughness = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWaterNodeProperties(WaterNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Water Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scale',
+          value: node.scale,
+          min: 1.0,
+          max: 20.0,
+          onChanged: (value) => _updateNode(() => node.scale = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Turbulence',
+          value: node.turbulence,
+          min: 0.0,
+          max: 2.0,
+          onChanged: (value) => _updateNode(() => node.turbulence = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWoodNodeProperties(WoodNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Wood Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Grain',
+          value: node.grainScale,
+          min: 1.0,
+          max: 50.0,
+          onChanged: (value) => _updateNode(() => node.grainScale = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Rings',
+          value: node.rings,
+          min: 1.0,
+          max: 10.0,
+          onChanged: (value) => _updateNode(() => node.rings = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLavaNodeProperties(LavaNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Lava Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Temperature',
+          value: node.temperature,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.temperature = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Turbulence',
+          value: node.turbulence,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.turbulence = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSnowNodeProperties(SnowNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Snow Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Density',
+          value: node.density,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.density = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Softness',
+          value: node.softness,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.softness = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetalFloorNodeProperties(MetalFloorNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Metal Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Panels',
+          value: node.panels,
+          min: 1.0,
+          max: 10.0,
+          onChanged: (value) => _updateNode(() => node.panels = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scratchiness',
+          value: node.scratchiness,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.scratchiness = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMossyStoneNodeProperties(MossyStoneNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Mossy Stone Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Moss Coverage',
+          value: node.mossCoverage,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.mossCoverage = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Scale',
+          value: node.scale,
+          min: 1.0,
+          max: 20.0,
+          onChanged: (value) => _updateNode(() => node.scale = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMudNodeProperties(MudNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Mud Settings'),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Wetness',
+          value: node.wetness,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.wetness = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Dirtiness',
+          value: node.dirtiness,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.dirtiness = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlatformNodeProperties(PlatformNode node) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Platform Settings'),
+        const SizedBox(height: 16),
+        Text('Sides', style: TextStyle(color: Colors.white54, fontSize: 12)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _buildToggle('Top', node.top, (v) => _updateNode(() => node.top = v)),
+            const SizedBox(width: 8),
+            _buildToggle('Left', node.left, (v) => _updateNode(() => node.left = v)),
+            const SizedBox(width: 8),
+            _buildToggle('Right', node.right, (v) => _updateNode(() => node.right = v)),
+            const SizedBox(width: 8),
+            _buildToggle('Bottom', node.bottom, (v) => _updateNode(() => node.bottom = v)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Thickness',
+          value: node.thickness,
+          min: 0.0,
+          max: 0.5,
+          onChanged: (value) => _updateNode(() => node.thickness = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Corner Radius',
+          value: node.radius,
+          min: 0.0,
+          max: 0.5,
+          onChanged: (value) => _updateNode(() => node.radius = value),
+        ),
+        const SizedBox(height: 16),
+        _buildSlider(
+          label: 'Shadow',
+          value: node.shadow,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) => _updateNode(() => node.shadow = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggle(String label, bool value, ValueChanged<bool> onChanged) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: value ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
+          border: Border.all(
+            color: value ? Colors.blueAccent : Colors.white24,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: value ? Colors.blueAccent : Colors.white54,
+            fontSize: 10,
+            fontWeight: value ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _updateNode(VoidCallback fn) {
+    setState(fn);
+    ref.read(nodeGraphProvider.notifier).updateNodeProperty(widget.node.id);
+  }
+
   Widget _buildOutputNodeProperties() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,6 +1012,23 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
     if (widget.node is ShapeNode) return Colors.green;
     if (widget.node is MixNode) return Colors.cyan;
     if (widget.node is OutputNode) return Colors.blue;
+    if (widget.node is CheckerboardNode) return Colors.orange;
+    if (widget.node is StripesNode) return Colors.red;
+    if (widget.node is BricksNode) return Colors.orange;
+    if (widget.node is GridNode) return Colors.teal;
+    if (widget.node is GradientNode) return Colors.pink;
+    if (widget.node is VoronoiNode) return Colors.purpleAccent;
+    if (widget.node is WaveNode) return Colors.indigo;
+    if (widget.node is GroundNode) return Colors.green;
+    if (widget.node is WallNode) return Colors.grey;
+    if (widget.node is WaterNode) return Colors.blueAccent;
+    if (widget.node is WoodNode) return Colors.brown;
+    if (widget.node is LavaNode) return Colors.orange;
+    if (widget.node is SnowNode) return Colors.white;
+    if (widget.node is MetalFloorNode) return Colors.blueGrey;
+    if (widget.node is MossyStoneNode) return Colors.greenAccent;
+    if (widget.node is MudNode) return Colors.brown.shade800;
+    if (widget.node is PlatformNode) return Colors.indigo;
     return Colors.grey;
   }
 
@@ -468,6 +1038,23 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
     if (widget.node is ShapeNode) return Icons.crop_square;
     if (widget.node is MixNode) return Icons.merge_type;
     if (widget.node is OutputNode) return Icons.output;
+    if (widget.node is CheckerboardNode) return Icons.grid_on;
+    if (widget.node is StripesNode) return Icons.view_week;
+    if (widget.node is BricksNode) return Icons.tab;
+    if (widget.node is GridNode) return Icons.grid_3x3;
+    if (widget.node is GradientNode) return Icons.gradient;
+    if (widget.node is VoronoiNode) return Icons.bubble_chart;
+    if (widget.node is WaveNode) return Icons.waves;
+    if (widget.node is GroundNode) return Icons.grass;
+    if (widget.node is WallNode) return Icons.foundation;
+    if (widget.node is WaterNode) return Icons.water;
+    if (widget.node is WoodNode) return Icons.nature;
+    if (widget.node is LavaNode) return Icons.local_fire_department;
+    if (widget.node is SnowNode) return Icons.ac_unit;
+    if (widget.node is MetalFloorNode) return Icons.build;
+    if (widget.node is MossyStoneNode) return Icons.grass;
+    if (widget.node is MudNode) return Icons.bubble_chart;
+    if (widget.node is PlatformNode) return Icons.layers;
     return Icons.widgets;
   }
 }

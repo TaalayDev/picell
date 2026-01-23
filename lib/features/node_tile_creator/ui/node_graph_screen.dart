@@ -126,18 +126,43 @@ class NodeGraphScreen extends HookConsumerWidget {
   }
 
   Widget _buildNodePalette(BuildContext context, NodeGraphController controller, AppTheme theme) {
+    final searchQuery = useState('');
+    final selectedCategory = useState<NodeCategory?>(null);
+
     final nodeTypes = [
-      _NodeTypeInfo('Color', Icons.palette, theme.accentColor, () => ColorNode()),
-      _NodeTypeInfo('Noise', Icons.grain, theme.primaryColor, () => NoiseNode()),
-      _NodeTypeInfo('Shape', Icons.crop_square, theme.success, () => ShapeNode()),
-      _NodeTypeInfo('Mix', Icons.merge_type, theme.warning, () => MixNode()),
+      _NodeTypeInfo('Color', Icons.palette, theme.accentColor, NodeCategory.generator, () => ColorNode()),
+      _NodeTypeInfo('Gradient', Icons.gradient, theme.accentColor, NodeCategory.generator, () => GradientNode()),
+      _NodeTypeInfo('Noise', Icons.grain, theme.primaryColor, NodeCategory.generator, () => NoiseNode()),
+      _NodeTypeInfo('Voronoi', Icons.bubble_chart, theme.primaryColor, NodeCategory.generator, () => VoronoiNode()),
+      _NodeTypeInfo('Shape', Icons.crop_square, theme.success, NodeCategory.generator, () => ShapeNode()),
+      _NodeTypeInfo('Checkerboard', Icons.grid_on, theme.warning, NodeCategory.pattern, () => CheckerboardNode()),
+      _NodeTypeInfo('Stripes', Icons.view_week, theme.error, NodeCategory.pattern, () => StripesNode()),
+      _NodeTypeInfo('Bricks', Icons.tab, theme.warning, NodeCategory.pattern, () => BricksNode()),
+      _NodeTypeInfo('Grid', Icons.grid_3x3, theme.warning, NodeCategory.pattern, () => GridNode()),
+      _NodeTypeInfo('Wave', Icons.waves, theme.error, NodeCategory.pattern, () => WaveNode()),
+      _NodeTypeInfo('Ground', Icons.grass, theme.success, NodeCategory.material, () => GroundNode()),
+      _NodeTypeInfo('Wall', Icons.foundation, theme.warning, NodeCategory.material, () => WallNode()),
+      _NodeTypeInfo('Water', Icons.water, theme.primaryColor, NodeCategory.material, () => WaterNode()),
+      _NodeTypeInfo('Wood', Icons.nature, theme.warning, NodeCategory.material, () => WoodNode()),
+      _NodeTypeInfo('Lava', Icons.local_fire_department, theme.error, NodeCategory.material, () => LavaNode()),
+      _NodeTypeInfo('Snow', Icons.ac_unit, theme.primaryColor, NodeCategory.material, () => SnowNode()),
+      _NodeTypeInfo('Metal', Icons.build, theme.warning, NodeCategory.material, () => MetalFloorNode()),
+      _NodeTypeInfo('Mud', Icons.texture, theme.warning, NodeCategory.material, () => MudNode()),
+      _NodeTypeInfo('Platform', Icons.layers, theme.primaryColor, NodeCategory.processing, () => PlatformNode()),
+      _NodeTypeInfo('Mix', Icons.merge_type, theme.warning, NodeCategory.processing, () => MixNode()),
     ];
+
+    final filteredNodes = nodeTypes.where((node) {
+      final matchesSearch = node.name.toLowerCase().contains(searchQuery.value.toLowerCase());
+      final matchesCategory = selectedCategory.value == null || node.category == selectedCategory.value;
+      return matchesSearch && matchesCategory;
+    }).toList();
 
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          width: 220,
+          width: 250, // Slightly wider for new controls
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -167,51 +192,91 @@ class NodeGraphScreen extends HookConsumerWidget {
                     end: Alignment.bottomCenter,
                   ),
                 ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                theme.primaryColor.withOpacity(0.3),
+                                theme.accentColor.withOpacity(0.2),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.primaryColor.withOpacity(0.2),
+                                blurRadius: 8,
+                                spreadRadius: -2,
+                              ),
+                            ],
+                          ),
+                          child: Icon(Icons.widgets_outlined, color: theme.primaryColor, size: 18),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Node Palette',
+                                style: TextStyle(
+                                  color: theme.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Text(
+                                'Drag to canvas',
+                                style: TextStyle(
+                                  color: theme.textSecondary,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Search Bar
+                    TextField(
+                      onChanged: (value) => searchQuery.value = value,
+                      style: TextStyle(color: theme.textPrimary, fontSize: 13),
+                      decoration: InputDecoration(
+                        hintText: 'Search nodes...',
+                        hintStyle: TextStyle(color: theme.textDisabled, fontSize: 13),
+                        prefixIcon: Icon(Icons.search, color: theme.textSecondary, size: 16),
+                        filled: true,
+                        fillColor: theme.surfaceVariant.withOpacity(0.3),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        isDense: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Divider(height: 1, color: theme.divider.withOpacity(0.3)),
+
+              // Categories
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            theme.primaryColor.withOpacity(0.3),
-                            theme.accentColor.withOpacity(0.2),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.primaryColor.withOpacity(0.2),
-                            blurRadius: 8,
-                            spreadRadius: -2,
-                          ),
-                        ],
-                      ),
-                      child: Icon(Icons.widgets_outlined, color: theme.primaryColor, size: 18),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Node Palette',
-                            style: TextStyle(
-                              color: theme.textPrimary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            'Drag to canvas',
-                            style: TextStyle(
-                              color: theme.textSecondary,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildCategoryChip(context, 'All', null, selectedCategory, theme),
+                    _buildCategoryChip(context, 'Gen', NodeCategory.generator, selectedCategory, theme),
+                    _buildCategoryChip(context, 'Pattern', NodeCategory.pattern, selectedCategory, theme),
+                    _buildCategoryChip(context, 'Mat', NodeCategory.material, selectedCategory, theme),
+                    _buildCategoryChip(context, 'Proc', NodeCategory.processing, selectedCategory, theme),
                   ],
                 ),
               ),
@@ -222,9 +287,9 @@ class NodeGraphScreen extends HookConsumerWidget {
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(12),
-                  itemCount: nodeTypes.length,
+                  itemCount: filteredNodes.length,
                   itemBuilder: (context, index) {
-                    final nodeType = nodeTypes[index];
+                    final nodeType = filteredNodes[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: _buildNodeTypeCard(context, nodeType, controller, theme),
@@ -271,6 +336,43 @@ class NodeGraphScreen extends HookConsumerWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip(
+    BuildContext context,
+    String label,
+    NodeCategory? category,
+    ValueNotifier<NodeCategory?> selectedCategory,
+    AppTheme theme,
+  ) {
+    final isSelected = selectedCategory.value == category;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: InkWell(
+        onTap: () => selectedCategory.value = category,
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? theme.primaryColor.withOpacity(0.2) : theme.surfaceVariant.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? theme.primaryColor.withOpacity(0.5) : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? theme.primaryColor : theme.textSecondary,
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ),
       ),
@@ -524,6 +626,8 @@ class NodeGraphScreen extends HookConsumerWidget {
     String? selectedNodeId,
     AppTheme theme,
   ) {
+    final previewHeight = useState(200.0);
+
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -546,7 +650,7 @@ class NodeGraphScreen extends HookConsumerWidget {
             children: [
               // Live Preview Header
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -576,38 +680,31 @@ class NodeGraphScreen extends HookConsumerWidget {
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: theme.success.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: theme.success,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: theme.success.withOpacity(0.5),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'LIVE',
-                            style: TextStyle(
-                              color: theme.success,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
+                          Consumer(builder: (context, ref, _) {
+                            final size = ref.watch(nodeGraphProvider.notifier).previewSize;
+                            return DropdownButton<int>(
+                              value: size,
+                              dropdownColor: const Color(0xFF2d2d44),
+                              style: const TextStyle(color: Colors.white, fontSize: 11),
+                              underline: const SizedBox(),
+                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white54, size: 16),
+                              items: [16, 32, 64, 128, 256].map((s) {
+                                return DropdownMenuItem(
+                                  value: s,
+                                  child: Text('${s}x$s'),
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  ref.read(nodeGraphProvider.notifier).setPreviewSize(val);
+                                }
+                              },
+                            );
+                          }),
                         ],
                       ),
                     ),
@@ -617,7 +714,7 @@ class NodeGraphScreen extends HookConsumerWidget {
 
               // Live Preview Widget
               Container(
-                height: 200,
+                height: previewHeight.value,
                 margin: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
                   color: theme.canvasBackground,
@@ -638,7 +735,15 @@ class NodeGraphScreen extends HookConsumerWidget {
               ),
 
               const SizedBox(height: 12),
-              Divider(height: 1, color: theme.divider.withOpacity(0.3)),
+              MouseRegion(
+                cursor: SystemMouseCursors.resizeUpDown,
+                child: GestureDetector(
+                  onVerticalDragUpdate: (details) {
+                    previewHeight.value += details.delta.dy;
+                  },
+                  child: Divider(height: 1, color: theme.divider),
+                ),
+              ),
 
               // Properties Panel Header
               Container(
@@ -748,13 +853,22 @@ class NodeGraphScreen extends HookConsumerWidget {
   }
 }
 
+enum NodeCategory {
+  generator,
+  pattern,
+  material,
+  processing,
+  output,
+}
+
 class _NodeTypeInfo {
   final String name;
   final IconData icon;
   final Color color;
+  final NodeCategory category;
   final NodeData Function() createNode;
 
-  _NodeTypeInfo(this.name, this.icon, this.color, this.createNode);
+  _NodeTypeInfo(this.name, this.icon, this.color, this.category, this.createNode);
 }
 
 class _GridPainter extends CustomPainter {

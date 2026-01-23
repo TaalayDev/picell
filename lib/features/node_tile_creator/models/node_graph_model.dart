@@ -64,9 +64,11 @@ abstract class NodeData {
 /// Context passed during evaluation to resolve inputs
 class NodeEvaluationContext {
   final NodeGraph graph;
+  final int width;
+  final int height;
   final Map<String, dynamic> _cache = {};
 
-  NodeEvaluationContext(this.graph);
+  NodeEvaluationContext(this.graph, {this.width = 32, this.height = 32});
 
   /// Get the value from a specific input socket of a node
   Future<dynamic> getInput(String nodeId, String socketName) async {
