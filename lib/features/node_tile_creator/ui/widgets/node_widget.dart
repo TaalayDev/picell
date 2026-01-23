@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pixelverse/features/node_tile_creator/logic/node_graph_controller.dart';
-import 'package:pixelverse/features/node_tile_creator/models/node_graph_model.dart';
-import 'package:pixelverse/features/node_tile_creator/models/nodes.dart';
+
+import '../../logic/node_graph_controller.dart';
+import '../../models/node_graph_model.dart';
+import '../../models/nodes.dart';
 
 class NodeWidget extends ConsumerWidget {
   final NodeData node;
@@ -29,12 +30,12 @@ class NodeWidget extends ConsumerWidget {
         duration: const Duration(milliseconds: 150),
         width: 180,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF2d2d44),
-              const Color(0xFF1e1e2e),
+              Color(0xFF2d2d44),
+              Color(0xFF1e1e2e),
             ],
           ),
           borderRadius: BorderRadius.circular(12),

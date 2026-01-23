@@ -4,8 +4,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pixelverse/features/node_tile_creator/logic/node_graph_controller.dart';
-import 'package:pixelverse/features/node_tile_creator/models/nodes.dart';
+
+import '../../logic/node_graph_controller.dart';
+import '../../models/nodes.dart';
 
 /// Provider that tracks only connection and node property changes (not positions)
 final previewTriggerProvider = StateProvider<int>((ref) => 0);
@@ -46,94 +47,19 @@ class _LivePreviewWidgetState extends ConsumerState<LivePreviewWidget> {
     final previewAsync = ref.watch(previewProvider);
 
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF16213e),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.blue.withOpacity(0.2),
-                  Colors.transparent,
-                ],
-              ),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.preview, color: Colors.blue[300], size: 18),
-                const SizedBox(width: 8),
-                const Text(
-                  'Live Preview',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.refresh, size: 16),
-                  color: Colors.white54,
-                  onPressed: _refreshPreview,
-                  tooltip: 'Refresh Preview',
-                ),
-              ],
-            ),
-          ),
-
-          // Preview area
-          Expanded(
-            child: previewAsync.when(
-              data: (tileData) {
-                if (tileData == null) {
-                  return _buildEmptyState();
-                }
-                return _TilePreview(tileData: tileData);
-              },
-              loading: () => const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              error: (error, stack) => _buildErrorState(error.toString()),
-            ),
-          ),
-
-          // Info bar
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(11)),
-            ),
-            child: previewAsync.when(
-              data: (tileData) => Text(
-                tileData != null ? '${tileData.width}x${tileData.height} • Tap to tile' : 'No output',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
-                  fontSize: 11,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              loading: () => Text(
-                'Generating...',
-                style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
-                textAlign: TextAlign.center,
-              ),
-              error: (_, __) => const Text(
-                'Error',
-                style: TextStyle(color: Colors.red, fontSize: 11),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ],
+      child: previewAsync.when(
+        skipLoadingOnRefresh: true,
+        skipLoadingOnReload: true,
+        data: (tileData) {
+          if (tileData == null) {
+            return _buildEmptyState();
+          }
+          return _TilePreview(tileData: tileData);
+        },
+        loading: () => const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        error: (error, stack) => _buildErrorState(error.toString()),
       ),
     );
   }
@@ -255,7 +181,6 @@ class _TilePreviewState extends State<_TilePreview> {
         });
       },
       child: Container(
-        margin: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.white.withOpacity(0.1)),

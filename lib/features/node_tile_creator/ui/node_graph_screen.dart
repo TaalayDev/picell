@@ -3,12 +3,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:pixelverse/app/theme/theme.dart';
-import 'package:pixelverse/features/node_tile_creator/logic/node_graph_controller.dart';
-import 'package:pixelverse/features/node_tile_creator/models/node_graph_model.dart';
-import 'package:pixelverse/features/node_tile_creator/models/nodes.dart';
-import 'package:pixelverse/ui/widgets/animated_background.dart';
-import 'package:pixelverse/ui/widgets/theme_selector.dart';
+
+import '../../../app/theme/theme.dart';
+import '../../../ui/widgets/animated_background.dart';
+import '../../../ui/widgets/theme_selector.dart';
+import '../logic/node_graph_controller.dart';
+import '../models/node_graph_model.dart';
+import '../models/nodes.dart';
 
 import 'widgets/connection_painter.dart';
 import 'widgets/node_widget.dart';
