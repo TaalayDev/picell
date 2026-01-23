@@ -12,84 +12,75 @@ import 'theme.dart';
 // ============================================================================
 
 AppTheme buildCoralReefTheme() {
-  final baseTextTheme = GoogleFonts.comfortaaTextTheme();
-  final bodyTextTheme = GoogleFonts.nunitoTextTheme();
+  final baseTextTheme = GoogleFonts.quicksandTextTheme();
+  final bodyTextTheme = GoogleFonts.openSansTextTheme();
 
   return AppTheme(
     type: ThemeType.coralReef,
-    isDark: false,
+    isDark: false, // Bright and colorful
 
-    // Primary colors - coral orange
+    // Primary: Coral / Salmon
     primaryColor: const Color(0xFFFF7F50),
-    primaryVariant: const Color(0xFFE56B3E),
-    onPrimary: const Color(0xFFFFFFFF),
+    // Variant: Darker Red/Orange
+    primaryVariant: const Color(0xFFE55050),
+    onPrimary: Colors.white,
 
-    // Secondary colors - turquoise
+    // Accent: Turquoise / Teal
     accentColor: const Color(0xFF40E0D0),
-    onAccent: const Color(0xFF1A3A38),
+    onAccent: const Color(0xFF004D40),
 
-    // Background colors - light ocean blue
-    background: const Color(0xFFE8F6F8),
-    surface: const Color(0xFFF0FAFB),
-    surfaceVariant: const Color(0xFFD8F0F2),
+    // Backgrounds: Ocean Blue gradients handled by painter, but set defaults
+    background: const Color(0xFF2890B0), // Deep blue
+    surface: const Color(0xFFE0F7FA), // Very light cyan
+    surfaceVariant: const Color(0xFFB2EBF2),
 
-    // Text colors
-    textPrimary: const Color(0xFF1A3D40),
-    textSecondary: const Color(0xFF3D6B70),
-    textDisabled: const Color(0xFF8AACB0),
+    // Text: Dark Blue/Teal for contrast
+    textPrimary: const Color(0xFF006064),
+    textSecondary: const Color(0xFF00838F),
+    textDisabled: const Color(0xFF80DEEA),
 
-    // UI colors
-    divider: const Color(0xFFC0E0E5),
-    toolbarColor: const Color(0xFFF0FAFB),
-    error: const Color(0xFFE57373),
-    success: const Color(0xFF66BB6A),
-    warning: const Color(0xFFFFB74D),
+    // UI Colors
+    divider: const Color(0xFF4DD0E1),
+    toolbarColor: const Color(0xFF2890B0),
+    error: const Color(0xFFD32F2F),
+    success: const Color(0xFF388E3C),
+    warning: const Color(0xFFFFA000),
 
-    // Grid colors
-    gridLine: const Color(0xFFC0E0E5),
-    gridBackground: const Color(0xFFF0FAFB),
+    // Grid
+    gridLine: const Color(0xFF80DEEA),
+    gridBackground: const Color(0xFFE0F7FA),
 
-    // Canvas colors
-    canvasBackground: const Color(0xFFE8F6F8),
+    // Canvas
+    canvasBackground: const Color(0xFFF0FCFF),
     selectionOutline: const Color(0xFFFF7F50),
-    selectionFill: const Color(0x30FF7F50),
+    selectionFill: const Color(0x33FF7F50),
 
-    // Icon colors
+    // Icons
     activeIcon: const Color(0xFFFF7F50),
-    inactiveIcon: const Color(0xFF3D6B70),
+    inactiveIcon: const Color(0xFF0097A7),
 
     // Typography
     textTheme: baseTextTheme.copyWith(
       displayLarge: baseTextTheme.displayLarge!.copyWith(
-        color: const Color(0xFF1A3D40),
-        fontWeight: FontWeight.w600,
+        color: const Color(0xFF006064),
+        fontWeight: FontWeight.bold,
       ),
       displayMedium: baseTextTheme.displayMedium!.copyWith(
-        color: const Color(0xFF1A3D40),
-        fontWeight: FontWeight.w600,
+        color: const Color(0xFF006064),
+        fontWeight: FontWeight.bold,
       ),
       titleLarge: baseTextTheme.titleLarge!.copyWith(
-        color: const Color(0xFF1A3D40),
-        fontWeight: FontWeight.w600,
-      ),
-      titleMedium: baseTextTheme.titleMedium!.copyWith(
-        color: const Color(0xFF1A3D40),
-        fontWeight: FontWeight.w500,
+        color: const Color(0xFF00838F),
+        fontWeight: FontWeight.w700,
       ),
       bodyLarge: bodyTextTheme.bodyLarge!.copyWith(
-        color: const Color(0xFF1A3D40),
-        fontWeight: FontWeight.w400,
+        color: const Color(0xFF004D40),
       ),
       bodyMedium: bodyTextTheme.bodyMedium!.copyWith(
-        color: const Color(0xFF3D6B70),
-        fontWeight: FontWeight.w400,
-      ),
-      labelLarge: bodyTextTheme.labelLarge!.copyWith(
-        color: const Color(0xFFFF7F50),
-        fontWeight: FontWeight.w600,
+        color: const Color(0xFF00695C),
       ),
     ),
-    primaryFontWeight: FontWeight.w500,
+    primaryFontWeight: FontWeight.w600,
   );
 }
 
@@ -111,8 +102,9 @@ class CoralReefBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Controller acts as a ticker
     final controller = useAnimationController(
-      duration: const Duration(seconds: 40),
+      duration: const Duration(seconds: 20),
     );
 
     useEffect(() {
@@ -120,17 +112,18 @@ class CoralReefBackground extends HookWidget {
         controller.repeat();
       } else {
         controller.stop();
-        controller.value = 0;
       }
       return null;
     }, [enableAnimation]);
 
-    final t = useAnimation(controller);
+    // 2. Persist state for smooth infinite time accumulation
+    final reefState = useMemoized(() => _ReefState());
 
     return RepaintBoundary(
       child: CustomPaint(
         painter: _CoralReefPainter(
-          t: t,
+          repaint: controller,
+          state: reefState,
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
@@ -139,6 +132,12 @@ class CoralReefBackground extends HookWidget {
       ),
     );
   }
+}
+
+// State class to hold accumulated time
+class _ReefState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
 }
 
 // Data structures
@@ -186,7 +185,7 @@ class _SeaweedData {
 }
 
 class _CoralReefPainter extends CustomPainter {
-  final double t;
+  final _ReefState state;
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
@@ -222,12 +221,12 @@ class _CoralReefPainter extends CustomPainter {
   ];
 
   static const List<_FishData> _fish = [
-    _FishData(0.2, 0.28, 0.045, 0.25, 0.0, 0, true),
-    _FishData(0.5, 0.18, 0.04, 0.22, 1.0, 1, false),
-    _FishData(0.7, 0.38, 0.05, 0.3, 2.0, 2, true),
-    _FishData(0.3, 0.48, 0.035, 0.24, 3.0, 3, false),
-    _FishData(0.8, 0.22, 0.042, 0.28, 4.0, 4, true),
-    _FishData(0.15, 0.42, 0.048, 0.2, 5.0, 5, false),
+    _FishData(0.2, 0.28, 0.045, 0.10, 0.0, 0, true), // Reduced speeds slightly since we use seconds now
+    _FishData(0.5, 0.18, 0.04, 0.08, 1.0, 1, false),
+    _FishData(0.7, 0.38, 0.05, 0.12, 2.0, 2, true),
+    _FishData(0.3, 0.48, 0.035, 0.09, 3.0, 3, false),
+    _FishData(0.8, 0.22, 0.042, 0.11, 4.0, 4, true),
+    _FishData(0.15, 0.42, 0.048, 0.07, 5.0, 5, false),
   ];
 
   static final List<_BubbleData> _bubbles = List.generate(18, (i) {
@@ -235,7 +234,7 @@ class _CoralReefPainter extends CustomPainter {
     return _BubbleData(
       rng.nextDouble(),
       2 + rng.nextDouble() * 5,
-      0.12 + rng.nextDouble() * 0.2,
+      0.05 + rng.nextDouble() * 0.1, // Adjusted speed for seconds
       rng.nextDouble() * 6.28,
       1.2 + rng.nextDouble() * 1.5,
     );
@@ -258,18 +257,25 @@ class _CoralReefPainter extends CustomPainter {
   final Path _path = Path();
 
   _CoralReefPainter({
-    required this.t,
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
-  });
+  }) : super(repaint: repaint);
 
-  double get _phase => 2 * math.pi * t;
-  double _wave(double speed, [double offset = 0]) => math.sin(_phase * speed + offset);
+  // Helper methods using accumulated time from state
+  double _wave(double speed, [double offset = 0]) => math.sin(state.time * speed + offset);
   double _norm(double speed, [double offset = 0]) => 0.5 * (1 + _wave(speed, offset));
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Time Accumulation Logic
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
+
     _paintWaterGradient(canvas, size);
     _paintCausticLight(canvas, size);
     _paintLightRays(canvas, size);
@@ -308,19 +314,19 @@ class _CoralReefPainter extends CustomPainter {
     // Animated caustic patterns
     for (int i = 0; i < 8; i++) {
       final baseX = (i + 0.5) / 8 * size.width;
-      final wobbleX = _wave(0.5, i * 1.5) * 30 * intensity;
-      final wobbleY = _wave(0.4, i * 1.2 + 1.0) * 20 * intensity;
+      final wobbleX = _wave(1.2, i * 1.5) * 30 * intensity;
+      final wobbleY = _wave(0.9, i * 1.2 + 1.0) * 20 * intensity;
       final x = baseX + wobbleX;
 
-      final pulse = _norm(0.6, i * 0.9) * 0.5 + 0.5;
+      final pulse = _norm(1.5, i * 0.9) * 0.5 + 0.5;
       final causticSize = (40 + pulse * 30) * intensity;
 
       // Organic caustic shape
       _fillPaint.color = _white.withOpacity(0.12 * pulse * intensity);
 
       for (int j = 0; j < 3; j++) {
-        final offsetX = _wave(0.7, i * 2 + j * 1.5) * 20 * intensity;
-        final offsetY = _wave(0.5, i * 1.8 + j * 2.0) * 15 * intensity;
+        final offsetX = _wave(1.8, i * 2 + j * 1.5) * 20 * intensity;
+        final offsetY = _wave(1.4, i * 1.8 + j * 2.0) * 15 * intensity;
         final y = size.height * (0.15 + j * 0.2) + wobbleY + offsetY;
 
         canvas.drawOval(
@@ -340,8 +346,8 @@ class _CoralReefPainter extends CustomPainter {
   void _paintLightRays(Canvas canvas, Size size) {
     for (int i = 0; i < 5; i++) {
       final baseX = size.width * (0.1 + i * 0.2);
-      final sway = _wave(0.25, i * 1.0) * 25 * intensity;
-      final pulse = _norm(0.35, i * 1.4) * 0.4 + 0.6;
+      final sway = _wave(0.8, i * 1.0) * 25 * intensity;
+      final pulse = _norm(0.6, i * 1.4) * 0.4 + 0.6;
 
       final x = baseX + sway;
       final rayWidth = (30 + i * 5) * intensity;
@@ -370,15 +376,20 @@ class _CoralReefPainter extends CustomPainter {
   }
 
   void _paintDistantFish(Canvas canvas, Size size) {
-    final rng = math.Random(88);
-
+    // Deterministic random using loop index
     for (int i = 0; i < 10; i++) {
-      final baseX = rng.nextDouble();
-      final y = size.height * (0.12 + rng.nextDouble() * 0.35);
-      final fishSize = (5 + rng.nextDouble() * 8) * intensity;
-      final speed = 0.15 + rng.nextDouble() * 0.15;
+      // Create consistent random properties
+      final r1 = ((i * 132.0) % 100) / 100.0;
+      final r2 = ((i * 45.0) % 100) / 100.0;
+      final r3 = ((i * 99.0) % 100) / 100.0;
 
-      final swimProgress = (t * speed + i * 0.1) % 1.0;
+      final baseX = r1;
+      final y = size.height * (0.12 + r2 * 0.35);
+      final fishSize = (5 + r3 * 8) * intensity;
+      final speed = 0.05 + r1 * 0.05; // speed in screen-widths per second
+
+      // Infinite wrapping position
+      final swimProgress = (state.time * speed + i * 0.1) % 1.0;
       final x = (baseX + swimProgress) % 1.0 * size.width;
 
       _fillPaint.color = _deepBlue.withOpacity(0.18 * intensity);
@@ -395,8 +406,9 @@ class _CoralReefPainter extends CustomPainter {
       for (int blade = 0; blade < 4; blade++) {
         final x = baseX + (blade - 1.5) * 6 * intensity;
         final bladeHeight = height * (0.65 + blade * 0.12);
-        final sway = _wave(0.7, sw.phaseOffset + blade * 0.4) * 15 * intensity;
-        final sway2 = _wave(1.2, sw.phaseOffset + blade * 0.6 + 1.0) * 8 * intensity;
+        // Sway uses accumulated time
+        final sway = _wave(1.2, sw.phaseOffset + blade * 0.4) * 15 * intensity;
+        final sway2 = _wave(1.8, sw.phaseOffset + blade * 0.6 + 1.0) * 8 * intensity;
 
         _path.reset();
         _path.moveTo(x - 2.5 * intensity, size.height);
@@ -446,7 +458,7 @@ class _CoralReefPainter extends CustomPainter {
       final height = coral.height * size.height * intensity;
       final width = coral.width * size.width * intensity;
       final color = _coralColors[coral.colorIndex];
-      final sway = _wave(0.35, coral.phaseOffset) * 4 * intensity;
+      final sway = _wave(0.8, coral.phaseOffset) * 4 * intensity;
 
       switch (coral.type) {
         case 0:
@@ -686,7 +698,8 @@ class _CoralReefPainter extends CustomPainter {
 
   void _paintFish(Canvas canvas, Size size) {
     for (final fish in _fish) {
-      final swimProgress = (t * fish.speed + fish.phaseOffset / 6.28) % 1.0;
+      // swimProgress = (time * speed + offset) % 1.0 -> creates sawtooth 0..1
+      final swimProgress = (state.time * fish.speed + fish.phaseOffset / 6.28) % 1.0;
 
       double x;
       if (fish.facingRight) {
@@ -695,7 +708,7 @@ class _CoralReefPainter extends CustomPainter {
         x = (1.15 - swimProgress * 1.3) * size.width;
       }
 
-      final wobbleY = _wave(2.5, fish.phaseOffset) * 8 * intensity;
+      final wobbleY = _wave(1.8, fish.phaseOffset) * 8 * intensity;
       final y = fish.baseY * size.height + wobbleY;
 
       final fishSize = fish.size * size.shortestSide;
@@ -797,7 +810,7 @@ class _CoralReefPainter extends CustomPainter {
 
   void _paintBubbles(Canvas canvas, Size size) {
     for (final bubble in _bubbles) {
-      final progress = (t * bubble.speed + bubble.phaseOffset / 6.28) % 1.0;
+      final progress = (state.time * bubble.speed + bubble.phaseOffset / 6.28) % 1.0;
       final y = size.height * (1.05 - progress * 1.1);
       final wobbleX = _wave(bubble.wobbleSpeed, bubble.phaseOffset) * 12 * intensity;
       final x = bubble.x * size.width + wobbleX;
@@ -860,11 +873,14 @@ class _CoralReefPainter extends CustomPainter {
 
   void _paintParticles(Canvas canvas, Size size) {
     // Floating plankton/particles
-    final rng = math.Random(123);
-
+    // Deterministic random
     for (int i = 0; i < 25; i++) {
-      final baseX = rng.nextDouble() * size.width;
-      final baseY = rng.nextDouble() * size.height * 0.8;
+      // Pseudo random seeds
+      final r1 = ((i * 12.3) % 1.0);
+      final r2 = ((i * 45.6) % 1.0);
+
+      final baseX = r1 * size.width;
+      final baseY = r2 * size.height * 0.8;
 
       final floatX = baseX + _wave(0.4, i * 0.5) * 10 * intensity;
       final floatY = baseY + _wave(0.35, i * 0.7 + 1.0) * 8 * intensity;
@@ -882,9 +898,7 @@ class _CoralReefPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CoralReefPainter oldDelegate) {
-    return oldDelegate.t != t ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
+    // Always repaint for animation
+    return true;
   }
 }

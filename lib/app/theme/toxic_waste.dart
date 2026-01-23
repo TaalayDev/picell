@@ -1,10 +1,15 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'theme.dart';
+
+// ============================================================================
+// TOXIC WASTE THEME BUILDER
+// ============================================================================
 
 AppTheme buildToxicWasteTheme() {
   final baseTextTheme = GoogleFonts.sourceCodeProTextTheme();
@@ -64,6 +69,10 @@ AppTheme buildToxicWasteTheme() {
   );
 }
 
+// ============================================================================
+// TOXIC WASTE ANIMATED BACKGROUND
+// ============================================================================
+
 class ToxicWasteBackground extends HookWidget {
   final AppTheme theme;
   final double intensity;
@@ -78,7 +87,10 @@ class ToxicWasteBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useAnimationController(duration: theme.type.animationDuration);
+    // 1. Ticker controller
+    final controller = useAnimationController(
+      duration: const Duration(seconds: 1),
+    );
 
     useEffect(() {
       if (enableAnimation) {
@@ -89,176 +101,368 @@ class ToxicWasteBackground extends HookWidget {
       return null;
     }, [enableAnimation]);
 
-    final bubbleAnimation = useAnimation(
-      Tween<double>(begin: 0, end: 1).animate(controller),
-    );
+    // 2. State for infinite animation
+    final toxicState = useMemoized(() => _ToxicState());
 
-    return CustomPaint(
-      painter: _ToxicWastePainter(
-        animation: bubbleAnimation,
-        primaryColor: theme.primaryColor,
-        accentColor: theme.accentColor,
-        intensity: intensity,
+    return RepaintBoundary(
+      child: CustomPaint(
+        painter: _EnhancedToxicWastePainter(
+          repaint: controller,
+          state: toxicState,
+          primaryColor: theme.primaryColor,
+          accentColor: theme.accentColor,
+          intensity: intensity.clamp(0.0, 2.0),
+        ),
+        size: Size.infinite,
       ),
-      size: Size.infinite,
     );
   }
 }
 
-class _ToxicWastePainter extends CustomPainter {
-  final double animation;
+// State class for physics and objects
+class _ToxicState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
+  List<_Bubble>? bubbles;
+  List<_Drip>? drips;
+  List<_HazardParticle>? particles;
+}
+
+class _Bubble {
+  double x;
+  double y;
+  double speed;
+  double size;
+  double wobblePhase;
+  double wobbleSpeed;
+
+  _Bubble({
+    required this.x,
+    required this.y,
+    required this.speed,
+    required this.size,
+    required this.wobblePhase,
+    required this.wobbleSpeed,
+  });
+}
+
+class _Drip {
+  double x;
+  double y; // Length/Progress
+  double speed;
+  double maxLength;
+  double delay; // Time until drip starts
+
+  _Drip({
+    required this.x,
+    required this.y,
+    required this.speed,
+    required this.maxLength,
+    required this.delay,
+  });
+}
+
+class _HazardParticle {
+  double x;
+  double y;
+  double rotation;
+  double rotSpeed;
+  double dx;
+  double dy;
+  double size;
+  bool isSymbol; // true = hazard symbol, false = dust
+
+  _HazardParticle({
+    required this.x,
+    required this.y,
+    required this.rotation,
+    required this.rotSpeed,
+    required this.dx,
+    required this.dy,
+    required this.size,
+    required this.isSymbol,
+  });
+}
+
+class _EnhancedToxicWastePainter extends CustomPainter {
+  final _ToxicState state;
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
 
-  _ToxicWastePainter({
-    required this.animation,
+  final math.Random _rng = math.Random(666);
+
+  _EnhancedToxicWastePainter({
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
-  });
+  }) : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    final random = math.Random(666); // Evil seed for toxic theme
+    // Time accumulation
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
 
-    // Draw toxic bubbling liquid at bottom
-    final liquidLevel = size.height * 0.75;
-    final path = Path();
-    path.moveTo(0, liquidLevel);
+    // Initialization
+    if (state.bubbles == null) _initWorld(size);
 
-    for (double x = 0; x <= size.width; x += 5) {
-      final bubbleWave = math.sin(x / 30 + animation * 4 * math.pi) * 8 * intensity;
-      final liquidWave = math.sin(x / 80 + animation * 2 * math.pi) * 4 * intensity;
-      path.lineTo(x, liquidLevel + bubbleWave + liquidWave);
+    _paintBackground(canvas, size);
+    _paintSludge(canvas, size);
+    _updateAndPaintBubbles(canvas, size, dt);
+    _updateAndPaintDrips(canvas, size, dt);
+    _updateAndPaintParticles(canvas, size, dt);
+    _paintVignette(canvas, size);
+  }
+
+  void _initWorld(Size size) {
+    state.bubbles = [];
+    state.drips = [];
+    state.particles = [];
+    final rng = math.Random(666);
+
+    // Init Rising Bubbles
+    for (int i = 0; i < 20; i++) {
+      state.bubbles!.add(_Bubble(
+        x: rng.nextDouble() * size.width,
+        y: size.height + rng.nextDouble() * 200, // Start below
+        speed: 20 + rng.nextDouble() * 40,
+        size: 5 + rng.nextDouble() * 15,
+        wobblePhase: rng.nextDouble() * math.pi * 2,
+        wobbleSpeed: 2 + rng.nextDouble() * 4,
+      ));
     }
 
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-
-    paint.color = primaryColor.withOpacity(0.1 * intensity);
-    canvas.drawPath(path, paint);
-
-    for (int i = 0; i < (15 * intensity).round(); i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      final floatX = baseX + math.sin(animation * 1.5 * math.pi + i * 0.4) * 12 * intensity;
-      final floatY = baseY + math.cos(animation * math.pi + i * 0.6) * 8 * intensity;
-
-      final crystalSize = (2 + random.nextDouble() * 4) * intensity;
-      final sparkleIntensity = math.sin(animation * 5 * math.pi + i * 0.9) * 0.5 + 0.5;
-
-      if (sparkleIntensity > 0.6) {
-        paint.color = Color.lerp(
-          primaryColor.withOpacity(0.4 * sparkleIntensity),
-          accentColor.withOpacity(0.5 * sparkleIntensity),
-          sparkleIntensity,
-        )!;
-
-        canvas.drawCircle(Offset(floatX, floatY), crystalSize * sparkleIntensity, paint);
-
-        paint.color = paint.color.withOpacity(paint.color.opacity * 0.3);
-        canvas.drawCircle(Offset(floatX, floatY), crystalSize * 1.8, paint);
-      }
+    // Init Ceiling Drips
+    for (int i = 0; i < 8; i++) {
+      state.drips!.add(_Drip(
+        x: (i / 8) * size.width + rng.nextDouble() * 40,
+        y: 0,
+        speed: 50 + rng.nextDouble() * 50,
+        maxLength: 50 + rng.nextDouble() * 150,
+        delay: rng.nextDouble() * 5,
+      ));
     }
 
-    // Draw radioactive particles
-    for (int i = 0; i < (20 * intensity).round(); i++) {
-      final particleX = random.nextDouble() * size.width;
-      final particleY = random.nextDouble() * size.height;
-      final drift = math.sin(animation * 3 * math.pi + i * 0.4) * 5 * intensity;
-
-      final x = particleX + drift;
-      final y = particleY + math.cos(animation * 2 * math.pi + i * 0.3) * 3 * intensity;
-
-      final glowIntensity = math.sin(animation * 6 * math.pi + i * 0.8) * 0.5 + 0.5;
-
-      if (glowIntensity > 0.7) {
-        paint.color = primaryColor.withOpacity(0.8 * glowIntensity * intensity);
-        canvas.drawCircle(Offset(x, y), 1.5 * intensity * glowIntensity, paint);
-
-        // Add radioactive glow
-        paint.color = primaryColor.withOpacity(0.2 * glowIntensity * intensity);
-        canvas.drawCircle(Offset(x, y), 4 * intensity * glowIntensity, paint);
-      }
-    }
-
-    // Draw toxic drips from top
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 2 * intensity;
-
-    for (int i = 0; i < (6 * intensity).round(); i++) {
-      final dripX = (i / 6) * size.width + size.width * 0.1;
-      final dripProgress = (animation * 0.8 + i * 0.3) % 1.0;
-      final dripLength = dripProgress * size.height * 0.3;
-
-      if (dripProgress > 0.1) {
-        paint.color = Color.lerp(
-          primaryColor.withOpacity(0.5 * intensity),
-          accentColor.withOpacity(0.6 * intensity),
-          i / 5.0,
-        )!;
-
-        canvas.drawLine(
-          Offset(dripX, 0),
-          Offset(dripX, dripLength),
-          paint,
-        );
-
-        // Draw drip bulb at end
-        paint.style = PaintingStyle.fill;
-        canvas.drawCircle(
-          Offset(dripX, dripLength),
-          3 * intensity,
-          paint,
-        );
-        paint.style = PaintingStyle.stroke;
-      }
-    }
-
-    // Draw warning symbols (hazard indicators)
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 2 * intensity;
-
-    for (int i = 0; i < 3; i++) {
-      final symbolX = size.width * (0.2 + i * 0.3);
-      final symbolY = size.height * (0.1 + math.sin(animation * math.pi + i) * 0.05);
-      final symbolSize = (12 + i * 2) * intensity;
-      final symbolIntensity = math.sin(animation * 5 * math.pi + i * 1.2) * 0.3 + 0.4;
-
-      paint.color = accentColor.withOpacity(0.15 * symbolIntensity * intensity);
-
-      // Draw triangle warning symbol
-      final path = Path();
-      path.moveTo(symbolX, symbolY - symbolSize);
-      path.lineTo(symbolX - symbolSize, symbolY + symbolSize);
-      path.lineTo(symbolX + symbolSize, symbolY + symbolSize);
-      path.close();
-
-      canvas.drawPath(path, paint);
-
-      // Draw exclamation mark inside
-      paint.style = PaintingStyle.fill;
-      canvas.drawRect(
-        Rect.fromCenter(
-          center: Offset(symbolX, symbolY - symbolSize * 0.2),
-          width: 2 * intensity,
-          height: symbolSize * 0.6,
-        ),
-        paint,
-      );
-      canvas.drawCircle(
-        Offset(symbolX, symbolY + symbolSize * 0.3),
-        1.5 * intensity,
-        paint,
-      );
-      paint.style = PaintingStyle.stroke;
+    // Init Particles/Symbols
+    for (int i = 0; i < 15; i++) {
+      state.particles!.add(_HazardParticle(
+        x: rng.nextDouble() * size.width,
+        y: rng.nextDouble() * size.height,
+        rotation: rng.nextDouble() * math.pi * 2,
+        rotSpeed: (rng.nextDouble() - 0.5) * 1.0,
+        dx: (rng.nextDouble() - 0.5) * 20,
+        dy: (rng.nextDouble() - 0.5) * 20,
+        size: 5 + rng.nextDouble() * 10,
+        isSymbol: rng.nextDouble() > 0.7, // 30% chance for symbol
+      ));
     }
   }
 
+  void _paintBackground(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    // Dark industrial gradient
+    final gradient = ui.Gradient.linear(
+      Offset(0, 0),
+      Offset(0, size.height),
+      [
+        const Color(0xFF0A0F0A),
+        const Color(0xFF141F14),
+        const Color(0xFF0F2010),
+      ],
+      [0.0, 0.5, 1.0],
+    );
+    canvas.drawRect(rect, Paint()..shader = gradient);
+  }
+
+  void _paintSludge(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..shader = ui.Gradient.linear(
+        Offset(0, size.height * 0.7),
+        Offset(0, size.height),
+        [
+          primaryColor.withOpacity(0.3 * intensity),
+          primaryColor.withOpacity(0.6 * intensity),
+        ],
+        [0.0, 1.0], // Explicit stops to fix error
+      );
+
+    final path = Path();
+    final liquidLevel = size.height * 0.85;
+
+    path.moveTo(0, size.height);
+    path.lineTo(0, liquidLevel);
+
+    // Layered waves
+    for (double x = 0; x <= size.width; x += 10) {
+      final y1 = math.sin(x * 0.01 + state.time * 1.5) * 10;
+      final y2 = math.sin(x * 0.03 - state.time * 2.0) * 5;
+      path.lineTo(x, liquidLevel + y1 + y2);
+    }
+
+    path.lineTo(size.width, size.height);
+    path.close();
+
+    canvas.drawPath(path, paint);
+
+    // Top "scum" line
+    final borderPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3 * intensity
+      ..color = accentColor.withOpacity(0.6 * intensity);
+
+    canvas.drawPath(path, borderPaint);
+  }
+
+  void _updateAndPaintBubbles(Canvas canvas, Size size, double dt) {
+    if (state.bubbles == null) return;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    for (var bubble in state.bubbles!) {
+      // Physics
+      bubble.y -= bubble.speed * dt * intensity;
+      bubble.wobblePhase += bubble.wobbleSpeed * dt;
+      final wobbleX = math.sin(bubble.wobblePhase) * 5 * intensity;
+
+      // Reset
+      if (bubble.y < -bubble.size * 2) {
+        bubble.y = size.height + bubble.size + _rng.nextDouble() * 100;
+        bubble.x = _rng.nextDouble() * size.width;
+      }
+
+      // Draw
+      final bx = bubble.x + wobbleX;
+      final by = bubble.y;
+
+      // Bubble body
+      paint.color = primaryColor.withOpacity(0.3 * intensity);
+      canvas.drawCircle(Offset(bx, by), bubble.size * intensity, paint);
+
+      // Highlight
+      paint.color = Colors.white.withOpacity(0.4 * intensity);
+      canvas.drawCircle(Offset(bx - bubble.size * 0.3, by - bubble.size * 0.3), bubble.size * 0.25 * intensity, paint);
+
+      // Toxic outline
+      paint.color = accentColor.withOpacity(0.5 * intensity);
+      paint.style = PaintingStyle.stroke;
+      paint.strokeWidth = 1.0 * intensity;
+      canvas.drawCircle(Offset(bx, by), bubble.size * intensity, paint);
+      paint.style = PaintingStyle.fill;
+    }
+  }
+
+  void _updateAndPaintDrips(Canvas canvas, Size size, double dt) {
+    if (state.drips == null) return;
+
+    final paint = Paint()
+      ..color = primaryColor.withOpacity(0.7 * intensity)
+      ..style = PaintingStyle.fill;
+
+    for (var drip in state.drips!) {
+      // Delay logic
+      if (drip.delay > 0) {
+        drip.delay -= dt;
+        continue;
+      }
+
+      // Physics
+      drip.y += drip.speed * dt * intensity;
+
+      // Reset
+      if (drip.y > drip.maxLength) {
+        drip.y = 0;
+        drip.delay = _rng.nextDouble() * 2; // Random delay before next drip
+        drip.maxLength = 50 + _rng.nextDouble() * 200;
+        drip.speed = 50 + _rng.nextDouble() * 50;
+      }
+
+      // Draw
+      final dripWidth = (3 + math.sin(drip.y * 0.1) * 1) * intensity;
+
+      // Trail
+      final path = Path();
+      path.moveTo(drip.x - dripWidth / 2, 0);
+      path.lineTo(drip.x + dripWidth / 2, 0);
+      path.lineTo(drip.x + dripWidth / 4, drip.y);
+      path.lineTo(drip.x - dripWidth / 4, drip.y);
+      path.close();
+      canvas.drawPath(path, paint);
+
+      // Bulb at bottom
+      canvas.drawCircle(Offset(drip.x, drip.y), dripWidth * 1.5, paint);
+    }
+  }
+
+  void _updateAndPaintParticles(Canvas canvas, Size size, double dt) {
+    if (state.particles == null) return;
+
+    final paint = Paint()..style = PaintingStyle.stroke;
+
+    for (var p in state.particles!) {
+      // Physics
+      p.x += p.dx * dt * intensity;
+      p.y += p.dy * dt * intensity;
+      p.rotation += p.rotSpeed * dt;
+
+      // Bounce/Wrap
+      if (p.x < 0 || p.x > size.width) p.dx *= -1;
+      if (p.y < 0 || p.y > size.height) p.dy *= -1;
+
+      canvas.save();
+      canvas.translate(p.x, p.y);
+      canvas.rotate(p.rotation);
+
+      if (p.isSymbol) {
+        // Draw Biohazard-ish symbol (3 circles)
+        paint.color = accentColor.withOpacity(0.4 * intensity);
+        paint.strokeWidth = 2 * intensity;
+        double r = p.size * intensity;
+
+        for (int k = 0; k < 3; k++) {
+          final a = k * (math.pi * 2 / 3);
+          canvas.drawCircle(Offset(math.cos(a) * r, math.sin(a) * r), r * 0.6, paint);
+        }
+        canvas.drawCircle(
+            Offset.zero,
+            r * 0.3,
+            Paint()
+              ..color = primaryColor.withOpacity(0.5)
+              ..style = PaintingStyle.fill);
+      } else {
+        // Dust speck
+        paint.style = PaintingStyle.fill;
+        paint.color = primaryColor.withOpacity(0.3 * intensity);
+        canvas.drawCircle(Offset.zero, p.size * 0.5 * intensity, paint);
+      }
+
+      canvas.restore();
+    }
+  }
+
+  void _paintVignette(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final gradient = ui.Gradient.radial(
+      Offset(size.width / 2, size.height / 2),
+      size.longestSide * 0.7,
+      [
+        Colors.transparent,
+        const Color(0xFF0A150A).withOpacity(0.4 * intensity),
+        const Color(0xFF000000).withOpacity(0.8 * intensity),
+      ],
+      [0.5, 0.8, 1.0],
+    );
+
+    canvas.drawRect(rect, Paint()..shader = gradient);
+  }
+
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _EnhancedToxicWastePainter oldDelegate) {
+    return true; // Continuous animation
+  }
 }

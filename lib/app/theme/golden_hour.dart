@@ -80,24 +80,28 @@ class GoldenHourBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useAnimationController(duration: theme.type.animationDuration);
+    // 1. Ticker controller - loops forever to drive the frame update
+    final controller = useAnimationController(
+      duration: const Duration(seconds: 1),
+    );
 
     useEffect(() {
       if (enableAnimation) {
         controller.repeat();
       } else {
         controller.stop();
-        controller.value = 0.0;
       }
       return null;
     }, [enableAnimation]);
 
-    final t = useAnimation(Tween<double>(begin: 0, end: 1).animate(controller));
+    // 2. State for infinite animation - persists across frames
+    final goldenState = useMemoized(() => _GoldenState());
 
     return RepaintBoundary(
       child: CustomPaint(
         painter: _EnhancedGoldenHourPainter(
-          t: t,
+          repaint: controller,
+          state: goldenState,
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.3, 2.0),
@@ -110,56 +114,161 @@ class GoldenHourBackground extends HookWidget {
   }
 }
 
+// State class for physics and objects
+class _GoldenState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
+  List<_Cloud>? clouds;
+  List<_DustParticle>? dust;
+  List<_SunRay>? rays;
+}
+
+class _Cloud {
+  double x;
+  double y;
+  double speed;
+  double size;
+  double widthRatio;
+  int layer; // 0 is far, 2 is near
+
+  _Cloud({
+    required this.x,
+    required this.y,
+    required this.speed,
+    required this.size,
+    required this.widthRatio,
+    required this.layer,
+  });
+}
+
+class _DustParticle {
+  double x;
+  double y;
+  double speedX;
+  double speedY;
+  double size;
+  double shimmerOffset;
+
+  _DustParticle({
+    required this.x,
+    required this.y,
+    required this.speedX,
+    required this.speedY,
+    required this.size,
+    required this.shimmerOffset,
+  });
+}
+
+class _SunRay {
+  double angle;
+  double lengthBase;
+  double speed;
+  double phase;
+  double thickness;
+
+  _SunRay({
+    required this.angle,
+    required this.lengthBase,
+    required this.speed,
+    required this.phase,
+    required this.thickness,
+  });
+}
+
 class _EnhancedGoldenHourPainter extends CustomPainter {
-  final double t;
+  final _GoldenState state;
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
 
+  // Golden hour color palette
+  static const Color _deepGold = Color(0xFFB8860B);
+  static const Color _sunsetOrange = Color(0xFFFF8C00);
+  static const Color _warmAmber = Color(0xFFFFBF00);
+  static const Color _honeyglow = Color(0xFFFFC649);
+  static const Color _peach = Color(0xFFFFDAB9);
+  static const Color _rosyGold = Color(0xFFEEC591);
+  static const Color _burnishedGold = Color(0xFFCD7F32);
+  static const Color _creamGold = Color(0xFFFFF8DC);
+
+  final math.Random _rng = math.Random(123);
+
   _EnhancedGoldenHourPainter({
-    required this.t,
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
-  });
-
-  // Animation helpers for smooth looping
-  double get _phase => 2 * math.pi * t;
-  double _wave(double speed, [double offset = 0]) => math.sin(_phase * speed + offset);
-  double _norm(double speed, [double offset = 0]) => 0.5 * (1 + _wave(speed, offset));
-
-  // Golden hour color palette
-  late final Color _deepGold = const Color(0xFFB8860B);
-  late final Color _sunsetOrange = const Color(0xFFFF8C00);
-  late final Color _warmAmber = const Color(0xFFFFBF00);
-  late final Color _honeyglow = const Color(0xFFFFC649);
-  late final Color _peach = const Color(0xFFFFDAB9);
-  late final Color _rosyGold = const Color(0xFFEEC591);
-  late final Color _burnishedGold = const Color(0xFFCD7F32);
-  late final Color _creamGold = const Color(0xFFFFF8DC);
-
-  // Element counts based on intensity
-  int get _sunrayCount => (32 * intensity).round().clamp(16, 48);
-  int get _cloudLayers => (5 * intensity).round().clamp(3, 8);
-  int get _dustParticleCount => (60 * intensity).round().clamp(30, 90);
-  int get _lensFlareCount => (8 * intensity).round().clamp(4, 12);
+  }) : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Time accumulation logic
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
+
+    // Initialization
+    if (state.clouds == null) _initWorld(size);
+
+    // Painting sequence
     _paintGoldenSky(canvas, size);
     _paintSun(canvas, size);
-    _paintSunRays(canvas, size);
-    _paintGoldenClouds(canvas, size);
+    _updateAndPaintSunRays(canvas, size);
+    _updateAndPaintClouds(canvas, size, dt);
     _paintAtmosphericHaze(canvas, size);
-    _paintFloatingDust(canvas, size);
+    _updateAndPaintFloatingDust(canvas, size, dt);
     _paintLensFlares(canvas, size);
     _paintWarmGlow(canvas, size);
+  }
+
+  void _initWorld(Size size) {
+    state.clouds = [];
+    state.dust = [];
+    state.rays = [];
+    final rng = math.Random(999);
+
+    // Init Clouds
+    for (int i = 0; i < 15; i++) {
+      final layer = rng.nextInt(3);
+      state.clouds!.add(_Cloud(
+        x: rng.nextDouble() * size.width,
+        y: size.height * (0.1 + rng.nextDouble() * 0.4),
+        speed: 10 + layer * 15 + rng.nextDouble() * 10,
+        size: 40 + layer * 20 + rng.nextDouble() * 30,
+        widthRatio: 1.5 + rng.nextDouble(),
+        layer: layer,
+      ));
+    }
+
+    // Init Dust
+    for (int i = 0; i < 60; i++) {
+      state.dust!.add(_DustParticle(
+        x: rng.nextDouble() * size.width,
+        y: rng.nextDouble() * size.height,
+        speedX: 5 + rng.nextDouble() * 10,
+        speedY: (rng.nextDouble() - 0.5) * 5,
+        size: 1 + rng.nextDouble() * 3,
+        shimmerOffset: rng.nextDouble() * math.pi * 2,
+      ));
+    }
+
+    // Init Sun Rays
+    for (int i = 0; i < 36; i++) {
+      state.rays!.add(_SunRay(
+        angle: (i / 36.0) * 2 * math.pi,
+        lengthBase: 120 + rng.nextDouble() * 100,
+        speed: (rng.nextDouble() - 0.5) * 0.2, // Rotation speed
+        phase: rng.nextDouble() * math.pi * 2,
+        thickness: 2 + rng.nextDouble() * 4,
+      ));
+    }
   }
 
   void _paintGoldenSky(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
 
-    // Cinematic golden hour sky gradient
     final skyGradient = Paint()
       ..shader = ui.Gradient.linear(
         Offset(size.width * 0.5, 0),
@@ -176,27 +285,14 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
       );
 
     canvas.drawRect(rect, skyGradient);
-
-    // Add subtle color temperature shifts
-    final tempShift = _norm(0.02);
-    final tempPaint = Paint()
-      ..shader = ui.Gradient.radial(
-        Offset(size.width * 0.75, size.height * 0.25),
-        size.width * 0.8,
-        [
-          _warmAmber.withOpacity(0.08 * tempShift * intensity),
-          Colors.transparent,
-        ],
-        [0.0, 1.0],
-      );
-
-    canvas.drawRect(rect, tempPaint);
   }
 
   void _paintSun(Canvas canvas, Size size) {
     final sunCenter = Offset(size.width * 0.82, size.height * 0.22);
     final sunRadius = 45 * intensity;
-    final sunPulse = 0.95 + 0.05 * _wave(0.08);
+
+    // Slow breathing pulse based on accumulated time
+    final sunPulse = 0.95 + 0.05 * math.sin(state.time * 0.5);
 
     // Sun's corona/outer glow
     final coronaPaint = Paint()
@@ -244,59 +340,33 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
       );
 
     canvas.drawCircle(sunCenter, sunRadius * sunPulse, sunCorePaint);
-
-    // Sun's surface details (solar flares)
-    final flarePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2 * intensity
-      ..color = Colors.white.withOpacity(0.6);
-
-    for (int i = 0; i < 6; i++) {
-      final flareIntensity = _norm(0.12, i * 0.3);
-      if (flareIntensity > 0.7) {
-        final flareAngle = i * math.pi / 3 + _phase * 0.1;
-        final flareLength = sunRadius * (0.3 + flareIntensity * 0.2);
-
-        final startPoint = Offset(
-          sunCenter.dx + math.cos(flareAngle) * sunRadius * 0.7,
-          sunCenter.dy + math.sin(flareAngle) * sunRadius * 0.7,
-        );
-
-        final endPoint = Offset(
-          sunCenter.dx + math.cos(flareAngle) * (sunRadius * 0.7 + flareLength),
-          sunCenter.dy + math.sin(flareAngle) * (sunRadius * 0.7 + flareLength),
-        );
-
-        canvas.drawLine(startPoint, endPoint, flarePaint);
-      }
-    }
   }
 
-  void _paintSunRays(Canvas canvas, Size size) {
+  void _updateAndPaintSunRays(Canvas canvas, Size size) {
+    if (state.rays == null) return;
+
     final sunPosition = Offset(size.width * 0.82, size.height * 0.22);
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // Dynamic sun rays
-    for (int i = 0; i < _sunrayCount; i++) {
-      final rayAngle = (i / _sunrayCount) * 2 * math.pi + _phase * 0.02;
-      final rayIntensity = _norm(0.15, i * 0.1);
-      final rayLength = (120 + rayIntensity * 80 + _wave(0.05, i * 0.2) * 40) * intensity;
+    for (var ray in state.rays!) {
+      // Rotate slowly based on constant speed
+      ray.angle += ray.speed * 0.01;
 
-      // Vary ray thickness and opacity
-      final rayThickness = (2 + rayIntensity * 3) * intensity;
-      final rayOpacity = (0.15 + rayIntensity * 0.2) * intensity;
+      // Shimmer intensity
+      final rayIntensity = 0.5 + 0.5 * math.sin(state.time * 2 + ray.phase);
+      final rayLength = (ray.lengthBase + math.sin(state.time + ray.phase) * 20) * intensity;
+      final rayOpacity = (0.15 + rayIntensity * 0.15) * intensity;
 
-      if (rayOpacity > 0.1) {
+      if (rayOpacity > 0.05) {
         final endPoint = Offset(
-          sunPosition.dx + math.cos(rayAngle) * rayLength,
-          sunPosition.dy + math.sin(rayAngle) * rayLength,
+          sunPosition.dx + math.cos(ray.angle) * rayLength,
+          sunPosition.dy + math.sin(ray.angle) * rayLength,
         );
 
-        // Main ray
         paint
-          ..strokeWidth = rayThickness
+          ..strokeWidth = ray.thickness * intensity
           ..shader = ui.Gradient.linear(
             sunPosition,
             endPoint,
@@ -309,115 +379,63 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
           );
 
         canvas.drawLine(sunPosition, endPoint, paint);
-
-        // Secondary ray glow
-        paint
-          ..strokeWidth = rayThickness * 2
-          ..shader = ui.Gradient.linear(
-            sunPosition,
-            endPoint,
-            [
-              _peach.withOpacity(rayOpacity * 0.3),
-              Colors.transparent,
-            ],
-            [0.0, 1.0],
-          );
-
-        canvas.drawLine(sunPosition, endPoint, paint);
       }
     }
   }
 
-  void _paintGoldenClouds(Canvas canvas, Size size) {
+  void _updateAndPaintClouds(Canvas canvas, Size size, double dt) {
+    if (state.clouds == null) return;
+
     final paint = Paint()..style = PaintingStyle.fill;
-    final random = math.Random(123);
+    final sunPosition = Offset(size.width * 0.82, size.height * 0.22);
 
-    // Layered golden clouds
-    for (int layer = 0; layer < _cloudLayers; layer++) {
-      final cloudY = size.height * (0.15 + layer * 0.12);
-      final cloudDrift = _wave(0.01, layer.toDouble()) * 30 * intensity;
+    for (var cloud in state.clouds!) {
+      // Move clouds continuously
+      cloud.x += cloud.speed * dt * intensity;
 
-      for (int i = 0; i < 4; i++) {
-        final baseX = size.width * (0.1 + i * 0.25) + cloudDrift;
-        final cloudSize = (40 + layer * 8 + random.nextDouble() * 20) * intensity;
-        final cloudHeight = cloudSize * (0.6 + random.nextDouble() * 0.4);
-
-        final breathe = 0.9 + 0.1 * _norm(0.03, layer + i.toDouble());
-        final currentSize = cloudSize * breathe;
-
-        // Cloud illumination varies by position relative to sun
-        final sunPosition = Offset(size.width * 0.82, size.height * 0.22);
-        final cloudCenter = Offset(baseX, cloudY);
-        final distanceToSun = (cloudCenter - sunPosition).distance;
-        final sunInfluence = math.max(0.0, 1.0 - (distanceToSun / (size.width * 0.5)));
-
-        // Cloud colors based on sun illumination
-        final cloudColors = [
-          Color.lerp(_creamGold, _warmAmber, sunInfluence * 0.7)!,
-          Color.lerp(_peach, _honeyglow, sunInfluence * 0.6)!,
-          Color.lerp(_rosyGold, accentColor, sunInfluence * 0.5)!,
-        ];
-
-        final cloudColor = cloudColors[layer % cloudColors.length];
-        final opacity = (0.08 + sunInfluence * 0.15 + layer * 0.02) * intensity;
-
-        paint.color = cloudColor.withOpacity(opacity);
-
-        // Create organic cloud shape
-        _drawCloudShape(canvas, paint, cloudCenter, currentSize, cloudHeight);
+      // Wrap smoothly around screen
+      if (cloud.x > size.width + 200) {
+        cloud.x = -200;
+        cloud.y = size.height * (0.1 + math.Random().nextDouble() * 0.4);
       }
+
+      // Determine lighting based on sun position
+      final cloudCenter = Offset(cloud.x, cloud.y);
+      final dist = (cloudCenter - sunPosition).distance;
+      final sunInfluence = math.max(0.0, 1.0 - (dist / (size.width * 0.6)));
+
+      // Colors shift based on proximity to sun
+      final cloudColor = Color.lerp(Color.lerp(_peach, _rosyGold, 0.5)!, _creamGold, sunInfluence)!;
+
+      final opacity = (0.1 + sunInfluence * 0.2 + cloud.layer * 0.05) * intensity;
+
+      paint.color = cloudColor.withOpacity(opacity);
+
+      // Draw cloud shape
+      _drawCloudShape(canvas, paint, cloudCenter, cloud.size * intensity, cloud.size * 0.6 * intensity);
     }
   }
 
   void _drawCloudShape(Canvas canvas, Paint paint, Offset center, double width, double height) {
-    // Main cloud body
-    canvas.drawOval(
-      Rect.fromCenter(center: center, width: width, height: height),
-      paint,
-    );
-
-    // Additional cloud puffs for organic shape
-    final puffOffsets = [
-      Offset(-width * 0.3, -height * 0.2),
-      Offset(width * 0.35, -height * 0.1),
-      Offset(width * 0.15, height * 0.3),
-      Offset(-width * 0.25, height * 0.2),
-      Offset(width * 0.45, height * 0.1),
-    ];
-
-    final puffSizes = [
-      width * 0.6,
-      width * 0.5,
-      width * 0.4,
-      width * 0.55,
-      width * 0.35,
-    ];
-
-    for (int i = 0; i < puffOffsets.length; i++) {
-      canvas.drawCircle(
-        center + puffOffsets[i],
-        puffSizes[i],
-        paint,
-      );
-    }
+    // Main body
+    canvas.drawOval(Rect.fromCenter(center: center, width: width * 1.5, height: height), paint);
+    // Puffs
+    canvas.drawCircle(center + Offset(-width * 0.4, height * 0.1), height * 0.6, paint);
+    canvas.drawCircle(center + Offset(width * 0.3, -height * 0.2), height * 0.7, paint);
   }
 
   void _paintAtmosphericHaze(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
 
-    // Layered atmospheric haze
-    for (int i = 0; i < 6; i++) {
-      final hazeY = size.height * (0.5 + i * 0.08) + _wave(0.02, i.toDouble()) * 15 * intensity;
+    for (int i = 0; i < 4; i++) {
+      // Gently shifting haze
+      final hazeY = size.height * (0.5 + i * 0.12) + math.sin(state.time * 0.2 + i) * 10 * intensity;
       final hazeWidth = size.width * (0.8 + i * 0.1);
-      final hazeHeight = (25 + i * 8 + _wave(0.04, i * 0.5) * 10) * intensity;
+      final hazeHeight = (40 + i * 10) * intensity;
 
-      final hazeIntensity = _norm(0.06, i * 0.7);
       final hazeColors = [_peach, _honeyglow, _warmAmber, _rosyGold];
-      final hazeColor = hazeColors[i % hazeColors.length];
+      paint.color = hazeColors[i % hazeColors.length].withOpacity(0.05 * intensity);
 
-      paint.color = hazeColor.withOpacity(0.05 * hazeIntensity * intensity);
-
-      // Create horizontal haze layers
       canvas.drawOval(
         Rect.fromCenter(
           center: Offset(size.width * 0.5, hazeY),
@@ -429,39 +447,34 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
     }
   }
 
-  void _paintFloatingDust(Canvas canvas, Size size) {
+  void _updateAndPaintFloatingDust(Canvas canvas, Size size, double dt) {
+    if (state.dust == null) return;
+
     final paint = Paint()..style = PaintingStyle.fill;
-    final random = math.Random(456);
 
-    // Golden dust motes floating in sunlight
-    for (int i = 0; i < _dustParticleCount; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
+    for (var particle in state.dust!) {
+      // Update position
+      particle.x += particle.speedX * dt * intensity;
+      particle.y += particle.speedY * dt * intensity;
 
-      // Dust particles drift lazily
-      final driftX = baseX + _wave(0.03, i * 0.1) * 20 * intensity;
-      final driftY = baseY + _wave(0.025, i * 0.15) * 15 * intensity;
+      // Wrap
+      if (particle.x > size.width) particle.x = 0;
+      if (particle.y > size.height) particle.y = 0;
+      if (particle.y < 0) particle.y = size.height;
 
-      final particleSize = (1 + random.nextDouble() * 3) * intensity;
-      final shimmer = _norm(0.2, i * 0.05);
+      // Shimmer based on time and offset
+      final shimmer = 0.5 + 0.5 * math.sin(state.time * 2 + particle.shimmerOffset);
 
-      // Particles catch the light at different intensities
-      final catchesLight = shimmer > 0.6;
+      if (shimmer > 0.4) {
+        final lightIntensity = (shimmer - 0.4) / 0.6;
+        final pSize = particle.size * intensity;
 
-      if (catchesLight) {
-        final lightIntensity = (shimmer - 0.6) / 0.4;
+        paint.color = _creamGold.withOpacity(0.4 * lightIntensity * intensity);
+        canvas.drawCircle(Offset(particle.x, particle.y), pSize, paint);
 
-        // Dust particle colors
-        final dustColors = [_warmAmber, _honeyglow, _creamGold, Colors.white];
-        final dustColor = dustColors[i % dustColors.length];
-
-        paint.color = dustColor.withOpacity(0.4 * lightIntensity * intensity);
-        canvas.drawCircle(Offset(driftX, driftY), particleSize * lightIntensity, paint);
-
-        // Bright particles get extra glow
         if (lightIntensity > 0.8) {
           paint.color = Colors.white.withOpacity(0.6 * lightIntensity * intensity);
-          canvas.drawCircle(Offset(driftX, driftY), particleSize * 0.5, paint);
+          canvas.drawCircle(Offset(particle.x, particle.y), pSize * 0.5, paint);
         }
       }
     }
@@ -470,46 +483,28 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
   void _paintLensFlares(Canvas canvas, Size size) {
     final sunPosition = Offset(size.width * 0.82, size.height * 0.22);
     final paint = Paint()..style = PaintingStyle.fill;
+    final center = Offset(size.width / 2, size.height / 2);
 
-    // Lens flare effects
-    for (int i = 0; i < _lensFlareCount; i++) {
-      final flareProgress = i / (_lensFlareCount - 1);
-      final flareIntensity = _norm(0.08, i * 0.4);
+    // Vector from sun to center
+    final dx = center.dx - sunPosition.dx;
+    final dy = center.dy - sunPosition.dy;
 
-      if (flareIntensity > 0.5) {
-        // Position flares along line from sun to opposite corner
-        final flareX = sunPosition.dx - (sunPosition.dx * flareProgress * 1.2);
-        final flareY = sunPosition.dy + ((size.height - sunPosition.dy) * flareProgress * 0.8);
+    // Draw flares along this line extending past center
+    final count = 6;
+    for (int i = 0; i < count; i++) {
+      final dist = (i + 1) * 0.4; // Distance multiplier
+      final pos = Offset(sunPosition.dx + dx * dist, sunPosition.dy + dy * dist);
 
-        final flareSize = (8 + i * 3 + flareIntensity * 10) * intensity;
-        final brightness = (flareIntensity - 0.5) / 0.5;
+      final size = (5 + i * 4) * intensity;
+      final opacity = 0.1 + 0.05 * math.sin(state.time + i); // Slight shimmer
 
-        // Different flare shapes and colors
-        switch (i % 4) {
-          case 0: // Circular flare
-            paint.color = _warmAmber.withOpacity(0.3 * brightness * intensity);
-            canvas.drawCircle(Offset(flareX, flareY), flareSize, paint);
-            break;
-
-          case 1: // Hexagonal flare
-            paint.color = _honeyglow.withOpacity(0.25 * brightness * intensity);
-            _drawHexagon(canvas, paint, Offset(flareX, flareY), flareSize);
-            break;
-
-          case 2: // Ring flare
-            paint
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 2 * intensity
-              ..color = _peach.withOpacity(0.4 * brightness * intensity);
-            canvas.drawCircle(Offset(flareX, flareY), flareSize, paint);
-            paint.style = PaintingStyle.fill;
-            break;
-
-          case 3: // Star flare
-            paint.color = Colors.white.withOpacity(0.5 * brightness * intensity);
-            _drawStarFlare(canvas, paint, Offset(flareX, flareY), flareSize);
-            break;
-        }
+      if (i % 2 == 0) {
+        paint.color = _honeyglow.withOpacity(opacity);
+        canvas.drawCircle(pos, size, paint);
+      } else {
+        paint.color = _peach.withOpacity(opacity);
+        // Hexagon shape
+        _drawHexagon(canvas, paint, pos, size);
       }
     }
   }
@@ -520,28 +515,10 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
       final angle = i * math.pi / 3;
       final x = center.dx + math.cos(angle) * radius;
       final y = center.dy + math.sin(angle) * radius;
-      if (i == 0) {
+      if (i == 0)
         path.moveTo(x, y);
-      } else {
+      else
         path.lineTo(x, y);
-      }
-    }
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  void _drawStarFlare(Canvas canvas, Paint paint, Offset center, double radius) {
-    final path = Path();
-    for (int i = 0; i < 8; i++) {
-      final angle = i * math.pi / 4;
-      final r = (i % 2 == 0) ? radius : radius * 0.4;
-      final x = center.dx + math.cos(angle) * r;
-      final y = center.dy + math.sin(angle) * r;
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
     }
     path.close();
     canvas.drawPath(path, paint);
@@ -565,29 +542,10 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
       );
 
     canvas.drawRect(rect, warmGlowPaint);
-
-    // Subtle edge warming
-    final edgeWarmth = _norm(0.03);
-    final edgePaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(0, 0),
-        Offset(size.width, size.height),
-        [
-          Colors.transparent,
-          accentColor.withOpacity(0.03 * edgeWarmth * intensity),
-          Colors.transparent,
-        ],
-        [0.0, 0.5, 1.0],
-      );
-
-    canvas.drawRect(rect, edgePaint);
   }
 
   @override
   bool shouldRepaint(covariant _EnhancedGoldenHourPainter oldDelegate) {
-    return oldDelegate.t != t ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
+    return true; // Always repaint for animation
   }
 }

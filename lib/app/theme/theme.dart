@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pixelverse/data.dart';
 
 import 'art_deco.dart';
+import 'art_nouevau.dart';
 import 'autumn_harvest.dart';
 import 'cherry_blossom.dart';
 import 'copper_steampunk.dart';
@@ -10,21 +11,27 @@ import 'cosmic.dart';
 import 'crystaline.dart';
 import 'cyberpunk.dart';
 import 'dark.dart';
+import 'data_stream.dart';
 import 'enchanted_forest.dart';
 import 'forest.dart';
 import 'golden_hour.dart';
 import 'gothic_theme.dart';
 import 'ice_crystal.dart';
 import 'light.dart';
+import 'lofi_night.dart';
 import 'midnight.dart';
 import 'monochrome.dart';
 import 'neon.dart';
 import 'ocean.dart';
+import 'origami.dart';
 import 'pastel.dart';
+import 'petrichor.dart';
+import 'pointillism.dart';
 import 'prismatic.dart';
 import 'purple_rain.dart';
 import 'retro_wave.dart';
 import 'rose_quartz_garden.dart';
+import 'stained_glass.dart';
 import 'steampunk.dart';
 import 'sunset.dart';
 import 'theme_type.dart';
@@ -33,6 +40,7 @@ import 'arctic_aurora.dart';
 import 'deep_sea.dart';
 import 'dream_scape.dart';
 import 'toxic_waste.dart';
+import 'ukiyo_e.dart';
 import 'volcanic.dart';
 import 'emerald_forest.dart';
 import 'volcanic_lava_lamp.dart';
@@ -189,10 +197,26 @@ class AppTheme {
         return buildCrystallineTheme();
       case ThemeType.enchantedForest:
         return buildEnchantedForestTheme();
-      case ThemeType.volcanicLavaLamp:
-        return buildVolcanicLavaLampTheme();
+      case ThemeType.lavaLamp:
+        return buildLavaLampTheme();
       case ThemeType.coralReef:
         return buildCoralReefTheme();
+      case ThemeType.stainedGlass:
+        return buildStainedGlassTheme();
+      case ThemeType.ukiyoEWaves:
+        return buildUkiyoeWavesTheme();
+      case ThemeType.dataStream:
+        return buildDataStreamTheme();
+      case ThemeType.lofiNight:
+        return buildLofiNightTheme();
+      case ThemeType.artNouveau:
+        return buildArtNouveauTheme();
+      case ThemeType.petrichor:
+        return buildPetrichorTheme();
+      case ThemeType.origami:
+        return buildOrigamiTheme();
+      case ThemeType.pointillism:
+        return buildPointillismTheme();
     }
   }
 

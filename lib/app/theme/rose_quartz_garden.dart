@@ -7,65 +7,88 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'theme.dart';
 
+// ============================================================================
+// ROSE QUARTZ GARDEN THEME BUILDER
+// ============================================================================
+
 AppTheme buildRoseQuartzGardenTheme() {
-  final baseTextTheme = GoogleFonts.sourceCodeProTextTheme();
+  final baseTextTheme = GoogleFonts.cormorantGaramondTextTheme();
+  final bodyTextTheme = GoogleFonts.montserratTextTheme();
 
   return AppTheme(
     type: ThemeType.roseQuartzGarden,
-    isDark: false,
+    isDark: false, // Bright, airy, and soft
+
     // Primary colors - soft rose quartz pink
-    primaryColor: const Color(0xFFF7CAC9), // Soft rose quartz pink
-    primaryVariant: const Color(0xFFE6B8B7), // Slightly deeper rose
-    onPrimary: const Color(0xFF5D2C2F), // Dark rose for contrast
-    // Secondary colors - deep rose
-    accentColor: const Color(0xFFE91E63), // Deep rose accent
-    onAccent: Colors.white,
+    primaryColor: const Color(0xFFF7CAC9), // Rose Quartz
+    primaryVariant: const Color(0xFFE0A8A9), // Deeper Rose
+    onPrimary: const Color(0xFF5D2C2F), // Dark Burgundy Text
+
+    // Secondary colors - serenity blue / sage green hints
+    accentColor: const Color(0xFFB9E2D6), // Soft Sage/Mint
+    onAccent: const Color(0xFF2C3E50),
+
     // Background colors - gentle and soft
-    background: const Color(0xFFFDF8F8), // Very light pink-white
+    background: const Color(0xFFFFF0F5), // Lavender Blush
     surface: const Color(0xFFFFFFFF), // Pure white
-    surfaceVariant: const Color(0xFFF5F0F5), // Gentle gray-pink
+    surfaceVariant: const Color(0xFFFCE4EC), // Pink laccery
+
     // Text colors - warm and readable
-    textPrimary: const Color(0xFF4A3B3C), // Deep warm gray
-    textSecondary: const Color(0xFF7D6465), // Medium warm gray
-    textDisabled: const Color(0xFFBCAAAB), // Light warm gray
+    textPrimary: const Color(0xFF4A3B3C), // Deep warm gray/brown
+    textSecondary: const Color(0xFF8D6E63), // Cocoa
+    textDisabled: const Color(0xFFD7CCC8),
+
     // UI colors
-    divider: const Color(0xFFE8DDDE), // Very light rose-gray
-    toolbarColor: const Color(0xFFF5F0F5),
-    error: const Color(0xFFDC143C), // Crimson red
-    success: const Color(0xFF228B22), // Forest green
-    warning: const Color(0xFFFF8C00), // Dark orange
+    divider: const Color(0xFFF8BBD0),
+    toolbarColor: const Color(0xFFFFF0F5),
+    error: const Color(0xFFE57373),
+    success: const Color(0xFF81C784),
+    warning: const Color(0xFFFFB74D),
+
     // Grid colors
-    gridLine: const Color(0xFFE8DDDE),
-    gridBackground: const Color(0xFFFFFFFF),
+    gridLine: const Color(0xFFF8BBD0),
+    gridBackground: const Color(0xFFFFF0F5),
+
     // Canvas colors
-    canvasBackground: const Color(0xFFFFFFFF),
-    selectionOutline: const Color(0xFFF7CAC9), // Match primary
-    selectionFill: const Color(0x30F7CAC9),
+    canvasBackground: const Color(0xFFFAFAFA),
+    selectionOutline: const Color(0xFFF48FB1),
+    selectionFill: const Color(0x30F48FB1),
+
     // Icon colors
-    activeIcon: const Color(0xFFF7CAC9), // Rose quartz for active
-    inactiveIcon: const Color(0xFF7D6465), // Warm gray for inactive
+    activeIcon: const Color(0xFFEC407A),
+    inactiveIcon: const Color(0xFFA1887F),
+
     // Typography
     textTheme: baseTextTheme.copyWith(
-      titleLarge: baseTextTheme.titleLarge!.copyWith(
+      displayLarge: baseTextTheme.displayLarge!.copyWith(
         color: const Color(0xFF4A3B3C),
         fontWeight: FontWeight.w600,
+        letterSpacing: 1.0,
       ),
-      titleMedium: baseTextTheme.titleMedium!.copyWith(
+      displayMedium: baseTextTheme.displayMedium!.copyWith(
         color: const Color(0xFF4A3B3C),
         fontWeight: FontWeight.w500,
       ),
-      bodyLarge: baseTextTheme.bodyLarge!.copyWith(
-        color: const Color(0xFF4A3B3C),
+      titleLarge: baseTextTheme.titleLarge!.copyWith(
+        color: const Color(0xFF880E4F),
+        fontWeight: FontWeight.w600,
       ),
-      bodyMedium: baseTextTheme.bodyMedium!.copyWith(
-        color: const Color(0xFF7D6465),
+      bodyLarge: bodyTextTheme.bodyLarge!.copyWith(
+        color: const Color(0xFF4A3B3C),
+        fontSize: 16,
+      ),
+      bodyMedium: bodyTextTheme.bodyMedium!.copyWith(
+        color: const Color(0xFF5D4037),
       ),
     ),
-    primaryFontWeight: FontWeight.w400, // Light weight for gentle feel
+    primaryFontWeight: FontWeight.w500,
   );
 }
 
-// Rose Quartz Garden theme background with crystal formations and floating elements
+// ============================================================================
+// ROSE QUARTZ ANIMATED BACKGROUND
+// ============================================================================
+
 class RoseQuartzGardenBackground extends HookWidget {
   final AppTheme theme;
   final double intensity;
@@ -80,420 +103,421 @@ class RoseQuartzGardenBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useAnimationController(duration: theme.type.animationDuration);
+    // 1. Ticker controller
+    final controller = useAnimationController(
+      duration: const Duration(seconds: 1),
+    );
 
     useEffect(() {
       if (enableAnimation) {
         controller.repeat();
       } else {
         controller.stop();
-        controller.value = 0.0;
       }
       return null;
     }, [enableAnimation]);
 
-    final t = useAnimation(Tween<double>(begin: 0, end: 1).animate(controller));
+    // 2. State for infinite animation
+    final gardenState = useMemoized(() => _GardenState());
 
     return RepaintBoundary(
       child: CustomPaint(
         painter: _RoseQuartzGardenPainter(
-          t: t,
+          repaint: controller,
+          state: gardenState,
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
-          intensity: intensity.clamp(0.3, 1.8),
+          intensity: intensity.clamp(0.0, 2.0),
         ),
         size: Size.infinite,
-        isComplex: true,
-        willChange: enableAnimation,
       ),
     );
   }
 }
 
+// State class for physics and objects
+class _GardenState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
+  List<_CrystalCluster>? crystals;
+  List<_Petal>? petals;
+  List<_Sparkle>? sparkles;
+}
+
+class _CrystalCluster {
+  double x;
+  double y;
+  final double z; // Depth 0.0 (back) to 1.0 (front)
+  final double size;
+  final double rotation;
+  final int facets;
+  final List<Color> facetColors;
+
+  _CrystalCluster({
+    required this.x,
+    required this.y,
+    required this.z,
+    required this.size,
+    required this.rotation,
+    required this.facets,
+    required this.facetColors,
+  });
+}
+
+class _Petal {
+  double x;
+  double y;
+  double z;
+  final double size;
+  double rotation;
+  double rotationSpeed;
+  double fallSpeed;
+  double swayFreq;
+  double swayAmp;
+  double swayPhase;
+
+  _Petal({
+    required this.x,
+    required this.y,
+    required this.z,
+    required this.size,
+    required this.rotation,
+    required this.rotationSpeed,
+    required this.fallSpeed,
+    required this.swayFreq,
+    required this.swayAmp,
+    required this.swayPhase,
+  });
+}
+
+class _Sparkle {
+  double x;
+  double y;
+  double phase;
+  double speed;
+  double size;
+
+  _Sparkle({
+    required this.x,
+    required this.y,
+    required this.phase,
+    required this.speed,
+    required this.size,
+  });
+}
+
 class _RoseQuartzGardenPainter extends CustomPainter {
-  final double t;
+  final _GardenState state;
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
 
+  // Palette
+  static const Color _softPink = Color(0xFFFFCDD2);
+  static const Color _deepRose = Color(0xFFF48FB1);
+  static const Color _quartzWhite = Color(0xFFFFF8E1); // Slight gold tint
+  static const Color _mistColor = Color(0xFFFCE4EC);
+
+  final math.Random _rng = math.Random(1337);
+
   _RoseQuartzGardenPainter({
-    required this.t,
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
-  });
-
-  // Animation helpers for smooth looping
-  double get _phase => 2 * math.pi * t;
-  double _wave(double speed, [double offset = 0]) => math.sin(_phase * speed + offset);
-  double _norm(double speed, [double offset = 0]) => 0.5 * (1 + _wave(speed, offset));
-
-  // Rose quartz color palette
-  late final Color _softRose = const Color(0xFFFFC0CB); // Light pink
-  late final Color _pearlWhite = const Color(0xFFF0F8FF); // Alice blue
-  late final Color _blushPink = const Color(0xFFFFB6C1); // Light pink
-  late final Color _dustyRose = const Color(0xFFD8BFD8); // Thistle
-  late final Color _warmGray = const Color(0xFFF5F5F0); // Beige
-
-  // Element counts based on intensity
-  int get _crystalCount => (8 * intensity).round().clamp(4, 12);
-  int get _petalCount => (25 * intensity).round().clamp(12, 40);
-  int get _heartCount => (6 * intensity).round().clamp(3, 9);
-  int get _sparkleCount => (30 * intensity).round().clamp(15, 45);
+  }) : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
-    _paintGardenMist(canvas, size);
-    _paintCrystalFormations(canvas, size);
-    _paintFloatingPetals(canvas, size);
-    _paintRoseQuartzHearts(canvas, size);
-    _paintCrystalSparkles(canvas, size);
-    _paintEnergyFlows(canvas, size);
-    _paintSoftGlow(canvas, size);
+    // Time accumulation
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
+
+    // Initialization
+    if (state.crystals == null) _initWorld(size);
+
+    // 1. Atmospheric Background
+    _paintAtmosphere(canvas, size);
+
+    // 2. Background Elements (Mist, Far Crystals)
+    _paintMist(canvas, size, 0.2);
+    _paintCrystals(canvas, size, true); // Far
+
+    // 3. Middle Elements
+    _updateAndPaintPetals(canvas, size, dt, true); // Far petals
+
+    // 4. Foreground Elements
+    _paintCrystals(canvas, size, false); // Near
+    _updateAndPaintPetals(canvas, size, dt, false); // Near petals
+    _paintSparkles(canvas, size, dt);
+
+    // 5. Vignette/Glow
+    _paintGlow(canvas, size);
   }
 
-  void _paintGardenMist(Canvas canvas, Size size) {
+  void _initWorld(Size size) {
+    state.crystals = [];
+    state.petals = [];
+    state.sparkles = [];
+    final rng = math.Random(42);
+
+    // Generate Crystals
+    for (int i = 0; i < 15; i++) {
+      final z = rng.nextDouble();
+      final sizeBase = 40 + rng.nextDouble() * 80;
+      final facets = 5 + rng.nextInt(3);
+
+      List<Color> colors = [];
+      for (int f = 0; f < facets; f++) {
+        colors.add(Color.lerp(_softPink, _deepRose, rng.nextDouble())!);
+      }
+
+      state.crystals!.add(_CrystalCluster(
+        x: rng.nextDouble() * size.width,
+        y: size.height * (0.6 + rng.nextDouble() * 0.4), // Bottom half
+        z: z,
+        size: sizeBase,
+        rotation: (rng.nextDouble() - 0.5) * 0.3,
+        facets: facets,
+        facetColors: colors,
+      ));
+    }
+
+    // Generate Petals
+    for (int i = 0; i < 40; i++) {
+      state.petals!.add(_Petal(
+        x: rng.nextDouble() * size.width,
+        y: rng.nextDouble() * size.height,
+        z: rng.nextDouble(),
+        size: 5 + rng.nextDouble() * 10,
+        rotation: rng.nextDouble() * math.pi * 2,
+        rotationSpeed: (rng.nextDouble() - 0.5) * 2.0,
+        fallSpeed: 20 + rng.nextDouble() * 40,
+        swayFreq: 1 + rng.nextDouble() * 2,
+        swayAmp: 10 + rng.nextDouble() * 30,
+        swayPhase: rng.nextDouble() * math.pi * 2,
+      ));
+    }
+
+    // Generate Sparkles
+    for (int i = 0; i < 30; i++) {
+      state.sparkles!.add(_Sparkle(
+        x: rng.nextDouble() * size.width,
+        y: rng.nextDouble() * size.height,
+        phase: rng.nextDouble() * math.pi * 2,
+        speed: 2 + rng.nextDouble() * 3,
+        size: 2 + rng.nextDouble() * 4,
+      ));
+    }
+  }
+
+  void _paintAtmosphere(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
 
-    // Soft garden atmosphere
-    final mistGradient = Paint()
-      ..shader = ui.Gradient.radial(
-        Offset(size.width * 0.3, size.height * 0.4),
-        size.width * 0.8,
-        [
-          _pearlWhite.withOpacity(0.1 * intensity),
-          _softRose.withOpacity(0.06 * intensity),
-          Colors.transparent,
-          _blushPink.withOpacity(0.04 * intensity),
-          Colors.transparent,
-        ],
-        [0.0, 0.3, 0.5, 0.8, 1.0],
-      );
-
-    canvas.drawRect(rect, mistGradient);
-
-    // Gentle morning light effect
-    final lightPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(0, 0),
-        Offset(size.width, size.height * 0.3),
-        [
-          _pearlWhite.withOpacity(0.08 * intensity),
-          Colors.transparent,
-          _softRose.withOpacity(0.05 * intensity),
-        ],
-        [0.0, 0.6, 1.0],
-      );
-
-    canvas.drawRect(rect, lightPaint);
-  }
-
-  void _paintCrystalFormations(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    for (int i = 0; i < _crystalCount; i++) {
-      final baseX = size.width * (0.1 + (i / _crystalCount) * 0.8);
-      final baseY = size.height * (0.6 + (i % 3) * 0.15);
-
-      // Gentle swaying motion
-      final swayX = baseX + _wave(0.08, i.toDouble()) * 8 * intensity;
-      final swayY = baseY + _wave(0.12, i * 0.7) * 6 * intensity;
-
-      final crystalSize = (25 + i * 4 + _wave(0.15, i * 0.5) * 8) * intensity;
-      final growth = 0.8 + 0.2 * _norm(0.2, i * 0.3);
-      final currentSize = crystalSize * growth;
-
-      // Crystal color with gentle variation
-      final crystalHues = [primaryColor, _softRose, _blushPink, _dustyRose];
-      final crystalColor = crystalHues[i % crystalHues.length];
-      final opacity = (0.15 + _norm(0.1, i * 0.4) * 0.08) * intensity;
-
-      paint.color = crystalColor.withOpacity(opacity);
-
-      // Draw rose quartz crystal cluster
-      _drawCrystalCluster(canvas, paint, Offset(swayX, swayY), currentSize, i);
-    }
-  }
-
-  void _drawCrystalCluster(Canvas canvas, Paint paint, Offset center, double size, int seed) {
-    // Main crystal formation
-    final path = Path();
-    final points = 6;
-
-    for (int i = 0; i < points; i++) {
-      final angle = i * 2 * math.pi / points;
-      final radius = size * (0.8 + 0.2 * math.sin(angle * 3));
-      final x = center.dx + math.cos(angle) * radius;
-      final y = center.dy + math.sin(angle) * radius;
-
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    path.close();
-
-    canvas.drawPath(path, paint);
-
-    // Inner crystal structure
-    paint.color = paint.color.withOpacity(paint.color.opacity * 0.6);
-    for (int i = 0; i < points; i++) {
-      final angle = i * 2 * math.pi / points;
-      final innerRadius = size * 0.4;
-      final innerX = center.dx + math.cos(angle) * innerRadius;
-      final innerY = center.dy + math.sin(angle) * innerRadius;
-
-      canvas.drawLine(
-          center,
-          Offset(innerX, innerY),
-          Paint()
-            ..color = paint.color
-            ..strokeWidth = 1 * intensity
-            ..style = PaintingStyle.stroke);
-    }
-
-    // Crystal highlights
-    paint.style = PaintingStyle.fill;
-    paint.color = _pearlWhite.withOpacity(0.3 * intensity);
-    canvas.drawCircle(
-      center + Offset(-size * 0.3, -size * 0.3),
-      size * 0.15,
-      paint,
+    // Soft dawn gradient
+    final gradient = ui.Gradient.linear(
+      Offset(0, 0),
+      Offset(0, size.height),
+      [
+        const Color(0xFFFBE4EB), // Light pink sky
+        const Color(0xFFF8BBD0), // Rose middle
+        const Color(0xFFF06292), // Darker pink bottom
+      ],
+      [0.0, 0.6, 1.0],
     );
+
+    canvas.drawRect(rect, Paint()..shader = gradient);
+
+    // Sun/Light source glow
+    final sunPaint = Paint()
+      ..color = _quartzWhite.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 60);
+
+    canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.2), 100, sunPaint);
   }
 
-  void _paintFloatingPetals(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    final random = math.Random(789);
-
-    for (int i = 0; i < _petalCount; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      // Gentle floating motion like flower petals
-      final floatSpeed = 0.04 + (i % 3) * 0.02;
-      final floatX = baseX + _wave(floatSpeed, i * 0.2) * 15 * intensity;
-      final floatY = baseY + _wave(floatSpeed * 0.7, i * 0.4) * 10 * intensity;
-
-      final petalSize = (4 + random.nextDouble() * 12) * intensity;
-      final rotation = _phase * 0.5 + i * 0.1;
-
-      // Color cycling through rose palette
-      final colors = [primaryColor, _softRose, _blushPink, _dustyRose, _pearlWhite];
-      final petalColor = colors[i % colors.length];
-      final opacity = (0.08 + _norm(0.2, i * 0.3) * 0.04) * intensity;
-
-      paint.color = petalColor.withOpacity(opacity);
-
-      canvas.save();
-      canvas.translate(floatX, floatY);
-      canvas.rotate(rotation);
-
-      // Draw crystalline petal shape
-      _drawCrystallinePetal(canvas, paint, petalSize);
-
-      canvas.restore();
-    }
-  }
-
-  void _drawCrystallinePetal(Canvas canvas, Paint paint, double size) {
-    final path = Path();
-
-    // Create a geometric crystal petal
-    path.moveTo(0, -size);
-    path.quadraticBezierTo(size * 0.7, -size * 0.5, size * 0.5, 0);
-    path.quadraticBezierTo(size * 0.3, size * 0.8, 0, size);
-    path.quadraticBezierTo(-size * 0.3, size * 0.8, -size * 0.5, 0);
-    path.quadraticBezierTo(-size * 0.7, -size * 0.5, 0, -size);
-    path.close();
-
-    canvas.drawPath(path, paint);
-
-    // Add crystal facet lines
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 0.5;
-    paint.color = paint.color.withOpacity(paint.color.opacity * 0.4);
-
-    canvas.drawLine(Offset(0, -size), Offset(0, size), paint);
-    canvas.drawLine(Offset(-size * 0.3, -size * 0.3), Offset(size * 0.3, size * 0.3), paint);
-
-    paint.style = PaintingStyle.fill;
-  }
-
-  void _paintRoseQuartzHearts(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    for (int i = 0; i < _heartCount; i++) {
-      final heartX = size.width * (0.2 + i * 0.15);
-      final heartY = size.height * (0.2 + _wave(0.06, i.toDouble()) * 0.3);
-
-      final heartSize = (18 + i * 3) * intensity;
-      final glow = 0.7 + 0.3 * _norm(0.18, i * 0.6);
-      final currentSize = heartSize * glow;
-
-      // Heart color with warm glow
-      final heartOpacity = (0.12 + _norm(0.15, i * 0.5) * 0.06) * intensity;
-      paint.color = Color.lerp(primaryColor, accentColor, 0.3)!.withOpacity(heartOpacity);
-
-      // Draw rose quartz heart
-      _drawCrystalHeart(canvas, paint, Offset(heartX, heartY), currentSize);
-
-      // Inner glow
-      paint.color = _pearlWhite.withOpacity(0.08 * glow * intensity);
-      _drawCrystalHeart(canvas, paint, Offset(heartX, heartY), currentSize * 0.6);
-    }
-  }
-
-  void _drawCrystalHeart(Canvas canvas, Paint paint, Offset center, double size) {
-    final path = Path();
-
-    // Create a geometric crystal heart shape
-    final halfSize = size * 0.5;
-
-    path.moveTo(center.dx, center.dy + halfSize);
-    path.cubicTo(
-      center.dx - size,
-      center.dy - halfSize * 0.5,
-      center.dx - halfSize,
-      center.dy - size,
-      center.dx,
-      center.dy - halfSize * 0.3,
-    );
-    path.cubicTo(
-      center.dx + halfSize,
-      center.dy - size,
-      center.dx + size,
-      center.dy - halfSize * 0.5,
-      center.dx,
-      center.dy + halfSize,
-    );
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  void _paintCrystalSparkles(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    final random = math.Random(456);
-
-    for (int i = 0; i < _sparkleCount; i++) {
-      final x = random.nextDouble() * size.width;
-      final y = random.nextDouble() * size.height;
-
-      // Twinkling crystal sparkles
-      final twinklePhase = _norm(0.3, i * 0.12);
-      final twinkleThreshold = 0.75;
-
-      if (twinklePhase > twinkleThreshold) {
-        final sparkleIntensity = (twinklePhase - twinkleThreshold) / (1.0 - twinkleThreshold);
-        final sparkleSize = (1.5 + sparkleIntensity * 3) * intensity;
-
-        final sparkleColors = [_pearlWhite, primaryColor, _softRose, _blushPink];
-        final sparkleColor = sparkleColors[i % sparkleColors.length];
-
-        paint.color = sparkleColor.withOpacity(0.6 * sparkleIntensity * intensity);
-        canvas.drawCircle(Offset(x, y), sparkleSize, paint);
-
-        // Cross-shaped sparkle effect
-        paint.style = PaintingStyle.stroke;
-        paint.strokeWidth = 1 * intensity;
-        paint.color = sparkleColor.withOpacity(0.8 * sparkleIntensity * intensity);
-
-        final crossSize = sparkleSize * 2;
-        canvas.drawLine(
-          Offset(x - crossSize, y),
-          Offset(x + crossSize, y),
-          paint,
-        );
-        canvas.drawLine(
-          Offset(x, y - crossSize),
-          Offset(x, y + crossSize),
-          paint,
-        );
-
-        paint.style = PaintingStyle.fill;
-      }
-    }
-  }
-
-  void _paintEnergyFlows(Canvas canvas, Size size) {
+  void _paintMist(Canvas canvas, Size size, double opacity) {
     final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+      ..color = _mistColor.withOpacity(opacity * 0.5 * intensity)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
 
-    // Gentle energy flows connecting crystals
-    for (int i = 0; i < 4; i++) {
-      final startX = size.width * (0.1 + i * 0.25);
-      final startY = size.height * (0.3 + _wave(0.08, i.toDouble()) * 0.2);
+    final time = state.time;
 
+    for (int i = 0; i < 3; i++) {
+      final y = size.height * 0.7 + math.sin(time * 0.2 + i) * 50;
       final path = Path();
-      path.moveTo(startX, startY);
-
-      // Create flowing energy paths
-      for (int j = 1; j <= 6; j++) {
-        final progress = j / 6.0;
-        final x = startX + progress * 100 * intensity + _wave(0.12, progress * 2 + i) * 25 * intensity;
-        final y = startY + _wave(0.1, progress * 1.5 + i * 0.7) * 20 * intensity;
-
-        if (j == 1) {
-          path.quadraticBezierTo(startX + 15 * intensity, startY + 8 * intensity, x, y);
-        } else {
-          path.lineTo(x, y);
-        }
-      }
-
-      final energyColors = [primaryColor, _softRose, _blushPink, _pearlWhite];
-      final energyIntensity = _norm(0.2, i * 0.8);
-
-      paint
-        ..strokeWidth = (1.2 + i * 0.3) * intensity
-        ..color = energyColors[i].withOpacity(0.06 * energyIntensity * intensity);
+      path.moveTo(0, y);
+      path.quadraticBezierTo(size.width * 0.5, y - 50 * math.cos(time * 0.3 + i), size.width, y + 30);
+      path.lineTo(size.width, size.height);
+      path.lineTo(0, size.height);
+      path.close();
 
       canvas.drawPath(path, paint);
     }
   }
 
-  void _paintSoftGlow(Canvas canvas, Size size) {
-    // Final soft atmospheric glow
-    final rect = Offset.zero & size;
+  void _paintCrystals(Canvas canvas, Size size, bool backgroundLayer) {
+    if (state.crystals == null) return;
 
-    // Gentle rose garden ambiance
-    final gardenGlow = Paint()
-      ..shader = ui.Gradient.radial(
-        Offset(size.width * 0.6, size.height * 0.4),
-        size.width * 0.7,
-        [
-          primaryColor.withOpacity(0.03 * intensity),
-          _softRose.withOpacity(0.02 * intensity),
-          Colors.transparent,
-        ],
-        [0.0, 0.5, 1.0],
-      );
+    // Sorting not strictly necessary if we split lists, but z-filtering works too
+    for (var crystal in state.crystals!) {
+      if (backgroundLayer && crystal.z >= 0.5) continue;
+      if (!backgroundLayer && crystal.z < 0.5) continue;
 
-    canvas.drawRect(rect, gardenGlow);
+      final sway = math.sin(state.time * 0.5 + crystal.x) * 5 * intensity;
+      final drawX = crystal.x + sway * (1 - crystal.z); // Far crystals sway less
+      final drawY = crystal.y;
 
-    // Warm morning light
-    final warmLight = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(size.width * 0.8, 0),
-        Offset(size.width * 0.2, size.height),
-        [
-          _pearlWhite.withOpacity(0.04 * intensity),
-          Colors.transparent,
-          _blushPink.withOpacity(0.02 * intensity),
-        ],
-        [0.0, 0.6, 1.0],
-      );
+      final scale = crystal.size * (0.5 + 0.5 * crystal.z) * intensity;
+      final opacity = (0.4 + 0.6 * crystal.z) * intensity;
 
-    canvas.drawRect(rect, warmLight);
+      canvas.save();
+      canvas.translate(drawX, drawY);
+      canvas.rotate(crystal.rotation);
+      if (backgroundLayer) {
+        // Blur distant crystals
+        // Note: keeping paint clean for performance, gradient handles look
+      }
+
+      // Draw volumetric crystal shards
+      final paint = Paint()..style = PaintingStyle.fill;
+      final borderPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0
+        ..color = Colors.white.withOpacity(0.3 * opacity);
+
+      for (int i = 0; i < crystal.facets; i++) {
+        final angle1 = (i / crystal.facets) * math.pi * 2;
+        final angle2 = ((i + 1) / crystal.facets) * math.pi * 2;
+
+        final path = Path();
+        path.moveTo(0, -scale); // Tip
+        path.lineTo(math.cos(angle1) * scale * 0.6, math.sin(angle1) * scale * 0.6 + scale * 0.2);
+        path.lineTo(0, scale * 0.5); // Base center
+        path.lineTo(math.cos(angle2) * scale * 0.6, math.sin(angle2) * scale * 0.6 + scale * 0.2);
+        path.close();
+
+        // Gradient for volume
+        paint.shader = ui.Gradient.linear(
+          Offset(0, -scale),
+          Offset(0, scale * 0.5),
+          [
+            Colors.white.withOpacity(0.8 * opacity),
+            crystal.facetColors[i].withOpacity(0.6 * opacity),
+            crystal.facetColors[i].withOpacity(0.9 * opacity),
+          ],
+          [0.0, 0.5, 1.0], // Added stops to fix error
+        );
+
+        canvas.drawPath(path, paint);
+        canvas.drawPath(path, borderPaint);
+      }
+
+      canvas.restore();
+    }
+  }
+
+  void _updateAndPaintPetals(Canvas canvas, Size size, double dt, bool backgroundLayer) {
+    if (state.petals == null) return;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    for (var petal in state.petals!) {
+      if (backgroundLayer && petal.z >= 0.5) continue;
+      if (!backgroundLayer && petal.z < 0.5) continue;
+
+      // Update
+      petal.swayPhase += petal.swayFreq * dt;
+      petal.x += math.sin(petal.swayPhase) * petal.swayAmp * dt * intensity;
+      petal.y += petal.fallSpeed * dt * intensity;
+      petal.rotation += petal.rotationSpeed * dt;
+
+      // Wrap
+      if (petal.y > size.height + 20) {
+        petal.y = -20;
+        petal.x = _rng.nextDouble() * size.width;
+      }
+      if (petal.x > size.width + 20) petal.x = -20;
+      if (petal.x < -20) petal.x = size.width + 20;
+
+      // Draw
+      final pSize = petal.size * (0.5 + 0.5 * petal.z) * intensity;
+      final opacity = (0.4 + 0.6 * petal.z) * intensity;
+
+      paint.color = (petal.z > 0.7 ? _softPink : _deepRose).withOpacity(opacity * 0.8);
+
+      canvas.save();
+      canvas.translate(petal.x, petal.y);
+      canvas.rotate(petal.rotation);
+
+      // Simple petal shape
+      final path = Path();
+      path.moveTo(0, -pSize);
+      path.quadraticBezierTo(pSize, -pSize * 0.5, 0, pSize);
+      path.quadraticBezierTo(-pSize, -pSize * 0.5, 0, -pSize);
+      path.close();
+
+      canvas.drawPath(path, paint);
+      canvas.restore();
+    }
+  }
+
+  void _paintSparkles(Canvas canvas, Size size, double dt) {
+    if (state.sparkles == null) return;
+
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = Colors.white;
+
+    for (var sparkle in state.sparkles!) {
+      final t = state.time * sparkle.speed + sparkle.phase;
+      final brightness = (math.sin(t) + 1) / 2; // 0 to 1
+
+      if (brightness < 0.1) continue;
+
+      final sSize = sparkle.size * brightness * intensity;
+      final glowOpacity = brightness * 0.8 * intensity;
+
+      // Core
+      paint.color = Colors.white.withOpacity(glowOpacity);
+      canvas.drawCircle(Offset(sparkle.x, sparkle.y), sSize, paint);
+
+      // Glow
+      paint.color = _quartzWhite.withOpacity(glowOpacity * 0.3);
+      canvas.drawCircle(Offset(sparkle.x, sparkle.y), sSize * 3, paint);
+
+      // Cross
+      paint.strokeWidth = 1.0;
+      paint.style = PaintingStyle.stroke;
+      paint.color = Colors.white.withOpacity(glowOpacity * 0.5);
+      canvas.drawLine(Offset(sparkle.x - sSize * 2, sparkle.y), Offset(sparkle.x + sSize * 2, sparkle.y), paint);
+      canvas.drawLine(Offset(sparkle.x, sparkle.y - sSize * 2), Offset(sparkle.x, sparkle.y + sSize * 2), paint);
+      paint.style = PaintingStyle.fill;
+    }
+  }
+
+  void _paintGlow(Canvas canvas, Size size) {
+    // Bottom volumetric light/fog
+    final rect = Rect.fromLTWH(0, size.height * 0.6, size.width, size.height * 0.4);
+    final gradient = ui.Gradient.linear(
+      Offset(0, size.height * 0.6),
+      Offset(0, size.height),
+      [
+        Colors.transparent,
+        _softPink.withOpacity(0.2 * intensity),
+        _deepRose.withOpacity(0.4 * intensity),
+      ],
+      [0.0, 0.5, 1.0], // Added stops to fix error
+    );
+
+    canvas.drawRect(rect, Paint()..shader = gradient);
   }
 
   @override
   bool shouldRepaint(covariant _RoseQuartzGardenPainter oldDelegate) {
-    return oldDelegate.t != t ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
+    return true;
   }
 }

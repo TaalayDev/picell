@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -6,65 +7,88 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'theme.dart';
 
+// ============================================================================
+// ICE CRYSTAL THEME BUILDER
+// ============================================================================
+
 AppTheme buildIceCrystalTheme() {
-  final baseTextTheme = GoogleFonts.sourceCodeProTextTheme();
+  // Exo 2 has a futuristic, geometric look suitable for crystals
+  final baseTextTheme = GoogleFonts.exo2TextTheme();
 
   return AppTheme(
     type: ThemeType.iceCrystal,
-    isDark: false,
+    isDark: true, // Switched to Dark for better crystal glowing effects
+
     // Primary colors - icy blue
-    primaryColor: const Color(0xFF4FC3F7), // Light blue/ice blue
-    primaryVariant: const Color(0xFF29B6F6), // Slightly deeper blue
-    onPrimary: Colors.white,
-    // Secondary colors - crystal cyan
-    accentColor: const Color(0xFF80DEEA), // Light cyan
-    onAccent: const Color(0xFF004D5A), // Dark teal for contrast
-    // Background colors - very light ice-like
-    background: const Color(0xFFF8FCFF), // Very light blue-white
-    surface: const Color(0xFFFFFFFF), // Pure white like fresh snow
-    surfaceVariant: const Color(0xFFF0F8FF), // Alice blue
-    // Text colors - dark for contrast on light ice
-    textPrimary: const Color(0xFF0D47A1), // Dark blue
-    textSecondary: const Color(0xFF1976D2), // Medium blue
-    textDisabled: const Color(0xFF90CAF9), // Light blue
+    primaryColor: const Color(0xFF00E5FF), // Cyan Accent
+    primaryVariant: const Color(0xFF00B8D4), // Teal-ish
+    onPrimary: const Color(0xFF001519),
+
+    // Secondary colors - crystal white/purple tint
+    accentColor: const Color(0xFFE0F7FA), // Very light cyan
+    onAccent: const Color(0xFF006064),
+
+    // Background colors - deep ice cave
+    background: const Color(0xFF0A1929), // Deep dark blue
+    surface: const Color(0xFF132F4C), // Lighter dark blue
+    surfaceVariant: const Color(0xFF173A5E),
+
+    // Text colors - high contrast
+    textPrimary: const Color(0xFFE3F2FD),
+    textSecondary: const Color(0xFF90CAF9),
+    textDisabled: const Color(0xFF546E7A),
+
     // UI colors
-    divider: const Color(0xFFE3F2FD), // Very light blue
-    toolbarColor: const Color(0xFFF0F8FF),
-    error: const Color(0xFFD32F2F), // Red for visibility
-    success: const Color(0xFF388E3C), // Green for visibility
-    warning: const Color(0xFFF57C00), // Orange for visibility
+    divider: const Color(0xFF1E4976),
+    toolbarColor: const Color(0xFF0A1929),
+    error: const Color(0xFFFF5252),
+    success: const Color(0xFF69F0AE),
+    warning: const Color(0xFFFFAB40),
+
     // Grid colors
-    gridLine: const Color(0xFFE3F2FD),
-    gridBackground: const Color(0xFFFFFFFF),
+    gridLine: const Color(0xFF1E4976),
+    gridBackground: const Color(0xFF0A1929),
+
     // Canvas colors
-    canvasBackground: const Color(0xFFFFFFFF),
-    selectionOutline: const Color(0xFF4FC3F7), // Match primary
-    selectionFill: const Color(0x304FC3F7),
+    canvasBackground: const Color(0xFF050F1A),
+    selectionOutline: const Color(0xFF00E5FF),
+    selectionFill: const Color(0x3300E5FF),
+
     // Icon colors
-    activeIcon: const Color(0xFF4FC3F7), // Ice blue for active
-    inactiveIcon: const Color(0xFF1976D2), // Darker blue for inactive
+    activeIcon: const Color(0xFF00E5FF),
+    inactiveIcon: const Color(0xFF546E7A),
+
     // Typography
     textTheme: baseTextTheme.copyWith(
-      titleLarge: baseTextTheme.titleLarge!.copyWith(
-        color: const Color(0xFF0D47A1),
-        fontWeight: FontWeight.w600,
+      displayLarge: baseTextTheme.displayLarge!.copyWith(
+        color: const Color(0xFFE0F7FA),
+        fontWeight: FontWeight.w300,
+        letterSpacing: 1.5,
       ),
-      titleMedium: baseTextTheme.titleMedium!.copyWith(
-        color: const Color(0xFF0D47A1),
-        fontWeight: FontWeight.w500,
+      displayMedium: baseTextTheme.displayMedium!.copyWith(
+        color: const Color(0xFFE0F7FA),
+        fontWeight: FontWeight.w300,
+      ),
+      titleLarge: baseTextTheme.titleLarge!.copyWith(
+        color: const Color(0xFF00E5FF),
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
       ),
       bodyLarge: baseTextTheme.bodyLarge!.copyWith(
-        color: const Color(0xFF0D47A1),
+        color: const Color(0xFFB3E5FC),
       ),
       bodyMedium: baseTextTheme.bodyMedium!.copyWith(
-        color: const Color(0xFF1976D2),
+        color: const Color(0xFF81D4FA),
       ),
     ),
-    primaryFontWeight: FontWeight.w500, // Clean, crisp weight
+    primaryFontWeight: FontWeight.w400,
   );
 }
 
-// Ice Crystal theme background with crystalline formations
+// ============================================================================
+// ICE CRYSTAL ANIMATED BACKGROUND
+// ============================================================================
+
 class IceCrystalBackground extends HookWidget {
   final AppTheme theme;
   final double intensity;
@@ -79,7 +103,10 @@ class IceCrystalBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useAnimationController(duration: theme.type.animationDuration);
+    // 1. Ticker controller
+    final controller = useAnimationController(
+      duration: const Duration(seconds: 1),
+    );
 
     useEffect(() {
       if (enableAnimation) {
@@ -90,205 +117,331 @@ class IceCrystalBackground extends HookWidget {
       return null;
     }, [enableAnimation]);
 
-    final crystalAnimation = useAnimation(
-      Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-      ),
-    );
+    // 2. State for infinite animation
+    final iceState = useMemoized(() => _IceState());
 
-    return CustomPaint(
-      painter: _IceCrystalPainter(
-        animation: crystalAnimation,
-        primaryColor: theme.primaryColor,
-        accentColor: theme.accentColor,
-        intensity: intensity,
+    return RepaintBoundary(
+      child: CustomPaint(
+        painter: _IceCrystalPainter(
+          repaint: controller,
+          state: iceState,
+          primaryColor: theme.primaryColor,
+          accentColor: theme.accentColor,
+          backgroundColor: theme.background,
+          intensity: intensity.clamp(0.0, 2.0),
+        ),
+        size: Size.infinite,
       ),
-      size: Size.infinite,
     );
   }
 }
 
+// State class for physics and objects
+class _IceState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
+  List<_CrystalShard>? shards;
+  List<_SnowParticle>? snow;
+}
+
+class _CrystalShard {
+  double x;
+  double y;
+  final double z; // Depth 0.0 (far) to 1.0 (near)
+  final double size;
+  final double rotation;
+  final double rotationSpeed;
+  final int points;
+  final List<double> vertices; // Radii for irregular shape
+
+  _CrystalShard({
+    required this.x,
+    required this.y,
+    required this.z,
+    required this.size,
+    required this.rotation,
+    required this.rotationSpeed,
+    required this.points,
+    required this.vertices,
+  });
+}
+
+class _SnowParticle {
+  double x;
+  double y;
+  final double size;
+  final double speedY;
+  final double wobbleFreq;
+  final double wobbleAmp;
+  double wobblePhase;
+
+  _SnowParticle({
+    required this.x,
+    required this.y,
+    required this.size,
+    required this.speedY,
+    required this.wobbleFreq,
+    required this.wobbleAmp,
+    required this.wobblePhase,
+  });
+}
+
 class _IceCrystalPainter extends CustomPainter {
-  final double animation;
+  final _IceState state;
   final Color primaryColor;
   final Color accentColor;
+  final Color backgroundColor;
   final double intensity;
 
   _IceCrystalPainter({
-    required this.animation,
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
+    required this.backgroundColor,
     required this.intensity,
-  });
+  }) : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.stroke;
-    final random = math.Random(123); // Fixed seed for consistent crystals
+    // Time accumulation
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
 
-    // Draw ice crystal formations
-    for (int i = 0; i < (8 * intensity).round(); i++) {
-      final centerX = random.nextDouble() * size.width;
-      final centerY = random.nextDouble() * size.height;
-      final crystalSize = (20 + random.nextDouble() * 40) * intensity;
-      final growth = 0.7 + math.sin(animation * 2 * math.pi + i * 0.5) * 0.3;
-      final currentSize = crystalSize * growth;
+    // Initialization
+    if (state.shards == null) _initShards(size);
+    if (state.snow == null) _initSnow(size);
 
-      final opacity = (0.15 + math.cos(animation * 1.5 * math.pi + i * 0.3) * 0.05) * intensity;
+    // 1. Background (Deep Ice Cave)
+    _paintBackground(canvas, size);
 
-      paint.color = Color.lerp(
-        primaryColor.withOpacity(opacity),
-        accentColor.withOpacity(opacity * 0.8),
-        i % 2 == 0 ? 0.3 : 0.7,
-      )!;
-      paint.strokeWidth = (1.5 + random.nextDouble() * 1) * intensity;
+    // 2. Far Crystals (Blurred, Slow)
+    _updateAndPaintShards(canvas, size, dt, true);
 
-      // Draw hexagonal crystal structure
+    // 3. Snow/Dust
+    _updateAndPaintSnow(canvas, size, dt);
+
+    // 4. Near Crystals (Sharp, Fast)
+    _updateAndPaintShards(canvas, size, dt, false);
+
+    // 5. Frost/Vignette Overlay
+    _paintFrostVignette(canvas, size);
+  }
+
+  void _initShards(Size size) {
+    final rng = math.Random(456);
+    state.shards = [];
+
+    // Generate clusters of crystals
+    for (int i = 0; i < 25; i++) {
+      final z = rng.nextDouble(); // Depth
+      final sizeBase = 20 + rng.nextDouble() * 60;
+      final points = 3 + rng.nextInt(4); // Triangles to Hexagons
+
+      // Irregular vertices for "shard" look
+      final vertices = List.generate(points, (_) => 0.7 + rng.nextDouble() * 0.6);
+
+      state.shards!.add(_CrystalShard(
+        x: rng.nextDouble() * size.width,
+        y: rng.nextDouble() * size.height,
+        z: z,
+        size: sizeBase,
+        rotation: rng.nextDouble() * math.pi * 2,
+        rotationSpeed: (rng.nextDouble() - 0.5) * 0.5,
+        points: points,
+        vertices: vertices,
+      ));
+    }
+  }
+
+  void _initSnow(Size size) {
+    final rng = math.Random(789);
+    state.snow = List.generate(50, (_) {
+      return _SnowParticle(
+        x: rng.nextDouble() * size.width,
+        y: rng.nextDouble() * size.height,
+        size: 1 + rng.nextDouble() * 2,
+        speedY: 10 + rng.nextDouble() * 30,
+        wobbleFreq: 1 + rng.nextDouble() * 3,
+        wobbleAmp: 5 + rng.nextDouble() * 10,
+        wobblePhase: rng.nextDouble() * math.pi * 2,
+      );
+    });
+  }
+
+  void _paintBackground(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+
+    // Deep radial gradient mimicking looking out of an ice cave or into deep ice
+    final gradient = ui.Gradient.radial(
+      Offset(size.width * 0.5, size.height * 0.3),
+      size.longestSide * 0.8,
+      [
+        const Color(0xFF1E3A5F), // Lighter center
+        backgroundColor, // Dark mid
+        const Color(0xFF020812), // Very dark edges
+      ],
+      [0.0, 0.6, 1.0],
+    );
+
+    canvas.drawRect(rect, Paint()..shader = gradient);
+
+    // Subtle Aurora streaks
+    final streakPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 40 * intensity
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30);
+
+    for (int i = 0; i < 3; i++) {
+      final t = state.time * 0.2 + i * 2.0;
+      final y = size.height * (0.2 + i * 0.25) + math.sin(t) * 50;
+
+      streakPaint.color = accentColor.withOpacity(0.05 * intensity);
+
       final path = Path();
-      for (int j = 0; j < 6; j++) {
-        final angle = j * math.pi / 3;
-        final x = centerX + math.cos(angle) * currentSize;
-        final y = centerY + math.sin(angle) * currentSize;
+      path.moveTo(0, y);
+      path.cubicTo(
+          size.width * 0.3, y - 50 * math.cos(t * 0.7), size.width * 0.7, y + 50 * math.sin(t * 0.8), size.width, y);
 
-        if (j == 0) {
-          path.moveTo(x, y);
-        } else {
-          path.lineTo(x, y);
-        }
+      canvas.drawPath(path, streakPaint);
+    }
+  }
+
+  void _updateAndPaintShards(Canvas canvas, Size size, double dt, bool backgroundLayer) {
+    if (state.shards == null) return;
+
+    for (var shard in state.shards!) {
+      // Filter based on depth (z)
+      // Background layer: z < 0.5. Foreground: z >= 0.5
+      if (backgroundLayer && shard.z >= 0.5) continue;
+      if (!backgroundLayer && shard.z < 0.5) continue;
+
+      // Update position
+      // Slow float upwards/rotation
+      shard.y -= (5 + shard.z * 15) * dt * intensity;
+
+      // Wrap around
+      if (shard.y < -shard.size * 2) {
+        shard.y = size.height + shard.size;
+        shard.x = math.Random().nextDouble() * size.width;
+      }
+
+      final drawSize = shard.size * (0.5 + shard.z) * intensity;
+      final opacity = (0.2 + shard.z * 0.4) * intensity;
+      final currentRotation = shard.rotation + state.time * shard.rotationSpeed;
+
+      // Prepare paints
+      final fillPaint = Paint()
+        ..style = PaintingStyle.fill
+        ..color = primaryColor.withOpacity(opacity * 0.3);
+
+      final borderPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (1 + shard.z) * intensity
+        ..color = accentColor.withOpacity(opacity);
+
+      // Create Shard Path
+      final path = Path();
+      for (int i = 0; i < shard.points; i++) {
+        final angle = (i * 2 * math.pi / shard.points) + currentRotation;
+        final r = drawSize * shard.vertices[i];
+        final px = shard.x + math.cos(angle) * r;
+        final py = shard.y + math.sin(angle) * r;
+        if (i == 0)
+          path.moveTo(px, py);
+        else
+          path.lineTo(px, py);
       }
       path.close();
-      canvas.drawPath(path, paint);
 
-      // Draw inner crystal lines
-      for (int j = 0; j < 6; j++) {
-        final angle = j * math.pi / 3;
-        final innerX = centerX + math.cos(angle) * currentSize * 0.6;
-        final innerY = centerY + math.sin(angle) * currentSize * 0.6;
-        canvas.drawLine(Offset(centerX, centerY), Offset(innerX, innerY), paint);
-      }
-    }
-
-    // Draw floating ice particles
-    paint.style = PaintingStyle.fill;
-    for (int i = 0; i < (15 * intensity).round(); i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      // Gentle floating motion
-      final floatX = baseX + math.sin(animation * 1.5 * math.pi + i * 0.4) * 8 * intensity;
-      final floatY = baseY + math.cos(animation * math.pi + i * 0.6) * 12 * intensity;
-
-      final particleSize = (1.5 + random.nextDouble() * 3) * intensity;
-      final sparkleIntensity = math.sin(animation * 3 * math.pi + i * 0.8) * 0.5 + 0.5;
-
-      if (sparkleIntensity > 0.4) {
-        paint.color = Color.lerp(
-          primaryColor.withOpacity(0.6 * sparkleIntensity),
-          accentColor.withOpacity(0.4 * sparkleIntensity),
-          math.sin(animation * 2 * math.pi + i) * 0.5 + 0.5,
-        )!;
-
-        canvas.drawCircle(Offset(floatX, floatY), particleSize * sparkleIntensity, paint);
-      }
-    }
-
-    // Draw frost spreading patterns
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 1 * intensity;
-
-    for (int i = 0; i < 4; i++) {
-      final startX = size.width * (0.1 + i * 0.25);
-      final startY = size.height * (0.2 + math.sin(animation * math.pi + i) * 0.3);
-      final spreadProgress = (animation + i * 0.25) % 1.0;
-
-      final opacity = (0.08 + math.cos(animation * 2 * math.pi + i * 0.7) * 0.03) * intensity;
-      paint.color = primaryColor.withOpacity(opacity);
-
-      // Draw branching frost patterns
-      _drawFrostBranch(canvas, paint, Offset(startX, startY), 0, 30 * intensity * spreadProgress, 4, spreadProgress);
-    }
-
-    // Draw snowflake-like patterns
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 1.5 * intensity;
-
-    for (int i = 0; i < (6 * intensity).round(); i++) {
-      final snowflakeX = random.nextDouble() * size.width;
-      final snowflakeY = random.nextDouble() * size.height;
-      final snowflakeSize = (8 + random.nextDouble() * 12) * intensity;
-      final rotation = animation * 2 * math.pi * (i % 2 == 0 ? 1 : -1) + i;
-
-      final opacity = (0.12 + math.sin(animation * 2.5 * math.pi + i * 0.9) * 0.04) * intensity;
-      paint.color = accentColor.withOpacity(opacity);
-
+      // Draw Shard
       canvas.save();
-      canvas.translate(snowflakeX, snowflakeY);
-      canvas.rotate(rotation);
+      // Apply blur to background shards for depth of field
+      if (backgroundLayer) {
+        fillPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+      }
 
-      // Draw 6-pointed snowflake
-      for (int j = 0; j < 6; j++) {
-        final angle = j * math.pi / 3;
-        final endX = math.cos(angle) * snowflakeSize;
-        final endY = math.sin(angle) * snowflakeSize;
+      // Gradient fill to simulate refraction
+      fillPaint.shader = ui.Gradient.linear(
+        Offset(shard.x - drawSize, shard.y - drawSize),
+        Offset(shard.x + drawSize, shard.y + drawSize),
+        [
+          primaryColor.withOpacity(opacity * 0.1),
+          Colors.white.withOpacity(opacity * 0.4),
+          primaryColor.withOpacity(opacity * 0.1),
+        ],
+        [0.0, 0.5 + math.sin(state.time + shard.x) * 0.2, 1.0], // Shimmer effect
+      );
 
-        canvas.drawLine(Offset.zero, Offset(endX, endY), paint);
+      canvas.drawPath(path, fillPaint);
+      canvas.drawPath(path, borderPaint);
 
-        // Draw small branches
-        final branchSize = snowflakeSize * 0.3;
-        final branchX1 = math.cos(angle + math.pi / 6) * branchSize + endX * 0.6;
-        final branchY1 = math.sin(angle + math.pi / 6) * branchSize + endY * 0.6;
-        final branchX2 = math.cos(angle - math.pi / 6) * branchSize + endX * 0.6;
-        final branchY2 = math.sin(angle - math.pi / 6) * branchSize + endY * 0.6;
-
-        canvas.drawLine(Offset(endX * 0.6, endY * 0.6), Offset(branchX1, branchY1), paint);
-        canvas.drawLine(Offset(endX * 0.6, endY * 0.6), Offset(branchX2, branchY2), paint);
+      // Draw internal facet lines
+      borderPaint.strokeWidth = 0.5 * intensity;
+      borderPaint.color = Colors.white.withOpacity(opacity * 0.5);
+      for (int i = 0; i < shard.points; i++) {
+        final angle = (i * 2 * math.pi / shard.points) + currentRotation;
+        final r = drawSize * shard.vertices[i];
+        final px = shard.x + math.cos(angle) * r;
+        final py = shard.y + math.sin(angle) * r;
+        canvas.drawLine(Offset(shard.x, shard.y), Offset(px, py), borderPaint);
       }
 
       canvas.restore();
     }
+  }
 
-    // Draw icicle formations
-    paint.style = PaintingStyle.fill;
-    for (int i = 0; i < (5 * intensity).round(); i++) {
-      final icicleX = (i / 5) * size.width + size.width * 0.1;
-      final icicleLength = (30 + math.sin(animation * 1.5 * math.pi + i) * 15) * intensity;
-      final icicleWidth = (6 + i * 2) * intensity;
+  void _updateAndPaintSnow(Canvas canvas, Size size, double dt) {
+    if (state.snow == null) return;
 
-      final opacity = (0.06 + math.cos(animation * math.pi + i * 0.8) * 0.02) * intensity;
-      paint.color = Color.lerp(
-        primaryColor.withOpacity(opacity),
-        accentColor.withOpacity(opacity * 0.7),
-        i / 4.0,
-      )!;
+    final paint = Paint()..style = PaintingStyle.fill;
 
-      // Draw icicle shape
-      final path = Path();
-      path.moveTo(icicleX - icicleWidth / 2, 0);
-      path.lineTo(icicleX + icicleWidth / 2, 0);
-      path.lineTo(icicleX, icicleLength);
-      path.close();
+    for (var flake in state.snow!) {
+      // Update
+      flake.y += flake.speedY * dt * intensity;
+      flake.wobblePhase += flake.wobbleFreq * dt;
+      final dx = math.sin(flake.wobblePhase) * flake.wobbleAmp * dt * 2;
+      flake.x += dx * intensity;
 
-      canvas.drawPath(path, paint);
+      // Wrap
+      if (flake.y > size.height) {
+        flake.y = -5;
+        flake.x = math.Random().nextDouble() * size.width;
+      }
+      if (flake.x < 0) flake.x += size.width;
+      if (flake.x > size.width) flake.x -= size.width;
+
+      // Draw
+      final alpha = (0.3 + 0.7 * math.sin(flake.wobblePhase)) * intensity;
+      paint.color = Colors.white.withOpacity(alpha.clamp(0.0, 1.0));
+      canvas.drawCircle(Offset(flake.x, flake.y), flake.size * intensity, paint);
     }
   }
 
-  void _drawFrostBranch(
-      Canvas canvas, Paint paint, Offset start, double angle, double length, int depth, double progress) {
-    if (depth <= 0 || length < 5) return;
+  void _paintFrostVignette(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final gradient = ui.Gradient.radial(
+      Offset(size.width / 2, size.height / 2),
+      size.longestSide * 0.7,
+      [
+        Colors.transparent,
+        primaryColor.withOpacity(0.1 * intensity),
+        primaryColor.withOpacity(0.3 * intensity),
+      ],
+      [0.6, 0.85, 1.0],
+    );
 
-    final endX = start.dx + math.cos(angle) * length * progress;
-    final endY = start.dy + math.sin(angle) * length * progress;
-    final end = Offset(endX, endY);
+    final paint = Paint()
+      ..shader = gradient
+      ..blendMode = BlendMode.screen; // Adds glow
 
-    canvas.drawLine(start, end, paint);
-
-    if (progress > 0.3) {
-      // Draw sub-branches
-      _drawFrostBranch(canvas, paint, end, angle + math.pi / 4, length * 0.6, depth - 1, math.max(0, progress - 0.3));
-      _drawFrostBranch(canvas, paint, end, angle - math.pi / 4, length * 0.6, depth - 1, math.max(0, progress - 0.3));
-    }
+    canvas.drawRect(rect, paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _IceCrystalPainter oldDelegate) {
+    return true; // Always repaint for animation
+  }
 }

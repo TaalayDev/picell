@@ -34,8 +34,16 @@ enum ThemeType {
   artDeco,
   crystalline,
   enchantedForest,
-  volcanicLavaLamp,
-  coralReef;
+  lavaLamp,
+  coralReef,
+  stainedGlass,
+  ukiyoEWaves,
+  dataStream,
+  lofiNight,
+  artNouveau,
+  petrichor,
+  origami,
+  pointillism;
 
   static List<ThemeType> lockedThemeTypes = [
     ThemeType.ocean,
@@ -60,8 +68,15 @@ enum ThemeType {
     ThemeType.artDeco,
     ThemeType.crystalline,
     ThemeType.enchantedForest,
-    ThemeType.volcanicLavaLamp,
+    ThemeType.lavaLamp,
     ThemeType.coralReef,
+    ThemeType.stainedGlass,
+    ThemeType.ukiyoEWaves,
+    ThemeType.lofiNight,
+    ThemeType.artNouveau,
+    ThemeType.petrichor,
+    ThemeType.origami,
+    ThemeType.pointillism,
   ];
 
   bool get isDark => [
@@ -84,7 +99,8 @@ enum ThemeType {
         ThemeType.artDeco,
         ThemeType.crystalline,
         ThemeType.enchantedForest,
-        ThemeType.volcanicLavaLamp,
+        ThemeType.lavaLamp,
+        ThemeType.stainedGlass,
       ].contains(this);
 
   bool get isLocked => lockedThemeTypes.contains(this);
@@ -159,10 +175,26 @@ enum ThemeType {
         return 'Crystalline';
       case ThemeType.enchantedForest:
         return 'Enchanted Forest';
-      case ThemeType.volcanicLavaLamp:
-        return 'Volcanic Lava Lamp';
+      case ThemeType.lavaLamp:
+        return 'Lava Lamp';
       case ThemeType.coralReef:
         return 'Coral Reef';
+      case ThemeType.stainedGlass:
+        return 'Stained Glass';
+      case ThemeType.ukiyoEWaves:
+        return 'Ukiyo-e Waves';
+      case ThemeType.dataStream:
+        return 'Data Stream';
+      case ThemeType.lofiNight:
+        return 'Lofi Night';
+      case ThemeType.artNouveau:
+        return 'Art Nouveau';
+      case ThemeType.petrichor:
+        return 'Petrichor';
+      case ThemeType.origami:
+        return 'Origami';
+      case ThemeType.pointillism:
+        return 'Pointillism';
     }
   }
 
@@ -219,10 +251,12 @@ enum ThemeType {
         return const Duration(seconds: 15);
       case ThemeType.enchantedForest:
         return const Duration(seconds: 25);
-      case ThemeType.volcanicLavaLamp:
+      case ThemeType.lavaLamp:
         return const Duration(seconds: 12);
       case ThemeType.coralReef:
         return const Duration(minutes: 5);
+      case ThemeType.stainedGlass:
+        return const Duration(seconds: 15);
       default:
         return const Duration(seconds: 10);
     }

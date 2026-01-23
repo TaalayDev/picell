@@ -2,12 +2,20 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:pixelverse/app/theme/ukiyo_e.dart';
 
 import '../../app/theme/art_deco.dart';
+import '../../app/theme/art_nouevau.dart';
 import '../../app/theme/coral_reef.dart';
 import '../../app/theme/crystaline.dart';
+import '../../app/theme/data_stream.dart';
 import '../../app/theme/enchanted_forest.dart';
 import '../../app/theme/gothic_theme.dart';
+import '../../app/theme/lofi_night.dart';
+import '../../app/theme/origami.dart';
+import '../../app/theme/petrichor.dart';
+import '../../app/theme/pointillism.dart';
+import '../../app/theme/stained_glass.dart';
 import '../../app/theme/steampunk.dart';
 import '../../app/theme/volcanic_lava_lamp.dart';
 import '../../core.dart';
@@ -600,14 +608,62 @@ class AnimatedBackground extends HookConsumerWidget {
           intensity: intensity,
           enableAnimation: enableAnimation,
         );
-      case ThemeType.volcanicLavaLamp:
-        return VolcanicLavaLampBackground(
+      case ThemeType.lavaLamp:
+        return LavaLampBackground(
           theme: theme,
           intensity: intensity,
           enableAnimation: enableAnimation,
         );
       case ThemeType.coralReef:
         return CoralReefBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.stainedGlass:
+        return StainedGlassBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.ukiyoEWaves:
+        return UkiyoeWavesBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.dataStream:
+        return DataStreamBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.lofiNight:
+        return LofiNightBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.artNouveau:
+        return ArtNouveauBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.petrichor:
+        return PetrichorBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.origami:
+        return OrigamiBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.pointillism:
+        return PointillismBackground(
           theme: theme,
           intensity: intensity,
           enableAnimation: enableAnimation,

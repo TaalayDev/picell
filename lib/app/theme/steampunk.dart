@@ -112,55 +112,33 @@ class SteampunkBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Slow rotation for massive background gears
-    final slowController = useAnimationController(
-      duration: const Duration(seconds: 60),
-    );
-
-    // Medium speed for mid-layer mechanisms
-    final mediumController = useAnimationController(
-      duration: const Duration(seconds: 20),
-    );
-
-    // Fast animation for particles and steam
-    final fastController = useAnimationController(
-      duration: const Duration(seconds: 8),
+    // 1. Controller acts purely as a ticker to drive the frame loop
+    final controller = useAnimationController(
+      duration: const Duration(seconds: 1),
     );
 
     useEffect(() {
       if (enableAnimation) {
-        slowController.repeat();
-        mediumController.repeat();
-        fastController.repeat();
+        controller.repeat();
       } else {
-        slowController.stop();
-        mediumController.stop();
-        fastController.stop();
+        controller.stop();
       }
       return null;
     }, [enableAnimation]);
 
-    final slowAnim = useAnimation(
-      Tween<double>(begin: 0, end: 1).animate(slowController),
-    );
-    final mediumAnim = useAnimation(
-      Tween<double>(begin: 0, end: 1).animate(mediumController),
-    );
-    final fastAnim = useAnimation(
-      Tween<double>(begin: 0, end: 1).animate(fastController),
-    );
+    // 2. Persist state for smooth infinite time accumulation
+    final steamState = useMemoized(() => _SteampunkState());
 
     return RepaintBoundary(
       child: CustomPaint(
         painter: _SteampunkPainter(
-          slowAnimation: slowAnim,
-          mediumAnimation: mediumAnim,
-          fastAnimation: fastAnim,
+          repaint: controller,
+          state: steamState,
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           backgroundColor: theme.background,
           surfaceColor: theme.surface,
-          intensity: intensity,
+          intensity: intensity.clamp(0.0, 2.0),
         ),
         size: Size.infinite,
       ),
@@ -168,10 +146,14 @@ class SteampunkBackground extends HookWidget {
   }
 }
 
+// State class to hold accumulated time
+class _SteampunkState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
+}
+
 class _SteampunkPainter extends CustomPainter {
-  final double slowAnimation;
-  final double mediumAnimation;
-  final double fastAnimation;
+  final _SteampunkState state;
   final Color primaryColor;
   final Color accentColor;
   final Color backgroundColor;
@@ -192,19 +174,38 @@ class _SteampunkPainter extends CustomPainter {
   final math.Random _rng = math.Random(42);
 
   _SteampunkPainter({
-    required this.slowAnimation,
-    required this.mediumAnimation,
-    required this.fastAnimation,
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
     required this.backgroundColor,
     required this.surfaceColor,
     required this.intensity,
-  });
+  }) : super(repaint: repaint);
+
+  // Helper getters to map accumulated time to the original speeds
+  // Slow: 60s cycle -> rate 1/60
+  double get _slowTime => state.time / 60.0;
+  // Medium: 20s cycle -> rate 1/20
+  double get _mediumTime => state.time / 20.0;
+  // Fast: 8s cycle -> rate 1/8
+  double get _fastTime => state.time / 8.0;
 
   @override
   void paint(Canvas canvas, Size size) {
-    _rng = math.Random(42); // Reset for consistent positioning
+    // Time Accumulation Logic
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
+
+    // Reset RNG for consistent layout (but not particle motion, which is time-based)
+    // _rng logic in paint methods will be deterministic based on loops if we are careful,
+    // but the original code reset it at start of paint.
+    // However, original code used _rng for debris positions which were animated by time.
+    // We will stick to the pattern but ensure time drives motion.
+    // Note: The previous implementation reset _rng at the start of paint.
+    // We will re-seed inside specific methods if needed, or rely on deterministic math.
 
     // === LAYER 1: Deep industrial background ===
     _paintBackground(canvas, size);
@@ -261,7 +262,7 @@ class _SteampunkPainter extends CustomPainter {
         const Color(0xFF0F0D0A), // Rich black-brown
         const Color(0xFF080604), // Deep shadow
       ],
-      [0.0, 0.5, 1.0],
+      const [0.0, 0.5, 1.0],
     );
 
     canvas.drawRect(
@@ -270,11 +271,12 @@ class _SteampunkPainter extends CustomPainter {
     );
 
     // Subtle grain texture
+    final grainRng = math.Random(123); // Deterministic seed
     final grainPaint = Paint()..color = _parchment.withOpacity(0.008 * intensity);
     for (int i = 0; i < (300 * intensity).round(); i++) {
       canvas.drawCircle(
-        Offset(_rng.nextDouble() * size.width, _rng.nextDouble() * size.height),
-        _rng.nextDouble() * 1.5,
+        Offset(grainRng.nextDouble() * size.width, grainRng.nextDouble() * size.height),
+        grainRng.nextDouble() * 1.5,
         grainPaint,
       );
     }
@@ -332,7 +334,8 @@ class _SteampunkPainter extends CustomPainter {
         size.width * gear.x,
         size.height * gear.y,
       );
-      final rotation = slowAnimation * 2 * math.pi * gear.speed;
+      // Continuous rotation based on _slowTime
+      final rotation = _slowTime * 2 * math.pi * gear.speed;
       final opacity = 0.03 * intensity;
 
       _drawMassiveGear(
@@ -447,7 +450,8 @@ class _SteampunkPainter extends CustomPainter {
 
     for (int i = 0; i < pipes.length; i++) {
       final pipe = pipes[i];
-      final pulseOpacity = 0.08 + math.sin(mediumAnimation * 2 * math.pi + i) * 0.02;
+      // Continuous pulse
+      final pulseOpacity = 0.08 + math.sin(_mediumTime * 2 * math.pi + i) * 0.02;
 
       // Pipe shadow
       paint.strokeWidth = 14 * intensity;
@@ -506,8 +510,8 @@ class _SteampunkPainter extends CustomPainter {
     for (int i = 0; i < clocks.length; i++) {
       final center = clocks[i];
       final radius = (35 + i * 8) * intensity;
-      final rotation = mediumAnimation * 2 * math.pi * (i % 2 == 0 ? 1 : -0.7);
-      final opacity = 0.08 + math.sin(mediumAnimation * 3 * math.pi + i * 1.2) * 0.02;
+      final rotation = _mediumTime * 2 * math.pi * (i % 2 == 0 ? 1 : -0.7);
+      final opacity = 0.08 + math.sin(_mediumTime * 3 * math.pi + i * 1.2) * 0.02;
 
       _drawClockFace(canvas, center, radius, rotation, opacity);
     }
@@ -589,7 +593,7 @@ class _SteampunkPainter extends CustomPainter {
     );
 
     // Second hand (fast)
-    final secondAngle = fastAnimation * 2 * math.pi - math.pi / 2;
+    final secondAngle = _fastTime * 2 * math.pi - math.pi / 2;
     paint.strokeWidth = 1 * intensity;
     paint.color = _copper.withOpacity(opacity * intensity);
     canvas.drawLine(
@@ -637,9 +641,9 @@ class _SteampunkPainter extends CustomPainter {
         final gear = cluster[i];
         final center = Offset(size.width * gear.x, size.height * gear.y);
         final radius = gear.radius * intensity;
-        final rotation = mediumAnimation * 2 * math.pi * gear.speed;
+        final rotation = _mediumTime * 2 * math.pi * gear.speed;
 
-        final breathe = math.sin(mediumAnimation * 4 * math.pi + i * 1.5) * 0.03 + 0.1;
+        final breathe = math.sin(_mediumTime * 4 * math.pi + i * 1.5) * 0.03 + 0.1;
         final color = Color.lerp(_brass, _copper, i / cluster.length)!.withOpacity(breathe * intensity);
 
         _drawDetailedGear(canvas, center, radius, gear.teeth, rotation, color);
@@ -723,7 +727,7 @@ class _SteampunkPainter extends CustomPainter {
       final width = 50.0 * intensity;
       final height = 70.0 * intensity;
 
-      final heatGlow = math.sin(fastAnimation * 3 * math.pi + i * 2) * 0.3 + 0.7;
+      final heatGlow = math.sin(_fastTime * 3 * math.pi + i * 2) * 0.3 + 0.7;
       final opacity = 0.08 * intensity;
 
       final paint = Paint()..style = PaintingStyle.stroke;
@@ -784,7 +788,7 @@ class _SteampunkPainter extends CustomPainter {
       final radius = (15 + i * 2) * intensity;
 
       // Pressure varies over time
-      final pressure = (math.sin(fastAnimation * 4 * math.pi + i * 1.8) + 1) / 2;
+      final pressure = (math.sin(_fastTime * 4 * math.pi + i * 1.8) + 1) / 2;
       final opacity = 0.1 + pressure * 0.05;
 
       _drawPressureGauge(canvas, center, radius, pressure, opacity);
@@ -872,14 +876,14 @@ class _SteampunkPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5 * intensity;
 
-      final chainOffset = fastAnimation * 20 * intensity;
+      final chainOffset = _fastTime * 20 * intensity;
 
       for (int i = 0; i < linkCount; i++) {
         final t = ((i + chainOffset / 8) % linkCount) / linkCount;
         final x = start.dx + dx * t;
         final y = start.dy + dy * t;
 
-        final opacity = 0.06 + math.sin(fastAnimation * 6 * math.pi + i * 0.5) * 0.02;
+        final opacity = 0.06 + math.sin(_fastTime * 6 * math.pi + i * 0.5) * 0.02;
         paint.color = _iron.withOpacity(opacity * intensity);
 
         // Draw chain link
@@ -917,7 +921,8 @@ class _SteampunkPainter extends CustomPainter {
       final vent = vents[v];
 
       for (int p = 0; p < 6; p++) {
-        final progress = (fastAnimation + p * 0.15 + v * 0.1) % 1.0;
+        // Continuous linear progress using _fastTime
+        final progress = (_fastTime + p * 0.15 + v * 0.1) % 1.0;
         final rise = progress * size.height * 0.25;
         final drift = math.sin(progress * math.pi * 3 + v) * 25 * intensity;
         final expand = 10 + progress * 35;
@@ -959,10 +964,12 @@ class _SteampunkPainter extends CustomPainter {
       final source = sparkSources[s];
 
       for (int i = 0; i < 8; i++) {
-        final progress = (fastAnimation * 2 + i * 0.1 + s * 0.15) % 1.0;
+        final progress = (_fastTime * 2 + i * 0.1 + s * 0.15) % 1.0;
 
         // Sparks fly up and out
-        final angle = -math.pi / 2 + (_rng.nextDouble() - 0.5) * math.pi * 0.8;
+        // Use deterministic random based on index
+        final r = ((i * 37) % 100) / 100.0;
+        final angle = -math.pi / 2 + (r - 0.5) * math.pi * 0.8;
         final distance = progress * 80 * intensity;
         final gravity = progress * progress * 40 * intensity;
 
@@ -988,18 +995,23 @@ class _SteampunkPainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
     final debrisCount = (40 * intensity).round();
 
+    // Deterministic loop for stable debris positions
     for (int i = 0; i < debrisCount; i++) {
-      final baseX = _rng.nextDouble() * size.width;
-      final baseY = _rng.nextDouble() * size.height;
+      final r1 = ((i * 13.0) % 100) / 100.0;
+      final r2 = ((i * 29.0) % 100) / 100.0;
+      final r3 = ((i * 7.0) % 100) / 100.0;
 
-      final floatX = baseX + math.sin(fastAnimation * 2 * math.pi + i * 0.5) * 15 * intensity;
-      final floatY = baseY + math.cos(fastAnimation * 1.5 * math.pi + i * 0.7) * 12 * intensity;
+      final baseX = r1 * size.width;
+      final baseY = r2 * size.height;
 
-      final twinkle = math.sin(fastAnimation * 5 * math.pi + i * 0.9) * 0.5 + 0.5;
+      final floatX = baseX + math.sin(_fastTime * 2 * math.pi + i * 0.5) * 15 * intensity;
+      final floatY = baseY + math.cos(_fastTime * 1.5 * math.pi + i * 0.7) * 12 * intensity;
+
+      final twinkle = math.sin(_fastTime * 5 * math.pi + i * 0.9) * 0.5 + 0.5;
 
       if (twinkle > 0.25) {
         final particleOpacity = twinkle * 0.2 * intensity;
-        paint.color = Color.lerp(_brass, _copper, _rng.nextDouble())!.withOpacity(particleOpacity);
+        paint.color = Color.lerp(_brass, _copper, r3)!.withOpacity(particleOpacity);
 
         switch (i % 6) {
           case 0: // Spark
@@ -1129,7 +1141,7 @@ class _SteampunkPainter extends CustomPainter {
         Colors.black.withOpacity(0.25 * intensity),
         Colors.black.withOpacity(0.5 * intensity),
       ],
-      [0.4, 0.75, 1.0],
+      const [0.4, 0.75, 1.0],
     );
 
     canvas.drawRect(
@@ -1140,13 +1152,9 @@ class _SteampunkPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SteampunkPainter oldDelegate) {
-    return oldDelegate.slowAnimation != slowAnimation ||
-        oldDelegate.mediumAnimation != mediumAnimation ||
-        oldDelegate.fastAnimation != fastAnimation ||
-        oldDelegate.intensity != intensity;
+    // Always repaint for animation
+    return true;
   }
-
-  set _rng(math.Random value) {} // Dart workaround for resetting
 }
 
 // ============================================================================

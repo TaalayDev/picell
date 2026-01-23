@@ -8,103 +8,102 @@ import 'package:google_fonts/google_fonts.dart';
 import 'theme.dart';
 
 // ============================================================================
-// VOLCANIC LAVA LAMP THEME BUILDER
+// LAVA LAMP THEME BUILDER
 // ============================================================================
 
-AppTheme buildVolcanicLavaLampTheme() {
-  final baseTextTheme = GoogleFonts.spaceGroteskTextTheme();
-  final bodyTextTheme = GoogleFonts.interTextTheme();
+AppTheme buildLavaLampTheme() {
+  final baseTextTheme = GoogleFonts.righteousTextTheme();
+  final bodyTextTheme = GoogleFonts.quicksandTextTheme();
 
   return AppTheme(
-    type: ThemeType.volcanicLavaLamp,
+    type: ThemeType.lavaLamp,
     isDark: true,
 
-    // Primary colors - molten orange-red
-    primaryColor: const Color(0xFFFF4500),
-    primaryVariant: const Color(0xFFCC3700),
-    onPrimary: const Color(0xFFFFF8F0),
+    // Primary colors - psychedelic orange
+    primaryColor: const Color(0xFFFF6B35), // Warm orange
+    primaryVariant: const Color(0xFFE85D04), // Deep orange
+    onPrimary: Colors.white,
 
-    // Secondary colors - deep purple
-    accentColor: const Color(0xFF6B2D8B),
-    onAccent: const Color(0xFFF0E8F5),
+    // Secondary colors - groovy purple
+    accentColor: const Color(0xFF9D4EDD), // Vibrant purple
+    onAccent: Colors.white,
 
-    // Background colors - near black
-    background: const Color(0xFF080408),
-    surface: const Color(0xFF120810),
-    surfaceVariant: const Color(0xFF1A0C14),
+    // Background colors - deep purple-black
+    background: const Color(0xFF10002B), // Deep purple-black
+    surface: const Color(0xFF1A0536), // Slightly lighter
+    surfaceVariant: const Color(0xFF240046), // Card surfaces
 
-    // Text colors
-    textPrimary: const Color(0xFFF5E8E0),
-    textSecondary: const Color(0xFFD0A090),
-    textDisabled: const Color(0xFF6A5050),
+    // Text colors - warm and psychedelic
+    textPrimary: const Color(0xFFFFF0F5), // Lavender blush
+    textSecondary: const Color(0xFFE0AAFF), // Light purple
+    textDisabled: const Color(0xFF7B5E7B), // Muted purple
 
     // UI colors
-    divider: const Color(0xFF2A1820),
-    toolbarColor: const Color(0xFF120810),
+    divider: const Color(0xFF3C096C),
+    toolbarColor: const Color(0xFF1A0536),
     error: const Color(0xFFFF6B6B),
-    success: const Color(0xFF8BC34A),
-    warning: const Color(0xFFFFAB00),
+    success: const Color(0xFF7AE582),
+    warning: const Color(0xFFFFE66D),
 
     // Grid colors
-    gridLine: const Color(0xFF2A1820),
-    gridBackground: const Color(0xFF120810),
+    gridLine: const Color(0xFF3C096C),
+    gridBackground: const Color(0xFF1A0536),
 
     // Canvas colors
-    canvasBackground: const Color(0xFF080408),
-    selectionOutline: const Color(0xFFFF4500),
-    selectionFill: const Color(0x30FF4500),
+    canvasBackground: const Color(0xFF10002B),
+    selectionOutline: const Color(0xFFFF6B35),
+    selectionFill: const Color(0x30FF6B35),
 
     // Icon colors
-    activeIcon: const Color(0xFFFF4500),
-    inactiveIcon: const Color(0xFFD0A090),
+    activeIcon: const Color(0xFFFF6B35),
+    inactiveIcon: const Color(0xFFE0AAFF),
 
     // Typography
     textTheme: baseTextTheme.copyWith(
       displayLarge: baseTextTheme.displayLarge!.copyWith(
-        color: const Color(0xFFF5E8E0),
-        fontWeight: FontWeight.w500,
-        letterSpacing: -0.5,
+        color: const Color(0xFFFFF0F5),
+        fontWeight: FontWeight.w400,
+        letterSpacing: 2,
       ),
       displayMedium: baseTextTheme.displayMedium!.copyWith(
-        color: const Color(0xFFF5E8E0),
-        fontWeight: FontWeight.w500,
+        color: const Color(0xFFFFF0F5),
+        fontWeight: FontWeight.w400,
+        letterSpacing: 1.5,
       ),
       titleLarge: baseTextTheme.titleLarge!.copyWith(
-        color: const Color(0xFFF5E8E0),
-        fontWeight: FontWeight.w500,
+        color: const Color(0xFFFF6B35),
+        fontWeight: FontWeight.w400,
+        letterSpacing: 1,
       ),
-      titleMedium: baseTextTheme.titleMedium!.copyWith(
-        color: const Color(0xFFF5E8E0),
+      titleMedium: bodyTextTheme.titleMedium!.copyWith(
+        color: const Color(0xFFFFF0F5),
         fontWeight: FontWeight.w500,
       ),
       bodyLarge: bodyTextTheme.bodyLarge!.copyWith(
-        color: const Color(0xFFF5E8E0),
-        fontWeight: FontWeight.w400,
+        color: const Color(0xFFFFF0F5),
       ),
       bodyMedium: bodyTextTheme.bodyMedium!.copyWith(
-        color: const Color(0xFFD0A090),
-        fontWeight: FontWeight.w400,
+        color: const Color(0xFFE0AAFF),
       ),
       labelLarge: bodyTextTheme.labelLarge!.copyWith(
-        color: const Color(0xFFFF4500),
+        color: const Color(0xFFFF6B35),
         fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
       ),
     ),
-    primaryFontWeight: FontWeight.w500,
+    primaryFontWeight: FontWeight.w400,
   );
 }
 
 // ============================================================================
-// VOLCANIC LAVA LAMP ANIMATED BACKGROUND
+// LAVA LAMP ANIMATED BACKGROUND
 // ============================================================================
 
-class VolcanicLavaLampBackground extends HookWidget {
+class LavaLampBackground extends HookWidget {
   final AppTheme theme;
   final double intensity;
   final bool enableAnimation;
 
-  const VolcanicLavaLampBackground({
+  const LavaLampBackground({
     super.key,
     required this.theme,
     this.intensity = 1.0,
@@ -114,7 +113,7 @@ class VolcanicLavaLampBackground extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final controller = useAnimationController(
-      duration: const Duration(seconds: 24),
+      duration: const Duration(seconds: 1),
     );
 
     useEffect(() {
@@ -122,17 +121,17 @@ class VolcanicLavaLampBackground extends HookWidget {
         controller.repeat();
       } else {
         controller.stop();
-        controller.value = 0;
       }
       return null;
     }, [enableAnimation]);
 
-    final t = useAnimation(controller);
+    final lavaState = useMemoized(() => _LavaLampState());
 
     return RepaintBoundary(
       child: CustomPaint(
         painter: _LavaLampPainter(
-          t: t,
+          repaint: controller,
+          state: lavaState,
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
@@ -143,309 +142,187 @@ class VolcanicLavaLampBackground extends HookWidget {
   }
 }
 
-// Blob data for organic movement
-class _BlobData {
-  final double baseX;
-  final double baseY;
-  final double baseRadius;
-  final double phaseX;
-  final double phaseY;
-  final double phaseR;
-  final double speedX;
-  final double speedY;
-  final double speedR;
-  final int colorIndex;
+class _LavaLampState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
+  List<_LavaBlob>? blobs;
+}
 
-  const _BlobData({
-    required this.baseX,
-    required this.baseY,
-    required this.baseRadius,
-    required this.phaseX,
-    required this.phaseY,
-    required this.phaseR,
-    required this.speedX,
-    required this.speedY,
-    required this.speedR,
+class _LavaBlob {
+  double x;
+  double y;
+  double radius;
+  double vx;
+  double vy;
+  double phase;
+  int colorIndex;
+  double morphSpeed;
+  double morphPhase;
+
+  _LavaBlob({
+    required this.x,
+    required this.y,
+    required this.radius,
+    required this.vx,
+    required this.vy,
+    required this.phase,
     required this.colorIndex,
+    required this.morphSpeed,
+    required this.morphPhase,
   });
 }
 
 class _LavaLampPainter extends CustomPainter {
-  final double t;
+  final _LavaLampState state;
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
 
-  // Color palette - molten lava colors
-  static const Color _magma = Color(0xFFFF4500);
-  static const Color _lava = Color(0xFFFF6020);
-  static const Color _ember = Color(0xFFFF8040);
-  static const Color _flame = Color(0xFFFFAA30);
-  static const Color _purple = Color(0xFF6B2D8B);
-  static const Color _deepPurple = Color(0xFF4A1D6B);
-  static const Color _violet = Color(0xFF8B4DA8);
-  static const Color _black = Color(0xFF080408);
-
-  static const List<Color> _hotColors = [_magma, _lava, _ember, _flame];
-  static const List<Color> _coolColors = [_purple, _deepPurple, _violet];
-
-  // Pre-computed blobs - large organic shapes
-  static const List<_BlobData> _largeBlobs = [
-    _BlobData(
-        baseX: 0.3,
-        baseY: 0.7,
-        baseRadius: 0.18,
-        phaseX: 0.0,
-        phaseY: 0.5,
-        phaseR: 1.0,
-        speedX: 0.3,
-        speedY: 0.2,
-        speedR: 0.4,
-        colorIndex: 0),
-    _BlobData(
-        baseX: 0.7,
-        baseY: 0.3,
-        baseRadius: 0.15,
-        phaseX: 1.5,
-        phaseY: 0.0,
-        phaseR: 2.0,
-        speedX: 0.25,
-        speedY: 0.35,
-        speedR: 0.3,
-        colorIndex: 1),
-    _BlobData(
-        baseX: 0.5,
-        baseY: 0.5,
-        baseRadius: 0.20,
-        phaseX: 0.8,
-        phaseY: 1.2,
-        phaseR: 0.5,
-        speedX: 0.2,
-        speedY: 0.25,
-        speedR: 0.35,
-        colorIndex: 2),
-    _BlobData(
-        baseX: 0.2,
-        baseY: 0.3,
-        baseRadius: 0.12,
-        phaseX: 2.0,
-        phaseY: 1.8,
-        phaseR: 1.5,
-        speedX: 0.35,
-        speedY: 0.3,
-        speedR: 0.25,
-        colorIndex: 3),
-    _BlobData(
-        baseX: 0.8,
-        baseY: 0.7,
-        baseRadius: 0.14,
-        phaseX: 1.0,
-        phaseY: 2.5,
-        phaseR: 0.8,
-        speedX: 0.28,
-        speedY: 0.22,
-        speedR: 0.32,
-        colorIndex: 0),
+  // Psychedelic color palette
+  static const List<Color> _lavaColors = [
+    Color(0xFFFF6B35), // Orange
+    Color(0xFFFF006E), // Hot pink
+    Color(0xFF9D4EDD), // Purple
+    Color(0xFFFFBE0B), // Yellow
+    Color(0xFF3A86FF), // Blue
+    Color(0xFFF72585), // Magenta
   ];
 
-  // Medium blobs
-  static const List<_BlobData> _mediumBlobs = [
-    _BlobData(
-        baseX: 0.4,
-        baseY: 0.2,
-        baseRadius: 0.10,
-        phaseX: 0.3,
-        phaseY: 1.0,
-        phaseR: 1.8,
-        speedX: 0.4,
-        speedY: 0.35,
-        speedR: 0.5,
-        colorIndex: 1),
-    _BlobData(
-        baseX: 0.6,
-        baseY: 0.8,
-        baseRadius: 0.09,
-        phaseX: 1.8,
-        phaseY: 0.3,
-        phaseR: 0.2,
-        speedX: 0.35,
-        speedY: 0.4,
-        speedR: 0.45,
-        colorIndex: 2),
-    _BlobData(
-        baseX: 0.15,
-        baseY: 0.55,
-        baseRadius: 0.08,
-        phaseX: 2.5,
-        phaseY: 1.5,
-        phaseR: 2.2,
-        speedX: 0.45,
-        speedY: 0.38,
-        speedR: 0.4,
-        colorIndex: 3),
-    _BlobData(
-        baseX: 0.85,
-        baseY: 0.45,
-        baseRadius: 0.085,
-        phaseX: 0.7,
-        phaseY: 2.2,
-        phaseR: 1.2,
-        speedX: 0.38,
-        speedY: 0.42,
-        speedR: 0.48,
-        colorIndex: 0),
-    _BlobData(
-        baseX: 0.5,
-        baseY: 0.1,
-        baseRadius: 0.07,
-        phaseX: 1.2,
-        phaseY: 0.8,
-        phaseR: 2.8,
-        speedX: 0.42,
-        speedY: 0.3,
-        speedR: 0.38,
-        colorIndex: 1),
-    _BlobData(
-        baseX: 0.35,
-        baseY: 0.9,
-        baseRadius: 0.075,
-        phaseX: 2.0,
-        phaseY: 1.0,
-        phaseR: 0.6,
-        speedX: 0.32,
-        speedY: 0.45,
-        speedR: 0.42,
-        colorIndex: 2),
-  ];
+  static const Color _glassTop = Color(0xFF2D0A4E);
+  static const Color _glassBottom = Color(0xFF0D0221);
+  static const Color _metalCap = Color(0xFF4A4A4A);
+  static const Color _metalHighlight = Color(0xFF6A6A6A);
 
-  // Small accent blobs
-  static const List<_BlobData> _smallBlobs = [
-    _BlobData(
-        baseX: 0.25,
-        baseY: 0.4,
-        baseRadius: 0.05,
-        phaseX: 0.5,
-        phaseY: 2.0,
-        phaseR: 1.0,
-        speedX: 0.5,
-        speedY: 0.45,
-        speedR: 0.6,
-        colorIndex: 0),
-    _BlobData(
-        baseX: 0.75,
-        baseY: 0.6,
-        baseRadius: 0.045,
-        phaseX: 1.5,
-        phaseY: 0.5,
-        phaseR: 2.5,
-        speedX: 0.48,
-        speedY: 0.52,
-        speedR: 0.55,
-        colorIndex: 1),
-    _BlobData(
-        baseX: 0.55,
-        baseY: 0.35,
-        baseRadius: 0.04,
-        phaseX: 2.2,
-        phaseY: 1.2,
-        phaseR: 0.3,
-        speedX: 0.55,
-        speedY: 0.48,
-        speedR: 0.52,
-        colorIndex: 2),
-    _BlobData(
-        baseX: 0.45,
-        baseY: 0.65,
-        baseRadius: 0.042,
-        phaseX: 0.8,
-        phaseY: 2.8,
-        phaseR: 1.8,
-        speedX: 0.52,
-        speedY: 0.5,
-        speedR: 0.58,
-        colorIndex: 3),
-    _BlobData(
-        baseX: 0.1,
-        baseY: 0.75,
-        baseRadius: 0.038,
-        phaseX: 1.8,
-        phaseY: 0.2,
-        phaseR: 2.2,
-        speedX: 0.58,
-        speedY: 0.55,
-        speedR: 0.5,
-        colorIndex: 0),
-    _BlobData(
-        baseX: 0.9,
-        baseY: 0.25,
-        baseRadius: 0.035,
-        phaseX: 2.8,
-        phaseY: 1.8,
-        phaseR: 0.8,
-        speedX: 0.5,
-        speedY: 0.58,
-        speedR: 0.62,
-        colorIndex: 1),
-    _BlobData(
-        baseX: 0.65,
-        baseY: 0.15,
-        baseRadius: 0.032,
-        phaseX: 0.2,
-        phaseY: 2.5,
-        phaseR: 1.5,
-        speedX: 0.6,
-        speedY: 0.52,
-        speedR: 0.48,
-        colorIndex: 2),
-    _BlobData(
-        baseX: 0.3,
-        baseY: 0.85,
-        baseRadius: 0.036,
-        phaseX: 1.0,
-        phaseY: 0.8,
-        phaseR: 2.8,
-        speedX: 0.55,
-        speedY: 0.6,
-        speedR: 0.55,
-        colorIndex: 3),
-  ];
-
-  // Reusable paint objects
   final Paint _fillPaint = Paint()..style = PaintingStyle.fill;
-  final Path _blobPath = Path();
+  final Paint _strokePaint = Paint()..style = PaintingStyle.stroke;
+  final Path _path = Path();
 
   _LavaLampPainter({
-    required this.t,
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
-  });
+  }) : super(repaint: repaint);
 
-  double get _phase => 2 * math.pi * t;
-  double _wave(double speed, [double offset = 0]) => math.sin(_phase * speed + offset);
+  double _wave(double speed, [double offset = 0]) => math.sin(state.time * speed + offset);
   double _norm(double speed, [double offset = 0]) => 0.5 * (1 + _wave(speed, offset));
 
   @override
   void paint(Canvas canvas, Size size) {
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
+
+    // Initialize blobs
+    state.blobs ??= _generateBlobs(size);
+
+    // Update blob positions
+    _updateBlobs(size, dt);
+
+    // Layer 1: Deep background
     _paintBackground(canvas, size);
+
+    // Layer 2: Lamp glass container
+    _paintLampGlass(canvas, size);
+
+    // Layer 3: Lava blobs with metaball effect
+    _paintLavaBlobs(canvas, size);
+
+    // Layer 4: Glass reflections
+    _paintGlassReflections(canvas, size);
+
+    // Layer 5: Lamp cap and base
+    _paintLampHardware(canvas, size);
+
+    // Layer 6: Ambient glow
     _paintAmbientGlow(canvas, size);
-    _paintBlobLayer(canvas, size, _largeBlobs, 1.0, 0.7);
-    _paintBlobLayer(canvas, size, _mediumBlobs, 0.85, 0.6);
-    _paintBlobLayer(canvas, size, _smallBlobs, 0.7, 0.5);
-    _paintHeatDistortion(canvas, size);
-    _paintHighlights(canvas, size);
+
+    // Layer 7: Light bloom
+    _paintLightBloom(canvas, size);
+
+    // Layer 8: Vignette
     _paintVignette(canvas, size);
   }
 
+  List<_LavaBlob> _generateBlobs(Size size) {
+    final blobs = <_LavaBlob>[];
+    final rng = math.Random(42);
+    final blobCount = 8;
+
+    for (int i = 0; i < blobCount; i++) {
+      blobs.add(_LavaBlob(
+        x: 0.3 + rng.nextDouble() * 0.4,
+        y: 0.2 + rng.nextDouble() * 0.6,
+        radius: 0.06 + rng.nextDouble() * 0.08,
+        vx: (rng.nextDouble() - 0.5) * 0.02,
+        vy: (rng.nextDouble() - 0.5) * 0.015,
+        phase: rng.nextDouble() * math.pi * 2,
+        colorIndex: rng.nextInt(_lavaColors.length),
+        morphSpeed: 0.5 + rng.nextDouble() * 0.5,
+        morphPhase: rng.nextDouble() * math.pi * 2,
+      ));
+    }
+
+    return blobs;
+  }
+
+  void _updateBlobs(Size size, double dt) {
+    final lampLeft = 0.25;
+    final lampRight = 0.75;
+    final lampTop = 0.12;
+    final lampBottom = 0.88;
+
+    for (final blob in state.blobs!) {
+      // Heat rises effect - blobs tend to rise, then cool and sink
+      final heatCycle = _wave(0.08, blob.phase);
+      final buoyancy = heatCycle * 0.008;
+
+      blob.vy += buoyancy * dt * 60;
+
+      // Horizontal drift
+      blob.vx += _wave(0.1, blob.phase + 1.5) * 0.0002 * dt * 60;
+
+      // Apply velocity
+      blob.x += blob.vx * dt * 60;
+      blob.y += blob.vy * dt * 60;
+
+      // Damping
+      blob.vx *= 0.995;
+      blob.vy *= 0.995;
+
+      // Bounce off walls with soft collision
+      if (blob.x - blob.radius < lampLeft) {
+        blob.x = lampLeft + blob.radius;
+        blob.vx = blob.vx.abs() * 0.6;
+      }
+      if (blob.x + blob.radius > lampRight) {
+        blob.x = lampRight - blob.radius;
+        blob.vx = -blob.vx.abs() * 0.6;
+      }
+      if (blob.y - blob.radius < lampTop) {
+        blob.y = lampTop + blob.radius;
+        blob.vy = blob.vy.abs() * 0.6;
+      }
+      if (blob.y + blob.radius > lampBottom) {
+        blob.y = lampBottom - blob.radius;
+        blob.vy = -blob.vy.abs() * 0.6;
+      }
+
+      // Blob radius morphing
+      blob.radius = (0.06 + _norm(blob.morphSpeed, blob.morphPhase) * 0.06) * intensity;
+    }
+  }
+
   void _paintBackground(Canvas canvas, Size size) {
-    // Deep gradient background
     final gradient = ui.Gradient.radial(
-      Offset(size.width * 0.5, size.height * 0.6),
-      size.longestSide * 0.8,
-      [
-        const Color(0xFF150810), // Warm dark center
-        const Color(0xFF0A0408), // Near black
-        const Color(0xFF050204), // Deep black edges
+      Offset(size.width * 0.5, size.height * 0.5),
+      size.longestSide * 0.7,
+      const [
+        Color(0xFF1A0536),
+        Color(0xFF10002B),
+        Color(0xFF0A0015),
       ],
       const [0.0, 0.5, 1.0],
     );
@@ -455,193 +332,324 @@ class _LavaLampPainter extends CustomPainter {
     _fillPaint.shader = null;
   }
 
-  void _paintAmbientGlow(Canvas canvas, Size size) {
-    final pulse = _norm(0.3) * 0.3 + 0.7;
-
-    // Bottom heat glow
-    _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 100 * intensity);
-    _fillPaint.color = _magma.withOpacity(0.08 * pulse * intensity);
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(size.width * 0.5, size.height * 1.1),
-        width: size.width * 1.2,
-        height: size.height * 0.5,
-      ),
-      _fillPaint,
+  void _paintLampGlass(Canvas canvas, Size size) {
+    final lampRect = Rect.fromLTRB(
+      size.width * 0.25,
+      size.height * 0.1,
+      size.width * 0.75,
+      size.height * 0.9,
     );
 
-    // Top cool glow
-    _fillPaint.color = _purple.withOpacity(0.05 * pulse * intensity);
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(size.width * 0.5, size.height * -0.1),
-        width: size.width * 1.0,
-        height: size.height * 0.4,
-      ),
-      _fillPaint,
+    // Lamp shape - tapered cylinder
+    _path.reset();
+    _path.moveTo(lampRect.left + lampRect.width * 0.1, lampRect.top);
+    _path.quadraticBezierTo(
+      lampRect.left - lampRect.width * 0.05,
+      lampRect.top + lampRect.height * 0.3,
+      lampRect.left,
+      lampRect.top + lampRect.height * 0.5,
     );
-
-    _fillPaint.maskFilter = null;
-  }
-
-  void _paintBlobLayer(Canvas canvas, Size size, List<_BlobData> blobs, double scale, double baseOpacity) {
-    for (final blob in blobs) {
-      _drawBlob(canvas, size, blob, scale, baseOpacity);
-    }
-  }
-
-  void _drawBlob(Canvas canvas, Size size, _BlobData blob, double scale, double baseOpacity) {
-    // Calculate animated position
-    final moveX = _wave(blob.speedX, blob.phaseX) * 0.15;
-    final moveY = _wave(blob.speedY, blob.phaseY) * 0.2;
-    final scaleVar = _norm(blob.speedR, blob.phaseR) * 0.3 + 0.85;
-
-    final centerX = (blob.baseX + moveX) * size.width;
-    final centerY = (blob.baseY + moveY) * size.height;
-    final radius = blob.baseRadius * size.shortestSide * scale * scaleVar * intensity;
-
-    if (radius < 5) return;
-
-    // Get blob color with gradient
-    final color = _hotColors[blob.colorIndex];
-    final innerColor = Color.lerp(color, _flame, 0.3)!;
-    final outerColor = Color.lerp(color, _deepPurple, 0.2)!;
-
-    // Organic blob shape using bezier curves
-    _blobPath.reset();
-    final points = 8;
-    final List<Offset> controlPoints = [];
-
-    for (int i = 0; i < points; i++) {
-      final angle = (i / points) * 2 * math.pi;
-      // Organic variation per point
-      final variation = _wave(0.5 + blob.speedX * 0.5, blob.phaseX + i * 0.8) * 0.25 + 1.0;
-      final r = radius * variation;
-
-      controlPoints.add(Offset(
-        centerX + math.cos(angle) * r,
-        centerY + math.sin(angle) * r,
-      ));
-    }
-
-    // Create smooth blob using quadratic beziers
-    _blobPath.moveTo(
-      (controlPoints[0].dx + controlPoints[points - 1].dx) / 2,
-      (controlPoints[0].dy + controlPoints[points - 1].dy) / 2,
+    _path.quadraticBezierTo(
+      lampRect.left - lampRect.width * 0.03,
+      lampRect.top + lampRect.height * 0.7,
+      lampRect.left + lampRect.width * 0.05,
+      lampRect.bottom,
     );
+    _path.lineTo(lampRect.right - lampRect.width * 0.05, lampRect.bottom);
+    _path.quadraticBezierTo(
+      lampRect.right + lampRect.width * 0.03,
+      lampRect.top + lampRect.height * 0.7,
+      lampRect.right,
+      lampRect.top + lampRect.height * 0.5,
+    );
+    _path.quadraticBezierTo(
+      lampRect.right + lampRect.width * 0.05,
+      lampRect.top + lampRect.height * 0.3,
+      lampRect.right - lampRect.width * 0.1,
+      lampRect.top,
+    );
+    _path.close();
 
-    for (int i = 0; i < points; i++) {
-      final next = (i + 1) % points;
-      final midX = (controlPoints[i].dx + controlPoints[next].dx) / 2;
-      final midY = (controlPoints[i].dy + controlPoints[next].dy) / 2;
-
-      _blobPath.quadraticBezierTo(
-        controlPoints[i].dx,
-        controlPoints[i].dy,
-        midX,
-        midY,
-      );
-    }
-    _blobPath.close();
-
-    // Draw outer glow
-    _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, radius * 0.4);
-    _fillPaint.color = outerColor.withOpacity(baseOpacity * 0.4 * intensity);
-    canvas.drawPath(_blobPath, _fillPaint);
-
-    // Draw main blob with gradient
-    _fillPaint.maskFilter = null;
-    final blobGradient = ui.Gradient.radial(
-      Offset(centerX - radius * 0.2, centerY - radius * 0.2),
-      radius * 1.2,
+    // Glass gradient
+    final glassGradient = ui.Gradient.linear(
+      Offset(lampRect.left, lampRect.top),
+      Offset(lampRect.left, lampRect.bottom),
       [
-        innerColor.withOpacity(baseOpacity * 0.9 * intensity),
-        color.withOpacity(baseOpacity * 0.8 * intensity),
-        outerColor.withOpacity(baseOpacity * 0.6 * intensity),
+        _glassTop.withOpacity(0.85),
+        _glassBottom.withOpacity(0.9),
       ],
-      const [0.0, 0.5, 1.0],
     );
 
-    _fillPaint.shader = blobGradient;
-    canvas.drawPath(_blobPath, _fillPaint);
+    _fillPaint.shader = glassGradient;
+    canvas.drawPath(_path, _fillPaint);
     _fillPaint.shader = null;
 
-    // Inner highlight
-    final highlightRadius = radius * 0.4;
-    final highlightX = centerX - radius * 0.25;
-    final highlightY = centerY - radius * 0.25;
-
-    _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, highlightRadius * 0.5);
-    _fillPaint.color = _flame.withOpacity(baseOpacity * 0.3 * intensity);
-    canvas.drawCircle(Offset(highlightX, highlightY), highlightRadius, _fillPaint);
-    _fillPaint.maskFilter = null;
+    // Glass edge highlight
+    _strokePaint.color = Colors.white.withOpacity(0.08 * intensity);
+    _strokePaint.strokeWidth = 2 * intensity;
+    canvas.drawPath(_path, _strokePaint);
   }
 
-  void _paintHeatDistortion(Canvas canvas, Size size) {
-    // Subtle heat shimmer lines rising
-    final shimmerCount = 6;
+  void _paintLavaBlobs(Canvas canvas, Size size) {
+    // Sort blobs by y for depth
+    final sortedBlobs = List<_LavaBlob>.from(state.blobs!)..sort((a, b) => a.y.compareTo(b.y));
 
-    for (int i = 0; i < shimmerCount; i++) {
-      final baseX = (i + 0.5) / shimmerCount * size.width;
-      final progress = (t * 0.5 + i * 0.15) % 1.0;
-      final y = size.height * (1.0 - progress);
+    for (final blob in sortedBlobs) {
+      final centerX = blob.x * size.width;
+      final centerY = blob.y * size.height;
+      final radius = blob.radius * size.shortestSide;
 
-      // Wavy path
-      final wave = _wave(2.0, i * 1.5) * 15 * intensity;
-      final x = baseX + wave;
+      // Morphing shape using multiple sine waves
+      final morphAmount = 0.2 * intensity;
+      final points = <Offset>[];
+      final segments = 32;
 
-      final opacity = math.sin(progress * math.pi) * 0.06 * intensity;
+      for (int i = 0; i < segments; i++) {
+        final angle = i * 2 * math.pi / segments;
+        final morph1 = _wave(blob.morphSpeed, blob.morphPhase + angle * 2) * morphAmount;
+        final morph2 = _wave(blob.morphSpeed * 1.5, blob.morphPhase + angle * 3 + 1) * morphAmount * 0.5;
+        final r = radius * (1 + morph1 + morph2);
 
-      if (opacity > 0.01) {
-        _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 8 * intensity);
-        _fillPaint.color = _lava.withOpacity(opacity);
+        points.add(Offset(
+          centerX + math.cos(angle) * r,
+          centerY + math.sin(angle) * r,
+        ));
+      }
 
-        canvas.drawCircle(
-          Offset(x, y),
-          (3 + _norm(1.0, i.toDouble()) * 4) * intensity,
-          _fillPaint,
+      // Draw blob with smooth curve
+      _path.reset();
+      _path.moveTo(points[0].dx, points[0].dy);
+
+      for (int i = 0; i < points.length; i++) {
+        final p0 = points[i];
+        final p1 = points[(i + 1) % points.length];
+        final p2 = points[(i + 2) % points.length];
+
+        final ctrl1 = Offset(
+          p0.dx + (p1.dx - points[(i - 1 + points.length) % points.length].dx) / 4,
+          p0.dy + (p1.dy - points[(i - 1 + points.length) % points.length].dy) / 4,
         );
+        final ctrl2 = Offset(
+          p1.dx - (p2.dx - p0.dx) / 4,
+          p1.dy - (p2.dy - p0.dy) / 4,
+        );
+
+        _path.cubicTo(ctrl1.dx, ctrl1.dy, ctrl2.dx, ctrl2.dy, p1.dx, p1.dy);
       }
+
+      _path.close();
+
+      // Blob color with glow
+      final baseColor = _lavaColors[blob.colorIndex];
+      final glowPulse = _norm(0.3, blob.phase) * 0.3 + 0.7;
+
+      // Outer glow
+      _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, radius * 0.5);
+      _fillPaint.color = baseColor.withOpacity(0.4 * glowPulse * intensity);
+      canvas.drawPath(_path, _fillPaint);
+      _fillPaint.maskFilter = null;
+
+      // Inner gradient
+      final blobGradient = ui.Gradient.radial(
+        Offset(centerX - radius * 0.2, centerY - radius * 0.2),
+        radius * 1.2,
+        [
+          Color.lerp(baseColor, Colors.white, 0.4)!,
+          baseColor,
+          Color.lerp(baseColor, Colors.black, 0.3)!,
+        ],
+        const [0.0, 0.5, 1.0],
+      );
+
+      _fillPaint.shader = blobGradient;
+      canvas.drawPath(_path, _fillPaint);
+      _fillPaint.shader = null;
+
+      // Highlight
+      _fillPaint.color = Colors.white.withOpacity(0.3 * glowPulse * intensity);
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(centerX - radius * 0.3, centerY - radius * 0.3),
+          width: radius * 0.4,
+          height: radius * 0.25,
+        ),
+        _fillPaint,
+      );
+    }
+  }
+
+  void _paintGlassReflections(Canvas canvas, Size size) {
+    final lampLeft = size.width * 0.25;
+    final lampTop = size.height * 0.1;
+    final lampWidth = size.width * 0.5;
+    final lampHeight = size.height * 0.8;
+
+    // Left edge reflection
+    final leftReflection = ui.Gradient.linear(
+      Offset(lampLeft, lampTop),
+      Offset(lampLeft + lampWidth * 0.15, lampTop),
+      [
+        Colors.white.withOpacity(0.12 * intensity),
+        Colors.transparent,
+      ],
+    );
+
+    _path.reset();
+    _path.moveTo(lampLeft + lampWidth * 0.1, lampTop);
+    _path.quadraticBezierTo(
+      lampLeft - lampWidth * 0.02,
+      lampTop + lampHeight * 0.3,
+      lampLeft + lampWidth * 0.02,
+      lampTop + lampHeight * 0.5,
+    );
+    _path.lineTo(lampLeft + lampWidth * 0.12, lampTop + lampHeight * 0.5);
+    _path.quadraticBezierTo(
+      lampLeft + lampWidth * 0.08,
+      lampTop + lampHeight * 0.3,
+      lampLeft + lampWidth * 0.12,
+      lampTop,
+    );
+    _path.close();
+
+    _fillPaint.shader = leftReflection;
+    canvas.drawPath(_path, _fillPaint);
+    _fillPaint.shader = null;
+
+    // Top curved reflection
+    _fillPaint.color = Colors.white.withOpacity(0.08 * intensity);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(size.width * 0.45, lampTop + lampHeight * 0.08),
+        width: lampWidth * 0.3,
+        height: lampHeight * 0.04,
+      ),
+      _fillPaint,
+    );
+  }
+
+  void _paintLampHardware(Canvas canvas, Size size) {
+    final lampCenterX = size.width * 0.5;
+
+    // Top cap
+    final capTop = size.height * 0.08;
+    final capHeight = size.height * 0.04;
+    final capWidth = size.width * 0.35;
+
+    final capGradient = ui.Gradient.linear(
+      Offset(lampCenterX - capWidth * 0.5, capTop),
+      Offset(lampCenterX + capWidth * 0.5, capTop),
+      [
+        _metalCap,
+        _metalHighlight,
+        _metalCap,
+      ],
+      const [0.0, 0.4, 1.0],
+    );
+
+    _fillPaint.shader = capGradient;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: Offset(lampCenterX, capTop + capHeight * 0.5),
+          width: capWidth,
+          height: capHeight,
+        ),
+        Radius.circular(capHeight * 0.3),
+      ),
+      _fillPaint,
+    );
+    _fillPaint.shader = null;
+
+    // Base
+    final baseBottom = size.height * 0.94;
+    final baseHeight = size.height * 0.05;
+    final baseWidth = size.width * 0.45;
+
+    final baseGradient = ui.Gradient.linear(
+      Offset(lampCenterX - baseWidth * 0.5, baseBottom - baseHeight),
+      Offset(lampCenterX + baseWidth * 0.5, baseBottom - baseHeight),
+      [
+        _metalCap,
+        _metalHighlight,
+        _metalCap,
+      ],
+      const [0.0, 0.35, 1.0],
+    );
+
+    _path.reset();
+    _path.moveTo(lampCenterX - baseWidth * 0.35, baseBottom - baseHeight);
+    _path.lineTo(lampCenterX - baseWidth * 0.5, baseBottom);
+    _path.lineTo(lampCenterX + baseWidth * 0.5, baseBottom);
+    _path.lineTo(lampCenterX + baseWidth * 0.35, baseBottom - baseHeight);
+    _path.close();
+
+    _fillPaint.shader = baseGradient;
+    canvas.drawPath(_path, _fillPaint);
+    _fillPaint.shader = null;
+
+    // Base highlight line
+    _strokePaint.color = _metalHighlight.withOpacity(0.5 * intensity);
+    _strokePaint.strokeWidth = 1.5 * intensity;
+    canvas.drawLine(
+      Offset(lampCenterX - baseWidth * 0.4, baseBottom - baseHeight * 0.3),
+      Offset(lampCenterX + baseWidth * 0.3, baseBottom - baseHeight * 0.3),
+      _strokePaint,
+    );
+  }
+
+  void _paintAmbientGlow(Canvas canvas, Size size) {
+    // Colored ambient light from the lamp
+    for (final blob in state.blobs!) {
+      final color = _lavaColors[blob.colorIndex];
+      final glowPulse = _norm(0.2, blob.phase) * 0.3 + 0.3;
+
+      _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 60 * intensity);
+      _fillPaint.color = color.withOpacity(0.06 * glowPulse * intensity);
+
+      canvas.drawCircle(
+        Offset(blob.x * size.width, blob.y * size.height),
+        size.shortestSide * 0.2,
+        _fillPaint,
+      );
     }
 
     _fillPaint.maskFilter = null;
   }
 
-  void _paintHighlights(Canvas canvas, Size size) {
-    // Bright hot spots that pulse
-    final rng = math.Random(42);
+  void _paintLightBloom(Canvas canvas, Size size) {
+    // Overall warm bloom from lamp
+    final bloomCenter = Offset(size.width * 0.5, size.height * 0.5);
+    final bloomPulse = _norm(0.08) * 0.2 + 0.8;
 
-    for (int i = 0; i < 8; i++) {
-      final x = rng.nextDouble() * size.width;
-      final y = rng.nextDouble() * size.height;
+    final bloomGradient = ui.Gradient.radial(
+      bloomCenter,
+      size.shortestSide * 0.6,
+      [
+        primaryColor.withOpacity(0.08 * bloomPulse * intensity),
+        accentColor.withOpacity(0.04 * bloomPulse * intensity),
+        Colors.transparent,
+      ],
+      const [0.0, 0.4, 1.0],
+    );
 
-      final twinkle = _norm(1.2, i * 0.8);
-      if (twinkle > 0.6) {
-        final brightness = (twinkle - 0.6) * 2.5;
-        final spotSize = (2 + brightness * 4) * intensity;
-
-        _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, spotSize * 2);
-        _fillPaint.color = _flame.withOpacity(brightness * 0.4 * intensity);
-        canvas.drawCircle(Offset(x, y), spotSize, _fillPaint);
-
-        _fillPaint.maskFilter = null;
-        _fillPaint.color = Colors.white.withOpacity(brightness * 0.3 * intensity);
-        canvas.drawCircle(Offset(x, y), spotSize * 0.3, _fillPaint);
-      }
-    }
+    _fillPaint.shader = bloomGradient;
+    _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 30 * intensity);
+    canvas.drawRect(Offset.zero & size, _fillPaint);
+    _fillPaint.maskFilter = null;
+    _fillPaint.shader = null;
   }
 
   void _paintVignette(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.longestSide * 0.7;
+    final radius = size.longestSide * 0.8;
 
     final vignette = ui.Gradient.radial(
       center,
       radius,
       [
         Colors.transparent,
-        _black.withOpacity(0.4 * intensity),
-        _black.withOpacity(0.85 * intensity),
+        Colors.black.withOpacity(0.4 * intensity),
+        Colors.black.withOpacity(0.8 * intensity),
       ],
       const [0.3, 0.7, 1.0],
     );
@@ -652,10 +660,5 @@ class _LavaLampPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _LavaLampPainter oldDelegate) {
-    return oldDelegate.t != t ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
-  }
+  bool shouldRepaint(covariant _LavaLampPainter oldDelegate) => true;
 }

@@ -8,57 +8,55 @@ import 'package:google_fonts/google_fonts.dart';
 import 'theme.dart';
 
 // ============================================================================
-// ART DECO / GATSBY THEME BUILDER
+// ART DECO THEME BUILDER
 // ============================================================================
 
 AppTheme buildArtDecoTheme() {
-  // Using Poiret One for that authentic Art Deco feel
   final baseTextTheme = GoogleFonts.poiretOneTextTheme();
-  // Josefin Sans for body text - elegant and readable
   final bodyTextTheme = GoogleFonts.josefinSansTextTheme();
 
   return AppTheme(
     type: ThemeType.artDeco,
     isDark: true,
 
-    // Primary colors - champagne gold
-    primaryColor: const Color(0xFFD4AF37), // Champagne gold
-    primaryVariant: const Color(0xFFB8962E), // Deeper gold
-    onPrimary: const Color(0xFF0A0A0F), // Near black
+    // Primary colors - rich gold
+    primaryColor: const Color(0xFFD4AF37), // Classic gold
+    primaryVariant: const Color(0xFFB8960C), // Deeper gold
+    onPrimary: const Color(0xFF1A1A1A),
 
-    // Secondary colors - jade/teal accent
-    accentColor: const Color(0xFF008080), // Teal/jade
-    onAccent: const Color(0xFFF5F0E1), // Cream white
+    // Secondary colors - teal accent
+    accentColor: const Color(0xFF008080), // Art deco teal
+    onAccent: const Color(0xFFF5F5F5),
 
-    // Background colors - rich black with subtle warmth
-    background: const Color(0xFF0A0A0F), // Deep black with hint of blue
-    surface: const Color(0xFF141418), // Slightly lighter black
-    surfaceVariant: const Color(0xFF1E1E24), // Dark charcoal
+    // Background colors - deep black with warmth
+    background: const Color(0xFF0D0D0D), // Rich black
+    surface: const Color(0xFF1A1A1A), // Elevated black
+    surfaceVariant: const Color(0xFF262626), // Card surfaces
 
-    // Text colors - cream and gold tones
+    // Text colors - cream and gold
     textPrimary: const Color(0xFFF5F0E1), // Warm cream
-    textSecondary: const Color(0xFFD4AF37), // Gold for accents
-    textDisabled: const Color(0xFF5A5A60), // Muted gray
+    textSecondary: const Color(0xFFD4AF37), // Gold accents
+    textDisabled: const Color(0xFF666666), // Muted gray
 
     // UI colors
-    divider: const Color(0xFF2A2A32),
-    toolbarColor: const Color(0xFF141418),
-    error: const Color(0xFFCF6679), // Muted rose error
-    success: const Color(0xFF4A9B7F), // Art deco green
-    warning: const Color(0xFFD4AF37), // Gold warning
+    divider: const Color(0xFF333333),
+    toolbarColor: const Color(0xFF1A1A1A),
+    error: const Color(0xFFCF6679),
+    success: const Color(0xFF4CAF50),
+    warning: const Color(0xFFFFB300),
 
     // Grid colors
-    gridLine: const Color(0xFF2A2A32),
-    gridBackground: const Color(0xFF141418),
+    gridLine: const Color(0xFF333333),
+    gridBackground: const Color(0xFF1A1A1A),
 
     // Canvas colors
-    canvasBackground: const Color(0xFF0A0A0F),
+    canvasBackground: const Color(0xFF0D0D0D),
     selectionOutline: const Color(0xFFD4AF37),
     selectionFill: const Color(0x30D4AF37),
 
     // Icon colors
     activeIcon: const Color(0xFFD4AF37),
-    inactiveIcon: const Color(0xFF8A8A90),
+    inactiveIcon: const Color(0xFFF5F0E1),
 
     // Typography
     textTheme: baseTextTheme.copyWith(
@@ -73,27 +71,27 @@ AppTheme buildArtDecoTheme() {
         letterSpacing: 3,
       ),
       titleLarge: baseTextTheme.titleLarge!.copyWith(
-        color: const Color(0xFFF5F0E1),
+        color: const Color(0xFFD4AF37),
         fontWeight: FontWeight.w400,
         letterSpacing: 2,
       ),
-      titleMedium: baseTextTheme.titleMedium!.copyWith(
+      titleMedium: bodyTextTheme.titleMedium!.copyWith(
         color: const Color(0xFFF5F0E1),
-        fontWeight: FontWeight.w400,
+        fontWeight: FontWeight.w500,
         letterSpacing: 1.5,
       ),
       bodyLarge: bodyTextTheme.bodyLarge!.copyWith(
         color: const Color(0xFFF5F0E1),
-        fontWeight: FontWeight.w300,
+        letterSpacing: 0.5,
       ),
       bodyMedium: bodyTextTheme.bodyMedium!.copyWith(
-        color: const Color(0xFFB0AAA0),
-        fontWeight: FontWeight.w300,
+        color: const Color(0xFFBDB9AC),
+        letterSpacing: 0.5,
       ),
       labelLarge: bodyTextTheme.labelLarge!.copyWith(
         color: const Color(0xFFD4AF37),
-        fontWeight: FontWeight.w500,
-        letterSpacing: 1.5,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 2,
       ),
     ),
     primaryFontWeight: FontWeight.w400,
@@ -118,54 +116,29 @@ class ArtDecoBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Slow animation for rotating geometric patterns
-    final slowController = useAnimationController(
-      duration: const Duration(seconds: 30),
-    );
-
-    // Medium speed for pulsing elements
-    final mediumController = useAnimationController(
-      duration: const Duration(seconds: 12),
-    );
-
-    // Fast animation for sparkles and particles
-    final fastController = useAnimationController(
-      duration: const Duration(seconds: 6),
+    final controller = useAnimationController(
+      duration: const Duration(seconds: 1),
     );
 
     useEffect(() {
       if (enableAnimation) {
-        slowController.repeat();
-        mediumController.repeat();
-        fastController.repeat();
+        controller.repeat();
       } else {
-        slowController.stop();
-        mediumController.stop();
-        fastController.stop();
+        controller.stop();
       }
       return null;
     }, [enableAnimation]);
 
-    final slowAnim = useAnimation(
-      Tween<double>(begin: 0, end: 1).animate(slowController),
-    );
-    final mediumAnim = useAnimation(
-      Tween<double>(begin: 0, end: 1).animate(mediumController),
-    );
-    final fastAnim = useAnimation(
-      Tween<double>(begin: 0, end: 1).animate(fastController),
-    );
+    final decoState = useMemoized(() => _ArtDecoState());
 
     return RepaintBoundary(
       child: CustomPaint(
         painter: _ArtDecoPainter(
-          slowAnimation: slowAnim,
-          mediumAnimation: mediumAnim,
-          fastAnimation: fastAnim,
+          repaint: controller,
+          state: decoState,
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
-          backgroundColor: theme.background,
-          intensity: intensity,
+          intensity: intensity.clamp(0.0, 2.0),
         ),
         size: Size.infinite,
       ),
@@ -173,571 +146,516 @@ class ArtDecoBackground extends HookWidget {
   }
 }
 
+class _ArtDecoState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
+}
+
 class _ArtDecoPainter extends CustomPainter {
-  final double slowAnimation;
-  final double mediumAnimation;
-  final double fastAnimation;
+  final _ArtDecoState state;
   final Color primaryColor;
   final Color accentColor;
-  final Color backgroundColor;
   final double intensity;
 
   // Art Deco color palette
   static const Color _gold = Color(0xFFD4AF37);
-  static const Color _champagne = Color(0xFFF7E7CE);
+  static const Color _brightGold = Color(0xFFFFD700);
+  static const Color _darkGold = Color(0xFF8B7500);
   static const Color _teal = Color(0xFF008080);
-  static const Color _black = Color(0xFF0A0A0F);
   static const Color _cream = Color(0xFFF5F0E1);
-  static const Color _bronze = Color(0xFFCD7F32);
-  static const Color _silver = Color(0xFFC0C0C0);
+  static const Color _black = Color(0xFF0D0D0D);
+  static const Color _charcoal = Color(0xFF1A1A1A);
+  static const Color _copper = Color(0xFFB87333);
 
-  final math.Random _rng = math.Random(1920); // Seed: The roaring 20s!
+  final Paint _fillPaint = Paint()..style = PaintingStyle.fill;
+  final Paint _strokePaint = Paint()..style = PaintingStyle.stroke;
+  final Path _path = Path();
 
   _ArtDecoPainter({
-    required this.slowAnimation,
-    required this.mediumAnimation,
-    required this.fastAnimation,
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
-    required this.backgroundColor,
     required this.intensity,
-  });
+  }) : super(repaint: repaint);
+
+  double get _slowTime => state.time / 20.0;
+  double get _mediumTime => state.time / 10.0;
+
+  double _wave(double speed, [double offset = 0]) => math.sin(state.time * speed + offset);
+  double _norm(double speed, [double offset = 0]) => 0.5 * (1 + _wave(speed, offset));
 
   @override
   void paint(Canvas canvas, Size size) {
-    _rng = math.Random(1920);
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
 
-    // === LAYER 1: Deep gradient background ===
+    // Layer 1: Deep black background with subtle gradient
     _paintBackground(canvas, size);
 
-    // === LAYER 2: Radiating sunburst pattern ===
+    // Layer 2: Geometric sunburst pattern
     _paintSunburst(canvas, size);
 
-    // === LAYER 3: Geometric border frames ===
-    _paintBorderFrames(canvas, size);
-
-    // === LAYER 4: Chevron patterns ===
+    // Layer 3: Chevron patterns
     _paintChevrons(canvas, size);
 
-    // === LAYER 5: Fan/shell motifs ===
+    // Layer 4: Fan motifs in corners
     _paintFanMotifs(canvas, size);
 
-    // === LAYER 6: Rotating geometric medallions ===
-    _paintMedallions(canvas, size);
+    // Layer 5: Vertical pillar lines
+    _paintPillars(canvas, size);
 
-    // === LAYER 7: Zigzag/lightning bolt accents ===
-    _paintZigzags(canvas, size);
+    // Layer 6: Zigzag borders
+    _paintZigzagBorders(canvas, size);
 
-    // === LAYER 8: Floating geometric shapes ===
-    _paintFloatingShapes(canvas, size);
+    // Layer 7: Central medallion
+    _paintMedallion(canvas, size);
 
-    // === LAYER 9: Sparkle/diamond particles ===
-    _paintSparkles(canvas, size);
+    // Layer 8: Floating geometric particles
+    _paintGeometricParticles(canvas, size);
 
-    // === LAYER 10: Light rays ===
-    _paintLightRays(canvas, size);
+    // Layer 9: Shimmer overlay
+    _paintShimmer(canvas, size);
 
-    // === LAYER 11: Vignette ===
+    // Layer 10: Vignette
     _paintVignette(canvas, size);
   }
 
   void _paintBackground(Canvas canvas, Size size) {
-    // Rich radial gradient emanating from center-top
-    final center = Offset(size.width * 0.5, size.height * 0.2);
-
-    final bgGradient = ui.Gradient.radial(
-      center,
-      size.longestSide * 0.9,
+    final gradient = ui.Gradient.radial(
+      Offset(size.width * 0.5, size.height * 0.3),
+      size.longestSide * 0.8,
       [
-        const Color(0xFF12121A), // Slightly lighter center
-        const Color(0xFF0A0A0F), // Deep black
-        const Color(0xFF080810), // Darkest edges
+        const Color(0xFF1A1A1A),
+        const Color(0xFF0D0D0D),
+        const Color(0xFF050505),
       ],
-      [0.0, 0.5, 1.0],
+      const [0.0, 0.5, 1.0],
     );
 
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..shader = bgGradient,
-    );
+    _fillPaint.shader = gradient;
+    canvas.drawRect(Offset.zero & size, _fillPaint);
+    _fillPaint.shader = null;
 
     // Subtle noise texture
-    final noisePaint = Paint()..color = _cream.withOpacity(0.008 * intensity);
+    final rng = math.Random(42);
+    _fillPaint.color = _cream.withOpacity(0.008 * intensity);
     for (int i = 0; i < (200 * intensity).round(); i++) {
       canvas.drawCircle(
-        Offset(_rng.nextDouble() * size.width, _rng.nextDouble() * size.height),
-        _rng.nextDouble() * 1.0,
-        noisePaint,
+        Offset(rng.nextDouble() * size.width, rng.nextDouble() * size.height),
+        rng.nextDouble() * 1.2,
+        _fillPaint,
       );
     }
   }
 
   void _paintSunburst(Canvas canvas, Size size) {
-    final center = Offset(size.width * 0.5, size.height * 0.15);
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+    final center = Offset(size.width * 0.5, size.height * 0.35);
+    final maxRadius = size.longestSide * 0.6;
+    final rayCount = 36;
 
-    final rayCount = 24;
-    final maxLength = size.height * 1.2;
+    final pulsePhase = _norm(0.1) * 0.15 + 0.85;
 
     for (int i = 0; i < rayCount; i++) {
-      final angle = (i / rayCount) * math.pi + math.pi; // Lower half
-      final pulse = math.sin(mediumAnimation * 2 * math.pi + i * 0.3) * 0.15 + 0.85;
-      final length = maxLength * pulse;
+      final angle = i * math.pi * 2 / rayCount - math.pi / 2;
+      final nextAngle = (i + 1) * math.pi * 2 / rayCount - math.pi / 2;
 
-      // Gradient opacity along ray
-      final opacity = (0.04 * intensity * pulse).clamp(0.01, 0.08);
+      // Alternating ray widths
+      final isWide = i % 2 == 0;
+      final rayOpacity = isWide ? 0.06 : 0.03;
+      final shimmer = _norm(0.15, i * 0.3) * 0.02;
 
-      paint
-        ..strokeWidth = (2.0 + i % 3) * intensity
-        ..color = _gold.withOpacity(opacity);
-
-      final end = Offset(
-        center.dx + math.cos(angle) * length,
-        center.dy + math.sin(angle) * length,
+      _path.reset();
+      _path.moveTo(center.dx, center.dy);
+      _path.lineTo(
+        center.dx + math.cos(angle) * maxRadius * pulsePhase,
+        center.dy + math.sin(angle) * maxRadius * pulsePhase,
       );
+      _path.lineTo(
+        center.dx + math.cos(nextAngle) * maxRadius * pulsePhase,
+        center.dy + math.sin(nextAngle) * maxRadius * pulsePhase,
+      );
+      _path.close();
 
-      canvas.drawLine(center, end, paint);
+      _fillPaint.color = _gold.withOpacity((rayOpacity + shimmer) * intensity);
+      canvas.drawPath(_path, _fillPaint);
     }
-  }
 
-  void _paintBorderFrames(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5 * intensity;
-
-    // Multiple nested rectangular frames with stepped corners
-    final margins = [20.0, 40.0, 65.0];
-    final opacities = [0.12, 0.08, 0.05];
-
-    for (int f = 0; f < margins.length; f++) {
-      final m = margins[f] * intensity;
-      final opacity = opacities[f] * intensity;
-      final pulse = math.sin(mediumAnimation * 2 * math.pi + f * 0.5) * 0.2 + 0.8;
-
-      paint.color = _gold.withOpacity(opacity * pulse);
-
-      // Art Deco stepped corner frame
-      final path = _createSteppedFrame(size, m, 15 * intensity);
-      canvas.drawPath(path, paint);
-    }
-  }
-
-  Path _createSteppedFrame(Size size, double margin, double stepSize) {
-    final path = Path();
-    final m = margin;
-    final s = stepSize;
-
-    // Top-left corner with steps
-    path.moveTo(m + s * 2, m);
-    path.lineTo(size.width - m - s * 2, m);
-
-    // Top-right corner
-    path.lineTo(size.width - m - s * 2, m);
-    path.lineTo(size.width - m - s, m + s);
-    path.lineTo(size.width - m, m + s);
-    path.lineTo(size.width - m, m + s * 2);
-
-    // Right side
-    path.lineTo(size.width - m, size.height - m - s * 2);
-
-    // Bottom-right corner
-    path.lineTo(size.width - m, size.height - m - s);
-    path.lineTo(size.width - m - s, size.height - m - s);
-    path.lineTo(size.width - m - s, size.height - m);
-    path.lineTo(size.width - m - s * 2, size.height - m);
-
-    // Bottom side
-    path.lineTo(m + s * 2, size.height - m);
-
-    // Bottom-left corner
-    path.lineTo(m + s, size.height - m);
-    path.lineTo(m + s, size.height - m - s);
-    path.lineTo(m, size.height - m - s);
-    path.lineTo(m, size.height - m - s * 2);
-
-    // Left side
-    path.lineTo(m, m + s * 2);
-
-    // Top-left corner completion
-    path.lineTo(m, m + s);
-    path.lineTo(m + s, m + s);
-    path.lineTo(m + s, m);
-    path.lineTo(m + s * 2, m);
-
-    path.close();
-    return path;
+    // Central glow
+    _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 40 * intensity);
+    _fillPaint.color = _gold.withOpacity(0.08 * pulsePhase * intensity);
+    canvas.drawCircle(center, 80 * intensity, _fillPaint);
+    _fillPaint.maskFilter = null;
   }
 
   void _paintChevrons(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5 * intensity
-      ..strokeCap = StrokeCap.round;
-
-    // Left side chevrons
-    _drawChevronColumn(canvas, size, Offset(size.width * 0.08, size.height * 0.3), paint, true);
-
-    // Right side chevrons
-    _drawChevronColumn(canvas, size, Offset(size.width * 0.92, size.height * 0.3), paint, false);
-  }
-
-  void _drawChevronColumn(Canvas canvas, Size size, Offset start, Paint paint, bool pointRight) {
     final chevronCount = 8;
-    final chevronHeight = 25.0 * intensity;
-    final chevronWidth = 12.0 * intensity;
-    final spacing = 35.0 * intensity;
+    final chevronHeight = size.height / chevronCount;
+    final peakOffset = size.width * 0.12;
+
+    _strokePaint.strokeWidth = 1.5 * intensity;
+    _strokePaint.strokeCap = StrokeCap.round;
 
     for (int i = 0; i < chevronCount; i++) {
-      final y = start.dy + i * spacing;
-      final animOffset = math.sin(mediumAnimation * 2 * math.pi + i * 0.4) * 0.3 + 0.7;
-      final opacity = (0.1 * animOffset * intensity).clamp(0.02, 0.15);
+      final y = i * chevronHeight + chevronHeight * 0.5;
+      final shimmer = _norm(0.2, i * 0.5) * 0.3 + 0.2;
 
-      paint.color = i % 2 == 0 ? _gold.withOpacity(opacity) : _teal.withOpacity(opacity * 0.8);
+      // Left chevron
+      _strokePaint.color = _gold.withOpacity(shimmer * 0.4 * intensity);
 
-      final direction = pointRight ? 1.0 : -1.0;
-      final path = Path()
-        ..moveTo(start.dx, y)
-        ..lineTo(start.dx + chevronWidth * direction, y + chevronHeight / 2)
-        ..lineTo(start.dx, y + chevronHeight);
+      _path.reset();
+      _path.moveTo(0, y);
+      _path.lineTo(peakOffset, y - chevronHeight * 0.3);
+      _path.lineTo(peakOffset * 2, y);
+      canvas.drawPath(_path, _strokePaint);
 
-      canvas.drawPath(path, paint);
+      _path.reset();
+      _path.moveTo(0, y + 8 * intensity);
+      _path.lineTo(peakOffset, y - chevronHeight * 0.3 + 8 * intensity);
+      _path.lineTo(peakOffset * 2, y + 8 * intensity);
+      canvas.drawPath(_path, _strokePaint);
+
+      // Right chevron (mirrored)
+      _path.reset();
+      _path.moveTo(size.width, y);
+      _path.lineTo(size.width - peakOffset, y - chevronHeight * 0.3);
+      _path.lineTo(size.width - peakOffset * 2, y);
+      canvas.drawPath(_path, _strokePaint);
+
+      _path.reset();
+      _path.moveTo(size.width, y + 8 * intensity);
+      _path.lineTo(size.width - peakOffset, y - chevronHeight * 0.3 + 8 * intensity);
+      _path.lineTo(size.width - peakOffset * 2, y + 8 * intensity);
+      canvas.drawPath(_path, _strokePaint);
     }
   }
 
   void _paintFanMotifs(Canvas canvas, Size size) {
-    final fans = [
-      Offset(size.width * 0.15, size.height * 0.85),
-      Offset(size.width * 0.85, size.height * 0.85),
-      Offset(size.width * 0.5, size.height * 0.92),
+    final fanPositions = [
+      Offset(0, 0), // Top-left
+      Offset(size.width, 0), // Top-right
+      Offset(0, size.height), // Bottom-left
+      Offset(size.width, size.height), // Bottom-right
     ];
 
-    for (int f = 0; f < fans.length; f++) {
-      final center = fans[f];
-      final radius = (50.0 + f * 10) * intensity;
-      final rotation = slowAnimation * 0.1 * math.pi + f * 0.5;
-      final pulse = math.sin(mediumAnimation * 2 * math.pi + f * 1.2) * 0.15 + 0.85;
+    final startAngles = [0.0, math.pi * 0.5, -math.pi * 0.5, math.pi];
 
-      _drawFan(canvas, center, radius, rotation, pulse, f);
-    }
-  }
+    for (int f = 0; f < fanPositions.length; f++) {
+      final origin = fanPositions[f];
+      final startAngle = startAngles[f];
+      final fanRadius = size.shortestSide * 0.25 * intensity;
+      final segments = 7;
 
-  void _drawFan(Canvas canvas, Offset center, double radius, double rotation, double pulse, int index) {
-    final paint = Paint()..style = PaintingStyle.stroke;
+      for (int i = 0; i < segments; i++) {
+        final angle1 = startAngle + i * (math.pi * 0.5 / segments);
+        final angle2 = startAngle + (i + 1) * (math.pi * 0.5 / segments);
 
-    final segments = 7;
-    final startAngle = -math.pi; // Start from bottom, fan upward
-    final sweepAngle = math.pi; // Half circle
+        final shimmer = _norm(0.18, f * 1.5 + i * 0.4) * 0.2 + 0.1;
+        final isAccent = i % 2 == 0;
 
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(rotation);
+        _path.reset();
+        _path.moveTo(origin.dx, origin.dy);
+        _path.lineTo(
+          origin.dx + math.cos(angle1) * fanRadius,
+          origin.dy + math.sin(angle1) * fanRadius,
+        );
+        _path.arcTo(
+          Rect.fromCircle(center: origin, radius: fanRadius),
+          angle1,
+          (angle2 - angle1),
+          false,
+        );
+        _path.close();
 
-    // Draw concentric arcs
-    for (int ring = 1; ring <= 4; ring++) {
-      final ringRadius = radius * (ring / 4) * pulse;
-      final opacity = (0.08 - ring * 0.015) * intensity;
+        _fillPaint.color = (isAccent ? _gold : _teal).withOpacity(shimmer * intensity);
+        canvas.drawPath(_path, _fillPaint);
 
-      paint
-        ..strokeWidth = (2.0 - ring * 0.3) * intensity
-        ..color = index % 2 == 0 ? _gold.withOpacity(opacity) : _teal.withOpacity(opacity);
+        // Fan segment outline
+        _strokePaint.color = _gold.withOpacity(0.3 * intensity);
+        _strokePaint.strokeWidth = 1 * intensity;
+        canvas.drawPath(_path, _strokePaint);
+      }
 
-      canvas.drawArc(
-        Rect.fromCircle(center: Offset.zero, radius: ringRadius),
-        startAngle,
-        sweepAngle,
-        false,
-        paint,
-      );
-    }
-
-    // Draw radiating lines
-    paint
-      ..strokeWidth = 1.0 * intensity
-      ..color = _gold.withOpacity(0.06 * intensity);
-
-    for (int i = 0; i <= segments; i++) {
-      final angle = startAngle + (i / segments) * sweepAngle;
-      final end = Offset(
-        math.cos(angle) * radius * pulse,
-        math.sin(angle) * radius * pulse,
-      );
-      canvas.drawLine(Offset.zero, end, paint);
-    }
-
-    canvas.restore();
-  }
-
-  void _paintMedallions(Canvas canvas, Size size) {
-    final medallions = [
-      _MedallionDef(0.5, 0.5, 80, 8), // Center large
-      _MedallionDef(0.2, 0.25, 45, 6), // Top-left
-      _MedallionDef(0.8, 0.25, 45, 6), // Top-right
-      _MedallionDef(0.15, 0.6, 35, 5), // Mid-left
-      _MedallionDef(0.85, 0.6, 35, 5), // Mid-right
-    ];
-
-    for (int m = 0; m < medallions.length; m++) {
-      final def = medallions[m];
-      final center = Offset(size.width * def.x, size.height * def.y);
-      final radius = def.radius * intensity;
-      final rotation = slowAnimation * 2 * math.pi * (m % 2 == 0 ? 0.5 : -0.3);
-      final pulse = math.sin(mediumAnimation * 2 * math.pi + m * 0.8) * 0.1 + 0.9;
-
-      _drawMedallion(canvas, center, radius, def.sides, rotation, pulse, m);
-    }
-  }
-
-  void _drawMedallion(
-      Canvas canvas, Offset center, double radius, int sides, double rotation, double pulse, int index) {
-    final paint = Paint()..style = PaintingStyle.stroke;
-
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(rotation);
-
-    // Outer polygon
-    paint
-      ..strokeWidth = 2.0 * intensity
-      ..color = _gold.withOpacity(0.1 * pulse * intensity);
-    _drawPolygon(canvas, Offset.zero, radius * pulse, sides, paint);
-
-    // Inner polygon (rotated)
-    paint
-      ..strokeWidth = 1.5 * intensity
-      ..color = _teal.withOpacity(0.08 * pulse * intensity);
-    canvas.rotate(math.pi / sides);
-    _drawPolygon(canvas, Offset.zero, radius * 0.7 * pulse, sides, paint);
-
-    // Innermost polygon
-    paint
-      ..strokeWidth = 1.0 * intensity
-      ..color = _gold.withOpacity(0.06 * pulse * intensity);
-    canvas.rotate(math.pi / sides);
-    _drawPolygon(canvas, Offset.zero, radius * 0.4 * pulse, sides, paint);
-
-    // Center circle
-    paint
-      ..strokeWidth = 1.5 * intensity
-      ..color = _gold.withOpacity(0.12 * pulse * intensity);
-    canvas.drawCircle(Offset.zero, radius * 0.15 * pulse, paint);
-
-    // Radiating lines from center to vertices
-    paint
-      ..strokeWidth = 0.8 * intensity
-      ..color = _gold.withOpacity(0.05 * intensity);
-    for (int i = 0; i < sides; i++) {
-      final angle = (i / sides) * 2 * math.pi;
-      final end = Offset(
-        math.cos(angle) * radius * 0.9 * pulse,
-        math.sin(angle) * radius * 0.9 * pulse,
-      );
-      canvas.drawLine(Offset.zero, end, paint);
-    }
-
-    canvas.restore();
-  }
-
-  void _drawPolygon(Canvas canvas, Offset center, double radius, int sides, Paint paint) {
-    final path = Path();
-    for (int i = 0; i <= sides; i++) {
-      final angle = (i / sides) * 2 * math.pi - math.pi / 2;
-      final point = Offset(
-        center.dx + math.cos(angle) * radius,
-        center.dy + math.sin(angle) * radius,
-      );
-      if (i == 0) {
-        path.moveTo(point.dx, point.dy);
-      } else {
-        path.lineTo(point.dx, point.dy);
+      // Concentric arcs
+      for (int r = 1; r <= 3; r++) {
+        final arcRadius = fanRadius * r / 4;
+        _strokePaint.color = _gold.withOpacity(0.2 * intensity);
+        _strokePaint.strokeWidth = 1 * intensity;
+        canvas.drawArc(
+          Rect.fromCircle(center: origin, radius: arcRadius),
+          startAngle,
+          math.pi * 0.5,
+          false,
+          _strokePaint,
+        );
       }
     }
-    path.close();
-    canvas.drawPath(path, paint);
   }
 
-  void _paintZigzags(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5 * intensity
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+  void _paintPillars(Canvas canvas, Size size) {
+    final pillarCount = 5;
+    final pillarWidth = 3.0 * intensity;
+    final spacing = size.width / (pillarCount + 1);
 
-    // Horizontal zigzag bands
-    final bands = [
-      size.height * 0.12,
-      size.height * 0.88,
-    ];
+    for (int i = 1; i <= pillarCount; i++) {
+      final x = spacing * i;
+      final shimmer = _norm(0.12, i * 0.8) * 0.3 + 0.15;
 
-    for (int b = 0; b < bands.length; b++) {
-      final y = bands[b];
-      final amplitude = 8.0 * intensity;
-      final wavelength = 20.0 * intensity;
-      final offset = fastAnimation * wavelength * 2;
+      // Main pillar line
+      _strokePaint.color = _gold.withOpacity(shimmer * intensity);
+      _strokePaint.strokeWidth = pillarWidth;
+      canvas.drawLine(
+        Offset(x, size.height * 0.15),
+        Offset(x, size.height * 0.85),
+        _strokePaint,
+      );
 
-      final pulse = math.sin(mediumAnimation * 2 * math.pi + b) * 0.2 + 0.8;
-      paint.color = _gold.withOpacity(0.08 * pulse * intensity);
+      // Pillar decorations - top
+      _paintPillarCap(canvas, Offset(x, size.height * 0.15), shimmer);
 
-      final path = Path();
-      var started = false;
+      // Pillar decorations - bottom
+      _paintPillarCap(canvas, Offset(x, size.height * 0.85), shimmer);
 
-      for (double x = -wavelength + (offset % (wavelength * 2)); x < size.width + wavelength; x += wavelength) {
-        final zigY = y + (((x / wavelength).floor() % 2 == 0) ? -amplitude : amplitude);
-        if (!started) {
-          path.moveTo(x, zigY);
-          started = true;
-        } else {
-          path.lineTo(x, zigY);
+      // Intermediate decorations
+      for (int d = 1; d <= 3; d++) {
+        final y = size.height * (0.15 + d * 0.175);
+        _paintPillarDiamond(canvas, Offset(x, y), shimmer * 0.7);
+      }
+    }
+  }
+
+  void _paintPillarCap(Canvas canvas, Offset center, double opacity) {
+    final capSize = 12.0 * intensity;
+
+    _path.reset();
+    _path.moveTo(center.dx, center.dy - capSize);
+    _path.lineTo(center.dx + capSize, center.dy);
+    _path.lineTo(center.dx, center.dy + capSize);
+    _path.lineTo(center.dx - capSize, center.dy);
+    _path.close();
+
+    _fillPaint.color = _gold.withOpacity(opacity * 0.5 * intensity);
+    canvas.drawPath(_path, _fillPaint);
+
+    _strokePaint.color = _gold.withOpacity(opacity * intensity);
+    _strokePaint.strokeWidth = 1.5 * intensity;
+    canvas.drawPath(_path, _strokePaint);
+  }
+
+  void _paintPillarDiamond(Canvas canvas, Offset center, double opacity) {
+    final size = 6.0 * intensity;
+
+    _path.reset();
+    _path.moveTo(center.dx, center.dy - size);
+    _path.lineTo(center.dx + size * 0.6, center.dy);
+    _path.lineTo(center.dx, center.dy + size);
+    _path.lineTo(center.dx - size * 0.6, center.dy);
+    _path.close();
+
+    _fillPaint.color = _teal.withOpacity(opacity * intensity);
+    canvas.drawPath(_path, _fillPaint);
+  }
+
+  void _paintZigzagBorders(Canvas canvas, Size size) {
+    final zigzagHeight = 15.0 * intensity;
+    final zigzagWidth = 20.0 * intensity;
+
+    _strokePaint.strokeWidth = 2 * intensity;
+    _strokePaint.strokeCap = StrokeCap.round;
+    _strokePaint.strokeJoin = StrokeJoin.round;
+
+    // Top border
+    final topShimmer = _norm(0.15) * 0.3 + 0.3;
+    _strokePaint.color = _gold.withOpacity(topShimmer * intensity);
+
+    _path.reset();
+    _path.moveTo(0, zigzagHeight);
+    for (double x = 0; x < size.width; x += zigzagWidth) {
+      _path.lineTo(x + zigzagWidth * 0.5, 0);
+      _path.lineTo(x + zigzagWidth, zigzagHeight);
+    }
+    canvas.drawPath(_path, _strokePaint);
+
+    // Bottom border
+    final bottomShimmer = _norm(0.15, 2.0) * 0.3 + 0.3;
+    _strokePaint.color = _gold.withOpacity(bottomShimmer * intensity);
+
+    _path.reset();
+    _path.moveTo(0, size.height - zigzagHeight);
+    for (double x = 0; x < size.width; x += zigzagWidth) {
+      _path.lineTo(x + zigzagWidth * 0.5, size.height);
+      _path.lineTo(x + zigzagWidth, size.height - zigzagHeight);
+    }
+    canvas.drawPath(_path, _strokePaint);
+
+    // Inner accent lines
+    _strokePaint.strokeWidth = 1 * intensity;
+    _strokePaint.color = _teal.withOpacity(0.25 * intensity);
+
+    canvas.drawLine(
+      Offset(0, zigzagHeight + 5 * intensity),
+      Offset(size.width, zigzagHeight + 5 * intensity),
+      _strokePaint,
+    );
+    canvas.drawLine(
+      Offset(0, size.height - zigzagHeight - 5 * intensity),
+      Offset(size.width, size.height - zigzagHeight - 5 * intensity),
+      _strokePaint,
+    );
+  }
+
+  void _paintMedallion(Canvas canvas, Size size) {
+    final center = Offset(size.width * 0.5, size.height * 0.5);
+    final radius = size.shortestSide * 0.12 * intensity;
+    final rotation = _slowTime * math.pi * 2;
+    final pulse = _norm(0.1) * 0.1 + 0.9;
+
+    // Outer glow
+    _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 20 * intensity);
+    _fillPaint.color = _gold.withOpacity(0.1 * pulse * intensity);
+    canvas.drawCircle(center, radius * 1.5, _fillPaint);
+    _fillPaint.maskFilter = null;
+
+    // Octagonal frame
+    final octagonRadius = radius * 1.2;
+    _path.reset();
+    for (int i = 0; i < 8; i++) {
+      final angle = rotation * 0.1 + i * math.pi / 4 - math.pi / 8;
+      final x = center.dx + math.cos(angle) * octagonRadius;
+      final y = center.dy + math.sin(angle) * octagonRadius;
+      if (i == 0) {
+        _path.moveTo(x, y);
+      } else {
+        _path.lineTo(x, y);
+      }
+    }
+    _path.close();
+
+    _strokePaint.color = _gold.withOpacity(0.6 * pulse * intensity);
+    _strokePaint.strokeWidth = 2.5 * intensity;
+    canvas.drawPath(_path, _strokePaint);
+
+    // Inner circles
+    _strokePaint.strokeWidth = 1.5 * intensity;
+    _strokePaint.color = _gold.withOpacity(0.4 * pulse * intensity);
+    canvas.drawCircle(center, radius, _strokePaint);
+    canvas.drawCircle(center, radius * 0.7, _strokePaint);
+
+    // Radiating lines inside
+    for (int i = 0; i < 12; i++) {
+      final angle = rotation * 0.2 + i * math.pi / 6;
+      canvas.drawLine(
+        Offset(
+          center.dx + math.cos(angle) * radius * 0.3,
+          center.dy + math.sin(angle) * radius * 0.3,
+        ),
+        Offset(
+          center.dx + math.cos(angle) * radius * 0.65,
+          center.dy + math.sin(angle) * radius * 0.65,
+        ),
+        _strokePaint,
+      );
+    }
+
+    // Central diamond
+    final diamondSize = radius * 0.25;
+    _path.reset();
+    _path.moveTo(center.dx, center.dy - diamondSize);
+    _path.lineTo(center.dx + diamondSize, center.dy);
+    _path.lineTo(center.dx, center.dy + diamondSize);
+    _path.lineTo(center.dx - diamondSize, center.dy);
+    _path.close();
+
+    _fillPaint.color = _teal.withOpacity(0.6 * pulse * intensity);
+    canvas.drawPath(_path, _fillPaint);
+
+    _strokePaint.color = _gold.withOpacity(0.8 * pulse * intensity);
+    _strokePaint.strokeWidth = 1.5 * intensity;
+    canvas.drawPath(_path, _strokePaint);
+  }
+
+  void _paintGeometricParticles(Canvas canvas, Size size) {
+    final particleCount = (25 * intensity).round();
+
+    for (int i = 0; i < particleCount; i++) {
+      final rng = math.Random(i * 17);
+      final baseX = rng.nextDouble() * size.width;
+      final baseY = rng.nextDouble() * size.height;
+
+      final floatX = baseX + _wave(0.08, i * 0.7) * 20 * intensity;
+      final floatY = baseY + _wave(0.06, i * 0.9 + 1.5) * 15 * intensity;
+
+      final twinkle = _norm(0.2, i * 0.5);
+      if (twinkle > 0.4) {
+        final opacity = (twinkle - 0.4) * 0.5 * intensity;
+        final particleSize = (3 + rng.nextDouble() * 4) * intensity;
+
+        switch (i % 4) {
+          case 0: // Diamond
+            _path.reset();
+            _path.moveTo(floatX, floatY - particleSize);
+            _path.lineTo(floatX + particleSize * 0.6, floatY);
+            _path.lineTo(floatX, floatY + particleSize);
+            _path.lineTo(floatX - particleSize * 0.6, floatY);
+            _path.close();
+            _fillPaint.color = _gold.withOpacity(opacity);
+            canvas.drawPath(_path, _fillPaint);
+            break;
+
+          case 1: // Triangle
+            _path.reset();
+            _path.moveTo(floatX, floatY - particleSize);
+            _path.lineTo(floatX + particleSize * 0.866, floatY + particleSize * 0.5);
+            _path.lineTo(floatX - particleSize * 0.866, floatY + particleSize * 0.5);
+            _path.close();
+            _fillPaint.color = _teal.withOpacity(opacity * 0.8);
+            canvas.drawPath(_path, _fillPaint);
+            break;
+
+          case 2: // Circle
+            _fillPaint.color = _gold.withOpacity(opacity * 0.6);
+            canvas.drawCircle(Offset(floatX, floatY), particleSize * 0.5, _fillPaint);
+            break;
+
+          case 3: // Square
+            canvas.save();
+            canvas.translate(floatX, floatY);
+            canvas.rotate(_slowTime * math.pi);
+            _fillPaint.color = _copper.withOpacity(opacity * 0.7);
+            canvas.drawRect(
+              Rect.fromCenter(center: Offset.zero, width: particleSize, height: particleSize),
+              _fillPaint,
+            );
+            canvas.restore();
+            break;
         }
       }
-
-      canvas.drawPath(path, paint);
     }
   }
 
-  void _paintFloatingShapes(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.stroke;
-    final shapeCount = (20 * intensity).round();
+  void _paintShimmer(Canvas canvas, Size size) {
+    // Diagonal shimmer lines
+    final shimmerProgress = (state.time * 0.05) % 1.0;
+    final shimmerX = -size.width * 0.5 + shimmerProgress * size.width * 2;
 
-    for (int i = 0; i < shapeCount; i++) {
-      final baseX = _rng.nextDouble() * size.width;
-      final baseY = _rng.nextDouble() * size.height;
+    final shimmerGradient = ui.Gradient.linear(
+      Offset(shimmerX, 0),
+      Offset(shimmerX + size.width * 0.3, size.height),
+      [
+        Colors.transparent,
+        _gold.withOpacity(0.03 * intensity),
+        _gold.withOpacity(0.06 * intensity),
+        _gold.withOpacity(0.03 * intensity),
+        Colors.transparent,
+      ],
+      const [0.0, 0.3, 0.5, 0.7, 1.0],
+    );
 
-      // Gentle floating motion
-      final floatX = baseX + math.sin(slowAnimation * 2 * math.pi + i * 0.7) * 15 * intensity;
-      final floatY = baseY + math.cos(slowAnimation * 2 * math.pi + i * 0.5) * 10 * intensity;
-
-      final shapeSize = (8 + _rng.nextDouble() * 12) * intensity;
-      final rotation = slowAnimation * math.pi * (i % 2 == 0 ? 0.5 : -0.5) + i * 0.3;
-      final opacity = (math.sin(mediumAnimation * 2 * math.pi + i * 0.4) * 0.3 + 0.7) * 0.06 * intensity;
-
-      paint
-        ..strokeWidth = 1.0 * intensity
-        ..color = (i % 3 == 0 ? _gold : (i % 3 == 1 ? _teal : _silver)).withOpacity(opacity);
-
-      canvas.save();
-      canvas.translate(floatX, floatY);
-      canvas.rotate(rotation);
-
-      switch (i % 4) {
-        case 0: // Diamond
-          _drawDiamond(canvas, Offset.zero, shapeSize, paint);
-          break;
-        case 1: // Triangle
-          _drawPolygon(canvas, Offset.zero, shapeSize, 3, paint);
-          break;
-        case 2: // Hexagon
-          _drawPolygon(canvas, Offset.zero, shapeSize, 6, paint);
-          break;
-        case 3: // Circle
-          canvas.drawCircle(Offset.zero, shapeSize * 0.6, paint);
-          break;
-      }
-
-      canvas.restore();
-    }
-  }
-
-  void _drawDiamond(Canvas canvas, Offset center, double size, Paint paint) {
-    final path = Path()
-      ..moveTo(center.dx, center.dy - size)
-      ..lineTo(center.dx + size * 0.6, center.dy)
-      ..lineTo(center.dx, center.dy + size)
-      ..lineTo(center.dx - size * 0.6, center.dy)
-      ..close();
-    canvas.drawPath(path, paint);
-  }
-
-  void _paintSparkles(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    final sparkleCount = (40 * intensity).round();
-
-    for (int i = 0; i < sparkleCount; i++) {
-      final x = _rng.nextDouble() * size.width;
-      final y = _rng.nextDouble() * size.height;
-
-      // Twinkling effect
-      final twinklePhase = fastAnimation * 2 * math.pi + i * 0.5;
-      final twinkle = (math.sin(twinklePhase) + 1) / 2;
-
-      if (twinkle > 0.6) {
-        final sparkleSize = (1.5 + twinkle * 2) * intensity;
-        final opacity = twinkle * 0.4 * intensity;
-
-        // Draw 4-pointed star sparkle
-        paint.color = _champagne.withOpacity(opacity);
-
-        final path = Path();
-        // Vertical line
-        path.moveTo(x, y - sparkleSize);
-        path.lineTo(x, y + sparkleSize);
-        // Horizontal line
-        path.moveTo(x - sparkleSize, y);
-        path.lineTo(x + sparkleSize, y);
-
-        canvas.drawPath(
-          path,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.0 * intensity
-            ..color = _champagne.withOpacity(opacity),
-        );
-
-        // Center glow
-        paint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-        canvas.drawCircle(Offset(x, y), sparkleSize * 0.3, paint);
-        paint.maskFilter = null;
-      }
-    }
-  }
-
-  void _paintLightRays(Canvas canvas, Size size) {
-    final center = Offset(size.width * 0.5, size.height * 0.0);
-    final rayCount = 8;
-
-    for (int i = 0; i < rayCount; i++) {
-      final baseAngle = (i / rayCount) * math.pi + math.pi * 0.1;
-      final wobble = math.sin(slowAnimation * 2 * math.pi + i * 0.8) * 0.05;
-      final angle = baseAngle + wobble;
-
-      final pulse = math.sin(mediumAnimation * 2 * math.pi + i * 0.6) * 0.3 + 0.7;
-      final opacity = 0.015 * pulse * intensity;
-
-      final rayLength = size.height * 1.2;
-      final rayWidth = 60.0 * intensity;
-
-      final path = Path();
-      path.moveTo(center.dx, center.dy);
-      path.lineTo(
-        center.dx + math.cos(angle - 0.05) * rayLength,
-        center.dy + math.sin(angle - 0.05) * rayLength,
-      );
-      path.lineTo(
-        center.dx + math.cos(angle + 0.05) * rayLength,
-        center.dy + math.sin(angle + 0.05) * rayLength,
-      );
-      path.close();
-
-      final gradient = ui.Gradient.linear(
-        center,
-        Offset(
-          center.dx + math.cos(angle) * rayLength,
-          center.dy + math.sin(angle) * rayLength,
-        ),
-        [
-          _gold.withOpacity(opacity * 2),
-          _gold.withOpacity(0),
-        ],
-      );
-
-      canvas.drawPath(
-        path,
-        Paint()
-          ..style = PaintingStyle.fill
-          ..shader = gradient,
-      );
-    }
+    _fillPaint.shader = shimmerGradient;
+    canvas.drawRect(Offset.zero & size, _fillPaint);
+    _fillPaint.shader = null;
   }
 
   void _paintVignette(Canvas canvas, Size size) {
@@ -749,38 +667,17 @@ class _ArtDecoPainter extends CustomPainter {
       radius,
       [
         Colors.transparent,
-        Colors.black.withOpacity(0.2 * intensity),
-        Colors.black.withOpacity(0.5 * intensity),
+        Colors.black.withOpacity(0.3 * intensity),
+        Colors.black.withOpacity(0.7 * intensity),
       ],
-      [0.5, 0.8, 1.0],
+      const [0.4, 0.75, 1.0],
     );
 
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..shader = vignette,
-    );
+    _fillPaint.shader = vignette;
+    canvas.drawRect(Offset.zero & size, _fillPaint);
+    _fillPaint.shader = null;
   }
 
   @override
-  bool shouldRepaint(covariant _ArtDecoPainter oldDelegate) {
-    return oldDelegate.slowAnimation != slowAnimation ||
-        oldDelegate.mediumAnimation != mediumAnimation ||
-        oldDelegate.fastAnimation != fastAnimation ||
-        oldDelegate.intensity != intensity;
-  }
-
-  set _rng(math.Random value) {} // Dart workaround for resetting
-}
-
-// ============================================================================
-// HELPER CLASS
-// ============================================================================
-
-class _MedallionDef {
-  final double x;
-  final double y;
-  final double radius;
-  final int sides;
-
-  const _MedallionDef(this.x, this.y, this.radius, this.sides);
+  bool shouldRepaint(covariant _ArtDecoPainter oldDelegate) => true;
 }

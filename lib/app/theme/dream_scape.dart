@@ -1,10 +1,15 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'theme.dart';
+
+// ============================================================================
+// DREAMSCAPE THEME BUILDER
+// ============================================================================
 
 AppTheme buildDreamscapeTheme() {
   final baseTextTheme = GoogleFonts.sourceCodeProTextTheme();
@@ -64,6 +69,10 @@ AppTheme buildDreamscapeTheme() {
   );
 }
 
+// ============================================================================
+// DREAMSCAPE ANIMATED BACKGROUND
+// ============================================================================
+
 class DreamscapeBackground extends HookWidget {
   final AppTheme theme;
   final double intensity;
@@ -78,272 +87,359 @@ class DreamscapeBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useAnimationController(duration: theme.type.animationDuration);
+    // 1. Ticker controller
+    final controller = useAnimationController(
+      duration: const Duration(seconds: 1),
+    );
 
     useEffect(() {
       if (enableAnimation) {
-        controller.repeat(reverse: true);
+        controller.repeat();
       } else {
         controller.stop();
       }
       return null;
     }, [enableAnimation]);
 
-    final dreamAnimation = useAnimation(
-      Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-      ),
-    );
+    // 2. State for infinite animation
+    final dreamState = useMemoized(() => _DreamState());
 
-    return CustomPaint(
-      painter: _DreamscapePainter(
-        animation: dreamAnimation,
-        primaryColor: theme.primaryColor,
-        accentColor: theme.accentColor,
-        intensity: intensity,
+    return RepaintBoundary(
+      child: CustomPaint(
+        painter: _EnhancedDreamscapePainter(
+          repaint: controller,
+          state: dreamState,
+          primaryColor: theme.primaryColor,
+          accentColor: theme.accentColor,
+          intensity: intensity.clamp(0.0, 2.0),
+        ),
+        size: Size.infinite,
       ),
-      size: Size.infinite,
     );
   }
 }
 
-class _DreamscapePainter extends CustomPainter {
-  final double animation;
+// State class for physics and objects
+class _DreamState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
+  List<_DreamCloud>? clouds;
+  List<_DreamBubble>? bubbles;
+  List<_DreamStar>? stars;
+}
+
+class _DreamCloud {
+  double x;
+  double y;
+  double speed;
+  double size;
+  double opacity;
+
+  _DreamCloud({
+    required this.x,
+    required this.y,
+    required this.speed,
+    required this.size,
+    required this.opacity,
+  });
+}
+
+class _DreamBubble {
+  double x;
+  double y;
+  double speedY;
+  double size;
+  double wobblePhase;
+  double wobbleSpeed;
+  Color color;
+
+  _DreamBubble({
+    required this.x,
+    required this.y,
+    required this.speedY,
+    required this.size,
+    required this.wobblePhase,
+    required this.wobbleSpeed,
+    required this.color,
+  });
+}
+
+class _DreamStar {
+  double x;
+  double y;
+  double size;
+  double twinklePhase;
+  double twinkleSpeed;
+
+  _DreamStar({
+    required this.x,
+    required this.y,
+    required this.size,
+    required this.twinklePhase,
+    required this.twinkleSpeed,
+  });
+}
+
+class _EnhancedDreamscapePainter extends CustomPainter {
+  final _DreamState state;
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
 
-  _DreamscapePainter({
-    required this.animation,
+  final math.Random _rng = math.Random(999);
+
+  _EnhancedDreamscapePainter({
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
-  });
+  }) : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Time accumulation
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
+
+    // Initialization
+    if (state.clouds == null) _initWorld(size);
+
+    _paintBackground(canvas, size);
+    _paintStars(canvas, size);
+    _paintMist(canvas, size);
+    _updateAndPaintClouds(canvas, size, dt);
+    _paintRibbons(canvas, size);
+    _updateAndPaintBubbles(canvas, size, dt);
+    _paintVignette(canvas, size);
+  }
+
+  void _initWorld(Size size) {
+    state.clouds = [];
+    state.bubbles = [];
+    state.stars = [];
+    final rng = math.Random(1234);
+
+    // Init Clouds
+    for (int i = 0; i < 12; i++) {
+      state.clouds!.add(_DreamCloud(
+        x: rng.nextDouble() * size.width,
+        y: size.height * (0.1 + rng.nextDouble() * 0.5),
+        speed: 10 + rng.nextDouble() * 15,
+        size: 40 + rng.nextDouble() * 60,
+        opacity: 0.1 + rng.nextDouble() * 0.2,
+      ));
+    }
+
+    // Init Stars
+    for (int i = 0; i < 40; i++) {
+      state.stars!.add(_DreamStar(
+        x: rng.nextDouble() * size.width,
+        y: rng.nextDouble() * size.height,
+        size: 1 + rng.nextDouble() * 3,
+        twinklePhase: rng.nextDouble() * math.pi * 2,
+        twinkleSpeed: 1 + rng.nextDouble() * 3,
+      ));
+    }
+
+    // Init Bubbles
+    for (int i = 0; i < 20; i++) {
+      state.bubbles!.add(_DreamBubble(
+        x: rng.nextDouble() * size.width,
+        y: size.height + rng.nextDouble() * 100,
+        speedY: 15 + rng.nextDouble() * 25,
+        size: 5 + rng.nextDouble() * 15,
+        wobblePhase: rng.nextDouble() * math.pi * 2,
+        wobbleSpeed: 1 + rng.nextDouble() * 2,
+        color: i % 2 == 0 ? primaryColor : accentColor,
+      ));
+    }
+  }
+
+  void _paintBackground(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final gradient = ui.Gradient.linear(
+      Offset(0, 0),
+      Offset(0, size.height),
+      [
+        const Color(0xFFE6E6FA).withOpacity(0.5), // Lavender Mist
+        const Color(0xFFF8F8FF), // Ghost White
+        const Color(0xFFFFE4E1).withOpacity(0.5), // Misty Rose
+      ],
+      [0.0, 0.5, 1.0],
+    );
+    canvas.drawRect(rect, Paint()..shader = gradient);
+  }
+
+  void _paintStars(Canvas canvas, Size size) {
+    if (state.stars == null) return;
+
     final paint = Paint()..style = PaintingStyle.fill;
-    final random = math.Random(999); // Dreamy seed
 
-    // Draw floating dream clouds
-    for (int i = 0; i < (8 * intensity).round(); i++) {
-      final baseX = size.width * (0.1 + i * 0.12);
-      final baseY = size.height * (0.2 + math.sin(animation * 1.5 * math.pi + i * 0.8) * 0.3);
+    for (var star in state.stars!) {
+      final twinkle = math.sin(state.time * star.twinkleSpeed + star.twinklePhase) * 0.5 + 0.5;
 
-      final cloudSize = (25 + i * 8 + math.sin(animation * 2 * math.pi + i) * 12) * intensity;
-      final opacity = (0.03 + math.cos(animation * math.pi + i * 0.6) * 0.015) * intensity;
+      paint.color = primaryColor.withOpacity(0.3 * twinkle * intensity);
+      canvas.drawCircle(Offset(star.x, star.y), star.size * intensity, paint);
 
-      // Create fluffy cloud shapes with multiple overlapping circles
-      final cloudColor = Color.lerp(primaryColor, accentColor, i / 7.0)!;
-      paint.color = cloudColor.withOpacity(opacity);
-
-      // Main cloud body
-      canvas.drawCircle(Offset(baseX, baseY), cloudSize, paint);
-
-      // Additional puffs for cloud-like effect
-      canvas.drawCircle(
-        Offset(baseX - cloudSize * 0.4, baseY - cloudSize * 0.2),
-        cloudSize * 0.8,
-        paint,
-      );
-      canvas.drawCircle(
-        Offset(baseX + cloudSize * 0.3, baseY - cloudSize * 0.3),
-        cloudSize * 0.6,
-        paint,
-      );
-      canvas.drawCircle(
-        Offset(baseX + cloudSize * 0.1, baseY + cloudSize * 0.4),
-        cloudSize * 0.7,
-        paint,
-      );
-    }
-
-    // Draw dreamy stars
-    for (int i = 0; i < (30 * intensity).round(); i++) {
-      final starX = random.nextDouble() * size.width;
-      final starY = random.nextDouble() * size.height;
-      final twinkle = math.sin(animation * 4 * math.pi + i * 0.3) * 0.5 + 0.5;
-
-      if (twinkle > 0.6) {
-        final starSize = (1.5 + twinkle * 3) * intensity;
-        paint.color = Color.lerp(
-          primaryColor.withOpacity(0.4 * twinkle),
-          accentColor.withOpacity(0.5 * twinkle),
-          math.sin(animation * 2 * math.pi + i) * 0.5 + 0.5,
-        )!;
-
-        // Draw cross-shaped twinkling star
-        canvas.drawCircle(Offset(starX, starY), starSize, paint);
-
-        // Add sparkle effect
-        paint.strokeWidth = 1 * intensity;
+      // Star cross shimmer
+      if (twinkle > 0.7) {
         paint.style = PaintingStyle.stroke;
-        canvas.drawLine(
-          Offset(starX - starSize * 2, starY),
-          Offset(starX + starSize * 2, starY),
-          paint,
-        );
-        canvas.drawLine(
-          Offset(starX, starY - starSize * 2),
-          Offset(starX, starY + starSize * 2),
-          paint,
-        );
+        paint.strokeWidth = 0.5 * intensity;
+        paint.color = accentColor.withOpacity(0.4 * twinkle * intensity);
+
+        final len = star.size * 2 * intensity;
+        canvas.drawLine(Offset(star.x - len, star.y), Offset(star.x + len, star.y), paint);
+        canvas.drawLine(Offset(star.x, star.y - len), Offset(star.x, star.y + len), paint);
+
         paint.style = PaintingStyle.fill;
-      }
-    }
-
-    // Draw floating dream bubbles
-    for (int i = 0; i < (18 * intensity).round(); i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      // Gentle floating motion
-      final floatX = baseX + math.sin(animation * 1.8 * math.pi + i * 0.4) * 18 * intensity;
-      final floatY = baseY + math.cos(animation * 1.2 * math.pi + i * 0.6) * 12 * intensity;
-
-      final bubbleSize = (4 + random.nextDouble() * 12) * intensity;
-      final bubbleOpacity = (0.05 + math.sin(animation * 3 * math.pi + i * 0.7) * 0.02) * intensity;
-
-      // Alternate between dreamy colors
-      paint.color = (i % 3 == 0
-              ? primaryColor
-              : i % 3 == 1
-                  ? accentColor
-                  : Color.lerp(primaryColor, accentColor, 0.5)!)
-          .withOpacity(bubbleOpacity);
-
-      canvas.drawCircle(Offset(floatX, floatY), bubbleSize, paint);
-
-      // Add soft glow around bubbles
-      paint.color = paint.color.withOpacity(bubbleOpacity * 0.3);
-      canvas.drawCircle(Offset(floatX, floatY), bubbleSize * 1.6, paint);
-    }
-
-    // Draw dream mist/ethereal wisps
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 2 * intensity;
-
-    for (int i = 0; i < 5; i++) {
-      final path = Path();
-      final startX = size.width * (0.1 + i * 0.2);
-      final startY = size.height * (0.4 + math.sin(animation * 1.5 * math.pi + i) * 0.2);
-
-      path.moveTo(startX, startY);
-
-      // Create flowing, organic dream wisp paths
-      for (int j = 1; j <= 6; j++) {
-        final progress = j / 6.0;
-        final x = startX +
-            progress * 80 * intensity +
-            math.sin(progress * 4 * math.pi + animation * 2 * math.pi + i) * 25 * intensity;
-        final y = startY + math.cos(progress * 3 * math.pi + animation * 1.5 * math.pi + i * 0.7) * 30 * intensity;
-        path.lineTo(x, y);
-      }
-
-      final wispIntensity = math.sin(animation * 2.5 * math.pi + i * 0.9) * 0.4 + 0.5;
-      paint.color = Color.lerp(
-        primaryColor.withOpacity(0.1 * wispIntensity * intensity),
-        accentColor.withOpacity(0.08 * wispIntensity * intensity),
-        i / 4.0,
-      )!;
-
-      canvas.drawPath(path, paint);
-    }
-
-    // Draw floating dream petals
-    for (int i = 0; i < (12 * intensity).round(); i++) {
-      final baseX = random.nextDouble() * size.width;
-      final speed = 0.15 + random.nextDouble() * 0.2; // Very slow falling
-
-      final progress = (animation * speed + i * 0.08) % 1.3;
-      final petalY = progress * (size.height + 40) - 20;
-      final sway = math.sin(progress * 3 * math.pi + i) * 20 * intensity;
-      final petalX = baseX + sway;
-
-      if (petalY > -20 && petalY < size.height + 20) {
-        final opacity = math.max(0.0, (1.3 - progress) * 0.4) * intensity;
-        final rotation = progress * math.pi + i;
-
-        paint.color = Color.lerp(
-          primaryColor.withOpacity(opacity),
-          accentColor.withOpacity(opacity * 0.8),
-          (i % 3) / 2.0,
-        )!;
-
-        canvas.save();
-        canvas.translate(petalX, petalY);
-        canvas.rotate(rotation);
-
-        // Draw petal shape (elongated oval)
-        canvas.drawOval(
-          Rect.fromCenter(
-            center: Offset.zero,
-            width: (3 + random.nextDouble() * 2) * intensity,
-            height: (6 + random.nextDouble() * 3) * intensity,
-          ),
-          paint,
-        );
-
-        canvas.restore();
-      }
-    }
-
-    // Draw dream ribbons/streamers
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 3 * intensity;
-
-    for (int i = 0; i < 3; i++) {
-      final path = Path();
-      final ribbonStartX = size.width * (0.2 + i * 0.3);
-      final ribbonStartY = size.height * 0.1;
-
-      path.moveTo(ribbonStartX, ribbonStartY);
-
-      // Create flowing ribbon path
-      for (double t = 0; t <= 1; t += 0.05) {
-        final x = ribbonStartX +
-            t * size.width * 0.4 +
-            math.sin(t * 6 * math.pi + animation * 3 * math.pi + i) * 40 * intensity;
-        final y = ribbonStartY +
-            t * size.height * 0.6 +
-            math.cos(t * 4 * math.pi + animation * 2 * math.pi + i * 0.8) * 25 * intensity;
-        path.lineTo(x, y);
-      }
-
-      final ribbonIntensity = math.sin(animation * 2 * math.pi + i * 1.1) * 0.3 + 0.4;
-      paint.color = Color.lerp(
-        primaryColor.withOpacity(0.06 * ribbonIntensity * intensity),
-        accentColor.withOpacity(0.08 * ribbonIntensity * intensity),
-        i / 2.0,
-      )!;
-
-      canvas.drawPath(path, paint);
-    }
-
-    // Draw dream portals/vortexes
-    paint.style = PaintingStyle.stroke;
-    for (int i = 0; i < 2; i++) {
-      final portalX = size.width * (0.25 + i * 0.5);
-      final portalY = size.height * (0.3 + i * 0.4);
-      final portalSize = (20 + i * 10) * intensity;
-
-      final portalIntensity = math.sin(animation * 4 * math.pi + i * 2) * 0.5 + 0.5;
-
-      // Draw concentric circles for portal effect
-      for (int j = 0; j < 4; j++) {
-        final radius = portalSize * (0.3 + j * 0.25) * portalIntensity;
-        paint.strokeWidth = (1 + j * 0.5) * intensity;
-        paint.color = Color.lerp(
-          primaryColor.withOpacity(0.1 * portalIntensity * intensity),
-          accentColor.withOpacity(0.08 * portalIntensity * intensity),
-          j / 3.0,
-        )!;
-
-        canvas.drawCircle(Offset(portalX, portalY), radius, paint);
       }
     }
   }
 
+  void _paintMist(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = primaryColor.withOpacity(0.05 * intensity)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 40);
+
+    for (int i = 0; i < 3; i++) {
+      final t = state.time * 0.2 + i;
+      final x = size.width * 0.5 + math.sin(t) * size.width * 0.3;
+      final y = size.height * (0.3 + i * 0.2) + math.cos(t * 0.7) * 50;
+
+      canvas.drawCircle(Offset(x, y), 100 * intensity, paint);
+    }
+  }
+
+  void _updateAndPaintClouds(Canvas canvas, Size size, double dt) {
+    if (state.clouds == null) return;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    for (var cloud in state.clouds!) {
+      // Update
+      cloud.x += cloud.speed * dt * intensity;
+
+      // Wrap
+      if (cloud.x > size.width + cloud.size * 2) {
+        cloud.x = -cloud.size * 2;
+        cloud.y = size.height * (0.1 + _rng.nextDouble() * 0.5);
+      }
+
+      // Draw
+      paint.color = Colors.white.withOpacity(cloud.opacity);
+
+      // Cloud Shape (Cluster of circles)
+      canvas.drawCircle(Offset(cloud.x, cloud.y), cloud.size * intensity, paint);
+      canvas.drawCircle(
+          Offset(cloud.x - cloud.size * 0.5, cloud.y + cloud.size * 0.2), cloud.size * 0.7 * intensity, paint);
+      canvas.drawCircle(
+          Offset(cloud.x + cloud.size * 0.5, cloud.y + cloud.size * 0.1), cloud.size * 0.8 * intensity, paint);
+    }
+  }
+
+  void _paintRibbons(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2 * intensity
+      ..strokeCap = StrokeCap.round;
+
+    for (int i = 0; i < 3; i++) {
+      final path = Path();
+      final startY = size.height * (0.4 + i * 0.15);
+
+      path.moveTo(0, startY);
+
+      for (double x = 0; x <= size.width; x += 20) {
+        final y = startY +
+            math.sin(x * 0.01 + state.time * 0.5 + i) * 30 * intensity +
+            math.cos(x * 0.02 - state.time * 0.3) * 15 * intensity;
+        path.lineTo(x, y);
+      }
+
+      final alpha = 0.3 + 0.2 * math.sin(state.time + i);
+
+      paint.shader = ui.Gradient.linear(Offset(0, 0), Offset(size.width, 0), [
+        primaryColor.withOpacity(0.0),
+        primaryColor.withOpacity(0.1 * alpha * intensity),
+        accentColor.withOpacity(0.1 * alpha * intensity),
+        accentColor.withOpacity(0.0),
+      ], [
+        0.0,
+        0.4,
+        0.6,
+        1.0
+      ]);
+
+      canvas.drawPath(path, paint);
+    }
+    paint.shader = null;
+  }
+
+  void _updateAndPaintBubbles(Canvas canvas, Size size, double dt) {
+    if (state.bubbles == null) return;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    for (var bubble in state.bubbles!) {
+      // Update
+      bubble.y -= bubble.speedY * dt * intensity;
+      bubble.wobblePhase += bubble.wobbleSpeed * dt;
+      final wobbleX = math.sin(bubble.wobblePhase) * 10 * intensity;
+
+      // Wrap
+      if (bubble.y < -bubble.size * 2) {
+        bubble.y = size.height + bubble.size + _rng.nextDouble() * 50;
+        bubble.x = _rng.nextDouble() * size.width;
+      }
+
+      // Draw
+      final bx = bubble.x + wobbleX;
+      final by = bubble.y;
+
+      final alpha = 0.4 + 0.2 * math.sin(state.time * 2 + bubble.x);
+
+      // Main Bubble
+      paint.color = bubble.color.withOpacity(0.2 * alpha * intensity);
+      canvas.drawCircle(Offset(bx, by), bubble.size * intensity, paint);
+
+      // Rim
+      paint.style = PaintingStyle.stroke;
+      paint.strokeWidth = 1 * intensity;
+      paint.color = bubble.color.withOpacity(0.4 * alpha * intensity);
+      canvas.drawCircle(Offset(bx, by), bubble.size * intensity, paint);
+
+      // Highlight
+      paint.style = PaintingStyle.fill;
+      paint.color = Colors.white.withOpacity(0.3 * alpha * intensity);
+      canvas.drawCircle(Offset(bx - bubble.size * 0.3, by - bubble.size * 0.3), bubble.size * 0.25 * intensity, paint);
+    }
+  }
+
+  void _paintVignette(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final gradient = ui.Gradient.radial(
+      Offset(size.width / 2, size.height / 2),
+      size.longestSide * 0.8,
+      [
+        Colors.transparent,
+        Colors.white.withOpacity(0.3 * intensity),
+        primaryColor.withOpacity(0.1 * intensity),
+      ],
+      [0.6, 0.9, 1.0],
+    );
+
+    canvas.drawRect(
+        rect,
+        Paint()
+          ..shader = gradient
+          ..blendMode = BlendMode.softLight);
+  }
+
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _EnhancedDreamscapePainter oldDelegate) {
+    return true; // Always repaint
+  }
 }

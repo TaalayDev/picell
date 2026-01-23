@@ -1,10 +1,15 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'theme.dart';
+
+// ============================================================================
+// WINTER WONDERLAND THEME BUILDER
+// ============================================================================
 
 AppTheme buildWinterWonderlandTheme() {
   final baseTextTheme = GoogleFonts.sourceCodeProTextTheme();
@@ -64,7 +69,10 @@ AppTheme buildWinterWonderlandTheme() {
   );
 }
 
-// Winter Wonderland theme background with falling snow and cozy winter atmosphere
+// ============================================================================
+// WINTER WONDERLAND ANIMATED BACKGROUND
+// ============================================================================
+
 class WinterWonderlandBackground extends HookWidget {
   final AppTheme theme;
   final double intensity;
@@ -79,41 +87,44 @@ class WinterWonderlandBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useAnimationController(duration: theme.type.animationDuration);
+    // 1. Ticker controller
+    final controller = useAnimationController(
+      duration: const Duration(seconds: 1),
+    );
 
     useEffect(() {
       if (enableAnimation) {
         controller.repeat();
       } else {
         controller.stop();
-        controller.value = 0.0;
       }
       return null;
     }, [enableAnimation]);
 
-    final t = useAnimation(Tween<double>(begin: 0, end: 1).animate(controller));
+    // 2. State for infinite animation
+    final winterState = useMemoized(() => _WinterState());
 
     return Stack(
       fit: StackFit.expand,
       children: [
+        // Background Image
         Positioned.fill(
           child: Image.asset(
             'assets/images/winter_background.webp',
             fit: BoxFit.cover,
-            colorBlendMode: BlendMode.darken,
           ),
         ),
+        // Overlay for snow
         RepaintBoundary(
           child: CustomPaint(
-            painter: _WinterSnowPainter(
-              t: t,
+            painter: _EnhancedWinterPainter(
+              repaint: controller,
+              state: winterState,
               primaryColor: theme.primaryColor,
               accentColor: theme.accentColor,
-              intensity: intensity.clamp(0.3, 1.8),
+              intensity: intensity.clamp(0.0, 2.0),
             ),
             size: Size.infinite,
-            isComplex: true,
-            willChange: enableAnimation,
           ),
         ),
       ],
@@ -121,114 +132,200 @@ class WinterWonderlandBackground extends HookWidget {
   }
 }
 
-class _WinterSnowPainter extends CustomPainter {
-  final double t;
+// State class for physics and objects
+class _WinterState {
+  double time = 0;
+  double lastFrameTimestamp = 0;
+  List<_Snowflake>? snowflakes;
+}
+
+class _Snowflake {
+  double x;
+  double y;
+  double z; // Depth 0.0 (far) to 1.0 (near)
+  double size;
+  double rotation;
+  double rotSpeed;
+  double swayPhase;
+  double swaySpeed;
+
+  _Snowflake({
+    required this.x,
+    required this.y,
+    required this.z,
+    required this.size,
+    required this.rotation,
+    required this.rotSpeed,
+    required this.swayPhase,
+    required this.swaySpeed,
+  });
+}
+
+class _EnhancedWinterPainter extends CustomPainter {
+  final _WinterState state;
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
 
-  _WinterSnowPainter({
-    required this.t,
+  // Palette
+  static const Color _snowWhite = Color(0xFFFFFFFF);
+
+  final math.Random _rng = math.Random(101);
+
+  _EnhancedWinterPainter({
+    required Listenable repaint,
+    required this.state,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
-  });
-
-  // Animation helpers for smooth looping
-  double get _phase => 2 * math.pi * t;
-  double _wave(double speed, [double offset = 0]) => math.sin(_phase * speed + offset);
-
-  // Winter color palette
-  late final Color _snowWhite = const Color(0xFFFFFFFD);
-
-  // Element counts based on intensity
-  int get _snowflakeCount => (60 * intensity).round().clamp(30, 90);
+  }) : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
-    _paintFallingSnow(canvas, size);
+    // Time accumulation
+    final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
+    state.lastFrameTimestamp = now;
+    state.time += dt;
+
+    // Initialization
+    if (state.snowflakes == null) _initWorld(size);
+
+    _updateAndPaintSnow(canvas, size, dt);
+    _paintVignette(canvas, size);
   }
 
-  void _paintFallingSnow(Canvas canvas, Size size) {
+  void _initWorld(Size size) {
+    state.snowflakes = [];
+
+    final rng = math.Random(42);
+
+    // Init Snowflakes
+    int snowCount = (100 * intensity).round().clamp(50, 300);
+    for (int i = 0; i < snowCount; i++) {
+      state.snowflakes!.add(_Snowflake(
+        x: rng.nextDouble() * size.width,
+        y: rng.nextDouble() * size.height,
+        z: rng.nextDouble(),
+        size: 1 + rng.nextDouble() * 3,
+        rotation: rng.nextDouble() * math.pi * 2,
+        rotSpeed: (rng.nextDouble() - 0.5) * 2.0,
+        swayPhase: rng.nextDouble() * math.pi * 2,
+        swaySpeed: 1 + rng.nextDouble() * 2,
+      ));
+    }
+  }
+
+  void _updateAndPaintSnow(Canvas canvas, Size size, double dt) {
+    if (state.snowflakes == null) return;
+
     final paint = Paint()..style = PaintingStyle.fill;
-    final random = math.Random(42); // Fixed seed for consistent snow
 
-    for (int i = 0; i < _snowflakeCount; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
+    for (var flake in state.snowflakes!) {
+      // Physics
+      // Speed depends on z (depth) - Slow falling
+      double fallSpeed = (10 + 40 * flake.z) * intensity;
+      flake.y += fallSpeed * dt;
 
-      // Snowflake falling motion with gentle wind
-      final fallSpeed = 0.8 + (i % 3) * 0.3;
-      final progress = (t * fallSpeed + i * 0.01) % 1.2;
-      final snowY = progress * (size.height + 40) - 20;
+      // Wind sway
+      flake.swayPhase += flake.swaySpeed * dt;
+      flake.x += math.sin(flake.swayPhase) * 15 * dt * intensity; // Gentle sway
+      flake.x += 5 * dt * intensity; // Very slight global wind
 
-      if (snowY < -10 || snowY > size.height + 10) continue;
+      // Rotation
+      flake.rotation += flake.rotSpeed * dt;
 
-      // Gentle swaying motion
-      final windSway = _wave(0.3, i * 0.1) * 15 * intensity;
-      final microSway = _wave(1.2, i * 0.05) * 3 * intensity;
-      final snowX = baseX + windSway + microSway;
+      // Wrap
+      if (flake.y > size.height + 10) {
+        flake.y = -10;
+        flake.x = _rng.nextDouble() * size.width;
+      }
+      if (flake.x > size.width + 10) {
+        flake.x = -10;
+      }
 
-      // Snowflake size and opacity
-      final snowflakeSize = (1.5 + random.nextDouble() * 4) * intensity;
-      final fadeIn = math.min(1.0, (snowY + 20) / 40);
-      final fadeOut = math.min(1.0, (size.height + 20 - snowY) / 40);
-      final opacity = (fadeIn * fadeOut * 0.8) * intensity;
+      // Draw
+      double drawSize = flake.size * (0.5 + 0.5 * flake.z);
+      double opacity = (0.4 + 0.6 * flake.z) * intensity;
 
-      if (opacity <= 0.01) continue;
-
-      // Different snowflake types
-      final snowflakeType = i % 4;
       paint.color = _snowWhite.withOpacity(opacity);
 
-      switch (snowflakeType) {
-        case 0: // Simple dot
-          canvas.drawCircle(Offset(snowX, snowY), snowflakeSize, paint);
-          break;
-        case 1: // Slightly larger soft flake
-          paint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 1);
-          canvas.drawCircle(Offset(snowX, snowY), snowflakeSize * 1.3, paint);
-          paint.maskFilter = null;
-          break;
-        case 2: // Star-shaped snowflake
-          _drawSnowflakeStar(canvas, paint, Offset(snowX, snowY), snowflakeSize);
-          break;
-        case 3: // Clustered snowflake
-          canvas.drawCircle(Offset(snowX, snowY), snowflakeSize * 0.8, paint);
-          canvas.drawCircle(Offset(snowX - 1, snowY - 1), snowflakeSize * 0.4, paint);
-          canvas.drawCircle(Offset(snowX + 1, snowY + 1), snowflakeSize * 0.4, paint);
-          break;
+      // Simple flake or detailed based on size
+      if (drawSize < 2.0) {
+        canvas.drawCircle(Offset(flake.x, flake.y), drawSize, paint);
+      } else {
+        _drawSnowflakeStar(canvas, paint, Offset(flake.x, flake.y), drawSize, flake.rotation);
       }
     }
   }
 
-  void _drawSnowflakeStar(Canvas canvas, Paint paint, Offset center, double size) {
+  void _drawSnowflakeStar(Canvas canvas, Paint paint, Offset center, double size, double rotation) {
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(rotation);
+
     final path = Path();
     for (int i = 0; i < 6; i++) {
       final angle = i * math.pi / 3;
-      final x = center.dx + math.cos(angle) * size;
-      final y = center.dy + math.sin(angle) * size;
+      final x = math.cos(angle) * size;
+      final y = math.sin(angle) * size;
 
-      if (i == 0) {
-        path.moveTo(center.dx, center.dy);
-        path.lineTo(x, y);
-      } else {
-        path.moveTo(center.dx, center.dy);
-        path.lineTo(x, y);
+      // Main arm
+      canvas.drawLine(
+          Offset.zero,
+          Offset(x, y),
+          Paint()
+            ..color = paint.color
+            ..strokeWidth = size * 0.2
+            ..strokeCap = StrokeCap.round);
+
+      // Tiny branches
+      if (size > 3.0) {
+        final midX = x * 0.6;
+        final midY = y * 0.6;
+        final branchLen = size * 0.3;
+        final branchAngle1 = angle + 0.8;
+        final branchAngle2 = angle - 0.8;
+
+        canvas.drawLine(
+            Offset(midX, midY),
+            Offset(midX + math.cos(branchAngle1) * branchLen, midY + math.sin(branchAngle1) * branchLen),
+            Paint()
+              ..color = paint.color
+              ..strokeWidth = size * 0.1);
+        canvas.drawLine(
+            Offset(midX, midY),
+            Offset(midX + math.cos(branchAngle2) * branchLen, midY + math.sin(branchAngle2) * branchLen),
+            Paint()
+              ..color = paint.color
+              ..strokeWidth = size * 0.1);
       }
     }
+    canvas.restore();
+  }
 
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 0.8;
-    canvas.drawPath(path, paint);
-    paint.style = PaintingStyle.fill;
+  void _paintVignette(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final gradient = ui.Gradient.radial(
+      Offset(size.width / 2, size.height / 2),
+      size.longestSide * 0.8,
+      [
+        Colors.transparent,
+        Colors.white.withOpacity(0.1 * intensity),
+        Colors.white.withOpacity(0.3 * intensity), // Frosty edges
+      ],
+      [0.6, 0.85, 1.0],
+    );
+
+    canvas.drawRect(
+        rect,
+        Paint()
+          ..shader = gradient
+          ..blendMode = BlendMode.softLight);
   }
 
   @override
-  bool shouldRepaint(covariant _WinterSnowPainter oldDelegate) {
-    return oldDelegate.t != t ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
+  bool shouldRepaint(covariant _EnhancedWinterPainter oldDelegate) {
+    return true; // Infinite animation
   }
 }
