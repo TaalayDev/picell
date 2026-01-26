@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   custom_mouse_cursor
+  desktop_drop
   file_selector_linux
   screen_retriever_linux
   sqlite3_flutter_libs

@@ -30,6 +30,7 @@ import '../widgets/community_project_card.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/delete_account_dialog.dart';
 import '../widgets/dialogs/project_upload_dialog.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/feedback_prompt_dialog.dart';
+import '../widgets/drop_target_overlay.dart';
 import '../widgets/project/adaprive_project_grid.dart';
 import '../widgets/subscription/subscription_menu.dart';
 import '../widgets/theme_selector.dart';
@@ -108,10 +109,17 @@ class ProjectsScreen extends HookConsumerWidget {
       });
     }, []);
 
-    return AnimatedBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
+    return DropTargetOverlay(
+      onFilesDropped: (results) => _handleDroppedFiles(context, ref, results),
+      acceptedTypes: const [
+        DroppedFileType.image,
+        DroppedFileType.aseprite,
+        DroppedFileType.project,
+      ],
+      child: AnimatedBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: Row(
@@ -370,7 +378,93 @@ class ProjectsScreen extends HookConsumerWidget {
           ],
         ),
       ),
+    ),
     );
+  }
+
+  void _handleDroppedFiles(
+    BuildContext context,
+    WidgetRef ref,
+    List<DroppedFileResult> results,
+  ) async {
+    final dropHandler = DropHandlerService();
+
+    for (final result in results) {
+      if (!result.isSuccess) {
+        showTopFlushbar(
+          context,
+          message: Text(result.errorMessage ?? 'Failed to process ${result.fileName}'),
+        );
+        continue;
+      }
+
+      switch (result.type) {
+        case DroppedFileType.project:
+        case DroppedFileType.aseprite:
+          if (result.project != null) {
+            final loader = showLoader(
+              context,
+              loadingText: 'Importing ${result.fileName}...',
+            );
+
+            try {
+              final newProject = await ref.read(projectsProvider.notifier).addProject(result.project!);
+              if (context.mounted) {
+                loader.remove();
+                showTopFlushbar(
+                  context,
+                  message: Text('Imported "${result.project!.name}" successfully'),
+                );
+              }
+            } catch (e) {
+              if (context.mounted) {
+                loader.remove();
+                showTopFlushbar(
+                  context,
+                  message: Text('Failed to import: $e'),
+                );
+              }
+            }
+          }
+          break;
+
+        case DroppedFileType.image:
+          if (result.image != null) {
+            final project = dropHandler.imageToProject(result.image!, result.fileName);
+            final loader = showLoader(
+              context,
+              loadingText: 'Importing ${result.fileName}...',
+            );
+
+            try {
+              final newProject = await ref.read(projectsProvider.notifier).addProject(project);
+              if (context.mounted) {
+                loader.remove();
+                showTopFlushbar(
+                  context,
+                  message: Text('Imported "${project.name}" successfully'),
+                );
+              }
+            } catch (e) {
+              if (context.mounted) {
+                loader.remove();
+                showTopFlushbar(
+                  context,
+                  message: Text('Failed to import: $e'),
+                );
+              }
+            }
+          }
+          break;
+
+        case DroppedFileType.unknown:
+          showTopFlushbar(
+            context,
+            message: Text('Unsupported file type: ${result.fileName}'),
+          );
+          break;
+      }
+    }
   }
 
   Widget _buildLocalProjectsTab(

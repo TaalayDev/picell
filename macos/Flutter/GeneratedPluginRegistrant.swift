@@ -6,6 +6,7 @@ import FlutterMacOS
 import Foundation
 
 import custom_mouse_cursor
+import desktop_drop
 import file_selector_macos
 import firebase_analytics
 import firebase_auth
@@ -27,6 +28,7 @@ import window_manager
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   CustomMouseCursorPlugin.register(with: registry.registrar(forPlugin: "CustomMouseCursorPlugin"))
+  DesktopDropPlugin.register(with: registry.registrar(forPlugin: "DesktopDropPlugin"))
   FileSelectorPlugin.register(with: registry.registrar(forPlugin: "FileSelectorPlugin"))
   FLTFirebaseAnalyticsPlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseAnalyticsPlugin"))
   FLTFirebaseAuthPlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseAuthPlugin"))

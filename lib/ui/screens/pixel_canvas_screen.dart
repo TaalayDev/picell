@@ -17,6 +17,7 @@ import '../../data.dart';
 import '../../providers/subscription_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/dialogs/import_dialog.dart';
+import '../widgets/drop_target_overlay.dart';
 import '../widgets/painter/pixel_painter.dart';
 import '../widgets/panel/desktop_side_panel.dart';
 import '../widgets/pixel_canvas_shortcuts.dart';
@@ -155,6 +156,77 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     return ImportDialog.show(context);
   }
 
+  void _handleDroppedImage(DroppedFileResult result, PixelCanvasNotifier notifier) {
+    if (result.image == null) return;
+
+    final dropHandler = DropHandlerService();
+    final layer = dropHandler.imageToLayer(
+      result.image!,
+      project.width,
+      project.height,
+      layerName: result.fileName.replaceAll(RegExp(r'\.[^.]+$'), ''),
+    );
+
+    notifier.addLayerWithPixels(layer);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Imported "${result.fileName}" as new layer'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleDroppedAseprite(BuildContext context, DroppedFileResult result) {
+    if (result.project == null) return;
+
+    // Show dialog asking what to do with the Aseprite file
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Import Aseprite File'),
+        content: Text(
+          'How would you like to import "${result.fileName}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Import first frame as layer
+              if (result.project!.frames.isNotEmpty &&
+                  result.project!.frames.first.layers.isNotEmpty) {
+                final importedLayer = result.project!.frames.first.layers.first;
+                notifier.addLayerWithPixels(importedLayer);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Imported first layer from "${result.fileName}"'),
+                  ),
+                );
+              }
+            },
+            child: const Text('Import as Layer'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Open as new project
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => PixelCanvasScreen(project: result.project!),
+                ),
+              );
+            },
+            child: const Text('Open as Project'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentTool = useState(PixelTool.pencil);
@@ -286,7 +358,10 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                           ),
                         ),
                       Expanded(
-                        child: GestureDetector(
+                        child: CanvasDropTarget(
+                          onImageDropped: (result) => _handleDroppedImage(result, notifier),
+                          onAsepriteDropped: (result) => _handleDroppedAseprite(context, result),
+                          child: GestureDetector(
                           onScaleStart: (details) {
                             final pointerCount = details.pointerCount;
                             if (pointerCount == 2) {
@@ -376,6 +451,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                             ],
                           ),
                         ),
+                      ),
                       ),
                       if (MediaQuery.sizeOf(context).width > 1050)
                         DesktopSidePanel(

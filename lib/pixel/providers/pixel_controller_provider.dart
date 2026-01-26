@@ -340,6 +340,30 @@ class PixelDrawController extends _$PixelDrawController {
     state = state.copyWith(currentLayerIndex: updatedLayers.length - 1);
   }
 
+  /// Add a layer with pre-existing pixels (for import operations)
+  Future<void> addLayerWithPixels(Layer layer) async {
+    _saveState();
+    final order = _layerService.calculateNextLayerOrder(currentFrame.layers);
+
+    final newLayer = await _layerService.createLayer(
+      projectId: project.id,
+      frameId: currentFrame.id,
+      name: layer.name,
+      width: state.width,
+      height: state.height,
+      order: order,
+    );
+
+    final layerWithPixels = newLayer.copyWith(pixels: layer.pixels);
+
+    final updatedLayers = [...currentFrame.layers, layerWithPixels];
+    final updatedFrame = currentFrame.copyWith(layers: updatedLayers);
+    _updateCurrentFrame(updatedFrame);
+
+    state = state.copyWith(currentLayerIndex: updatedLayers.length - 1);
+    _updateProject();
+  }
+
   Future<void> removeLayer(int index) async {
     if (currentFrame.layers.length <= 1) return;
 

@@ -57,6 +57,7 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
 
   // Layer operations
   Future<void> addLayer(String name) => _controller.addLayer(name);
+  Future<void> addLayerWithPixels(Layer layer) => _controller.addLayerWithPixels(layer);
   Future<void> removeLayer(int index) => _controller.removeLayer(index);
   Future<int> duplicateLayer(int index) => _controller.duplicateLayer(index);
   void selectLayer(int index) => _controller.selectLayer(index);
