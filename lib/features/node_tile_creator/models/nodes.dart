@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../../pixel/effects/effects.dart';
 import 'node_graph_model.dart';
 
 /// Represents generated tile data
@@ -1403,9 +1404,14 @@ class PlatformNode extends NodeData {
   bool bottom;
   bool left;
   bool right;
-  double thickness;
-  double radius;
-  double shadow;
+  int edgeWidth;
+  int cornerRadius;
+  String mergeType;
+  double waveFrequency;
+  double waveAmplitude;
+  double noiseIntensity;
+  int shadowDepth;
+  double shadowOpacity;
 
   PlatformNode({
     super.id,
@@ -1414,9 +1420,14 @@ class PlatformNode extends NodeData {
     this.bottom = true,
     this.left = true,
     this.right = true,
-    this.thickness = 0.2, // Border thickness relative to size (0..0.5)
-    this.radius = 0.0, // Corner radius relative to size (0..0.5)
-    this.shadow = 0.0, // Inner shadow strength (0..1)
+    this.edgeWidth = 4,
+    this.cornerRadius = 2,
+    this.mergeType = 'solid',
+    this.waveFrequency = 4.0,
+    this.waveAmplitude = 2.0,
+    this.noiseIntensity = 0.5,
+    this.shadowDepth = 3,
+    this.shadowOpacity = 0.5,
   }) : super(name: 'Platform');
 
   @override
@@ -1443,131 +1454,84 @@ class PlatformNode extends NodeData {
       borderTile = await context.getInput(id, 'Border') as TileData?;
     } catch (_) {}
 
-    // Fallback if inputs disconnected
     mainTile ??= TileData.solidColor(const Color(0xFFCCCCCC), context.width, context.height);
     borderTile ??= TileData.solidColor(const Color(0xFF666666), context.width, context.height);
 
     final width = context.width;
     final height = context.height;
+
+    // Create the platformer effect
+    final effect = PlatformerEffect({
+      'keepTop': top,
+      'keepBottom': bottom,
+      'keepLeft': left,
+      'keepRight': right,
+      'edgeWidth': edgeWidth,
+      'cornerRadius': cornerRadius,
+      'mergeType': mergeType,
+      'waveFrequency': waveFrequency,
+      'waveAmplitude': waveAmplitude,
+      'noiseIntensity': noiseIntensity,
+      'shadowDepth': shadowDepth,
+      'shadowOpacity': shadowOpacity,
+    });
+
+    // Resample border texture to output size and apply platformer effect
+    final resampledBorder = _resampleTexture(borderTile, width, height);
+    final borderWithEffect = effect.apply(resampledBorder, width, height);
+
+    // Resample main texture to output size
+    final resampledMain = _resampleTexture(mainTile, width, height);
+
+    // Composite: main as base, border on top (only visible pixels)
     final pixels = Uint32List(width * height);
 
-    // Helper to sample texture
-    int sample(TileData tile, double u, double v) {
-      final tx = (u * tile.width).floor().clamp(0, tile.width - 1);
-      final ty = (v * tile.height).floor().clamp(0, tile.height - 1);
-      return tile.pixels[ty * tile.width + tx];
-    }
+    for (int i = 0; i < pixels.length; i++) {
+      final mainPixel = resampledMain[i];
+      final borderPixel = borderWithEffect[i];
+      final borderAlpha = (borderPixel >> 24) & 0xFF;
 
-    final bordThick = thickness;
+      if (borderAlpha == 0) {
+        // Border is transparent, use main
+        pixels[i] = mainPixel;
+      } else if (borderAlpha == 255) {
+        // Border is fully opaque, use border
+        pixels[i] = borderPixel;
+      } else {
+        // Alpha blend border over main
+        final mainAlpha = (mainPixel >> 24) & 0xFF;
+        final mainR = (mainPixel >> 16) & 0xFF;
+        final mainG = (mainPixel >> 8) & 0xFF;
+        final mainB = mainPixel & 0xFF;
 
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final u = x / width;
-        final v = y / height;
+        final borderR = (borderPixel >> 16) & 0xFF;
+        final borderG = (borderPixel >> 8) & 0xFF;
+        final borderB = borderPixel & 0xFF;
 
-        // 1. Check shape boundaries (Rounded Rectangle)
-        bool outside = false;
+        final a = borderAlpha / 255.0;
+        final invA = 1.0 - a;
 
-        if (radius > 0) {
-          double dx = 0, dy = 0;
-          if (u < radius)
-            dx = radius - u;
-          else if (u > 1.0 - radius) dx = u - (1.0 - radius);
+        final outR = (borderR * a + mainR * invA).round();
+        final outG = (borderG * a + mainG * invA).round();
+        final outB = (borderB * a + mainB * invA).round();
+        final outA = (borderAlpha + mainAlpha * invA).round().clamp(0, 255);
 
-          if (v < radius)
-            dy = radius - v;
-          else if (v > 1.0 - radius) dy = v - (1.0 - radius);
-
-          if (dx > 0 && dy > 0) {
-            if (sqrt(dx * dx + dy * dy) > radius) {
-              outside = true;
-            }
-          }
-        }
-
-        if (outside) {
-          pixels[y * width + x] = 0x00000000; // Transparent
-          continue;
-        }
-
-        // 2. Composing borders
-        bool isBorder = false;
-
-        double distToEdge = 1.0;
-
-        if (top) distToEdge = min(distToEdge, v);
-        if (bottom) distToEdge = min(distToEdge, 1.0 - v);
-        if (left) distToEdge = min(distToEdge, u);
-        if (right) distToEdge = min(distToEdge, 1.0 - u);
-
-        // Radius correction for distance
-        if (radius > 0) {
-          double dx = 0, dy = 0;
-          if (u < radius)
-            dx = radius - u;
-          else if (u > 1.0 - radius) dx = u - (1.0 - radius);
-
-          if (v < radius)
-            dy = radius - v;
-          else if (v > 1.0 - radius) dy = v - (1.0 - radius);
-
-          if (dx > 0 && dy > 0) {
-            double cornerDist = sqrt(dx * dx + dy * dy);
-            double dEdge = radius - cornerDist;
-
-            bool cornerHasBorders = false;
-            if (u < 0.5 && v < 0.5 && top && left) cornerHasBorders = true;
-            if (u > 0.5 && v < 0.5 && top && right) cornerHasBorders = true;
-            if (u < 0.5 && v > 0.5 && bottom && left) cornerHasBorders = true;
-            if (u > 0.5 && v > 0.5 && bottom && right) cornerHasBorders = true;
-
-            if (cornerHasBorders) {
-              distToEdge = dEdge;
-            }
-          }
-        }
-
-        if (distToEdge < bordThick) {
-          // Additional check: verify this specific side is enabled if not in a corner
-          // Simplified: The min() logic above handles "closest edge". If closest edge is enabled, then valid.
-          // BUT, if closest edge is disabled, it shouldn't be a border?
-          // Actually, distToEdge only considers enabled edges, so if distToEdge < bordThick, it MUST be near an enabled edge.
-          isBorder = true;
-        }
-
-        int pixelColor = 0;
-        if (isBorder) {
-          pixelColor = sample(borderTile, u, v);
-        } else {
-          pixelColor = sample(mainTile, u, v);
-        }
-
-        // 3. Apply Shadow
-        if (shadow > 0) {
-          if (!isBorder && isBorder == false) {
-            double d = (distToEdge - bordThick);
-            if (d < 0) d = 0;
-            double shadowRange = 0.1;
-            if (d < shadowRange) {
-              double sFactor = (1.0 - d / shadowRange) * shadow;
-              int a = (pixelColor >> 24) & 0xFF;
-              int r = (pixelColor >> 16) & 0xFF;
-              int g = (pixelColor >> 8) & 0xFF;
-              int b = pixelColor & 0xFF;
-
-              r = (r * (1.0 - sFactor * 0.5)).toInt();
-              g = (g * (1.0 - sFactor * 0.5)).toInt();
-              b = (b * (1.0 - sFactor * 0.5)).toInt();
-
-              pixelColor = (a << 24) | (r << 16) | (g << 8) | b;
-            }
-          }
-        }
-
-        pixels[y * width + x] = pixelColor;
+        pixels[i] = (outA << 24) | (outR << 16) | (outG << 8) | outB;
       }
     }
 
     return TileData(pixels: pixels, width: width, height: height);
+  }
+
+  Uint32List _resampleTexture(TileData tile, int width, int height) {
+    final result = Uint32List(width * height);
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final tx = (x * tile.width / width).floor().clamp(0, tile.width - 1);
+        final ty = (y * tile.height / height).floor().clamp(0, tile.height - 1);
+        result[y * width + x] = tile.pixels[ty * tile.width + tx];
+      }
+    }
+    return result;
   }
 }

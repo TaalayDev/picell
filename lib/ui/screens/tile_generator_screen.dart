@@ -9,6 +9,8 @@ import '../../tilemap/generator/tile_base.dart';
 import '../../tilemap/generator/tile_palette.dart';
 import '../../tilemap/tile_generator_notifier.dart';
 import '../widgets/animated_background.dart';
+import '../widgets/tile_generator/effect_settings_panel.dart';
+import '../widgets/tile_generator/layer_list_panel.dart';
 import 'pixel_canvas_screen.dart';
 
 /// Tile Generator Screen - create a single tile and edit it
@@ -657,58 +659,89 @@ class _TileGeneratorScreenState extends ConsumerState<TileGeneratorScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      width: 220,
+      width: 260, // Increased width for layers
       decoration: BoxDecoration(
         color: colorScheme.surface.withValues(alpha: 0.8),
         border: Border(
           left: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
+      child: DefaultTabController(
+        length: 3,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Drawing Tools Section
-            _buildSectionHeader(context, 'Tools', Icons.edit),
-            const SizedBox(height: 8),
-            _buildToolGrid(context, state, notifier, colorScheme),
-            const SizedBox(height: 16),
+            TabBar(
+              labelColor: colorScheme.primary,
+              unselectedLabelColor: colorScheme.onSurfaceVariant,
+              indicatorColor: colorScheme.primary,
+              labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+              tabs: const [
+                Tab(icon: Icon(Icons.brush, size: 20), text: 'Draw'),
+                Tab(icon: Icon(Icons.layers, size: 20), text: 'Layers'),
+                Tab(icon: Icon(Icons.auto_fix_high, size: 20), text: 'Effects'),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  // Draw Tab
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Drawing Tools Section
+                        _buildSectionHeader(context, 'Tools', Icons.edit),
+                        const SizedBox(height: 8),
+                        _buildToolGrid(context, state, notifier, colorScheme),
+                        const SizedBox(height: 16),
 
-            // Current Color Section
-            _buildSectionHeader(context, 'Color', Icons.palette),
-            const SizedBox(height: 8),
-            _buildColorPicker(context, state, notifier, colorScheme),
-            const SizedBox(height: 12),
+                        // Current Color Section
+                        _buildSectionHeader(context, 'Color', Icons.palette),
+                        const SizedBox(height: 8),
+                        _buildColorPicker(context, state, notifier, colorScheme),
+                        const SizedBox(height: 12),
 
-            // Tile Palette Colors (auto-populated)
-            if (state.paletteColors.isNotEmpty) ...[
-              _buildPaletteColorsSection(context, state, notifier, colorScheme),
-              const SizedBox(height: 12),
-            ],
+                        // Tile Palette Colors (auto-populated)
+                        if (state.paletteColors.isNotEmpty) ...[
+                          _buildPaletteColorsSection(context, state, notifier, colorScheme),
+                          const SizedBox(height: 12),
+                        ],
 
-            // Quick Colors
-            _buildQuickColors(context, state, notifier, colorScheme),
-            const SizedBox(height: 16),
+                        // Quick Colors
+                        _buildQuickColors(context, state, notifier, colorScheme),
+                        const SizedBox(height: 16),
 
-            // Generation Settings (if tile selected)
-            if (state.selectedTileId != null) ...[
-              _buildSectionHeader(context, 'Generation', Icons.tune),
-              const SizedBox(height: 8),
-              _buildGenerationSettings(context, state, notifier, colorScheme),
-              const SizedBox(height: 16),
+                        // Generation Settings (if tile selected)
+                        if (state.selectedTileId != null) ...[
+                          _buildSectionHeader(context, 'Generation', Icons.tune),
+                          const SizedBox(height: 8),
+                          _buildGenerationSettings(context, state, notifier, colorScheme),
+                          const SizedBox(height: 16),
 
-              // Corner Radii Section
-              _buildSectionHeader(context, 'Corner Radii', Icons.rounded_corner),
-              const SizedBox(height: 8),
-              _buildCornerRadiiSettings(context, state, notifier, colorScheme),
-              const SizedBox(height: 16),
+                          // Corner Radii Section
+                          _buildSectionHeader(context, 'Corner Radii', Icons.rounded_corner),
+                          const SizedBox(height: 8),
+                          _buildCornerRadiiSettings(context, state, notifier, colorScheme),
+                          const SizedBox(height: 16),
 
-              // Tile Info
-              _buildSectionHeader(context, 'Tile Info', Icons.info_outline),
-              const SizedBox(height: 8),
-              _buildCompactTileInfo(context, state),
-            ],
+                          // Tile Info
+                          _buildSectionHeader(context, 'Tile Info', Icons.info_outline),
+                          const SizedBox(height: 8),
+                          _buildCompactTileInfo(context, state),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  // Layers Tab
+                  LayerListPanel(project: widget.project),
+
+                  // Effects Tab
+                  EffectSettingsPanel(project: widget.project),
+                ],
+              ),
+            ),
           ],
         ),
       ),

@@ -62,6 +62,8 @@ part 'city_effect.dart';
 part 'sky_effect.dart';
 part 'ground_texture_effect.dart';
 part 'wall_texture_effect.dart';
+part 'opacity_effect.dart';
+part 'platformer_effect.dart';
 
 enum EffectType {
   brightness,
@@ -123,7 +125,9 @@ enum EffectType {
   city,
   sky,
   groundTexture,
-  wallTexture
+  wallTexture,
+  opacity,
+  platformer
 }
 
 /// Base abstract class for all effects
@@ -201,6 +205,8 @@ abstract class Effect {
         EffectType.sky => 'Sky',
         EffectType.groundTexture => 'Ground Texture',
         EffectType.wallTexture => 'Wall Texture',
+        EffectType.opacity => 'Opacity',
+        EffectType.platformer => 'Platformer',
       };
 
   String getDescription(BuildContext context) => switch (type) {
@@ -281,6 +287,8 @@ abstract class Effect {
 
         // Special FX
         EffectType.city => 'Urban cityscape backdrop',
+        EffectType.opacity => 'Adjust layer transparency',
+        EffectType.platformer => 'Create platformer tile edges',
       };
 
   bool get isAnimation {
@@ -349,6 +357,8 @@ abstract class Effect {
       case EffectType.fog:
       case EffectType.groundTexture:
       case EffectType.wallTexture:
+      case EffectType.opacity:
+      case EffectType.platformer:
         return false;
     }
   }
@@ -418,6 +428,8 @@ abstract class Effect {
       case EffectType.glitch:
       case EffectType.treeBark:
       case EffectType.leafVenation:
+      case EffectType.opacity:
+      case EffectType.platformer:
         return false;
     }
   }
@@ -486,6 +498,8 @@ abstract class Effect {
       EffectType.sky => Icon(MaterialCommunityIcons.weather_partly_cloudy, size: size, color: color),
       EffectType.groundTexture => Icon(MaterialCommunityIcons.terrain, size: size, color: color),
       EffectType.wallTexture => Icon(MaterialCommunityIcons.wall, size: size, color: color),
+      EffectType.opacity => Icon(MaterialCommunityIcons.opacity, size: size, color: color),
+      EffectType.platformer => Icon(MaterialCommunityIcons.grid, size: size, color: color),
     };
   }
 
@@ -561,6 +575,8 @@ abstract class Effect {
 
       // Special FX - Unique colors
       EffectType.city => const Color(0xFF37474F), // Dark blue grey
+      EffectType.opacity => const Color(0xFF9E9E9E), // Grey
+      EffectType.platformer => const Color(0xFF00BCD4), // Cyan
     };
   }
 
@@ -719,6 +735,10 @@ class EffectsManager {
         return GroundTextureEffect(params);
       case EffectType.wallTexture:
         return WallTextureEffect(params);
+      case EffectType.opacity:
+        return OpacityEffect(params);
+      case EffectType.platformer:
+        return PlatformerEffect(params);
     }
   }
 

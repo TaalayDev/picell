@@ -22,6 +22,11 @@ import 'tiles/stone.dart';
 import 'tiles/extended_stone.dart';
 import 'tiles/urban_tiles.dart' hide HerringboneBrickTile;
 import 'tiles/varied.dart';
+import 'tiles/organic_nature_tiles.dart';
+import 'tiles/interactive_animated_tiles.dart';
+import 'tiles/decorative_detail_tiles.dart';
+import 'tiles/fantasy_magic_tiles.dart';
+import 'tiles/modular_connectable_tiles.dart';
 
 /// Base class for all tile types with powerful abstraction
 abstract class TileBase {
@@ -797,7 +802,68 @@ class TileRegistry {
     'statue': () => StatueTile('statue'),
 
     // =========================================================================
-    // DECORATION TILES - MISC
+    // ORGANIC / NATURE TILES (NEW)
+    // =========================================================================
+    'vine_overgrown': () => VineOvergrownTile('vine_overgrown'),
+    'mushroom_platform': () => MushroomPlatformTile('mushroom_platform'),
+    'organic_coral_reef': () => CoralReefTile('organic_coral_reef'),
+    'crystal_geode': () => CrystalGeodeTile('crystal_geode'),
+    'tree_bark': () => TreeBarkTile('tree_bark'),
+    'moss_stone': () => MossStoneTile('moss_stone'),
+    'organic_honeycomb': () => OrganicHoneycombTile('organic_honeycomb'),
+    'autumn_leaves': () => AutumnLeavesTile('autumn_leaves'),
+
+    // =========================================================================
+    // INTERACTIVE / ANIMATED TILES (NEW)
+    // =========================================================================
+    'conveyor_belt': () => ConveyorBeltTile('conveyor_belt'),
+    'crumbling_platform': () => CrumblingPlatformTile('crumbling_platform'),
+    'bouncy_gel': () => BouncyGelTile('bouncy_gel'),
+    'pressure_plate': () => PressurePlateTile('pressure_plate'),
+    'ice_platform': () => IcePlatformTile('ice_platform'),
+    'moving_platform': () => MovingPlatformTile('moving_platform'),
+    'sticky_goo': () => StickyGooTile('sticky_goo'),
+    'breakable_crate': () => BreakableCrateTile('breakable_crate'),
+
+    // =========================================================================
+    // DECORATIVE / DETAIL TILES (NEW)
+    // =========================================================================
+    'graffiti': () => GraffitiTile('graffiti'),
+    'chain': () => ChainTile('chain'),
+    'neon_sign': () => NeonSignTile('neon_sign'),
+    'brick_wall': () => BrickWallTile('brick_wall'),
+    'pipe_system': () => PipeSystemTile('pipe_system'),
+    'stained_glass': () => StainedGlassTile('stained_glass'),
+    'ancient_ruins': () => AncientRuinsTile('ancient_ruins'),
+    'detail_circuit_board': () => DetailCircuitBoardTile('detail_circuit_board'),
+
+    // =========================================================================
+    // FANTASY / MAGIC TILES (NEW)
+    // =========================================================================
+    'magic_rune_circle': () => MagicRuneCircleTile('magic_rune_circle'),
+    'crystal_glow': () => CrystalGlowTile('crystal_glow'),
+    'elemental_fire': () => ElementalFireTile('elemental_fire'),
+    'mystic_portal': () => MysticPortalTile('mystic_portal'),
+    'enchanted_vines': () => EnchantedVinesTile('enchanted_vines'),
+    'dragon_scale': () => DragonScaleTile('dragon_scale'),
+    'holy_light': () => HolyLightTile('holy_light'),
+    'shadow_realm': () => ShadowRealmTile('shadow_realm'),
+
+    // =========================================================================
+    // MODULAR / CONNECTABLE TILES (NEW)
+    // =========================================================================
+    'edge_aware': () => EdgeAwareTile('edge_aware'),
+    'puzzle_piece': () => PuzzlePieceTile('puzzle_piece'),
+    'tetris_block': () => TetrisBlockTile('tetris_block'),
+    'connector_joint': () => ConnectorJointTile('connector_joint'),
+    'rail_track': () => RailTrackTile('rail_track'),
+    'lego_brick': () => LegoBrickTile('lego_brick'),
+    'modular_corridor': () => ModularCorridorTile('modular_corridor'),
+    'auto_tiling_terrain': () => AutoTilingTerrainTile('auto_tiling_terrain'),
+
+    // =========================================================================
+    // DECORATION TILES - MISC (Original Continuation)
+    // =========================================================================
     // =========================================================================
     'anvil': () => AnvilTile('anvil'),
     'rope_coil': () => RopeCoilTile('rope_coil'),

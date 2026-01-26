@@ -839,27 +839,117 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
         ),
         const SizedBox(height: 16),
         _buildSlider(
-          label: 'Thickness',
-          value: node.thickness,
-          min: 0.0,
-          max: 0.5,
-          onChanged: (value) => _updateNode(() => node.thickness = value),
+          label: 'Edge Width',
+          value: node.edgeWidth.toDouble(),
+          min: 1.0,
+          max: 20.0,
+          onChanged: (value) => _updateNode(() => node.edgeWidth = value.round()),
         ),
         const SizedBox(height: 16),
         _buildSlider(
           label: 'Corner Radius',
-          value: node.radius,
+          value: node.cornerRadius.toDouble(),
           min: 0.0,
-          max: 0.5,
-          onChanged: (value) => _updateNode(() => node.radius = value),
+          max: 10.0,
+          onChanged: (value) => _updateNode(() => node.cornerRadius = value.round()),
         ),
         const SizedBox(height: 16),
-        _buildSlider(
-          label: 'Shadow',
-          value: node.shadow,
-          min: 0.0,
-          max: 1.0,
-          onChanged: (value) => _updateNode(() => node.shadow = value),
+        _buildSectionHeader('Merge Settings'),
+        const SizedBox(height: 16),
+        _buildDropdown(
+          label: 'Merge Type',
+          value: node.mergeType,
+          options: ['solid', 'gradient', 'dither', 'wave', 'zigzag', 'noise', 'step', 'shadow'],
+          onChanged: (value) => _updateNode(() => node.mergeType = value ?? 'solid'),
+        ),
+        const SizedBox(height: 16),
+        // Wave parameters
+        if (node.mergeType == 'wave') ...[
+          _buildSlider(
+            label: 'Wave Frequency',
+            value: node.waveFrequency,
+            min: 1.0,
+            max: 10.0,
+            onChanged: (value) => _updateNode(() => node.waveFrequency = value),
+          ),
+          const SizedBox(height: 16),
+          _buildSlider(
+            label: 'Wave Amplitude',
+            value: node.waveAmplitude,
+            min: 0.5,
+            max: 5.0,
+            onChanged: (value) => _updateNode(() => node.waveAmplitude = value),
+          ),
+          const SizedBox(height: 16),
+        ],
+        // Noise parameters
+        if (node.mergeType == 'noise') ...[
+          _buildSlider(
+            label: 'Noise Intensity',
+            value: node.noiseIntensity,
+            min: 0.0,
+            max: 1.0,
+            onChanged: (value) => _updateNode(() => node.noiseIntensity = value),
+          ),
+          const SizedBox(height: 16),
+        ],
+        // Shadow parameters
+        if (node.mergeType == 'shadow') ...[
+          _buildSlider(
+            label: 'Shadow Depth',
+            value: node.shadowDepth.toDouble(),
+            min: 1.0,
+            max: 10.0,
+            onChanged: (value) => _updateNode(() => node.shadowDepth = value.round()),
+          ),
+          const SizedBox(height: 16),
+          _buildSlider(
+            label: 'Shadow Opacity',
+            value: node.shadowOpacity,
+            min: 0.0,
+            max: 1.0,
+            onChanged: (value) => _updateNode(() => node.shadowOpacity = value),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDropdown({
+    required String label,
+    required String value,
+    required List<String> options,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(color: Colors.white54, fontSize: 12)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButton<String>(
+            value: value,
+            isExpanded: true,
+            dropdownColor: const Color(0xFF2A2A2A),
+            underline: const SizedBox(),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            items: options.map((option) {
+              return DropdownMenuItem<String>(
+                value: option,
+                child: Text(
+                  option[0].toUpperCase() + option.substring(1),
+                  style: const TextStyle(color: Colors.white),
+                ),
+              );
+            }).toList(),
+            onChanged: onChanged,
+          ),
         ),
       ],
     );

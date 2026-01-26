@@ -3,8 +3,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../data.dart';
+import '../pixel/effects/effects.dart';
 import 'generator/tile_base.dart';
 
 /// Drawing tool for tile editor
@@ -34,7 +36,14 @@ final tileGeneratorProvider =
 class TileGeneratorState {
   final int tileWidth;
   final int tileHeight;
+
+  // Layer system
+  final List<Layer> layers;
+  final String? activeLayerId;
+
+  /// Composed output of all visible layers
   final Uint32List? currentTile;
+
   final String? selectedTileId;
   final TileCategory? selectedCategory;
   final TileVariation variation;
@@ -44,7 +53,9 @@ class TileGeneratorState {
   final Color currentColor;
   final TileDrawTool currentTool;
   final CanvasDisplayMode displayMode;
-  final List<Uint32List> undoHistory;
+
+  // Undo/Redo now needs to track full layer state
+  final List<List<Layer>> undoHistory;
   final int undoIndex;
 
   // Generation settings
@@ -59,6 +70,8 @@ class TileGeneratorState {
   const TileGeneratorState({
     required this.tileWidth,
     required this.tileHeight,
+    this.layers = const [],
+    this.activeLayerId,
     this.currentTile,
     this.selectedTileId,
     this.selectedCategory,
@@ -84,9 +97,19 @@ class TileGeneratorState {
   bool get canUndo => undoIndex > 0;
   bool get canRedo => undoIndex < undoHistory.length - 1;
 
+  Layer? get activeLayer {
+    if (activeLayerId == null || layers.isEmpty) return null;
+    return layers.firstWhere(
+      (l) => l.id == activeLayerId,
+      orElse: () => layers.last,
+    );
+  }
+
   TileGeneratorState copyWith({
     int? tileWidth,
     int? tileHeight,
+    List<Layer>? layers,
+    String? activeLayerId,
     Uint32List? currentTile,
     String? selectedTileId,
     TileCategory? selectedCategory,
@@ -97,7 +120,7 @@ class TileGeneratorState {
     Color? currentColor,
     TileDrawTool? currentTool,
     CanvasDisplayMode? displayMode,
-    List<Uint32List>? undoHistory,
+    List<List<Layer>>? undoHistory,
     int? undoIndex,
     double? noiseIntensity,
     int? noiseOctaves,
@@ -110,6 +133,8 @@ class TileGeneratorState {
     return TileGeneratorState(
       tileWidth: tileWidth ?? this.tileWidth,
       tileHeight: tileHeight ?? this.tileHeight,
+      layers: layers ?? this.layers,
+      activeLayerId: activeLayerId ?? this.activeLayerId,
       currentTile: currentTile ?? this.currentTile,
       selectedTileId: selectedTileId ?? this.selectedTileId,
       selectedCategory: selectedCategory ?? this.selectedCategory,
@@ -137,12 +162,275 @@ class TileGeneratorState {
 class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
   final Project project;
   final TileRegistry _registry = TileRegistry.instance;
+  final _uuid = const Uuid();
 
   TileGeneratorNotifier(this.project)
       : super(TileGeneratorState(
           tileWidth: project.tileWidth ?? project.width,
           tileHeight: project.tileHeight ?? project.height,
-        ));
+        )) {
+    _initializeDefaultLayer();
+  }
+
+  void _initializeDefaultLayer() {
+    final layerId = _uuid.v4();
+    final layer = Layer(
+      layerId: DateTime.now().millisecondsSinceEpoch,
+      id: layerId,
+      name: 'Layer 1',
+      pixels: Uint32List(state.tileWidth * state.tileHeight),
+      isVisible: true,
+      order: 0,
+    );
+
+    state = state.copyWith(
+      layers: [layer],
+      activeLayerId: layerId,
+      currentTile: layer.pixels,
+    );
+    _pushUndoState();
+  }
+
+  // --- Layer Management ---
+
+  /// Add a new empty layer
+  void addLayer([String? name]) {
+    final layerId = _uuid.v4();
+    final layer = Layer(
+      layerId: DateTime.now().millisecondsSinceEpoch,
+      id: layerId,
+      name: name ?? 'Layer ${state.layers.length + 1}',
+      pixels: Uint32List(state.tileWidth * state.tileHeight),
+      isVisible: true,
+      order: state.layers.length,
+    );
+
+    final newLayers = [...state.layers, layer];
+    state = state.copyWith(
+      layers: newLayers,
+      activeLayerId: layerId,
+    );
+    _composeLayers();
+    _pushUndoState();
+  }
+
+  /// Remove a layer
+  void removeLayer(String layerId) {
+    if (state.layers.length <= 1) return; // Prevent deleting last layer
+
+    final newLayers = state.layers.where((l) => l.id != layerId).toList();
+
+    // If active layer removed, select the last one
+    String? newActiveId = state.activeLayerId;
+    if (state.activeLayerId == layerId) {
+      newActiveId = newLayers.isNotEmpty ? newLayers.last.id : null;
+    }
+
+    state = state.copyWith(
+      layers: newLayers,
+      activeLayerId: newActiveId,
+    );
+    _composeLayers();
+    _pushUndoState();
+  }
+
+  /// Select active layer
+  void setActiveLayer(String layerId) {
+    if (state.layers.any((l) => l.id == layerId)) {
+      state = state.copyWith(activeLayerId: layerId);
+    }
+  }
+
+  /// Toggle layer visibility
+  void toggleLayerVisibility(String layerId) {
+    final newLayers = state.layers.map((layer) {
+      if (layer.id == layerId) {
+        return layer.copyWith(isVisible: !layer.isVisible);
+      }
+      return layer;
+    }).toList();
+
+    state = state.copyWith(layers: newLayers);
+    _composeLayers();
+    _pushUndoState();
+  }
+
+  /// Toggle layer lock
+  void toggleLayerLock(String layerId) {
+    final newLayers = state.layers.map((layer) {
+      if (layer.id == layerId) {
+        return layer.copyWith(isLocked: !layer.isLocked);
+      }
+      return layer;
+    }).toList();
+
+    state = state.copyWith(layers: newLayers);
+  }
+
+  /// Update layer properties (opacity, blend mode etc)
+  void updateLayer(String layerId, {double? opacity, String? name}) {
+    final newLayers = state.layers.map((layer) {
+      if (layer.id == layerId) {
+        return layer.copyWith(
+          opacity: opacity,
+          name: name,
+        );
+      }
+      return layer;
+    }).toList();
+
+    state = state.copyWith(layers: newLayers);
+    _composeLayers();
+    _pushUndoState();
+  }
+
+  /// Reorder layers
+  void reorderLayers(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final layers = List<Layer>.from(state.layers);
+    final item = layers.removeAt(oldIndex);
+    layers.insert(newIndex, item);
+
+    // Update order property if needed, though list order defines drawing order usually
+    // (Last painted on top)
+
+    state = state.copyWith(layers: layers);
+    _composeLayers();
+    _pushUndoState();
+  }
+
+  // --- Effect Management ---
+
+  /// Add effect to active layer
+  void addEffect(EffectType type) {
+    final activeId = state.activeLayerId;
+    if (activeId == null) return;
+
+    // Create default effect with some reasonable params if needed
+    final effect = EffectsManager.createEffect(type);
+
+    final newLayers = state.layers.map((layer) {
+      if (layer.id == activeId) {
+        return layer.copyWith(
+          effects: [...layer.effects, effect],
+        );
+      }
+      return layer;
+    }).toList();
+
+    state = state.copyWith(layers: newLayers);
+    _composeLayers();
+    _pushUndoState();
+  }
+
+  /// Update an effect on active layer
+  void updateEffect(int index, Effect updatedEffect) {
+    final activeId = state.activeLayerId;
+    if (activeId == null) return;
+
+    final newLayers = state.layers.map((layer) {
+      if (layer.id == activeId) {
+        if (index < 0 || index >= layer.effects.length) return layer;
+
+        final newEffects = List<Effect>.from(layer.effects);
+        newEffects[index] = updatedEffect;
+
+        return layer.copyWith(effects: newEffects);
+      }
+      return layer;
+    }).toList();
+
+    state = state.copyWith(layers: newLayers);
+    _composeLayers();
+    _pushUndoState(); // Could debounce this if sliders are used
+  }
+
+  /// Remove effect from active layer
+  void removeEffect(int index) {
+    final activeId = state.activeLayerId;
+    if (activeId == null) return;
+
+    final newLayers = state.layers.map((layer) {
+      if (layer.id == activeId) {
+        if (index < 0 || index >= layer.effects.length) return layer;
+
+        final newEffects = List<Effect>.from(layer.effects);
+        newEffects.removeAt(index);
+
+        return layer.copyWith(effects: newEffects);
+      }
+      return layer;
+    }).toList();
+
+    state = state.copyWith(layers: newLayers);
+    _composeLayers();
+    _pushUndoState();
+  }
+
+  // --- Core Generation & Drawing ---
+
+  /// Compose all layers into final image
+  void _composeLayers() {
+    // 0x00000000 is transparent
+    final width = state.tileWidth;
+    final height = state.tileHeight;
+    final composed = Uint32List(width * height);
+
+    // Fill with transparent first just in case
+    for (int i = 0; i < composed.length; i++) composed[i] = 0x00000000;
+
+    // Draw layers from bottom (index 0) to top
+    for (final layer in state.layers) {
+      if (!layer.isVisible) continue;
+
+      final layerPixels = layer.processedPixels; // Applies effects
+
+      for (int i = 0; i < composed.length; i++) {
+        final src = layerPixels[i];
+        if ((src >> 24) == 0) continue; // Skip transparent source pixels
+
+        // Simple alpha blending
+        // If layer opacity < 1.0, multiply alpha
+        int a = (src >> 24) & 0xFF;
+        int r = (src >> 16) & 0xFF;
+        int g = (src >> 8) & 0xFF;
+        int b = src & 0xFF;
+
+        if (layer.opacity < 1.0) {
+          a = (a * layer.opacity).round();
+        }
+
+        if (a == 0) continue;
+
+        final dst = composed[i];
+        final da = (dst >> 24) & 0xFF;
+
+        if (da == 0) {
+          // Direct copy if dest is empty
+          composed[i] = (a << 24) | (r << 16) | (g << 8) | b;
+        } else {
+          // Normal blending
+          final alpha = a / 255.0;
+          final invAlpha = 1.0 - alpha;
+
+          final dr = (dst >> 16) & 0xFF;
+          final dg = (dst >> 8) & 0xFF;
+          final db = dst & 0xFF; // FIXED: db was incorrectly defined
+
+          final outR = (r * alpha + dr * invAlpha).round();
+          final outG = (g * alpha + dg * invAlpha).round();
+          final outB = (b * alpha + db * invAlpha).round();
+          final outA = (a + da * invAlpha).round().clamp(0, 255);
+
+          composed[i] = (outA << 24) | (outR << 16) | (outG << 8) | outB;
+        }
+      }
+    }
+
+    state = state.copyWith(currentTile: composed);
+  }
 
   /// Select a tile type to generate
   void selectTileType(String tileId) {
@@ -223,11 +511,39 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
   void selectVariant(int index) {
     if (index >= 0 && index < state.variants.length) {
       final pixels = Uint32List.fromList(state.variants[index]);
-      _pushUndoState(pixels);
+
+      // When selecting a variant, we update the ACTIVE layer
+      // If no active layer, create one
+
+      String activeId = state.activeLayerId ?? _uuid.v4();
+      List<Layer> newLayers;
+
+      if (state.layers.isEmpty) {
+        newLayers = [
+          Layer(
+            layerId: DateTime.now().millisecondsSinceEpoch,
+            id: activeId,
+            name: 'Generated',
+            pixels: pixels,
+            isVisible: true,
+          )
+        ];
+      } else {
+        newLayers = state.layers.map((layer) {
+          if (layer.id == activeId) {
+            return layer.copyWith(pixels: pixels);
+          }
+          return layer;
+        }).toList();
+      }
+
       state = state.copyWith(
         selectedVariantIndex: index,
-        currentTile: pixels,
+        layers: newLayers,
+        activeLayerId: activeId,
       );
+      _composeLayers();
+      _pushUndoState();
     }
   }
 
@@ -253,12 +569,21 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
     state = state.copyWith(displayMode: mode);
   }
 
-  /// Draw a pixel
+  /// Draw a pixel to the ACTIVE layer
   void drawPixel(int x, int y) {
-    if (state.currentTile == null) return;
+    final activeId = state.activeLayerId;
+    if (activeId == null) return;
+
+    // Find active layer
+    final activeLayerIndex = state.layers.indexWhere((l) => l.id == activeId);
+    if (activeLayerIndex == -1) return;
+
+    final activeLayer = state.layers[activeLayerIndex];
+    if (activeLayer.isLocked || !activeLayer.isVisible) return; // Don't draw on locked/hidden layers
+
     if (x < 0 || x >= state.tileWidth || y < 0 || y >= state.tileHeight) return;
 
-    final pixels = Uint32List.fromList(state.currentTile!);
+    final pixels = Uint32List.fromList(activeLayer.pixels); // Copy pixels
     final index = y * state.tileWidth + x;
 
     switch (state.currentTool) {
@@ -272,6 +597,19 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
         _floodFill(pixels, x, y, state.currentColor.value);
         break;
       case TileDrawTool.eyedropper:
+        // Pick from COMPOSITE image, not just layer
+        if (state.currentTile != null) {
+          final compositePixel = state.currentTile![index];
+          if (compositePixel != 0) {
+            final pickedColor = Color(compositePixel);
+            state = state.copyWith(
+              currentColor: pickedColor,
+              currentTool: TileDrawTool.pencil,
+            );
+            return;
+          }
+        }
+        // Fallback to active layer if composite is empty (unlikely) or transparent
         final pickedColor = Color(pixels[index]);
         state = state.copyWith(
           currentColor: pickedColor,
@@ -280,14 +618,20 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
         return;
     }
 
-    state = state.copyWith(currentTile: pixels);
+    // Update the specific layer
+    final newLayers = List<Layer>.from(state.layers);
+    newLayers[activeLayerIndex] = activeLayer.copyWith(pixels: pixels);
+
+    state = state.copyWith(layers: newLayers);
+
+    // Efficiently re-compose only if necessary?
+    // For now, full compose is fine for 32x32 tiles.
+    _composeLayers();
   }
 
   /// Start drawing (for undo)
   void startDrawing() {
-    if (state.currentTile != null) {
-      _pushUndoState(Uint32List.fromList(state.currentTile!));
-    }
+    _pushUndoState();
   }
 
   /// End drawing
@@ -295,10 +639,18 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
     // Nothing needed for now
   }
 
-  void _pushUndoState(Uint32List pixels) {
-    final newHistory = state.undoHistory.sublist(0, state.undoIndex + 1);
-    newHistory.add(Uint32List.fromList(pixels));
+  void _pushUndoState() {
     // Limit history to 50 entries
+    final currentLayersSnapshot = state.layers
+        .map((l) => l.copyWith(
+              pixels: Uint32List.fromList(l.pixels), // Deep copy pixels
+              effects: List<Effect>.from(l.effects), // Deep copy list (effects are immutable mostly)
+            ))
+        .toList();
+
+    final newHistory = state.undoHistory.sublist(0, state.undoIndex + 1);
+    newHistory.add(currentLayersSnapshot);
+
     if (newHistory.length > 50) {
       newHistory.removeAt(0);
     }
@@ -312,20 +664,54 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
   void undo() {
     if (!state.canUndo) return;
     final newIndex = state.undoIndex - 1;
+    final historicLayers = state.undoHistory[newIndex];
+
+    // Restore layers
+    // We need to match active layer ID if it still exists, else pick one
+    final restoredLayers = historicLayers
+        .map((l) => l.copyWith(
+              pixels: Uint32List.fromList(l.pixels),
+              effects: List<Effect>.from(l.effects),
+            ))
+        .toList();
+
     state = state.copyWith(
       undoIndex: newIndex,
-      currentTile: Uint32List.fromList(state.undoHistory[newIndex]),
+      layers: restoredLayers,
     );
+
+    // Ensure active ID is valid
+    if (!state.layers.any((l) => l.id == state.activeLayerId)) {
+      state = state.copyWith(activeLayerId: state.layers.isNotEmpty ? state.layers.last.id : null);
+    }
+
+    _composeLayers();
   }
 
   /// Redo
   void redo() {
     if (!state.canRedo) return;
     final newIndex = state.undoIndex + 1;
+    final historicLayers = state.undoHistory[newIndex];
+
+    final restoredLayers = historicLayers
+        .map((l) => l.copyWith(
+              pixels: Uint32List.fromList(l.pixels),
+              effects: List<Effect>.from(l.effects),
+            ))
+        .toList();
+
     state = state.copyWith(
       undoIndex: newIndex,
-      currentTile: Uint32List.fromList(state.undoHistory[newIndex]),
+      layers: restoredLayers,
     );
+
+    // Ensure active ID is valid
+    if (!state.layers.any((l) => l.id == state.activeLayerId)) {
+      state = state.copyWith(activeLayerId: state.layers.isNotEmpty ? state.layers.last.id : null);
+    }
+
+    _composeLayers();
   }
 
   /// Flood fill algorithm
@@ -352,27 +738,53 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
     }
   }
 
-  /// Clear the canvas
+  /// Clear the active layer
   void clear() {
-    if (state.currentTile == null) return;
-    _pushUndoState(Uint32List.fromList(state.currentTile!));
-    final pixels = Uint32List(state.tileWidth * state.tileHeight);
-    state = state.copyWith(currentTile: pixels);
-  }
+    final activeId = state.activeLayerId;
+    if (activeId == null) return;
 
-  /// Create a new blank tile
-  void createBlankTile() {
     final pixels = Uint32List(state.tileWidth * state.tileHeight);
     // Fill with transparent
-    for (int i = 0; i < pixels.length; i++) {
-      pixels[i] = 0x00000000;
-    }
-    _pushUndoState(pixels);
+    for (int i = 0; i < pixels.length; i++) pixels[i] = 0x00000000;
+
+    final newLayers = state.layers.map((layer) {
+      if (layer.id == activeId) {
+        return layer.copyWith(pixels: pixels);
+      }
+      return layer;
+    }).toList();
+
+    state = state.copyWith(layers: newLayers);
+    _composeLayers();
+    _pushUndoState();
+  }
+
+  /// Create a new blank tile - Resets Everything
+  void createBlankTile() {
+    final layerId = _uuid.v4();
+    final pixels = Uint32List(state.tileWidth * state.tileHeight);
+
+    final layer = Layer(
+      layerId: DateTime.now().millisecondsSinceEpoch,
+      id: layerId,
+      name: 'Layer 1',
+      pixels: pixels,
+      isVisible: true,
+    );
+
+    // Clear history effectively
+    final initialLayers = [layer];
     state = state.copyWith(
-      currentTile: pixels,
+      layers: initialLayers,
+      activeLayerId: layerId,
       selectedTileId: null,
       variants: [],
+      undoHistory: [],
+      undoIndex: -1,
     );
+
+    _composeLayers();
+    _pushUndoState();
   }
 
   /// Generate variants for the selected tile type
@@ -398,15 +810,15 @@ class TileGeneratorNotifier extends StateNotifier<TileGeneratorState> {
       return processed;
     }).toList();
 
-    if (processedVariants.isNotEmpty) {
-      _pushUndoState(Uint32List.fromList(processedVariants[0]));
-    }
-
     state = state.copyWith(
       variants: processedVariants,
       selectedVariantIndex: 0,
-      currentTile: processedVariants.isNotEmpty ? Uint32List.fromList(processedVariants[0]) : null,
     );
+
+    // If not layers exist, or we just want to apply the first variant as preview immediately:
+    if (processedVariants.isNotEmpty && state.selectedTileId != null) {
+      selectVariant(0);
+    }
   }
 
   /// Apply noise processing based on settings
