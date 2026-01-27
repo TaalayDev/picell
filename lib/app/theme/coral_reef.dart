@@ -127,6 +127,7 @@ class CoralReefBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -189,6 +190,7 @@ class _CoralReefPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Color palette
   static const Color _coral = Color(0xFFFF7F50);
@@ -262,6 +264,7 @@ class _CoralReefPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   // Helper methods using accumulated time from state
@@ -898,7 +901,6 @@ class _CoralReefPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CoralReefPainter oldDelegate) {
-    // Always repaint for animation
-    return true;
+    return animationEnabled;
   }
 }

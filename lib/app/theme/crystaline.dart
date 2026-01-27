@@ -138,6 +138,7 @@ class CrystallineBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -171,6 +172,7 @@ class _CrystallinePainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Color palette
   static const Color _amethyst = Color(0xFF9966CC);
@@ -238,6 +240,7 @@ class _CrystallinePainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   double get _phase => 2 * math.pi * t;
@@ -535,9 +538,6 @@ class _CrystallinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CrystallinePainter oldDelegate) {
-    return oldDelegate.t != t ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
+    return animationEnabled;
   }
 }

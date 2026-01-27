@@ -161,6 +161,7 @@ class StainedGlassBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           geometryCache: geometryCache,
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
         isComplex: true,
@@ -184,6 +185,7 @@ class _StainedGlassPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final _GeometryCache geometryCache;
+  final bool animationEnabled;
 
   // Reuse Paint objects for performance
   final Paint _fillPaint = Paint()..style = PaintingStyle.fill;
@@ -201,6 +203,7 @@ class _StainedGlassPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.geometryCache,
+    this.animationEnabled = true,
   });
 
   @override
@@ -516,11 +519,7 @@ class _StainedGlassPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _StainedGlassPainter oldDelegate) {
-    return oldDelegate.lightProgress != lightProgress ||
-        oldDelegate.pulseProgress != pulseProgress ||
-        oldDelegate.particleProgress != particleProgress ||
-        oldDelegate.intensity != intensity ||
-        oldDelegate.primaryColor != primaryColor;
+    return animationEnabled;
   }
 }
 

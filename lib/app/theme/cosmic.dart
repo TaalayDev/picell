@@ -114,7 +114,8 @@ class CosmicBackground extends HookWidget {
             animation: rotationAnimation,
             primaryColor: theme.primaryColor,
             accentColor: theme.accentColor,
-            intensity: intensity,
+            intensity: intensity.clamp(0.0, 2.0),
+            animationEnabled: enableAnimation,
           ),
           size: Size.infinite,
         ),
@@ -128,12 +129,14 @@ class _CosmicPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   _CosmicPainter({
     required this.animation,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -176,5 +179,7 @@ class _CosmicPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _CosmicPainter oldDelegate) {
+    return animationEnabled;
+  }
 }

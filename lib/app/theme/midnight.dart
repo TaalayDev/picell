@@ -103,6 +103,7 @@ class MidnightBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -161,6 +162,7 @@ class _EnhancedMidnightPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Midnight color palette
   static const Color _deepPurple = Color(0xFF4A148C);
@@ -178,6 +180,7 @@ class _EnhancedMidnightPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -476,7 +479,6 @@ class _EnhancedMidnightPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EnhancedMidnightPainter oldDelegate) {
-    // Always repaint for animation
-    return true;
+    return animationEnabled;
   }
 }

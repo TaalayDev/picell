@@ -112,6 +112,7 @@ class PastelBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.3, 1.5),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -202,6 +203,7 @@ class _ScenicPastelPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Pastel landscape palette
   static const Color _skyBlue = Color(0xFFE6F3FF); // Very light blue
@@ -220,6 +222,7 @@ class _ScenicPastelPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -581,6 +584,6 @@ class _ScenicPastelPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ScenicPastelPainter oldDelegate) {
-    return true; // Always repaint for animation
+    return animationEnabled;
   }
 }

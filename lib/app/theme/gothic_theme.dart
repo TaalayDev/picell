@@ -165,6 +165,7 @@ class GothicBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity,
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -179,6 +180,7 @@ class _GothicPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Gothic color palette
   static const Color _midnight = Color(0xFF0A0A0C);
@@ -203,6 +205,7 @@ class _GothicPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -1131,10 +1134,7 @@ class _GothicPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GothicPainter oldDelegate) {
-    return oldDelegate.slowAnimation != slowAnimation ||
-        oldDelegate.mediumAnimation != mediumAnimation ||
-        oldDelegate.fastAnimation != fastAnimation ||
-        oldDelegate.intensity != intensity;
+    return animationEnabled;
   }
 }
 

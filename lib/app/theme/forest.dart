@@ -103,6 +103,7 @@ class ForestBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -184,6 +185,7 @@ class _EnhancedForestPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Forest color palette
   static const Color _deepForest = Color(0xFF1B5E20);
@@ -204,6 +206,7 @@ class _EnhancedForestPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -595,6 +598,6 @@ class _EnhancedForestPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EnhancedForestPainter oldDelegate) {
-    return true;
+    return animationEnabled;
   }
 }

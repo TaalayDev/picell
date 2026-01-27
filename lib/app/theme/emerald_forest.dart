@@ -112,6 +112,7 @@ class EmeraldForestBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -174,6 +175,7 @@ class _EmeraldForestPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   _EmeraldForestPainter({
     required Listenable repaint,
@@ -181,6 +183,7 @@ class _EmeraldForestPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -433,6 +436,6 @@ class _EmeraldForestPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EmeraldForestPainter oldDelegate) {
-    return true; // Always repaint for animation
+    return animationEnabled;
   }
 }

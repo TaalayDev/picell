@@ -128,6 +128,7 @@ class CopperSteampunkBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity,
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -142,6 +143,7 @@ class _CopperSteampunkPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Cached random for consistent positioning
   final math.Random _random = math.Random(1337);
@@ -160,6 +162,7 @@ class _CopperSteampunkPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -912,10 +915,7 @@ class _CopperSteampunkPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CopperSteampunkPainter oldDelegate) {
-    return oldDelegate.mainAnimation != mainAnimation ||
-        oldDelegate.secondaryAnimation != secondaryAnimation ||
-        oldDelegate.particleAnimation != particleAnimation ||
-        oldDelegate.intensity != intensity;
+    return animationEnabled;
   }
 }
 

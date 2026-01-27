@@ -133,6 +133,7 @@ class PointillismBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -206,6 +207,7 @@ class _PointillismPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Seurat/Signac inspired palette - pure spectral colors
   static const List<Color> _blueFamily = [
@@ -266,6 +268,7 @@ class _PointillismPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   double _wave(double speed, [double offset = 0]) => math.sin(state.time * speed + offset);
@@ -714,5 +717,7 @@ class _PointillismPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _PointillismPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _PointillismPainter oldDelegate) {
+    return animationEnabled;
+  }
 }

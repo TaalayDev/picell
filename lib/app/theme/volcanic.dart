@@ -113,6 +113,7 @@ class VolcanicBackground extends HookWidget {
               time: t,
               intensity: safeIntensity,
               emberSeeds: emberSeeds,
+              animationEnabled: enableAnimation,
             ),
             isComplex: true,
             willChange: enableAnimation,
@@ -129,12 +130,14 @@ class _VolcanicPainter extends CustomPainter {
   final double time; // 0..1 loop
   final double intensity;
   final List<_EmberSeed> emberSeeds;
+  final bool animationEnabled;
 
   _VolcanicPainter({
     required this.theme,
     required this.time,
     required this.intensity,
     required this.emberSeeds,
+    this.animationEnabled = true,
   });
 
   @override
@@ -343,7 +346,7 @@ class _VolcanicPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _VolcanicPainter old) {
-    return old.time != time || old.intensity != intensity || old.theme != theme || old.emberSeeds != emberSeeds;
+    return animationEnabled;
   }
 }
 

@@ -107,6 +107,7 @@ class RetroWaveBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -119,6 +120,7 @@ class _RetroWavePainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   final Paint _paint;
   final List<Offset> _stars;
@@ -129,6 +131,7 @@ class _RetroWavePainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   })  : _paint = Paint(),
         _stars = List.generate(50, (index) {
           final random = math.Random(index);
@@ -338,10 +341,6 @@ class _RetroWavePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RetroWavePainter oldDelegate) {
-    // Repaint only if the animation time or other properties have changed.
-    return oldDelegate.t != t ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
+    return animationEnabled;
   }
 }

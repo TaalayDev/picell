@@ -127,6 +127,7 @@ class PurpleRainBackground extends HookWidget {
           density: densityScale,
           showLightning: showLightning,
           showSplashes: showSplashes,
+          animationEnabled: enableAnimation,
         ),
       ),
     );
@@ -199,6 +200,7 @@ class _CalmPurpleRainPainter extends CustomPainter {
   final double density; // 0..1 element counts
   final bool showLightning;
   final bool showSplashes;
+  final bool animationEnabled;
 
   _CalmPurpleRainPainter({
     required Listenable repaint,
@@ -210,6 +212,7 @@ class _CalmPurpleRainPainter extends CustomPainter {
     required this.density,
     required this.showLightning,
     required this.showSplashes,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   // Palette
@@ -426,6 +429,6 @@ class _CalmPurpleRainPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CalmPurpleRainPainter old) {
-    return true;
+    return animationEnabled;
   }
 }

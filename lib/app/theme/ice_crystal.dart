@@ -129,6 +129,7 @@ class IceCrystalBackground extends HookWidget {
           accentColor: theme.accentColor,
           backgroundColor: theme.background,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -192,6 +193,7 @@ class _IceCrystalPainter extends CustomPainter {
   final Color accentColor;
   final Color backgroundColor;
   final double intensity;
+  final bool animationEnabled;
 
   _IceCrystalPainter({
     required Listenable repaint,
@@ -200,6 +202,7 @@ class _IceCrystalPainter extends CustomPainter {
     required this.accentColor,
     required this.backgroundColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -442,6 +445,6 @@ class _IceCrystalPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _IceCrystalPainter oldDelegate) {
-    return true; // Always repaint for animation
+    return animationEnabled;
   }
 }

@@ -714,6 +714,7 @@ class _DefaultBackground extends HookWidget {
         primaryColor: theme.primaryColor,
         accentColor: theme.accentColor,
         intensity: intensity,
+        animationEnabled: enableAnimation,
       ),
       size: Size.infinite,
     );
@@ -726,11 +727,13 @@ class _DefaultPainter extends CustomPainter {
   final Color accentColor;
   final double intensity;
 
+  final bool animationEnabled;
   _DefaultPainter({
     required this.animation,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -758,7 +761,14 @@ class _DefaultPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _DefaultPainter oldDelegate) {
+    return animationEnabled ||
+        oldDelegate.animation != animation ||
+        oldDelegate.animationEnabled != animationEnabled ||
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.accentColor != accentColor ||
+        oldDelegate.intensity != intensity;
+  }
 }
 
 extension AnimatedBackgroundExtension on Widget {

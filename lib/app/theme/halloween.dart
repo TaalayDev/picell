@@ -119,6 +119,7 @@ class HalloweenBackground extends HookWidget {
           painter: _FogPainter(
             animation: slowAnimation,
             color: theme.primaryVariant.withOpacity(0.1 * intensity),
+            animationEnabled: enableAnimation,
           ),
           size: Size.infinite,
         ),
@@ -128,6 +129,28 @@ class HalloweenBackground extends HookWidget {
             animation: fastAnimation,
             color: Colors.black.withOpacity(0.6 * intensity),
             intensity: intensity,
+            animationEnabled: enableAnimation,
+          ),
+          size: Size.infinite,
+        ),
+        // Floating ghosts
+        CustomPaint(
+          painter: _GhostPainter(
+            animation: slowAnimation,
+            color: Colors.white.withOpacity(0.15 * intensity),
+            intensity: intensity,
+            animationEnabled: enableAnimation,
+          ),
+          size: Size.infinite,
+        ),
+        // Glowing pumpkins
+        CustomPaint(
+          painter: _PumpkinGlowPainter(
+            animation: fastAnimation,
+            primaryColor: theme.primaryColor,
+            accentColor: theme.accentColor,
+            intensity: intensity,
+            animationEnabled: enableAnimation,
           ),
           size: Size.infinite,
         ),
@@ -135,6 +158,7 @@ class HalloweenBackground extends HookWidget {
         CustomPaint(
           painter: _CobwebPainter(
             color: Colors.white.withOpacity(0.08 * intensity),
+            animationEnabled: enableAnimation,
           ),
           size: Size.infinite,
         ),
@@ -147,11 +171,18 @@ class HalloweenBackground extends HookWidget {
 class _FogPainter extends CustomPainter {
   final double animation;
   final Color color;
+  final bool animationEnabled;
 
-  _FogPainter({required this.animation, required this.color});
+  _FogPainter({
+    required this.animation,
+    required this.color,
+    this.animationEnabled = true,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (!animationEnabled) return; // Don't paint if animation is disabled
+
     final paint = Paint()
       ..style = PaintingStyle.fill
       ..color = color;
@@ -187,11 +218,13 @@ class _GhostPainter extends CustomPainter {
   final double animation;
   final Color color;
   final double intensity;
+  final bool animationEnabled;
 
   _GhostPainter({
     required this.animation,
     required this.color,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -265,7 +298,13 @@ class _GhostPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _GhostPainter oldDelegate) {
+    return animationEnabled ||
+        oldDelegate.animation != animation ||
+        oldDelegate.animationEnabled != animationEnabled ||
+        oldDelegate.intensity != intensity ||
+        oldDelegate.color != color;
+  }
 }
 
 /// Paints flying bats
@@ -273,11 +312,13 @@ class _BatPainter extends CustomPainter {
   final double animation;
   final Color color;
   final double intensity;
+  final bool animationEnabled;
 
   _BatPainter({
     required this.animation,
     required this.color,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -342,7 +383,13 @@ class _BatPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _BatPainter oldDelegate) {
+    return animationEnabled ||
+        oldDelegate.animation != animation ||
+        oldDelegate.animationEnabled != animationEnabled ||
+        oldDelegate.intensity != intensity ||
+        oldDelegate.color != color;
+  }
 }
 
 /// Paints glowing pumpkin effects
@@ -351,12 +398,14 @@ class _PumpkinGlowPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   _PumpkinGlowPainter({
     required this.animation,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -401,14 +450,22 @@ class _PumpkinGlowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _PumpkinGlowPainter oldDelegate) {
+    return animationEnabled ||
+        oldDelegate.animation != animation ||
+        oldDelegate.animationEnabled != animationEnabled ||
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.accentColor != accentColor ||
+        oldDelegate.intensity != intensity;
+  }
 }
 
 /// Paints cobwebs in corners
 class _CobwebPainter extends CustomPainter {
   final Color color;
+  final bool animationEnabled;
 
-  _CobwebPainter({required this.color});
+  _CobwebPainter({required this.color, this.animationEnabled = false});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -471,5 +528,7 @@ class _CobwebPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _CobwebPainter oldDelegate) {
+    return animationEnabled;
+  }
 }

@@ -139,6 +139,7 @@ class ArtDecoBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -156,6 +157,7 @@ class _ArtDecoPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Art Deco color palette
   static const Color _gold = Color(0xFFD4AF37);
@@ -177,6 +179,7 @@ class _ArtDecoPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   double get _slowTime => state.time / 20.0;
@@ -679,5 +682,5 @@ class _ArtDecoPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _ArtDecoPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _ArtDecoPainter oldDelegate) => animationEnabled;
 }

@@ -135,6 +135,7 @@ class CandyCarnivalBackground extends HookWidget {
           accentColor: theme.accentColor,
           backgroundColor: theme.background,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -201,6 +202,7 @@ class _CandyCarnivalPainter extends CustomPainter {
   final Color accentColor;
   final Color backgroundColor;
   final double intensity;
+  final bool animationEnabled;
 
   final math.Random _rng = math.Random(428);
 
@@ -211,6 +213,7 @@ class _CandyCarnivalPainter extends CustomPainter {
     required this.accentColor,
     required this.backgroundColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -454,7 +457,9 @@ class _CandyCarnivalPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _CandyCarnivalPainter oldDelegate) {
+    return animationEnabled;
+  }
 }
 
 class _SwirlSpec {

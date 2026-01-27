@@ -90,6 +90,7 @@ class MonochromeBackground extends HookWidget {
         animation: rotationAnimation,
         primaryColor: theme.primaryColor,
         intensity: intensity,
+        animationEnabled: enableAnimation,
       ),
       size: Size.infinite,
     );
@@ -100,11 +101,13 @@ class _MonochromePainter extends CustomPainter {
   final double animation;
   final Color primaryColor;
   final double intensity;
+  final bool animationEnabled;
 
   _MonochromePainter({
     required this.animation,
     required this.primaryColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -143,5 +146,7 @@ class _MonochromePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _MonochromePainter oldDelegate) {
+    return animationEnabled;
+  }
 }

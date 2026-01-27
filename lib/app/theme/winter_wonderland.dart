@@ -123,6 +123,7 @@ class WinterWonderlandBackground extends HookWidget {
               primaryColor: theme.primaryColor,
               accentColor: theme.accentColor,
               intensity: intensity.clamp(0.0, 2.0),
+              animationEnabled: enableAnimation,
             ),
             size: Size.infinite,
           ),
@@ -166,6 +167,7 @@ class _EnhancedWinterPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Palette
   static const Color _snowWhite = Color(0xFFFFFFFF);
@@ -178,6 +180,7 @@ class _EnhancedWinterPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -326,6 +329,6 @@ class _EnhancedWinterPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EnhancedWinterPainter oldDelegate) {
-    return true; // Infinite animation
+    return animationEnabled;
   }
 }

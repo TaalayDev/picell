@@ -140,6 +140,7 @@ class DataStreamBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -180,6 +181,7 @@ class _DataStreamPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Color palette
   static const Color _green = Color(0xFF00FF88);
@@ -232,6 +234,7 @@ class _DataStreamPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   // Scaled time to match original speed (original was 0-1 over 10s, so rate was 0.1/s)
@@ -539,7 +542,6 @@ class _DataStreamPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DataStreamPainter oldDelegate) {
-    // Always repaint for animation
-    return true;
+    return animationEnabled;
   }
 }

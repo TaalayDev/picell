@@ -139,6 +139,7 @@ class SteampunkBackground extends HookWidget {
           backgroundColor: theme.background,
           surfaceColor: theme.surface,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -159,6 +160,7 @@ class _SteampunkPainter extends CustomPainter {
   final Color backgroundColor;
   final Color surfaceColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Color constants
   static const Color _brass = Color(0xFFD4AF37);
@@ -181,6 +183,7 @@ class _SteampunkPainter extends CustomPainter {
     required this.backgroundColor,
     required this.surfaceColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   // Helper getters to map accumulated time to the original speeds
@@ -1152,8 +1155,7 @@ class _SteampunkPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SteampunkPainter oldDelegate) {
-    // Always repaint for animation
-    return true;
+    return animationEnabled;
   }
 }
 

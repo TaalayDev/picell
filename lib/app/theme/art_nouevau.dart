@@ -128,6 +128,7 @@ class ArtNouveauBackground extends HookWidget {
           accentColor: theme.accentColor,
           backgroundColor: theme.background,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -194,6 +195,7 @@ class _ArtNouveauPainter extends CustomPainter {
   final Color accentColor;
   final Color backgroundColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Palette
   static const Color _sageGreen = Color(0xFF8FA87B);
@@ -210,6 +212,7 @@ class _ArtNouveauPainter extends CustomPainter {
     required this.accentColor,
     required this.backgroundColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -482,6 +485,6 @@ class _ArtNouveauPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ArtNouveauPainter oldDelegate) {
-    return true; // Infinite animation
+    return animationEnabled;
   }
 }

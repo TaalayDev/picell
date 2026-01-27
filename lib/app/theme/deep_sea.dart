@@ -101,6 +101,7 @@ class DeepSeaBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.3, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
         isComplex: true,
@@ -115,12 +116,14 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   _EnhancedDeepSeaPainter({
     required this.t,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   // Animation helpers for smooth looping
@@ -320,9 +323,6 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EnhancedDeepSeaPainter oldDelegate) {
-    return oldDelegate.t != t ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
+    return animationEnabled;
   }
 }

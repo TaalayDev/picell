@@ -91,6 +91,7 @@ class OceanBackground extends HookWidget {
         primaryColor: theme.primaryColor,
         accentColor: theme.accentColor,
         intensity: intensity,
+        animationEnabled: enableAnimation,
       ),
       size: Size.infinite,
     );
@@ -102,12 +103,14 @@ class _OceanPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   _OceanPainter({
     required this.animation,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -143,5 +146,5 @@ class _OceanPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => animationEnabled;
 }

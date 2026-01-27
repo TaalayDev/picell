@@ -133,6 +133,7 @@ class LofiNightBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -188,6 +189,7 @@ class _LofiNightPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Visual constants
   static const Color _skyTop = Color(0xFF0F0C29);
@@ -202,6 +204,7 @@ class _LofiNightPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -429,7 +432,6 @@ class _LofiNightPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _LofiNightPainter oldDelegate) {
-    // Always repaint for animation
-    return true;
+    return animationEnabled;
   }
 }

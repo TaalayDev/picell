@@ -138,6 +138,7 @@ class EnchantedForestBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -192,6 +193,7 @@ class _EnchantedForestPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Color palette
   static const Color _gold = Color(0xFFD4A855);
@@ -294,6 +296,7 @@ class _EnchantedForestPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   double get _phase => 2 * math.pi * t;
@@ -700,9 +703,6 @@ class _EnchantedForestPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EnchantedForestPainter oldDelegate) {
-    return oldDelegate.t != t ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
+    return animationEnabled;
   }
 }

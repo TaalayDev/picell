@@ -100,6 +100,7 @@ class CherryBlossomBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.5, 1.8),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -112,12 +113,14 @@ class _CherryBlossomPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   _CherryBlossomPainter({
     required this.t,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   // Loop helpers
@@ -361,9 +364,6 @@ class _CherryBlossomPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CherryBlossomPainter old) {
-    return old.t != t ||
-        old.primaryColor != primaryColor ||
-        old.accentColor != accentColor ||
-        old.intensity != intensity;
+    return animationEnabled;
   }
 }

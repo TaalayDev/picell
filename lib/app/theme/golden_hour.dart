@@ -105,6 +105,7 @@ class GoldenHourBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.3, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
         isComplex: true,
@@ -180,6 +181,7 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Golden hour color palette
   static const Color _deepGold = Color(0xFFB8860B);
@@ -199,6 +201,7 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -546,6 +549,6 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EnhancedGoldenHourPainter oldDelegate) {
-    return true; // Always repaint for animation
+    return animationEnabled;
   }
 }

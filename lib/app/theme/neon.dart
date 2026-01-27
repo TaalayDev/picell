@@ -91,6 +91,7 @@ class NeonBackground extends HookWidget {
         primaryColor: theme.primaryColor,
         accentColor: theme.accentColor,
         intensity: intensity,
+        animationEnabled: enableAnimation,
       ),
       size: Size.infinite,
     );
@@ -102,12 +103,14 @@ class _NeonPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   _NeonPainter({
     required this.animation,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   @override
@@ -152,5 +155,7 @@ class _NeonPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _NeonPainter oldDelegate) {
+    return animationEnabled;
+  }
 }

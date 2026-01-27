@@ -112,6 +112,7 @@ class DreamscapeBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -185,6 +186,7 @@ class _EnhancedDreamscapePainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   final math.Random _rng = math.Random(999);
 
@@ -194,6 +196,7 @@ class _EnhancedDreamscapePainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -440,6 +443,6 @@ class _EnhancedDreamscapePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EnhancedDreamscapePainter oldDelegate) {
-    return true; // Always repaint
+    return animationEnabled;
   }
 }

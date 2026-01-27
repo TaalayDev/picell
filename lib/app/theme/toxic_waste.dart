@@ -112,6 +112,7 @@ class ToxicWasteBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -189,6 +190,7 @@ class _EnhancedToxicWastePainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   final math.Random _rng = math.Random(666);
 
@@ -198,6 +200,7 @@ class _EnhancedToxicWastePainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -463,6 +466,6 @@ class _EnhancedToxicWastePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EnhancedToxicWastePainter oldDelegate) {
-    return true; // Continuous animation
+    return animationEnabled;
   }
 }

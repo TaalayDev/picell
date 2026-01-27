@@ -128,6 +128,7 @@ class RoseQuartzGardenBackground extends HookWidget {
           primaryColor: theme.primaryColor,
           accentColor: theme.accentColor,
           intensity: intensity.clamp(0.0, 2.0),
+          animationEnabled: enableAnimation,
         ),
         size: Size.infinite,
       ),
@@ -211,6 +212,7 @@ class _RoseQuartzGardenPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   // Palette
   static const Color _softPink = Color(0xFFFFCDD2);
@@ -226,6 +228,7 @@ class _RoseQuartzGardenPainter extends CustomPainter {
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   }) : super(repaint: repaint);
 
   @override
@@ -518,6 +521,6 @@ class _RoseQuartzGardenPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RoseQuartzGardenPainter oldDelegate) {
-    return true;
+    return animationEnabled;
   }
 }

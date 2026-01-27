@@ -120,6 +120,7 @@ class PrismaticBackground extends HookWidget {
               primaryColor: theme.primaryColor,
               accentColor: theme.accentColor,
               intensity: intensity.clamp(0.3, 2.0),
+              animationEnabled: enableAnimation,
             ),
             size: Size.infinite,
             isComplex: true,
@@ -136,12 +137,14 @@ class _EnhancedPrismaticPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
+  final bool animationEnabled;
 
   _EnhancedPrismaticPainter({
     required this.t,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    this.animationEnabled = true,
   });
 
   // ---- Loop-safe helpers ----
@@ -441,9 +444,6 @@ class _EnhancedPrismaticPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EnhancedPrismaticPainter old) {
-    return old.t != t ||
-        old.primaryColor != primaryColor ||
-        old.accentColor != accentColor ||
-        old.intensity != intensity;
+    return animationEnabled;
   }
 }
