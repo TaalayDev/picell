@@ -13,7 +13,6 @@ AppTheme buildVolcanicTheme() {
   return AppTheme(
     type: ThemeType.volcanic,
     isDark: true,
-    // Primary colors - lava orange/red
     primaryColor: const Color(0xFFFF4500), // Orange red (lava)
     primaryVariant: const Color(0xFFFF6347), // Tomato red
     onPrimary: Colors.white,

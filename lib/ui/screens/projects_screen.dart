@@ -120,265 +120,254 @@ class ProjectsScreen extends HookConsumerWidget {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: Row(
-            children: [
-              const SizedBox(width: 16),
-              TextButton.icon(
-                label: const Icon(Feather.file),
-                onPressed: () async {
-                  final error = await ref.read(projectsProvider.notifier).importProject(context);
-                  if (error != null) {
-                    switch (error) {
-                      default:
-                        showTopFlushbar(
-                          context,
-                          message: Text(Strings.of(context).invalidFileContent),
-                        );
-                        break;
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Row(
+              children: [
+                const SizedBox(width: 16),
+                TextButton.icon(
+                  label: const Icon(Feather.file),
+                  onPressed: () async {
+                    final error = await ref.read(projectsProvider.notifier).importProject(context);
+                    if (error != null) {
+                      switch (error) {
+                        default:
+                          showTopFlushbar(
+                            context,
+                            message: Text(Strings.of(context).invalidFileContent),
+                          );
+                          break;
+                      }
                     }
-                  }
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              TextButton.icon(
-                label: const Icon(Feather.info),
-                onPressed: () {
-                  if (kIsWeb || Platform.isMacOS || Platform.isWindows) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => Dialog(
-                        child: ClipRRect(
-                          clipBehavior: Clip.antiAlias,
-                          borderRadius: BorderRadius.circular(16),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 600),
-                            child: const AboutScreen(),
+                const SizedBox(width: 16),
+                TextButton.icon(
+                  label: const Icon(Feather.info),
+                  onPressed: () {
+                    if (kIsWeb || Platform.isMacOS || Platform.isWindows) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => Dialog(
+                          child: ClipRRect(
+                            clipBehavior: Clip.antiAlias,
+                            borderRadius: BorderRadius.circular(16),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 600),
+                              child: const AboutScreen(),
+                            ),
                           ),
                         ),
-                      ),
-                    );
+                      );
 
-                    return;
-                  } else {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AboutScreen(),
-                      ),
-                    );
-                  }
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                ),
-              ),
-            ],
-          ),
-          leadingWidth: 200,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.hub),
-              tooltip: 'Node Tile Creator',
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const NodeGraphScreen(),
+                      return;
+                    } else {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const AboutScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   ),
-                );
-              },
+                ),
+              ],
             ),
-            if (!subscription.isPro && !showBadge.value) ...[
-              AnimatedProButton(
-                onTap: () => _showSubscriptionScreen(context),
-                theme: theme,
+            leadingWidth: 200,
+            actions: [
+              if (!subscription.isPro && !showBadge.value) ...[
+                AnimatedProButton(
+                  onTap: () => _showSubscriptionScreen(context),
+                  theme: theme,
+                ),
+                const SizedBox(width: 8),
+              ],
+              IconButton(
+                tooltip: 'Choose Theme',
+                icon: Icon(
+                  Icons.palette_outlined,
+                  color: currentTheme.activeIcon,
+                ),
+                onPressed: () => ThemeSelectorBottomSheet.show(context),
               ),
-              const SizedBox(width: 8),
-            ],
-            IconButton(
-              tooltip: 'Choose Theme',
-              icon: Icon(
-                Icons.palette_outlined,
-                color: currentTheme.activeIcon,
-              ),
-              onPressed: () => ThemeSelectorBottomSheet.show(context),
-            ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: showProfileIcon.value && authState.isSignedIn
-                  ? PopupMenuButton<String>(
-                      icon: authState.apiUser?.avatarUrl != null
-                          ? CircleAvatar(
-                              backgroundImage: authState.apiUser?.avatarUrl != null
-                                  ? NetworkImage(authState.apiUser!.avatarUrl!)
-                                  : const AssetImage('assets/images/default_avatar.png'),
-                              radius: 15,
-                            )
-                          : const Icon(Feather.user),
-                      offset: const Offset(0, 45),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 8,
-                      shadowColor: Theme.of(context).shadowColor.withOpacity(0.3),
-                      surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
-                      onSelected: (value) {
-                        if (value == 'delete_account') {
-                          DeleteAccountDialog.show(
-                            context,
-                            onSuccess: () {},
-                          );
-                        } else if (value == 'logout') {
-                          ref.read(authProvider.notifier).signOut();
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        if (authState.apiUser?.displayName != null)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: showProfileIcon.value && authState.isSignedIn
+                    ? PopupMenuButton<String>(
+                        icon: authState.apiUser?.avatarUrl != null
+                            ? CircleAvatar(
+                                backgroundImage: authState.apiUser?.avatarUrl != null
+                                    ? NetworkImage(authState.apiUser!.avatarUrl!)
+                                    : const AssetImage('assets/images/default_avatar.png'),
+                                radius: 15,
+                              )
+                            : const Icon(Feather.user),
+                        offset: const Offset(0, 45),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 8,
+                        shadowColor: Theme.of(context).shadowColor.withOpacity(0.3),
+                        surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+                        onSelected: (value) {
+                          if (value == 'delete_account') {
+                            DeleteAccountDialog.show(
+                              context,
+                              onSuccess: () {},
+                            );
+                          } else if (value == 'logout') {
+                            ref.read(authProvider.notifier).signOut();
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          if (authState.apiUser?.displayName != null)
+                            PopupMenuItem(
+                              enabled: false,
+                              height: 56,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (authState.apiUser?.displayName != null)
+                                    Text(
+                                      authState.apiUser!.displayName!,
+                                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: Theme.of(context).colorScheme.onSurface,
+                                          ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          if (authState.apiUser?.displayName != null) const PopupMenuDivider(),
                           PopupMenuItem(
-                            enabled: false,
-                            height: 56,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
+                            value: 'logout',
+                            height: 48,
+                            child: Row(
                               children: [
-                                if (authState.apiUser?.displayName != null)
-                                  Text(
-                                    authState.apiUser!.displayName!,
-                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color: Theme.of(context).colorScheme.onSurface,
-                                        ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                Icon(
+                                  Feather.log_out,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  Strings.of(context).logout,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
                               ],
                             ),
                           ),
-                        if (authState.apiUser?.displayName != null) const PopupMenuDivider(),
-                        PopupMenuItem(
-                          value: 'logout',
-                          height: 48,
-                          child: Row(
-                            children: [
-                              Icon(
-                                Feather.log_out,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                Strings.of(context).logout,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
+                          const PopupMenuDivider(),
+                          PopupMenuItem(
+                            value: 'delete_account',
+                            height: 48,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Feather.trash_2,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  Strings.of(context).deleteAccount,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Theme.of(context).colorScheme.error,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const PopupMenuDivider(),
-                        PopupMenuItem(
-                          value: 'delete_account',
-                          height: 48,
-                          child: Row(
-                            children: [
-                              Icon(
-                                Feather.trash_2,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                Strings.of(context).deleteAccount,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.error,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : IconButton(
-                      icon: const Icon(Feather.plus),
-                      onPressed: () => _navigateToNewProject(context, ref, subscription),
-                    ),
-            ),
-          ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(60),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        ],
+                      )
+                    : IconButton(
+                        icon: const Icon(Feather.plus),
+                        onPressed: () => _navigateToNewProject(context, ref, subscription),
+                      ),
               ),
-              child: SizedBox(
-                height: 58,
-                child: TabBar(
-                  controller: tabController,
-                  tabs: const [
-                    Tab(
-                      icon: Icon(Feather.hard_drive),
-                      text: 'Local',
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(60),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: SizedBox(
+                  height: 58,
+                  child: TabBar(
+                    controller: tabController,
+                    tabs: const [
+                      Tab(
+                        icon: Icon(Feather.hard_drive),
+                        text: 'Local',
+                      ),
+                      Tab(
+                        icon: Icon(Feather.cloud),
+                        text: 'Cloud',
+                      ),
+                    ],
+                    indicatorColor: Theme.of(context).colorScheme.primary,
+                    labelColor: Theme.of(context).colorScheme.primary,
+                    unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    indicatorWeight: 3,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
-                    Tab(
-                      icon: Icon(Feather.cloud),
-                      text: 'Cloud',
-                    ),
-                  ],
-                  indicatorColor: Theme.of(context).colorScheme.primary,
-                  labelColor: Theme.of(context).colorScheme.primary,
-                  unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                  indicatorWeight: 3,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicator: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _navigateToFeedback(context, ref),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          label: const Text('Feedback'),
-          icon: const AppIcon(AppIcons.user_voice),
-          tooltip: 'Leave Feedback',
-        ),
-        body: Column(
-          children: [
-            if (!subscription.isPro && showBadge.value) ...[
-              SubscriptionPromoBanner(
-                onDismiss: () {
-                  showBadge.value = false;
-                },
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _navigateToFeedback(context, ref),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            label: const Text('Feedback'),
+            icon: const AppIcon(AppIcons.user_voice),
+            tooltip: 'Leave Feedback',
+          ),
+          body: Column(
+            children: [
+              if (!subscription.isPro && showBadge.value) ...[
+                SubscriptionPromoBanner(
+                  onDismiss: () {
+                    showBadge.value = false;
+                  },
+                ),
+              ],
+              Expanded(
+                child: TabBarView(
+                  controller: tabController,
+                  children: [
+                    // Local Projects Tab
+                    _buildLocalProjectsTab(
+                      context,
+                      ref,
+                      projects,
+                      subscription,
+                      overlayLoader,
+                      authState,
+                    ),
+
+                    // Cloud Projects Tab
+                    _buildCloudProjectsTab(context, ref, theme, subscription),
+                  ],
+                ),
               ),
             ],
-            Expanded(
-              child: TabBarView(
-                controller: tabController,
-                children: [
-                  // Local Projects Tab
-                  _buildLocalProjectsTab(
-                    context,
-                    ref,
-                    projects,
-                    subscription,
-                    overlayLoader,
-                    authState,
-                  ),
-
-                  // Cloud Projects Tab
-                  _buildCloudProjectsTab(context, ref, theme, subscription),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
-    ),
     );
   }
 

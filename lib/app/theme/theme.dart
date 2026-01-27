@@ -5,6 +5,7 @@ import 'art_deco.dart';
 import 'art_nouevau.dart';
 import 'autumn_harvest.dart';
 import 'cherry_blossom.dart';
+import 'candy_carnival.dart';
 import 'copper_steampunk.dart';
 import 'coral_reef.dart';
 import 'cosmic.dart';
@@ -25,7 +26,6 @@ import 'neon.dart';
 import 'ocean.dart';
 import 'origami.dart';
 import 'pastel.dart';
-import 'petrichor.dart';
 import 'pointillism.dart';
 import 'prismatic.dart';
 import 'purple_rain.dart';
@@ -40,10 +40,8 @@ import 'arctic_aurora.dart';
 import 'deep_sea.dart';
 import 'dream_scape.dart';
 import 'toxic_waste.dart';
-import 'ukiyo_e.dart';
 import 'volcanic.dart';
 import 'emerald_forest.dart';
-import 'volcanic_lava_lamp.dart';
 import 'winter_wonderland.dart';
 import 'halloween.dart';
 
@@ -197,26 +195,22 @@ class AppTheme {
         return buildCrystallineTheme();
       case ThemeType.enchantedForest:
         return buildEnchantedForestTheme();
-      case ThemeType.lavaLamp:
-        return buildLavaLampTheme();
       case ThemeType.coralReef:
         return buildCoralReefTheme();
       case ThemeType.stainedGlass:
         return buildStainedGlassTheme();
-      case ThemeType.ukiyoEWaves:
-        return buildUkiyoeWavesTheme();
       case ThemeType.dataStream:
         return buildDataStreamTheme();
       case ThemeType.lofiNight:
         return buildLofiNightTheme();
       case ThemeType.artNouveau:
         return buildArtNouveauTheme();
-      case ThemeType.petrichor:
-        return buildPetrichorTheme();
       case ThemeType.origami:
         return buildOrigamiTheme();
       case ThemeType.pointillism:
         return buildPointillismTheme();
+      case ThemeType.candyCarnival:
+        return buildCandyCarnivalTheme();
     }
   }
 
