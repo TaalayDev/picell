@@ -44,6 +44,7 @@ import 'volcanic.dart';
 import 'emerald_forest.dart';
 import 'winter_wonderland.dart';
 import 'halloween.dart';
+import 'bioluminescent_brutalism.dart';
 
 export 'theme_type.dart';
 
@@ -211,6 +212,8 @@ class AppTheme {
         return buildPointillismTheme();
       case ThemeType.candyCarnival:
         return buildCandyCarnivalTheme();
+      case ThemeType.bioluminescentBrutalism:
+        return buildBioluminescentBrutalismTheme();
     }
   }
 

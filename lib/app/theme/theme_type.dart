@@ -41,7 +41,8 @@ enum ThemeType {
   artNouveau,
   origami,
   pointillism,
-  candyCarnival;
+  candyCarnival,
+  bioluminescentBrutalism;
 
   static List<ThemeType> lockedThemeTypes = [
     ThemeType.ocean,
@@ -95,6 +96,7 @@ enum ThemeType {
         ThemeType.crystalline,
         ThemeType.enchantedForest,
         ThemeType.stainedGlass,
+        ThemeType.bioluminescentBrutalism,
       ].contains(this);
 
   bool get isLocked => lockedThemeTypes.contains(this);
@@ -185,6 +187,8 @@ enum ThemeType {
         return 'Pointillism';
       case ThemeType.candyCarnival:
         return 'Candy Carnival';
+      case ThemeType.bioluminescentBrutalism:
+        return 'Bioluminescent Brutalism';
     }
   }
 

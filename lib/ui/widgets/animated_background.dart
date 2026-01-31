@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../app/theme/bioluminescent_brutalism.dart';
 import '../../core.dart';
 import '../../app/theme/art_deco.dart';
 import '../../app/theme/art_nouevau.dart';
@@ -663,6 +664,12 @@ class AnimatedBackground extends HookConsumerWidget {
         );
       case ThemeType.candyCarnival:
         return CandyCarnivalBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
+      case ThemeType.bioluminescentBrutalism:
+        return BioluminescentBrutalismBackground(
           theme: theme,
           intensity: intensity,
           enableAnimation: enableAnimation,
