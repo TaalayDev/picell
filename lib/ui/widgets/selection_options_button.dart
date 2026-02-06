@@ -10,7 +10,10 @@ class SelectionOptionsButton extends StatelessWidget {
   final VoidCallback? onFlipVertical;
   final VoidCallback? onCut;
   final VoidCallback? onCopy;
-  final VoidCallback? onDelete;
+  final VoidCallback? onPaste;
+  final VoidCallback? onDelete; // Usually "Clear Area"
+  final VoidCallback? onCutToNewLayer;
+  final VoidCallback? onCopyToNewLayer;
   final bool isFloating;
 
   const SelectionOptionsButton({
@@ -23,7 +26,10 @@ class SelectionOptionsButton extends StatelessWidget {
     this.onFlipVertical,
     this.onCut,
     this.onCopy,
+    this.onPaste,
     this.onDelete,
+    this.onCutToNewLayer,
+    this.onCopyToNewLayer,
     this.isFloating = false,
   });
 
@@ -166,6 +172,30 @@ class SelectionOptionsButton extends StatelessWidget {
         ),
         const PopupMenuDivider(),
       ],
+      if (onCutToNewLayer != null)
+        const PopupMenuItem<String>(
+          value: 'cutNewLayer',
+          child: Row(
+            children: [
+              Icon(Icons.cut, size: 20),
+              SizedBox(width: 8),
+              Text('Cut to New Layer'),
+            ],
+          ),
+        ),
+      if (onCopyToNewLayer != null) ...[
+        const PopupMenuItem<String>(
+          value: 'copyNewLayer',
+          child: Row(
+            children: [
+              Icon(Icons.copy, size: 20),
+              SizedBox(width: 8),
+              Text('Copy to New Layer'),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+      ],
       if (onCut != null)
         const PopupMenuItem<String>(
           value: 'cut',
@@ -195,7 +225,7 @@ class SelectionOptionsButton extends StatelessWidget {
             children: [
               Icon(Icons.delete, size: 20, color: Colors.red),
               SizedBox(width: 8),
-              Text('Delete', style: TextStyle(color: Colors.red)),
+              Text('Clear Area', style: TextStyle(color: Colors.red)),
             ],
           ),
         ),
@@ -218,6 +248,12 @@ class SelectionOptionsButton extends StatelessWidget {
         break;
       case 'flipV':
         onFlipVertical?.call();
+        break;
+      case 'cutNewLayer':
+        onCutToNewLayer?.call();
+        break;
+      case 'copyNewLayer':
+        onCopyToNewLayer?.call();
         break;
       case 'cut':
         onCut?.call();

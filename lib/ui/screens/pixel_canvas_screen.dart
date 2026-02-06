@@ -442,9 +442,10 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                     child: SelectionOptionsButton(
                                       hasSelection: hasSelection,
                                       isFloating: true,
-                                      onClearSelection: () {
-                                        notifier.clearSelection();
-                                      },
+                                      onClearSelection: () => notifier.clearSelection(),
+                                      onDelete: () => notifier.clearSelectionArea(),
+                                      onCutToNewLayer: () => notifier.cutToNewLayer(),
+                                      onCopyToNewLayer: () => notifier.copyToNewLayer(),
                                     ),
                                   ),
                               ],

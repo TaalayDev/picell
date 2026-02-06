@@ -268,9 +268,10 @@ class ToolBar extends ConsumerWidget {
                       if (!screenSize.isMobile) ...[
                         SelectionOptionsButton(
                           hasSelection: hasSelection,
-                          onClearSelection: () {
-                            notifier.clearSelection();
-                          },
+                          onClearSelection: () => notifier.clearSelection(),
+                          onDelete: () => notifier.clearSelectionArea(),
+                          onCutToNewLayer: () => notifier.cutToNewLayer(),
+                          onCopyToNewLayer: () => notifier.copyToNewLayer(),
                         ),
                       ],
                     ],

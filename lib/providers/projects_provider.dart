@@ -24,40 +24,52 @@ class Projects extends _$Projects {
       'project_name': newProject.name,
     });
 
-    final project = await ref.read(projectRepo).createProject(newProject);
-    final state = await ref.read(projectRepo).createState(
-          project.id,
-          const AnimationStateModel(
-            id: 0,
-            name: 'Animation',
-            frameRate: 24,
-          ),
-        );
-    final frame = await ref.read(projectRepo).createFrame(
-          project.id,
-          AnimationFrame(
-            id: 0,
-            stateId: state.id,
-            name: 'Frame 1',
-            duration: 100,
-            layers: [
-              Layer(
-                layerId: 0,
-                id: const Uuid().v4(),
-                name: 'Layer 1',
-                pixels: Uint32List(project.width * project.height),
-                order: 0,
-              ),
-            ],
-          ),
-        );
+    // Check if the incoming project already has states and frames (e.g., from imported image/aseprite)
+    // The insertProject method in the database handles states, frames, and layers automatically
+    final hasExistingData = newProject.states.isNotEmpty && newProject.frames.isNotEmpty;
 
-    ref.read(inAppReviewProvider).incrementProjectCount();
+    if (hasExistingData) {
+      // Project has existing data (e.g., from dropped image) - insertProject will handle everything
+      final project = await ref.read(projectRepo).createProject(newProject);
+      ref.read(inAppReviewProvider).incrementProjectCount();
+      return project;
+    } else {
+      // Create empty project first, then add default state and frame
+      final project = await ref.read(projectRepo).createProject(newProject);
+      final state = await ref.read(projectRepo).createState(
+            project.id,
+            const AnimationStateModel(
+              id: 0,
+              name: 'Animation',
+              frameRate: 24,
+            ),
+          );
+      final frame = await ref.read(projectRepo).createFrame(
+            project.id,
+            AnimationFrame(
+              id: 0,
+              stateId: state.id,
+              name: 'Frame 1',
+              duration: 100,
+              layers: [
+                Layer(
+                  layerId: 0,
+                  id: const Uuid().v4(),
+                  name: 'Layer 1',
+                  pixels: Uint32List(project.width * project.height),
+                  order: 0,
+                ),
+              ],
+            ),
+          );
 
-    return project.copyWith(
-      states: [state],
-      frames: [frame],
-    );
+      ref.read(inAppReviewProvider).incrementProjectCount();
+
+      return project.copyWith(
+        states: [state],
+        frames: [frame],
+      );
+    }
   }
 
   Future<Project?> getProject(int projectId) async {

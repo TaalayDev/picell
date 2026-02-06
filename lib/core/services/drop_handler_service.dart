@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../data/models/animation_frame_model.dart';
 import '../../data/models/layer.dart';
 import '../../data/models/project_model.dart';
+import '../utils/image_helper.dart';
 import 'aseprite_parser.dart';
 
 /// Simple wrapper for dropped files
@@ -386,11 +387,15 @@ class DropHandlerService {
       }
     }
 
+    // Generate thumbnail from the pixels
+    final thumbnail = ImageHelper.convertToBytes(Uint32List.fromList(pixels));
+
     return Project(
       id: 0,
       name: projectName,
       width: image.width,
       height: image.height,
+      thumbnail: thumbnail,
       frames: [
         AnimationFrame(
           id: 0,

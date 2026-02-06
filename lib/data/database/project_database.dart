@@ -483,14 +483,17 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
       states.add(state.copyWith(id: stateId));
-      if (state.id != 0) stateIds[state.id] = stateId;
+      // Always map old state ID to new state ID (including when old ID is 0)
+      stateIds[state.id] = stateId;
     }
 
     final frames = <AnimationFrame>[];
     for (final frame in project.frames) {
+      // Map the frame's stateId to the new database stateId
+      final newStateId = stateIds[frame.stateId] ?? (states.isNotEmpty ? states.first.id : frame.stateId);
       final frameId = await into(framesTable).insert(FramesTableCompanion(
         projectId: Value(projectId),
-        stateId: Value(stateIds[frame.stateId] ?? frame.stateId),
+        stateId: Value(newStateId),
         name: Value(frame.name),
         duration: Value(frame.duration),
         createdAt: Value(frame.createdAt),
@@ -515,10 +518,10 @@ class AppDatabase extends _$AppDatabase {
         layers.add(layer.copyWith(layerId: layerId));
       }
 
-      frames.add(frame.copyWith(id: frameId, layers: layers));
+      frames.add(frame.copyWith(id: frameId, stateId: newStateId, layers: layers));
     }
 
-    return project.copyWith(id: projectId, frames: frames);
+    return project.copyWith(id: projectId, states: states, frames: frames);
   }
 
   Future<void> updateProject(Project project) async {

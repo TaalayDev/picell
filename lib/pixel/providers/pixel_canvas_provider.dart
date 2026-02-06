@@ -90,6 +90,10 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
     _controller.clearSelection();
   }
 
+  void clearSelectionArea() => _controller.clearSelectionArea();
+  Future<void> cutToNewLayer() => _controller.selectionToNewLayer(clearSource: true);
+  Future<void> copyToNewLayer() => _controller.selectionToNewLayer(clearSource: false);
+
   void addTemplate(Template template) => _controller.addTemplate(template);
 
   // Undo/Redo operations

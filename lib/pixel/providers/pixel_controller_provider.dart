@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:universal_html/html.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../core.dart';
 import '../../data/models/template.dart';
@@ -290,6 +291,57 @@ class PixelDrawController extends _$PixelDrawController {
   void endDrag() {
     _dragStartOffset = null;
     _originalPixels = null;
+  }
+
+  void clearSelectionArea() {
+    if (state.selectionRect == null || currentLayer.pixels.isEmpty) return;
+    _saveState();
+    final clearedPixels = _clearSelectionArea(currentLayer.pixels, state.selectionRect!);
+    _updateCurrentLayerPixels(clearedPixels);
+  }
+
+  Future<void> selectionToNewLayer({bool clearSource = false}) async {
+    if (state.selectionRect == null || currentLayer.pixels.isEmpty) return;
+
+    final selection = state.selectionRect!;
+    final layerId = const Uuid().v4();
+    final newLayerPixels = Uint32List(state.width * state.height);
+
+    // Copy pixels from current layer within selection to new buffer
+    bool hasPixels = false;
+    for (final point in selection) {
+      if (point.x >= 0 && point.x < state.width && point.y >= 0 && point.y < state.height) {
+        final idx = point.y * state.width + point.x;
+        final pixel = currentLayer.pixels[idx];
+        if (pixel != 0) {
+          newLayerPixels[idx] = pixel;
+          hasPixels = true;
+        }
+      }
+    }
+
+    if (!hasPixels) return;
+
+    _saveState();
+
+    if (clearSource) {
+      final clearedPixels = _clearSelectionArea(currentLayer.pixels, selection);
+      _updateCurrentLayerPixels(clearedPixels);
+    }
+
+    final newLayer = Layer(
+      layerId: 0,
+      id: layerId,
+      name: 'Selection',
+      pixels: newLayerPixels,
+      isVisible: true,
+      order: state.currentFrame.layers.length, // Add to top
+    );
+
+    await addLayerWithPixels(newLayer);
+
+    // Select the new layer (it's added at the end)
+    selectLayer(state.currentFrame.layers.length - 1);
   }
 
   Uint32List? _transformCachedPixels;
