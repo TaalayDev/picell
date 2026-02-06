@@ -197,8 +197,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
             onPressed: () {
               Navigator.pop(context);
               // Import first frame as layer
-              if (result.project!.frames.isNotEmpty &&
-                  result.project!.frames.first.layers.isNotEmpty) {
+              if (result.project!.frames.isNotEmpty && result.project!.frames.first.layers.isNotEmpty) {
                 final importedLayer = result.project!.frames.first.layers.first;
                 notifier.addLayerWithPixels(importedLayer);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -362,97 +361,97 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                           onImageDropped: (result) => _handleDroppedImage(result, notifier),
                           onAsepriteDropped: (result) => _handleDroppedAseprite(context, result),
                           child: GestureDetector(
-                          onScaleStart: (details) {
-                            final pointerCount = details.pointerCount;
-                            if (pointerCount == 2) {
-                              normalizedOffset.value = (gridOffset.value - details.focalPoint) / gridScale.value;
-                            }
-                          },
-                          onScaleUpdate: (details) {
-                            final pointerCount = details.pointerCount;
-                            if (pointerCount == 2) {
-                              const sensitivity = 0.5;
-                              final initialScale = gridScale.value;
-                              final newScale = initialScale * (1 + (details.scale - 1) * sensitivity);
-                              gridScale.value = newScale.clamp(0.5, 5.0);
-                              gridOffset.value = details.focalPoint + normalizedOffset.value * gridScale.value;
-                            }
-                          },
-                          onScaleEnd: (details) {},
-                          child: Stack(
-                            clipBehavior: Clip.hardEdge,
-                            children: [
-                              Container(
-                                alignment: Alignment.center,
-                                decoration: const BoxDecoration(),
-                                clipBehavior: Clip.hardEdge,
-                                child: AspectRatio(
-                                  aspectRatio: width / height,
-                                  child: Transform(
-                                    transform: Matrix4.identity()
-                                      ..translate(
-                                        gridOffset.value.dx,
-                                        gridOffset.value.dy,
-                                      )
-                                      ..scale(gridScale.value),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Container(
-                                        clipBehavior: Clip.hardEdge,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          border: Border.all(color: Colors.grey),
-                                        ),
-                                        child: PixelPainter(
-                                          project: project,
-                                          state: state,
-                                          notifier: notifier,
-                                          gridScale: gridScale,
-                                          gridOffset: gridOffset,
-                                          currentTool: currentTool.value,
-                                          currentModifier: currentModifier.value,
-                                          currentColor: state.currentColor,
-                                          brushSize: brushSize,
-                                          sprayIntensity: sprayIntensity,
-                                          showPrevFrames: showPrevFrames.value,
-                                          onToolAutoSwitch: (tool) {
-                                            currentTool.value = tool;
-                                          },
+                            onScaleStart: (details) {
+                              final pointerCount = details.pointerCount;
+                              if (pointerCount == 2) {
+                                normalizedOffset.value = (gridOffset.value - details.focalPoint) / gridScale.value;
+                              }
+                            },
+                            onScaleUpdate: (details) {
+                              final pointerCount = details.pointerCount;
+                              if (pointerCount == 2) {
+                                const sensitivity = 0.5;
+                                final initialScale = gridScale.value;
+                                final newScale = initialScale * (1 + (details.scale - 1) * sensitivity);
+                                gridScale.value = newScale.clamp(0.5, 5.0);
+                                gridOffset.value = details.focalPoint + normalizedOffset.value * gridScale.value;
+                              }
+                            },
+                            onScaleEnd: (details) {},
+                            child: Stack(
+                              clipBehavior: Clip.hardEdge,
+                              children: [
+                                Container(
+                                  alignment: Alignment.center,
+                                  decoration: const BoxDecoration(),
+                                  clipBehavior: Clip.hardEdge,
+                                  child: AspectRatio(
+                                    aspectRatio: width / height,
+                                    child: Transform(
+                                      transform: Matrix4.identity()
+                                        ..translate(
+                                          gridOffset.value.dx,
+                                          gridOffset.value.dy,
+                                        )
+                                        ..scale(gridScale.value),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Container(
+                                          clipBehavior: Clip.hardEdge,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            border: Border.all(color: Colors.grey),
+                                          ),
+                                          child: PixelPainter(
+                                            project: project,
+                                            state: state,
+                                            notifier: notifier,
+                                            gridScale: gridScale,
+                                            gridOffset: gridOffset,
+                                            currentTool: currentTool.value,
+                                            currentModifier: currentModifier.value,
+                                            currentColor: state.currentColor,
+                                            brushSize: brushSize,
+                                            sprayIntensity: sprayIntensity,
+                                            showPrevFrames: showPrevFrames.value,
+                                            onToolAutoSwitch: (tool) {
+                                              currentTool.value = tool;
+                                            },
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              if (MediaQuery.sizeOf(context).width < 1000) ...[
-                                Positioned(
-                                  left: 16,
-                                  right: 16,
-                                  top: 16,
-                                  child: _ToolElements(
-                                    currentTool: currentTool,
-                                    brushSize: brushSize,
-                                    sprayIntensity: sprayIntensity,
-                                  ),
-                                ),
-                                if (screenSize.isMobile)
+                                if (MediaQuery.sizeOf(context).width < 1000) ...[
                                   Positioned(
-                                    right: 26,
-                                    bottom: 26,
-                                    child: SelectionOptionsButton(
-                                      hasSelection: hasSelection,
-                                      isFloating: true,
-                                      onClearSelection: () => notifier.clearSelection(),
-                                      onDelete: () => notifier.clearSelectionArea(),
-                                      onCutToNewLayer: () => notifier.cutToNewLayer(),
-                                      onCopyToNewLayer: () => notifier.copyToNewLayer(),
+                                    left: 16,
+                                    right: 16,
+                                    top: 16,
+                                    child: _ToolElements(
+                                      currentTool: currentTool,
+                                      brushSize: brushSize,
+                                      sprayIntensity: sprayIntensity,
                                     ),
                                   ),
+                                  if (screenSize.isMobile)
+                                    Positioned(
+                                      right: 26,
+                                      bottom: 26,
+                                      child: SelectionOptionsButton(
+                                        hasSelection: hasSelection,
+                                        isFloating: true,
+                                        onClearSelection: () => notifier.clearSelection(),
+                                        onDelete: () => notifier.clearSelectionArea(),
+                                        onCutToNewLayer: () => notifier.cutToNewLayer(),
+                                        onCopyToNewLayer: () => notifier.copyToNewLayer(),
+                                      ),
+                                    ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
                         ),
-                      ),
                       ),
                       if (MediaQuery.sizeOf(context).width > 1050)
                         DesktopSidePanel(
