@@ -79,8 +79,6 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Project Type Selector
-              _buildProjectTypeSelector(context),
               const SizedBox(height: 16),
               TextFormField(
                 decoration: InputDecoration(
@@ -97,12 +95,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                 onSaved: (value) => _projectName = value!,
               ),
               const SizedBox(height: 16),
-              // Show different options based on project type
-              if (_projectType == ProjectType.pixelArt) ...[
-                _buildPixelArtOptions(context, maxCanvasSize),
-              ] else ...[
-                _buildTileGeneratorOptions(context),
-              ],
+              _buildPixelArtOptions(context, maxCanvasSize),
             ],
           ),
         ),
@@ -144,41 +137,6 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                 ));
               }
             }
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProjectTypeSelector(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Project Type',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
-        const SizedBox(height: 8),
-        SegmentedButton<ProjectType>(
-          segments: const [
-            ButtonSegment<ProjectType>(
-              value: ProjectType.pixelArt,
-              label: Text('Pixel Art'),
-              icon: Icon(Icons.brush),
-            ),
-            ButtonSegment<ProjectType>(
-              value: ProjectType.tileGenerator,
-              label: Text('Tile Generator'),
-              icon: Icon(Icons.auto_awesome),
-            ),
-          ],
-          selected: {_projectType},
-          onSelectionChanged: (Set<ProjectType> newSelection) {
-            setState(() {
-              _projectType = newSelection.first;
-            });
           },
         ),
       ],
@@ -275,186 +233,6 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
               ),
             ],
           ),
-      ],
-    );
-  }
-
-  Widget _buildTileGeneratorOptions(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Tile Size Section
-        Text(
-          'Tile Size',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Width',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.width_normal),
-                  suffixText: 'px',
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                initialValue: _tileWidth.toString(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Required';
-                  }
-                  int? width = int.tryParse(value);
-                  if (width == null || width < 8 || width > 128) {
-                    return '8-128';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _tileWidth = int.parse(value!),
-                onChanged: (value) {
-                  final parsed = int.tryParse(value);
-                  if (parsed != null) {
-                    setState(() => _tileWidth = parsed);
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Height',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.height),
-                  suffixText: 'px',
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                initialValue: _tileHeight.toString(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Required';
-                  }
-                  int? height = int.tryParse(value);
-                  if (height == null || height < 8 || height > 128) {
-                    return '8-128';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _tileHeight = int.parse(value!),
-                onChanged: (value) {
-                  final parsed = int.tryParse(value);
-                  if (parsed != null) {
-                    setState(() => _tileHeight = parsed);
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        // Canvas Size Section
-        Text(
-          'Canvas Size (Grid)',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Columns',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.view_column),
-                  suffixText: 'tiles',
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                initialValue: _gridColumns.toString(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Required';
-                  }
-                  int? cols = int.tryParse(value);
-                  if (cols == null || cols < 1 || cols > 256) {
-                    return '1-256';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _gridColumns = int.parse(value!),
-                onChanged: (value) {
-                  final parsed = int.tryParse(value);
-                  if (parsed != null) {
-                    setState(() => _gridColumns = parsed);
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Rows',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.table_rows),
-                  suffixText: 'tiles',
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                initialValue: _gridRows.toString(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Required';
-                  }
-                  int? rows = int.tryParse(value);
-                  if (rows == null || rows < 1 || rows > 256) {
-                    return '1-256';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _gridRows = int.parse(value!),
-                onChanged: (value) {
-                  final parsed = int.tryParse(value);
-                  if (parsed != null) {
-                    setState(() => _gridRows = parsed);
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.info_outline,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                    'Tilemap: ${_gridColumns}×${_gridRows} tiles, each ${_tileWidth}×${_tileHeight}px. Total canvas: ${_gridColumns * _tileWidth}×${_gridRows * _tileHeight}px.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        )),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }

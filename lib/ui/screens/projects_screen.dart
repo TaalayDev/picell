@@ -41,8 +41,6 @@ import 'subscription_screen.dart';
 import 'about_screen.dart';
 import 'pixel_canvas_screen.dart';
 import 'project_detail_screen.dart' hide CheckerboardPainter;
-import 'tilemap_screen.dart';
-import '../../features/node_tile_creator/ui/node_graph_screen.dart';
 
 class ProjectsScreen extends HookConsumerWidget {
   const ProjectsScreen({super.key});
@@ -603,20 +601,11 @@ class ProjectsScreen extends HookConsumerWidget {
       if (context.mounted) {
         loader.remove();
 
-        // Navigate to appropriate editor based on project type
-        if (newProject.type == ProjectType.tileGenerator || newProject.type == ProjectType.tilemap) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => TileMapScreen(project: newProject),
-            ),
-          );
-        } else {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => PixelCanvasScreen(project: newProject),
-            ),
-          );
-        }
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => PixelCanvasScreen(project: newProject),
+          ),
+        );
       }
     }
   }
@@ -635,20 +624,11 @@ class ProjectsScreen extends HookConsumerWidget {
     final project = await ref.read(projectsProvider.notifier).getProject(projectId);
 
     if (project != null && context.mounted) {
-      // Navigate to appropriate editor based on project type
-      if (project.type == ProjectType.tileGenerator || project.type == ProjectType.tilemap) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => TileMapScreen(project: project),
-          ),
-        );
-      } else {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => PixelCanvasScreen(project: project),
-          ),
-        );
-      }
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PixelCanvasScreen(project: project),
+        ),
+      );
     }
 
     loader.value?.remove();
