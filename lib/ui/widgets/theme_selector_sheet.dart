@@ -412,7 +412,7 @@ class ThemePreviewCard extends HookWidget {
                 height: double.infinity,
                 child: AnimatedBackground(
                   intensity: 0.5,
-                  enableAnimation: true,
+                  enableAnimation: false,
                   appTheme: theme,
                   child: Container(color: Colors.transparent),
                 ),
