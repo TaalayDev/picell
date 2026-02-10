@@ -2,6 +2,10 @@
 cmake_minimum_required(VERSION 3.14)
 project(pixelverse LANGUAGES CXX)
 
+# Allow older cmake_minimum_required() in dependencies (e.g. Firebase C++ SDK)
+# to work with CMake 4.x which removed compat for versions < 3.5.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "pixelverse")
