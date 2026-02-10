@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -32,6 +34,7 @@ class EffectsSidePanel extends StatefulHookConsumerWidget {
 class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   late List<Effect> _effects;
   int? _selectedEffectIndex;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -51,10 +54,13 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   }
 
   void _updateLayer() {
-    if (widget.onLayerUpdated != null) {
-      final updatedLayer = widget.layer.copyWith(effects: _effects);
-      widget.onLayerUpdated!(updatedLayer);
-    }
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (widget.onLayerUpdated != null) {
+        final updatedLayer = widget.layer.copyWith(effects: _effects);
+        widget.onLayerUpdated!(updatedLayer);
+      }
+    });
   }
 
   void _addEffect() {

@@ -65,6 +65,8 @@ part 'ground_texture_effect.dart';
 part 'wall_texture_effect.dart';
 part 'opacity_effect.dart';
 part 'platformer_effect.dart';
+part 'perlin_worms_effect.dart';
+part 'voronoi_effect.dart';
 
 enum EffectType {
   brightness,
@@ -128,7 +130,9 @@ enum EffectType {
   groundTexture,
   wallTexture,
   opacity,
-  platformer
+  platformer,
+  perlinWorms,
+  voronoi
 }
 
 /// Base abstract class for all effects
@@ -213,6 +217,8 @@ abstract class Effect {
         EffectType.wallTexture => 'Wall Texture',
         EffectType.opacity => 'Opacity',
         EffectType.platformer => 'Platformer',
+        EffectType.perlinWorms => 'Perlin Worms',
+        EffectType.voronoi => 'Voronoi',
       };
 
   String getDescription(BuildContext context) => switch (type) {
@@ -295,6 +301,8 @@ abstract class Effect {
         EffectType.city => 'Urban cityscape backdrop',
         EffectType.opacity => 'Adjust layer transparency',
         EffectType.platformer => 'Create platformer tile edges',
+        EffectType.perlinWorms => 'Generate organic worm-like patterns with Perlin noise',
+        EffectType.voronoi => 'Create cellular Voronoi diagram patterns with multiple modes',
       };
 
   bool get isAnimation {
@@ -365,6 +373,8 @@ abstract class Effect {
       case EffectType.wallTexture:
       case EffectType.opacity:
       case EffectType.platformer:
+      case EffectType.perlinWorms:
+      case EffectType.voronoi:
         return false;
     }
   }
@@ -436,6 +446,8 @@ abstract class Effect {
       case EffectType.leafVenation:
       case EffectType.opacity:
       case EffectType.platformer:
+      case EffectType.perlinWorms:
+      case EffectType.voronoi:
         return false;
     }
   }
@@ -506,6 +518,8 @@ abstract class Effect {
       EffectType.wallTexture => Icon(MaterialCommunityIcons.wall, size: size, color: color),
       EffectType.opacity => Icon(MaterialCommunityIcons.opacity, size: size, color: color),
       EffectType.platformer => Icon(MaterialCommunityIcons.grid, size: size, color: color),
+      EffectType.perlinWorms => Icon(MaterialCommunityIcons.creation, size: size, color: color),
+      EffectType.voronoi => Icon(MaterialCommunityIcons.hexagon_multiple, size: size, color: color),
     };
   }
 
@@ -583,6 +597,8 @@ abstract class Effect {
       EffectType.city => const Color(0xFF37474F), // Dark blue grey
       EffectType.opacity => const Color(0xFF9E9E9E), // Grey
       EffectType.platformer => const Color(0xFF00BCD4), // Cyan
+      EffectType.perlinWorms => const Color(0xFF9C27B0), // Purple
+      EffectType.voronoi => const Color(0xFF00BCD4), // Cyan
     };
   }
 
@@ -808,6 +824,10 @@ class EffectsManager {
         return OpacityEffect(params);
       case EffectType.platformer:
         return PlatformerEffect(params);
+      case EffectType.perlinWorms:
+        return PerlinWormsEffect(params);
+      case EffectType.voronoi:
+        return VoronoiEffect(params);
     }
   }
 
