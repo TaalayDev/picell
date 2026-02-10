@@ -29,8 +29,7 @@ class DesktopSidePanel extends StatefulHookConsumerWidget {
   ConsumerState<DesktopSidePanel> createState() => _DesktopSidePanelState();
 }
 
-class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
-    with SingleTickerProviderStateMixin {
+class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
   @override

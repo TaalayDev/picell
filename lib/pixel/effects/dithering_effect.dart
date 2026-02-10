@@ -208,4 +208,28 @@ class DitheringEffect extends Effect {
       },
     };
   }
+
+  @override
+  List<UIField> getFields() => [
+        const SelectField<int>(
+          key: 'pattern',
+          label: 'Dithering Pattern',
+          description: 'Select the dithering pattern to apply.',
+          options: {
+            0: 'Bayer 2x2',
+            1: 'Bayer 4x4',
+            2: 'Bayer 8x8',
+            3: 'Floyd-Steinberg',
+          },
+        ),
+        const SliderField(
+          key: 'intensity',
+          label: 'Intensity',
+          description: 'Controls the strength of the dithering effect. '
+              'Higher values create more pronounced dithering.',
+          min: 0.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+      ];
 }

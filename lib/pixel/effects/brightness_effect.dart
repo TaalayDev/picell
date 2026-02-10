@@ -50,4 +50,17 @@ class BrightnessEffect extends Effect {
       },
     };
   }
+
+  @override
+  List<UIField> getFields() => [
+        const SliderField(
+          key: 'value',
+          label: 'Brightness',
+          description:
+              'Adjusts the brightness of pixels. Positive values make the image brighter, negative values make it darker.',
+          min: -1.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+      ];
 }

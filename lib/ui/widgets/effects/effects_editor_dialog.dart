@@ -1,11 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:pixelverse/core/extensions/primitive_extensions.dart';
-import 'package:pixelverse/ui/widgets/animated_background.dart';
 
+import '../../../core/extensions/primitive_extensions.dart';
 import '../../../pixel/effects/effects.dart';
 import '../dialogs/save_image_window.dart';
+import '../fields/ui_field_builder.dart';
+import '../animated_background.dart';
 import 'pixlel_preview_painter.dart';
 
 class EffectEditorDialog extends StatefulWidget {
@@ -270,6 +271,23 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
   }
 
   List<Widget> _buildParameterWidgets() {
+    // Prefer the new UIField-based approach
+    final fields = widget.effect.getFields();
+    if (fields.isNotEmpty) {
+      return UIFieldBuilder.buildAll(
+        context: context,
+        fields: fields,
+        values: _parameters,
+        onChanged: (key, value) {
+          setState(() {
+            _parameters[key] = value;
+          });
+          _updatePreview();
+        },
+      );
+    }
+
+    // Fallback to legacy metadata-driven approach
     final widgets = <Widget>[];
 
     _parameters.forEach((key, value) {
@@ -460,7 +478,13 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
   }
 
   Widget _buildSelectControl(String key, dynamic value, Map<String, dynamic> metadata) {
-    final options = metadata['options'] as Map<dynamic, String>? ?? {};
+    final options = () {
+      if (metadata['options'] is List) {
+        final list = metadata['options'] as List;
+        return {for (var item in list) item.toString(): item.toString()};
+      }
+      return metadata['options'] as Map<dynamic, String>? ?? {};
+    }();
 
     return DropdownButtonFormField<dynamic>(
       value: value,
@@ -471,7 +495,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
       items: options.entries.map((entry) {
         return DropdownMenuItem<dynamic>(
           value: entry.key,
-          child: Text(entry.value),
+          child: Text(entry.value, style: Theme.of(context).textTheme.bodyMedium),
         );
       }).toList(),
       onChanged: (newValue) {

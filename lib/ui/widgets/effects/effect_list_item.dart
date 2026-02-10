@@ -3,8 +3,9 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../../pixel/effects/effects.dart';
 import '../app_icon.dart';
+import '../fields/ui_field_builder.dart';
 
-class EffectListItem extends StatelessWidget {
+class EffectListItem extends StatefulWidget {
   final Effect effect;
   final bool isSelected;
   final VoidCallback onSelect;
@@ -15,6 +16,7 @@ class EffectListItem extends StatelessWidget {
   final bool showDragHandle;
   final bool showRemoveButton;
   final bool showApplyButton;
+  final Function(Effect)? onParametersChanged;
 
   const EffectListItem({
     super.key,
@@ -28,85 +30,172 @@ class EffectListItem extends StatelessWidget {
     this.showDragHandle = false,
     this.showRemoveButton = true,
     this.showApplyButton = false,
+    this.onParametersChanged,
   });
 
   @override
+  State<EffectListItem> createState() => _EffectListItemState();
+}
+
+class _EffectListItemState extends State<EffectListItem> {
+  bool _isExpanded = false;
+  late Map<String, dynamic> _parameters;
+
+  @override
+  void initState() {
+    super.initState();
+    _parameters = Map<String, dynamic>.from(widget.effect.parameters);
+  }
+
+  @override
+  void didUpdateWidget(EffectListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.effect != widget.effect) {
+      _parameters = Map<String, dynamic>.from(widget.effect.parameters);
+    }
+  }
+
+  void _updateParameter(String key, dynamic value) {
+    setState(() {
+      _parameters[key] = value;
+    });
+
+    // Create updated effect and notify parent
+    if (widget.onParametersChanged != null) {
+      final updatedEffect = EffectsManager.createEffect(
+        widget.effect.type,
+        _parameters,
+      );
+      widget.onParametersChanged!(updatedEffect);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final effectColor = effect.getColor(context);
-    final effectIcon = effect.getIcon(color: effectColor, size: 18);
+    final effectColor = widget.effect.getColor(context);
+    final effectIcon = widget.effect.getIcon(color: effectColor, size: 18);
+    final theme = Theme.of(context);
+    final fields = widget.effect.getFields();
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      elevation: isSelected ? 3 : 1,
+      elevation: widget.isSelected ? 2 : 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
-          width: isSelected ? 2 : 1,
+          color: widget.isSelected ? theme.colorScheme.primary : theme.colorScheme.outline.withOpacity(0.2),
+          width: widget.isSelected ? 2 : 1,
         ),
       ),
-      child: InkWell(
-        onTap: onSelect,
-        borderRadius: BorderRadius.circular(8),
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: effectColor.withOpacity(0.2),
-            radius: 15,
-            child: effectIcon,
-          ),
-          title: Text(
-            effect.getName(context),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const AppIcon(AppIcons.settings_2),
-                tooltip: 'Edit effect',
-                onPressed: onEdit,
-                iconSize: 16,
-              ),
-              if (showApplyButton && onApply != null)
-                Tooltip(
-                  message: 'Apply this effect to layer pixels and remove from effects list',
-                  child: IconButton(
-                    icon: Icon(
-                      Feather.check_circle,
-                      color: Colors.green.shade600,
-                    ),
-                    tooltip: 'Apply effect',
-                    onPressed: onApply,
-                    iconSize: 18,
+      child: Column(
+        children: [
+          InkWell(
+            onTap: widget.onSelect,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  // Icon
+                  CircleAvatar(
+                    backgroundColor: effectColor.withOpacity(0.2),
+                    radius: 10,
+                    child: effectIcon,
                   ),
-                ),
-              if (showRemoveButton)
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  tooltip: 'Remove effect',
-                  onPressed: onRemove,
-                  iconSize: 20,
-                ),
-            ],
+                  const SizedBox(width: 12),
+                  // Title
+                  Expanded(
+                    child: Text(
+                      widget.effect.getName(context),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 10,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  // Expand button
+                  if (fields.isNotEmpty)
+                    InkWell(
+                      onTap: () => setState(() => _isExpanded = !_isExpanded),
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: Icon(
+                          _isExpanded ? Icons.expand_less : Icons.expand_more,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+
+                  // Edit button
+                  InkWell(
+                    onTap: widget.onEdit,
+                    borderRadius: BorderRadius.circular(4),
+                    child: const Padding(
+                      padding: EdgeInsets.all(4.0),
+                      child: AppIcon(AppIcons.settings_2, size: 16),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Apply button
+                  if (widget.showApplyButton && widget.onApply != null)
+                    InkWell(
+                      onTap: widget.onApply,
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Icon(
+                          Feather.check_circle,
+                          color: Colors.green.shade600,
+                        ),
+                      ),
+                    ),
+                  // Remove button
+                  if (widget.showRemoveButton)
+                    InkWell(
+                      onTap: widget.onRemove,
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: theme.colorScheme.error,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(width: 6),
+                ],
+              ),
+            ),
           ),
-        ),
+          // Expanded parameters section
+          if (_isExpanded && fields.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: UIFieldBuilder.buildAll(
+                  context: context,
+                  fields: fields,
+                  values: _parameters,
+                  onChanged: _updateParameter,
+                ),
+              ),
+            ),
+        ],
       ),
     );
-  }
-
-  String _formatParameters(Map<String, dynamic> params) {
-    final buffer = StringBuffer();
-    params.forEach((key, value) {
-      if (buffer.isNotEmpty) buffer.write(' • ');
-      if (value is double) {
-        buffer.write('$key: ${value.toStringAsFixed(2)}');
-      } else {
-        buffer.write('$key: $value');
-      }
-    });
-
-    return buffer.isEmpty ? 'Default settings' : buffer.toString();
   }
 }

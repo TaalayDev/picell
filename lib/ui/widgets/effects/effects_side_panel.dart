@@ -250,6 +250,12 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
                   onRemove: () => _removeEffect(index),
                   showDragHandle: true,
                   showRemoveButton: false,
+                  onParametersChanged: (updatedEffect) {
+                    setState(() {
+                      _effects[index] = updatedEffect;
+                    });
+                    _updateLayer();
+                  },
                 );
               },
             ),

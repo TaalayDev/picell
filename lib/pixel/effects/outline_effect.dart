@@ -139,4 +139,30 @@ class OutlineEffect extends Effect {
       },
     };
   }
+
+  @override
+  List<UIField> getFields() => [
+        const ColorField(
+          key: 'color',
+          label: 'Outline Color',
+          description: 'Color of the outline effect.',
+        ),
+        const SliderField(
+          key: 'thickness',
+          label: 'Outline Thickness',
+          description: 'Thickness of the outline in pixels.',
+          min: 1,
+          max: 5,
+          divisions: 4,
+          isInteger: true,
+        ),
+        const SliderField(
+          key: 'threshold',
+          label: 'Alpha Threshold',
+          description: 'Alpha threshold for edge detection. Pixels below this value are considered transparent.',
+          min: 0.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+      ];
 }

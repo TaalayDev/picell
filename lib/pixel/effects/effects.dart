@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../ui/widgets/app_icon.dart';
+import '../../ui/widgets/fields/ui_field.dart';
 import '../pixel_utils.dart';
 
 part 'brightness_effect.dart';
@@ -143,6 +144,11 @@ abstract class Effect {
   /// Get the default parameters for this effect
   Map<String, dynamic> getDefaultParameters();
   Map<String, dynamic> getMetadata();
+
+  /// Return a strongly-typed list of [UIField] descriptors for this effect's
+  /// parameters.  Override in subclasses for full control; the default
+  /// implementation converts the legacy [getMetadata()] map automatically.
+  List<UIField> getFields() => _fieldsFromMetadata(getMetadata());
 
   String getName(BuildContext context) => switch (type) {
         EffectType.brightness => 'Brightness',
@@ -582,6 +588,69 @@ abstract class Effect {
 
   @override
   String toString() => '${type.name}: $parameters';
+
+  // ---------------------------------------------------------------------------
+  // Legacy metadata → UIField conversion
+  // ---------------------------------------------------------------------------
+
+  static List<UIField> _fieldsFromMetadata(Map<String, dynamic> metadata) {
+    final fields = <UIField>[];
+
+    for (final entry in metadata.entries) {
+      final key = entry.key;
+      final meta = entry.value;
+
+      if (meta is! Map<String, dynamic>) continue;
+
+      final label = meta['label'] as String? ?? key;
+      final description = meta['description'] as String?;
+      final type = meta['type'] as String? ?? 'slider';
+
+      switch (type) {
+        case 'slider':
+          fields.add(SliderField(
+            key: key,
+            label: label,
+            description: description,
+            min: (meta['min'] as num?)?.toDouble() ?? 0.0,
+            max: (meta['max'] as num?)?.toDouble() ?? 1.0,
+            divisions: meta['divisions'] as int?,
+            isInteger: meta['min'] is int && meta['max'] is int,
+          ));
+          break;
+        case 'color':
+          fields.add(ColorField(key: key, label: label, description: description));
+          break;
+        case 'select':
+          final rawOptions = meta['options'];
+          final options = <dynamic, String>{};
+          if (rawOptions is Map) {
+            for (final e in rawOptions.entries) {
+              options[e.key] = e.value.toString();
+            }
+          } else if (rawOptions is List) {
+            for (final item in rawOptions) {
+              options[item] = item.toString();
+            }
+          }
+          fields.add(SelectField(
+            key: key,
+            label: label,
+            description: description,
+            options: options,
+          ));
+          break;
+        case 'bool':
+          fields.add(BoolField(key: key, label: label, description: description));
+          break;
+        default:
+          // Unknown type — skip
+          break;
+      }
+    }
+
+    return fields;
+  }
 }
 
 /// Utility class to manage effects
