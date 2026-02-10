@@ -9,17 +9,17 @@ class StringsJa extends Strings {
   StringsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appName => 'ピクセルバース';
+  String get appName => 'Picell';
 
   @override
-  String get aboutTitle => 'ピクセルバースについて';
+  String get aboutTitle => 'Picellについて';
 
   @override
-  String get welcome => 'ピクセルバースへようこそ！';
+  String get welcome => 'Picellへようこそ！';
 
   @override
   String get aboutAppDescription =>
-      'ピクセルバースは、素晴らしいピクセルアートを作成するためのツールです。経験豊富なアーティストも、初心者も、このアプリケーションを使って、あなたのピクセルアートのビジョンを実現できます。';
+      'Picellは、素晴らしいピクセルアートを作成するためのツールです。経験豊富なアーティストも、初心者も、このアプリケーションを使って、あなたのピクセルアートのビジョンを実現できます。';
 
   @override
   String version(String version) {

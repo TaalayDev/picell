@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:pixelverse/pixel/tools/eraser_tool.dart';
+import 'package:picell/pixel/tools/eraser_tool.dart';
 
 import '../../data.dart';
 import '../tools.dart';

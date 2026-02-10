@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:pixelverse/config/constants.dart';
+import 'package:picell/config/constants.dart';
 
 part 'project_api_models.freezed.dart';
 part 'project_api_models.g.dart';

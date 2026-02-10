@@ -9,17 +9,17 @@ class StringsEn extends Strings {
   StringsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'PixelVerse';
+  String get appName => 'Picell';
 
   @override
-  String get aboutTitle => 'About PixelVerse';
+  String get aboutTitle => 'About Picell';
 
   @override
-  String get welcome => 'Welcome to PixelVerse!';
+  String get welcome => 'Welcome to Picell!';
 
   @override
   String get aboutAppDescription =>
-      'PixelVerse is your gateway to creating amazing pixel art. Whether you\'re a seasoned artist or just starting out, our app provides the tools you need to bring your pixelated visions to life.';
+      'Picell is your gateway to creating amazing pixel art. Whether you\'re a seasoned artist or just starting out, our app provides the tools you need to bring your pixelated visions to life.';
 
   @override
   String version(String version) {
@@ -407,17 +407,17 @@ class StringsEnUs extends StringsEn {
   StringsEnUs() : super('en_US');
 
   @override
-  String get appName => 'PixelVerse';
+  String get appName => 'Picell';
 
   @override
-  String get aboutTitle => 'About PixelVerse';
+  String get aboutTitle => 'About Picell';
 
   @override
-  String get welcome => 'Welcome to PixelVerse!';
+  String get welcome => 'Welcome to Picell!';
 
   @override
   String get aboutAppDescription =>
-      'PixelVerse is your gateway to creating amazing pixel art. Whether you\'re a seasoned artist or just starting out, our app provides the tools you need to bring your pixelated visions to life.';
+      'Picell is your gateway to creating amazing pixel art. Whether you\'re a seasoned artist or just starting out, our app provides the tools you need to bring your pixelated visions to life.';
 
   @override
   String version(String version) {

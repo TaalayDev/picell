@@ -107,25 +107,25 @@ abstract class Strings {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'PixelVerse'**
+  /// **'Picell'**
   String get appName;
 
   /// No description provided for @aboutTitle.
   ///
   /// In en, this message translates to:
-  /// **'About PixelVerse'**
+  /// **'About Picell'**
   String get aboutTitle;
 
   /// No description provided for @welcome.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to PixelVerse!'**
+  /// **'Welcome to Picell!'**
   String get welcome;
 
   /// No description provided for @aboutAppDescription.
   ///
   /// In en, this message translates to:
-  /// **'PixelVerse is your gateway to creating amazing pixel art. Whether you\'re a seasoned artist or just starting out, our app provides the tools you need to bring your pixelated visions to life.'**
+  /// **'Picell is your gateway to creating amazing pixel art. Whether you\'re a seasoned artist or just starting out, our app provides the tools you need to bring your pixelated visions to life.'**
   String get aboutAppDescription;
 
   /// No description provided for @version.

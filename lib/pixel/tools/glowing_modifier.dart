@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
-import 'package:pixelverse/pixel/tools.dart';
+import 'package:picell/pixel/tools.dart';
 
 import '../pixel_point.dart';
 

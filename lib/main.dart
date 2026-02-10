@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:pixelverse/firebase_options.dart';
+import 'package:picell/firebase_options.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app/app.dart';

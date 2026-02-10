@@ -1,8 +1,8 @@
 {
-    "appName": "PixelVerse",
-    "aboutTitle": "About PixelVerse",
-    "welcome": "Welcome to PixelVerse!",
-    "aboutAppDescription": "PixelVerse is your gateway to creating amazing pixel art. Whether you're a seasoned artist or just starting out, our app provides the tools you need to bring your pixelated visions to life.",
+    "appName": "Picell",
+    "aboutTitle": "About Picell",
+    "welcome": "Welcome to Picell!",
+    "aboutAppDescription": "Picell is your gateway to creating amazing pixel art. Whether you're a seasoned artist or just starting out, our app provides the tools you need to bring your pixelated visions to life.",
     "version": "Version {version}",
     "@version": {
         "placeholders": {

@@ -1,8 +1,8 @@
 {
-    "appName": "ピクセルバース",
-    "aboutTitle": "ピクセルバースについて",
-    "welcome": "ピクセルバースへようこそ！",
-    "aboutAppDescription": "ピクセルバースは、素晴らしいピクセルアートを作成するためのツールです。経験豊富なアーティストも、初心者も、このアプリケーションを使って、あなたのピクセルアートのビジョンを実現できます。",
+    "appName": "Picell",
+    "aboutTitle": "Picellについて",
+    "welcome": "Picellへようこそ！",
+    "aboutAppDescription": "Picellは、素晴らしいピクセルアートを作成するためのツールです。経験豊富なアーティストも、初心者も、このアプリケーションを使って、あなたのピクセルアートのビジョンを実現できます。",
     "version": "バージョン {version}",
     "@version": {
         "placeholders": {

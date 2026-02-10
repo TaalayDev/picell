@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:pixelverse/core.dart';
+import 'package:picell/core.dart';
 
 import '../../data.dart';
 import '../../pixel/tools.dart';

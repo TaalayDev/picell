@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:pixelverse/data.dart';
+import 'package:picell/data.dart';
 
 import '../../../l10n/strings.dart';
 import '../../../providers/providers.dart';

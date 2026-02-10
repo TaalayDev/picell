@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:pixelverse/config/constants.dart';
+import 'package:picell/config/constants.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../config/assets.dart';

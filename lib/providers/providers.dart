@@ -1,7 +1,7 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:pixelverse/config/constants.dart';
-import 'package:pixelverse/data/auth_interceptor.dart';
+import 'package:picell/config/constants.dart';
+import 'package:picell/data/auth_interceptor.dart';
 
 import '../core.dart';
 import '../core/utils/api_client.dart';

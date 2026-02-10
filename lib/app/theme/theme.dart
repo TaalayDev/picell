@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pixelverse/data.dart';
+import 'package:picell/data.dart';
 
 import 'art_deco.dart';
 import 'art_nouevau.dart';

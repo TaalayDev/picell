@@ -6,7 +6,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pixelverse/core/utils.dart';
+import 'package:picell/core/utils.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 

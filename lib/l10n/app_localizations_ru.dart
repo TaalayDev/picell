@@ -9,17 +9,17 @@ class StringsRu extends Strings {
   StringsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get appName => 'PixelVerse';
+  String get appName => 'Picell';
 
   @override
-  String get aboutTitle => 'О программе PixelVerse';
+  String get aboutTitle => 'О программе Picell';
 
   @override
-  String get welcome => 'Добро пожаловать в PixelVerse!';
+  String get welcome => 'Добро пожаловать в Picell!';
 
   @override
   String get aboutAppDescription =>
-      'PixelVerse - это ваш путь к созданию потрясающего пиксельного искусства. Независимо от того, являетесь ли вы опытным художником или только начинаете, наше приложение предоставляет все необходимые инструменты для воплощения ваших пиксельных идей в жизнь.';
+      'Picell - это ваш путь к созданию потрясающего пиксельного искусства. Независимо от того, являетесь ли вы опытным художником или только начинаете, наше приложение предоставляет все необходимые инструменты для воплощения ваших пиксельных идей в жизнь.';
 
   @override
   String version(String version) {

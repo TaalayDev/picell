@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "PixelVerse",
+            "name": "Picell",
             "request": "launch",
             "type": "dart",
             "args": [
@@ -13,13 +13,13 @@
             ]
         },
         {
-            "name": "PixelVerse (profile mode)",
+            "name": "Picell (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "PixelVerse (release mode)",
+            "name": "Picell (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

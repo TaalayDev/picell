@@ -9,17 +9,17 @@ class StringsKy extends Strings {
   StringsKy([String locale = 'ky']) : super(locale);
 
   @override
-  String get appName => 'PixelVerse';
+  String get appName => 'Picell';
 
   @override
-  String get aboutTitle => 'PixelVerse жөнүндө';
+  String get aboutTitle => 'Picell жөнүндө';
 
   @override
-  String get welcome => 'PixelVerse\'ке кош келиңиз!';
+  String get welcome => 'Picell\'ге кош келиңиз!';
 
   @override
   String get aboutAppDescription =>
-      'PixelVerse - бул укмуштуудай пиксель искусствосун түзүүгө жол. Сиз тажрыйбалуу сүрөтчү же жаңы баштап жаткан болсоңуз да, биздин тиркеме сиздин пиксель көз карашыңызды ишке ашыруу үчүн керектүү куралдарды берет.';
+      'Picell - бул укмуштуудай пиксель искусствосун түзүүгө жол. Сиз тажрыйбалуу сүрөтчү же жаңы баштап жаткан болсоңуз да, биздин тиркеме сиздин пиксель көз карашыңызды ишке ашыруу үчүн керектүү куралдарды берет.';
 
   @override
   String version(String version) {

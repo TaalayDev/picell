@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pixelverse/features/node_tile_creator/logic/node_graph_controller.dart';
-import 'package:pixelverse/features/node_tile_creator/models/node_graph_model.dart';
-import 'package:pixelverse/features/node_tile_creator/models/nodes.dart';
+import 'package:picell/features/node_tile_creator/logic/node_graph_controller.dart';
+import 'package:picell/features/node_tile_creator/models/node_graph_model.dart';
+import 'package:picell/features/node_tile_creator/models/nodes.dart';
 
 class PropertiesPanel extends ConsumerStatefulWidget {
   final NodeData node;

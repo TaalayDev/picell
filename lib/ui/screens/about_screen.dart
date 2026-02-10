@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:pixelverse/l10n/strings.dart';
-import 'package:pixelverse/ui/widgets/version_text.dart';
+import 'package:picell/l10n/strings.dart';
+import 'package:picell/ui/widgets/version_text.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../config/assets.dart';
