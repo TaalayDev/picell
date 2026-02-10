@@ -307,15 +307,26 @@ class PixelDrawController extends _$PixelDrawController {
     final layerId = const Uuid().v4();
     final newLayerPixels = Uint32List(state.width * state.height);
 
-    // Copy pixels from current layer within selection to new buffer
+    // Compute bounds from selection points and copy the full rectangular area,
+    // not just the outline points (selection may only contain border points).
+    final bounds = _getSelectionBounds(selection);
+    if (bounds == null) return;
+
+    final minX = bounds.left.toInt();
+    final minY = bounds.top.toInt();
+    final maxX = bounds.right.toInt();
+    final maxY = bounds.bottom.toInt();
+
     bool hasPixels = false;
-    for (final point in selection) {
-      if (point.x >= 0 && point.x < state.width && point.y >= 0 && point.y < state.height) {
-        final idx = point.y * state.width + point.x;
-        final pixel = currentLayer.pixels[idx];
-        if (pixel != 0) {
-          newLayerPixels[idx] = pixel;
-          hasPixels = true;
+    for (int y = minY; y < maxY; y++) {
+      for (int x = minX; x < maxX; x++) {
+        if (x >= 0 && x < state.width && y >= 0 && y < state.height) {
+          final idx = y * state.width + x;
+          final pixel = currentLayer.pixels[idx];
+          if (pixel != 0) {
+            newLayerPixels[idx] = pixel;
+            hasPixels = true;
+          }
         }
       }
     }
@@ -1256,10 +1267,22 @@ class PixelDrawController extends _$PixelDrawController {
   ) {
     final result = Uint32List.fromList(pixels);
 
-    for (final point in selection) {
-      final index = point.y * state.width + point.x;
-      if (index >= 0 && index < result.length) {
-        result[index] = 0; // Clear to transparent
+    // Compute bounds from selection points and clear the full rectangular area,
+    // not just the outline points (selection may only contain border points).
+    final bounds = _getSelectionBounds(selection);
+    if (bounds == null) return result;
+
+    final minX = bounds.left.toInt();
+    final minY = bounds.top.toInt();
+    final maxX = bounds.right.toInt();
+    final maxY = bounds.bottom.toInt();
+
+    for (int y = minY; y < maxY; y++) {
+      for (int x = minX; x < maxX; x++) {
+        final index = y * state.width + x;
+        if (index >= 0 && index < result.length) {
+          result[index] = 0; // Clear to transparent
+        }
       }
     }
 
