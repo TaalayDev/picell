@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:picell/config/constants.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../data/models/subscription_model.dart';
@@ -22,7 +23,16 @@ final subscriptionServiceProvider = Provider<SubscriptionService>((ref) {
 class SubscriptionState extends _$SubscriptionState {
   @override
   UserSubscription build() {
+    if (kIsDemo) {
+      return const UserSubscription(
+        plan: SubscriptionPlan.free,
+        status: AppPurchaseStatus.notPurchased,
+        purchaseId: '',
+      );
+    }
+
     const testing = bool.fromEnvironment('TESTING');
+
     if (kIsWeb || Platform.isAndroid || Platform.isWindows || testing) {
       return UserSubscription(
         plan: SubscriptionPlan.proPurchase,

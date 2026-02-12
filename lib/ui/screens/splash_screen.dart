@@ -124,7 +124,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                       opacity: _fadeAnimation.value,
                       duration: const Duration(milliseconds: 500),
                       child: Text(
-                        'PIXELVERSE',
+                        'PICELL',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,

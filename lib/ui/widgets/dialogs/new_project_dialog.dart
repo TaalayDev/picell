@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
+import '../../../config/constants.dart';
 import '../../../data/models/project_model.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../l10n/strings.dart';
@@ -165,7 +167,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
             if (value == null) {
               return 'Please select a template';
             }
-            if (value != _templates.length - 1 && (_width > maxCanvasSize || _height > maxCanvasSize)) {
+            if (!kIsDemo && value != _templates.length - 1 && (_width > maxCanvasSize || _height > maxCanvasSize)) {
               return 'Your plan is limited to $maxCanvasSize pixels';
             }
             return null;
