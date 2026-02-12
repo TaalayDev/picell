@@ -27,7 +27,6 @@ class SprayTool extends Tool {
   void onMove(PixelDrawDetails details) {
     if (!_isDrawing || _previousPoint == null) return;
     final distance = (details.position - _previousPoint!).distance;
-    debugPrint('SprayTool: distance from last point: $distance');
     if (_isDrawing && distance > details.strokeWidth * 30) {
       _applySpray(details);
       _previousPoint = details.position;

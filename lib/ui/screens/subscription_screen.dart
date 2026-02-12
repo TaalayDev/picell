@@ -1,4 +1,5 @@
 import 'package:confetti/confetti.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -139,7 +140,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
       appBar: AppBar(
         title: const Text('Upgrade to Pro'),
         actions: [
-          if (!_isLoading)
+          if (!_isLoading && !kIsWeb)
             TextButton(
               onPressed: () {
                 ref.read(subscriptionStateProvider.notifier).restorePurchases();
@@ -183,11 +184,11 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
                           textAlign: TextAlign.center,
                         ),
                       ),
-                    _buildTermsText(context),
+                    if (!kIsDemo) _buildTermsText(context),
                   ],
                 ),
               ),
-              _buildBottomBar(context, offers),
+              if (!kIsDemo) _buildBottomBar(context, offers),
             ],
           ),
 

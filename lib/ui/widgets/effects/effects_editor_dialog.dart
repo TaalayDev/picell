@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/extensions/primitive_extensions.dart';
@@ -764,9 +765,9 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
       case 'colors':
         return type == EffectType.paletteReduction ? 64 : 1.0;
       case 'endColor':
-        return 0x7FFFFFFFFFFFFFFF.toDouble();
+        return 0xFFFFFFFF.toDouble();
       case 'startColor':
-        return 0x7FFFFFFFFFFFFFFF.toDouble();
+        return 0xFFFFFFFF.toDouble();
       case 'colorSteps':
         return 255;
       case 'ringSpacing':
