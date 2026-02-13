@@ -76,53 +76,59 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     PixelCanvasState state,
   ) async {
     _shortcutsFocusNode.canRequestFocus = false;
+    _shortcutsFocusNode.unfocus();
 
-    await showSaveImageWindow(
-      context,
-      state: state,
-      subscription: ref.read(subscriptionStateProvider),
-      onSave: (options) async {
-        final format = options['format'] as String;
-        final transparent = options['transparent'] as bool;
-        final width = options['exportWidth'] as double;
-        final height = options['exportHeight'] as double;
+    try {
+      await showSaveImageWindow(
+        context,
+        state: state,
+        subscription: ref.read(subscriptionStateProvider),
+        onSave: (options) async {
+          final format = options['format'] as String;
+          final transparent = options['transparent'] as bool;
+          final width = options['exportWidth'] as double;
+          final height = options['exportHeight'] as double;
 
-        switch (format) {
-          case 'png':
-            notifier.exportImage(
-              context,
-              background: !transparent,
-              exportWidth: width,
-              exportHeight: height,
-            );
-            break;
+          switch (format) {
+            case 'png':
+              notifier.exportImage(
+                context,
+                background: !transparent,
+                exportWidth: width,
+                exportHeight: height,
+              );
+              break;
 
-          case 'gif':
-            notifier.exportAnimation(
-              context,
-              background: !transparent,
-              exportWidth: width,
-              exportHeight: height,
-            );
-            break;
+            case 'gif':
+              notifier.exportAnimation(
+                context,
+                background: !transparent,
+                exportWidth: width,
+                exportHeight: height,
+              );
+              break;
 
-          case 'sprite-sheet':
-            final spriteOptions = options['spriteSheetOptions'] as Map<String, dynamic>;
-            await notifier.exportSpriteSheet(
-              context,
-              columns: spriteOptions['columns'] as int,
-              spacing: spriteOptions['spacing'] as int,
-              includeAllFrames: spriteOptions['includeAllFrames'] as bool,
-              withBackground: !transparent,
-              exportWidth: width,
-              exportHeight: height,
-            );
-            break;
-        }
-      },
-    );
-
-    _shortcutsFocusNode.canRequestFocus = true;
+            case 'sprite-sheet':
+              final spriteOptions = options['spriteSheetOptions'] as Map<String, dynamic>;
+              await notifier.exportSpriteSheet(
+                context,
+                columns: spriteOptions['columns'] as int,
+                spacing: spriteOptions['spacing'] as int,
+                includeAllFrames: spriteOptions['includeAllFrames'] as bool,
+                withBackground: !transparent,
+                exportWidth: width,
+                exportHeight: height,
+              );
+              break;
+          }
+        },
+      );
+    } finally {
+      if (mounted) {
+        _shortcutsFocusNode.canRequestFocus = true;
+        _shortcutsFocusNode.requestFocus();
+      }
+    }
   }
 
   void _toggleUI() {
@@ -224,6 +230,12 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _shortcutsFocusNode.dispose();
+    super.dispose();
   }
 
   @override

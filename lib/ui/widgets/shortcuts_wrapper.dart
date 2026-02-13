@@ -134,7 +134,9 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
   }
 
   LogicalKeyboardKey get controlKey {
-    return defaultTargetPlatform == TargetPlatform.macOS ? LogicalKeyboardKey.meta : LogicalKeyboardKey.control;
+    return defaultTargetPlatform == TargetPlatform.macOS
+        ? LogicalKeyboardKey.meta
+        : LogicalKeyboardKey.control;
   }
 
   @override
@@ -149,14 +151,19 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           _focusNode.requestFocus();
         }
       },
-      child: KeyboardListener(
-        focusNode: _focusNode,
-        autofocus: true,
-        onKeyEvent: _handleKeyEvent,
-        child: Shortcuts(
-          shortcuts: _buildShortcuts(),
-          child: Actions(
-            actions: _buildActions(),
+      child: Shortcuts(
+        shortcuts: _buildShortcuts(),
+        child: Actions(
+          actions: _buildActions(),
+          child: Focus(
+            focusNode: _focusNode,
+            autofocus: true,
+            canRequestFocus: true,
+            skipTraversal: false,
+            onKeyEvent: (_, event) {
+              _handleKeyEvent(event);
+              return KeyEventResult.ignored;
+            },
             child: widget.child,
           ),
         ),
@@ -177,7 +184,8 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
     }
 
     // Handle Alt key for temporary pipette/eyedropper mode
-    if (event.logicalKey == LogicalKeyboardKey.altLeft || event.logicalKey == LogicalKeyboardKey.altRight) {
+    if (event.logicalKey == LogicalKeyboardKey.altLeft ||
+        event.logicalKey == LogicalKeyboardKey.altRight) {
       if (event is KeyDownEvent && !_isAltPressed) {
         _isAltPressed = true;
         widget.onPipetteStart?.call();
@@ -193,7 +201,9 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       // Basic editing
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyZ): const UndoIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyY): const RedoIntent(),
-      LogicalKeySet(controlKey, LogicalKeyboardKey.shift, LogicalKeyboardKey.keyZ): const RedoIntent(),
+      LogicalKeySet(
+              controlKey, LogicalKeyboardKey.shift, LogicalKeyboardKey.keyZ):
+          const RedoIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyS): const SaveIntent(),
 
       // File operations
@@ -201,17 +211,24 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyO): const ImportIntent(),
 
       // Tools (Aseprite-like)
-      LogicalKeySet(LogicalKeyboardKey.keyB): const ToolIntent(PixelTool.pencil),
-      LogicalKeySet(LogicalKeyboardKey.keyE): const ToolIntent(PixelTool.eraser),
-      LogicalKeySet(LogicalKeyboardKey.keyI): const ToolIntent(PixelTool.eyedropper),
+      LogicalKeySet(LogicalKeyboardKey.keyB):
+          const ToolIntent(PixelTool.pencil),
+      LogicalKeySet(LogicalKeyboardKey.keyE):
+          const ToolIntent(PixelTool.eraser),
+      LogicalKeySet(LogicalKeyboardKey.keyI):
+          const ToolIntent(PixelTool.eyedropper),
       LogicalKeySet(LogicalKeyboardKey.keyG): const ToolIntent(PixelTool.fill),
-      LogicalKeySet(LogicalKeyboardKey.keyM): const ToolIntent(PixelTool.select),
+      LogicalKeySet(LogicalKeyboardKey.keyM):
+          const ToolIntent(PixelTool.select),
       LogicalKeySet(LogicalKeyboardKey.keyL): const ToolIntent(PixelTool.line),
-      LogicalKeySet(LogicalKeyboardKey.keyU): const ToolIntent(PixelTool.rectangle),
-      LogicalKeySet(LogicalKeyboardKey.keyO): const ToolIntent(PixelTool.circle),
+      LogicalKeySet(LogicalKeyboardKey.keyU):
+          const ToolIntent(PixelTool.rectangle),
+      LogicalKeySet(LogicalKeyboardKey.keyO):
+          const ToolIntent(PixelTool.circle),
       LogicalKeySet(LogicalKeyboardKey.keyH): const ToolIntent(PixelTool.drag),
       LogicalKeySet(LogicalKeyboardKey.keyP): const ToolIntent(PixelTool.pen),
-      LogicalKeySet(LogicalKeyboardKey.keyS): const ToolIntent(PixelTool.sprayPaint),
+      LogicalKeySet(LogicalKeyboardKey.keyS):
+          const ToolIntent(PixelTool.sprayPaint),
 
       // Brush size
       LogicalKeySet(LogicalKeyboardKey.bracketLeft): const BrushSizeIntent(-1),
@@ -244,17 +261,22 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       LogicalKeySet(LogicalKeyboardKey.digit9): const LayerIntent(8),
 
       // Layer management
-      LogicalKeySet(controlKey, LogicalKeyboardKey.keyN): const NewLayerIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.keyN):
+          const NewLayerIntent(),
       LogicalKeySet(LogicalKeyboardKey.delete): const DeleteLayerIntent(),
 
       // Selection
-      LogicalKeySet(controlKey, LogicalKeyboardKey.keyA): const SelectAllIntent(),
-      LogicalKeySet(controlKey, LogicalKeyboardKey.keyD): const DeselectAllIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.keyA):
+          const SelectAllIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.keyD):
+          const DeselectAllIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyC): const CopyIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyV): const PasteIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyX): const CutIntent(),
-      LogicalKeySet(controlKey, LogicalKeyboardKey.keyJ): const DuplicateIntent(),
-      LogicalKeySet(controlKey, LogicalKeyboardKey.enter): CallbackIntent(widget.onCtrlEnter ?? () {}),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.keyJ):
+          const DuplicateIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.enter):
+          CallbackIntent(widget.onCtrlEnter ?? () {}),
     };
   }
 
@@ -280,7 +302,8 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       ),
       BrushSizeIntent: CallbackAction<BrushSizeIntent>(
         onInvoke: (intent) {
-          final newSize = (widget.currentBrushSize + intent.delta).clamp(1, widget.maxBrushSize);
+          final newSize = (widget.currentBrushSize + intent.delta)
+              .clamp(1, widget.maxBrushSize);
           widget.onBrushSizeChanged?.call(newSize);
         },
       ),
@@ -347,7 +370,8 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       DuplicateIntent: CallbackAction<DuplicateIntent>(
         onInvoke: (intent) => widget.onDuplicate?.call(),
       ),
-      CallbackIntent: CallbackAction<CallbackIntent>(onInvoke: (intent) => intent.callback()),
+      CallbackIntent: CallbackAction<CallbackIntent>(
+          onInvoke: (intent) => intent.callback()),
     };
   }
 }
