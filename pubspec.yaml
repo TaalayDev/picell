@@ -1,7 +1,7 @@
 name: picell
 description: "Powerful and intuitive pixel art editor for all platforms."
 
-version: 2.0.0+22
+version: 2.0.1+23
 
 environment:
   sdk: ">=3.4.4 <4.0.0"
