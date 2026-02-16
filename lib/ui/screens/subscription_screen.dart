@@ -162,10 +162,10 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
                     const SizedBox(height: 24),
                     if (subscription.hasTemporaryPro) _buildTemporaryProStatus(context, theme),
                     const SizedBox(height: 16),
-                    // if (rewardAdState) ...[
-                    //   _buildTemporaryProSection(context, theme, rewardAdState),
-                    //   const SizedBox(height: 24),
-                    // ],
+                    if (rewardAdState) ...[
+                      _buildTemporaryProSection(context, theme, rewardAdState),
+                      const SizedBox(height: 24),
+                    ],
                     _buildOfferCards(context, offers),
                     const SizedBox(height: 24),
                     _buildFeatureComparison(context, theme),
