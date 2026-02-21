@@ -541,6 +541,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   onRenameState: (id, name) {},
                   onSelectedStateChanged: notifier.selectAnimationState,
                   onDuplicateState: (id) {},
+                  onCopyState: (id) {
+                    notifier.copyAnimationState(id);
+                  },
                 ),
                 if (MediaQuery.sizeOf(context).width <= 1050)
                   ToolsBottomBar(

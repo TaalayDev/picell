@@ -38,6 +38,7 @@ class AnimationTimeline extends HookWidget {
     required this.onRenameState,
     required this.onDeleteState,
     required this.onDuplicateState,
+    required this.onCopyState,
     required this.onSelectedStateChanged,
   });
 
@@ -66,6 +67,7 @@ class AnimationTimeline extends HookWidget {
   final Function(int, String) onRenameState;
   final Function(int) onDeleteState;
   final Function(int) onDuplicateState;
+  final Function(int) onCopyState;
   final Function(int) onSelectedStateChanged;
 
   @override
@@ -212,6 +214,7 @@ class AnimationTimeline extends HookWidget {
         states: states,
         selectedStateId: selectedStateId,
         onAddState: onAddState,
+        onCopyState: onCopyState,
         onDeleteState: onDeleteState,
         onRenameState: onRenameState,
         onSelectedStateChanged: onSelectedStateChanged,
@@ -285,6 +288,7 @@ class _StatesPanel extends StatelessWidget {
     required this.states,
     required this.selectedStateId,
     required this.onAddState,
+    required this.onCopyState,
     required this.onDeleteState,
     required this.onRenameState,
     required this.onSelectedStateChanged,
@@ -303,6 +307,7 @@ class _StatesPanel extends StatelessWidget {
   final int width;
   final int height;
   final Function(String) onAddState;
+  final Function(int) onCopyState;
   final Function(int) onDeleteState;
   final Function(int, String) onRenameState;
   final Function(int) onSelectedStateChanged;
@@ -396,6 +401,12 @@ class _StatesPanel extends StatelessWidget {
                 icon: const Icon(Icons.add, size: 16),
                 label: const Text('Add State', style: TextStyle(fontSize: 12)),
                 onPressed: () => _showAddStateDialog(context),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                icon: const Icon(Feather.copy, size: 16),
+                label: const Text('Copy State', style: TextStyle(fontSize: 12)),
+                onPressed: () => onCopyState(selectedStateId),
               ),
             ],
           ),
