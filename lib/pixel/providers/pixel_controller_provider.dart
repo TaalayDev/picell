@@ -57,7 +57,9 @@ class PixelDrawController extends _$PixelDrawController {
     return PixelCanvasState(
       width: project.width,
       height: project.height,
-      animationStates: List<AnimationStateModel>.from(project.states),
+      animationStates: project.states.isNotEmpty
+          ? List<AnimationStateModel>.from(project.states)
+          : [AnimationStateModel(id: 0, name: 'Default', frameRate: 12)],
       frames: project.frames.isNotEmpty ? List<AnimationFrame>.from(project.frames) : _createDefaultFrame(),
       currentColor: Colors.black,
       currentTool: PixelTool.pencil,
@@ -629,12 +631,78 @@ class PixelDrawController extends _$PixelDrawController {
       frameRate: frameRate,
     );
 
+    // Copy the first frame of the current state as the starting frame
+    final currentFirstFrame = state.currentFrames.isNotEmpty ? state.currentFrames.first : null;
+    final defaultFrame = await _frameService.createFrame(
+      projectId: project.id,
+      name: 'Frame 1',
+      stateId: newState.id,
+      width: state.width,
+      height: state.height,
+      copyFromFrame: currentFirstFrame,
+      order: 0,
+    );
+
     state = state.copyWith(
       animationStates: [...state.animationStates, newState],
+      frames: [...state.frames, defaultFrame],
       currentAnimationStateIndex: state.animationStates.length,
       currentFrameIndex: 0,
       currentLayerIndex: 0,
     );
+  }
+
+  Future<void> copyAnimationState(int sourceStateId) async {
+    // Find the source state
+    final sourceIndex = _animationService.findStateIndex(state.animationStates, sourceStateId);
+    if (sourceIndex < 0) return;
+    final sourceState = state.animationStates[sourceIndex];
+
+    // Create a new animation state with a "Copy of" name
+    final newState = await _animationService.createAnimationState(
+      projectId: project.id,
+      name: '${sourceState.name} (copy)',
+      frameRate: sourceState.frameRate,
+    );
+
+    // Copy all frames belonging to the source state
+    final sourceFrames = state.frames.where((f) => f.stateId == sourceStateId).toList();
+    final newFrames = <AnimationFrame>[];
+    for (final frame in sourceFrames) {
+      final copiedFrame = await _frameService.createFrame(
+        projectId: project.id,
+        name: frame.name,
+        stateId: newState.id,
+        width: state.width,
+        height: state.height,
+        copyFromFrame: frame,
+        order: frame.order,
+      );
+      newFrames.add(copiedFrame);
+    }
+
+    // If no frames were copied, create a default one
+    if (newFrames.isEmpty) {
+      final defaultFrame = await _frameService.createFrame(
+        projectId: project.id,
+        name: 'Frame 1',
+        stateId: newState.id,
+        width: state.width,
+        height: state.height,
+        order: 0,
+      );
+      newFrames.add(defaultFrame);
+    }
+
+    state = state.copyWith(
+      animationStates: [...state.animationStates, newState],
+      frames: [...state.frames, ...newFrames],
+      currentAnimationStateIndex: state.animationStates.length,
+      currentFrameIndex: 0,
+      currentLayerIndex: 0,
+    );
+
+    _updateProject();
   }
 
   Future<void> removeAnimationState(int stateId) async {

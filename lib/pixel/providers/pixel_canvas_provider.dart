@@ -80,6 +80,7 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   // Animation state operations
   Future<void> addAnimationState(String name, int frameRate) => _controller.addAnimationState(name, frameRate);
   Future<void> removeAnimationState(int stateId) => _controller.removeAnimationState(stateId);
+  Future<void> copyAnimationState(int stateId) => _controller.copyAnimationState(stateId);
   void selectAnimationState(int stateId) => _controller.selectAnimationState(stateId);
 
   // Selection operations
