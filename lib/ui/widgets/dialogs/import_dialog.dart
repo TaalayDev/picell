@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/strings.dart';
 
 class ImportDialog extends StatelessWidget {
   const ImportDialog({super.key});
@@ -19,7 +20,7 @@ class ImportDialog extends StatelessWidget {
           Icon(Icons.file_upload, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Text(
-            'Import Image',
+            Strings.of(context).importImage,
             style: Theme.of(context).textTheme.titleLarge,
           ),
         ],
@@ -31,7 +32,7 @@ class ImportDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Select how you want to import your image:',
+              Strings.of(context).selectImportOption,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
@@ -40,8 +41,8 @@ class ImportDialog extends StatelessWidget {
             _buildImportOption(
               context,
               icon: Icons.layers,
-              title: 'Convert to Pixel Art',
-              description: 'Import and automatically convert the image to pixel art style on a new layer.',
+              title: Strings.of(context).convertToPixelArt,
+              description: Strings.of(context).convertToPixelArtDescription,
               onTap: () => Navigator.of(context).pop(false),
             ),
 
@@ -51,8 +52,8 @@ class ImportDialog extends StatelessWidget {
             _buildImportOption(
               context,
               icon: Icons.image,
-              title: 'Import as Background',
-              description: 'Import the image as-is and use it as a reference background layer.',
+              title: Strings.of(context).importAsBackground,
+              description: Strings.of(context).importAsBackgroundDescription,
               onTap: () => Navigator.of(context).pop(true),
             ),
           ],
@@ -61,7 +62,7 @@ class ImportDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
+          child: Text(Strings.of(context).cancel),
         ),
       ],
     );

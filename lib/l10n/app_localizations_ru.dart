@@ -146,6 +146,19 @@ class StringsRu extends Strings {
   String get justNow => 'Только что';
 
   @override
+  String frameCount(int current, int total) {
+    return 'Кадр $current/$total';
+  }
+
+  @override
+  String get playbackSpeed => 'Скорость:';
+
+  @override
+  String duration(int ms) {
+    return 'Длительность: $msмс';
+  }
+
+  @override
   String get animationPreview => 'Предпросмотр анимации';
 
   @override
@@ -183,19 +196,41 @@ class StringsRu extends Strings {
   String get create => 'Создать';
 
   @override
-  String get subscriptions => 'Subscriptions';
+  String get subscriptions => 'Подписки';
 
   @override
-  String get fileMenu => 'File';
+  String get fileMenu => 'Файл';
 
   @override
-  String get profile => 'Profile';
+  String get profile => 'Профиль';
 
   @override
-  String get logout => 'Logout';
+  String get logout => 'Выйти';
 
   @override
-  String get deleteAccount => 'Delete Account';
+  String get deleteAccount => 'Удалить аккаунт';
+
+  @override
+  String get signInToContinue => 'Войдите, чтобы продолжить';
+
+  @override
+  String get signInToSyncProjects =>
+      'Войдите, чтобы синхронизировать ваши проекты.';
+
+  @override
+  String get signingIn => 'Вход...';
+
+  @override
+  String get continueWithApple => 'Продолжить через Apple';
+
+  @override
+  String get signInWithGoogle => 'Войти через Google';
+
+  @override
+  String get skipForNow => 'Пропустить';
+
+  @override
+  String get noEmail => 'Нет почты';
 
   @override
   String get feedback_title => 'Обратная связь';
@@ -382,27 +417,466 @@ class StringsRu extends Strings {
       'Порекомендуете ли вы это приложение друзьям?';
 
   @override
-  String get feedback_dialog_title => 'We\'d Love Your Feedback!';
+  String get firstFrame => 'Первый кадр';
+
+  @override
+  String get previousFrame => 'Предыдущий кадр';
+
+  @override
+  String get pause => 'Пауза';
+
+  @override
+  String get play => 'Воспроизвести';
+
+  @override
+  String get nextFrame => 'Следующий кадр';
+
+  @override
+  String get lastFrame => 'Последний кадр';
+
+  @override
+  String get feedback_dialog_title => 'Нам важен ваш отзыв!';
 
   @override
   String get feedback_dialog_description =>
-      'Your opinion matters! Help us make the app better by sharing your thoughts.';
+      'Ваше мнение важно! Поделитесь им, чтобы помочь нам сделать приложение лучше.';
 
   @override
-  String get feedback_dialog_benefit_1 => 'Share ideas for new features';
+  String get feedback_dialog_benefit_1 => 'Делитесь идеями новых функций';
 
   @override
-  String get feedback_dialog_benefit_2 => 'Report bugs and issues';
+  String get feedback_dialog_benefit_2 => 'Сообщайте о багах и проблемах';
 
   @override
-  String get feedback_dialog_benefit_3 => 'Help shape the app\'s future';
+  String get feedback_dialog_benefit_3 =>
+      'Помогайте формировать будущее приложения';
 
   @override
-  String get feedback_dialog_leave_feedback => 'Leave Feedback';
+  String get feedback_dialog_leave_feedback => 'Оставить отзыв';
 
   @override
-  String get feedback_dialog_maybe_later => 'Maybe Later';
+  String get feedback_dialog_maybe_later => 'Позже';
 
   @override
-  String get feedback_dialog_dont_ask => 'Don\'t ask again';
+  String get feedback_dialog_dont_ask => 'Больше не спрашивать';
+
+  @override
+  String get paletteBasic => 'Базовая';
+
+  @override
+  String get paletteShades => 'Оттенки';
+
+  @override
+  String get paletteComplementary => 'Комплиментарная';
+
+  @override
+  String get paletteAnalogous => 'Аналогичная';
+
+  @override
+  String get paletteTriadic => 'Триадная';
+
+  @override
+  String get paletteMonochromatic => 'Монохроматическая';
+
+  @override
+  String get paletteCustom => 'Пользовательская';
+
+  @override
+  String get addToCustomPalette => 'Добавить в пользовательскую палитру';
+
+  @override
+  String get noCustomColors =>
+      'Пользовательские цвета еще не добавлены.\nДобавьте цвета с помощью кнопки + выше.';
+
+  @override
+  String get effects => 'Эффекты';
+
+  @override
+  String get editorSettings => 'Настройки редактора';
+
+  @override
+  String get resetToDefaults => 'Сбросить по умолчанию';
+
+  @override
+  String get input => 'Ввод';
+
+  @override
+  String get display => 'Отображение';
+
+  @override
+  String get showGrid => 'Показать сетку';
+
+  @override
+  String get showGridSubtitle => 'Отображать линии сетки на холсте';
+
+  @override
+  String get pixelGridOverlay => 'Пиксельная сетка';
+
+  @override
+  String get pixelGridSubtitle => 'Показывать границы пикселей при увеличении';
+
+  @override
+  String get gridOpacity => 'Прозрачность сетки';
+
+  @override
+  String get zoomNavigation => 'Масштаб и навигация';
+
+  @override
+  String get zoomSensitivity => 'Чувствительность масштаба';
+
+  @override
+  String get zoomSensitivitySubtitle =>
+      'Как быстро реагирует щипок для масштабирования';
+
+  @override
+  String get minZoom => 'Мин. масштаб';
+
+  @override
+  String get maxZoom => 'Макс. масштаб';
+
+  @override
+  String get gestures => 'Жесты';
+
+  @override
+  String get twoFingerUndo => 'Отмена касанием двумя пальцами';
+
+  @override
+  String get twoFingerUndoSubtitle =>
+      'Быстрое касание двумя пальцами для отмены';
+
+  @override
+  String get done => 'Готово';
+
+  @override
+  String get stylusMode => 'Режим стилуса';
+
+  @override
+  String get stylusModeSubtitleOn =>
+      'Рисование только стилусом • Касание для навигации';
+
+  @override
+  String get stylusModeSubtitleOff => 'Рисование и пальцем, и стилусом';
+
+  @override
+  String get importImage => 'Импортировать изображение';
+
+  @override
+  String get selectImportOption => 'Выберите способ импорта изображения:';
+
+  @override
+  String get convertToPixelArt => 'Преобразовать в Pixel Art';
+
+  @override
+  String get convertToPixelArtDescription =>
+      'Импорт и автоматическое преобразование в пиксельный стиль на новом слое.';
+
+  @override
+  String get importAsBackground => 'Импортировать как фон';
+
+  @override
+  String get importAsBackgroundDescription =>
+      'Импорт как есть для использования в качестве фонового слоя.';
+
+  @override
+  String get tinyIcon => 'Маленькая иконка';
+
+  @override
+  String get smallSprite => 'Небольшой спрайт';
+
+  @override
+  String get mediumCharacter => 'Средний персонаж';
+
+  @override
+  String get largeScene => 'Большая сцена';
+
+  @override
+  String get projectNameRequired => 'Введите название проекта';
+
+  @override
+  String get templateRequired => 'Выберите шаблон';
+
+  @override
+  String planLimitError(int limit) {
+    return 'Ваш план ограничен $limit пикселями';
+  }
+
+  @override
+  String get widthRequired => 'Введите ширину';
+
+  @override
+  String get heightRequired => 'Введите высоту';
+
+  @override
+  String widthRangeError(int max) {
+    return 'Ширина: 1-$max';
+  }
+
+  @override
+  String heightRangeError(int max) {
+    return 'Высота: 1-$max';
+  }
+
+  @override
+  String get saveImage => 'Сохранить изображение';
+
+  @override
+  String get png => 'PNG';
+
+  @override
+  String get animatedGif => 'Анимированный GIF';
+
+  @override
+  String get proPlanRequired => 'Требуется тариф Pro';
+
+  @override
+  String get spriteSheet => 'Спрайтовый лист';
+
+  @override
+  String get transparentBackground => 'Прозрачный фон';
+
+  @override
+  String get transparent => 'Прозрачный';
+
+  @override
+  String get spriteSheetOptions => 'Настройки спрайтового листа';
+
+  @override
+  String get columnsLabel => 'Колонки';
+
+  @override
+  String get spacingPx => 'Отступ (px)';
+
+  @override
+  String get exportSize => 'Размер экспорта';
+
+  @override
+  String scaleWithValues(String scale) {
+    return 'Масштаб: ${scale}x';
+  }
+
+  @override
+  String get format => 'Формат';
+
+  @override
+  String get options => 'Опции';
+
+  @override
+  String editEffect(String name) {
+    return 'Редактировать эффект $name';
+  }
+
+  @override
+  String get applyChanges => 'Применить изменения';
+
+  @override
+  String get preview => 'Предпросмотр';
+
+  @override
+  String get quickPresets => 'Быстрые пресеты';
+
+  @override
+  String get parameters => 'Параметры';
+
+  @override
+  String get previewNotAvailable => 'Предпросмотр недоступен';
+
+  @override
+  String get tapToChange => 'Нажмите, чтобы изменить';
+
+  @override
+  String get enable => 'Включить';
+
+  @override
+  String get uiFieldTap => 'Нажмите';
+
+  @override
+  String get uiFieldEnabled => 'Включено';
+
+  @override
+  String get uiFieldDisabled => 'Выключено';
+
+  @override
+  String get presetDarker => 'Темнее';
+
+  @override
+  String get presetNormal => 'Нормально';
+
+  @override
+  String get presetBrighter => 'Ярче';
+
+  @override
+  String get presetVeryBright => 'Очень ярко';
+
+  @override
+  String get presetLow => 'Низкий';
+
+  @override
+  String get presetHigh => 'Высокий';
+
+  @override
+  String get presetVeryHigh => 'Очень высокий';
+
+  @override
+  String get presetSubtle => 'Слабо';
+
+  @override
+  String get presetSoft => 'Мягко';
+
+  @override
+  String get presetMedium => 'Средне';
+
+  @override
+  String get presetStrong => 'Сильно';
+
+  @override
+  String get effectBrightness => 'Яркость';
+
+  @override
+  String get effectContrast => 'Контраст';
+
+  @override
+  String get effectBlur => 'Размытие';
+
+  @override
+  String get effectVignette => 'Виньетка';
+
+  @override
+  String get effectInvert => 'Инверсия';
+
+  @override
+  String get effectGrayscale => 'Оттенки серого';
+
+  @override
+  String get effectSepia => 'Сепия';
+
+  @override
+  String get effectThreshold => 'Порог';
+
+  @override
+  String get effectPixelate => 'Пикселизация';
+
+  @override
+  String get effectSharpen => 'Резкость';
+
+  @override
+  String get effectNoise => 'Шум';
+
+  @override
+  String get effectGlow => 'Свечение';
+
+  @override
+  String get effectGlitch => 'Глитч';
+
+  @override
+  String get effectSparkle => 'Искры';
+
+  @override
+  String get effectFire => 'Огонь';
+
+  @override
+  String get effectRain => 'Дождь';
+
+  @override
+  String get selectEffect => 'Выбор эффекта';
+
+  @override
+  String get searchEffects => 'Поиск эффектов...';
+
+  @override
+  String get categoryAll => 'Все';
+
+  @override
+  String get categoryColorTone => 'Цвет и Тон';
+
+  @override
+  String get categoryBlurSharpen => 'Размытие и Резкость';
+
+  @override
+  String get categoryArtistic => 'Художественные';
+
+  @override
+  String get categoryAnimation => 'Анимация';
+
+  @override
+  String get categoryNature => 'Природа';
+
+  @override
+  String get categoryParticles => 'Частицы';
+
+  @override
+  String get categoryDistortion => 'Искажение';
+
+  @override
+  String get categoryTextures => 'Текстуры';
+
+  @override
+  String get categorySpecialFx => 'Спецэффекты';
+
+  @override
+  String get noEffectsMatch => 'Нет эффектов, соответствующих поиску';
+
+  @override
+  String get premiumEffect => 'Премиум эффект';
+
+  @override
+  String get proVersionStatus => 'Этот эффект доступен в Pro версии.';
+
+  @override
+  String get proFeaturesInclude => 'Возможности Pro версии:';
+
+  @override
+  String get featureAdvancedEffects => 'Продвинутые эффекты и инструменты';
+
+  @override
+  String get featureUnlimitedProjects => 'Неограниченное количество проектов';
+
+  @override
+  String get featureCloudBackup => 'Облачное резервное копирование';
+
+  @override
+  String get featurePrioritySupport => 'Приоритетная поддержка';
+
+  @override
+  String get maybeLater => 'Возможно позже';
+
+  @override
+  String get upgradeToPro => 'Обновить до Pro';
+
+  @override
+  String get effectsPanelRemoveEffectTitle => 'Удалить эффект';
+
+  @override
+  String effectsPanelRemoveEffectMessage(String effectName) {
+    return 'Вы уверены, что хотите удалить эффект $effectName?';
+  }
+
+  @override
+  String get effectsPanelClearAllEffectsTitle => 'Очистить все эффекты';
+
+  @override
+  String get effectsPanelClearAllEffectsMessage =>
+      'Вы уверены, что хотите удалить все эффекты с этого слоя?';
+
+  @override
+  String get effectsPanelClearAll => 'Очистить все';
+
+  @override
+  String effectsPanelAppliedToLayerMessage(String effectName) {
+    return 'Эффект $effectName применен к слою';
+  }
+
+  @override
+  String get effectsPanelActionApply => 'Применить';
+
+  @override
+  String get effectsPanelActionRemove => 'Удалить';
+
+  @override
+  String get effectsPanelActionMore => 'Еще';
+
+  @override
+  String get effectsPanelMoreActionsTitle => 'Другие действия';
+
+  @override
+  String get effectsPanelApplyAll => 'Применить все';
 }

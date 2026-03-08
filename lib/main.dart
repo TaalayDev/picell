@@ -49,7 +49,7 @@ Future<void> initWindowManager() async {
     backgroundColor: Color.fromARGB(255, 255, 255, 255),
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
-    title: 'Pixel Verse',
+    title: 'Picell',
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();

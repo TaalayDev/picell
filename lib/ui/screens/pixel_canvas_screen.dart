@@ -627,82 +627,119 @@ class _ToolElements extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final colorScheme = Theme.of(context).colorScheme;
+    final isBrushTool = currentTool.value == PixelTool.pencil ||
+        currentTool.value == PixelTool.brush ||
+        currentTool.value == PixelTool.eraser ||
+        currentTool.value == PixelTool.sprayPaint;
+    final isSpray = currentTool.value == PixelTool.sprayPaint;
+
+    if (!isBrushTool) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        if (currentTool.value == PixelTool.pencil ||
-            currentTool.value == PixelTool.brush ||
-            currentTool.value == PixelTool.eraser ||
-            currentTool.value == PixelTool.sprayPaint) ...[
-          Container(
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 8),
-                const Icon(Icons.brush),
-                SizedBox(
-                  width: 150,
-                  child: Slider(
-                    value: brushSize.value.toDouble(),
-                    min: 1,
-                    max: 10,
-                    onChanged: (value) {
-                      brushSize.value = value.toInt();
-                    },
-                  ),
-                ),
-              ],
-            ),
+        _SliderPill(
+          icon: Icons.brush_rounded,
+          value: brushSize,
+          min: 1,
+          max: 10,
+          accentColor: colorScheme.primary,
+        ),
+        if (isSpray) ...[
+          const SizedBox(height: 6),
+          _SliderPill(
+            icon: MaterialCommunityIcons.spray,
+            value: sprayIntensity,
+            min: 1,
+            max: 10,
+            accentColor: colorScheme.tertiary,
           ),
-          const SizedBox(width: 16),
         ],
-        if (currentTool.value == PixelTool.sprayPaint) ...[
-          Container(
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+      ],
+    );
+  }
+}
+
+class _SliderPill extends StatelessWidget {
+  const _SliderPill({
+    required this.icon,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.accentColor,
+  });
+
+  final IconData icon;
+  final ValueNotifier<int> value;
+  final int min;
+  final int max;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: value,
+      builder: (context, current, _) {
+        return Container(
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: accentColor.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: accentColor.withOpacity(0.25),
+              width: 1,
             ),
-            child: Row(
-              children: [
-                const SizedBox(width: 8),
-                const Icon(
-                  MaterialCommunityIcons.spray,
-                ),
-                SizedBox(
-                  width: 150,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: accentColor),
+              SizedBox(
+                width: 120,
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    activeTrackColor: accentColor,
+                    inactiveTrackColor: accentColor.withOpacity(0.2),
+                    thumbColor: accentColor,
+                    overlayColor: accentColor.withOpacity(0.15),
+                  ),
                   child: Slider(
-                    value: sprayIntensity.value.toDouble(),
-                    min: 1,
-                    max: 10,
-                    onChanged: (value) {
-                      sprayIntensity.value = value.toInt();
-                    },
+                    value: current.toDouble(),
+                    min: min.toDouble(),
+                    max: max.toDouble(),
+                    onChanged: (v) => value.value = v.toInt(),
                   ),
                 ),
-              ],
-            ),
+              ),
+              Container(
+                alignment: Alignment.center,
+                child: Text(
+                  '$current',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+            ],
           ),
-        ]
-      ],
+        );
+      },
     );
   }
 }

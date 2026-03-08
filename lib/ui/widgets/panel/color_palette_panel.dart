@@ -155,13 +155,13 @@ class ColorPalettePanel extends HookWidget {
     final opacity = useState(currentColor.alpha / 255.0);
 
     final tabs = [
-      const _PaletteTab(icon: Icons.palette, label: 'Basic'),
-      const _PaletteTab(icon: Icons.tonality, label: 'Shades'),
-      const _PaletteTab(icon: Icons.flip, label: 'Complementary'),
-      const _PaletteTab(icon: Icons.compare_arrows, label: 'Analogous'),
-      const _PaletteTab(icon: Icons.change_history, label: 'Triadic'),
-      const _PaletteTab(icon: Icons.gradient, label: 'Monochromatic'),
-      const _PaletteTab(icon: Icons.bookmark, label: 'Custom'),
+      _PaletteTab(icon: Icons.palette, label: Strings.of(context).paletteBasic),
+      _PaletteTab(icon: Icons.tonality, label: Strings.of(context).paletteShades),
+      _PaletteTab(icon: Icons.flip, label: Strings.of(context).paletteComplementary),
+      _PaletteTab(icon: Icons.compare_arrows, label: Strings.of(context).paletteAnalogous),
+      _PaletteTab(icon: Icons.change_history, label: Strings.of(context).paletteTriadic),
+      _PaletteTab(icon: Icons.gradient, label: Strings.of(context).paletteMonochromatic),
+      _PaletteTab(icon: Icons.bookmark, label: Strings.of(context).paletteCustom),
     ];
 
     List<Color> getTabColors() {
@@ -222,7 +222,7 @@ class ColorPalettePanel extends HookWidget {
                   // Add current color to custom palette
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline, size: 18),
-                    tooltip: 'Add to custom palette',
+                    tooltip: Strings.of(context).addToCustomPalette,
                     onPressed: () {
                       if (!customColors.value.contains(currentColor)) {
                         customColors.value = [...customColors.value, currentColor];
@@ -327,7 +327,7 @@ class ColorPalettePanel extends HookWidget {
             child: selectedTab.value == 6 && customColors.value.isEmpty
                 ? Center(
                     child: Text(
-                      'No custom colors added yet.\nAdd colors using the + button above.',
+                      Strings.of(context).noCustomColors,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
@@ -433,7 +433,10 @@ class ColorPalettePanel extends HookWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(Strings.of(context).pickAColor),
+          title: Text(
+            Strings.of(context).pickAColor,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface),
+          ),
           content: SingleChildScrollView(
             child: ColorPicker(
               pickerColor: pickerColor,
@@ -445,6 +448,7 @@ class ColorPalettePanel extends HookWidget {
               displayThumbColor: true,
               showLabel: true,
               paletteType: PaletteType.hsv,
+              hexInputBar: true,
             ),
           ),
           actions: <Widget>[
@@ -454,16 +458,16 @@ class ColorPalettePanel extends HookWidget {
                 Navigator.of(context).pop();
               },
             ),
-            TextButton(
-              child: const Text('Save to Palette'),
-              onPressed: () {
-                if (!customColors.value.contains(pickerColor)) {
-                  customColors.value = [...customColors.value, pickerColor];
-                }
-                onColorSelected(pickerColor);
-                Navigator.of(context).pop();
-              },
-            ),
+            // TextButton(
+            //   child: const Text('Save to Palette'),
+            //   onPressed: () {
+            //     if (!customColors.value.contains(pickerColor)) {
+            //       customColors.value = [...customColors.value, pickerColor];
+            //     }
+            //     onColorSelected(pickerColor);
+            //     Navigator.of(context).pop();
+            //   },
+            // ),
             TextButton(
               child: Text(Strings.of(context).gotIt),
               onPressed: () {

@@ -56,6 +56,26 @@
         }
     },
     "justNow": "Just now",
+    "frameCount": "Frame {current}/{total}",
+    "@frameCount": {
+        "placeholders": {
+            "current": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "playbackSpeed": "Speed:",
+    "duration": "Duration: {ms}ms",
+    "@duration": {
+        "placeholders": {
+            "ms": {
+                "type": "int"
+            }
+        }
+    },
     "animationPreview": "Animation Preview",
     "colorPalette": "Color Palette",
     "currentColor": "Current Color",
@@ -73,6 +93,13 @@
     "profile": "Profile",
     "logout": "Logout",
     "deleteAccount": "Delete Account",
+    "signInToContinue": "Sign in to continue",
+    "signInToSyncProjects": "Sign in to sync your projects.",
+    "signingIn": "Signing In...",
+    "continueWithApple": "Continue with Apple",
+    "signInWithGoogle": "Sign in with Google",
+    "skipForNow": "Skip for now",
+    "noEmail": "No email",
 
     "feedback_title": "Feedback",
     "feedback_thank_you": "Thank you for your feedback!",
@@ -139,6 +166,12 @@
     "feedback_q_additional_feedback": "Additional comments and suggestions",
     "feedback_q_additional_feedback_placeholder": "Share your thoughts about the app...",
     "feedback_q_recommend": "Would you recommend this app to friends?",
+    "firstFrame": "First Frame",
+    "previousFrame": "Previous Frame",
+    "pause": "Pause",
+    "play": "Play",
+    "nextFrame": "Next Frame",
+    "lastFrame": "Last Frame",
 
     "feedback_dialog_title": "We'd Love Your Feedback!",
     "feedback_dialog_description": "Your opinion matters! Help us make the app better by sharing your thoughts.",
@@ -147,5 +180,187 @@
     "feedback_dialog_benefit_3": "Help shape the app's future",
     "feedback_dialog_leave_feedback": "Leave Feedback",
     "feedback_dialog_maybe_later": "Maybe Later",
-    "feedback_dialog_dont_ask": "Don't ask again"
+    "feedback_dialog_dont_ask": "Don't ask again",
+    "paletteBasic": "Basic",
+    "paletteShades": "Shades",
+    "paletteComplementary": "Complementary",
+    "paletteAnalogous": "Analogous",
+    "paletteTriadic": "Triadic",
+    "paletteMonochromatic": "Monochromatic",
+    "paletteCustom": "Custom",
+    "addToCustomPalette": "Add to custom palette",
+    "noCustomColors": "No custom colors added yet.\nAdd colors using the + button above.",
+    "effects": "Effects",
+    "editorSettings": "Editor Settings",
+    "resetToDefaults": "Reset to defaults",
+    "input": "Input",
+    "display": "Display",
+    "showGrid": "Show Grid",
+    "showGridSubtitle": "Display grid lines on canvas",
+    "pixelGridOverlay": "Pixel Grid Overlay",
+    "pixelGridSubtitle": "Show pixel boundaries when zoomed in",
+    "gridOpacity": "Grid Opacity",
+    "zoomNavigation": "Zoom & Navigation",
+    "zoomSensitivity": "Zoom Sensitivity",
+    "zoomSensitivitySubtitle": "How fast pinch-to-zoom responds",
+    "minZoom": "Min Zoom",
+    "maxZoom": "Max Zoom",
+    "gestures": "Gestures",
+    "twoFingerUndo": "Two-Finger Tap Undo",
+    "twoFingerUndoSubtitle": "Quick tap with two fingers to undo",
+    "done": "Done",
+    "stylusMode": "Stylus Mode",
+    "stylusModeSubtitleOn": "Draw with stylus only • Touch for navigation",
+    "stylusModeSubtitleOff": "Draw with both touch and stylus",
+    "importImage": "Import Image",
+    "selectImportOption": "Select how you want to import your image:",
+    "convertToPixelArt": "Convert to Pixel Art",
+    "convertToPixelArtDescription": "Import and automatically convert the image to pixel art style on a new layer.",
+    "importAsBackground": "Import as Background",
+    "importAsBackgroundDescription": "Import the image as-is and use it as a reference background layer.",
+    "tinyIcon": "Tiny Icon",
+    "smallSprite": "Small Sprite",
+    "mediumCharacter": "Medium Character",
+    "largeScene": "Large Scene",
+    "projectNameRequired": "Please enter a project name",
+    "templateRequired": "Please select a template",
+    "planLimitError": "Your plan is limited to {limit} pixels",
+    "@planLimitError": {
+        "placeholders": {
+            "limit": {
+                "type": "int"
+            }
+        }
+    },
+    "widthRequired": "Enter width",
+    "heightRequired": "Enter height",
+    "widthRangeError": "Width: 1-{max}",
+    "@widthRangeError": {
+        "placeholders": {
+            "max": {
+                "type": "int"
+            }
+        }
+    },
+    "heightRangeError": "Height: 1-{max}",
+    "@heightRangeError": {
+        "placeholders": {
+            "max": {
+                "type": "int"
+            }
+        }
+    },
+    "saveImage": "Save Image",
+    "png": "PNG",
+    "animatedGif": "Animated GIF",
+    "proPlanRequired": "Pro Plan Required",
+    "spriteSheet": "Sprite Sheet",
+    "transparentBackground": "Transparent Background",
+    "transparent": "Transparent",
+    "spriteSheetOptions": "Sprite Sheet Options",
+    "columnsLabel": "Columns",
+    "spacingPx": "Spacing (px)",
+    "exportSize": "Export Size",
+    "scaleWithValues": "Scale: {scale}x",
+    "@scaleWithValues": {
+        "placeholders": {
+            "scale": {
+                "type": "String"
+            }
+        }
+    },
+    "format": "Format",
+    "options": "Options",
+    "editEffect": "Edit {name} Effect",
+    "@editEffect": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "applyChanges": "Apply Changes",
+    "preview": "Preview",
+    "quickPresets": "Quick Presets",
+    "parameters": "Parameters",
+    "previewNotAvailable": "Preview not available",
+    "tapToChange": "Tap to change",
+    "enable": "Enable",
+    "uiFieldTap": "Tap",
+    "uiFieldEnabled": "Enabled",
+    "uiFieldDisabled": "Disabled",
+    "presetDarker": "Darker",
+    "presetNormal": "Normal",
+    "presetBrighter": "Brighter",
+    "presetVeryBright": "Very Bright",
+    "presetLow": "Low",
+    "presetHigh": "High",
+    "presetVeryHigh": "Very High",
+    "presetSubtle": "Subtle",
+    "presetSoft": "Soft",
+    "presetMedium": "Medium",
+    "presetStrong": "Strong",
+    "effectBrightness": "Brightness",
+    "effectContrast": "Contrast",
+    "effectBlur": "Blur",
+    "effectVignette": "Vignette",
+    "effectInvert": "Invert",
+    "effectGrayscale": "Grayscale",
+    "effectSepia": "Sepia",
+    "effectThreshold": "Threshold",
+    "effectPixelate": "Pixelate",
+    "effectSharpen": "Sharpen",
+    "effectNoise": "Noise",
+    "effectGlow": "Glow",
+    "effectGlitch": "Glitch",
+    "effectSparkle": "Sparkle",
+    "effectFire": "Fire",
+    "effectRain": "Rain",
+    "selectEffect": "Select Effect",
+    "searchEffects": "Search effects...",
+    "categoryAll": "All",
+    "categoryColorTone": "Color & Tone",
+    "categoryBlurSharpen": "Blur & Sharpen",
+    "categoryArtistic": "Artistic",
+    "categoryAnimation": "Animation",
+    "categoryNature": "Nature",
+    "categoryParticles": "Particles",
+    "categoryDistortion": "Distortion",
+    "categoryTextures": "Textures",
+    "categorySpecialFx": "Special FX",
+    "noEffectsMatch": "No effects match your search",
+    "premiumEffect": "Premium Effect",
+    "proVersionStatus": "This effect is available in the Pro version.",
+    "proFeaturesInclude": "Pro features include:",
+    "featureAdvancedEffects": "Advanced effects and tools",
+    "featureUnlimitedProjects": "Unlimited projects",
+    "featureCloudBackup": "Cloud backup",
+    "featurePrioritySupport": "Priority support",
+    "maybeLater": "Maybe Later",
+    "upgradeToPro": "Upgrade to Pro",
+    "effectsPanelRemoveEffectTitle": "Remove Effect",
+    "effectsPanelRemoveEffectMessage": "Are you sure you want to remove the {effectName} effect?",
+    "@effectsPanelRemoveEffectMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelClearAllEffectsTitle": "Clear All Effects",
+    "effectsPanelClearAllEffectsMessage": "Are you sure you want to remove all effects from this layer?",
+    "effectsPanelClearAll": "Clear All",
+    "effectsPanelAppliedToLayerMessage": "Effect {effectName} applied to layer",
+    "@effectsPanelAppliedToLayerMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelActionApply": "Apply",
+    "effectsPanelActionRemove": "Remove",
+    "effectsPanelActionMore": "More",
+    "effectsPanelMoreActionsTitle": "More Actions",
+    "effectsPanelApplyAll": "Apply All"
 }

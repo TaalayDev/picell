@@ -7,6 +7,7 @@ import '../../../providers/subscription_provider.dart';
 import '../../screens/subscription_screen.dart';
 import '../animated_background.dart';
 import '../subscription/feature_gate.dart';
+import '../../../l10n/strings.dart';
 
 class EffectSelectorDialog extends ConsumerStatefulWidget {
   final Function(Effect) onEffectSelected;
@@ -24,18 +25,21 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   String _searchQuery = '';
   int _selectedCategoryIndex = 0;
 
-  final _categories = [
-    'All',
-    'Color & Tone',
-    'Blur & Sharpen',
-    'Artistic',
-    'Animation',
-    'Nature',
-    'Particles',
-    'Distortion',
-    'Textures',
-    'Special FX',
-  ];
+  List<String> _getCategories(BuildContext context) {
+    final s = Strings.of(context);
+    return [
+      s.categoryAll,
+      s.categoryColorTone,
+      s.categoryBlurSharpen,
+      s.categoryArtistic,
+      s.categoryAnimation,
+      s.categoryNature,
+      s.categoryParticles,
+      s.categoryDistortion,
+      s.categoryTextures,
+      s.categorySpecialFx,
+    ];
+  }
 
   List<EffectType> get _filteredEffects {
     const allEffects = EffectType.values;
@@ -176,7 +180,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                     ),
                     Expanded(
                       child: Text(
-                        'Select Effect',
+                        Strings.of(context).selectEffect,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
@@ -194,7 +198,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: 'Search effects...',
+                      hintText: Strings.of(context).searchEffects,
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
@@ -216,13 +220,13 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                     height: 40,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: _categories.length,
+                      itemCount: _getCategories(context).length,
                       itemBuilder: (context, index) {
                         final isSelected = _selectedCategoryIndex == index;
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: ChoiceChip(
-                            label: Text(_categories[index]),
+                            label: Text(_getCategories(context)[index]),
                             selected: isSelected,
                             onSelected: (selected) {
                               if (selected) {
@@ -251,7 +255,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                                 color: Theme.of(context).disabledColor,
                               ),
                               const SizedBox(height: 16),
-                              const Text('No effects match your search'),
+                              Text(Strings.of(context).noEffectsMatch),
                             ],
                           ),
                         )
@@ -356,42 +360,43 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   }
 
   void _showUpgradePrompt(BuildContext context) {
+    final s = Strings.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.star, color: Colors.amber),
-            SizedBox(width: 8),
-            Text('Premium Effect'),
+            const Icon(Icons.star, color: Colors.amber),
+            const SizedBox(width: 8),
+            Text(s.premiumEffect),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'This effect is available in the Pro version.',
-              style: TextStyle(fontSize: 16),
+              s.proVersionStatus,
+              style: const TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'Pro features include:',
-              style: TextStyle(
+              s.proFeaturesInclude,
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
-            Text('• Advanced effects and tools'),
-            Text('• Unlimited projects'),
-            Text('• Cloud backup'),
-            Text('• Priority support'),
+            const SizedBox(height: 8),
+            Text('• ${s.featureAdvancedEffects}'),
+            Text('• ${s.featureUnlimitedProjects}'),
+            Text('• ${s.featureCloudBackup}'),
+            Text('• ${s.featurePrioritySupport}'),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Maybe Later'),
+            child: Text(s.maybeLater),
           ),
           FilledButton.icon(
             onPressed: () {
@@ -403,7 +408,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
               );
             },
             icon: const Icon(Icons.upgrade),
-            label: const Text('Upgrade to Pro'),
+            label: Text(s.upgradeToPro),
           ),
         ],
       ),

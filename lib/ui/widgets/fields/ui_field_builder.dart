@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/strings.dart';
 import '../dialogs/save_image_window.dart' show showColorPicker;
 import 'ui_field.dart';
 
@@ -84,7 +85,9 @@ class UIFieldBuilder {
     void Function(String, dynamic) onChanged,
   ) {
     final raw = values[field.key];
-    final doubleValue = (raw is int ? raw.toDouble() : (raw as double?) ?? field.min).clamp(field.min, field.max);
+    final doubleValue =
+        (raw is int ? raw.toDouble() : (raw as double?) ?? field.min)
+            .clamp(field.min, field.max);
 
     final theme = Theme.of(context);
 
@@ -119,8 +122,10 @@ class UIFieldBuilder {
               min: field.min,
               max: field.max,
               divisions: field.divisions,
-              label: field.formatLabel?.call(doubleValue) ?? _defaultFormat(doubleValue),
-              onChanged: (v) => onChanged(field.key, field.isInteger ? v.round() : v),
+              label: field.formatLabel?.call(doubleValue) ??
+                  _defaultFormat(doubleValue),
+              onChanged: (v) =>
+                  onChanged(field.key, field.isInteger ? v.round() : v),
             ),
           ),
           Padding(
@@ -156,6 +161,7 @@ class UIFieldBuilder {
     Map<String, dynamic> values,
     void Function(String, dynamic) onChanged,
   ) {
+    final s = Strings.of(context);
     final colorValue = values[field.key] as int? ?? 0xFF000000;
     final color = Color(colorValue);
     final theme = Theme.of(context);
@@ -188,9 +194,11 @@ class UIFieldBuilder {
                   ),
                   child: Center(
                     child: Text(
-                      'Tap',
+                      s.uiFieldTap,
                       style: TextStyle(
-                        color: color.computeLuminance() > 0.5 ? Colors.black87 : Colors.white,
+                        color: color.computeLuminance() > 0.5
+                            ? Colors.black87
+                            : Colors.white,
                         fontWeight: FontWeight.w500,
                         fontSize: 10,
                       ),
@@ -250,11 +258,13 @@ class UIFieldBuilder {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+            borderSide:
+                BorderSide(color: theme.colorScheme.primary, width: 1.5),
           ),
           filled: true,
           fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         ),
         items: field.options.entries.map((entry) {
           return DropdownMenuItem<T>(
@@ -278,6 +288,7 @@ class UIFieldBuilder {
     Map<String, dynamic> values,
     void Function(String, dynamic) onChanged,
   ) {
+    final s = Strings.of(context);
     final value = values[field.key] as bool? ?? false;
     final theme = Theme.of(context);
 
@@ -296,7 +307,7 @@ class UIFieldBuilder {
               child: Padding(
                 padding: const EdgeInsets.only(left: 8),
                 child: Text(
-                  value ? 'Enabled' : 'Disabled',
+                  value ? s.uiFieldEnabled : s.uiFieldDisabled,
                   style: TextStyle(
                     fontSize: 11,
                     color: theme.colorScheme.onSurface,
@@ -346,11 +357,13 @@ class UIFieldBuilder {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+            borderSide:
+                BorderSide(color: theme.colorScheme.primary, width: 1.5),
           ),
           filled: true,
           fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         ),
         maxLines: field.maxLines,
         keyboardType: field.keyboardType,

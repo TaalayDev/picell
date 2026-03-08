@@ -144,6 +144,19 @@ class StringsZh extends Strings {
   String get justNow => '刚刚';
 
   @override
+  String frameCount(int current, int total) {
+    return '帧 $current/$total';
+  }
+
+  @override
+  String get playbackSpeed => '速度：';
+
+  @override
+  String duration(int ms) {
+    return '时长: ${ms}ms';
+  }
+
+  @override
   String get animationPreview => '动画预览';
 
   @override
@@ -180,19 +193,40 @@ class StringsZh extends Strings {
   String get create => '创建';
 
   @override
-  String get subscriptions => 'Subscriptions';
+  String get subscriptions => '订阅';
 
   @override
-  String get fileMenu => 'File';
+  String get fileMenu => '文件';
 
   @override
-  String get profile => 'Profile';
+  String get profile => '个人资料';
 
   @override
-  String get logout => 'Logout';
+  String get logout => '登出';
 
   @override
-  String get deleteAccount => 'Delete Account';
+  String get deleteAccount => '删除账户';
+
+  @override
+  String get signInToContinue => '登录以继续';
+
+  @override
+  String get signInToSyncProjects => '登录以同步您的项目。';
+
+  @override
+  String get signingIn => '登录中...';
+
+  @override
+  String get continueWithApple => '使用 Apple 登录';
+
+  @override
+  String get signInWithGoogle => '使用 Google 登录';
+
+  @override
+  String get skipForNow => '暂时跳过';
+
+  @override
+  String get noEmail => '无电子邮件';
 
   @override
   String get feedback_title => '反馈';
@@ -359,27 +393,457 @@ class StringsZh extends Strings {
   String get feedback_q_recommend => '您会向朋友推荐这个应用吗？';
 
   @override
-  String get feedback_dialog_title => 'We\'d Love Your Feedback!';
+  String get firstFrame => '第一帧';
 
   @override
-  String get feedback_dialog_description =>
-      'Your opinion matters! Help us make the app better by sharing your thoughts.';
+  String get previousFrame => '上一帧';
 
   @override
-  String get feedback_dialog_benefit_1 => 'Share ideas for new features';
+  String get pause => '暂停';
 
   @override
-  String get feedback_dialog_benefit_2 => 'Report bugs and issues';
+  String get play => '播放';
 
   @override
-  String get feedback_dialog_benefit_3 => 'Help shape the app\'s future';
+  String get nextFrame => '下一帧';
 
   @override
-  String get feedback_dialog_leave_feedback => 'Leave Feedback';
+  String get lastFrame => '最后一帧';
 
   @override
-  String get feedback_dialog_maybe_later => 'Maybe Later';
+  String get feedback_dialog_title => '我们期待您的反馈！';
 
   @override
-  String get feedback_dialog_dont_ask => 'Don\'t ask again';
+  String get feedback_dialog_description => '您的意见很重要！分享您的想法，帮助我们把应用做得更好。';
+
+  @override
+  String get feedback_dialog_benefit_1 => '分享新功能创意';
+
+  @override
+  String get feedback_dialog_benefit_2 => '反馈错误和问题';
+
+  @override
+  String get feedback_dialog_benefit_3 => '帮助塑造应用未来';
+
+  @override
+  String get feedback_dialog_leave_feedback => '提交反馈';
+
+  @override
+  String get feedback_dialog_maybe_later => '稍后再说';
+
+  @override
+  String get feedback_dialog_dont_ask => '不再询问';
+
+  @override
+  String get paletteBasic => '基本';
+
+  @override
+  String get paletteShades => '阴影';
+
+  @override
+  String get paletteComplementary => '互补色';
+
+  @override
+  String get paletteAnalogous => '邻近色';
+
+  @override
+  String get paletteTriadic => '三角色';
+
+  @override
+  String get paletteMonochromatic => '单色';
+
+  @override
+  String get paletteCustom => '自定义';
+
+  @override
+  String get addToCustomPalette => '添加到自定义色板';
+
+  @override
+  String get noCustomColors => '尚未添加自定义颜色。\n使用上方的 + 按钮添加颜色。';
+
+  @override
+  String get effects => '特效';
+
+  @override
+  String get editorSettings => '编辑器设置';
+
+  @override
+  String get resetToDefaults => '重置为默认值';
+
+  @override
+  String get input => '输入';
+
+  @override
+  String get display => '显示';
+
+  @override
+  String get showGrid => '显示网格';
+
+  @override
+  String get showGridSubtitle => '在画布上显示网格线';
+
+  @override
+  String get pixelGridOverlay => '像素网格叠加';
+
+  @override
+  String get pixelGridSubtitle => '放大时显示像素边界';
+
+  @override
+  String get gridOpacity => '网格不透明度';
+
+  @override
+  String get zoomNavigation => '缩放和导航';
+
+  @override
+  String get zoomSensitivity => '缩放灵敏度';
+
+  @override
+  String get zoomSensitivitySubtitle => '捏合缩放的响应速度';
+
+  @override
+  String get minZoom => '最小缩放';
+
+  @override
+  String get maxZoom => '最大缩放';
+
+  @override
+  String get gestures => '手势';
+
+  @override
+  String get twoFingerUndo => '双指点击撤销';
+
+  @override
+  String get twoFingerUndoSubtitle => '双指快速点击以撤销';
+
+  @override
+  String get done => '完成';
+
+  @override
+  String get stylusMode => '手写笔模式';
+
+  @override
+  String get stylusModeSubtitleOn => '仅使用手写笔绘图 • 触控用于导航';
+
+  @override
+  String get stylusModeSubtitleOff => '同时使用触控和手写笔绘图';
+
+  @override
+  String get importImage => '导入图像';
+
+  @override
+  String get selectImportOption => '选择您想要导入图像的方式：';
+
+  @override
+  String get convertToPixelArt => '转换为像素艺术';
+
+  @override
+  String get convertToPixelArtDescription => '导入并在新图层上自动将图像转换为像素艺术风格。';
+
+  @override
+  String get importAsBackground => '作为背景导入';
+
+  @override
+  String get importAsBackgroundDescription => '原样导入图像并将其用作参考背景图层。';
+
+  @override
+  String get tinyIcon => '小图标';
+
+  @override
+  String get smallSprite => '小精灵';
+
+  @override
+  String get mediumCharacter => '中型角色';
+
+  @override
+  String get largeScene => '大型场景';
+
+  @override
+  String get projectNameRequired => '请输入项目名称';
+
+  @override
+  String get templateRequired => '请选择一个模板';
+
+  @override
+  String planLimitError(int limit) {
+    return '您的计划仅限于 $limit 像素';
+  }
+
+  @override
+  String get widthRequired => '请输入宽度';
+
+  @override
+  String get heightRequired => '请输入高度';
+
+  @override
+  String widthRangeError(int max) {
+    return '宽度：1-$max';
+  }
+
+  @override
+  String heightRangeError(int max) {
+    return '高度：1-$max';
+  }
+
+  @override
+  String get saveImage => '保存图像';
+
+  @override
+  String get png => 'PNG';
+
+  @override
+  String get animatedGif => '动态 GIF';
+
+  @override
+  String get proPlanRequired => '需要 Pro 计划';
+
+  @override
+  String get spriteSheet => '精灵表';
+
+  @override
+  String get transparentBackground => '透明背景';
+
+  @override
+  String get transparent => '透明';
+
+  @override
+  String get spriteSheetOptions => '精灵表选项';
+
+  @override
+  String get columnsLabel => '列数';
+
+  @override
+  String get spacingPx => '间距 (px)';
+
+  @override
+  String get exportSize => '导出尺寸';
+
+  @override
+  String scaleWithValues(String scale) {
+    return '缩放: ${scale}x';
+  }
+
+  @override
+  String get format => '格式';
+
+  @override
+  String get options => '选项';
+
+  @override
+  String editEffect(String name) {
+    return '编辑效果 $name';
+  }
+
+  @override
+  String get applyChanges => '应用更改';
+
+  @override
+  String get preview => '预览';
+
+  @override
+  String get quickPresets => '快速预设';
+
+  @override
+  String get parameters => '参数';
+
+  @override
+  String get previewNotAvailable => '预览不可用';
+
+  @override
+  String get tapToChange => '点击更改';
+
+  @override
+  String get enable => '启用';
+
+  @override
+  String get uiFieldTap => '点击';
+
+  @override
+  String get uiFieldEnabled => '已启用';
+
+  @override
+  String get uiFieldDisabled => '已禁用';
+
+  @override
+  String get presetDarker => '更暗';
+
+  @override
+  String get presetNormal => '正常';
+
+  @override
+  String get presetBrighter => '更亮';
+
+  @override
+  String get presetVeryBright => '非常亮';
+
+  @override
+  String get presetLow => '低';
+
+  @override
+  String get presetHigh => '高';
+
+  @override
+  String get presetVeryHigh => '非常高';
+
+  @override
+  String get presetSubtle => '细微';
+
+  @override
+  String get presetSoft => '柔和';
+
+  @override
+  String get presetMedium => '中等';
+
+  @override
+  String get presetStrong => '强烈';
+
+  @override
+  String get effectBrightness => '亮度';
+
+  @override
+  String get effectContrast => '对比度';
+
+  @override
+  String get effectBlur => '模糊';
+
+  @override
+  String get effectVignette => '渐晕';
+
+  @override
+  String get effectInvert => '反相';
+
+  @override
+  String get effectGrayscale => '灰度';
+
+  @override
+  String get effectSepia => '怀旧';
+
+  @override
+  String get effectThreshold => '阈值';
+
+  @override
+  String get effectPixelate => '像素化';
+
+  @override
+  String get effectSharpen => '锐化';
+
+  @override
+  String get effectNoise => '噪点';
+
+  @override
+  String get effectGlow => '发光';
+
+  @override
+  String get effectGlitch => '故障';
+
+  @override
+  String get effectSparkle => '闪烁';
+
+  @override
+  String get effectFire => '火焰';
+
+  @override
+  String get effectRain => '下雨';
+
+  @override
+  String get selectEffect => '选择效果';
+
+  @override
+  String get searchEffects => '搜索效果...';
+
+  @override
+  String get categoryAll => '全部';
+
+  @override
+  String get categoryColorTone => '颜色和色调';
+
+  @override
+  String get categoryBlurSharpen => '模糊和锐化';
+
+  @override
+  String get categoryArtistic => '艺术';
+
+  @override
+  String get categoryAnimation => '动画';
+
+  @override
+  String get categoryNature => '自然';
+
+  @override
+  String get categoryParticles => '粒子';
+
+  @override
+  String get categoryDistortion => '失真';
+
+  @override
+  String get categoryTextures => '纹理';
+
+  @override
+  String get categorySpecialFx => '特殊效果';
+
+  @override
+  String get noEffectsMatch => '没有符合搜索条件的效果';
+
+  @override
+  String get premiumEffect => '高级效果';
+
+  @override
+  String get proVersionStatus => '此效果在Pro版本中可用。';
+
+  @override
+  String get proFeaturesInclude => 'Pro版本功能包括:';
+
+  @override
+  String get featureAdvancedEffects => '高级效果和工具';
+
+  @override
+  String get featureUnlimitedProjects => '无限项目';
+
+  @override
+  String get featureCloudBackup => '云备份';
+
+  @override
+  String get featurePrioritySupport => '优先支持';
+
+  @override
+  String get maybeLater => '稍后再说';
+
+  @override
+  String get upgradeToPro => '升级到 Pro';
+
+  @override
+  String get effectsPanelRemoveEffectTitle => '移除效果';
+
+  @override
+  String effectsPanelRemoveEffectMessage(String effectName) {
+    return '确定要移除$effectName效果吗？';
+  }
+
+  @override
+  String get effectsPanelClearAllEffectsTitle => '清除所有效果';
+
+  @override
+  String get effectsPanelClearAllEffectsMessage => '确定要从该图层移除所有效果吗？';
+
+  @override
+  String get effectsPanelClearAll => '全部清除';
+
+  @override
+  String effectsPanelAppliedToLayerMessage(String effectName) {
+    return '效果$effectName已应用到图层';
+  }
+
+  @override
+  String get effectsPanelActionApply => '应用';
+
+  @override
+  String get effectsPanelActionRemove => '移除';
+
+  @override
+  String get effectsPanelActionMore => '更多';
+
+  @override
+  String get effectsPanelMoreActionsTitle => '更多操作';
+
+  @override
+  String get effectsPanelApplyAll => '全部应用';
 }

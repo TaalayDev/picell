@@ -103,7 +103,7 @@ class AuthDialog extends HookConsumerWidget {
 
           // Title
           Text(
-            title ?? 'Sign in to continue',
+            title ?? Strings.of(context).signInToContinue,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -115,7 +115,7 @@ class AuthDialog extends HookConsumerWidget {
 
           // Subtitle
           Text(
-            subtitle ?? 'Sign in to sync projects.',
+            subtitle ?? Strings.of(context).signInToSyncProjects,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
@@ -179,7 +179,7 @@ class AuthDialog extends HookConsumerWidget {
                           )
                         : _buildAppleIcon(),
                     label: Text(
-                      authState.isLoading ? 'Signing In...' : 'Continue with Apple',
+                      authState.isLoading ? Strings.of(context).signingIn : Strings.of(context).continueWithApple,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -214,7 +214,7 @@ class AuthDialog extends HookConsumerWidget {
                         )
                       : _buildGoogleIcon(),
                   label: Text(
-                    authState.isLoading ? 'Signing In' : 'Sign in with Google',
+                    authState.isLoading ? Strings.of(context).signingIn : Strings.of(context).signInWithGoogle,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -244,7 +244,7 @@ class AuthDialog extends HookConsumerWidget {
                       Navigator.of(context).pop(false);
                     },
               child: Text(
-                'Skip for now',
+                Strings.of(context).skipForNow,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
@@ -348,7 +348,7 @@ class GoogleSignInButton extends ConsumerWidget {
                 ),
               ),
         label: Text(
-          text ?? (authState.isLoading ? 'Signing In' : 'Sign in with Google'),
+          text ?? (authState.isLoading ? Strings.of(context).signingIn : Strings.of(context).signInWithGoogle),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -420,7 +420,7 @@ class UserProfileWidget extends ConsumerWidget {
                           ),
                     ),
                   Text(
-                    user.email ?? 'No email',
+                    user.email ?? Strings.of(context).noEmail,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         ),
@@ -437,7 +437,7 @@ class UserProfileWidget extends ConsumerWidget {
                         await ref.read(authProvider.notifier).signOut();
                         onSignOut?.call();
                       },
-                tooltip: 'Sign out',
+                tooltip: Strings.of(context).logout,
               ),
           ],
         ),

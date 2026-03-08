@@ -56,6 +56,9 @@
         }
     },
     "justNow": "刚刚",
+    "frameCount": "帧 {current}/{total}",
+    "playbackSpeed": "速度：",
+    "duration": "时长: {ms}ms",
     "animationPreview": "动画预览",
     "colorPalette": "调色板",
     "currentColor": "当前颜色",
@@ -68,6 +71,18 @@
     "width": "宽度",
     "height": "高度",
     "create": "创建",
+    "subscriptions": "订阅",
+    "fileMenu": "文件",
+    "profile": "个人资料",
+    "logout": "登出",
+    "deleteAccount": "删除账户",
+    "signInToContinue": "登录以继续",
+    "signInToSyncProjects": "登录以同步您的项目。",
+    "signingIn": "登录中...",
+    "continueWithApple": "使用 Apple 登录",
+    "signInWithGoogle": "使用 Google 登录",
+    "skipForNow": "暂时跳过",
+    "noEmail": "无电子邮件",
     "saveImage": "保存图像",
     "exportFormat": "导出格式",
     "background": "背景",
@@ -129,8 +144,10 @@
     "duplicateFrame": "复制帧",
     "deleteFrame": "删除帧",
     "frameDuration": "帧持续时间",
-    "previousFrame": "上一帧",
-    "nextFrame": "下一帧",
+    "firstFrame": "第一帧",
+    "lastFrame": "最后一帧",
+    "pause": "暂停",
+    "play": "播放",
     "playAnimation": "播放动画",
     "stopAnimation": "停止动画",
     "loopAnimation": "循环动画",
@@ -273,5 +290,191 @@
     "feedback_q_use_learning": "学习",
     "feedback_q_additional_feedback": "其他评论和建议",
     "feedback_q_additional_feedback_placeholder": "分享您对应用的看法...",
-    "feedback_q_recommend": "您会向朋友推荐这个应用吗？"
+    "feedback_q_recommend": "您会向朋友推荐这个应用吗？",
+    "paletteBasic": "基本",
+    "paletteShades": "阴影",
+    "paletteComplementary": "互补色",
+    "paletteAnalogous": "邻近色",
+    "paletteTriadic": "三角色",
+    "paletteMonochromatic": "单色",
+    "paletteCustom": "自定义",
+    "addToCustomPalette": "添加到自定义色板",
+    "noCustomColors": "尚未添加自定义颜色。\n使用上方的 + 按钮添加颜色。",
+    "editorSettings": "编辑器设置",
+    "resetToDefaults": "重置为默认值",
+    "input": "输入",
+    "display": "显示",
+    "showGrid": "显示网格",
+    "showGridSubtitle": "在画布上显示网格线",
+    "pixelGridOverlay": "像素网格叠加",
+    "pixelGridSubtitle": "放大时显示像素边界",
+    "gridOpacity": "网格不透明度",
+    "zoomNavigation": "缩放和导航",
+    "zoomSensitivity": "缩放灵敏度",
+    "zoomSensitivitySubtitle": "捏合缩放的响应速度",
+    "minZoom": "最小缩放",
+    "maxZoom": "最大缩放",
+    "gestures": "手势",
+    "twoFingerUndo": "双指点击撤销",
+    "twoFingerUndoSubtitle": "双指快速点击以撤销",
+    "done": "完成",
+    "stylusMode": "手写笔模式",
+    "stylusModeSubtitleOn": "仅使用手写笔绘图 • 触控用于导航",
+    "stylusModeSubtitleOff": "同时使用触控和手写笔绘图",
+    "selectImportOption": "选择您想要导入图像的方式：",
+    "convertToPixelArt": "转换为像素艺术",
+    "convertToPixelArtDescription": "导入并在新图层上自动将图像转换为像素艺术风格。",
+    "importAsBackground": "作为背景导入",
+    "importAsBackgroundDescription": "原样导入图像并将其用作参考背景图层。",
+    "projectNameRequired": "请输入项目名称",
+    "templateRequired": "请选择一个模板",
+    "planLimitError": "您的计划仅限于 {limit} 像素",
+    "@planLimitError": {
+        "placeholders": {
+            "limit": {
+                "type": "int"
+            }
+        }
+    },
+    "widthRequired": "请输入宽度",
+    "heightRequired": "请输入高度",
+    "widthRangeError": "宽度：1-{max}",
+    "@widthRangeError": {
+        "placeholders": {
+            "max": {
+                "type": "int"
+            }
+        }
+    },
+    "heightRangeError": "高度：1-{max}",
+    "@heightRangeError": {
+        "placeholders": {
+            "max": {
+                "type": "int"
+            }
+        }
+    },
+    "saveImage": "保存图像",
+    "png": "PNG",
+    "animatedGif": "动态 GIF",
+    "proPlanRequired": "需要 Pro 计划",
+    "spriteSheet": "精灵表",
+    "transparentBackground": "透明背景",
+    "transparent": "透明",
+    "spriteSheetOptions": "精灵表选项",
+    "columnsLabel": "列数",
+    "spacingPx": "间距 (px)",
+    "exportSize": "导出尺寸",
+    "scaleWithValues": "缩放: {scale}x",
+    "@scaleWithValues": {
+        "placeholders": {
+            "scale": {
+                "type": "String"
+            }
+        }
+    },
+    "format": "格式",
+    "options": "选项",
+    "editEffect": "编辑效果 {name}",
+    "@editEffect": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "applyChanges": "应用更改",
+    "preview": "预览",
+    "quickPresets": "快速预设",
+    "parameters": "参数",
+    "previewNotAvailable": "预览不可用",
+    "tapToChange": "点击更改",
+    "enable": "启用",
+    "uiFieldTap": "点击",
+    "uiFieldEnabled": "已启用",
+    "uiFieldDisabled": "已禁用",
+    "presetDarker": "更暗",
+    "presetNormal": "正常",
+    "presetBrighter": "更亮",
+    "presetVeryBright": "非常亮",
+    "presetLow": "低",
+    "presetHigh": "高",
+    "presetVeryHigh": "非常高",
+    "presetSubtle": "细微",
+    "presetSoft": "柔和",
+    "presetMedium": "中等",
+    "presetStrong": "强烈",
+    "effectBrightness": "亮度",
+    "effectContrast": "对比度",
+    "effectBlur": "模糊",
+    "effectVignette": "渐晕",
+    "effectInvert": "反相",
+    "effectGrayscale": "灰度",
+    "effectSepia": "怀旧",
+    "effectThreshold": "阈值",
+    "effectPixelate": "像素化",
+    "effectSharpen": "锐化",
+    "effectNoise": "噪点",
+    "effectGlow": "发光",
+    "effectGlitch": "故障",
+    "effectSparkle": "闪烁",
+    "effectFire": "火焰",
+    "effectRain": "下雨",
+    "selectEffect": "选择效果",
+    "searchEffects": "搜索效果...",
+    "categoryAll": "全部",
+    "categoryColorTone": "颜色和色调",
+    "categoryBlurSharpen": "模糊和锐化",
+    "categoryArtistic": "艺术",
+    "categoryAnimation": "动画",
+    "categoryNature": "自然",
+    "categoryParticles": "粒子",
+    "categoryDistortion": "失真",
+    "categoryTextures": "纹理",
+    "categorySpecialFx": "特殊效果",
+    "noEffectsMatch": "没有符合搜索条件的效果",
+    "premiumEffect": "高级效果",
+    "proVersionStatus": "此效果在Pro版本中可用。",
+    "proFeaturesInclude": "Pro版本功能包括:",
+    "featureAdvancedEffects": "高级效果和工具",
+    "featureUnlimitedProjects": "无限项目",
+    "featureCloudBackup": "云备份",
+    "featurePrioritySupport": "优先支持",
+    "maybeLater": "稍后再说",
+    "upgradeToPro": "升级到 Pro",
+    "effectsPanelRemoveEffectTitle": "移除效果",
+    "effectsPanelRemoveEffectMessage": "确定要移除{effectName}效果吗？",
+    "@effectsPanelRemoveEffectMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelClearAllEffectsTitle": "清除所有效果",
+    "effectsPanelClearAllEffectsMessage": "确定要从该图层移除所有效果吗？",
+    "effectsPanelClearAll": "全部清除",
+    "effectsPanelAppliedToLayerMessage": "效果{effectName}已应用到图层",
+    "@effectsPanelAppliedToLayerMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelActionApply": "应用",
+    "effectsPanelActionRemove": "移除",
+    "effectsPanelActionMore": "更多",
+    "effectsPanelMoreActionsTitle": "更多操作",
+    "effectsPanelApplyAll": "全部应用",
+    "previousFrame": "上一帧",
+    "nextFrame": "下一帧",
+    "feedback_dialog_title": "我们期待您的反馈！",
+    "feedback_dialog_description": "您的意见很重要！分享您的想法，帮助我们把应用做得更好。",
+    "feedback_dialog_benefit_1": "分享新功能创意",
+    "feedback_dialog_benefit_2": "反馈错误和问题",
+    "feedback_dialog_benefit_3": "帮助塑造应用未来",
+    "feedback_dialog_leave_feedback": "提交反馈",
+    "feedback_dialog_maybe_later": "稍后再说",
+    "feedback_dialog_dont_ask": "不再询问"
 }

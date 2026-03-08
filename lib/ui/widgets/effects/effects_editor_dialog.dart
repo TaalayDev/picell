@@ -9,6 +9,7 @@ import '../dialogs/save_image_window.dart';
 import '../fields/ui_field_builder.dart';
 import '../animated_background.dart';
 import 'pixlel_preview_painter.dart';
+import '../../../l10n/strings.dart';
 
 class EffectEditorDialog extends StatefulWidget {
   final Effect effect;
@@ -96,7 +97,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                     ),
                     Expanded(
                       child: Text(
-                        'Edit $effectName Effect',
+                        Strings.of(context).editEffect(effectName),
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
@@ -106,7 +107,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                     IconButton(
                       icon: const Icon(Icons.refresh),
                       onPressed: _resetToDefaults,
-                      tooltip: 'Reset to defaults',
+                      tooltip: Strings.of(context).resetToDefaults,
                     ),
                     IconButton(
                       icon: const Icon(Icons.help_outline),
@@ -136,12 +137,12 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
+                        child: Text(Strings.of(context).cancel),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
                         onPressed: _applyChanges,
-                        child: const Text('Apply Changes'),
+                        child: Text(Strings.of(context).applyChanges),
                       ),
                     ],
                   ),
@@ -190,7 +191,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
           child: Column(
             children: [
               Text(
-                'Preview',
+                Strings.of(context).preview,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
@@ -209,7 +210,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
               // Quick presets section
               if (_hasPresets()) ...[
                 Text(
-                  'Quick Presets',
+                  Strings.of(context).quickPresets,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 8),
@@ -232,7 +233,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Parameters',
+                Strings.of(context).parameters,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
@@ -256,7 +257,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     }
 
     if (_previewPixels == null) {
-      return const Center(child: Text('Preview not available'));
+      return Center(child: Text(Strings.of(context).previewNotAvailable));
     }
 
     return AspectRatio(
@@ -452,7 +453,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
               ),
               child: Center(
                 child: Text(
-                  'Tap to change',
+                  Strings.of(context).tapToChange,
                   style: TextStyle(
                     color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
                     fontWeight: FontWeight.bold,
@@ -512,7 +513,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
 
   Widget _buildBooleanControl(String key, dynamic value, Map<String, dynamic> metadata) {
     return SwitchListTile(
-      title: const Text('Enable'),
+      title: Text(Strings.of(context).enable),
       value: value as bool,
       onChanged: (newValue) {
         setState(() {
@@ -686,11 +687,28 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
         child: Text(
-          preset.key,
+          _localizePreset(preset.key),
           style: const TextStyle(fontSize: 12),
         ),
       );
     }).toList();
+  }
+
+  String _localizePreset(String key) {
+    return switch (key) {
+      'Darker' => Strings.of(context).presetDarker,
+      'Normal' => Strings.of(context).presetNormal,
+      'Brighter' => Strings.of(context).presetBrighter,
+      'Very Bright' => Strings.of(context).presetVeryBright,
+      'Low' => Strings.of(context).presetLow,
+      'High' => Strings.of(context).presetHigh,
+      'Very High' => Strings.of(context).presetVeryHigh,
+      'Subtle' => Strings.of(context).presetSubtle,
+      'Soft' => Strings.of(context).presetSoft,
+      'Medium' => Strings.of(context).presetMedium,
+      'Strong' => Strings.of(context).presetStrong,
+      _ => key,
+    };
   }
 
   Map<String, Map<String, dynamic>> _getPresetsForEffect(EffectType type) {

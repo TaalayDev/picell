@@ -145,6 +145,19 @@ class StringsKy extends Strings {
   String get justNow => 'Жаңы эле';
 
   @override
+  String frameCount(int current, int total) {
+    return 'Кадр $current/$total';
+  }
+
+  @override
+  String get playbackSpeed => 'Ылдамдык:';
+
+  @override
+  String duration(int ms) {
+    return 'Узактыгы: $msмс';
+  }
+
+  @override
   String get animationPreview => 'Анимацияны алдын ала көрүү';
 
   @override
@@ -182,19 +195,41 @@ class StringsKy extends Strings {
   String get create => 'Түзүү';
 
   @override
-  String get subscriptions => 'Subscriptions';
+  String get subscriptions => 'Жазылуулар';
 
   @override
-  String get fileMenu => 'File';
+  String get fileMenu => 'Файл';
 
   @override
-  String get profile => 'Profile';
+  String get profile => 'Профиль';
 
   @override
-  String get logout => 'Logout';
+  String get logout => 'Чыгуу';
 
   @override
-  String get deleteAccount => 'Delete Account';
+  String get deleteAccount => 'Аккаунтту өчүрүү';
+
+  @override
+  String get signInToContinue => 'Улантуу үчүн кириңиз';
+
+  @override
+  String get signInToSyncProjects =>
+      'Проекттерди синхрондоштуруу үчүн кириңиз.';
+
+  @override
+  String get signingIn => 'Кирүү...';
+
+  @override
+  String get continueWithApple => 'Apple аркылуу кирүү';
+
+  @override
+  String get signInWithGoogle => 'Google аркылуу кирүү';
+
+  @override
+  String get skipForNow => 'Азырынча өткөрүп жиберүү';
+
+  @override
+  String get noEmail => 'Электрондук почта жок';
 
   @override
   String get feedback_title => 'Пикир';
@@ -376,27 +411,467 @@ class StringsKy extends Strings {
       'Бул тиркемени досторуңузга сунуштайсызбы?';
 
   @override
-  String get feedback_dialog_title => 'We\'d Love Your Feedback!';
+  String get firstFrame => 'Биринчи кадр';
+
+  @override
+  String get previousFrame => 'Мурунку кадр';
+
+  @override
+  String get pause => 'Тындыруу';
+
+  @override
+  String get play => 'Ойнотуу';
+
+  @override
+  String get nextFrame => 'Кийинки кадр';
+
+  @override
+  String get lastFrame => 'Акыркы кадр';
+
+  @override
+  String get feedback_dialog_title => 'Пикириңизди бөлүшүңүз!';
 
   @override
   String get feedback_dialog_description =>
-      'Your opinion matters! Help us make the app better by sharing your thoughts.';
+      'Сиздин пикириңиз маанилүү! Ой-пикириңизди бөлүшүп, колдонмону жакшыртууга жардам бериңиз.';
 
   @override
-  String get feedback_dialog_benefit_1 => 'Share ideas for new features';
+  String get feedback_dialog_benefit_1 =>
+      'Жаңы функциялар боюнча идеяларды бөлүшүңүз';
 
   @override
-  String get feedback_dialog_benefit_2 => 'Report bugs and issues';
+  String get feedback_dialog_benefit_2 =>
+      'Каталарды жана көйгөйлөрдү билдириңиз';
 
   @override
-  String get feedback_dialog_benefit_3 => 'Help shape the app\'s future';
+  String get feedback_dialog_benefit_3 =>
+      'Колдонмонун келечегин калыптандырууга жардам бериңиз';
 
   @override
-  String get feedback_dialog_leave_feedback => 'Leave Feedback';
+  String get feedback_dialog_leave_feedback => 'Пикир калтыруу';
 
   @override
-  String get feedback_dialog_maybe_later => 'Maybe Later';
+  String get feedback_dialog_maybe_later => 'Кийинчерээк';
 
   @override
-  String get feedback_dialog_dont_ask => 'Don\'t ask again';
+  String get feedback_dialog_dont_ask => 'Мындан ары сурабаңыз';
+
+  @override
+  String get paletteBasic => 'Негизги';
+
+  @override
+  String get paletteShades => 'Көлөкөлөр';
+
+  @override
+  String get paletteComplementary => 'Кошумча';
+
+  @override
+  String get paletteAnalogous => 'Окшош';
+
+  @override
+  String get paletteTriadic => 'Триадалык';
+
+  @override
+  String get paletteMonochromatic => 'Монохроматикалык';
+
+  @override
+  String get paletteCustom => 'Өзгөчө';
+
+  @override
+  String get addToCustomPalette => 'Өзгөчө палитрага кошуу';
+
+  @override
+  String get noCustomColors =>
+      'Өзгөчө түстөр али кошула элек.\nЖогорудагы + баскычын колдонуп түстөрдү кошуңуз.';
+
+  @override
+  String get effects => 'Эффекттер';
+
+  @override
+  String get editorSettings => 'Редактордун орнотуулары';
+
+  @override
+  String get resetToDefaults => 'Баштапкыга кайтаруу';
+
+  @override
+  String get input => 'Киргизүү';
+
+  @override
+  String get display => 'Көрсөтүү';
+
+  @override
+  String get showGrid => 'Торду көрсөтүү';
+
+  @override
+  String get showGridSubtitle => 'Канваста тор сызыктарын көрсөтүү';
+
+  @override
+  String get pixelGridOverlay => 'Пиксель торчосунун катмары';
+
+  @override
+  String get pixelGridSubtitle => 'Чоңойткондо пикселдин чектерин көрсөтүү';
+
+  @override
+  String get gridOpacity => 'Тордун тунуктугу';
+
+  @override
+  String get zoomNavigation => 'Масштаб жана навигация';
+
+  @override
+  String get zoomSensitivity => 'Масштаб сезгичтиги';
+
+  @override
+  String get zoomSensitivitySubtitle => 'Масштабдоо канчалык тез жооп берет';
+
+  @override
+  String get minZoom => 'Мин. масштаб';
+
+  @override
+  String get maxZoom => 'Макс. масштаб';
+
+  @override
+  String get gestures => 'Жаңсоо';
+
+  @override
+  String get twoFingerUndo => 'Эки манжа менен артка кайтаруу';
+
+  @override
+  String get twoFingerUndoSubtitle =>
+      'Артка кайтаруу үчүн эки манжа менен тез тийүү';
+
+  @override
+  String get done => 'Даяр';
+
+  @override
+  String get stylusMode => 'Стилус режими';
+
+  @override
+  String get stylusModeSubtitleOn =>
+      'Стилус менен гана тартуу • Жылдыруу үчүн тийүү';
+
+  @override
+  String get stylusModeSubtitleOff => 'Тийүү жана стилус менен тартуу';
+
+  @override
+  String get importImage => 'Сүрөттү импорттоо';
+
+  @override
+  String get selectImportOption => 'Сүрөттү импорттоо ыкмасын тандаңыз:';
+
+  @override
+  String get convertToPixelArt => 'Pixel Art\'ка которуу';
+
+  @override
+  String get convertToPixelArtDescription =>
+      'Импорттоо жана жаңы катмарда сүрөттү автоматтык түрдө пикселдик стилге которуу.';
+
+  @override
+  String get importAsBackground => 'Фон катары импорттоо';
+
+  @override
+  String get importAsBackgroundDescription =>
+      'Сүрөттү баштапкы калыбында импорттоо жана аны фондук катмар катары колдонуу.';
+
+  @override
+  String get tinyIcon => 'Кичинекей белги';
+
+  @override
+  String get smallSprite => 'Кичине спрайт';
+
+  @override
+  String get mediumCharacter => 'Орто персонаж';
+
+  @override
+  String get largeScene => 'Чоң сцена';
+
+  @override
+  String get projectNameRequired => 'Долбоордун атын киргизиңиз';
+
+  @override
+  String get templateRequired => 'Шаблонду тандаңыз';
+
+  @override
+  String planLimitError(int limit) {
+    return 'Сиздин планыңыз $limit пиксел менен чектелген';
+  }
+
+  @override
+  String get widthRequired => 'Туурасын киргизиңиз';
+
+  @override
+  String get heightRequired => 'Бийиктигин киргизиңиз';
+
+  @override
+  String widthRangeError(int max) {
+    return 'Туурасы: 1-$max';
+  }
+
+  @override
+  String heightRangeError(int max) {
+    return 'Бийиктиги: 1-$max';
+  }
+
+  @override
+  String get saveImage => 'Сүрөттү сактоо';
+
+  @override
+  String get png => 'PNG';
+
+  @override
+  String get animatedGif => 'Анимацияланган GIF';
+
+  @override
+  String get proPlanRequired => 'Pro планы талап кылынат';
+
+  @override
+  String get spriteSheet => 'Спрайт барагы';
+
+  @override
+  String get transparentBackground => 'Тунук фон';
+
+  @override
+  String get transparent => 'Тунук';
+
+  @override
+  String get spriteSheetOptions => 'Спрайт барагынын параметрлери';
+
+  @override
+  String get columnsLabel => 'Мамычалар';
+
+  @override
+  String get spacingPx => 'Аралык (px)';
+
+  @override
+  String get exportSize => 'Экспорттолуучу өлчөм';
+
+  @override
+  String scaleWithValues(String scale) {
+    return 'Масштаб: ${scale}x';
+  }
+
+  @override
+  String get format => 'Формат';
+
+  @override
+  String get options => 'Параметрлер';
+
+  @override
+  String editEffect(String name) {
+    return '$name эффектин түзөтүү';
+  }
+
+  @override
+  String get applyChanges => 'Өзгөртүүлөрдү колдонуу';
+
+  @override
+  String get preview => 'Алдын ала көрүү';
+
+  @override
+  String get quickPresets => 'Тез пресеттер';
+
+  @override
+  String get parameters => 'Параметрлер';
+
+  @override
+  String get previewNotAvailable => 'Алдын ала көрүү мүмкүн эмес';
+
+  @override
+  String get tapToChange => 'Өзгөртүү үчүн таптап коюңуз';
+
+  @override
+  String get enable => 'Күйгүзүү';
+
+  @override
+  String get uiFieldTap => 'Таптаңыз';
+
+  @override
+  String get uiFieldEnabled => 'Иштетилди';
+
+  @override
+  String get uiFieldDisabled => 'Өчүрүлдү';
+
+  @override
+  String get presetDarker => 'Күңүрт';
+
+  @override
+  String get presetNormal => 'Кадимки';
+
+  @override
+  String get presetBrighter => 'Жарык';
+
+  @override
+  String get presetVeryBright => 'Абдан жарык';
+
+  @override
+  String get presetLow => 'Төмөн';
+
+  @override
+  String get presetHigh => 'Жогору';
+
+  @override
+  String get presetVeryHigh => 'Абдан жогору';
+
+  @override
+  String get presetSubtle => 'Назик';
+
+  @override
+  String get presetSoft => 'Жумшак';
+
+  @override
+  String get presetMedium => 'Орточо';
+
+  @override
+  String get presetStrong => 'Күчтүү';
+
+  @override
+  String get effectBrightness => 'Жарыктык';
+
+  @override
+  String get effectContrast => 'Контраст';
+
+  @override
+  String get effectBlur => 'Бүркөө';
+
+  @override
+  String get effectVignette => 'Виньетка';
+
+  @override
+  String get effectInvert => 'Тескери';
+
+  @override
+  String get effectGrayscale => 'Күңүрт түстөр';
+
+  @override
+  String get effectSepia => 'Сепия';
+
+  @override
+  String get effectThreshold => 'Чек';
+
+  @override
+  String get effectPixelate => 'Пикселдештирүү';
+
+  @override
+  String get effectSharpen => 'Курчутуу';
+
+  @override
+  String get effectNoise => 'Шум';
+
+  @override
+  String get effectGlow => 'Жаркыроо';
+
+  @override
+  String get effectGlitch => 'Глитч';
+
+  @override
+  String get effectSparkle => 'Учкундар';
+
+  @override
+  String get effectFire => 'От';
+
+  @override
+  String get effectRain => 'Жамгыр';
+
+  @override
+  String get selectEffect => 'Эффект тандаңыз';
+
+  @override
+  String get searchEffects => 'Эффект издөө...';
+
+  @override
+  String get categoryAll => 'Баары';
+
+  @override
+  String get categoryColorTone => 'Түс жана тон';
+
+  @override
+  String get categoryBlurSharpen => 'Бүркөө жана курчутуу';
+
+  @override
+  String get categoryArtistic => 'Көркөм';
+
+  @override
+  String get categoryAnimation => 'Анимация';
+
+  @override
+  String get categoryNature => 'Табият';
+
+  @override
+  String get categoryParticles => 'Бөлүкчөлөр';
+
+  @override
+  String get categoryDistortion => 'Бузуу';
+
+  @override
+  String get categoryTextures => 'Текстуралар';
+
+  @override
+  String get categorySpecialFx => 'Атайын эффекттер';
+
+  @override
+  String get noEffectsMatch => 'Сиздин издөөңүзгө эч кандай эффект дал келбейт';
+
+  @override
+  String get premiumEffect => 'Премиум эффект';
+
+  @override
+  String get proVersionStatus => 'Бул эффект Pro версиясында жеткиликтүү.';
+
+  @override
+  String get proFeaturesInclude => 'Pro мүмкүнчүлүктөрү төмөнкүлөрдү камтыйт:';
+
+  @override
+  String get featureAdvancedEffects => 'Өркүндөтүлгө эффекттер жана куралдар';
+
+  @override
+  String get featureUnlimitedProjects => 'Чексиз долбоорлор';
+
+  @override
+  String get featureCloudBackup => 'Булуттук камдык көчүрмө';
+
+  @override
+  String get featurePrioritySupport => 'Артыкчылыктуу колдоо';
+
+  @override
+  String get maybeLater => 'Мүмкүн кийинчерээк';
+
+  @override
+  String get upgradeToPro => 'Pro\'го өтүү';
+
+  @override
+  String get effectsPanelRemoveEffectTitle => 'Эффектти алып салуу';
+
+  @override
+  String effectsPanelRemoveEffectMessage(String effectName) {
+    return '$effectName эффектин алып салгыңыз келеби?';
+  }
+
+  @override
+  String get effectsPanelClearAllEffectsTitle => 'Бардык эффекттерди тазалоо';
+
+  @override
+  String get effectsPanelClearAllEffectsMessage =>
+      'Бул катмардан бардык эффекттерди алып салгыңыз келеби?';
+
+  @override
+  String get effectsPanelClearAll => 'Баарын тазалоо';
+
+  @override
+  String effectsPanelAppliedToLayerMessage(String effectName) {
+    return '$effectName эффекти катмарга колдонулду';
+  }
+
+  @override
+  String get effectsPanelActionApply => 'Колдонуу';
+
+  @override
+  String get effectsPanelActionRemove => 'Алып салуу';
+
+  @override
+  String get effectsPanelActionMore => 'Дагы';
+
+  @override
+  String get effectsPanelMoreActionsTitle => 'Кошумча аракеттер';
+
+  @override
+  String get effectsPanelApplyAll => 'Баарын колдонуу';
 }
