@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../data.dart';
 import '../../../pixel/image_painter.dart';
 import '../layers_preview.dart';
+import '../../../l10n/strings.dart';
 
 Future<void> showAnimationPreviewDialog(
   BuildContext context, {
@@ -146,7 +147,7 @@ class _AnimationPreviewDialogState extends State<AnimationPreviewDialog> with Si
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  'Animation Preview',
+                  Strings.of(context).animationPreview,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
@@ -203,7 +204,7 @@ class _AnimationPreviewDialogState extends State<AnimationPreviewDialog> with Si
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          'Frame ${_currentFrameIndex + 1}/${widget.frames.length}',
+                          Strings.of(context).frameCount(_currentFrameIndex + 1, widget.frames.length),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -236,7 +237,7 @@ class _AnimationPreviewDialogState extends State<AnimationPreviewDialog> with Si
                                   });
                                 }
                               : null,
-                          tooltip: 'First Frame',
+                          tooltip: Strings.of(context).firstFrame,
                         ),
                         IconButton(
                           icon: const Icon(Icons.navigate_before),
@@ -247,7 +248,7 @@ class _AnimationPreviewDialogState extends State<AnimationPreviewDialog> with Si
                               _startPlayback();
                             });
                           },
-                          tooltip: 'Previous Frame',
+                          tooltip: Strings.of(context).previousFrame,
                         ),
                         IconButton(
                           iconSize: 36,
@@ -262,7 +263,7 @@ class _AnimationPreviewDialogState extends State<AnimationPreviewDialog> with Si
                               }
                             });
                           },
-                          tooltip: _isPlaying ? 'Pause' : 'Play',
+                          tooltip: _isPlaying ? Strings.of(context).pause : Strings.of(context).play,
                         ),
                         IconButton(
                           icon: const Icon(Icons.navigate_next),
@@ -272,7 +273,7 @@ class _AnimationPreviewDialogState extends State<AnimationPreviewDialog> with Si
                               _startPlayback();
                             });
                           },
-                          tooltip: 'Next Frame',
+                          tooltip: Strings.of(context).nextFrame,
                         ),
                         IconButton(
                           icon: Icon(
@@ -286,7 +287,7 @@ class _AnimationPreviewDialogState extends State<AnimationPreviewDialog> with Si
                                   });
                                 }
                               : null,
-                          tooltip: 'Last Frame',
+                          tooltip: Strings.of(context).lastFrame,
                         ),
                       ],
                     ),
@@ -296,7 +297,7 @@ class _AnimationPreviewDialogState extends State<AnimationPreviewDialog> with Si
                     // Speed controls
                     Row(
                       children: [
-                        const Text('Speed:'),
+                        Text(Strings.of(context).playbackSpeed),
                         Expanded(
                           child: Slider(
                             value: _playbackSpeed,
@@ -319,7 +320,7 @@ class _AnimationPreviewDialogState extends State<AnimationPreviewDialog> with Si
                     // Frame information
                     if (widget.frames.isNotEmpty)
                       Text(
-                        'Duration: ${widget.frames[_currentFrameIndex].duration}ms',
+                        Strings.of(context).duration(widget.frames[_currentFrameIndex].duration),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Colors.grey.shade600,
                             ),

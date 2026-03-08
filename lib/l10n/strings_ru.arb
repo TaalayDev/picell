@@ -56,6 +56,9 @@
         }
     },
     "justNow": "Только что",
+    "frameCount": "Кадр {current}/{total}",
+    "playbackSpeed": "Скорость:",
+    "duration": "Длительность: {ms}мс",
     "animationPreview": "Предпросмотр анимации",
     "colorPalette": "Цветовая палитра",
     "currentColor": "Текущий цвет",
@@ -68,6 +71,18 @@
     "width": "Ширина",
     "height": "Высота",
     "create": "Создать",
+    "subscriptions": "Подписки",
+    "fileMenu": "Файл",
+    "profile": "Профиль",
+    "logout": "Выйти",
+    "deleteAccount": "Удалить аккаунт",
+    "signInToContinue": "Войдите, чтобы продолжить",
+    "signInToSyncProjects": "Войдите, чтобы синхронизировать ваши проекты.",
+    "signingIn": "Вход...",
+    "continueWithApple": "Продолжить через Apple",
+    "signInWithGoogle": "Войти через Google",
+    "skipForNow": "Пропустить",
+    "noEmail": "Нет почты",
     "saveImage": "Сохранить изображение",
     "exportFormat": "Формат экспорта",
     "background": "Фон",
@@ -127,10 +142,9 @@
     "layerName": "Имя слоя",
     "addFrame": "Добавить кадр",
     "duplicateFrame": "Дублировать кадр",
-    "deleteFrame": "Удалить кадр",
-    "frameDuration": "Длительность кадра",
-    "previousFrame": "Предыдущий кадр",
-    "nextFrame": "Следующий кадр",
+    "lastFrame": "Последний кадр",
+    "pause": "Пауза",
+    "play": "Воспроизвести",
     "playAnimation": "Воспроизвести анимацию",
     "stopAnimation": "Остановить анимацию",
     "loopAnimation": "Зациклить анимацию",
@@ -200,5 +214,188 @@
     "feedback_q_use_learning": "Обучение",
     "feedback_q_additional_feedback": "Дополнительные комментарии и пожелания",
     "feedback_q_additional_feedback_placeholder": "Поделитесь своими мыслями о приложении...",
-    "feedback_q_recommend": "Порекомендуете ли вы это приложение друзьям?"
+    "feedback_q_recommend": "Порекомендуете ли вы это приложение друзьям?",
+    "paletteBasic": "Базовая",
+    "paletteShades": "Оттенки",
+    "paletteComplementary": "Комплиментарная",
+    "paletteAnalogous": "Аналогичная",
+    "paletteTriadic": "Триадная",
+    "paletteMonochromatic": "Монохроматическая",
+    "paletteCustom": "Пользовательская",
+    "addToCustomPalette": "Добавить в пользовательскую палитру",
+    "noCustomColors": "Пользовательские цвета еще не добавлены.\nДобавьте цвета с помощью кнопки + выше.",
+    "effects": "Эффекты",
+    "editorSettings": "Настройки редактора",
+    "resetToDefaults": "Сбросить по умолчанию",
+    "input": "Ввод",
+    "display": "Отображение",
+    "showGrid": "Показать сетку",
+    "showGridSubtitle": "Отображать линии сетки на холсте",
+    "pixelGridOverlay": "Пиксельная сетка",
+    "pixelGridSubtitle": "Показывать границы пикселей при увеличении",
+    "gridOpacity": "Прозрачность сетки",
+    "zoomNavigation": "Масштаб и навигация",
+    "zoomSensitivity": "Чувствительность масштаба",
+    "zoomSensitivitySubtitle": "Как быстро реагирует щипок для масштабирования",
+    "minZoom": "Мин. масштаб",
+    "maxZoom": "Макс. масштаб",
+    "gestures": "Жесты",
+    "twoFingerUndo": "Отмена касанием двумя пальцами",
+    "twoFingerUndoSubtitle": "Быстрое касание двумя пальцами для отмены",
+    "done": "Готово",
+    "stylusMode": "Режим стилуса",
+    "stylusModeSubtitleOn": "Рисование только стилусом • Касание для навигации",
+    "stylusModeSubtitleOff": "Рисование и пальцем, и стилусом",
+    "selectImportOption": "Выберите способ импорта изображения:",
+    "convertToPixelArt": "Преобразовать в Pixel Art",
+    "convertToPixelArtDescription": "Импорт и автоматическое преобразование в пиксельный стиль на новом слое.",
+    "importAsBackground": "Импортировать как фон",
+    "importAsBackgroundDescription": "Импорт как есть для использования в качестве фонового слоя.",
+    "projectNameRequired": "Введите название проекта",
+    "templateRequired": "Выберите шаблон",
+    "planLimitError": "Ваш план ограничен {limit} пикселями",
+    "@planLimitError": {
+        "placeholders": {
+            "limit": {
+                "type": "int"
+            }
+        }
+    },
+    "widthRequired": "Введите ширину",
+    "heightRequired": "Введите высоту",
+    "widthRangeError": "Ширина: 1-{max}",
+    "@widthRangeError": {
+        "placeholders": {
+            "max": {
+                "type": "int"
+            }
+        }
+    },
+    "heightRangeError": "Высота: 1-{max}",
+    "png": "PNG",
+    "proPlanRequired": "Требуется тариф Pro",
+    "transparentBackground": "Прозрачный фон",
+    "transparent": "Прозрачный",
+    "columnsLabel": "Колонки",
+    "spacingPx": "Отступ (px)",
+    "exportSize": "Размер экспорта",
+    "scaleWithValues": "Масштаб: {scale}x",
+    "@scaleWithValues": {
+        "placeholders": {
+            "scale": {
+                "type": "String"
+            }
+        }
+    },
+    "format": "Формат",
+    "options": "Опции",
+    "editEffect": "Редактировать эффект {name}",
+    "@editEffect": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "applyChanges": "Применить изменения",
+    "preview": "Предпросмотр",
+    "quickPresets": "Быстрые пресеты",
+    "parameters": "Параметры",
+    "previewNotAvailable": "Предпросмотр недоступен",
+    "tapToChange": "Нажмите, чтобы изменить",
+    "enable": "Включить",
+    "uiFieldTap": "Нажмите",
+    "uiFieldEnabled": "Включено",
+    "uiFieldDisabled": "Выключено",
+    "presetDarker": "Темнее",
+    "presetNormal": "Нормально",
+    "presetBrighter": "Ярче",
+    "presetVeryBright": "Очень ярко",
+    "presetLow": "Низкий",
+    "presetHigh": "Высокий",
+    "presetVeryHigh": "Очень высокий",
+    "presetSubtle": "Слабо",
+    "presetSoft": "Мягко",
+    "presetMedium": "Средне",
+    "presetStrong": "Сильно",
+    "effectBrightness": "Яркость",
+    "effectContrast": "Контраст",
+    "effectBlur": "Размытие",
+    "effectVignette": "Виньетка",
+    "effectInvert": "Инверсия",
+    "effectGrayscale": "Оттенки серого",
+    "effectSepia": "Сепия",
+    "effectThreshold": "Порог",
+    "effectPixelate": "Пикселизация",
+    "effectSharpen": "Резкость",
+    "effectNoise": "Шум",
+    "effectGlow": "Свечение",
+    "effectGlitch": "Глитч",
+    "effectSparkle": "Искры",
+    "effectFire": "Огонь",
+    "effectRain": "Дождь",
+    "@heightRangeError": {
+        "placeholders": {
+            "max": {
+                "type": "int"
+            }
+        }
+    },
+    "selectEffect": "Выбор эффекта",
+    "searchEffects": "Поиск эффектов...",
+    "categoryAll": "Все",
+    "categoryColorTone": "Цвет и Тон",
+    "categoryBlurSharpen": "Размытие и Резкость",
+    "categoryArtistic": "Художественные",
+    "categoryAnimation": "Анимация",
+    "categoryNature": "Природа",
+    "categoryParticles": "Частицы",
+    "categoryDistortion": "Искажение",
+    "categoryTextures": "Текстуры",
+    "categorySpecialFx": "Спецэффекты",
+    "noEffectsMatch": "Нет эффектов, соответствующих поиску",
+    "premiumEffect": "Премиум эффект",
+    "proVersionStatus": "Этот эффект доступен в Pro версии.",
+    "proFeaturesInclude": "Возможности Pro версии:",
+    "featureAdvancedEffects": "Продвинутые эффекты и инструменты",
+    "featureUnlimitedProjects": "Неограниченное количество проектов",
+    "featureCloudBackup": "Облачное резервное копирование",
+    "featurePrioritySupport": "Приоритетная поддержка",
+    "maybeLater": "Возможно позже",
+    "effectsPanelRemoveEffectTitle": "Удалить эффект",
+    "effectsPanelRemoveEffectMessage": "Вы уверены, что хотите удалить эффект {effectName}?",
+    "@effectsPanelRemoveEffectMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelClearAllEffectsTitle": "Очистить все эффекты",
+    "effectsPanelClearAllEffectsMessage": "Вы уверены, что хотите удалить все эффекты с этого слоя?",
+    "effectsPanelClearAll": "Очистить все",
+    "effectsPanelAppliedToLayerMessage": "Эффект {effectName} применен к слою",
+    "@effectsPanelAppliedToLayerMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelActionApply": "Применить",
+    "effectsPanelActionRemove": "Удалить",
+    "effectsPanelActionMore": "Еще",
+    "effectsPanelMoreActionsTitle": "Другие действия",
+    "effectsPanelApplyAll": "Применить все",
+    "firstFrame": "Первый кадр",
+    "previousFrame": "Предыдущий кадр",
+    "nextFrame": "Следующий кадр",
+    "feedback_dialog_title": "Нам важен ваш отзыв!",
+    "feedback_dialog_description": "Ваше мнение важно! Поделитесь им, чтобы помочь нам сделать приложение лучше.",
+    "feedback_dialog_benefit_1": "Делитесь идеями новых функций",
+    "feedback_dialog_benefit_2": "Сообщайте о багах и проблемах",
+    "feedback_dialog_benefit_3": "Помогайте формировать будущее приложения",
+    "feedback_dialog_leave_feedback": "Оставить отзыв",
+    "feedback_dialog_maybe_later": "Позже",
+    "feedback_dialog_dont_ask": "Больше не спрашивать"
 }

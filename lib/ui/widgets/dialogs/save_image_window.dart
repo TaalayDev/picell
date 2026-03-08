@@ -9,6 +9,7 @@ import '../../../pixel/pixel_canvas_state.dart';
 import '../../../data.dart';
 import '../../widgets.dart';
 import '../animation_timeline.dart';
+import '../../../l10n/strings.dart';
 
 Future<void> showSaveImageWindow(
   BuildContext context, {
@@ -188,7 +189,7 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                   child: Row(
                     children: [
                       Text(
-                        'Save',
+                        Strings.of(context).save,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const Spacer(),
@@ -206,19 +207,19 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     RadioListTile(
-                      title: const Text('PNG'),
+                      title: Text(Strings.of(context).png),
                       value: 'png',
                       groupValue: format,
                       onChanged: (value) => setState(() => format = value!),
                       contentPadding: EdgeInsets.zero,
                     ),
                     RadioListTile(
-                      title: const Text('Animated GIF'),
+                      title: Text(Strings.of(context).animatedGif),
                       subtitle: subscription.isPro
                           ? null
-                          : const Text(
-                              'Pro Plan Required',
-                              style: TextStyle(fontSize: 12, color: Colors.blue),
+                          : Text(
+                              Strings.of(context).proPlanRequired,
+                              style: const TextStyle(fontSize: 12, color: Colors.blue),
                             ),
                       value: 'gif',
                       groupValue: format,
@@ -226,12 +227,12 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                       contentPadding: EdgeInsets.zero,
                     ),
                     RadioListTile(
-                      title: const Text('Sprite Sheet'),
+                      title: Text(Strings.of(context).spriteSheet),
                       subtitle: subscription.plan == SubscriptionPlan.proPurchase
                           ? null
-                          : const Text(
-                              'Pro Plan Required',
-                              style: TextStyle(fontSize: 12, color: Colors.blue),
+                          : Text(
+                              Strings.of(context).proPlanRequired,
+                              style: const TextStyle(fontSize: 12, color: Colors.blue),
                             ),
                       value: 'sprite-sheet',
                       groupValue: format,
@@ -245,9 +246,9 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
 
                     // Background Options
                     SwitchListTile(
-                      title: const Text(
-                        'Transparent Background',
-                        style: TextStyle(fontSize: 14),
+                      title: Text(
+                        Strings.of(context).transparentBackground,
+                        style: const TextStyle(fontSize: 14),
                       ),
                       value: transparent,
                       onChanged: (value) => setState(() => transparent = value),
@@ -258,11 +259,11 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                     if (format == 'sprite-sheet') ...[
                       const Divider(),
                       const SizedBox(height: 16),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Sprite Sheet Options',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          Strings.of(context).spriteSheetOptions,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -270,8 +271,8 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<int>(
-                              decoration: const InputDecoration(
-                                labelText: 'Columns',
+                              decoration: InputDecoration(
+                                labelText: Strings.of(context).columnsLabel,
                               ),
                               value: spriteSheetColumns,
                               items: columnOptions.map((int value) {
@@ -286,8 +287,8 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'Spacing (px)',
+                              decoration: InputDecoration(
+                                labelText: Strings.of(context).spacingPx,
                               ),
                               initialValue: spriteSheetSpacing.toString(),
                               keyboardType: TextInputType.number,
@@ -298,11 +299,11 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Size',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        Strings.of(context).exportSize,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -314,7 +315,7 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Scale: ${scale.toStringAsFixed(1)}x',
+                                Strings.of(context).scaleWithValues(scale.toStringAsFixed(1)),
                                 style: const TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                               Slider(
@@ -335,8 +336,8 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                       children: [
                         Expanded(
                           child: TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Width',
+                            decoration: InputDecoration(
+                              labelText: Strings.of(context).width,
                             ),
                             controller: widthController,
                             keyboardType: TextInputType.number,
@@ -353,8 +354,8 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Height',
+                            decoration: InputDecoration(
+                              labelText: Strings.of(context).height,
                             ),
                             controller: heightController,
                             keyboardType: TextInputType.number,
@@ -430,7 +431,7 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
+                        child: Text(Strings.of(context).cancel),
                       ),
                       const SizedBox(width: 8),
                       FilledButton(
@@ -455,7 +456,7 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                           });
                           Navigator.of(context).pop();
                         },
-                        child: const Text('Save'),
+                        child: Text(Strings.of(context).save),
                       ),
                     ],
                   ),
@@ -606,7 +607,7 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
             child: Row(
               children: [
                 Text(
-                  'Save',
+                  Strings.of(context).save,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
@@ -637,7 +638,7 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
                       children: [
                         // Format Section
                         Text(
-                          'Format',
+                          Strings.of(context).format,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -647,16 +648,18 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
                           spacing: 12,
                           runSpacing: 8,
                           children: [
-                            _buildFormatOption('png', 'PNG', null),
+                            _buildFormatOption('png', Strings.of(context).png, null),
                             _buildFormatOption(
                               'gif',
-                              'GIF',
-                              subscription.isPro ? null : 'Pro Plan Required',
+                              Strings.of(context).animatedGif,
+                              subscription.isPro ? null : Strings.of(context).proPlanRequired,
                             ),
                             _buildFormatOption(
                               'sprite-sheet',
-                              'Sprite',
-                              subscription.plan == SubscriptionPlan.proPurchase ? null : 'Pro Plan Required',
+                              Strings.of(context).spriteSheet,
+                              subscription.plan == SubscriptionPlan.proPurchase
+                                  ? null
+                                  : Strings.of(context).proPlanRequired,
                             ),
                           ],
                         ),
@@ -667,7 +670,7 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
                         // Background Options
 
                         SwitchListTile(
-                          title: const Text('Transparent'),
+                          title: Text(Strings.of(context).transparent),
                           value: transparent,
                           onChanged: (value) => setState(() => transparent = value),
                           contentPadding: EdgeInsets.zero,
@@ -681,7 +684,7 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
 
                           // Sprite Sheet Options
                           Text(
-                            'Sprite Sheet Options',
+                            Strings.of(context).spriteSheetOptions,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -703,9 +706,9 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Spacing (px)',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: Strings.of(context).spacingPx,
+                              border: const OutlineInputBorder(),
                             ),
                             initialValue: spriteSheetSpacing.toString(),
                             keyboardType: TextInputType.number,
@@ -718,7 +721,7 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
 
                         // Size Section
                         Text(
-                          'Export Size',
+                          Strings.of(context).exportSize,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -728,7 +731,7 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Scale: ${scale.toStringAsFixed(1)}x',
+                              Strings.of(context).scaleWithValues(scale.toStringAsFixed(1)),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Colors.grey.shade600,
                                   ),
@@ -748,9 +751,9 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
                           children: [
                             Expanded(
                               child: TextFormField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Width',
-                                  border: OutlineInputBorder(),
+                                decoration: InputDecoration(
+                                  labelText: Strings.of(context).width,
+                                  border: const OutlineInputBorder(),
                                   suffixText: 'px',
                                 ),
                                 controller: widthController,
@@ -771,9 +774,9 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
                             ),
                             Expanded(
                               child: TextFormField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Height',
-                                  border: OutlineInputBorder(),
+                                decoration: InputDecoration(
+                                  labelText: Strings.of(context).height,
+                                  border: const OutlineInputBorder(),
                                   suffixText: 'px',
                                 ),
                                 controller: heightController,
@@ -832,13 +835,13 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(Strings.of(context).cancel),
                 ),
                 const SizedBox(width: 12),
                 FilledButton.icon(
                   onPressed: _handleSave,
                   icon: const Icon(Icons.save),
-                  label: const Text('Save'),
+                  label: Text(Strings.of(context).save),
                 ),
               ],
             ),
@@ -1044,7 +1047,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
             child: Row(
               children: [
                 Text(
-                  'Save',
+                  Strings.of(context).save,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -1075,7 +1078,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Format',
+                              Strings.of(context).format,
                               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: Theme.of(context).colorScheme.onSurface,
@@ -1083,14 +1086,14 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                             ),
                             const SizedBox(height: 12),
                             RadioListTile(
-                              title: const Text('PNG'),
+                              title: Text(Strings.of(context).png),
                               value: 'png',
                               groupValue: format,
                               onChanged: (value) => setState(() => format = value!),
                               contentPadding: EdgeInsets.zero,
                             ),
                             RadioListTile(
-                              title: const Text('Animated GIF'),
+                              title: Text(Strings.of(context).animatedGif),
                               subtitle: subscription.isPro
                                   ? null
                                   : const Text(
@@ -1103,7 +1106,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                               contentPadding: EdgeInsets.zero,
                             ),
                             RadioListTile(
-                              title: const Text('Sprite Sheet'),
+                              title: Text(Strings.of(context).spriteSheet),
                               subtitle: subscription.plan == SubscriptionPlan.proPurchase
                                   ? null
                                   : const Text(
@@ -1126,7 +1129,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Options',
+                              Strings.of(context).options,
                               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: Theme.of(context).colorScheme.onSurface,
@@ -1134,7 +1137,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                             ),
                             const SizedBox(height: 12),
                             SwitchListTile(
-                              title: const Text('Transparent Background'),
+                              title: Text(Strings.of(context).transparentBackground),
                               value: transparent,
                               onChanged: (value) => setState(() => transparent = value),
                               contentPadding: EdgeInsets.zero,
@@ -1146,7 +1149,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Scale: ${scale.toStringAsFixed(1)}x',
+                                  Strings.of(context).scaleWithValues(scale.toStringAsFixed(1)),
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                         color: Colors.grey.shade600,
                                       ),
@@ -1166,10 +1169,10 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                               children: [
                                 Expanded(
                                   child: TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Width',
+                                    decoration: InputDecoration(
+                                      labelText: Strings.of(context).width,
                                       suffixText: 'px',
-                                      border: OutlineInputBorder(),
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: widthController,
                                     keyboardType: TextInputType.number,
@@ -1186,10 +1189,10 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Height',
+                                    decoration: InputDecoration(
+                                      labelText: Strings.of(context).height,
                                       suffixText: 'px',
-                                      border: OutlineInputBorder(),
+                                      border: const OutlineInputBorder(),
                                     ),
                                     controller: heightController,
                                     keyboardType: TextInputType.number,
@@ -1216,7 +1219,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                     const Divider(),
                     const SizedBox(height: 20),
                     Text(
-                      'Sprite Sheet Options',
+                      Strings.of(context).spriteSheetOptions,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -1284,13 +1287,13 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(Strings.of(context).cancel),
                 ),
                 const SizedBox(width: 12),
                 FilledButton.icon(
                   onPressed: _handleSave,
                   icon: const Icon(Icons.save),
-                  label: const Text('Save'),
+                  label: Text(Strings.of(context).save),
                 ),
               ],
             ),
@@ -1374,7 +1377,7 @@ void showColorPicker(
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Pick a color'),
+      title: Text(Strings.of(context).pickAColor),
       content: SingleChildScrollView(
         child: ColorPicker(
           pickerColor: initialColor,
@@ -1384,7 +1387,7 @@ void showColorPicker(
       ),
       actions: [
         TextButton(
-          child: const Text('Done'),
+          child: Text(Strings.of(context).done),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],

@@ -145,6 +145,19 @@ class StringsEn extends Strings {
   String get justNow => 'Just now';
 
   @override
+  String frameCount(int current, int total) {
+    return 'Frame $current/$total';
+  }
+
+  @override
+  String get playbackSpeed => 'Speed:';
+
+  @override
+  String duration(int ms) {
+    return 'Duration: ${ms}ms';
+  }
+
+  @override
   String get animationPreview => 'Animation Preview';
 
   @override
@@ -195,6 +208,27 @@ class StringsEn extends Strings {
 
   @override
   String get deleteAccount => 'Delete Account';
+
+  @override
+  String get signInToContinue => 'Sign in to continue';
+
+  @override
+  String get signInToSyncProjects => 'Sign in to sync your projects.';
+
+  @override
+  String get signingIn => 'Signing In...';
+
+  @override
+  String get continueWithApple => 'Continue with Apple';
+
+  @override
+  String get signInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get skipForNow => 'Skip for now';
+
+  @override
+  String get noEmail => 'No email';
 
   @override
   String get feedback_title => 'Feedback';
@@ -377,6 +411,24 @@ class StringsEn extends Strings {
   String get feedback_q_recommend => 'Would you recommend this app to friends?';
 
   @override
+  String get firstFrame => 'First Frame';
+
+  @override
+  String get previousFrame => 'Previous Frame';
+
+  @override
+  String get pause => 'Pause';
+
+  @override
+  String get play => 'Play';
+
+  @override
+  String get nextFrame => 'Next Frame';
+
+  @override
+  String get lastFrame => 'Last Frame';
+
+  @override
   String get feedback_dialog_title => 'We\'d Love Your Feedback!';
 
   @override
@@ -400,185 +452,422 @@ class StringsEn extends Strings {
 
   @override
   String get feedback_dialog_dont_ask => 'Don\'t ask again';
-}
-
-/// The translations for English, as used in the United States (`en_US`).
-class StringsEnUs extends StringsEn {
-  StringsEnUs() : super('en_US');
 
   @override
-  String get appName => 'Picell';
+  String get paletteBasic => 'Basic';
 
   @override
-  String get aboutTitle => 'About Picell';
+  String get paletteShades => 'Shades';
 
   @override
-  String get welcome => 'Welcome to Picell!';
+  String get paletteComplementary => 'Complementary';
 
   @override
-  String get aboutAppDescription =>
-      'Picell is your gateway to creating amazing pixel art. Whether you\'re a seasoned artist or just starting out, our app provides the tools you need to bring your pixelated visions to life.';
+  String get paletteAnalogous => 'Analogous';
 
   @override
-  String version(String version) {
-    return 'Version $version';
+  String get paletteTriadic => 'Triadic';
+
+  @override
+  String get paletteMonochromatic => 'Monochromatic';
+
+  @override
+  String get paletteCustom => 'Custom';
+
+  @override
+  String get addToCustomPalette => 'Add to custom palette';
+
+  @override
+  String get noCustomColors =>
+      'No custom colors added yet.\nAdd colors using the + button above.';
+
+  @override
+  String get effects => 'Effects';
+
+  @override
+  String get editorSettings => 'Editor Settings';
+
+  @override
+  String get resetToDefaults => 'Reset to defaults';
+
+  @override
+  String get input => 'Input';
+
+  @override
+  String get display => 'Display';
+
+  @override
+  String get showGrid => 'Show Grid';
+
+  @override
+  String get showGridSubtitle => 'Display grid lines on canvas';
+
+  @override
+  String get pixelGridOverlay => 'Pixel Grid Overlay';
+
+  @override
+  String get pixelGridSubtitle => 'Show pixel boundaries when zoomed in';
+
+  @override
+  String get gridOpacity => 'Grid Opacity';
+
+  @override
+  String get zoomNavigation => 'Zoom & Navigation';
+
+  @override
+  String get zoomSensitivity => 'Zoom Sensitivity';
+
+  @override
+  String get zoomSensitivitySubtitle => 'How fast pinch-to-zoom responds';
+
+  @override
+  String get minZoom => 'Min Zoom';
+
+  @override
+  String get maxZoom => 'Max Zoom';
+
+  @override
+  String get gestures => 'Gestures';
+
+  @override
+  String get twoFingerUndo => 'Two-Finger Tap Undo';
+
+  @override
+  String get twoFingerUndoSubtitle => 'Quick tap with two fingers to undo';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get stylusMode => 'Stylus Mode';
+
+  @override
+  String get stylusModeSubtitleOn =>
+      'Draw with stylus only • Touch for navigation';
+
+  @override
+  String get stylusModeSubtitleOff => 'Draw with both touch and stylus';
+
+  @override
+  String get importImage => 'Import Image';
+
+  @override
+  String get selectImportOption => 'Select how you want to import your image:';
+
+  @override
+  String get convertToPixelArt => 'Convert to Pixel Art';
+
+  @override
+  String get convertToPixelArtDescription =>
+      'Import and automatically convert the image to pixel art style on a new layer.';
+
+  @override
+  String get importAsBackground => 'Import as Background';
+
+  @override
+  String get importAsBackgroundDescription =>
+      'Import the image as-is and use it as a reference background layer.';
+
+  @override
+  String get tinyIcon => 'Tiny Icon';
+
+  @override
+  String get smallSprite => 'Small Sprite';
+
+  @override
+  String get mediumCharacter => 'Medium Character';
+
+  @override
+  String get largeScene => 'Large Scene';
+
+  @override
+  String get projectNameRequired => 'Please enter a project name';
+
+  @override
+  String get templateRequired => 'Please select a template';
+
+  @override
+  String planLimitError(int limit) {
+    return 'Your plan is limited to $limit pixels';
   }
 
   @override
-  String get features =>
-      'Intuitive pixel editing tools, \nCustom color palettes, Layer support for complex artwork, \nAnimation timeline for creating GIFs, \nExport in various formats, \nCommunity sharing and inspiration';
+  String get widthRequired => 'Enter width';
 
   @override
-  String get featuresTitle => 'Key Features:';
+  String get heightRequired => 'Enter height';
 
   @override
-  String get visitWebsite => 'Visit my website for more information:';
-
-  @override
-  String get pickAColor => 'Pick a color';
-
-  @override
-  String get colorPicker => 'Color Picker';
-
-  @override
-  String get gotIt => 'Got it';
-
-  @override
-  String get undo => 'Undo';
-
-  @override
-  String get redo => 'Redo';
-
-  @override
-  String get clear => 'Clear';
-
-  @override
-  String get save => 'Save';
-
-  @override
-  String get saveAs => 'Save As';
-
-  @override
-  String get open => 'Open';
-
-  @override
-  String get export => 'Export';
-
-  @override
-  String get import => 'Import';
-
-  @override
-  String get share => 'Share';
-
-  @override
-  String get close => 'Close';
-
-  @override
-  String get projects => 'Projects';
-
-  @override
-  String get lineTool => 'Line';
-
-  @override
-  String get rectangleTool => 'Rectangle';
-
-  @override
-  String get circleTool => 'Circle';
-
-  @override
-  String get about => 'About';
-
-  @override
-  String get invalidFileContent => 'Invalid file content';
-
-  @override
-  String get anErrorOccurred => 'An error occurred';
-
-  @override
-  String get tryAgain => 'Try again';
-
-  @override
-  String get creatingProject => 'Creating project...';
-
-  @override
-  String get openingProject => 'Opening project...';
-
-  @override
-  String get noProjectsFound => 'No projects found';
-
-  @override
-  String get createNewProject => 'Create New';
-
-  @override
-  String get rename => 'Rename';
-
-  @override
-  String get delete => 'Delete';
-
-  @override
-  String get edit => 'Edit';
-
-  @override
-  String get cancel => 'Cancel';
-
-  @override
-  String get deleteProject => 'Delete Project';
-
-  @override
-  String get areYouSureWantToDeleteProject =>
-      'Are you sure you want to delete this project?';
-
-  @override
-  String get renameProject => 'Rename Project';
-
-  @override
-  String get projectName => 'Project Name';
-
-  @override
-  String timeAgo(String time) {
-    return '$time ago';
+  String widthRangeError(int max) {
+    return 'Width: 1-$max';
   }
 
   @override
-  String get justNow => 'Just now';
+  String heightRangeError(int max) {
+    return 'Height: 1-$max';
+  }
 
   @override
-  String get animationPreview => 'Animation Preview';
+  String get saveImage => 'Save Image';
 
   @override
-  String get colorPalette => 'Color Palette';
+  String get png => 'PNG';
 
   @override
-  String get currentColor => 'Current Color';
+  String get animatedGif => 'Animated GIF';
 
   @override
-  String get add => 'Add';
+  String get proPlanRequired => 'Pro Plan Required';
 
   @override
-  String get layers => 'Layers';
+  String get spriteSheet => 'Sprite Sheet';
 
   @override
-  String get deleteLayer => 'Delete Layer';
+  String get transparentBackground => 'Transparent Background';
 
   @override
-  String get areYouSureWantToDeleteLayer =>
-      'Are you sure you want to delete this layer?';
+  String get transparent => 'Transparent';
 
   @override
-  String get newProject => 'New Project';
+  String get spriteSheetOptions => 'Sprite Sheet Options';
 
   @override
-  String get template => 'Template';
+  String get columnsLabel => 'Columns';
 
   @override
-  String get width => 'Width';
+  String get spacingPx => 'Spacing (px)';
 
   @override
-  String get height => 'Height';
+  String get exportSize => 'Export Size';
 
   @override
-  String get create => 'Create';
+  String scaleWithValues(String scale) {
+    return 'Scale: ${scale}x';
+  }
 
   @override
-  String get fileMenu => 'File';
+  String get format => 'Format';
+
+  @override
+  String get options => 'Options';
+
+  @override
+  String editEffect(String name) {
+    return 'Edit $name Effect';
+  }
+
+  @override
+  String get applyChanges => 'Apply Changes';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get quickPresets => 'Quick Presets';
+
+  @override
+  String get parameters => 'Parameters';
+
+  @override
+  String get previewNotAvailable => 'Preview not available';
+
+  @override
+  String get tapToChange => 'Tap to change';
+
+  @override
+  String get enable => 'Enable';
+
+  @override
+  String get uiFieldTap => 'Tap';
+
+  @override
+  String get uiFieldEnabled => 'Enabled';
+
+  @override
+  String get uiFieldDisabled => 'Disabled';
+
+  @override
+  String get presetDarker => 'Darker';
+
+  @override
+  String get presetNormal => 'Normal';
+
+  @override
+  String get presetBrighter => 'Brighter';
+
+  @override
+  String get presetVeryBright => 'Very Bright';
+
+  @override
+  String get presetLow => 'Low';
+
+  @override
+  String get presetHigh => 'High';
+
+  @override
+  String get presetVeryHigh => 'Very High';
+
+  @override
+  String get presetSubtle => 'Subtle';
+
+  @override
+  String get presetSoft => 'Soft';
+
+  @override
+  String get presetMedium => 'Medium';
+
+  @override
+  String get presetStrong => 'Strong';
+
+  @override
+  String get effectBrightness => 'Brightness';
+
+  @override
+  String get effectContrast => 'Contrast';
+
+  @override
+  String get effectBlur => 'Blur';
+
+  @override
+  String get effectVignette => 'Vignette';
+
+  @override
+  String get effectInvert => 'Invert';
+
+  @override
+  String get effectGrayscale => 'Grayscale';
+
+  @override
+  String get effectSepia => 'Sepia';
+
+  @override
+  String get effectThreshold => 'Threshold';
+
+  @override
+  String get effectPixelate => 'Pixelate';
+
+  @override
+  String get effectSharpen => 'Sharpen';
+
+  @override
+  String get effectNoise => 'Noise';
+
+  @override
+  String get effectGlow => 'Glow';
+
+  @override
+  String get effectGlitch => 'Glitch';
+
+  @override
+  String get effectSparkle => 'Sparkle';
+
+  @override
+  String get effectFire => 'Fire';
+
+  @override
+  String get effectRain => 'Rain';
+
+  @override
+  String get selectEffect => 'Select Effect';
+
+  @override
+  String get searchEffects => 'Search effects...';
+
+  @override
+  String get categoryAll => 'All';
+
+  @override
+  String get categoryColorTone => 'Color & Tone';
+
+  @override
+  String get categoryBlurSharpen => 'Blur & Sharpen';
+
+  @override
+  String get categoryArtistic => 'Artistic';
+
+  @override
+  String get categoryAnimation => 'Animation';
+
+  @override
+  String get categoryNature => 'Nature';
+
+  @override
+  String get categoryParticles => 'Particles';
+
+  @override
+  String get categoryDistortion => 'Distortion';
+
+  @override
+  String get categoryTextures => 'Textures';
+
+  @override
+  String get categorySpecialFx => 'Special FX';
+
+  @override
+  String get noEffectsMatch => 'No effects match your search';
+
+  @override
+  String get premiumEffect => 'Premium Effect';
+
+  @override
+  String get proVersionStatus => 'This effect is available in the Pro version.';
+
+  @override
+  String get proFeaturesInclude => 'Pro features include:';
+
+  @override
+  String get featureAdvancedEffects => 'Advanced effects and tools';
+
+  @override
+  String get featureUnlimitedProjects => 'Unlimited projects';
+
+  @override
+  String get featureCloudBackup => 'Cloud backup';
+
+  @override
+  String get featurePrioritySupport => 'Priority support';
+
+  @override
+  String get maybeLater => 'Maybe Later';
+
+  @override
+  String get upgradeToPro => 'Upgrade to Pro';
+
+  @override
+  String get effectsPanelRemoveEffectTitle => 'Remove Effect';
+
+  @override
+  String effectsPanelRemoveEffectMessage(String effectName) {
+    return 'Are you sure you want to remove the $effectName effect?';
+  }
+
+  @override
+  String get effectsPanelClearAllEffectsTitle => 'Clear All Effects';
+
+  @override
+  String get effectsPanelClearAllEffectsMessage =>
+      'Are you sure you want to remove all effects from this layer?';
+
+  @override
+  String get effectsPanelClearAll => 'Clear All';
+
+  @override
+  String effectsPanelAppliedToLayerMessage(String effectName) {
+    return 'Effect $effectName applied to layer';
+  }
+
+  @override
+  String get effectsPanelActionApply => 'Apply';
+
+  @override
+  String get effectsPanelActionRemove => 'Remove';
+
+  @override
+  String get effectsPanelActionMore => 'More';
+
+  @override
+  String get effectsPanelMoreActionsTitle => 'More Actions';
+
+  @override
+  String get effectsPanelApplyAll => 'Apply All';
 }

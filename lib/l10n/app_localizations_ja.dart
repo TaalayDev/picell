@@ -144,6 +144,19 @@ class StringsJa extends Strings {
   String get justNow => 'たった今';
 
   @override
+  String frameCount(int current, int total) {
+    return 'フレーム $current/$total';
+  }
+
+  @override
+  String get playbackSpeed => '再生速度：';
+
+  @override
+  String duration(int ms) {
+    return '再生時間: ${ms}ms';
+  }
+
+  @override
   String get animationPreview => 'アニメーションプレビュー';
 
   @override
@@ -180,19 +193,40 @@ class StringsJa extends Strings {
   String get create => '作成';
 
   @override
-  String get subscriptions => 'Subscriptions';
+  String get subscriptions => 'サブスクリプション';
 
   @override
-  String get fileMenu => 'File';
+  String get fileMenu => 'ファイル';
 
   @override
-  String get profile => 'Profile';
+  String get profile => 'プロフィール';
 
   @override
-  String get logout => 'Logout';
+  String get logout => 'ログアウト';
 
   @override
-  String get deleteAccount => 'Delete Account';
+  String get deleteAccount => 'アカウント削除';
+
+  @override
+  String get signInToContinue => '続行するにはサインインしてください';
+
+  @override
+  String get signInToSyncProjects => 'プロジェクトを同期するにはサインインしてください。';
+
+  @override
+  String get signingIn => 'サインイン中...';
+
+  @override
+  String get continueWithApple => 'Appleでサインイン';
+
+  @override
+  String get signInWithGoogle => 'Googleでサインイン';
+
+  @override
+  String get skipForNow => '今はスキップする';
+
+  @override
+  String get noEmail => 'メールアドレスなし';
 
   @override
   String get feedback_title => 'フィードバック';
@@ -361,27 +395,461 @@ class StringsJa extends Strings {
   String get feedback_q_recommend => 'このアプリを友達に勧めますか？';
 
   @override
-  String get feedback_dialog_title => 'We\'d Love Your Feedback!';
+  String get firstFrame => '最初のフレーム';
+
+  @override
+  String get previousFrame => '前のフレーム';
+
+  @override
+  String get pause => '一時停止';
+
+  @override
+  String get play => '再生';
+
+  @override
+  String get nextFrame => '次のフレーム';
+
+  @override
+  String get lastFrame => '最後のフレーム';
+
+  @override
+  String get feedback_dialog_title => 'ご意見をお聞かせください！';
 
   @override
   String get feedback_dialog_description =>
-      'Your opinion matters! Help us make the app better by sharing your thoughts.';
+      'あなたのご意見は大切です。感想を共有してアプリの改善にご協力ください。';
 
   @override
-  String get feedback_dialog_benefit_1 => 'Share ideas for new features';
+  String get feedback_dialog_benefit_1 => '新機能のアイデアを共有';
 
   @override
-  String get feedback_dialog_benefit_2 => 'Report bugs and issues';
+  String get feedback_dialog_benefit_2 => 'バグや問題を報告';
 
   @override
-  String get feedback_dialog_benefit_3 => 'Help shape the app\'s future';
+  String get feedback_dialog_benefit_3 => 'アプリの未来づくりに参加';
 
   @override
-  String get feedback_dialog_leave_feedback => 'Leave Feedback';
+  String get feedback_dialog_leave_feedback => 'フィードバックを送る';
 
   @override
-  String get feedback_dialog_maybe_later => 'Maybe Later';
+  String get feedback_dialog_maybe_later => '後で';
 
   @override
-  String get feedback_dialog_dont_ask => 'Don\'t ask again';
+  String get feedback_dialog_dont_ask => '今後は表示しない';
+
+  @override
+  String get paletteBasic => '基本';
+
+  @override
+  String get paletteShades => 'シェード';
+
+  @override
+  String get paletteComplementary => '補色';
+
+  @override
+  String get paletteAnalogous => '類似色';
+
+  @override
+  String get paletteTriadic => 'トライアディック';
+
+  @override
+  String get paletteMonochromatic => 'モノクロマチック';
+
+  @override
+  String get paletteCustom => 'カスタム';
+
+  @override
+  String get addToCustomPalette => 'カスタムパレットに追加';
+
+  @override
+  String get noCustomColors => 'カスタムカラーはまだ追加されていません。\n上の+ボタンを使用して色を追加してください。';
+
+  @override
+  String get effects => 'エフェクト';
+
+  @override
+  String get editorSettings => 'エディタ設定';
+
+  @override
+  String get resetToDefaults => 'デフォルトにリセット';
+
+  @override
+  String get input => '入力';
+
+  @override
+  String get display => '表示';
+
+  @override
+  String get showGrid => 'グリッドを表示';
+
+  @override
+  String get showGridSubtitle => 'キャンバスにグリッド線を表示します';
+
+  @override
+  String get pixelGridOverlay => 'ピクセルグリッドオーバーレイ';
+
+  @override
+  String get pixelGridSubtitle => 'ズーム時にピクセルの境界を表示します';
+
+  @override
+  String get gridOpacity => 'グリッドの不透明度';
+
+  @override
+  String get zoomNavigation => 'ズームとナビゲーション';
+
+  @override
+  String get zoomSensitivity => 'ズーム感度';
+
+  @override
+  String get zoomSensitivitySubtitle => 'ピンチズームの反応速度';
+
+  @override
+  String get minZoom => '最小ズーム';
+
+  @override
+  String get maxZoom => '最大ズーム';
+
+  @override
+  String get gestures => 'ジェスチャー';
+
+  @override
+  String get twoFingerUndo => '2本指タップで元に戻す';
+
+  @override
+  String get twoFingerUndoSubtitle => '2本指でクイックタップして操作を元に戻します';
+
+  @override
+  String get done => '完了';
+
+  @override
+  String get stylusMode => 'スタイラスモード';
+
+  @override
+  String get stylusModeSubtitleOn => 'スタイラスのみで描画 ・ タッチで移動';
+
+  @override
+  String get stylusModeSubtitleOff => 'タッチとスタイラスの両方で描画';
+
+  @override
+  String get importImage => '画像をインポート';
+
+  @override
+  String get selectImportOption => '画像のインポート方法を選択してください：';
+
+  @override
+  String get convertToPixelArt => 'ピクセルアートに変換';
+
+  @override
+  String get convertToPixelArtDescription =>
+      '画像をインポートし、新しいレイヤーで自動的にピクセルアートスタイルに変換します。';
+
+  @override
+  String get importAsBackground => '背景としてインポート';
+
+  @override
+  String get importAsBackgroundDescription =>
+      '画像をそのままインポートし、参照用の背景レイヤーとして使用します。';
+
+  @override
+  String get tinyIcon => '小さいアイコン';
+
+  @override
+  String get smallSprite => '小さいスプライト';
+
+  @override
+  String get mediumCharacter => '中サイズキャラクター';
+
+  @override
+  String get largeScene => '大きいシーン';
+
+  @override
+  String get projectNameRequired => 'プロジェクト名を入力してください';
+
+  @override
+  String get templateRequired => 'テンプレートを選択してください';
+
+  @override
+  String planLimitError(int limit) {
+    return 'あなたのプランは$limitピクセルに制限されています';
+  }
+
+  @override
+  String get widthRequired => '幅を入力してください';
+
+  @override
+  String get heightRequired => '高さを入力してください';
+
+  @override
+  String widthRangeError(int max) {
+    return '幅: 1-$max';
+  }
+
+  @override
+  String heightRangeError(int max) {
+    return '高さ: 1-$max';
+  }
+
+  @override
+  String get saveImage => '画像を保存';
+
+  @override
+  String get png => 'PNG';
+
+  @override
+  String get animatedGif => 'アニメーションGIF';
+
+  @override
+  String get proPlanRequired => 'Proプランが必要';
+
+  @override
+  String get spriteSheet => 'スプライトシート';
+
+  @override
+  String get transparentBackground => '背景を透明にする';
+
+  @override
+  String get transparent => '透明';
+
+  @override
+  String get spriteSheetOptions => 'スプライトシート設定';
+
+  @override
+  String get columnsLabel => '列数';
+
+  @override
+  String get spacingPx => '間隔 (px)';
+
+  @override
+  String get exportSize => 'エクスポートサイズ';
+
+  @override
+  String scaleWithValues(String scale) {
+    return '倍率: ${scale}x';
+  }
+
+  @override
+  String get format => '形式';
+
+  @override
+  String get options => 'オプション';
+
+  @override
+  String editEffect(String name) {
+    return '効果を編集: $name';
+  }
+
+  @override
+  String get applyChanges => '変更を適用';
+
+  @override
+  String get preview => 'プレビュー';
+
+  @override
+  String get quickPresets => 'クイックプリセット';
+
+  @override
+  String get parameters => 'パラメータ';
+
+  @override
+  String get previewNotAvailable => 'プレビューを利用できません';
+
+  @override
+  String get tapToChange => 'タップして変更';
+
+  @override
+  String get enable => '有効';
+
+  @override
+  String get uiFieldTap => 'タップ';
+
+  @override
+  String get uiFieldEnabled => '有効';
+
+  @override
+  String get uiFieldDisabled => '無効';
+
+  @override
+  String get presetDarker => 'より暗く';
+
+  @override
+  String get presetNormal => '通常';
+
+  @override
+  String get presetBrighter => 'より明るく';
+
+  @override
+  String get presetVeryBright => '非常に明るく';
+
+  @override
+  String get presetLow => '低い';
+
+  @override
+  String get presetHigh => '高い';
+
+  @override
+  String get presetVeryHigh => '非常に高い';
+
+  @override
+  String get presetSubtle => 'かすかに';
+
+  @override
+  String get presetSoft => 'ソフト';
+
+  @override
+  String get presetMedium => '中間';
+
+  @override
+  String get presetStrong => '強く';
+
+  @override
+  String get effectBrightness => '明るさ';
+
+  @override
+  String get effectContrast => 'コントラスト';
+
+  @override
+  String get effectBlur => 'ぼかし';
+
+  @override
+  String get effectVignette => 'ビネット';
+
+  @override
+  String get effectInvert => '反転';
+
+  @override
+  String get effectGrayscale => 'グレースケール';
+
+  @override
+  String get effectSepia => 'セピア';
+
+  @override
+  String get effectThreshold => 'しきい値';
+
+  @override
+  String get effectPixelate => 'ピクセル化';
+
+  @override
+  String get effectSharpen => 'シャープ';
+
+  @override
+  String get effectNoise => 'ノイズ';
+
+  @override
+  String get effectGlow => 'グロー';
+
+  @override
+  String get effectGlitch => 'グリッチ';
+
+  @override
+  String get effectSparkle => 'スパークル';
+
+  @override
+  String get effectFire => '炎';
+
+  @override
+  String get effectRain => '雨';
+
+  @override
+  String get selectEffect => '効果を選択';
+
+  @override
+  String get searchEffects => '効果を検索...';
+
+  @override
+  String get categoryAll => 'すべて';
+
+  @override
+  String get categoryColorTone => '色と調子';
+
+  @override
+  String get categoryBlurSharpen => 'ぼかしとシャープ';
+
+  @override
+  String get categoryArtistic => '芸術的';
+
+  @override
+  String get categoryAnimation => 'アニメーション';
+
+  @override
+  String get categoryNature => '自然';
+
+  @override
+  String get categoryParticles => 'パーティクル';
+
+  @override
+  String get categoryDistortion => '歪み';
+
+  @override
+  String get categoryTextures => 'テクスチャ';
+
+  @override
+  String get categorySpecialFx => '特殊効果';
+
+  @override
+  String get noEffectsMatch => '検索に一致する効果はありません';
+
+  @override
+  String get premiumEffect => 'プレミアム効果';
+
+  @override
+  String get proVersionStatus => 'この効果はProバージョンで利用可能です。';
+
+  @override
+  String get proFeaturesInclude => 'Proバージョンの機能:';
+
+  @override
+  String get featureAdvancedEffects => '高度な効果とツール';
+
+  @override
+  String get featureUnlimitedProjects => '無制限のプロジェクト';
+
+  @override
+  String get featureCloudBackup => 'クラウドバックアップ';
+
+  @override
+  String get featurePrioritySupport => '優先サポート';
+
+  @override
+  String get maybeLater => 'あとで';
+
+  @override
+  String get upgradeToPro => 'Proにアップグレード';
+
+  @override
+  String get effectsPanelRemoveEffectTitle => '効果を削除';
+
+  @override
+  String effectsPanelRemoveEffectMessage(String effectName) {
+    return '$effectName効果を削除してもよろしいですか？';
+  }
+
+  @override
+  String get effectsPanelClearAllEffectsTitle => 'すべての効果をクリア';
+
+  @override
+  String get effectsPanelClearAllEffectsMessage =>
+      'このレイヤーからすべての効果を削除してもよろしいですか？';
+
+  @override
+  String get effectsPanelClearAll => 'すべてクリア';
+
+  @override
+  String effectsPanelAppliedToLayerMessage(String effectName) {
+    return '$effectName効果をレイヤーに適用しました';
+  }
+
+  @override
+  String get effectsPanelActionApply => '適用';
+
+  @override
+  String get effectsPanelActionRemove => '削除';
+
+  @override
+  String get effectsPanelActionMore => 'その他';
+
+  @override
+  String get effectsPanelMoreActionsTitle => 'その他の操作';
+
+  @override
+  String get effectsPanelApplyAll => 'すべて適用';
 }

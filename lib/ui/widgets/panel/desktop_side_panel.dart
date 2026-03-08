@@ -8,6 +8,7 @@ import 'color_palette_panel.dart';
 import '../dialogs/layer_template_dialog.dart';
 import '../effects/effects_side_panel.dart';
 import '../layers_panel.dart';
+import '../../../l10n/strings.dart';
 
 class DesktopSidePanel extends StatefulHookConsumerWidget {
   final int width;
@@ -77,7 +78,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                         letterSpacing: 0.5,
                       ),
                       dividerHeight: 0,
-                      tabs: const [
+                      tabs: [
                         Tab(
                           height: 32,
                           child: Row(
@@ -85,7 +86,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                             children: [
                               Icon(Icons.layers_outlined, size: 14),
                               SizedBox(width: 4),
-                              Text('Layers'),
+                              Text(Strings.of(context).layers),
                             ],
                           ),
                         ),
@@ -96,7 +97,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                             children: [
                               Icon(Icons.auto_fix_high_outlined, size: 14),
                               SizedBox(width: 4),
-                              Text('Effects'),
+                              Text(Strings.of(context).effects),
                             ],
                           ),
                         ),

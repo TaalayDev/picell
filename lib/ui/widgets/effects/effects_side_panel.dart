@@ -5,9 +5,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../data.dart';
 import '../../../data/models/subscription_model.dart';
+import '../../../l10n/strings.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../../pixel/effects/effects.dart';
-import '../dialogs/save_image_window.dart';
 import 'effect_list_item.dart';
 import 'effects_editor_dialog.dart';
 import 'effects_empty_widget.dart';
@@ -99,15 +99,17 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
 
   void _removeEffect(int index) {
     if (index >= 0 && index < _effects.length) {
+      final s = Strings.of(context);
+      final effectName = _effects[index].getName(context);
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Remove Effect'),
-          content: Text('Are you sure you want to remove the "${_effects[index].getName(context)}" effect?'),
+          title: Text(s.effectsPanelRemoveEffectTitle),
+          content: Text(s.effectsPanelRemoveEffectMessage(effectName)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(s.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -116,13 +118,14 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
                   _effects.removeAt(index);
                   if (_selectedEffectIndex == index) {
                     _selectedEffectIndex = null;
-                  } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
+                  } else if (_selectedEffectIndex != null &&
+                      _selectedEffectIndex! > index) {
                     _selectedEffectIndex = _selectedEffectIndex! - 1;
                   }
                 });
                 _updateLayer();
               },
-              child: const Text('Remove'),
+              child: Text(s.effectsPanelActionRemove),
             ),
           ],
         ),
@@ -139,15 +142,16 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   void _clearAllEffects() {
     if (_effects.isEmpty) return;
 
+    final s = Strings.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear All Effects'),
-        content: const Text('Are you sure you want to remove all effects from this layer?'),
+        title: Text(s.effectsPanelClearAllEffectsTitle),
+        content: Text(s.effectsPanelClearAllEffectsMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(s.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -158,7 +162,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
               });
               _updateLayer();
             },
-            child: const Text('Clear All'),
+            child: Text(s.effectsPanelClearAll),
           ),
         ],
       ),
@@ -166,6 +170,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   }
 
   void _performApplyEffect(Effect effect) {
+    final s = Strings.of(context);
     final effectsToApply = [effect];
     final index = _effects.indexOf(effect);
 
@@ -180,7 +185,8 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
       _effects.removeAt(index);
       if (_selectedEffectIndex == index) {
         _selectedEffectIndex = null;
-      } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
+      } else if (_selectedEffectIndex != null &&
+          _selectedEffectIndex! > index) {
         _selectedEffectIndex = _selectedEffectIndex! - 1;
       }
     });
@@ -195,7 +201,9 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
     // Show confirmation
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Effect "${effectsToApply[index].getName(context)}" applied to layer'),
+        content: Text(
+          s.effectsPanelAppliedToLayerMessage(effect.getName(context)),
+        ),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
       ),
@@ -232,9 +240,11 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
                   if (_selectedEffectIndex == oldIndex) {
                     _selectedEffectIndex = newIndex;
                   } else if (_selectedEffectIndex != null) {
-                    if (oldIndex < _selectedEffectIndex! && newIndex >= _selectedEffectIndex!) {
+                    if (oldIndex < _selectedEffectIndex! &&
+                        newIndex >= _selectedEffectIndex!) {
                       _selectedEffectIndex = _selectedEffectIndex! - 1;
-                    } else if (oldIndex > _selectedEffectIndex! && newIndex <= _selectedEffectIndex!) {
+                    } else if (oldIndex > _selectedEffectIndex! &&
+                        newIndex <= _selectedEffectIndex!) {
                       _selectedEffectIndex = _selectedEffectIndex! + 1;
                     }
                   }
@@ -244,7 +254,8 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
               itemBuilder: (context, index) {
                 final isSelected = _selectedEffectIndex == index;
                 return EffectListItem(
-                  key: ValueKey(_effects[index].type.toString() + index.toString()),
+                  key: ValueKey(
+                      _effects[index].type.toString() + index.toString()),
                   effect: _effects[index],
                   isSelected: isSelected,
                   onSelect: () {
@@ -270,7 +281,9 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
     );
   }
 
-  Widget _buildActionButtonsBar(BuildContext context, UserSubscription subscription) {
+  Widget _buildActionButtonsBar(
+      BuildContext context, UserSubscription subscription) {
+    final s = Strings.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
@@ -287,7 +300,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
           _buildActionButton(
             context: context,
             icon: Icons.add,
-            label: 'Add',
+            label: s.add,
             color: Colors.green,
             onPressed: _addEffect,
           ),
@@ -295,40 +308,49 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
           _buildActionButton(
             context: context,
             icon: Icons.check,
-            label: 'Apply',
+            label: s.effectsPanelActionApply,
             color: Colors.blue,
-            onPressed: _selectedEffectIndex != null ? () => _performApplyEffect(_effects[_selectedEffectIndex!]) : null,
+            onPressed: _selectedEffectIndex != null
+                ? () => _performApplyEffect(_effects[_selectedEffectIndex!])
+                : null,
           ),
           const SizedBox(width: 8),
           _buildActionButton(
             context: context,
             icon: Icons.delete_outline,
-            label: 'Remove',
+            label: s.effectsPanelActionRemove,
             color: Colors.red,
-            onPressed: _selectedEffectIndex != null ? _removeSelectedEffect : null,
+            onPressed:
+                _selectedEffectIndex != null ? _removeSelectedEffect : null,
           ),
           const SizedBox(width: 8),
           _buildActionButton(
             context: context,
             icon: Icons.more_vert,
-            label: 'More',
+            label: s.effectsPanelActionMore,
             color: Colors.grey,
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('More Actions', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                  title: Text(
+                    s.effectsPanelMoreActionsTitle,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.red),
+                  ),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.checklist_outlined, color: Colors.green),
-                        title: const Text('Apply All'),
+                        leading: const Icon(Icons.checklist_outlined,
+                            color: Colors.green),
+                        title: Text(s.effectsPanelApplyAll),
                         onTap: () {},
                       ),
                       ListTile(
-                        leading: const Icon(Icons.delete_sweep, color: Colors.red),
-                        title: const Text('Clear All Effects'),
+                        leading:
+                            const Icon(Icons.delete_sweep, color: Colors.red),
+                        title: Text(s.effectsPanelClearAllEffectsTitle),
                         onTap: () {
                           Navigator.of(context).pop();
                           _clearAllEffects();
@@ -365,10 +387,14 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: isEnabled ? color.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+              color: isEnabled
+                  ? color.withOpacity(0.3)
+                  : Colors.grey.withOpacity(0.2),
               width: 1,
             ),
-            color: isEnabled ? color.withOpacity(0.1) : Colors.grey.withOpacity(0.05),
+            color: isEnabled
+                ? color.withOpacity(0.1)
+                : Colors.grey.withOpacity(0.05),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

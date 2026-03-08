@@ -7,6 +7,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import '../../ui/widgets/app_icon.dart';
 import '../../ui/widgets/fields/ui_field.dart';
 import '../pixel_utils.dart';
+import '../../l10n/strings.dart';
 
 part 'brightness_effect.dart';
 part 'contrast_effect.dart';
@@ -155,35 +156,35 @@ abstract class Effect {
   List<UIField> getFields() => _fieldsFromMetadata(getMetadata());
 
   String getName(BuildContext context) => switch (type) {
-        EffectType.brightness => 'Brightness',
-        EffectType.contrast => 'Contrast',
-        EffectType.invert => 'Invert',
-        EffectType.grayscale => 'Grayscale',
-        EffectType.sepia => 'Sepia',
-        EffectType.threshold => 'Threshold',
-        EffectType.pixelate => 'Pixelate',
-        EffectType.blur => 'Blur',
-        EffectType.sharpen => 'Sharpen',
+        EffectType.brightness => Strings.of(context).effectBrightness,
+        EffectType.contrast => Strings.of(context).effectContrast,
+        EffectType.invert => Strings.of(context).effectInvert,
+        EffectType.grayscale => Strings.of(context).effectGrayscale,
+        EffectType.sepia => Strings.of(context).effectSepia,
+        EffectType.threshold => Strings.of(context).effectThreshold,
+        EffectType.pixelate => Strings.of(context).effectPixelate,
+        EffectType.blur => Strings.of(context).effectBlur,
+        EffectType.sharpen => Strings.of(context).effectSharpen,
         EffectType.emboss => 'Emboss',
-        EffectType.vignette => 'Vignette',
-        EffectType.noise => 'Noise',
+        EffectType.vignette => Strings.of(context).effectVignette,
+        EffectType.noise => Strings.of(context).effectNoise,
         EffectType.colorBalance => 'Color Balance',
         EffectType.dithering => 'Dithering',
         EffectType.outline => 'Outline',
         EffectType.paletteReduction => 'Palette Reduction',
         EffectType.watercolor => 'Watercolor',
         EffectType.halftone => 'Halftone',
-        EffectType.glow => 'Glow',
+        EffectType.glow => Strings.of(context).effectGlow,
         EffectType.oilPaint => 'Oil Paint',
         EffectType.gradient => 'Gradient Map',
-        EffectType.fire => 'Fire',
+        EffectType.fire => Strings.of(context).effectFire,
         EffectType.wood => 'Wood',
-        EffectType.rain => 'Rain',
+        EffectType.rain => Strings.of(context).effectRain,
         EffectType.crystal => 'Crystal',
         EffectType.stainedGlass => 'Stained Glass',
-        EffectType.glitch => 'Glitch',
+        EffectType.glitch => Strings.of(context).effectGlitch,
         EffectType.metal => 'Metal',
-        EffectType.sparkle => 'Sparkle',
+        EffectType.sparkle => Strings.of(context).effectSparkle,
         EffectType.particle => 'Particle',
         EffectType.pulse => 'Pulse',
         EffectType.wave => 'Wave',

@@ -57,11 +57,33 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
 
   int _selectedTemplateIndex = 0;
 
-  String _getTemplateName(ProjectTemplate template) {
-    if (template.name == 'Custom') {
-      return template.name;
+  String _getTemplateName(BuildContext context, ProjectTemplate template) {
+    final s = Strings.of(context);
+    final String localizedName;
+    switch (template.name) {
+      case 'Tiny Icon':
+        localizedName = s.tinyIcon;
+        break;
+      case 'Small Sprite':
+        localizedName = s.smallSprite;
+        break;
+      case 'Medium Character':
+        localizedName = s.mediumCharacter;
+        break;
+      case 'Large Scene':
+        localizedName = s.largeScene;
+        break;
+      case 'Custom':
+        localizedName = s.paletteCustom; // Using paletteCustom as it's already "Custom"
+        break;
+      default:
+        localizedName = template.name;
     }
-    return '${template.name} (${template.width}x${template.height})';
+
+    if (template.name == 'Custom') {
+      return localizedName;
+    }
+    return '$localizedName (${template.width}x${template.height})';
   }
 
   @override
@@ -90,7 +112,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a project name';
+                    return Strings.of(context).projectNameRequired;
                   }
                   return null;
                 },
@@ -160,15 +182,15 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
             final template = _templates[index];
             return DropdownMenuItem(
               value: index,
-              child: Text(_getTemplateName(template)),
+              child: Text(_getTemplateName(context, template)),
             );
           }),
           validator: (value) {
             if (value == null) {
-              return 'Please select a template';
+              return Strings.of(context).templateRequired;
             }
             if (!kIsDemo && value != _templates.length - 1 && (_width > maxCanvasSize || _height > maxCanvasSize)) {
-              return 'Your plan is limited to $maxCanvasSize pixels';
+              return Strings.of(context).planLimitError(maxCanvasSize);
             }
             return null;
           },
@@ -198,11 +220,11 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                   initialValue: _width.toString(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter width';
+                      return Strings.of(context).widthRequired;
                     }
                     int? width = int.tryParse(value);
                     if (width == null || width < 1 || width > kMaxPixelWidth) {
-                      return 'Width: 1-$kMaxPixelWidth';
+                      return Strings.of(context).widthRangeError(kMaxPixelWidth);
                     }
                     return null;
                   },
@@ -222,11 +244,11 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                   initialValue: _height.toString(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter height';
+                      return Strings.of(context).heightRequired;
                     }
                     int? height = int.tryParse(value);
                     if (height == null || height < 1 || height > kMaxPixelHeight) {
-                      return 'Height: 1-$kMaxPixelHeight';
+                      return Strings.of(context).heightRangeError(kMaxPixelHeight);
                     }
                     return null;
                   },
