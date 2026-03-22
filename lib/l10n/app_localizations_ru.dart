@@ -482,6 +482,12 @@ class StringsRu extends Strings {
   String get paletteCustom => 'Пользовательская';
 
   @override
+  String get paletteImported => 'Импортированная';
+
+  @override
+  String get paletteImportedCount => 'цветов';
+
+  @override
   String get addToCustomPalette => 'Добавить в пользовательскую палитру';
 
   @override
@@ -576,6 +582,27 @@ class StringsRu extends Strings {
   @override
   String get importAsBackgroundDescription =>
       'Импорт как есть для использования в качестве фонового слоя.';
+
+  @override
+  String get conversionSettings => 'Настройки конвертации';
+
+  @override
+  String get paletteColors => 'Цвета палитры';
+
+  @override
+  String get fullColor => 'Полный цвет';
+
+  @override
+  String get dithering => 'Дизеринг';
+
+  @override
+  String get noDithering => 'Нет';
+
+  @override
+  String get alphaThreshold => 'Порог прозрачности';
+
+  @override
+  String get chooseImage => 'Выбрать изображение';
 
   @override
   String get tinyIcon => 'Маленькая иконка';

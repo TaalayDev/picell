@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/models/template.dart';
 import '../../data.dart';
+import '../pixel_art_converter.dart';
 import '../pixel_point.dart';
 import '../effects/effects.dart';
 import '../pixel_canvas_state.dart';
@@ -124,11 +125,15 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
         exportHeight: exportHeight,
       );
   Future<void> share(BuildContext context) => _controller.shareProject(context);
-  Future<void> importImage(BuildContext context, {bool background = false}) {
-    if (background) {
+  Future<void> importImage(
+    BuildContext context, {
+    bool isBackground = false,
+    PixelArtConversionOptions options = const PixelArtConversionOptions(),
+  }) {
+    if (isBackground) {
       return _controller.importImageAsBackground(context);
     } else {
-      return _controller.importImageAsLayer(context);
+      return _controller.importImageAsLayer(context, options: options);
     }
   }
 

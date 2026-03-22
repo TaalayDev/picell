@@ -6,12 +6,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:universal_html/html.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:image/image.dart' as img;
+
 import '../../core.dart';
 import '../../data/models/template.dart';
 import '../pixel_point.dart';
 import '../../data.dart';
 import '../../providers/providers.dart';
 import '../../providers/background_image_provider.dart';
+import '../../providers/imported_palette_provider.dart';
 import '../services/animation_service.dart';
 import '../services/drawing_service.dart';
 import '../services/frame_service.dart';
@@ -982,15 +985,26 @@ class PixelDrawController extends _$PixelDrawController {
     final imageBytes = await _importExportService.importImageAsBackground(context: context);
     if (imageBytes != null) {
       ref.read(backgroundImageProvider.notifier).update((state) => state.copyWith(image: imageBytes));
+
+      // Extract dominant colors and publish to palette panel
+      final img.Image? decoded = img.decodeImage(imageBytes);
+      if (decoded != null) {
+        final palette = PixelArtConverter.extractPaletteFromImage(decoded, maxColors: 32);
+        ref.read(importedPaletteProvider.notifier).set(palette);
+      }
     }
   }
 
-  Future<void> importImageAsLayer(BuildContext context) async {
+  Future<void> importImageAsLayer(
+    BuildContext context, {
+    PixelArtConversionOptions options = const PixelArtConversionOptions(),
+  }) async {
     final newLayer = await _importExportService.importImageAsLayer(
       context: context,
       width: state.width,
       height: state.height,
       layerName: 'Imported Image',
+      options: options,
     );
 
     if (newLayer != null) {
@@ -1011,6 +1025,13 @@ class PixelDrawController extends _$PixelDrawController {
 
       state = state.copyWith(currentLayerIndex: updatedLayers.length - 1);
       _updateProject();
+
+      // Extract unique colors from the converted pixels and publish to palette panel
+      final palette = PixelArtConverter.extractPaletteFromPixels(
+        newLayer.pixels,
+        maxColors: 64,
+      );
+      ref.read(importedPaletteProvider.notifier).set(palette);
     }
   }
 

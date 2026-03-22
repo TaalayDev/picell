@@ -478,6 +478,12 @@ class StringsKy extends Strings {
   String get paletteCustom => 'Өзгөчө';
 
   @override
+  String get paletteImported => 'Импорттолгон';
+
+  @override
+  String get paletteImportedCount => 'түс';
+
+  @override
   String get addToCustomPalette => 'Өзгөчө палитрага кошуу';
 
   @override
@@ -571,6 +577,27 @@ class StringsKy extends Strings {
   @override
   String get importAsBackgroundDescription =>
       'Сүрөттү баштапкы калыбында импорттоо жана аны фондук катмар катары колдонуу.';
+
+  @override
+  String get conversionSettings => 'Конвертация параметрлери';
+
+  @override
+  String get paletteColors => 'Палитра түстөрү';
+
+  @override
+  String get fullColor => 'Толук түс';
+
+  @override
+  String get dithering => 'Дизеринг';
+
+  @override
+  String get noDithering => 'Жок';
+
+  @override
+  String get alphaThreshold => 'Альфа чеги';
+
+  @override
+  String get chooseImage => 'Сүрөт тандоо';
 
   @override
   String get tinyIcon => 'Кичинекей белги';

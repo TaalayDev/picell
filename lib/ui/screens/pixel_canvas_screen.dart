@@ -158,7 +158,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     gridOffset.value = Offset.zero;
   }
 
-  Future<bool?> showImportDialog(BuildContext context) {
+  Future<ImportDialogResult?> showImportDialog(BuildContext context) {
     return ImportDialog.show(context);
   }
 
@@ -316,7 +316,11 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   import: () async {
                     final result = await showImportDialog(context);
                     if (result != null) {
-                      notifier.importImage(context, background: result);
+                      notifier.importImage(
+                        context,
+                        isBackground: result.isBackground,
+                        options: result.conversionOptions,
+                      );
                     }
                   },
                   currentModifier: currentModifier,

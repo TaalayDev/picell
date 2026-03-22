@@ -9,14 +9,17 @@
             "request": "launch",
             "type": "dart",
             "args": [
-                // "--dart-define=TESTING=true"
+                "--dart-define=TESTING=true"
             ]
         },
         {
             "name": "Picell (profile mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "args": [
+                "--dart-define=TESTING=true"
+            ]
         },
         {
             "name": "Picell (release mode)",
