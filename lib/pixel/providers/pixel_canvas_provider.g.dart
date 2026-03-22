@@ -7,7 +7,7 @@ part of 'pixel_canvas_provider.dart';
 // **************************************************************************
 
 String _$pixelCanvasNotifierHash() =>
-    r'ab12bc74bce0110a77b710f9692b3b9b1b2615d4';
+    r'4df9da106f59a03612a0925cacd95013a78c8281';
 
 /// Copied from Dart SDK
 class _SystemHash {

@@ -456,6 +456,12 @@ class StringsZh extends Strings {
   String get paletteCustom => '自定义';
 
   @override
+  String get paletteImported => '已导入';
+
+  @override
+  String get paletteImportedCount => '种颜色';
+
+  @override
   String get addToCustomPalette => '添加到自定义色板';
 
   @override
@@ -544,6 +550,27 @@ class StringsZh extends Strings {
 
   @override
   String get importAsBackgroundDescription => '原样导入图像并将其用作参考背景图层。';
+
+  @override
+  String get conversionSettings => '转换设置';
+
+  @override
+  String get paletteColors => '调色板颜色';
+
+  @override
+  String get fullColor => '全彩';
+
+  @override
+  String get dithering => '抖动';
+
+  @override
+  String get noDithering => '无';
+
+  @override
+  String get alphaThreshold => '透明度阈值';
+
+  @override
+  String get chooseImage => '选择图像';
 
   @override
   String get tinyIcon => '小图标';

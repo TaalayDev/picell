@@ -475,6 +475,12 @@ class StringsEn extends Strings {
   String get paletteCustom => 'Custom';
 
   @override
+  String get paletteImported => 'Imported';
+
+  @override
+  String get paletteImportedCount => 'colors';
+
+  @override
   String get addToCustomPalette => 'Add to custom palette';
 
   @override
@@ -567,6 +573,27 @@ class StringsEn extends Strings {
   @override
   String get importAsBackgroundDescription =>
       'Import the image as-is and use it as a reference background layer.';
+
+  @override
+  String get conversionSettings => 'Conversion Settings';
+
+  @override
+  String get paletteColors => 'Palette Colors';
+
+  @override
+  String get fullColor => 'Full Color';
+
+  @override
+  String get dithering => 'Dithering';
+
+  @override
+  String get noDithering => 'None';
+
+  @override
+  String get alphaThreshold => 'Alpha Threshold';
+
+  @override
+  String get chooseImage => 'Choose Image';
 
   @override
   String get tinyIcon => 'Tiny Icon';

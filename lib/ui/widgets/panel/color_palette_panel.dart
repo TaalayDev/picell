@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/colors.dart';
 import '../../../l10n/strings.dart';
+import '../../../providers/imported_palette_provider.dart';
 
 /// Utility class to generate different types of color palettes
 class ColorPaletteGenerator {
@@ -132,7 +134,17 @@ class ColorPaletteGenerator {
   }
 }
 
-class ColorPalettePanel extends HookWidget {
+// Tab index constants
+const _kTabBasic = 0;
+const _kTabShades = 1;
+const _kTabComplementary = 2;
+const _kTabAnalogous = 3;
+const _kTabTriadic = 4;
+const _kTabMonochromatic = 5;
+const _kTabCustom = 6;
+const _kTabImported = 7;
+
+class ColorPalettePanel extends HookConsumerWidget {
   final Color currentColor;
   final Function(Color) onColorSelected;
   final Function() onSelectEyedropper;
@@ -149,10 +161,21 @@ class ColorPalettePanel extends HookWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final customColors = useState<List<Color>>([]);
-    final selectedTab = useState(0);
-    final opacity = useState(currentColor.alpha / 255.0);
+    final selectedTab = useState(_kTabBasic);
+    final opacity = useState(currentColor.a);
+
+    // Watch the imported palette; auto-switch to Imported tab when it changes
+    final importedColors = ref.watch(importedPaletteProvider);
+    useEffect(() {
+      if (importedColors.isNotEmpty) {
+        selectedTab.value = _kTabImported;
+      }
+      return null;
+    }, [importedColors]);
+
+    final hasImported = importedColors.isNotEmpty;
 
     final tabs = [
       _PaletteTab(icon: Icons.palette, label: Strings.of(context).paletteBasic),
@@ -162,28 +185,35 @@ class ColorPalettePanel extends HookWidget {
       _PaletteTab(icon: Icons.change_history, label: Strings.of(context).paletteTriadic),
       _PaletteTab(icon: Icons.gradient, label: Strings.of(context).paletteMonochromatic),
       _PaletteTab(icon: Icons.bookmark, label: Strings.of(context).paletteCustom),
+      if (hasImported)
+        _PaletteTab(icon: Icons.image_outlined, label: Strings.of(context).paletteImported),
     ];
 
     List<Color> getTabColors() {
       switch (selectedTab.value) {
-        case 0:
+        case _kTabBasic:
           return kBasicColors;
-        case 1:
+        case _kTabShades:
           return ColorPaletteGenerator.generateShades(currentColor, 10);
-        case 2:
+        case _kTabComplementary:
           return ColorPaletteGenerator.generateComplementary(currentColor);
-        case 3:
+        case _kTabAnalogous:
           return ColorPaletteGenerator.generateAnalogous(currentColor, 5);
-        case 4:
+        case _kTabTriadic:
           return ColorPaletteGenerator.generateTriadic(currentColor);
-        case 5:
+        case _kTabMonochromatic:
           return ColorPaletteGenerator.generateMonochromatic(currentColor, 10);
-        case 6:
+        case _kTabCustom:
           return customColors.value;
+        case _kTabImported:
+          return importedColors;
         default:
           return kBasicColors;
       }
     }
+
+    final isCustomTab = selectedTab.value == _kTabCustom;
+    final isImportedTab = selectedTab.value == _kTabImported;
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -206,7 +236,7 @@ class ColorPalettePanel extends HookWidget {
                     ),
                     child: Center(
                       child: Text(
-                        '#${currentColor.value.toRadixString(16).toUpperCase().substring(2)}',
+                        '#${currentColor.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
                         style: TextStyle(
                           color: currentColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
                           fontWeight: FontWeight.bold,
@@ -324,13 +354,13 @@ class ColorPalettePanel extends HookWidget {
 
           // Color palette grid
           Expanded(
-            child: selectedTab.value == 6 && customColors.value.isEmpty
+            child: isCustomTab && customColors.value.isEmpty
                 ? Center(
                     child: Text(
                       Strings.of(context).noCustomColors,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   )
@@ -342,22 +372,44 @@ class ColorPalettePanel extends HookWidget {
                       mainAxisSpacing: 4,
                       childAspectRatio: 1.0,
                     ),
-                    itemCount: getTabColors().length + (selectedTab.value == 6 ? 1 : 0),
+                    itemCount: getTabColors().length + (isCustomTab ? 1 : 0),
                     itemBuilder: (context, index) {
                       final colors = getTabColors();
-                      if (selectedTab.value == 6 && index == colors.length) {
+                      if (isCustomTab && index == colors.length) {
                         return _buildAddColorButton(context, customColors);
                       } else if (index < colors.length) {
                         return _buildColorItem(
                           colors[index],
                           customColors,
-                          selectedTab.value == 6,
+                          isCustomTab,
                         );
                       }
                       return const SizedBox.shrink();
                     },
                   ),
           ),
+
+          // Imported palette badge/info
+          if (isImportedTab)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 12,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${importedColors.length} ${Strings.of(context).paletteImportedCount}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -378,7 +430,7 @@ class ColorPalettePanel extends HookWidget {
               color: color,
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
-                color: color == currentColor ? Colors.blue : Colors.grey.withOpacity(0.3),
+                color: color == currentColor ? Colors.blue : Colors.grey.withValues(alpha: 0.3),
                 width: color == currentColor ? 2 : 1,
               ),
             ),
@@ -395,7 +447,7 @@ class ColorPalettePanel extends HookWidget {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     shape: BoxShape.circle,
                   ),
                   padding: const EdgeInsets.all(2),

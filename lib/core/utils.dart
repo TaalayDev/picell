@@ -6,3 +6,4 @@ export 'utils/image_helper.dart';
 export 'utils/queue_manager.dart';
 export 'utils/file_utils.dart';
 export '../pixel/pixel_utils.dart';
+export '../pixel/pixel_art_converter.dart';

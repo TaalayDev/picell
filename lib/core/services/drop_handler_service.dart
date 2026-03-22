@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../data/models/animation_frame_model.dart';
 import '../../data/models/layer.dart';
 import '../../data/models/project_model.dart';
+import '../../pixel/pixel_art_converter.dart';
 import '../utils/image_helper.dart';
 import 'aseprite_parser.dart';
 
@@ -331,36 +332,18 @@ class DropHandlerService {
     );
   }
 
-  /// Convert an image to a Layer
+  /// Convert an image to a Layer using area-average downscaling.
   Layer imageToLayer(
     img.Image image,
     int canvasWidth,
     int canvasHeight, {
     String layerName = 'Imported Image',
   }) {
-    // Resize image if needed
-    img.Image resized = image;
-    if (image.width != canvasWidth || image.height != canvasHeight) {
-      resized = img.copyResize(
-        image,
-        width: canvasWidth,
-        height: canvasHeight,
-        interpolation: img.Interpolation.nearest,
-      );
-    }
-
-    // Convert to pixel array
-    final pixels = Uint32List(canvasWidth * canvasHeight);
-    for (int y = 0; y < canvasHeight; y++) {
-      for (int x = 0; x < canvasWidth; x++) {
-        final pixel = resized.getPixel(x, y);
-        final a = pixel.a.toInt();
-        final r = pixel.r.toInt();
-        final g = pixel.g.toInt();
-        final b = pixel.b.toInt();
-        pixels[y * canvasWidth + x] = (a << 24) | (r << 16) | (g << 8) | b;
-      }
-    }
+    final pixels = PixelArtConverter.convert(
+      source: image,
+      targetWidth: canvasWidth,
+      targetHeight: canvasHeight,
+    );
 
     return Layer(
       layerId: 0,

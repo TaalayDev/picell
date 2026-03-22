@@ -459,6 +459,12 @@ class StringsJa extends Strings {
   String get paletteCustom => 'カスタム';
 
   @override
+  String get paletteImported => 'インポート済み';
+
+  @override
+  String get paletteImportedCount => '色';
+
+  @override
   String get addToCustomPalette => 'カスタムパレットに追加';
 
   @override
@@ -549,6 +555,27 @@ class StringsJa extends Strings {
   @override
   String get importAsBackgroundDescription =>
       '画像をそのままインポートし、参照用の背景レイヤーとして使用します。';
+
+  @override
+  String get conversionSettings => '変換設定';
+
+  @override
+  String get paletteColors => 'パレット色数';
+
+  @override
+  String get fullColor => 'フルカラー';
+
+  @override
+  String get dithering => 'ディザリング';
+
+  @override
+  String get noDithering => 'なし';
+
+  @override
+  String get alphaThreshold => 'アルファ閾値';
+
+  @override
+  String get chooseImage => '画像を選択';
 
   @override
   String get tinyIcon => '小さいアイコン';

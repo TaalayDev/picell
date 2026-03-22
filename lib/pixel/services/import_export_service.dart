@@ -162,55 +162,41 @@ class ImportExportService {
     final img.Image? pickedImage = await FileUtils(context).pickImageFile();
     if (pickedImage == null) return Uint8List(0);
 
-    // Resize to canvas size if needed
+    // Resize to canvas size using area-average downscale for accuracy
     img.Image resized = pickedImage;
     if (pickedImage.width != width || pickedImage.height != height) {
       resized = img.copyResize(
         pickedImage,
         width: width,
         height: height,
-        interpolation: img.Interpolation.cubic,
+        interpolation: img.Interpolation.average,
       );
     }
 
     return Uint8List.fromList(img.encodePng(resized));
   }
 
+  /// Imports an image file and converts it to a pixel-art [Layer].
+  ///
+  /// Uses area-average downscaling for accurate colour sampling, followed by
+  /// optional median-cut colour quantization and dithering as specified by
+  /// [options].
   Future<Layer?> importImageAsLayer({
     required BuildContext context,
     required int width,
     required int height,
     String? layerName,
+    PixelArtConversionOptions options = const PixelArtConversionOptions(),
   }) async {
     final img.Image? pickedImage = await FileUtils(context).pickImageFile();
     if (pickedImage == null) return null;
 
-    // Resize to canvas size if needed
-    img.Image resized = pickedImage;
-    if (pickedImage.width != width || pickedImage.height != height) {
-      resized = img.copyResize(
-        pickedImage,
-        width: width,
-        height: height,
-        interpolation: img.Interpolation.cubic,
-      );
-    }
-
-    // Convert to pixel art layer
-    final pixels = Uint32List(width * height);
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final pixel = resized.getPixel(x, y);
-        final a = pixel.a.toInt();
-        final r = pixel.r.toInt();
-        final g = pixel.g.toInt();
-        final b = pixel.b.toInt();
-        final colorVal = (a << 24) | (r << 16) | (g << 8) | b;
-
-        // Treat non-opaque pixels as transparent
-        pixels[y * width + x] = (a == 255) ? colorVal : Colors.transparent.value;
-      }
-    }
+    final pixels = PixelArtConverter.convert(
+      source: pickedImage,
+      targetWidth: width,
+      targetHeight: height,
+      options: options,
+    );
 
     return Layer(
       layerId: 0,

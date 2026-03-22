@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../pixel/pixel_canvas_state.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/tools.dart';
+import '../../ui/widgets/dialogs/import_dialog.dart';
 import 'shortcuts_wrapper.dart';
 
 class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
@@ -36,7 +37,7 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
   final Function(BuildContext context, PixelCanvasNotifier notifier, PixelCanvasState state) handleExport;
   final Function(ValueNotifier<double> scale, ValueNotifier<Offset> offset) setZoomFit;
   final Function(ValueNotifier<double> scale, ValueNotifier<Offset> offset) setZoom100;
-  final Future<bool?> Function(BuildContext context) showImportDialog;
+  final Future<ImportDialogResult?> Function(BuildContext context) showImportDialog;
   final Function(BuildContext context, PixelCanvasNotifier notifier) showColorPicker;
   final VoidCallback toggleUI;
   final Widget child;
@@ -61,7 +62,11 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       onImport: () async {
         final result = await showImportDialog(context);
         if (result != null) {
-          notifier.importImage(context, background: result);
+          notifier.importImage(
+            context,
+            isBackground: result.isBackground,
+            options: result.conversionOptions,
+          );
         }
       },
       onToolChanged: (tool) {

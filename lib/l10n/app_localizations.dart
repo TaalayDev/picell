@@ -973,6 +973,18 @@ abstract class Strings {
   /// **'Custom'**
   String get paletteCustom;
 
+  /// No description provided for @paletteImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported'**
+  String get paletteImported;
+
+  /// No description provided for @paletteImportedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'colors'**
+  String get paletteImportedCount;
+
   /// No description provided for @addToCustomPalette.
   ///
   /// In en, this message translates to:
@@ -1152,6 +1164,48 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Import the image as-is and use it as a reference background layer.'**
   String get importAsBackgroundDescription;
+
+  /// No description provided for @conversionSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversion Settings'**
+  String get conversionSettings;
+
+  /// No description provided for @paletteColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Palette Colors'**
+  String get paletteColors;
+
+  /// No description provided for @fullColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Color'**
+  String get fullColor;
+
+  /// No description provided for @dithering.
+  ///
+  /// In en, this message translates to:
+  /// **'Dithering'**
+  String get dithering;
+
+  /// No description provided for @noDithering.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get noDithering;
+
+  /// No description provided for @alphaThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Alpha Threshold'**
+  String get alphaThreshold;
+
+  /// No description provided for @chooseImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Image'**
+  String get chooseImage;
 
   /// No description provided for @tinyIcon.
   ///
