@@ -64,16 +64,18 @@ class AnimatedBackground extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = appTheme ?? ref.watch(themeProvider).theme;
 
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            gradient: _getBaseGradient(theme),
+    return RepaintBoundary(
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: _getBaseGradient(theme),
+            ),
           ),
-        ),
-        _buildAnimatedLayer(theme),
-        child,
-      ],
+          _buildAnimatedLayer(theme),
+          child,
+        ],
+      ),
     );
   }
 
