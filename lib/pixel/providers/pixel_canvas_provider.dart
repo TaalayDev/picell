@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../data/models/selection_region.dart';
 import '../../data/models/template.dart';
 import '../../data.dart';
 import '../pixel_art_converter.dart';
@@ -23,10 +23,12 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
     return ref.watch(pixelDrawControllerProvider(project));
   }
 
-  final StreamController<PixelDrawEvent> _eventController = StreamController.broadcast();
+  final StreamController<PixelDrawEvent> _eventController =
+      StreamController.broadcast();
   late Stream<PixelDrawEvent> eventStream = _eventController.stream;
 
-  PixelDrawController get _controller => ref.read(pixelDrawControllerProvider(project).notifier);
+  PixelDrawController get _controller =>
+      ref.read(pixelDrawControllerProvider(project).notifier);
 
   // Expose frequently used getters
   AnimationFrame get currentFrame => _controller.currentFrame;
@@ -45,25 +47,31 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   void startDrawing() => _controller.startBatchDrawing();
   void endDrawing() => _controller.endBatchDrawing();
   void setPixel(int x, int y) => _controller.batchSetPixel(x, y);
-  void fillPixels(List<PixelPoint<int>> points) => _controller.batchFillPixels(points);
+  void fillPixels(List<PixelPoint<int>> points) =>
+      _controller.batchFillPixels(points);
   void fill(int x, int y) => _controller.floodFill(x, y);
   void clear() => _controller.clearCanvas();
   Color getPixelColor(int x, int y) => _controller.getPixelColor(x, y);
-  void applyGradient(List<Color> gradientColors) => _controller.applyGradient(gradientColors);
+  void applyGradient(List<Color> gradientColors) =>
+      _controller.applyGradient(gradientColors);
 
   // Drag operations
   void startDrag() => _controller.startDrag();
-  void dragPixels(double scale, Offset offset) => _controller.dragPixels(scale, offset);
+  void dragPixels(double scale, Offset offset) =>
+      _controller.dragPixels(scale, offset);
   void endDrag() => _controller.endDrag();
 
   // Layer operations
   Future<void> addLayer(String name) => _controller.addLayer(name);
-  Future<void> addLayerWithPixels(Layer layer) => _controller.addLayerWithPixels(layer);
+  Future<void> addLayerWithPixels(Layer layer) =>
+      _controller.addLayerWithPixels(layer);
   Future<void> removeLayer(int index) => _controller.removeLayer(index);
   Future<int> duplicateLayer(int index) => _controller.duplicateLayer(index);
   void selectLayer(int index) => _controller.selectLayer(index);
-  Future<void> toggleLayerVisibility(int index) => _controller.toggleLayerVisibility(index);
-  Future<void> reorderLayers(int oldIndex, int newIndex) => _controller.reorderLayers(oldIndex, newIndex);
+  Future<void> toggleLayerVisibility(int index) =>
+      _controller.toggleLayerVisibility(index);
+  Future<void> reorderLayers(int oldIndex, int newIndex) =>
+      _controller.reorderLayers(oldIndex, newIndex);
   void updateLayer(Layer updatedLayer) => _controller.updateLayer(updatedLayer);
   Layer getCurrentLayer() => _controller.currentLayer;
 
@@ -75,26 +83,41 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   void nextFrame() => _controller.nextFrame();
   void prevFrame() => _controller.previousFrame();
 
-  Future<void> updateFrame(int index, AnimationFrame frame) => _controller.updateFrame(index, frame);
-  Future<void> reorderFrames(int oldIndex, int newIndex) => _controller.reorderFrames(oldIndex, newIndex);
+  Future<void> updateFrame(int index, AnimationFrame frame) =>
+      _controller.updateFrame(index, frame);
+  Future<void> reorderFrames(int oldIndex, int newIndex) =>
+      _controller.reorderFrames(oldIndex, newIndex);
 
   // Animation state operations
-  Future<void> addAnimationState(String name, int frameRate) => _controller.addAnimationState(name, frameRate);
-  Future<void> removeAnimationState(int stateId) => _controller.removeAnimationState(stateId);
-  Future<void> copyAnimationState(int stateId) => _controller.copyAnimationState(stateId);
-  void selectAnimationState(int stateId) => _controller.selectAnimationState(stateId);
+  Future<void> addAnimationState(String name, int frameRate) =>
+      _controller.addAnimationState(name, frameRate);
+  Future<void> removeAnimationState(int stateId) =>
+      _controller.removeAnimationState(stateId);
+  Future<void> copyAnimationState(int stateId) =>
+      _controller.copyAnimationState(stateId);
+  void selectAnimationState(int stateId) =>
+      _controller.selectAnimationState(stateId);
 
   // Selection operations
-  void setSelection(List<PixelPoint<int>>? selection) => _controller.setSelection(selection);
-  void moveSelection(List<PixelPoint<int>> selection, Point delta) => _controller.moveSelection(selection, delta);
+  void setSelection(SelectionRegion? region) =>
+      _controller.setSelection(region);
+  void moveSelection(Offset delta) => _controller.moveSelection(delta);
   void clearSelection() {
     _eventController.add(const ClearSelectionEvent());
     _controller.clearSelection();
   }
 
   void clearSelectionArea() => _controller.clearSelectionArea();
-  Future<void> cutToNewLayer() => _controller.selectionToNewLayer(clearSource: true);
-  Future<void> copyToNewLayer() => _controller.selectionToNewLayer(clearSource: false);
+  Future<void> cutToNewLayer() =>
+      _controller.selectionToNewLayer(clearSource: true);
+  Future<void> copyToNewLayer() =>
+      _controller.selectionToNewLayer(clearSource: false);
+  void selectAll() => _controller.selectAll();
+  void invertSelection() => _controller.invertSelectionRegion();
+  void autoSelectLayer() => _controller.autoSelectLayer();
+  void setAnchorPoint(Offset anchor) => _controller.setAnchorPoint(anchor);
+  void flipSelection({required bool horizontal}) =>
+      _controller.flipSelectionPixels(horizontal: horizontal);
 
   void addTemplate(Template template) => _controller.addTemplate(template);
 
@@ -111,7 +134,8 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   }
 
   // Import/Export operations
-  Future<void> exportJson(BuildContext context) => _controller.exportProjectAsJson(context);
+  Future<void> exportJson(BuildContext context) =>
+      _controller.exportProjectAsJson(context);
   Future<void> exportImage(
     BuildContext context, {
     bool background = false,
@@ -205,51 +229,19 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
     updateLayer(updatedLayer);
   }
 
-  void resizeSelection(
-    List<PixelPoint<int>> selection,
-    List<PixelPoint<int>> oldSelection,
-    Rect newBounds,
-    Offset? center,
-  ) {
-    _controller.resizeSelection(selection, oldSelection, newBounds, center);
-
-    final newSelection = _createSelectionFromBounds(newBounds);
-    setSelection(newSelection);
+  void resizeSelectionNew(Rect targetBounds) {
+    _controller.resizeSelectionNew(targetBounds);
   }
 
-  void rotateSelection(
-    List<PixelPoint<int>> selection,
-    List<PixelPoint<int>> oldSelection,
-    double angle,
-    Offset? center,
-  ) {
-    _controller.rotateSelection(selection, oldSelection, angle, center);
+  void rotateSelectionNew(double angle, {Offset? pivot}) {
+    _controller.rotateSelectionNew(angle, pivot: pivot);
   }
 
-  /// Call at the start of a rotation or resize operation to cache the original pixels
-  void startTransformSelection(List<PixelPoint<int>> selection) {
-    _controller.startTransformSelection(selection);
+  void startTransformSelection(SelectionRegion region) {
+    _controller.startTransformSelection(region);
   }
 
-  /// Call at the end of a rotation or resize operation to clear the cache
   void endTransformSelection() {
     _controller.endTransformSelection();
-  }
-
-  List<PixelPoint<int>> _createSelectionFromBounds(Rect bounds) {
-    final selection = <PixelPoint<int>>[];
-
-    final minX = bounds.left.round().clamp(0, state.width - 1);
-    final maxX = bounds.right.round().clamp(1, state.width);
-    final minY = bounds.top.round().clamp(0, state.height - 1);
-    final maxY = bounds.bottom.round().clamp(1, state.height);
-
-    for (int y = minY; y < maxY; y++) {
-      for (int x = minX; x < maxX; x++) {
-        selection.add(PixelPoint<int>(x, y));
-      }
-    }
-
-    return selection;
   }
 }

@@ -147,6 +147,9 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                             LayerToTemplateDialog.show(context,
                                 layer: layer, width: widget.width, height: widget.height);
                           },
+                          onAutoSelect: () {
+                            widget.notifier.autoSelectLayer();
+                          },
                         ),
                         EffectsSidePanel(
                           layer: widget.state.layers[widget.state.currentLayerIndex],

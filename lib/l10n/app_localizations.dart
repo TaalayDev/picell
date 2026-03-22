@@ -1782,6 +1782,36 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Apply All'**
   String get effectsPanelApplyAll;
+
+  /// No description provided for @ellipseSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Ellipse Selection'**
+  String get ellipseSelection;
+
+  /// No description provided for @ellipseSelectionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an elliptical area'**
+  String get ellipseSelectionTooltip;
+
+  /// No description provided for @autoSelectLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Select'**
+  String get autoSelectLayer;
+
+  /// No description provided for @autoSelectLayerTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all non-empty pixels in the current layer'**
+  String get autoSelectLayerTooltip;
+
+  /// No description provided for @selectionAnchor.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection Anchor'**
+  String get selectionAnchor;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

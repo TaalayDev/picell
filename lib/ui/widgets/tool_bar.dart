@@ -76,7 +76,7 @@ class ToolBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final canvasState = ref.watch(pixelCanvasNotifierProvider(project));
     final notifier = ref.read(pixelCanvasNotifierProvider(project).notifier);
-    final hasSelection = canvasState.selectionRect != null;
+    final hasSelection = canvasState.selectionState != null;
 
     final size = MediaQuery.sizeOf(context);
     final screenSize = ScreenSize.forWidth(size.width) ?? ScreenSize.xs;

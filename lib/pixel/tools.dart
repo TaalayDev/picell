@@ -27,6 +27,7 @@ enum PixelTool {
   textureBrush,
   textureFill,
   smartSelect,
+  ellipseSelect,
 
   // Extra Shapes
   heart,
@@ -78,6 +79,8 @@ enum PixelTool {
         return SystemMouseCursors.precise;
       case PixelTool.smartSelect:
         return SystemMouseCursors.click;
+      case PixelTool.ellipseSelect:
+        return SystemMouseCursors.cell;
       default:
         return SystemMouseCursors.basic;
     }
@@ -134,6 +137,7 @@ abstract class Tool {
   bool get isCurve => type == PixelTool.curve;
   bool get isTextureBrush => type == PixelTool.textureBrush;
   bool get isSmartSelect => type == PixelTool.smartSelect;
+  bool get isEllipseSelect => type == PixelTool.ellipseSelect;
 
   void onStart(PixelDrawDetails details);
   void onMove(PixelDrawDetails details);

@@ -897,4 +897,20 @@ class StringsEn extends Strings {
 
   @override
   String get effectsPanelApplyAll => 'Apply All';
+
+  @override
+  String get ellipseSelection => 'Ellipse Selection';
+
+  @override
+  String get ellipseSelectionTooltip => 'Select an elliptical area';
+
+  @override
+  String get autoSelectLayer => 'Auto-Select';
+
+  @override
+  String get autoSelectLayerTooltip =>
+      'Select all non-empty pixels in the current layer';
+
+  @override
+  String get selectionAnchor => 'Selection Anchor';
 }

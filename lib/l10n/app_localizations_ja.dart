@@ -879,4 +879,19 @@ class StringsJa extends Strings {
 
   @override
   String get effectsPanelApplyAll => 'すべて適用';
+
+  @override
+  String get ellipseSelection => '楕円選択';
+
+  @override
+  String get ellipseSelectionTooltip => '楕円形の領域を選択';
+
+  @override
+  String get autoSelectLayer => '自動選択';
+
+  @override
+  String get autoSelectLayerTooltip => '現在のレイヤーの空でないピクセルをすべて選択';
+
+  @override
+  String get selectionAnchor => '選択アンカー';
 }

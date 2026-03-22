@@ -208,6 +208,9 @@ class ToolsBottomBar extends HookWidget {
                                     height: state.height,
                                   );
                                 },
+                                onAutoSelect: () {
+                                  notifier.autoSelectLayer();
+                                },
                               ),
                             ),
                           ),

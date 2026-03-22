@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart' hide SelectionOverlay;
 
 import '../../core/utils/cursor_manager.dart';
+import '../../data/models/selection_region.dart';
+import '../../data/models/selection_state.dart';
 import '../../pixel/tools/mirror_modifier.dart';
 import '../../pixel/tools.dart';
 import '../../data.dart';
@@ -41,12 +43,14 @@ class PixelCanvas extends StatefulWidget {
   final Function() onStartDrawing;
   final Function() onFinishDrawing;
   final Function(List<PixelPoint<int>>) onDrawShape;
-  final Function(List<PixelPoint<int>>?)? onSelectionChanged;
-  final Function(List<PixelPoint<int>>, Point)? onMoveSelection;
-  final Function(List<PixelPoint<int>>, List<PixelPoint<int>>, Rect, Offset?)? onSelectionResize;
-  final Function(List<PixelPoint<int>>, List<PixelPoint<int>>, double, Offset?)? onSelectionRotate;
-  final Function(List<PixelPoint<int>>)? onTransformStart;
+  final Function(SelectionRegion?)? onSelectionChanged;
+  final Function(Offset)? onMoveSelection;
+  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)? onSelectionResize;
+  final Function(SelectionRegion, SelectionRegion, double, Offset?)? onSelectionRotate;
+  final Function(SelectionRegion)? onTransformStart;
   final Function()? onTransformEnd;
+  final Function(Offset)? onAnchorChanged;
+  final SelectionState? selectionState;
   final Function(Color)? onColorPicked;
   final Function(List<Color>)? onGradientApplied;
   final Function(double, Offset)? onStartDrag;
@@ -75,6 +79,8 @@ class PixelCanvas extends StatefulWidget {
     this.onSelectionRotate,
     this.onTransformStart,
     this.onTransformEnd,
+    this.onAnchorChanged,
+    this.selectionState,
     this.onGradientApplied,
     this.sprayIntensity = 5,
     this.zoomLevel = 1.0,
@@ -101,11 +107,11 @@ class _PixelCanvasState extends State<PixelCanvas> {
   late final LayerCacheManager _cacheManager;
   late final ToolDrawingManager _toolManager;
 
-  List<PixelPoint<int>>? _rotationOriginalSelection;
+  SelectionRegion? _rotationOriginalRegion;
   Offset? _rotationCenter;
   double _rotationAngle = 0.0;
 
-  List<PixelPoint<int>>? _resizeOriginalSelection;
+  SelectionRegion? _resizeOriginalRegion;
 
   @override
   void initState() {
@@ -127,7 +133,7 @@ class _PixelCanvasState extends State<PixelCanvas> {
           _controller.clearSelection();
           widget.onSelectionChanged?.call(null);
           _clearRotationState();
-          _resizeOriginalSelection = null;
+          _resizeOriginalRegion = null;
         }
       });
     });
@@ -158,13 +164,16 @@ class _PixelCanvasState extends State<PixelCanvas> {
       width: widget.width,
       height: widget.height,
       onColorPicked: widget.onColorPicked,
-      onSelectionEnd: (selection) {
-        final length = _controller.selectionPoints.length;
-        if (length < 2) {
+      onSelectionChanged: (region) {
+        // Preview during drag
+      },
+      onSelectionEnd: (region) {
+        if (region == null || region.bounds.width < 2 || region.bounds.height < 2) {
           _controller.setSelection(null);
           widget.onSelectionChanged?.call(null);
         } else {
-          widget.onSelectionChanged?.call(_controller.selectionPoints);
+          _controller.setSelection(region);
+          widget.onSelectionChanged?.call(region);
         }
       },
     );
@@ -178,8 +187,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
         _controller.applyLayerCache();
       },
       onDrawShape: (shape) {
-        if (widget.currentTool == PixelTool.select) {
-          _controller.setSelection(shape);
+        if (widget.currentTool == PixelTool.select || widget.currentTool == PixelTool.ellipseSelect) {
+          // Selection tools handle their own callbacks
         } else {
           widget.onDrawShape(shape);
         }
@@ -333,56 +342,52 @@ class _PixelCanvasState extends State<PixelCanvas> {
                 ),
               ),
               LayoutBuilder(builder: (context, constraints) {
+                final selState = widget.selectionState;
+                final selRegion = selState?.region ?? _controller.currentSelectionRegion;
+                if (selRegion == null || selRegion.bounds == Rect.zero) {
+                  return const SizedBox.shrink();
+                }
                 return SelectionOverlay(
-                  selection: _controller.selectionPoints,
+                  selectionRegion: selRegion,
+                  selectionState: selState,
                   zoomLevel: widget.zoomLevel,
                   canvasOffset: widget.currentOffset,
                   canvasWidth: widget.width,
                   canvasHeight: widget.height,
                   canvasSize: constraints.biggest,
-                  onSelectionMove: (selection, delta) {
-                    _controller.setSelection(selection);
-                    widget.onMoveSelection?.call(selection, delta);
+                  onSelectionMove: (delta) {
+                    widget.onMoveSelection?.call(delta);
                   },
                   onSelectionMoveEnd: () {
-                    widget.onSelectionChanged?.call(_controller.selectionPoints);
                     widget.onTransformEnd?.call();
-                    _resizeOriginalSelection = null;
+                    _resizeOriginalRegion = null;
                     _clearRotationState();
                   },
-                  onSelectionResizeStart: (original) {
-                    _resizeOriginalSelection = List<PixelPoint<int>>.from(original);
-                    // Cache the original pixels for the entire resize operation
-                    widget.onTransformStart?.call(original);
+                  onSelectionResizeStart: (region) {
+                    _resizeOriginalRegion = region;
+                    widget.onTransformStart?.call(region);
                   },
-                  onSelectionResize: (selection, scaleX, scaleY, pivot) {
-                    // Use the stored original selection from resize start
-                    final oldSelection = _resizeOriginalSelection ?? _controller.selectionPoints;
-
+                  onSelectionResize: (newRegion, scaleX, scaleY, pivot) {
+                    final oldRegion = _resizeOriginalRegion ?? selRegion;
                     widget.onSelectionResize?.call(
-                      selection,
-                      oldSelection,
+                      newRegion,
+                      oldRegion,
                       Rect.fromLTWH(0, 0, scaleX, scaleY),
                       Offset(pivot.x.toDouble(), pivot.y.toDouble()),
                     );
-                    _controller.setSelection(selection);
+                    _controller.setSelection(newRegion);
                   },
-                  onSelectionRotate: (rotatedSelection, angle) {
-                    if (_rotationOriginalSelection == null) {
-                      // First rotation callback - cache the original selection
-                      _rotationOriginalSelection = List<PixelPoint<int>>.from(_controller.selectionPoints);
-                      _rotationCenter = _centerOf(_rotationOriginalSelection!);
-                      // Cache the original pixels for the entire rotation operation
-                      widget.onTransformStart?.call(_rotationOriginalSelection!);
+                  onSelectionRotate: (newRegion, angle) {
+                    if (_rotationOriginalRegion == null) {
+                      _rotationOriginalRegion = selRegion;
+                      _rotationCenter = selState?.effectiveAnchor ?? selRegion.bounds.center;
+                      widget.onTransformStart?.call(selRegion);
                     }
                     _rotationAngle = angle;
-
-                    _controller.setSelection(rotatedSelection);
-
-                    // Pass the ORIGINAL selection (before rotation) so pixels can be extracted correctly
-                    widget.onSelectionRotate
-                        ?.call(rotatedSelection, _rotationOriginalSelection!, angle, _rotationCenter);
+                    _controller.setSelection(newRegion);
+                    widget.onSelectionRotate?.call(newRegion, _rotationOriginalRegion!, angle, _rotationCenter);
                   },
+                  onAnchorChanged: widget.onAnchorChanged,
                 );
               }),
             ],
@@ -403,8 +408,12 @@ class _PixelCanvasState extends State<PixelCanvas> {
       strokeWidth: widget.brushSize,
       modifier: _getModifier(),
       onPixelsUpdated: (pixels) {
-        if (widget.currentTool == PixelTool.select || widget.currentTool == PixelTool.lasso) {
-          _controller.setSelection(pixels);
+        // Selection tools handle their own callbacks via onSelectionEnd
+        if (widget.currentTool == PixelTool.select ||
+            widget.currentTool == PixelTool.ellipseSelect ||
+            widget.currentTool == PixelTool.lasso ||
+            widget.currentTool == PixelTool.smartSelect) {
+          // No-op: handled by tool callbacks
         } else {
           _controller.setPreviewPixels(pixels);
         }
@@ -461,25 +470,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
     return CursorManager.instance.getCursor(widget.currentTool) ?? widget.currentTool.cursor;
   }
 
-  Rect _boundsOf(List<PixelPoint<int>> pts) {
-    if (pts.isEmpty) return Rect.zero;
-    int minX = pts.first.x, maxX = pts.first.x, minY = pts.first.y, maxY = pts.first.y;
-    for (final p in pts) {
-      if (p.x < minX) minX = p.x;
-      if (p.x > maxX) maxX = p.x;
-      if (p.y < minY) minY = p.y;
-      if (p.y > maxY) maxY = p.y;
-    }
-    return Rect.fromLTRB(minX.toDouble(), minY.toDouble(), (maxX + 1).toDouble(), (maxY + 1).toDouble());
-  }
-
-  Offset _centerOf(List<PixelPoint<int>> pts) {
-    final b = _boundsOf(pts);
-    return Offset(b.left + b.width / 2, b.top + b.height / 2);
-  }
-
   void _clearRotationState() {
-    _rotationOriginalSelection = null;
+    _rotationOriginalRegion = null;
     _rotationCenter = null;
     _rotationAngle = 0.0;
   }

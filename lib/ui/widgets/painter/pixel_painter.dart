@@ -64,8 +64,9 @@ class PixelPainter extends HookConsumerWidget {
     final editorSettings = ref.watch(editorSettingsNotifierProvider);
 
     // Map editor settings to gesture handler input mode
-    final inputMode =
-        editorSettings.inputMode == InputMode.stylusOnly ? GestureInputMode.stylusOnly : GestureInputMode.standard;
+    final inputMode = editorSettings.inputMode == InputMode.stylusOnly
+        ? GestureInputMode.stylusOnly
+        : GestureInputMode.standard;
 
     return CustomPaint(
       painter: GridPainter(
@@ -180,53 +181,81 @@ class PixelPainter extends HookConsumerWidget {
               inputMode: inputMode,
               twoFingerUndoEnabled: editorSettings.twoFingerUndoEnabled,
               onDrawShape: (points) {
-                ref.read(pixelCanvasNotifierProvider(project).notifier).fillPixels(points);
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .fillPixels(points);
               },
               onStartDrawing: () {
-                ref.read(pixelCanvasNotifierProvider(project).notifier).startDrawing();
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .startDrawing();
               },
               onFinishDrawing: () {
-                ref.read(pixelCanvasNotifierProvider(project).notifier).endDrawing();
-              },
-              onSelectionChanged: (selectionPoints) {
-                ref.read(pixelCanvasNotifierProvider(project).notifier).setSelection(selectionPoints);
-              },
-              onMoveSelection: (selectionPoints, delta) {
-                ref.read(pixelCanvasNotifierProvider(project).notifier).moveSelection(selectionPoints, delta);
-              },
-              onSelectionResize: (selection, oldSelection, newBounds, center) {
                 ref
                     .read(pixelCanvasNotifierProvider(project).notifier)
-                    .resizeSelection(selection, oldSelection, newBounds, center);
+                    .endDrawing();
               },
-              onSelectionRotate: (selection, oldSelection, angle, center) {
+              selectionState: state.selectionState,
+              onSelectionChanged: (region) {
                 ref
                     .read(pixelCanvasNotifierProvider(project).notifier)
-                    .rotateSelection(selection, oldSelection, angle, center);
+                    .setSelection(region);
               },
-              onTransformStart: (selection) {
-                ref.read(pixelCanvasNotifierProvider(project).notifier).startTransformSelection(selection);
+              onMoveSelection: (delta) {
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .moveSelection(delta);
+              },
+              onSelectionResize: (newRegion, oldRegion, newBounds, center) {
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .resizeSelectionNew(newRegion.bounds);
+              },
+              onSelectionRotate: (newRegion, oldRegion, angle, center) {
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .rotateSelectionNew(angle, pivot: center);
+              },
+              onTransformStart: (region) {
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .startTransformSelection(region);
               },
               onTransformEnd: () {
-                ref.read(pixelCanvasNotifierProvider(project).notifier).endTransformSelection();
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .endTransformSelection();
+              },
+              onAnchorChanged: (anchor) {
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .setAnchorPoint(anchor);
               },
               onColorPicked: (color) {
-                ref.read(pixelCanvasNotifierProvider(project).notifier).currentColor =
+                ref
+                        .read(pixelCanvasNotifierProvider(project).notifier)
+                        .currentColor =
                     color == Colors.transparent ? Colors.white : color;
                 // Auto-switch back to pencil after picking a color
                 onToolAutoSwitch?.call(PixelTool.pencil);
               },
               onGradientApplied: (gradientColors) {
-                ref.read(pixelCanvasNotifierProvider(project).notifier).applyGradient(gradientColors);
+                ref
+                    .read(pixelCanvasNotifierProvider(project).notifier)
+                    .applyGradient(gradientColors);
               },
               onStartDrag: (scale, offset) {
                 if (currentTool == PixelTool.drag) {
-                  return ref.read(pixelCanvasNotifierProvider(project).notifier).startDrag();
+                  return ref
+                      .read(pixelCanvasNotifierProvider(project).notifier)
+                      .startDrag();
                 }
               },
               onDrag: (scale, offset) {
                 if (currentTool == PixelTool.drag) {
-                  return ref.read(pixelCanvasNotifierProvider(project).notifier).dragPixels(scale, offset);
+                  return ref
+                      .read(pixelCanvasNotifierProvider(project).notifier)
+                      .dragPixels(scale, offset);
                 }
 
                 gridScale.value = scale;
@@ -234,7 +263,9 @@ class PixelPainter extends HookConsumerWidget {
               },
               onDragEnd: (s, o) {
                 if (currentTool == PixelTool.drag) {
-                  return ref.read(pixelCanvasNotifierProvider(project).notifier).endDrag();
+                  return ref
+                      .read(pixelCanvasNotifierProvider(project).notifier)
+                      .endDrag();
                 }
               },
             ),

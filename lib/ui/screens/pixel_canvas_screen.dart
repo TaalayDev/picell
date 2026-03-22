@@ -267,7 +267,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     final isAnimationTimelineExpanded = useState(false);
 
     final subscription = ref.watch(subscriptionStateProvider);
-    final hasSelection = state.selectionRect != null;
+    final hasSelection = state.selectionState != null;
 
     final size = MediaQuery.sizeOf(context);
     final screenSize = ScreenSize.forWidth(size.width) ?? ScreenSize.xs;

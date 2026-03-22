@@ -873,4 +873,19 @@ class StringsZh extends Strings {
 
   @override
   String get effectsPanelApplyAll => '全部应用';
+
+  @override
+  String get ellipseSelection => '椭圆选区';
+
+  @override
+  String get ellipseSelectionTooltip => '选择椭圆区域';
+
+  @override
+  String get autoSelectLayer => '自动选择';
+
+  @override
+  String get autoSelectLayerTooltip => '选择当前图层中所有非空像素';
+
+  @override
+  String get selectionAnchor => '选区锚点';
 }
