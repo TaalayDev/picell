@@ -3,12 +3,13 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:universal_html/html.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:image/image.dart' as img;
 
 import '../../core.dart';
+import '../../data/models/selection_region.dart';
+import '../../data/models/selection_state.dart';
 import '../../data/models/template.dart';
 import '../pixel_point.dart';
 import '../../data.dart';
@@ -52,7 +53,8 @@ class PixelDrawController extends _$PixelDrawController {
     _frameService = FrameService(ref.read(projectRepo));
     _animationService = AnimationService(ref.read(projectRepo));
     _drawingService = DrawingService();
-    _selectionService = SelectionService(width: project.width, height: project.height);
+    _selectionService =
+        SelectionService(width: project.width, height: project.height);
     _undoRedoService = UndoRedoService();
     _importExportService = ImportExportService();
     _templateService = TemplateService(ref.read(templateAPIRepoProvider));
@@ -62,12 +64,14 @@ class PixelDrawController extends _$PixelDrawController {
       height: project.height,
       animationStates: project.states.isNotEmpty
           ? List<AnimationStateModel>.from(project.states)
-          : [AnimationStateModel(id: 0, name: 'Default', frameRate: 12)],
-      frames: project.frames.isNotEmpty ? List<AnimationFrame>.from(project.frames) : _createDefaultFrame(),
+          : [const AnimationStateModel(id: 0, name: 'Default', frameRate: 12)],
+      frames: project.frames.isNotEmpty
+          ? List<AnimationFrame>.from(project.frames)
+          : _createDefaultFrame(),
       currentColor: Colors.black,
       currentTool: PixelTool.pencil,
       mirrorAxis: MirrorAxis.vertical,
-      selectionRect: null,
+      selectionState: null,
       canUndo: _undoRedoService.canUndo,
       canRedo: _undoRedoService.canRedo,
     );
@@ -132,11 +136,8 @@ class PixelDrawController extends _$PixelDrawController {
       width: state.width,
       height: state.height,
       color: state.currentColor,
-      selection: state.selectionRect,
+      selection: state.selectionState?.region,
     );
-
-    final updatedLayer = currentLayer.copyWith(pixels: _activeBuffer!);
-    // _updateLayerAndFrameSimple(updatedLayer);
   }
 
   void batchFillPixels(List<PixelPoint<int>> points) {
@@ -147,11 +148,8 @@ class PixelDrawController extends _$PixelDrawController {
       points: points,
       width: state.width,
       color: state.currentColor,
-      selection: state.selectionRect,
+      selection: state.selectionState?.region,
     );
-
-    final updatedLayer = currentLayer.copyWith(pixels: _activeBuffer!);
-    // _updateLayerAndFrameSimple(updatedLayer);
   }
 
   void endBatchDrawing() {
@@ -160,18 +158,6 @@ class PixelDrawController extends _$PixelDrawController {
       _activeBuffer = null;
     }
     _isBatching = false;
-  }
-
-  void _updateLayerAndFrameSimple(Layer updatedLayer) {
-    final updatedLayers = List<Layer>.from(currentFrame.layers);
-    updatedLayers[state.currentLayerIndex] = updatedLayer;
-    final updatedFrame = currentFrame.copyWith(layers: updatedLayers);
-
-    final frameIndex = state.frames.indexWhere((f) => f.id == currentFrame.id);
-    final updatedFrames = List<AnimationFrame>.from(state.frames);
-    updatedFrames[frameIndex] = updatedFrame;
-
-    state = state.copyWith(frames: updatedFrames);
   }
 
   // MARK: Drawing Operations
@@ -192,7 +178,7 @@ class PixelDrawController extends _$PixelDrawController {
       width: state.width,
       height: state.height,
       color: _getDrawingColor(),
-      selection: state.selectionRect,
+      selection: state.selectionState?.region,
       modifier: modifier,
     );
 
@@ -200,8 +186,11 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void fillPixels(List<PixelPoint<int>> points) {
-    if (_selectionService.hasSelection && !_selectionService.isPointsInSelection(points)) {
-      return;
+    final sel = state.selectionState?.region;
+    if (sel != null && points.isNotEmpty) {
+      // Check if any points are in selection
+      final anyInside = points.any((p) => sel.contains(p.x, p.y));
+      if (!anyInside) return;
     }
     _saveState();
 
@@ -210,7 +199,7 @@ class PixelDrawController extends _$PixelDrawController {
       points: points,
       width: state.width,
       color: _getDrawingColor(),
-      selection: state.selectionRect,
+      selection: state.selectionState?.region,
     );
 
     _updateCurrentLayerPixels(newPixels);
@@ -226,7 +215,7 @@ class PixelDrawController extends _$PixelDrawController {
       width: state.width,
       height: state.height,
       fillColor: _getDrawingColor(),
-      selection: state.selectionRect,
+      selection: state.selectionState?.region,
     );
 
     _updateCurrentLayerPixels(newPixels);
@@ -299,49 +288,43 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void clearSelectionArea() {
-    if (state.selectionRect == null || currentLayer.pixels.isEmpty) return;
+    final sel = state.selectionState?.region;
+    if (sel == null || currentLayer.pixels.isEmpty) return;
     _saveState();
-    final clearedPixels = _clearSelectionArea(currentLayer.pixels, state.selectionRect!);
+    final clearedPixels = _selectionService.clearPixelsInSelection(
+      sel,
+      currentLayer.pixels,
+      state.width,
+      state.height,
+    );
     _updateCurrentLayerPixels(clearedPixels);
   }
 
   Future<void> selectionToNewLayer({bool clearSource = false}) async {
-    if (state.selectionRect == null || currentLayer.pixels.isEmpty) return;
+    final sel = state.selectionState?.region;
+    if (sel == null || currentLayer.pixels.isEmpty) return;
 
-    final selection = state.selectionRect!;
     final layerId = const Uuid().v4();
-    final newLayerPixels = Uint32List(state.width * state.height);
+    final newLayerPixels = _selectionService.extractPixels(
+      sel,
+      currentLayer.pixels,
+      state.width,
+      state.height,
+    );
 
-    // Compute bounds from selection points and copy the full rectangular area,
-    // not just the outline points (selection may only contain border points).
-    final bounds = _getSelectionBounds(selection);
-    if (bounds == null) return;
-
-    final minX = bounds.left.toInt();
-    final minY = bounds.top.toInt();
-    final maxX = bounds.right.toInt();
-    final maxY = bounds.bottom.toInt();
-
-    bool hasPixels = false;
-    for (int y = minY; y < maxY; y++) {
-      for (int x = minX; x < maxX; x++) {
-        if (x >= 0 && x < state.width && y >= 0 && y < state.height) {
-          final idx = y * state.width + x;
-          final pixel = currentLayer.pixels[idx];
-          if (pixel != 0) {
-            newLayerPixels[idx] = pixel;
-            hasPixels = true;
-          }
-        }
-      }
-    }
-
+    // Check if any pixels were extracted
+    bool hasPixels = newLayerPixels.any((p) => p != 0);
     if (!hasPixels) return;
 
     _saveState();
 
     if (clearSource) {
-      final clearedPixels = _clearSelectionArea(currentLayer.pixels, selection);
+      final clearedPixels = _selectionService.clearPixelsInSelection(
+        sel,
+        currentLayer.pixels,
+        state.width,
+        state.height,
+      );
       _updateCurrentLayerPixels(clearedPixels);
     }
 
@@ -362,29 +345,62 @@ class PixelDrawController extends _$PixelDrawController {
 
   Uint32List? _transformCachedPixels;
   Rect? _transformCachedBounds;
-  List<PixelPoint<int>>? _transformCachedSelection;
+  SelectionRegion? _transformCachedRegion;
 
-  void startTransformSelection(List<PixelPoint<int>> selection) {
-    if (selection.isEmpty || currentLayer.pixels.isEmpty) return;
+  void startTransformSelection(SelectionRegion region) {
+    if (currentLayer.pixels.isEmpty) return;
 
-    final bounds = _getSelectionBounds(selection);
-    if (bounds == null || bounds.width <= 0 || bounds.height <= 0) return;
+    final bounds = region.bounds;
+    if (bounds.width <= 0 || bounds.height <= 0) return;
 
     _saveState();
-    _transformCachedSelection = List<PixelPoint<int>>.from(selection);
+    _transformCachedRegion = region;
     _transformCachedBounds = bounds;
-    _transformCachedPixels = _extractSelectedPixels(
-      currentLayer.pixels,
-      selection,
-      bounds,
-      respectSelectionShape: false,
+
+    // Extract selected pixels into a local buffer
+    final bw = bounds.width.ceil();
+    final bh = bounds.height.ceil();
+    final extracted = Uint32List(bw * bh);
+    final indices = region.getSelectedPixelIndices(state.width, state.height);
+    for (final idx in indices) {
+      if (idx >= 0 &&
+          idx < currentLayer.pixels.length &&
+          currentLayer.pixels[idx] != 0) {
+        final x = idx % state.width;
+        final y = idx ~/ state.width;
+        final lx = x - bounds.left.floor();
+        final ly = y - bounds.top.floor();
+        if (lx >= 0 && lx < bw && ly >= 0 && ly < bh) {
+          extracted[ly * bw + lx] = currentLayer.pixels[idx];
+        }
+      }
+    }
+    _transformCachedPixels = extracted;
+
+    // Enter transform mode in selection state
+    state = state.copyWith(
+      selectionState: state.selectionState?.copyWith(
+        isTransforming: true,
+        capturedPixels: () => extracted,
+        capturedBounds: () => bounds,
+      ),
     );
   }
 
   void endTransformSelection() {
     _transformCachedPixels = null;
     _transformCachedBounds = null;
-    _transformCachedSelection = null;
+    _transformCachedRegion = null;
+
+    if (state.selectionState != null) {
+      state = state.copyWith(
+        selectionState: state.selectionState!.copyWith(
+          isTransforming: false,
+          capturedPixels: () => null,
+          capturedBounds: () => null,
+        ),
+      );
+    }
   }
 
   // Layer operations
@@ -400,7 +416,8 @@ class PixelDrawController extends _$PixelDrawController {
       order: order,
     );
 
-    final updatedLayers = [...currentFrame.layers, newLayer]..sort((a, b) => a.order.compareTo(b.order));
+    final updatedLayers = [...currentFrame.layers, newLayer]
+      ..sort((a, b) => a.order.compareTo(b.order));
 
     final updatedFrame = currentFrame.copyWith(layers: updatedLayers);
     _updateCurrentFrame(updatedFrame);
@@ -438,7 +455,8 @@ class PixelDrawController extends _$PixelDrawController {
     final layerToRemove = currentFrame.layers[index];
     await _layerService.deleteLayer(layerToRemove.layerId);
 
-    final updatedLayers = List<Layer>.from(currentFrame.layers)..removeAt(index);
+    final updatedLayers = List<Layer>.from(currentFrame.layers)
+      ..removeAt(index);
 
     final reorderedLayers = updatedLayers.indexed.map((indexed) {
       final (i, layer) = indexed;
@@ -448,7 +466,8 @@ class PixelDrawController extends _$PixelDrawController {
     final updatedFrame = currentFrame.copyWith(layers: reorderedLayers);
     _updateCurrentFrame(updatedFrame);
 
-    final newLayerIndex = index >= reorderedLayers.length ? reorderedLayers.length - 1 : index;
+    final newLayerIndex =
+        index >= reorderedLayers.length ? reorderedLayers.length - 1 : index;
 
     state = state.copyWith(currentLayerIndex: newLayerIndex);
   }
@@ -511,7 +530,9 @@ class PixelDrawController extends _$PixelDrawController {
     final updatedFrame = currentFrame.copyWith(layers: reorderedLayers);
     _updateCurrentFrame(updatedFrame);
 
-    final newCurrentIndex = oldIndex == state.currentLayerIndex ? newIndex : state.currentLayerIndex;
+    final newCurrentIndex = oldIndex == state.currentLayerIndex
+        ? newIndex
+        : state.currentLayerIndex;
 
     state = state.copyWith(currentLayerIndex: newCurrentIndex);
     _updateProject();
@@ -534,7 +555,9 @@ class PixelDrawController extends _$PixelDrawController {
 
   // Frame operations
   Future<void> addFrame(String name, {int? copyFrameId, int? stateId}) async {
-    final copyFrame = copyFrameId != null ? state.frames.firstWhere((f) => f.id == copyFrameId) : null;
+    final copyFrame = copyFrameId != null
+        ? state.frames.firstWhere((f) => f.id == copyFrameId)
+        : null;
 
     final order = _frameService.calculateNextFrameOrder(state.frames);
 
@@ -562,7 +585,8 @@ class PixelDrawController extends _$PixelDrawController {
     final frameToRemove = state.frames[index];
     await _frameService.deleteFrame(frameToRemove.id);
 
-    final updatedFrames = List<AnimationFrame>.from(state.frames)..removeAt(index);
+    final updatedFrames = List<AnimationFrame>.from(state.frames)
+      ..removeAt(index);
 
     final currentStateFrames = _frameService.getFramesForState(
       updatedFrames,
@@ -588,7 +612,8 @@ class PixelDrawController extends _$PixelDrawController {
     }
 
     // Ensure the frame index is valid
-    final safeFrameIndex = newFrameIndex.clamp(0, currentStateFrames.isEmpty ? 0 : currentStateFrames.length - 1);
+    final safeFrameIndex = newFrameIndex.clamp(
+        0, currentStateFrames.isEmpty ? 0 : currentStateFrames.length - 1);
 
     state = state.copyWith(
       frames: updatedFrames,
@@ -601,7 +626,8 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void selectFrame(int frameId) {
-    final index = state.currentFrames.indexWhere((frame) => frame.id == frameId);
+    final index =
+        state.currentFrames.indexWhere((frame) => frame.id == frameId);
     if (index >= 0) {
       state = state.copyWith(
         currentFrameIndex: index,
@@ -611,7 +637,8 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void nextFrame() {
-    final nextIndex = (state.currentFrameIndex + 1) % state.currentFrames.length;
+    final nextIndex =
+        (state.currentFrameIndex + 1) % state.currentFrames.length;
     state = state.copyWith(
       currentFrameIndex: nextIndex,
       currentLayerIndex: 0,
@@ -619,7 +646,9 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void previousFrame() {
-    final prevIndex = (state.currentFrameIndex - 1 + state.currentFrames.length) % state.currentFrames.length;
+    final prevIndex =
+        (state.currentFrameIndex - 1 + state.currentFrames.length) %
+            state.currentFrames.length;
     state = state.copyWith(
       currentFrameIndex: prevIndex,
       currentLayerIndex: 0,
@@ -635,7 +664,8 @@ class PixelDrawController extends _$PixelDrawController {
     );
 
     // Copy the first frame of the current state as the starting frame
-    final currentFirstFrame = state.currentFrames.isNotEmpty ? state.currentFrames.first : null;
+    final currentFirstFrame =
+        state.currentFrames.isNotEmpty ? state.currentFrames.first : null;
     final defaultFrame = await _frameService.createFrame(
       projectId: project.id,
       name: 'Frame 1',
@@ -657,7 +687,8 @@ class PixelDrawController extends _$PixelDrawController {
 
   Future<void> copyAnimationState(int sourceStateId) async {
     // Find the source state
-    final sourceIndex = _animationService.findStateIndex(state.animationStates, sourceStateId);
+    final sourceIndex =
+        _animationService.findStateIndex(state.animationStates, sourceStateId);
     if (sourceIndex < 0) return;
     final sourceState = state.animationStates[sourceIndex];
 
@@ -669,7 +700,8 @@ class PixelDrawController extends _$PixelDrawController {
     );
 
     // Copy all frames belonging to the source state
-    final sourceFrames = state.frames.where((f) => f.stateId == sourceStateId).toList();
+    final sourceFrames =
+        state.frames.where((f) => f.stateId == sourceStateId).toList();
     final newFrames = <AnimationFrame>[];
     for (final frame in sourceFrames) {
       final copiedFrame = await _frameService.createFrame(
@@ -711,12 +743,14 @@ class PixelDrawController extends _$PixelDrawController {
   Future<void> removeAnimationState(int stateId) async {
     if (!_animationService.canDeleteState(state.animationStates)) return;
 
-    final stateIndex = _animationService.findStateIndex(state.animationStates, stateId);
+    final stateIndex =
+        _animationService.findStateIndex(state.animationStates, stateId);
     if (stateIndex < 0) return;
 
     await _animationService.deleteAnimationState(stateId);
 
-    final updatedStates = List<AnimationStateModel>.from(state.animationStates)..removeAt(stateIndex);
+    final updatedStates = List<AnimationStateModel>.from(state.animationStates)
+      ..removeAt(stateIndex);
 
     final updatedFrames = _animationService.removeFramesForState(
       state.frames,
@@ -759,7 +793,8 @@ class PixelDrawController extends _$PixelDrawController {
 
     newLayer = newLayer.copyWith(pixels: pixels);
 
-    final updatedLayers = [...currentFrame.layers, newLayer]..sort((a, b) => a.order.compareTo(b.order));
+    final updatedLayers = [...currentFrame.layers, newLayer]
+      ..sort((a, b) => a.order.compareTo(b.order));
 
     final updatedFrame = currentFrame.copyWith(layers: updatedLayers);
     _updateCurrentFrame(updatedFrame);
@@ -770,7 +805,8 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void selectAnimationState(int stateId) {
-    final index = _animationService.findStateIndex(state.animationStates, stateId);
+    final index =
+        _animationService.findStateIndex(state.animationStates, stateId);
     if (index >= 0) {
       state = state.copyWith(
         currentAnimationStateIndex: index,
@@ -802,66 +838,246 @@ class PixelDrawController extends _$PixelDrawController {
 
     state = state.copyWith(
       frames: reorderedFrames,
-      currentFrameIndex: oldIndex == state.currentFrameIndex ? newIndex : state.currentFrameIndex,
+      currentFrameIndex: oldIndex == state.currentFrameIndex
+          ? newIndex
+          : state.currentFrameIndex,
     );
 
     _updateProject();
   }
 
   // Selection operations
-  void setSelection(List<PixelPoint<int>>? selection) {
-    _selectionService.setSelection(selection, currentLayer.pixels);
-    state = state.copyWith(selectionRect: selection);
+  void setSelection(SelectionRegion? region) {
+    if (region == null) {
+      state = state.copyWith(selectionState: null);
+      return;
+    }
+    // Use layer's anchor if available
+    final layerAnchor = currentLayer.anchorPoint;
+    state = state.copyWith(
+      selectionState: SelectionState(
+        region: region,
+        anchorPoint: layerAnchor,
+      ),
+    );
   }
 
-  void prepareToMoveSelection(List<PixelPoint<int>> initialSelection) {
-    if (state.currentLayerIndex < 0 || state.currentLayerIndex >= currentFrame.layers.length) {
-      debugPrint("prepareToMoveSelection: Invalid currentLayerIndex");
-      return;
-    }
-    final layer = currentFrame.layers[state.currentLayerIndex];
-    _selectionService.setSelection(initialSelection, layer.pixels);
-    state = state.copyWith(selectionRect: initialSelection);
-  }
-
-  void moveSelection(List<PixelPoint<int>> newSelection, Point delta) {
-    if (state.selectionRect == null) {
-      debugPrint('No selection to move');
-      return;
-    }
-
-    if (_selectionService.currentSelection == null || !_selectionService.hasSelection) {
-      debugPrint('PixelDrawController.moveSelection: SelectionService not primed or has no selection.');
-
-      if (state.selectionRect != null) {
-        prepareToMoveSelection(state.selectionRect!);
-      } else {
-        return;
-      }
-    }
-
-    if (_selectionService.currentSelection != null && listEquals(_selectionService.currentSelection!, newSelection)) {
-      if (state.selectionRect != newSelection) {
-        state = state.copyWith(selectionRect: newSelection);
-      }
-      return;
-    }
+  void moveSelection(Offset delta) {
+    final sel = state.selectionState;
+    if (sel == null) return;
 
     _saveState();
 
-    final newPixels = _selectionService.moveSelection(
-      newTargetSelection: newSelection,
+    final newPixels = _selectionService.moveSelectedPixels(
+      region: sel.region,
+      layerPixels: currentLayer.pixels,
       delta: delta,
-      currentLayerPixels: Uint32List.fromList(currentLayer.pixels),
     );
 
+    final movedRegion = sel.region.shifted(delta);
     _updateCurrentLayerPixels(newPixels);
-    state = state.copyWith(selectionRect: newSelection);
+    state = state.copyWith(
+      selectionState: sel.copyWith(region: movedRegion),
+    );
+  }
+
+  void resizeSelectionNew(Rect targetBounds) {
+    final sel = state.selectionState;
+    if (sel == null) return;
+
+    final cached = _transformCachedPixels;
+    final cachedBounds = _transformCachedBounds;
+    final cachedRegion = _transformCachedRegion;
+    if (cached == null || cachedBounds == null || cachedRegion == null) return;
+
+    final srcW = cachedBounds.width.ceil().clamp(1, state.width);
+    final srcH = cachedBounds.height.ceil().clamp(1, state.height);
+
+    final constrainedTargetBounds = Rect.fromLTRB(
+      targetBounds.left.clamp(0.0, state.width.toDouble()),
+      targetBounds.top.clamp(0.0, state.height.toDouble()),
+      targetBounds.right.clamp(0.0, state.width.toDouble()),
+      targetBounds.bottom.clamp(0.0, state.height.toDouble()),
+    );
+    if (constrainedTargetBounds.width <= 0 ||
+        constrainedTargetBounds.height <= 0) {
+      return;
+    }
+
+    final targetW = constrainedTargetBounds.width.round().clamp(1, state.width);
+    final targetH =
+        constrainedTargetBounds.height.round().clamp(1, state.height);
+
+    final transformedPixels = PixelUtils.resize(
+      cached,
+      srcW,
+      srcH,
+      targetW,
+      targetH,
+      1,
+      0,
+    );
+
+    // Clear original area and place resized pixels
+    final clearedPixels = _selectionService.clearPixelsInSelection(
+      cachedRegion,
+      currentLayer.pixels,
+      state.width,
+      state.height,
+    );
+
+    final resultPixels = _placeTransformedPixels(
+      clearedPixels,
+      transformedPixels,
+      constrainedTargetBounds,
+      targetW,
+      targetH,
+    );
+
+    // Create new selection region matching resized area
+    final newRegion = _selectionService.createRectangleSelection(
+      constrainedTargetBounds.left.floor(),
+      constrainedTargetBounds.top.floor(),
+      (constrainedTargetBounds.right - 1).floor(),
+      (constrainedTargetBounds.bottom - 1).floor(),
+    );
+
+    _updateCurrentLayerPixels(resultPixels);
+    state = state.copyWith(
+      selectionState: sel.copyWith(
+        region: newRegion,
+        scale: Size(targetW / srcW, targetH / srcH),
+      ),
+    );
+  }
+
+  void rotateSelectionNew(double angle, {Offset? pivot}) {
+    final sel = state.selectionState;
+    if (sel == null) return;
+
+    final cached = _transformCachedPixels;
+    final cachedBounds = _transformCachedBounds;
+    final cachedRegion = _transformCachedRegion;
+    if (cached == null || cachedBounds == null || cachedRegion == null) return;
+
+    // Use anchor point, or provided pivot, or center
+    final rotCenter = sel.anchorPoint ?? pivot ?? cachedBounds.center;
+
+    final srcW = cachedBounds.width.round().clamp(1, state.width);
+    final srcH = cachedBounds.height.round().clamp(1, state.height);
+
+    final rotatedBounds = _computeRotatedBounds(cachedBounds, rotCenter, angle);
+
+    final rotatedPixels = PixelUtils.applyRotationWithBounds(
+      cached,
+      srcW,
+      srcH,
+      angle,
+      cachedBounds,
+      rotatedBounds,
+      rotCenter,
+      1,
+      0,
+    );
+    if (rotatedPixels.isEmpty) return;
+
+    final clearedPixels = _selectionService.clearPixelsInSelection(
+      cachedRegion,
+      currentLayer.pixels,
+      state.width,
+      state.height,
+    );
+
+    final constrainedDest = Rect.fromLTRB(
+      rotatedBounds.left.clamp(0.0, state.width.toDouble()),
+      rotatedBounds.top.clamp(0.0, state.height.toDouble()),
+      rotatedBounds.right.clamp(1.0, state.width.toDouble()),
+      rotatedBounds.bottom.clamp(1.0, state.height.toDouble()),
+    );
+
+    final targetW = rotatedBounds.width.round().clamp(1, state.width);
+    final targetH = rotatedBounds.height.round().clamp(1, state.height);
+
+    final resultPixels = _placeTransformedPixels(
+      clearedPixels,
+      rotatedPixels,
+      constrainedDest,
+      targetW,
+      targetH,
+    );
+
+    // Create new region from rotated bounds
+    final newRegion = _selectionService.createRectangleSelection(
+      constrainedDest.left.floor(),
+      constrainedDest.top.floor(),
+      (constrainedDest.right - 1).floor(),
+      (constrainedDest.bottom - 1).floor(),
+    );
+
+    _updateCurrentLayerPixels(resultPixels);
+    state = state.copyWith(
+      selectionState: sel.copyWith(
+        region: newRegion,
+        rotation: angle,
+      ),
+    );
+  }
+
+  void setAnchorPoint(Offset anchor) {
+    final sel = state.selectionState;
+    if (sel == null) return;
+
+    // Update selection state
+    state = state.copyWith(
+      selectionState: sel.copyWith(anchorPoint: () => anchor),
+    );
+
+    // Persist to layer
+    _updateCurrentLayer(currentLayer.copyWith(anchorPoint: () => anchor));
+  }
+
+  void autoSelectLayer() {
+    if (currentLayer.pixels.isEmpty) return;
+
+    final region = _selectionService.createAutoSelection(
+      pixels: currentLayer.pixels,
+      w: state.width,
+      h: state.height,
+    );
+
+    if (region.bounds == Rect.zero) return;
+
+    setSelection(region);
+  }
+
+  void selectAll() {
+    final region = _selectionService.selectAll();
+    setSelection(region);
+  }
+
+  void invertSelectionRegion() {
+    final sel = state.selectionState;
+    if (sel == null) return;
+
+    final inverted = _selectionService.invertSelection(sel.region);
+    setSelection(inverted);
+  }
+
+  void flipSelectionPixels({required bool horizontal}) {
+    final sel = state.selectionState;
+    if (sel == null) return;
+
+    _saveState();
+    final newPixels = _selectionService.flipSelectedPixels(
+      region: sel.region,
+      layerPixels: currentLayer.pixels,
+      horizontal: horizontal,
+    );
+    _updateCurrentLayerPixels(newPixels);
   }
 
   void clearSelection() {
-    _selectionService.clearSelection();
-    state = state.copyWith(selectionRect: null);
+    state = state.copyWith(selectionState: null);
   }
 
   // Undo/Redo operations
@@ -869,12 +1085,6 @@ class PixelDrawController extends _$PixelDrawController {
     final previousState = _undoRedoService.undo(state);
     if (previousState != null) {
       state = previousState;
-      if (previousState.selectionRect != null) {
-        _selectionService.setSelection(
-          previousState.selectionRect,
-          currentLayer.pixels,
-        );
-      }
       _updateProject();
     }
   }
@@ -883,12 +1093,6 @@ class PixelDrawController extends _$PixelDrawController {
     final nextState = _undoRedoService.redo(state);
     if (nextState != null) {
       state = nextState;
-      if (nextState.selectionRect != null) {
-        _selectionService.setSelection(
-          nextState.selectionRect,
-          currentLayer.pixels,
-        );
-      }
       _updateProject();
     }
   }
@@ -965,7 +1169,8 @@ class PixelDrawController extends _$PixelDrawController {
     double? exportWidth,
     double? exportHeight,
   }) async {
-    final frames = includeAllFrames ? state.currentFrames : [state.currentFrame];
+    final frames =
+        includeAllFrames ? state.currentFrames : [state.currentFrame];
 
     await _importExportService.exportSpriteSheet(
       context: context,
@@ -982,14 +1187,18 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   Future<void> importImageAsBackground(BuildContext context) async {
-    final imageBytes = await _importExportService.importImageAsBackground(context: context);
+    final imageBytes =
+        await _importExportService.importImageAsBackground(context: context);
     if (imageBytes != null) {
-      ref.read(backgroundImageProvider.notifier).update((state) => state.copyWith(image: imageBytes));
+      ref
+          .read(backgroundImageProvider.notifier)
+          .update((state) => state.copyWith(image: imageBytes));
 
       // Extract dominant colors and publish to palette panel
       final img.Image? decoded = img.decodeImage(imageBytes);
       if (decoded != null) {
-        final palette = PixelArtConverter.extractPaletteFromImage(decoded, maxColors: 32);
+        final palette =
+            PixelArtConverter.extractPaletteFromImage(decoded, maxColors: 32);
         ref.read(importedPaletteProvider.notifier).set(palette);
       }
     }
@@ -1037,7 +1246,9 @@ class PixelDrawController extends _$PixelDrawController {
 
   // Helper methods
   Color _getDrawingColor() {
-    return state.currentTool == PixelTool.eraser ? Colors.transparent : state.currentColor;
+    return state.currentTool == PixelTool.eraser
+        ? Colors.transparent
+        : state.currentColor;
   }
 
   void _updateCurrentLayerPixels(Uint32List newPixels) {
@@ -1082,169 +1293,16 @@ class PixelDrawController extends _$PixelDrawController {
     }
   }
 
-  /// MARK: Selection Resizing & Rotation
+  /// MARK: Selection Resizing & Rotation (legacy wrappers kept for overlay compatibility)
 
-  void resizeSelection(List<PixelPoint<int>> selection, List<PixelPoint<int>> oldSelection, Rect b, Offset? center) {
-    if (oldSelection.isEmpty || selection.isEmpty || currentLayer.pixels.isEmpty) {
-      return;
-    }
-
-    // Get bounds of NEW selection (after resize)
-    final targetBounds = _getSelectionBounds(selection);
-    if (targetBounds == null) return;
-
-    // Use cached data if available (from startTransformSelection),
-    // otherwise extract from the current layer (for backwards compatibility)
-    final Uint32List selectedPixels;
-    final Rect originalBounds;
-    final List<PixelPoint<int>> originalSelection;
-
-    if (_transformCachedPixels != null && _transformCachedBounds != null && _transformCachedSelection != null) {
-      // Use cached data - this prevents extracting from already-modified layer
-      selectedPixels = _transformCachedPixels!;
-      originalBounds = _transformCachedBounds!;
-      originalSelection = _transformCachedSelection!;
-    } else {
-      // Fallback: extract from layer (single-shot resize without caching)
-      final bounds = _getSelectionBounds(oldSelection);
-      if (bounds == null) return;
-      originalBounds = bounds;
-      originalSelection = oldSelection;
-      selectedPixels = _extractSelectedPixels(
-        currentLayer.pixels,
-        oldSelection,
-        originalBounds,
-        respectSelectionShape: false,
-      );
-      _saveState();
-    }
-
-    final srcWidth = originalBounds.width.toInt().clamp(1, state.width);
-    final srcHeight = originalBounds.height.toInt().clamp(1, state.height);
-    final targetWidth = targetBounds.width.toInt().clamp(1, state.width);
-    final targetHeight = targetBounds.height.toInt().clamp(1, state.height);
-
-    final transformedPixels = PixelUtils.resize(
-      selectedPixels,
-      srcWidth, // source width
-      srcHeight, // source height
-      targetWidth, // target width
-      targetHeight, // target height
-      1, // bilinear interpolation
-      0, // transparent background
-    );
-
-    final clearedPixels = _clearSelectionArea(
-      currentLayer.pixels,
-      originalSelection,
-    );
-
-    // Constrain target bounds to canvas
-    final constrainedBounds = Rect.fromLTRB(
-      targetBounds.left.clamp(0, state.width.toDouble()),
-      targetBounds.top.clamp(0, state.height.toDouble()),
-      targetBounds.right.clamp(1, state.width.toDouble()),
-      targetBounds.bottom.clamp(1, state.height.toDouble()),
-    );
-
-    // Place transformed pixels
-    final resultPixels = _placeTransformedPixels(
-      clearedPixels,
-      transformedPixels,
-      constrainedBounds,
-      targetWidth,
-      targetHeight,
-    );
-
-    _updateCurrentLayerPixels(resultPixels);
+  void resizeSelection(SelectionRegion region, SelectionRegion oldRegion,
+      Rect b, Offset? center) {
+    resizeSelectionNew(region.bounds);
   }
 
-  void rotateSelection(
-    List<PixelPoint<int>> selection,
-    List<PixelPoint<int>> oldSelection,
-    double angle,
-    Offset? center,
-  ) {
-    if (oldSelection.isEmpty || currentLayer.pixels.isEmpty) return;
-
-    // Use cached data if available (from startTransformSelection),
-    // otherwise extract from the current layer (for backwards compatibility)
-    final Uint32List selectedPixels;
-    final Rect originalBounds;
-    final List<PixelPoint<int>> originalSelection;
-
-    if (_transformCachedPixels != null && _transformCachedBounds != null && _transformCachedSelection != null) {
-      // Use cached data - this prevents extracting from already-modified layer
-      selectedPixels = _transformCachedPixels!;
-      originalBounds = _transformCachedBounds!;
-      originalSelection = _transformCachedSelection!;
-    } else {
-      // Fallback: extract from layer (single-shot rotation without caching)
-      final bounds = _getSelectionBounds(oldSelection);
-      if (bounds == null || bounds.width <= 0 || bounds.height <= 0) return;
-      originalBounds = bounds;
-      originalSelection = oldSelection;
-      selectedPixels = _extractSelectedPixels(
-        currentLayer.pixels,
-        oldSelection,
-        originalBounds,
-        respectSelectionShape: false,
-      );
-      _saveState();
-    }
-
-    if (originalBounds.width <= 0 || originalBounds.height <= 0) return;
-
-    // Rotation center in world coords (pixels/canvas space)
-    final rotCenter = center ?? originalBounds.center;
-
-    final srcWidth = originalBounds.width.round().clamp(1, state.width);
-    final srcHeight = originalBounds.height.round().clamp(1, state.height);
-
-    // Compute the rotated bounding box in world coords
-    final rotatedBounds = _computeRotatedBounds(originalBounds, rotCenter, angle);
-
-    // Produce the rotated pixel buffer sized to rotatedBounds.w × rotatedBounds.h
-    final rotatedPixels = PixelUtils.applyRotationWithBounds(
-      selectedPixels,
-      srcWidth,
-      srcHeight,
-      angle,
-      originalBounds, // original (unrotated) world bounds
-      rotatedBounds, // rotated world bounds (can be outside canvas)
-      rotCenter,
-      1, // bilinear
-      0, // transparent background outside source
-    );
-    if (rotatedPixels.isEmpty) return;
-
-    // Clear the ORIGINAL selection area on the layer (before rotation)
-    final clearedPixels = _clearSelectionArea(
-      currentLayer.pixels,
-      originalSelection,
-    );
-
-    // Clamp destination rect to canvas; _placeTransformedPixels should clip if needed
-    final constrainedDest = Rect.fromLTRB(
-      rotatedBounds.left.clamp(0.0, state.width.toDouble()),
-      rotatedBounds.top.clamp(0.0, state.height.toDouble()),
-      rotatedBounds.right.clamp(1.0, state.width.toDouble()),
-      rotatedBounds.bottom.clamp(1.0, state.height.toDouble()),
-    );
-
-    final targetW = rotatedBounds.width.round().clamp(1, state.width);
-    final targetH = rotatedBounds.height.round().clamp(1, state.height);
-
-    // Blit the rotated buffer into the (clipped) destination area
-    final resultPixels = _placeTransformedPixels(
-      clearedPixels,
-      rotatedPixels,
-      constrainedDest,
-      targetW,
-      targetH,
-    );
-
-    _updateCurrentLayerPixels(resultPixels);
+  void rotateSelection(SelectionRegion region, SelectionRegion oldRegion,
+      double angle, Offset? center) {
+    rotateSelectionNew(angle, pivot: center);
   }
 
   /// Rotated AABB of [rect] about [center] by [angle] (radians) in screen coords.
@@ -1276,108 +1334,6 @@ class PixelDrawController extends _$PixelDrawController {
 
 // Helper methods for selection transformation
 
-  Rect? _getSelectionBounds(List<PixelPoint<int>> selection) {
-    if (selection.isEmpty) return null;
-
-    int minX = selection.first.x;
-    int maxX = selection.first.x;
-    int minY = selection.first.y;
-    int maxY = selection.first.y;
-
-    for (final point in selection) {
-      minX = math.min(minX, point.x);
-      maxX = math.max(maxX, point.x);
-      minY = math.min(minY, point.y);
-      maxY = math.max(maxY, point.y);
-    }
-
-    return Rect.fromLTRB(
-      minX.toDouble(),
-      minY.toDouble(),
-      (maxX + 1).toDouble(),
-      (maxY + 1).toDouble(),
-    );
-  }
-
-  Uint32List _extractSelectedPixels(
-    Uint32List sourcePixels,
-    List<PixelPoint<int>> selection,
-    Rect bounds, {
-    bool respectSelectionShape = false,
-  }) {
-    final width = bounds.width.toInt();
-    final height = bounds.height.toInt();
-
-    if (width <= 0 || height <= 0) {
-      return Uint32List(0);
-    }
-
-    final pixels = Uint32List(width * height);
-    final boundsLeft = bounds.left.toInt();
-    final boundsTop = bounds.top.toInt();
-
-    // For non-rectangular selections (like lasso), we need to check each pixel
-    Set<String>? selectionSet;
-    if (respectSelectionShape && selection.isNotEmpty) {
-      selectionSet = <String>{};
-      for (final point in selection) {
-        selectionSet.add('${point.x},${point.y}');
-      }
-    }
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final worldX = boundsLeft + x;
-        final worldY = boundsTop + y;
-
-        // Check if this pixel is in the selection (if needed)
-        if (selectionSet != null && !selectionSet.contains('$worldX,$worldY')) {
-          continue; // Skip pixels outside selection shape
-        }
-
-        // Check if world coordinates are valid
-        if (worldX >= 0 && worldX < state.width && worldY >= 0 && worldY < state.height) {
-          final sourceIndex = worldY * state.width + worldX;
-          final destIndex = y * width + x;
-
-          if (sourceIndex >= 0 && sourceIndex < sourcePixels.length) {
-            pixels[destIndex] = sourcePixels[sourceIndex];
-          }
-        }
-      }
-    }
-
-    return pixels;
-  }
-
-  Uint32List _clearSelectionArea(
-    Uint32List pixels,
-    List<PixelPoint<int>> selection,
-  ) {
-    final result = Uint32List.fromList(pixels);
-
-    // Compute bounds from selection points and clear the full rectangular area,
-    // not just the outline points (selection may only contain border points).
-    final bounds = _getSelectionBounds(selection);
-    if (bounds == null) return result;
-
-    final minX = bounds.left.toInt();
-    final minY = bounds.top.toInt();
-    final maxX = bounds.right.toInt();
-    final maxY = bounds.bottom.toInt();
-
-    for (int y = minY; y < maxY; y++) {
-      for (int x = minX; x < maxX; x++) {
-        final index = y * state.width + x;
-        if (index >= 0 && index < result.length) {
-          result[index] = 0; // Clear to transparent
-        }
-      }
-    }
-
-    return result;
-  }
-
   Uint32List _placeTransformedPixels(
     Uint32List targetPixels,
     Uint32List transformedPixels,
@@ -1402,7 +1358,10 @@ class PixelDrawController extends _$PixelDrawController {
           final destX = targetX + x;
           final destY = targetY + y;
 
-          if (destX >= 0 && destX < state.width && destY >= 0 && destY < state.height) {
+          if (destX >= 0 &&
+              destX < state.width &&
+              destY >= 0 &&
+              destY < state.height) {
             final destIndex = destY * state.width + destX;
             if (destIndex >= 0 && destIndex < result.length) {
               result[destIndex] = pixel;
@@ -1415,84 +1374,15 @@ class PixelDrawController extends _$PixelDrawController {
     return result;
   }
 
-  Rect _calculateRotatedBounds(Rect originalBounds, double angle, Offset center) {
-    // Calculate the four corners of the original bounds
-    final corners = [
-      Offset(originalBounds.left, originalBounds.top),
-      Offset(originalBounds.right, originalBounds.top),
-      Offset(originalBounds.right, originalBounds.bottom),
-      Offset(originalBounds.left, originalBounds.bottom),
-    ];
+  void _updateCurrentLayer(Layer layer) {
+    final updatedLayers = List<Layer>.from(currentFrame.layers);
+    updatedLayers[state.currentLayerIndex] = layer;
+    final updatedFrame = currentFrame.copyWith(layers: updatedLayers);
 
-    // Rotate each corner around the center
-    final rotatedCorners = corners.map((corner) {
-      final dx = corner.dx - center.dx;
-      final dy = corner.dy - center.dy;
+    final frameIndex = state.frames.indexWhere((f) => f.id == currentFrame.id);
+    final updatedFrames = List<AnimationFrame>.from(state.frames);
+    updatedFrames[frameIndex] = updatedFrame;
 
-      final cos = math.cos(angle);
-      final sin = math.sin(angle);
-
-      final rotatedX = center.dx + dx * cos - dy * sin;
-      final rotatedY = center.dy + dx * sin + dy * cos;
-
-      return Offset(rotatedX, rotatedY);
-    }).toList();
-
-    // Find the new bounding box
-    double minX = rotatedCorners.first.dx;
-    double maxX = rotatedCorners.first.dx;
-    double minY = rotatedCorners.first.dy;
-    double maxY = rotatedCorners.first.dy;
-
-    for (final corner in rotatedCorners) {
-      minX = math.min(minX, corner.dx);
-      maxX = math.max(maxX, corner.dx);
-      minY = math.min(minY, corner.dy);
-      maxY = math.max(maxY, corner.dy);
-    }
-
-    return Rect.fromLTRB(minX, minY, maxX, maxY);
-  }
-
-  List<PixelPoint<int>> _createSelectionFromBounds(Rect bounds) {
-    final selection = <PixelPoint<int>>[];
-
-    final minX = bounds.left.round().clamp(0, state.width - 1);
-    final maxX = bounds.right.round().clamp(1, state.width);
-    final minY = bounds.top.round().clamp(0, state.height - 1);
-    final maxY = bounds.bottom.round().clamp(1, state.height);
-
-    for (int y = minY; y < maxY; y++) {
-      for (int x = minX; x < maxX; x++) {
-        if (x >= 0 && x < state.width && y >= 0 && y < state.height) {
-          selection.add(PixelPoint<int>(x, y));
-        }
-      }
-    }
-
-    return selection;
-  }
-
-  Uint32List _applyScaleTransform(
-    Uint32List pixels,
-    int width,
-    int height,
-    double scaleX,
-    double scaleY,
-  ) {
-    // Use uniform scale (average of X and Y) for now
-    // You could extend PixelUtils to support non-uniform scaling
-    final scale = (scaleX + scaleY) / 2;
-
-    return PixelUtils.applyScale(
-      pixels,
-      width,
-      height,
-      scale,
-      width / 2,
-      height / 2,
-      1, // Bilinear interpolation
-      0, // Transparent background
-    );
+    state = state.copyWith(frames: updatedFrames);
   }
 }

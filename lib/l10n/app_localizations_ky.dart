@@ -901,4 +901,20 @@ class StringsKy extends Strings {
 
   @override
   String get effectsPanelApplyAll => 'Баарын колдонуу';
+
+  @override
+  String get ellipseSelection => 'Овал тандоо';
+
+  @override
+  String get ellipseSelectionTooltip => 'Овал аймакты тандоо';
+
+  @override
+  String get autoSelectLayer => 'Авто-тандоо';
+
+  @override
+  String get autoSelectLayerTooltip =>
+      'Учурдагы катмардын бардык бош эмес пикселдерин тандоо';
+
+  @override
+  String get selectionAnchor => 'Тандоо якору';
 }

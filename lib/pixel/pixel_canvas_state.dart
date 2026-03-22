@@ -2,11 +2,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'pixel_point.dart';
 import 'tools.dart';
 import '../data/models/animation_frame_model.dart';
 import '../data/models/layer.dart';
-import '../data/models/selection_model.dart';
+import '../data/models/selection_state.dart';
 import 'tools/texture_brush_tool.dart';
 
 part 'pixel_canvas_state.freezed.dart';
@@ -26,7 +25,7 @@ class PixelCanvasState with _$PixelCanvasState {
     required final Color currentColor,
     required final PixelTool currentTool,
     required final MirrorAxis mirrorAxis,
-    final List<PixelPoint<int>>? selectionRect,
+    final SelectionState? selectionState,
     @Default(false) final bool canUndo,
     @Default(false) final bool canRedo,
     @Default(PixelModifier.none) final PixelModifier currentModifier,

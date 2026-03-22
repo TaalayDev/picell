@@ -436,5 +436,10 @@
     "feedback_dialog_benefit_3": "Колдонмонун келечегин калыптандырууга жардам бериңиз",
     "feedback_dialog_leave_feedback": "Пикир калтыруу",
     "feedback_dialog_maybe_later": "Кийинчерээк",
-    "feedback_dialog_dont_ask": "Мындан ары сурабаңыз"
+    "feedback_dialog_dont_ask": "Мындан ары сурабаңыз",
+    "ellipseSelection": "Овал тандоо",
+    "ellipseSelectionTooltip": "Овал аймакты тандоо",
+    "autoSelectLayer": "Авто-тандоо",
+    "autoSelectLayerTooltip": "Учурдагы катмардын бардык бош эмес пикселдерин тандоо",
+    "selectionAnchor": "Тандоо якору"
 }

@@ -1,31 +1,33 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-import '../../../data.dart';
-import '../../pixel_point.dart';
+import '../../../data/models/selection_region.dart';
+import '../../../data/models/selection_state.dart';
 
 const _centerHandleSize = 18.0;
 const _handleSize = 12.0;
 
 class SelectionOverlay extends StatefulWidget {
-  final List<PixelPoint<int>>? selection;
+  final SelectionRegion selectionRegion;
+  final SelectionState? selectionState;
   final double zoomLevel;
   final Offset canvasOffset;
   final int canvasWidth;
   final int canvasHeight;
   final Size canvasSize;
 
-  final Function(List<PixelPoint<int>>, math.Point delta)? onSelectionMove;
-  final Function(List<PixelPoint<int>>, double angle)? onSelectionRotate;
-
-  final Function(List<PixelPoint<int>>, double, double, PixelPoint<int>)? onSelectionResize;
-  final Function(List<PixelPoint<int>> original)? onSelectionResizeStart;
-
+  final Function(Offset delta)? onSelectionMove;
+  final Function(SelectionRegion newRegion, double angle)? onSelectionRotate;
+  final Function(SelectionRegion newRegion, double scaleX, double scaleY,
+      math.Point<int> pivot)? onSelectionResize;
+  final Function(SelectionRegion original)? onSelectionResizeStart;
   final Function()? onSelectionMoveEnd;
+  final Function(Offset)? onAnchorChanged;
 
   const SelectionOverlay({
     super.key,
-    required this.selection,
+    required this.selectionRegion,
+    this.selectionState,
     required this.zoomLevel,
     required this.canvasOffset,
     required this.canvasWidth,
@@ -36,27 +38,29 @@ class SelectionOverlay extends StatefulWidget {
     this.onSelectionResize,
     this.onSelectionMoveEnd,
     this.onSelectionResizeStart,
+    this.onAnchorChanged,
   });
 
   @override
   State<SelectionOverlay> createState() => _SelectionOverlayState();
 }
 
-class _SelectionOverlayState extends State<SelectionOverlay> with SingleTickerProviderStateMixin {
+class _SelectionOverlayState extends State<SelectionOverlay>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
   Offset _lastPanPosition = Offset.zero;
-  List<PixelPoint<int>>? _originalSelection;
 
   double _rotationAngle = 0.0;
   double _initialRotationAngle = 0.0;
   bool _isRotating = false;
-  Offset? _centerPoint;
+  Offset? _rotationCenterScreen;
 
-  _Handle? _activeHandle;
-  Offset _resizeStartGlobal = Offset.zero;
-  _PixelBounds? _origBounds;
-  List<PixelPoint<int>>? _resizeOriginalSelection;
+  Offset _resizeStartScreen = Offset.zero;
+  Rect? _origBounds;
+  SelectionRegion? _resizeOriginalRegion;
+
+  bool _isDraggingAnchor = false;
 
   @override
   void initState() {
@@ -73,503 +77,436 @@ class _SelectionOverlayState extends State<SelectionOverlay> with SingleTickerPr
     super.dispose();
   }
 
-  SelectionModel? _getSelectionBounds() {
-    if (widget.selection == null || widget.selection!.isEmpty) return null;
-    return fromPointsToSelection(widget.selection!, widget.canvasSize);
-  }
+  double get _pixelWidth => widget.canvasSize.width / widget.canvasWidth;
+  double get _pixelHeight => widget.canvasSize.height / widget.canvasHeight;
 
-  SelectionModel? fromPointsToSelection(List<PixelPoint<int>> points, Size canvasSize) {
-    if (points.isEmpty ||
-        widget.canvasWidth <= 0 ||
-        widget.canvasHeight <= 0 ||
-        canvasSize.width <= 0 ||
-        canvasSize.height <= 0) {
-      return null;
-    }
-
-    // size of one image pixel in canvas logical px
-    final pixelWidth = canvasSize.width / widget.canvasWidth;
-    final pixelHeight = canvasSize.height / widget.canvasHeight;
-
-    int minPixelX = points.first.x;
-    int minPixelY = points.first.y;
-    int maxPixelX = points.first.x;
-    int maxPixelY = points.first.y;
-
-    for (final p in points) {
-      if (p.x < minPixelX) minPixelX = p.x;
-      if (p.x > maxPixelX) maxPixelX = p.x;
-      if (p.y < minPixelY) minPixelY = p.y;
-      if (p.y > maxPixelY) maxPixelY = p.y;
-    }
-
-    final canvasX = minPixelX * pixelWidth;
-    final canvasY = minPixelY * pixelHeight;
-    final canvasW = (maxPixelX - minPixelX + 1) * pixelWidth;
-    final canvasH = (maxPixelY - minPixelY + 1) * pixelHeight;
-
-    return SelectionModel(
-      x: canvasX.toInt(),
-      y: canvasY.toInt(),
-      width: canvasW.toInt(),
-      height: canvasH.toInt(),
-      canvasSize: canvasSize,
+  Rect get _selectionScreenRect {
+    final bounds = widget.selectionRegion.bounds;
+    return Rect.fromLTWH(
+      bounds.left * _pixelWidth,
+      bounds.top * _pixelHeight,
+      bounds.width * _pixelWidth,
+      bounds.height * _pixelHeight,
     );
   }
 
-  Offset _getSelectionCenter(double screenLeft, double screenTop, double screenWidth, double screenHeight) {
-    return Offset(screenLeft + screenWidth / 2, screenTop + screenHeight / 2);
+  Offset _pixelToScreen(Offset pixelPos) {
+    return Offset(pixelPos.dx * _pixelWidth, pixelPos.dy * _pixelHeight);
   }
 
-  PixelPoint<int> _rotatePoint(PixelPoint<int> point, PixelPoint<int> center, double angle) {
-    final c = math.cos(angle);
-    final s = math.sin(angle);
-    final tx = point.x - center.x;
-    final ty = point.y - center.y;
-    final rx = tx * c - ty * s;
-    final ry = tx * s + ty * c;
-    return PixelPoint<int>((rx + center.x).round(), (ry + center.y).round());
+  Offset _screenToPixel(Offset screenPos) {
+    return Offset(screenPos.dx / _pixelWidth, screenPos.dy / _pixelHeight);
   }
 
-  PixelPoint<int>? _getSelectionCenterInPixels() {
-    final pts = widget.selection;
-    if (pts == null || pts.isEmpty) return null;
-
-    int minX = pts.first.x, maxX = pts.first.x;
-    int minY = pts.first.y, maxY = pts.first.y;
-    for (final p in pts) {
-      if (p.x < minX) minX = p.x;
-      if (p.x > maxX) maxX = p.x;
-      if (p.y < minY) minY = p.y;
-      if (p.y > maxY) maxY = p.y;
+  Offset _globalToOverlay(Offset globalPosition) {
+    final renderObject = context.findRenderObject();
+    if (renderObject is! RenderBox) {
+      return globalPosition;
     }
-    return PixelPoint<int>(((minX + maxX) / 2).round(), ((minY + maxY) / 2).round());
+    return renderObject.globalToLocal(globalPosition);
   }
 
-  _PixelBounds? _getSelectionPixelBounds() {
-    final pts = widget.selection;
-    if (pts == null || pts.isEmpty) return null;
-
-    int minX = pts.first.x, maxX = pts.first.x;
-    int minY = pts.first.y, maxY = pts.first.y;
-    for (final p in pts) {
-      if (p.x < minX) minX = p.x;
-      if (p.x > maxX) maxX = p.x;
-      if (p.y < minY) minY = p.y;
-      if (p.y > maxY) maxY = p.y;
-    }
-    return _PixelBounds(minX, minY, maxX, maxY);
-  }
-
-  math.Point<double> _screenDeltaToImageDelta(Offset delta) {
-    final canvasDx = delta.dx / widget.zoomLevel;
-    final canvasDy = delta.dy / widget.zoomLevel;
-    final pxDx = canvasDx * (widget.canvasWidth / widget.canvasSize.width);
-    final pxDy = canvasDy * (widget.canvasHeight / widget.canvasSize.height);
-    return math.Point(pxDx, pxDy);
+  Offset _clampPixelOffset(Offset pixelPos) {
+    return Offset(
+      pixelPos.dx.clamp(0.0, widget.canvasWidth.toDouble()),
+      pixelPos.dy.clamp(0.0, widget.canvasHeight.toDouble()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final selectionBounds = _getSelectionBounds();
-    if (selectionBounds == null ||
-        widget.canvasSize.width == 0 ||
-        widget.canvasSize.height == 0 ||
-        widget.zoomLevel <= 0) {
+    final selRect = _selectionScreenRect;
+    if (selRect.width <= 0 || selRect.height <= 0) {
       return const SizedBox.shrink();
     }
 
-    final screenLeft = (selectionBounds.x * widget.zoomLevel);
-    final screenTop = (selectionBounds.y * widget.zoomLevel);
-    final screenWidth = selectionBounds.width * widget.zoomLevel;
-    final screenHeight = selectionBounds.height * widget.zoomLevel;
-
-    _centerPoint = _getSelectionCenter(screenLeft, screenTop, screenWidth, screenHeight);
+    final anchorPixel = widget.selectionState?.anchorPoint ??
+        widget.selectionRegion.bounds.center;
+    final anchorScreen = _pixelToScreen(anchorPixel);
 
     return Stack(
       children: [
-        Positioned(
-          left: screenLeft,
-          top: screenTop,
-          width: screenWidth,
-          height: screenHeight,
-          // Don't apply visual rotation transform - the selection points are already
-          // rotated, so the bounding box reflects the actual rotated selection
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              GestureDetector(
-                onPanStart: _handlePanStart,
-                onPanUpdate: _handlePanUpdate,
-                onPanEnd: _handlePanEnd,
-                child: AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, _) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.blueAccent.withOpacity(0.2),
-                      ),
-                      child: CustomPaint(
-                        size: Size.infinite,
-                        painter: MarchingAntsPainter(progress: _animationController.value),
-                      ),
-                    );
-                  },
-                ),
+        // Marching ants border
+        AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            return CustomPaint(
+              size: widget.canvasSize,
+              painter: _SelectionPathPainter(
+                selectionRegion: widget.selectionRegion,
+                pixelWidth: _pixelWidth,
+                pixelHeight: _pixelHeight,
+                animationValue: _animationController.value,
               ),
-              ..._buildSelectionHandles(screenWidth, screenHeight),
-              _buildRotationHandle(screenWidth, screenHeight),
-            ],
+            );
+          },
+        ),
+
+        // Move area (entire selection)
+        Positioned(
+          left: selRect.left,
+          top: selRect.top,
+          width: selRect.width,
+          height: selRect.height,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onPanStart: _onMoveStart,
+            onPanUpdate: _onMoveUpdate,
+            onPanEnd: _onMoveEnd,
+            child: const SizedBox.expand(),
           ),
         ),
+
+        // Resize handles
+        ..._buildResizeHandles(selRect),
+
+        // Rotation handle
+        _buildRotationHandle(selRect),
+
+        // Anchor point handle
+        _buildAnchorHandle(anchorScreen),
       ],
     );
   }
 
-  List<Widget> _buildSelectionHandles(double width, double height) {
-    const h = _handleSize;
-    const hh = _handleSize / 2;
+  // ── Move ──
 
-    return [
-      _buildResizeHandle(_Handle.topLeft, Offset(-hh, -hh)),
-      _buildResizeHandle(_Handle.top, Offset(width / 2 - hh, -hh)),
-      _buildResizeHandle(_Handle.topRight, Offset(width - hh, -hh)),
-      _buildResizeHandle(_Handle.right, Offset(width - hh, height / 2 - hh)),
-      _buildResizeHandle(_Handle.bottomRight, Offset(width - hh, height - hh)),
-      _buildResizeHandle(_Handle.bottom, Offset(width / 2 - hh, height - hh)),
-      _buildResizeHandle(_Handle.bottomLeft, Offset(-hh, height - hh)),
-      _buildResizeHandle(_Handle.left, Offset(-hh, height / 2 - hh)),
-      _buildDraggableCenterHandle(width / 2 - (_centerHandleSize / 2), height / 2 - (_centerHandleSize / 2)),
-    ];
+  void _onMoveStart(DragStartDetails details) {
+    _lastPanPosition = details.localPosition;
   }
 
-  Widget _buildResizeHandle(_Handle handle, Offset pos) {
+  void _onMoveUpdate(DragUpdateDetails details) {
+    final delta = details.localPosition - _lastPanPosition;
+    _lastPanPosition = details.localPosition;
+
+    // Convert screen delta to pixel delta
+    final pixelDelta = Offset(
+      (delta.dx / _pixelWidth).roundToDouble(),
+      (delta.dy / _pixelHeight).roundToDouble(),
+    );
+
+    if (pixelDelta != Offset.zero) {
+      widget.onSelectionMove?.call(pixelDelta);
+    }
+  }
+
+  void _onMoveEnd(DragEndDetails details) {
+    widget.onSelectionMoveEnd?.call();
+  }
+
+  // ── Resize Handles ──
+
+  List<Widget> _buildResizeHandles(Rect selRect) {
+    final handles = <Widget>[];
+    final handlePositions = {
+      _Handle.topLeft: selRect.topLeft,
+      _Handle.topRight: selRect.topRight,
+      _Handle.bottomLeft: selRect.bottomLeft,
+      _Handle.bottomRight: selRect.bottomRight,
+      _Handle.topCenter: Offset(selRect.center.dx, selRect.top),
+      _Handle.bottomCenter: Offset(selRect.center.dx, selRect.bottom),
+      _Handle.leftCenter: Offset(selRect.left, selRect.center.dy),
+      _Handle.rightCenter: Offset(selRect.right, selRect.center.dy),
+    };
+
+    for (final entry in handlePositions.entries) {
+      handles.add(_buildHandle(entry.key, entry.value));
+    }
+
+    return handles;
+  }
+
+  Widget _buildHandle(_Handle handle, Offset position) {
     return Positioned(
-      left: pos.dx,
-      top: pos.dy,
+      left: position.dx - _handleSize / 2,
+      top: position.dy - _handleSize / 2,
       width: _handleSize,
       height: _handleSize,
       child: GestureDetector(
-        onPanStart: (d) => _handleResizeStart(handle, d),
-        onPanUpdate: (d) => _handleResizeUpdate(handle, d),
-        onPanEnd: _handleResizeEnd,
+        onPanStart: (details) => _onResizeStart(handle, details),
+        onPanUpdate: (details) => _onResizeUpdate(handle, details),
+        onPanEnd: _onResizeEnd,
         child: Container(
-          clipBehavior: Clip.none,
           decoration: BoxDecoration(
             color: Colors.white,
-            border: Border.all(color: Colors.blue, width: 1.0),
-            borderRadius: BorderRadius.circular(1.0),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 2, offset: const Offset(1, 1))],
+            border: Border.all(color: Colors.blue, width: 1.5),
+            borderRadius: BorderRadius.circular(2),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildDraggableCenterHandle(double left, double top) {
-    return Positioned(
-      left: left,
-      top: top,
-      width: _centerHandleSize,
-      height: _centerHandleSize,
-      child: GestureDetector(
-        // optional: separate gestures; keep move on rect for simplicity
-        onPanStart: _handleCenterPanStart,
-        onPanUpdate: _handleCenterPanUpdate,
-        onPanEnd: _handleCenterPanEnd,
-        child: Container(
-          width: _centerHandleSize,
-          height: _centerHandleSize,
-          decoration: BoxDecoration(
-            color: Colors.blueAccent,
-            border: Border.all(color: Colors.white, width: 2.0),
-            borderRadius: BorderRadius.circular(12.0),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 2, offset: const Offset(1, 1))],
-          ),
-        ),
-      ),
-    );
+  void _onResizeStart(_Handle handle, DragStartDetails details) {
+    _resizeStartScreen = _globalToOverlay(details.globalPosition);
+    _origBounds = widget.selectionRegion.bounds;
+    _resizeOriginalRegion = widget.selectionRegion;
+    widget.onSelectionResizeStart?.call(widget.selectionRegion);
   }
 
-  Widget _buildRotationHandle(double width, double height) {
-    const handleSize = 14.0;
-    const handleDistance = 30.0;
+  void _onResizeUpdate(_Handle handle, DragUpdateDetails details) {
+    if (_origBounds == null || _resizeOriginalRegion == null) return;
 
-    final rotationHandleX = width / 2 - handleSize / 2;
-    final rotationHandleY = height / 2 - handleDistance - handleSize / 2;
+    final currentScreen = _globalToOverlay(details.globalPosition);
+    final screenDelta = currentScreen - _resizeStartScreen;
+    final pixelDeltaX = screenDelta.dx / _pixelWidth;
+    final pixelDeltaY = screenDelta.dy / _pixelHeight;
 
-    return Positioned(
-      left: rotationHandleX,
-      top: rotationHandleY,
-      width: handleSize,
-      height: handleSize,
-      child: GestureDetector(
-        onPanStart: _handleRotationStart,
-        onPanUpdate: _handleRotationUpdate,
-        onPanEnd: _handleRotationEnd,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.green,
-            border: Border.all(color: Colors.white, width: 2.0),
-            borderRadius: BorderRadius.circular(handleSize / 2),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 2, offset: const Offset(1, 1))],
-          ),
-          child: const Icon(Icons.rotate_right, size: 6, color: Colors.white),
-        ),
-      ),
-    );
-  }
-
-  void _handlePanStart(DragStartDetails details) {
-    _lastPanPosition = details.localPosition;
-    _originalSelection = widget.selection?.map((p) => PixelPoint<int>(p.x, p.y)).toList();
-  }
-
-  void _handlePanUpdate(DragUpdateDetails details) {
-    if (_originalSelection == null || _originalSelection!.isEmpty) return;
-
-    final totalDelta = details.localPosition - _lastPanPosition;
-    final pxDelta = _screenDeltaToImageDelta(totalDelta);
-
-    final dx = pxDelta.x.round();
-    final dy = pxDelta.y.round();
-
-    final newSelection = _originalSelection!.map((p) {
-      return PixelPoint<int>(
-        (p.x + dx).clamp(0, widget.canvasWidth - 1),
-        (p.y + dy).clamp(0, widget.canvasHeight - 1),
-      );
-    }).toList();
-
-    widget.onSelectionMove?.call(newSelection, math.Point(dx, dy));
-  }
-
-  void _handlePanEnd(DragEndDetails details) {
-    _lastPanPosition = Offset.zero;
-    _originalSelection = null;
-    widget.onSelectionMoveEnd?.call();
-  }
-
-  void _handleCenterPanStart(DragStartDetails details) {}
-  void _handleCenterPanUpdate(DragUpdateDetails details) {}
-  void _handleCenterPanEnd(DragEndDetails details) {}
-
-  void _handleRotationStart(DragStartDetails details) {
-    _isRotating = true;
-    _originalSelection = widget.selection?.map((p) => PixelPoint<int>(p.x, p.y)).toList();
-
-    if (_centerPoint != null) {
-      final angle = math.atan2(
-        details.globalPosition.dy - _centerPoint!.dy,
-        details.globalPosition.dx - _centerPoint!.dx,
-      );
-      _initialRotationAngle = angle;
-      _rotationAngle = 0.0;
-      setState(() {});
-    }
-  }
-
-  void _handleRotationUpdate(DragUpdateDetails details) {
-    if (_originalSelection == null || _originalSelection!.isEmpty || _centerPoint == null || !_isRotating) return;
-
-    final currentAngle = math.atan2(
-      details.globalPosition.dy - _centerPoint!.dy,
-      details.globalPosition.dx - _centerPoint!.dx,
-    );
-
-    _rotationAngle = currentAngle - _initialRotationAngle;
-    setState(() {});
-
-    final centerInPixels = _getSelectionCenterInPixels();
-    if (centerInPixels == null) return;
-
-    final rotatedSelection = _originalSelection!.map((p) => _rotatePoint(p, centerInPixels, _rotationAngle)).toList();
-    widget.onSelectionRotate?.call(rotatedSelection, _rotationAngle);
-  }
-
-  void _handleRotationEnd(DragEndDetails details) {
-    _isRotating = false;
-    _rotationAngle = 0.0;
-    _originalSelection = null;
-    setState(() {});
-    widget.onSelectionMoveEnd?.call();
-  }
-
-  void _handleResizeStart(_Handle handle, DragStartDetails details) {
-    _activeHandle = handle;
-    _resizeStartGlobal = details.globalPosition;
-    _resizeOriginalSelection = widget.selection?.map((p) => PixelPoint<int>(p.x, p.y)).toList();
-    if (widget.onSelectionResizeStart != null && _resizeOriginalSelection != null) {
-      widget.onSelectionResizeStart!(_resizeOriginalSelection!);
-    }
-    _origBounds = _getSelectionPixelBounds();
-  }
-
-  void _handleResizeUpdate(_Handle handle, DragUpdateDetails details) {
-    if (_resizeOriginalSelection == null || _resizeOriginalSelection!.isEmpty) return;
-    if (_origBounds == null) return;
-
-    final deltaScreen = details.globalPosition - _resizeStartGlobal;
-
-    final pxDelta = _screenDeltaToImageDelta(deltaScreen);
-    final dx = pxDelta.x;
-    final dy = pxDelta.y;
-
-    int minX = _origBounds!.minX;
-    int minY = _origBounds!.minY;
-    int maxX = _origBounds!.maxX;
-    int maxY = _origBounds!.maxY;
+    final ob = _origBounds!;
+    double newLeft = ob.left;
+    double newTop = ob.top;
+    double newRight = ob.right;
+    double newBottom = ob.bottom;
 
     switch (handle) {
       case _Handle.topLeft:
-        minX = (minX + dx.round()).clamp(0, maxX - 1);
-        minY = (minY + dy.round()).clamp(0, maxY - 1);
-        break;
-      case _Handle.top:
-        minY = (minY + dy.round()).clamp(0, maxY - 1);
+        newLeft += pixelDeltaX;
+        newTop += pixelDeltaY;
         break;
       case _Handle.topRight:
-        maxX = (maxX + dx.round()).clamp(minX + 1, widget.canvasWidth - 1);
-        minY = (minY + dy.round()).clamp(0, maxY - 1);
-        break;
-      case _Handle.right:
-        maxX = (maxX + dx.round()).clamp(minX + 1, widget.canvasWidth - 1);
-        break;
-      case _Handle.bottomRight:
-        maxX = (maxX + dx.round()).clamp(minX + 1, widget.canvasWidth - 1);
-        maxY = (maxY + dy.round()).clamp(minY + 1, widget.canvasHeight - 1);
-        break;
-      case _Handle.bottom:
-        maxY = (maxY + dy.round()).clamp(minY + 1, widget.canvasHeight - 1);
+        newRight += pixelDeltaX;
+        newTop += pixelDeltaY;
         break;
       case _Handle.bottomLeft:
-        minX = (minX + dx.round()).clamp(0, maxX - 1);
-        maxY = (maxY + dy.round()).clamp(minY + 1, widget.canvasHeight - 1);
+        newLeft += pixelDeltaX;
+        newBottom += pixelDeltaY;
         break;
-      case _Handle.left:
-        minX = (minX + dx.round()).clamp(0, maxX - 1);
+      case _Handle.bottomRight:
+        newRight += pixelDeltaX;
+        newBottom += pixelDeltaY;
         break;
-      case _Handle.center:
+      case _Handle.topCenter:
+        newTop += pixelDeltaY;
+        break;
+      case _Handle.bottomCenter:
+        newBottom += pixelDeltaY;
+        break;
+      case _Handle.leftCenter:
+        newLeft += pixelDeltaX;
+        break;
+      case _Handle.rightCenter:
+        newRight += pixelDeltaX;
         break;
     }
 
-    final origW = (_origBounds!.maxX - _origBounds!.minX + 1).toDouble();
-    final origH = (_origBounds!.maxY - _origBounds!.minY + 1).toDouble();
-    final newW = (maxX - minX + 1).toDouble();
-    final newH = (maxY - minY + 1).toDouble();
+    // Ensure minimum size
+    if (newRight - newLeft < 1) newRight = newLeft + 1;
+    if (newBottom - newTop < 1) newBottom = newTop + 1;
 
-    final pivot = switch (handle) {
-      _Handle.topLeft => PixelPoint<int>(_origBounds!.maxX, _origBounds!.maxY),
-      _Handle.top => PixelPoint<int>((_origBounds!.minX + _origBounds!.maxX) ~/ 2, _origBounds!.maxY),
-      _Handle.topRight => PixelPoint<int>(_origBounds!.minX, _origBounds!.maxY),
-      _Handle.right => PixelPoint<int>(_origBounds!.minX, (_origBounds!.minY + _origBounds!.maxY) ~/ 2),
-      _Handle.bottomRight => PixelPoint<int>(_origBounds!.minX, _origBounds!.minY),
-      _Handle.bottom => PixelPoint<int>((_origBounds!.minX + _origBounds!.maxX) ~/ 2, _origBounds!.minY),
-      _Handle.bottomLeft => PixelPoint<int>(_origBounds!.maxX, _origBounds!.minY),
-      _Handle.left => PixelPoint<int>(_origBounds!.maxX, (_origBounds!.minY + _origBounds!.maxY) ~/ 2),
-      _Handle.center =>
-        PixelPoint<int>((_origBounds!.minX + _origBounds!.maxX) ~/ 2, (_origBounds!.minY + _origBounds!.maxY) ~/ 2),
-    };
+    final newRect = Rect.fromLTRB(
+      newLeft.roundToDouble(),
+      newTop.roundToDouble(),
+      newRight.roundToDouble(),
+      newBottom.roundToDouble(),
+    );
+    final newPath = Path()..addRect(newRect);
+    final newRegion = SelectionRegion(
+      path: newPath,
+      bounds: newRect,
+      shape: SelectionShape.rectangle,
+    );
 
-    final affectX = switch (handle) {
-      _Handle.top || _Handle.bottom => false,
-      _ => true,
-    };
-    final affectY = switch (handle) {
-      _Handle.left || _Handle.right => false,
-      _ => true,
-    };
+    final scaleX = newRect.width / ob.width;
+    final scaleY = newRect.height / ob.height;
+    final pivot = math.Point<int>(ob.center.dx.round(), ob.center.dy.round());
 
-    final scaleX = affectX ? (newW / origW).clamp(0.01, 1000.0) : 1.0;
-    final scaleY = affectY ? (newH / origH).clamp(0.01, 1000.0) : 1.0;
-
-    final scaled = _resizeOriginalSelection!.map((p) {
-      final nx = pivot.x + (p.x - pivot.x) * scaleX;
-      final ny = pivot.y + (p.y - pivot.y) * scaleY;
-      return PixelPoint<int>(
-        nx.round().clamp(0, widget.canvasWidth - 1),
-        ny.round().clamp(0, widget.canvasHeight - 1),
-      );
-    }).toList();
-
-    if (widget.onSelectionResize != null) {
-      widget.onSelectionResize!(scaled, scaleX, scaleY, pivot);
-    } else if (widget.onSelectionMove != null) {
-      widget.onSelectionMove!(scaled, const math.Point(0, 0));
-    }
-    setState(() {});
+    widget.onSelectionResize?.call(newRegion, scaleX, scaleY, pivot);
   }
 
-  void _handleResizeEnd(DragEndDetails details) {
-    _activeHandle = null;
-    _resizeOriginalSelection = null;
+  void _onResizeEnd(DragEndDetails details) {
     _origBounds = null;
-    _resizeStartGlobal = Offset.zero;
+    _resizeOriginalRegion = null;
     widget.onSelectionMoveEnd?.call();
   }
+
+  // ── Rotation Handle ──
+
+  Widget _buildRotationHandle(Rect selRect) {
+    const rotHandleDistance = 30.0;
+    final handlePos =
+        Offset(selRect.center.dx, selRect.top - rotHandleDistance);
+
+    return Positioned(
+      left: handlePos.dx - _centerHandleSize / 2,
+      top: handlePos.dy - _centerHandleSize / 2,
+      width: _centerHandleSize,
+      height: _centerHandleSize,
+      child: GestureDetector(
+        onPanStart: _onRotateStart,
+        onPanUpdate: _onRotateUpdate,
+        onPanEnd: _onRotateEnd,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.green.shade300,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 4,
+              ),
+            ],
+          ),
+          child: const Icon(Icons.rotate_right, size: 12, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  void _onRotateStart(DragStartDetails details) {
+    _isRotating = true;
+    final anchorPixel = widget.selectionState?.effectiveAnchor ??
+        widget.selectionRegion.bounds.center;
+    _rotationCenterScreen = _pixelToScreen(anchorPixel);
+    final pointerScreen = _globalToOverlay(details.globalPosition);
+    final dx = pointerScreen.dx - _rotationCenterScreen!.dx;
+    final dy = pointerScreen.dy - _rotationCenterScreen!.dy;
+    _initialRotationAngle = math.atan2(dy, dx);
+    _rotationAngle = 0.0;
+  }
+
+  void _onRotateUpdate(DragUpdateDetails details) {
+    if (!_isRotating || _rotationCenterScreen == null) return;
+
+    final pointerScreen = _globalToOverlay(details.globalPosition);
+    final dx = pointerScreen.dx - _rotationCenterScreen!.dx;
+    final dy = pointerScreen.dy - _rotationCenterScreen!.dy;
+    final currentAngle = math.atan2(dy, dx);
+    _rotationAngle = currentAngle - _initialRotationAngle;
+
+    // Create a rotated selection region
+    final anchorPixel = widget.selectionState?.effectiveAnchor ??
+        widget.selectionRegion.bounds.center;
+    final matrix = Matrix4.translationValues(
+      anchorPixel.dx,
+      anchorPixel.dy,
+      0.0,
+    )
+      ..rotateZ(_rotationAngle)
+      ..multiply(
+        Matrix4.translationValues(
+          -anchorPixel.dx,
+          -anchorPixel.dy,
+          0.0,
+        ),
+      );
+
+    final rotatedRegion = widget.selectionRegion.transformed(matrix);
+    widget.onSelectionRotate?.call(rotatedRegion, _rotationAngle);
+  }
+
+  void _onRotateEnd(DragEndDetails details) {
+    _isRotating = false;
+    _rotationCenterScreen = null;
+    widget.onSelectionMoveEnd?.call();
+  }
+
+  // ── Anchor Handle ──
+
+  Widget _buildAnchorHandle(Offset anchorScreen) {
+    return Positioned(
+      left: anchorScreen.dx - _centerHandleSize / 2,
+      top: anchorScreen.dy - _centerHandleSize / 2,
+      width: _centerHandleSize,
+      height: _centerHandleSize,
+      child: GestureDetector(
+        onPanStart: (d) => _isDraggingAnchor = true,
+        onPanUpdate: (details) {
+          if (!_isDraggingAnchor) return;
+          final currentScreen = _globalToOverlay(details.globalPosition);
+          final newPixelPos = _clampPixelOffset(_screenToPixel(currentScreen));
+          widget.onAnchorChanged?.call(newPixelPos);
+        },
+        onPanEnd: (d) => _isDraggingAnchor = false,
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.orange.withValues(alpha: 0.8),
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 4,
+              ),
+            ],
+          ),
+          child: const Icon(Icons.adjust, size: 12, color: Colors.white),
+        ),
+      ),
+    );
+  }
 }
 
-enum _Handle { topLeft, top, topRight, right, bottomRight, bottom, bottomLeft, left, center }
+// ── Marching Ants Painter ──
 
-class _PixelBounds {
-  final int minX, minY, maxX, maxY;
-  _PixelBounds(this.minX, this.minY, this.maxX, this.maxY);
-  int get width => maxX - minX + 1;
-  int get height => maxY - minY + 1;
-}
+class _SelectionPathPainter extends CustomPainter {
+  final SelectionRegion selectionRegion;
+  final double pixelWidth;
+  final double pixelHeight;
+  final double animationValue;
 
-class MarchingAntsPainter extends CustomPainter {
-  final double progress;
-  MarchingAntsPainter({required this.progress});
+  _SelectionPathPainter({
+    required this.selectionRegion,
+    required this.pixelWidth,
+    required this.pixelHeight,
+    required this.animationValue,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
+    final bounds = selectionRegion.bounds;
+    if (bounds.width <= 0 || bounds.height <= 0) return;
+
+    // Scale the selection path to screen coordinates
+    final matrix = Matrix4.diagonal3Values(pixelWidth, pixelHeight, 1.0);
+    final scaledPath = selectionRegion.path.transform(matrix.storage);
+
+    // Draw black background line
+    final bgPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+      ..strokeWidth = 1.5
+      ..color = Colors.black;
+    canvas.drawPath(scaledPath, bgPaint);
 
-    const dashWidth = 4.0;
-    const dashSpace = 4.0;
-    const totalDashLength = dashWidth + dashSpace;
-    final offset = progress * totalDashLength;
+    // Draw white dashed line on top (marching ants effect)
+    final dashPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..color = Colors.white;
 
-    _drawDashedRect(canvas, Rect.fromLTWH(0, 0, size.width, size.height), paint, dashWidth, dashSpace, offset);
-  }
+    const dashLength = 6.0;
+    const gapLength = 4.0;
+    const totalDash = dashLength + gapLength;
+    final offset = animationValue * totalDash;
 
-  void _drawDashedRect(Canvas canvas, Rect rect, Paint paint, double dashWidth, double dashSpace, double offset) {
-    _drawDashedLine(canvas, rect.topLeft, rect.topRight, paint, dashWidth, dashSpace, offset);
-    _drawDashedLine(canvas, rect.topRight, rect.bottomRight, paint, dashWidth, dashSpace, offset);
-    _drawDashedLine(canvas, rect.bottomRight, rect.bottomLeft, paint, dashWidth, dashSpace, offset);
-    _drawDashedLine(canvas, rect.bottomLeft, rect.topLeft, paint, dashWidth, dashSpace, offset);
-  }
-
-  void _drawDashedLine(
-      Canvas canvas, Offset start, Offset end, Paint paint, double dashWidth, double dashSpace, double offset) {
-    final distance = (end - start).distance;
-    if (distance == 0) return;
-
-    final unitVector = (end - start) / distance;
-
-    double currentDistance = -offset;
-    bool isDash = true;
-
-    while (currentDistance < distance) {
-      final segmentLength = isDash ? dashWidth : dashSpace;
-      final segmentStart = currentDistance.clamp(0.0, distance);
-      final segmentEnd = (currentDistance + segmentLength).clamp(0.0, distance);
-
-      if (isDash && segmentStart < distance && segmentEnd > 0) {
-        final startPoint = start + unitVector * segmentStart;
-        final endPoint = start + unitVector * segmentEnd;
-        canvas.drawLine(startPoint, endPoint, paint);
+    for (final metric in scaledPath.computeMetrics()) {
+      double distance = -offset;
+      while (distance < metric.length) {
+        final start = distance.clamp(0.0, metric.length);
+        final end = (distance + dashLength).clamp(0.0, metric.length);
+        if (end > start) {
+          final extractedPath = metric.extractPath(start, end);
+          canvas.drawPath(extractedPath, dashPaint);
+        }
+        distance += totalDash;
       }
-
-      currentDistance += segmentLength;
-      isDash = !isDash;
     }
   }
 
   @override
-  bool shouldRepaint(covariant MarchingAntsPainter oldDelegate) => progress != oldDelegate.progress;
+  bool shouldRepaint(_SelectionPathPainter oldDelegate) {
+    return animationValue != oldDelegate.animationValue ||
+        selectionRegion != oldDelegate.selectionRegion;
+  }
+}
+
+enum _Handle {
+  topLeft,
+  topCenter,
+  topRight,
+  rightCenter,
+  bottomRight,
+  bottomCenter,
+  bottomLeft,
+  leftCenter,
 }

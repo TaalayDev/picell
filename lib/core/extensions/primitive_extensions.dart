@@ -2,8 +2,6 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
-import '../../data.dart';
-
 extension ListIntX on List<int> {
   int max() {
     if (isEmpty) return 0;
@@ -105,119 +103,6 @@ extension PointX on Point<int> {
   }
 }
 
-/// Extension for selection-related operations
-extension SelectionOps on SelectionModel {
-  /// Check if the selection contains a point
-  bool containsPoint(int x, int y) {
-    return x >= this.x && x < this.x + this.width && y >= this.y && y < this.y + this.height;
-  }
-
-  /// Creates a new selection model offset by dx, dy
-  SelectionModel offsetBy(int dx, int dy) {
-    return SelectionModel(
-      x: this.x + dx,
-      y: this.y + dy,
-      width: this.width,
-      height: this.height,
-      canvasSize: this.canvasSize,
-    );
-  }
-
-  /// Ensures the selection stays within the canvas bounds
-  SelectionModel constrainToCanvas(int canvasWidth, int canvasHeight) {
-    int newX = x;
-    int newY = y;
-
-    // Adjust x to keep the selection within the canvas bounds
-    if (newX < 0) newX = 0;
-    if (newX + width > canvasWidth) newX = canvasWidth - width;
-
-    // Adjust y to keep the selection within the canvas bounds
-    if (newY < 0) newY = 0;
-    if (newY + height > canvasHeight) newY = canvasHeight - height;
-
-    return SelectionModel(
-      x: newX,
-      y: newY,
-      width: width,
-      height: height,
-      pixels: pixels,
-      canvasSize: Size(canvasWidth.toDouble(), canvasHeight.toDouble()),
-    );
-  }
-
-  /// Returns true if the point is close to the selection border
-  bool isNearBorder(double x, double y, double tolerance) {
-    final rect = this.rect;
-    final minDistance = tolerance;
-
-    // Calculate distance to each edge
-    final distanceToLeft = (x - rect.left).abs();
-    final distanceToRight = (x - rect.right).abs();
-    final distanceToTop = (y - rect.top).abs();
-    final distanceToBottom = (y - rect.bottom).abs();
-
-    // Return true if any distance is less than the tolerance
-    return distanceToLeft < minDistance ||
-        distanceToRight < minDistance ||
-        distanceToTop < minDistance ||
-        distanceToBottom < minDistance;
-  }
-
-  /// Returns the position where this selection can be docked to another selection
-  SelectionModel dockTo(SelectionModel other, double snapDistance) {
-    // Try to dock to the edges of the other selection
-    final myRect = this.rect;
-    final otherRect = other.rect;
-
-    // Calculate distances between edges
-    final leftDiff = (myRect.left - otherRect.right).abs();
-    final rightDiff = (myRect.right - otherRect.left).abs();
-    final topDiff = (myRect.top - otherRect.bottom).abs();
-    final bottomDiff = (myRect.bottom - otherRect.top).abs();
-
-    // Find the closest edge
-    if (leftDiff < snapDistance && leftDiff < rightDiff && leftDiff < topDiff && leftDiff < bottomDiff) {
-      return SelectionModel(
-        x: otherRect.right.toInt(),
-        y: this.y,
-        width: this.width,
-        height: this.height,
-        canvasSize: this.canvasSize,
-      );
-    } else if (rightDiff < snapDistance && rightDiff < topDiff && rightDiff < bottomDiff) {
-      return SelectionModel(
-        x: otherRect.left.toInt() - this.width,
-        y: this.y,
-        width: this.width,
-        height: this.height,
-        canvasSize: this.canvasSize,
-      );
-    } else if (topDiff < snapDistance && topDiff < bottomDiff) {
-      return SelectionModel(
-        x: this.x,
-        y: otherRect.bottom.toInt(),
-        width: this.width,
-        height: this.height,
-        canvasSize: this.canvasSize,
-      );
-    } else if (bottomDiff < snapDistance) {
-      return SelectionModel(
-        x: this.x,
-        y: otherRect.top.toInt() - this.height,
-        width: this.width,
-        height: this.height,
-        canvasSize: this.canvasSize,
-      );
-    }
-
-    // No docking needed
-    return this;
-  }
-
-  /// Returns the same selection as Rect for easier Flutter interop
-  Rect asRect() => this.rect;
-}
 
 extension StringX on String {
   String capitalize() {

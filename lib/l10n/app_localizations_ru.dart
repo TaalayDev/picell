@@ -906,4 +906,20 @@ class StringsRu extends Strings {
 
   @override
   String get effectsPanelApplyAll => 'Применить все';
+
+  @override
+  String get ellipseSelection => 'Овальное выделение';
+
+  @override
+  String get ellipseSelectionTooltip => 'Выделить овальную область';
+
+  @override
+  String get autoSelectLayer => 'Авто-выделение';
+
+  @override
+  String get autoSelectLayerTooltip =>
+      'Выделить все непустые пиксели текущего слоя';
+
+  @override
+  String get selectionAnchor => 'Якорь выделения';
 }

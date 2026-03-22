@@ -502,5 +502,10 @@
     "feedback_dialog_benefit_3": "アプリの未来づくりに参加",
     "feedback_dialog_leave_feedback": "フィードバックを送る",
     "feedback_dialog_maybe_later": "後で",
-    "feedback_dialog_dont_ask": "今後は表示しない"
+    "feedback_dialog_dont_ask": "今後は表示しない",
+    "ellipseSelection": "楕円選択",
+    "ellipseSelectionTooltip": "楕円形の領域を選択",
+    "autoSelectLayer": "自動選択",
+    "autoSelectLayerTooltip": "現在のレイヤーの空でないピクセルをすべて選択",
+    "selectionAnchor": "選択アンカー"
 }

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:equatable/equatable.dart';
 
@@ -15,6 +16,7 @@ class Layer with EquatableMixin {
   final bool isLocked;
   final double opacity;
   final int order;
+  final Offset? anchorPoint;
 
   Layer({
     required this.layerId,
@@ -26,6 +28,7 @@ class Layer with EquatableMixin {
     this.isLocked = false,
     this.opacity = 1.0,
     this.order = 0,
+    this.anchorPoint,
   });
 
   Layer copyWith({
@@ -38,6 +41,7 @@ class Layer with EquatableMixin {
     bool? isLocked,
     double? opacity,
     int? order,
+    Offset? Function()? anchorPoint,
   }) {
     return Layer(
       layerId: layerId ?? this.layerId,
@@ -49,6 +53,7 @@ class Layer with EquatableMixin {
       isLocked: isLocked ?? this.isLocked,
       opacity: opacity ?? this.opacity,
       order: order ?? this.order,
+      anchorPoint: anchorPoint != null ? anchorPoint() : this.anchorPoint,
     );
   }
 
@@ -80,6 +85,8 @@ class Layer with EquatableMixin {
       'isLocked': isLocked,
       'opacity': opacity,
       'order': order,
+      if (anchorPoint != null)
+        'anchorPoint': {'dx': anchorPoint!.dx, 'dy': anchorPoint!.dy},
     };
   }
 
@@ -109,10 +116,16 @@ class Layer with EquatableMixin {
       isLocked: json['isLocked'] as bool,
       opacity: json['opacity'] as double,
       order: json['order'] as int? ?? 0,
+      anchorPoint: json['anchorPoint'] != null
+          ? Offset(
+              (json['anchorPoint']['dx'] as num).toDouble(),
+              (json['anchorPoint']['dy'] as num).toDouble(),
+            )
+          : null,
     );
   }
 
   @override
   List<Object?> get props =>
-      [id, layerId, name, pixels, isVisible, isLocked, opacity, order, effects];
+      [id, layerId, name, pixels, isVisible, isLocked, opacity, order, effects, anchorPoint];
 }

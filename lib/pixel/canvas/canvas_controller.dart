@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:picell/core.dart';
 
 import '../../data.dart';
+import '../../data/models/selection_region.dart';
 import '../../pixel/tools.dart';
 import '../effects/effects.dart';
 import '../pixel_point.dart';
@@ -34,7 +35,7 @@ class PixelCanvasController extends ChangeNotifier {
   Uint32List _cachedPixels = Uint32List(0);
 
   // Drawing state
-  List<PixelPoint<int>> _selectionPoints = [];
+  SelectionRegion? _currentSelectionRegion;
   List<Offset> _penPoints = [];
   bool _isDrawingPenPath = false;
   Offset? _gradientStart;
@@ -78,7 +79,7 @@ class PixelCanvasController extends ChangeNotifier {
   Offset? get curveControlPoint => _curveControlPoint;
   bool get isDrawingCurve => _isDrawingCurve;
 
-  List<PixelPoint<int>> get selectionPoints => _selectionPoints;
+  SelectionRegion? get currentSelectionRegion => _currentSelectionRegion;
 
   List<Offset> get penPoints => _penPoints;
   bool get isDrawingPenPath => _isDrawingPenPath;
@@ -306,20 +307,10 @@ class PixelCanvasController extends ChangeNotifier {
   }
 
   List<PixelPoint<int>> filterPixelsInSelection(List<PixelPoint<int>> pixels) {
-    if (_selectionPoints.isEmpty) return pixels;
+    if (_currentSelectionRegion == null) return pixels;
+    final sel = _currentSelectionRegion!;
 
-    final minX = _selectionPoints.map((p) => p.x).reduce((a, b) => a < b ? a : b);
-    final minY = _selectionPoints.map((p) => p.y).reduce((a, b) => a < b ? a : b);
-    final maxX = _selectionPoints.map((p) => p.x).reduce((a, b) => a > b ? a : b);
-    final maxY = _selectionPoints.map((p) => p.y).reduce((a, b) => a > b ? a : b);
-
-    final selectedPixels = <PixelPoint<int>>[];
-    for (final point in pixels) {
-      if (point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY) {
-        selectedPixels.add(point);
-      }
-    }
-    return selectedPixels;
+    return pixels.where((point) => sel.contains(point.x, point.y)).toList();
   }
 
   void _updatePreviewPixelsWithEffects() {
@@ -344,14 +335,14 @@ class PixelCanvasController extends ChangeNotifier {
     _processedPreviewPixels = EffectsManager.applyMultipleEffects(tempPixels, width, height, currentLayer.effects);
   }
 
-  void setSelection(List<PixelPoint<int>>? selection) {
-    _selectionPoints = selection?.isNotEmpty == true ? List<PixelPoint<int>>.from(selection ?? []) : [];
+  void setSelection(SelectionRegion? region) {
+    _currentSelectionRegion = region;
     notifyListeners();
   }
 
   void clearSelection() {
-    if (_selectionPoints.isNotEmpty) {
-      _selectionPoints = [];
+    if (_currentSelectionRegion != null) {
+      _currentSelectionRegion = null;
       notifyListeners();
     }
   }

@@ -371,5 +371,10 @@
     "effectsPanelActionRemove": "Remove",
     "effectsPanelActionMore": "More",
     "effectsPanelMoreActionsTitle": "More Actions",
-    "effectsPanelApplyAll": "Apply All"
+    "effectsPanelApplyAll": "Apply All",
+    "ellipseSelection": "Ellipse Selection",
+    "ellipseSelectionTooltip": "Select an elliptical area",
+    "autoSelectLayer": "Auto-Select",
+    "autoSelectLayerTooltip": "Select all non-empty pixels in the current layer",
+    "selectionAnchor": "Selection Anchor"
 }

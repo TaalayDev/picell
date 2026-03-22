@@ -4,11 +4,14 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:picell/pixel/tools/eraser_tool.dart';
 
+import '../../data/models/selection_region.dart';
 import '../../data.dart';
+import '../services/selection_service.dart';
 import '../tools.dart';
 import '../tools/fill_tool.dart';
 import '../tools/pencil_tool.dart';
 import '../tools/selection_tool.dart';
+import '../tools/ellipse_selection_tool.dart';
 import '../tools/eyedropper_tool.dart';
 import '../tools/pen_tool.dart';
 import '../tools/shape_tool.dart';
@@ -26,12 +29,14 @@ class ToolDrawingManager {
   final int width;
   final int height;
   final Function(Color)? onColorPicked;
-  final Function(SelectionModel?)? onSelectionChanged;
-  final Function(SelectionModel)? onMoveSelection;
-  final Function(List<PixelPoint<int>>?)? onSelectionEnd;
+  final Function(SelectionRegion?)? onSelectionChanged;
+  final Function(SelectionRegion?)? onSelectionEnd;
 
-  late final SelectionUtils _selectionUtils;
+  late final SelectionService _selectionService;
   late final ShapeUtils _shapeUtils;
+
+  // Current selection for filtering
+  SelectionRegion? _currentSelection;
 
   late final FillTool _fillTool;
   late final PencilTool _pencilTool;
@@ -42,6 +47,7 @@ class ToolDrawingManager {
   late final RectangleTool _rectangleTool;
   late final OvalToolBresenham _circleTool;
   late final SelectionTool _selectionTool;
+  late final EllipseSelectionTool _ellipseSelectionTool;
   late final SmartSelectionTool _smartSelectionTool;
   late final LassoTool _lassoTool;
   late final EyedropperTool _eyedropperTool;
@@ -87,22 +93,17 @@ class ToolDrawingManager {
     required this.height,
     this.onColorPicked,
     this.onSelectionChanged,
-    this.onMoveSelection,
     this.onSelectionEnd,
   }) {
     _initializeTools();
   }
 
+  void setCurrentSelection(SelectionRegion? selection) {
+    _currentSelection = selection;
+  }
+
   void _initializeTools() {
-    _selectionUtils = SelectionUtils(
-      width: width,
-      height: height,
-      size: () => Size(width.toDouble(), height.toDouble()),
-      onSelectionChanged: onSelectionChanged,
-      onMoveSelection: onMoveSelection,
-      onSelectionEnd: (s) {},
-      update: (callback) => callback(),
-    );
+    _selectionService = SelectionService(width: width, height: height);
 
     _shapeUtils = ShapeUtils(
       width: width,
@@ -117,13 +118,34 @@ class ToolDrawingManager {
     _lineTool = LineTool();
     _rectangleTool = RectangleTool();
     _circleTool = OvalToolBresenham();
-    _selectionTool = SelectionTool(_selectionUtils, _circleTool);
-    _lassoTool = LassoTool();
+    _selectionTool = SelectionTool(
+      selectionService: _selectionService,
+      onSelectionChanged: onSelectionChanged,
+      onSelectionEnd: onSelectionEnd,
+      getCanvasSize: () => Size(width.toDouble(), height.toDouble()),
+      gridWidth: width,
+      gridHeight: height,
+    );
+    _ellipseSelectionTool = EllipseSelectionTool(
+      selectionService: _selectionService,
+      onSelectionChanged: onSelectionChanged,
+      onSelectionEnd: onSelectionEnd,
+      getCanvasSize: () => Size(width.toDouble(), height.toDouble()),
+      gridWidth: width,
+      gridHeight: height,
+    );
+    _lassoTool = LassoTool(
+      selectionService: _selectionService,
+      onSelectionEnd: onSelectionEnd,
+    );
     _eyedropperTool = EyedropperTool(
       onColorPicked: (color) => onColorPicked?.call(color),
     );
     _sprayTool = SprayTool();
-    _smartSelectionTool = SmartSelectionTool();
+    _smartSelectionTool = SmartSelectionTool(
+      selectionService: _selectionService,
+      onSelectionEnd: onSelectionEnd,
+    );
 
     _heartTool = HeartTool();
     _diamondTool = DiamondTool();
@@ -151,6 +173,7 @@ class ToolDrawingManager {
       PixelTool.eyedropper => _eyedropperTool,
       PixelTool.sprayPaint => _sprayTool,
       PixelTool.smartSelect => _smartSelectionTool,
+      PixelTool.ellipseSelect => _ellipseSelectionTool,
       PixelTool.heart => _heartTool,
       PixelTool.diamond => _diamondTool,
       PixelTool.arrow => _arrowTool,
@@ -280,11 +303,22 @@ class ToolDrawingManager {
 
   void handleSelectionEnd(PixelDrawDetails details) {
     _selectionTool.onEnd(details);
-    onSelectionEnd?.call(_selectionTool.previewPoints);
   }
 
   void handleSelectionUpdate(PixelDrawDetails details) {
     _selectionTool.onMove(details);
+  }
+
+  void handleEllipseSelectionStart(PixelDrawDetails details) {
+    _ellipseSelectionTool.onStart(details);
+  }
+
+  void handleEllipseSelectionEnd(PixelDrawDetails details) {
+    _ellipseSelectionTool.onEnd(details);
+  }
+
+  void handleEllipseSelectionUpdate(PixelDrawDetails details) {
+    _ellipseSelectionTool.onMove(details);
   }
 
   /// MARK: Pen Tool
@@ -398,10 +432,11 @@ class ToolDrawingManager {
   }
 
   List<PixelPoint<int>> filterPointsBySelection(List<PixelPoint<int>> pixels) {
-    if (_selectionUtils.selectionRect == null) return pixels;
+    if (_currentSelection == null) return pixels;
+    final sel = _currentSelection!;
 
     return pixels.where((point) {
-      return _selectionUtils.inInSelectionBounds(point.x, point.y);
+      return sel.contains(point.x, point.y);
     }).toList();
   }
 
@@ -418,7 +453,7 @@ class ToolDrawingManager {
               point.x < width &&
               point.y >= 0 &&
               point.y < height &&
-              _selectionUtils.inInSelectionBounds(point.x, point.y);
+              (_currentSelection == null || _currentSelection!.contains(point.x, point.y));
         }).toList();
   }
 

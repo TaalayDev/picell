@@ -27,6 +27,7 @@ class LayersPanel extends HookConsumerWidget {
   final Function(Layer)? onLayerEffectsChanged;
   final Function(Layer) onLayerUpdated;
   final Function(Layer) onLayerToTemplate;
+  final VoidCallback? onAutoSelect;
   final ScrollController? scrollController;
 
   const LayersPanel({
@@ -45,6 +46,7 @@ class LayersPanel extends HookConsumerWidget {
     required this.onLayerOpacityChanged,
     required this.onLayerUpdated,
     required this.onLayerToTemplate,
+    this.onAutoSelect,
     this.onLayerEffectsChanged,
     this.scrollController,
   });
@@ -65,6 +67,7 @@ class LayersPanel extends HookConsumerWidget {
           onLayerDuplicated: onLayerDuplicated,
           onLayerUpdated: onLayerUpdated,
           onLayerToTemplate: onLayerToTemplate,
+          onAutoSelect: onAutoSelect,
         ),
         const SizedBox(height: 4),
         const SizedBox(height: 4),
@@ -117,6 +120,7 @@ class _ActionButtonsBar extends HookWidget {
   final Function(int) onLayerDuplicated;
   final Function(Layer) onLayerUpdated;
   final Function(Layer) onLayerToTemplate;
+  final VoidCallback? onAutoSelect;
 
   const _ActionButtonsBar({
     required this.layers,
@@ -126,6 +130,7 @@ class _ActionButtonsBar extends HookWidget {
     required this.onLayerDuplicated,
     required this.onLayerUpdated,
     required this.onLayerToTemplate,
+    this.onAutoSelect,
   });
 
   @override
@@ -170,6 +175,13 @@ class _ActionButtonsBar extends HookWidget {
             color: Colors.red,
             onPressed:
                 hasSelectedLayer && layers.length > 1 ? () => _showDeleteConfirmation(context, activeLayerIndex) : null,
+          ),
+          const SizedBox(width: 8),
+          _ActionButton(
+            icon: Icons.select_all,
+            label: 'Select',
+            color: Colors.purple,
+            onPressed: hasSelectedLayer ? onAutoSelect : null,
           ),
           const SizedBox(width: 8),
           _ActionButton(

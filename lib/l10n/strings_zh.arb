@@ -485,5 +485,10 @@
     "feedback_dialog_benefit_3": "帮助塑造应用未来",
     "feedback_dialog_leave_feedback": "提交反馈",
     "feedback_dialog_maybe_later": "稍后再说",
-    "feedback_dialog_dont_ask": "不再询问"
+    "feedback_dialog_dont_ask": "不再询问",
+    "ellipseSelection": "椭圆选区",
+    "ellipseSelectionTooltip": "选择椭圆区域",
+    "autoSelectLayer": "自动选择",
+    "autoSelectLayerTooltip": "选择当前图层中所有非空像素",
+    "selectionAnchor": "选区锚点"
 }

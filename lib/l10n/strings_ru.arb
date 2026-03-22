@@ -406,5 +406,10 @@
     "feedback_dialog_benefit_3": "Помогайте формировать будущее приложения",
     "feedback_dialog_leave_feedback": "Оставить отзыв",
     "feedback_dialog_maybe_later": "Позже",
-    "feedback_dialog_dont_ask": "Больше не спрашивать"
+    "feedback_dialog_dont_ask": "Больше не спрашивать",
+    "ellipseSelection": "Овальное выделение",
+    "ellipseSelectionTooltip": "Выделить овальную область",
+    "autoSelectLayer": "Авто-выделение",
+    "autoSelectLayerTooltip": "Выделить все непустые пиксели текущего слоя",
+    "selectionAnchor": "Якорь выделения"
 }

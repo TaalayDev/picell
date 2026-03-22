@@ -4,7 +4,7 @@ import '../../data/models/selection_region.dart';
 import '../services/selection_service.dart';
 import '../tools.dart';
 
-class SelectionTool extends Tool {
+class EllipseSelectionTool extends Tool {
   final SelectionService selectionService;
   final void Function(SelectionRegion?)? onSelectionChanged;
   final void Function(SelectionRegion?)? onSelectionEnd;
@@ -15,14 +15,14 @@ class SelectionTool extends Tool {
   Offset? _startPoint;
   SelectionRegion? _previewRegion;
 
-  SelectionTool({
+  EllipseSelectionTool({
     required this.selectionService,
     required this.onSelectionChanged,
     required this.onSelectionEnd,
     required this.getCanvasSize,
     required this.gridWidth,
     required this.gridHeight,
-  }) : super(PixelTool.select);
+  }) : super(PixelTool.ellipseSelect);
 
   @override
   void onStart(PixelDrawDetails details) {
@@ -40,7 +40,7 @@ class SelectionTool extends Tool {
       canvasSize: details.size,
       gridWidth: gridWidth,
       gridHeight: gridHeight,
-      shape: SelectionShape.rectangle,
+      shape: SelectionShape.ellipse,
     );
     onSelectionChanged?.call(_previewRegion);
   }
@@ -55,7 +55,7 @@ class SelectionTool extends Tool {
       canvasSize: details.size,
       gridWidth: gridWidth,
       gridHeight: gridHeight,
-      shape: SelectionShape.rectangle,
+      shape: SelectionShape.ellipse,
     );
 
     _startPoint = null;

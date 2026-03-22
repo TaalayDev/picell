@@ -27,8 +27,7 @@ mixin _$PixelCanvasState {
   Color get currentColor => throw _privateConstructorUsedError;
   PixelTool get currentTool => throw _privateConstructorUsedError;
   MirrorAxis get mirrorAxis => throw _privateConstructorUsedError;
-  List<PixelPoint<int>>? get selectionRect =>
-      throw _privateConstructorUsedError;
+  SelectionState? get selectionState => throw _privateConstructorUsedError;
   bool get canUndo => throw _privateConstructorUsedError;
   bool get canRedo => throw _privateConstructorUsedError;
   PixelModifier get currentModifier => throw _privateConstructorUsedError;
@@ -55,7 +54,7 @@ abstract class $PixelCanvasStateCopyWith<$Res> {
       Color currentColor,
       PixelTool currentTool,
       MirrorAxis mirrorAxis,
-      List<PixelPoint<int>>? selectionRect,
+      SelectionState? selectionState,
       bool canUndo,
       bool canRedo,
       PixelModifier currentModifier});
@@ -81,10 +80,10 @@ class _$PixelCanvasStateCopyWithImpl<$Res, $Val extends PixelCanvasState>
     Object? currentAnimationStateIndex = null,
     Object? currentFrameIndex = null,
     Object? currentLayerIndex = null,
-    Object? currentColor = null,
+    Object? currentColor = freezed,
     Object? currentTool = null,
     Object? mirrorAxis = null,
-    Object? selectionRect = freezed,
+    Object? selectionState = freezed,
     Object? canUndo = null,
     Object? canRedo = null,
     Object? currentModifier = null,
@@ -118,7 +117,7 @@ class _$PixelCanvasStateCopyWithImpl<$Res, $Val extends PixelCanvasState>
           ? _value.currentLayerIndex
           : currentLayerIndex // ignore: cast_nullable_to_non_nullable
               as int,
-      currentColor: null == currentColor
+      currentColor: freezed == currentColor
           ? _value.currentColor
           : currentColor // ignore: cast_nullable_to_non_nullable
               as Color,
@@ -130,10 +129,10 @@ class _$PixelCanvasStateCopyWithImpl<$Res, $Val extends PixelCanvasState>
           ? _value.mirrorAxis
           : mirrorAxis // ignore: cast_nullable_to_non_nullable
               as MirrorAxis,
-      selectionRect: freezed == selectionRect
-          ? _value.selectionRect
-          : selectionRect // ignore: cast_nullable_to_non_nullable
-              as List<PixelPoint<int>>?,
+      selectionState: freezed == selectionState
+          ? _value.selectionState
+          : selectionState // ignore: cast_nullable_to_non_nullable
+              as SelectionState?,
       canUndo: null == canUndo
           ? _value.canUndo
           : canUndo // ignore: cast_nullable_to_non_nullable
@@ -169,7 +168,7 @@ abstract class _$$PixelCanvasStateImplCopyWith<$Res>
       Color currentColor,
       PixelTool currentTool,
       MirrorAxis mirrorAxis,
-      List<PixelPoint<int>>? selectionRect,
+      SelectionState? selectionState,
       bool canUndo,
       bool canRedo,
       PixelModifier currentModifier});
@@ -193,10 +192,10 @@ class __$$PixelCanvasStateImplCopyWithImpl<$Res>
     Object? currentAnimationStateIndex = null,
     Object? currentFrameIndex = null,
     Object? currentLayerIndex = null,
-    Object? currentColor = null,
+    Object? currentColor = freezed,
     Object? currentTool = null,
     Object? mirrorAxis = null,
-    Object? selectionRect = freezed,
+    Object? selectionState = freezed,
     Object? canUndo = null,
     Object? canRedo = null,
     Object? currentModifier = null,
@@ -230,7 +229,7 @@ class __$$PixelCanvasStateImplCopyWithImpl<$Res>
           ? _value.currentLayerIndex
           : currentLayerIndex // ignore: cast_nullable_to_non_nullable
               as int,
-      currentColor: null == currentColor
+      currentColor: freezed == currentColor
           ? _value.currentColor
           : currentColor // ignore: cast_nullable_to_non_nullable
               as Color,
@@ -242,10 +241,10 @@ class __$$PixelCanvasStateImplCopyWithImpl<$Res>
           ? _value.mirrorAxis
           : mirrorAxis // ignore: cast_nullable_to_non_nullable
               as MirrorAxis,
-      selectionRect: freezed == selectionRect
-          ? _value._selectionRect
-          : selectionRect // ignore: cast_nullable_to_non_nullable
-              as List<PixelPoint<int>>?,
+      selectionState: freezed == selectionState
+          ? _value.selectionState
+          : selectionState // ignore: cast_nullable_to_non_nullable
+              as SelectionState?,
       canUndo: null == canUndo
           ? _value.canUndo
           : canUndo // ignore: cast_nullable_to_non_nullable
@@ -276,13 +275,12 @@ class _$PixelCanvasStateImpl extends _PixelCanvasState {
       required this.currentColor,
       required this.currentTool,
       required this.mirrorAxis,
-      final List<PixelPoint<int>>? selectionRect,
+      this.selectionState,
       this.canUndo = false,
       this.canRedo = false,
       this.currentModifier = PixelModifier.none})
       : _animationStates = animationStates,
         _frames = frames,
-        _selectionRect = selectionRect,
         super._();
 
   @override
@@ -320,16 +318,8 @@ class _$PixelCanvasStateImpl extends _PixelCanvasState {
   final PixelTool currentTool;
   @override
   final MirrorAxis mirrorAxis;
-  final List<PixelPoint<int>>? _selectionRect;
   @override
-  List<PixelPoint<int>>? get selectionRect {
-    final value = _selectionRect;
-    if (value == null) return null;
-    if (_selectionRect is EqualUnmodifiableListView) return _selectionRect;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
-
+  final SelectionState? selectionState;
   @override
   @JsonKey()
   final bool canUndo;
@@ -342,7 +332,7 @@ class _$PixelCanvasStateImpl extends _PixelCanvasState {
 
   @override
   String toString() {
-    return 'PixelCanvasState(width: $width, height: $height, animationStates: $animationStates, frames: $frames, currentAnimationStateIndex: $currentAnimationStateIndex, currentFrameIndex: $currentFrameIndex, currentLayerIndex: $currentLayerIndex, currentColor: $currentColor, currentTool: $currentTool, mirrorAxis: $mirrorAxis, selectionRect: $selectionRect, canUndo: $canUndo, canRedo: $canRedo, currentModifier: $currentModifier)';
+    return 'PixelCanvasState(width: $width, height: $height, animationStates: $animationStates, frames: $frames, currentAnimationStateIndex: $currentAnimationStateIndex, currentFrameIndex: $currentFrameIndex, currentLayerIndex: $currentLayerIndex, currentColor: $currentColor, currentTool: $currentTool, mirrorAxis: $mirrorAxis, selectionState: $selectionState, canUndo: $canUndo, canRedo: $canRedo, currentModifier: $currentModifier)';
   }
 
   @override
@@ -363,14 +353,14 @@ class _$PixelCanvasStateImpl extends _PixelCanvasState {
                 other.currentFrameIndex == currentFrameIndex) &&
             (identical(other.currentLayerIndex, currentLayerIndex) ||
                 other.currentLayerIndex == currentLayerIndex) &&
-            (identical(other.currentColor, currentColor) ||
-                other.currentColor == currentColor) &&
+            const DeepCollectionEquality()
+                .equals(other.currentColor, currentColor) &&
             (identical(other.currentTool, currentTool) ||
                 other.currentTool == currentTool) &&
             (identical(other.mirrorAxis, mirrorAxis) ||
                 other.mirrorAxis == mirrorAxis) &&
-            const DeepCollectionEquality()
-                .equals(other._selectionRect, _selectionRect) &&
+            (identical(other.selectionState, selectionState) ||
+                other.selectionState == selectionState) &&
             (identical(other.canUndo, canUndo) || other.canUndo == canUndo) &&
             (identical(other.canRedo, canRedo) || other.canRedo == canRedo) &&
             (identical(other.currentModifier, currentModifier) ||
@@ -387,10 +377,10 @@ class _$PixelCanvasStateImpl extends _PixelCanvasState {
       currentAnimationStateIndex,
       currentFrameIndex,
       currentLayerIndex,
-      currentColor,
+      const DeepCollectionEquality().hash(currentColor),
       currentTool,
       mirrorAxis,
-      const DeepCollectionEquality().hash(_selectionRect),
+      selectionState,
       canUndo,
       canRedo,
       currentModifier);
@@ -415,7 +405,7 @@ abstract class _PixelCanvasState extends PixelCanvasState {
       required final Color currentColor,
       required final PixelTool currentTool,
       required final MirrorAxis mirrorAxis,
-      final List<PixelPoint<int>>? selectionRect,
+      final SelectionState? selectionState,
       final bool canUndo,
       final bool canRedo,
       final PixelModifier currentModifier}) = _$PixelCanvasStateImpl;
@@ -442,7 +432,7 @@ abstract class _PixelCanvasState extends PixelCanvasState {
   @override
   MirrorAxis get mirrorAxis;
   @override
-  List<PixelPoint<int>>? get selectionRect;
+  SelectionState? get selectionState;
   @override
   bool get canUndo;
   @override
@@ -493,7 +483,7 @@ class _$BackgroundImageStateCopyWithImpl<$Res,
     Object? image = freezed,
     Object? opacity = null,
     Object? scale = null,
-    Object? offset = null,
+    Object? offset = freezed,
   }) {
     return _then(_value.copyWith(
       image: freezed == image
@@ -508,7 +498,7 @@ class _$BackgroundImageStateCopyWithImpl<$Res,
           ? _value.scale
           : scale // ignore: cast_nullable_to_non_nullable
               as double,
-      offset: null == offset
+      offset: freezed == offset
           ? _value.offset
           : offset // ignore: cast_nullable_to_non_nullable
               as Offset,
@@ -541,7 +531,7 @@ class __$$BackgroundImageStateImplCopyWithImpl<$Res>
     Object? image = freezed,
     Object? opacity = null,
     Object? scale = null,
-    Object? offset = null,
+    Object? offset = freezed,
   }) {
     return _then(_$BackgroundImageStateImpl(
       image: freezed == image
@@ -556,7 +546,7 @@ class __$$BackgroundImageStateImplCopyWithImpl<$Res>
           ? _value.scale
           : scale // ignore: cast_nullable_to_non_nullable
               as double,
-      offset: null == offset
+      offset: freezed == offset
           ? _value.offset
           : offset // ignore: cast_nullable_to_non_nullable
               as Offset,
@@ -599,12 +589,16 @@ class _$BackgroundImageStateImpl extends _BackgroundImageState {
             const DeepCollectionEquality().equals(other.image, image) &&
             (identical(other.opacity, opacity) || other.opacity == opacity) &&
             (identical(other.scale, scale) || other.scale == scale) &&
-            (identical(other.offset, offset) || other.offset == offset));
+            const DeepCollectionEquality().equals(other.offset, offset));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType,
-      const DeepCollectionEquality().hash(image), opacity, scale, offset);
+  int get hashCode => Object.hash(
+      runtimeType,
+      const DeepCollectionEquality().hash(image),
+      opacity,
+      scale,
+      const DeepCollectionEquality().hash(offset));
 
   @JsonKey(ignore: true)
   @override
