@@ -330,6 +330,10 @@ class ProjectsScreen extends HookConsumerWidget {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _navigateToFeedback(context, ref),
             backgroundColor: Theme.of(context).colorScheme.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            extendedPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
             label: const Text('Feedback'),
             icon: const AppIcon(AppIcons.user_voice),
             tooltip: 'Leave Feedback',
