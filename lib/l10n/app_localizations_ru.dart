@@ -525,6 +525,22 @@ class StringsRu extends Strings {
   String get gridOpacity => 'Прозрачность сетки';
 
   @override
+  String get selectionTransforms => 'Трансформации выделения';
+
+  @override
+  String get transformInterpolation => 'Интерполяция';
+
+  @override
+  String get transformInterpolationSubtitle =>
+      'Используется при изменении размера и вращении выделения';
+
+  @override
+  String get nearestNeighbor => 'Ближайший сосед';
+
+  @override
+  String get bilinear => 'Билинейная';
+
+  @override
   String get zoomNavigation => 'Масштаб и навигация';
 
   @override

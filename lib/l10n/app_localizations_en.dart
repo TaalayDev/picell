@@ -518,6 +518,22 @@ class StringsEn extends Strings {
   String get gridOpacity => 'Grid Opacity';
 
   @override
+  String get selectionTransforms => 'Selection Transforms';
+
+  @override
+  String get transformInterpolation => 'Interpolation';
+
+  @override
+  String get transformInterpolationSubtitle =>
+      'Sampling used when resizing and rotating selections';
+
+  @override
+  String get nearestNeighbor => 'Nearest';
+
+  @override
+  String get bilinear => 'Bilinear';
+
+  @override
   String get zoomNavigation => 'Zoom & Navigation';
 
   @override

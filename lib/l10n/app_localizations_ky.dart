@@ -521,6 +521,22 @@ class StringsKy extends Strings {
   String get gridOpacity => 'Тордун тунуктугу';
 
   @override
+  String get selectionTransforms => 'Тандоону трансформациялоо';
+
+  @override
+  String get transformInterpolation => 'Интерполяция';
+
+  @override
+  String get transformInterpolationSubtitle =>
+      'Тандоонун өлчөмүн өзгөртүүдө жана айлантууда колдонулат';
+
+  @override
+  String get nearestNeighbor => 'Жакынкы коңшу';
+
+  @override
+  String get bilinear => 'Билинейдик';
+
+  @override
   String get zoomNavigation => 'Масштаб жана навигация';
 
   @override

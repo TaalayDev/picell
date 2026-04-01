@@ -18,6 +18,7 @@ class SelectionOverlay extends StatefulWidget {
 
   final Function(Offset delta)? onSelectionMove;
   final Function(SelectionRegion original)? onSelectionMoveStart;
+  final VoidCallback? onSelectionTap;
   final Function(SelectionRegion newRegion, double angle)? onSelectionRotate;
   final Function(SelectionRegion newRegion, double scaleX, double scaleY,
       math.Point<int> pivot)? onSelectionResize;
@@ -36,6 +37,7 @@ class SelectionOverlay extends StatefulWidget {
     required this.canvasSize,
     this.onSelectionMove,
     this.onSelectionMoveStart,
+    this.onSelectionTap,
     this.onSelectionRotate,
     this.onSelectionResize,
     this.onSelectionMoveEnd,
@@ -51,12 +53,14 @@ class _SelectionOverlayState extends State<SelectionOverlay>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
-  Offset _lastPanPosition = Offset.zero;
+  Offset _moveStartScreen = Offset.zero;
+  Offset _lastAppliedMoveOffset = Offset.zero;
 
   double _rotationAngle = 0.0;
   double _initialRotationAngle = 0.0;
   bool _isRotating = false;
   Offset? _rotationCenterScreen;
+  SelectionRegion? _rotationBaseRegion;
 
   Offset _resizeStartScreen = Offset.zero;
   Rect? _origBounds;
@@ -152,6 +156,7 @@ class _SelectionOverlayState extends State<SelectionOverlay>
           height: selRect.height,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
+            onTap: widget.onSelectionTap,
             onPanStart: _onMoveStart,
             onPanUpdate: _onMoveUpdate,
             onPanEnd: _onMoveEnd,
@@ -174,26 +179,32 @@ class _SelectionOverlayState extends State<SelectionOverlay>
   // ── Move ──
 
   void _onMoveStart(DragStartDetails details) {
-    _lastPanPosition = details.localPosition;
+    _moveStartScreen = _globalToOverlay(details.globalPosition);
+    _lastAppliedMoveOffset = Offset.zero;
     widget.onSelectionMoveStart?.call(widget.selectionRegion);
   }
 
   void _onMoveUpdate(DragUpdateDetails details) {
-    final delta = details.localPosition - _lastPanPosition;
-    _lastPanPosition = details.localPosition;
-
-    // Convert screen delta to pixel delta
-    final pixelDelta = Offset(
-      (delta.dx / _pixelWidth).roundToDouble(),
-      (delta.dy / _pixelHeight).roundToDouble(),
+    final currentScreen = _globalToOverlay(details.globalPosition);
+    final totalScreenDelta = currentScreen - _moveStartScreen;
+    final totalPixelOffset = Offset(
+      totalScreenDelta.dx / _pixelWidth,
+      totalScreenDelta.dy / _pixelHeight,
     );
+    final roundedPixelOffset = Offset(
+      totalPixelOffset.dx.roundToDouble(),
+      totalPixelOffset.dy.roundToDouble(),
+    );
+    final pixelDelta = roundedPixelOffset - _lastAppliedMoveOffset;
 
     if (pixelDelta != Offset.zero) {
+      _lastAppliedMoveOffset = roundedPixelOffset;
       widget.onSelectionMove?.call(pixelDelta);
     }
   }
 
   void _onMoveEnd(DragEndDetails details) {
+    _lastAppliedMoveOffset = Offset.zero;
     widget.onSelectionMoveEnd?.call();
   }
 
@@ -358,6 +369,7 @@ class _SelectionOverlayState extends State<SelectionOverlay>
 
   void _onRotateStart(DragStartDetails details) {
     _isRotating = true;
+    _rotationBaseRegion = widget.selectionRegion;
     final anchorPixel = widget.selectionState?.effectiveAnchor ??
         widget.selectionRegion.bounds.center;
     _rotationCenterScreen = _pixelToScreen(anchorPixel);
@@ -369,7 +381,11 @@ class _SelectionOverlayState extends State<SelectionOverlay>
   }
 
   void _onRotateUpdate(DragUpdateDetails details) {
-    if (!_isRotating || _rotationCenterScreen == null) return;
+    if (!_isRotating ||
+        _rotationCenterScreen == null ||
+        _rotationBaseRegion == null) {
+      return;
+    }
 
     final pointerScreen = _globalToOverlay(details.globalPosition);
     final dx = pointerScreen.dx - _rotationCenterScreen!.dx;
@@ -394,13 +410,14 @@ class _SelectionOverlayState extends State<SelectionOverlay>
         ),
       );
 
-    final rotatedRegion = widget.selectionRegion.transformed(matrix);
+    final rotatedRegion = _rotationBaseRegion!.transformed(matrix);
     widget.onSelectionRotate?.call(rotatedRegion, _rotationAngle);
   }
 
   void _onRotateEnd(DragEndDetails details) {
     _isRotating = false;
     _rotationCenterScreen = null;
+    _rotationBaseRegion = null;
     widget.onSelectionMoveEnd?.call();
   }
 

@@ -501,6 +501,21 @@ class StringsJa extends Strings {
   String get gridOpacity => 'グリッドの不透明度';
 
   @override
+  String get selectionTransforms => '選択変形';
+
+  @override
+  String get transformInterpolation => '補間';
+
+  @override
+  String get transformInterpolationSubtitle => '選択範囲のサイズ変更と回転に使用します';
+
+  @override
+  String get nearestNeighbor => 'ニアレスト';
+
+  @override
+  String get bilinear => 'バイリニア';
+
+  @override
   String get zoomNavigation => 'ズームとナビゲーション';
 
   @override

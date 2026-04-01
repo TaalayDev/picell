@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart' hide SelectionOverlay;
 
 import '../../core/utils/cursor_manager.dart';
@@ -45,8 +43,10 @@ class PixelCanvas extends StatefulWidget {
   final Function(List<PixelPoint<int>>) onDrawShape;
   final Function(SelectionRegion?)? onSelectionChanged;
   final Function(Offset)? onMoveSelection;
-  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)? onSelectionResize;
-  final Function(SelectionRegion, SelectionRegion, double, Offset?)? onSelectionRotate;
+  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)?
+      onSelectionResize;
+  final Function(SelectionRegion, SelectionRegion, double, Offset?)?
+      onSelectionRotate;
   final Function(SelectionRegion)? onTransformStart;
   final Function()? onTransformEnd;
   final Function(Offset)? onAnchorChanged;
@@ -109,9 +109,26 @@ class _PixelCanvasState extends State<PixelCanvas> {
 
   SelectionRegion? _rotationOriginalRegion;
   Offset? _rotationCenter;
-  double _rotationAngle = 0.0;
 
   SelectionRegion? _resizeOriginalRegion;
+
+  bool _isSelectionCreationTool(PixelTool tool) {
+    return tool == PixelTool.select ||
+        tool == PixelTool.ellipseSelect ||
+        tool == PixelTool.lasso ||
+        tool == PixelTool.smartSelect;
+  }
+
+  void _clearLocalSelection({bool notifyProvider = false}) {
+    _controller.clearSelection();
+    _toolManager.setCurrentSelection(null);
+    _clearRotationState();
+    _resizeOriginalRegion = null;
+
+    if (notifyProvider) {
+      widget.onSelectionChanged?.call(null);
+    }
+  }
 
   @override
   void initState() {
@@ -127,13 +144,11 @@ class _PixelCanvasState extends State<PixelCanvas> {
             textureId: event.texture.id,
             blendMode: event.blendMode,
             mode: event.isFill ? TextureBrushMode.fill : TextureBrushMode.brush,
-            fillMode: event.isFill ? TextureFillMode.stretch : TextureFillMode.center,
+            fillMode:
+                event.isFill ? TextureFillMode.stretch : TextureFillMode.center,
           );
         } else if (event is ClearSelectionEvent) {
-          _controller.clearSelection();
-          widget.onSelectionChanged?.call(null);
-          _clearRotationState();
-          _resizeOriginalRegion = null;
+          _clearLocalSelection();
         }
       });
     });
@@ -170,10 +185,10 @@ class _PixelCanvasState extends State<PixelCanvas> {
       },
       // On release: validate and propagate to provider
       onSelectionEnd: (region) {
-        if (region == null || region.bounds.width < 2 || region.bounds.height < 2) {
-          _controller.setSelection(null);
-          _toolManager.setCurrentSelection(null);
-          widget.onSelectionChanged?.call(null);
+        if (region == null ||
+            region.bounds.width < 2 ||
+            region.bounds.height < 2) {
+          _clearLocalSelection(notifyProvider: true);
         } else {
           _controller.setSelection(region);
           _toolManager.setCurrentSelection(region);
@@ -195,7 +210,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
         _controller.applyLayerCache();
       },
       onDrawShape: (shape) {
-        if (widget.currentTool == PixelTool.select || widget.currentTool == PixelTool.ellipseSelect) {
+        if (widget.currentTool == PixelTool.select ||
+            widget.currentTool == PixelTool.ellipseSelect) {
           // Selection tools handle their own callbacks
         } else {
           widget.onDrawShape(shape);
@@ -333,7 +349,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
                     }
 
                     _controller.setHoverPosition(event.localPosition);
-                    if (widget.currentTool == PixelTool.curve && _toolManager.isCurveDefining) {
+                    if (widget.currentTool == PixelTool.curve &&
+                        _toolManager.isCurveDefining) {
                       final details = _createDrawDetails(event.localPosition);
                       _toolManager.handleCurveMove(details, _controller);
                     } else {
@@ -376,6 +393,9 @@ class _PixelCanvasState extends State<PixelCanvas> {
                   onSelectionMove: (delta) {
                     widget.onMoveSelection?.call(delta);
                   },
+                  onSelectionTap: _isSelectionCreationTool(widget.currentTool)
+                      ? () => _clearLocalSelection(notifyProvider: true)
+                      : null,
                   onSelectionMoveEnd: () {
                     widget.onTransformEnd?.call();
                     _resizeOriginalRegion = null;
@@ -398,12 +418,14 @@ class _PixelCanvasState extends State<PixelCanvas> {
                   onSelectionRotate: (newRegion, angle) {
                     if (_rotationOriginalRegion == null) {
                       _rotationOriginalRegion = selRegion;
-                      _rotationCenter = widget.selectionState?.effectiveAnchor ?? selRegion.bounds.center;
+                      _rotationCenter =
+                          widget.selectionState?.effectiveAnchor ??
+                              selRegion.bounds.center;
                       widget.onTransformStart?.call(selRegion);
                     }
-                    _rotationAngle = angle;
                     _controller.setSelection(newRegion);
-                    widget.onSelectionRotate?.call(newRegion, _rotationOriginalRegion!, angle, _rotationCenter);
+                    widget.onSelectionRotate?.call(newRegion,
+                        _rotationOriginalRegion!, angle, _rotationCenter);
                   },
                   onAnchorChanged: widget.onAnchorChanged,
                 );
@@ -484,12 +506,12 @@ class _PixelCanvasState extends State<PixelCanvas> {
   }
 
   MouseCursor _getCursor() {
-    return CursorManager.instance.getCursor(widget.currentTool) ?? widget.currentTool.cursor;
+    return CursorManager.instance.getCursor(widget.currentTool) ??
+        widget.currentTool.cursor;
   }
 
   void _clearRotationState() {
     _rotationOriginalRegion = null;
     _rotationCenter = null;
-    _rotationAngle = 0.0;
   }
 }

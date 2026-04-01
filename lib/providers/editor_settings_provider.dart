@@ -14,6 +14,13 @@ enum InputMode {
   stylusOnly,
 }
 
+enum TransformInterpolation {
+  nearest,
+  bilinear;
+
+  int get pixelUtilsValue => index;
+}
+
 /// Editor settings state
 class EditorSettings {
   const EditorSettings({
@@ -25,6 +32,7 @@ class EditorSettings {
     this.twoFingerUndoEnabled = true,
     this.showPixelGrid = true,
     this.pixelGridOpacity = 0.3,
+    this.transformInterpolation = TransformInterpolation.bilinear,
   });
 
   /// Current input mode (standard or stylus-only)
@@ -51,6 +59,9 @@ class EditorSettings {
   /// Pixel grid opacity (0.0 - 1.0)
   final double pixelGridOpacity;
 
+  /// Sampling used for selection resize/rotate transforms
+  final TransformInterpolation transformInterpolation;
+
   /// Whether stylus mode is active
   bool get isStylusMode => inputMode == InputMode.stylusOnly;
 
@@ -63,6 +74,7 @@ class EditorSettings {
     bool? twoFingerUndoEnabled,
     bool? showPixelGrid,
     double? pixelGridOpacity,
+    TransformInterpolation? transformInterpolation,
   }) {
     return EditorSettings(
       inputMode: inputMode ?? this.inputMode,
@@ -73,6 +85,8 @@ class EditorSettings {
       twoFingerUndoEnabled: twoFingerUndoEnabled ?? this.twoFingerUndoEnabled,
       showPixelGrid: showPixelGrid ?? this.showPixelGrid,
       pixelGridOpacity: pixelGridOpacity ?? this.pixelGridOpacity,
+      transformInterpolation:
+          transformInterpolation ?? this.transformInterpolation,
     );
   }
 
@@ -87,7 +101,8 @@ class EditorSettings {
         other.maxZoom == maxZoom &&
         other.twoFingerUndoEnabled == twoFingerUndoEnabled &&
         other.showPixelGrid == showPixelGrid &&
-        other.pixelGridOpacity == pixelGridOpacity;
+        other.pixelGridOpacity == pixelGridOpacity &&
+        other.transformInterpolation == transformInterpolation;
   }
 
   @override
@@ -100,6 +115,7 @@ class EditorSettings {
         twoFingerUndoEnabled,
         showPixelGrid,
         pixelGridOpacity,
+        transformInterpolation,
       );
 }
 
@@ -112,6 +128,7 @@ const _kMaxZoom = 'editor_max_zoom';
 const _kTwoFingerUndo = 'editor_two_finger_undo';
 const _kShowPixelGrid = 'editor_show_pixel_grid';
 const _kPixelGridOpacity = 'editor_pixel_grid_opacity';
+const _kTransformInterpolation = 'editor_transform_interpolation';
 
 @riverpod
 class EditorSettingsNotifier extends _$EditorSettingsNotifier {
@@ -132,9 +149,13 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
     final twoFingerUndo = _storage.getBool(_kTwoFingerUndo) ?? true;
     final showPixelGrid = _storage.getBool(_kShowPixelGrid) ?? true;
     final pixelGridOpacity = _storage.getDouble(_kPixelGridOpacity) ?? 0.3;
+    final transformInterpolationIndex =
+        _storage.getInt(_kTransformInterpolation) ??
+            TransformInterpolation.bilinear.index;
 
     return EditorSettings(
-      inputMode: InputMode.values[inputModeIndex.clamp(0, InputMode.values.length - 1)],
+      inputMode: InputMode
+          .values[inputModeIndex.clamp(0, InputMode.values.length - 1)],
       showGrid: showGrid,
       zoomSensitivity: zoomSensitivity.clamp(0.1, 1.0),
       minZoom: minZoom.clamp(0.1, 1.0),
@@ -142,6 +163,11 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
       twoFingerUndoEnabled: twoFingerUndo,
       showPixelGrid: showPixelGrid,
       pixelGridOpacity: pixelGridOpacity.clamp(0.0, 1.0),
+      transformInterpolation:
+          TransformInterpolation.values[transformInterpolationIndex.clamp(
+        0,
+        TransformInterpolation.values.length - 1,
+      )],
     );
   }
 
@@ -154,6 +180,10 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
     _storage.setBool(_kTwoFingerUndo, state.twoFingerUndoEnabled);
     _storage.setBool(_kShowPixelGrid, state.showPixelGrid);
     _storage.setDouble(_kPixelGridOpacity, state.pixelGridOpacity);
+    _storage.setInt(
+      _kTransformInterpolation,
+      state.transformInterpolation.index,
+    );
   }
 
   void setInputMode(InputMode mode) {
@@ -162,7 +192,9 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
   }
 
   void toggleStylusMode() {
-    final newMode = state.inputMode == InputMode.stylusOnly ? InputMode.standard : InputMode.stylusOnly;
+    final newMode = state.inputMode == InputMode.stylusOnly
+        ? InputMode.standard
+        : InputMode.stylusOnly;
     setInputMode(newMode);
   }
 
@@ -196,6 +228,11 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
 
   void setPixelGridOpacity(double opacity) {
     state = state.copyWith(pixelGridOpacity: opacity.clamp(0.0, 1.0));
+    _saveSettings();
+  }
+
+  void setTransformInterpolation(TransformInterpolation interpolation) {
+    state = state.copyWith(transformInterpolation: interpolation);
     _saveSettings();
   }
 

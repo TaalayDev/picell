@@ -1057,6 +1057,36 @@ abstract class Strings {
   /// **'Grid Opacity'**
   String get gridOpacity;
 
+  /// No description provided for @selectionTransforms.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection Transforms'**
+  String get selectionTransforms;
+
+  /// No description provided for @transformInterpolation.
+  ///
+  /// In en, this message translates to:
+  /// **'Interpolation'**
+  String get transformInterpolation;
+
+  /// No description provided for @transformInterpolationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sampling used when resizing and rotating selections'**
+  String get transformInterpolationSubtitle;
+
+  /// No description provided for @nearestNeighbor.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest'**
+  String get nearestNeighbor;
+
+  /// No description provided for @bilinear.
+  ///
+  /// In en, this message translates to:
+  /// **'Bilinear'**
+  String get bilinear;
+
   /// No description provided for @zoomNavigation.
   ///
   /// In en, this message translates to:

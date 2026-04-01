@@ -15,6 +15,7 @@ import '../pixel_point.dart';
 import '../../data.dart';
 import '../../providers/providers.dart';
 import '../../providers/background_image_provider.dart';
+import '../../providers/editor_settings_provider.dart';
 import '../../providers/imported_palette_provider.dart';
 import '../services/animation_service.dart';
 import '../services/drawing_service.dart';
@@ -344,10 +345,13 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   Uint32List? _transformCachedPixels;
-  Uint32List? _transformCachedLayerWithoutSelection; // layer pixels with selection cleared
+  Uint32List?
+      _transformCachedLayerWithoutSelection; // layer pixels with selection cleared
   Rect? _transformCachedBounds;
   SelectionRegion? _transformCachedRegion;
+  Offset? _transformCachedAnchor;
   Offset _totalMoveOffset = Offset.zero;
+  bool _transformPreviewDirty = false;
 
   void startTransformSelection(SelectionRegion region) {
     if (currentLayer.pixels.isEmpty) return;
@@ -357,60 +361,48 @@ class PixelDrawController extends _$PixelDrawController {
 
     _saveState();
     _transformCachedRegion = region;
-    _transformCachedBounds = bounds;
+    _transformCachedAnchor =
+        state.selectionState?.effectiveAnchor ?? region.bounds.center;
 
-    // Extract selected pixels into a local buffer
-    final bw = bounds.width.ceil();
-    final bh = bounds.height.ceil();
-    final extracted = Uint32List(bw * bh);
-    final indices = region.getSelectedPixelIndices(state.width, state.height);
-    for (final idx in indices) {
-      if (idx >= 0 &&
-          idx < currentLayer.pixels.length &&
-          currentLayer.pixels[idx] != 0) {
-        final x = idx % state.width;
-        final y = idx ~/ state.width;
-        final lx = x - bounds.left.floor();
-        final ly = y - bounds.top.floor();
-        if (lx >= 0 && lx < bw && ly >= 0 && ly < bh) {
-          extracted[ly * bw + lx] = currentLayer.pixels[idx];
-        }
-      }
+    final cachedSelectionPixels = state.selectionState?.capturedPixels;
+    final cachedSelectionBounds = state.selectionState?.capturedBounds;
+
+    if (_transformCachedLayerWithoutSelection == null ||
+        cachedSelectionPixels == null ||
+        cachedSelectionBounds == null) {
+      final capture = _captureOpaqueSelection(region, currentLayer.pixels);
+      _transformCachedPixels = capture.selectionPixels;
+      _transformCachedBounds = capture.bounds;
+      _transformCachedLayerWithoutSelection = capture.basePixels;
+    } else {
+      _transformCachedPixels = Uint32List.fromList(cachedSelectionPixels);
+      _transformCachedBounds = cachedSelectionBounds;
     }
-    _transformCachedPixels = extracted;
-
-    // Cache the layer with the selection area cleared — used for smooth move
-    _transformCachedLayerWithoutSelection = _selectionService.clearPixelsInSelection(
-      region,
-      currentLayer.pixels,
-      state.width,
-      state.height,
-    );
     _totalMoveOffset = Offset.zero;
+    _transformPreviewDirty = false;
 
     // Enter transform mode in selection state
     state = state.copyWith(
       selectionState: state.selectionState?.copyWith(
         isTransforming: true,
-        capturedPixels: () => extracted,
-        capturedBounds: () => bounds,
+        capturedPixels: () => Uint32List.fromList(_transformCachedPixels!),
+        capturedBounds: () => _transformCachedBounds,
       ),
     );
   }
 
   void endTransformSelection() {
-    _transformCachedPixels = null;
-    _transformCachedLayerWithoutSelection = null;
-    _transformCachedBounds = null;
-    _transformCachedRegion = null;
+    if (_transformPreviewDirty) {
+      _persistCurrentLayer();
+    }
+
     _totalMoveOffset = Offset.zero;
+    _transformPreviewDirty = false;
 
     if (state.selectionState != null) {
       state = state.copyWith(
         selectionState: state.selectionState!.copyWith(
           isTransforming: false,
-          capturedPixels: () => null,
-          capturedBounds: () => null,
         ),
       );
     }
@@ -862,15 +854,15 @@ class PixelDrawController extends _$PixelDrawController {
   // Selection operations
   void setSelection(SelectionRegion? region) {
     if (region == null) {
+      _resetSelectionTransformCache();
       state = state.copyWith(selectionState: null);
       return;
     }
-    // Use layer's anchor if available
-    final layerAnchor = currentLayer.anchorPoint;
+    _resetSelectionTransformCache();
     state = state.copyWith(
       selectionState: SelectionState(
         region: region,
-        anchorPoint: layerAnchor,
+        anchorPoint: region.bounds.center,
       ),
     );
   }
@@ -884,7 +876,10 @@ class PixelDrawController extends _$PixelDrawController {
     final cachedBounds = _transformCachedBounds;
     final cachedRegion = _transformCachedRegion;
 
-    if (cached == null || cachedLayer == null || cachedBounds == null || cachedRegion == null) {
+    if (cached == null ||
+        cachedLayer == null ||
+        cachedBounds == null ||
+        cachedRegion == null) {
       // Fallback when transform was not explicitly started (e.g. external call)
       _saveState();
       final newPixels = _selectionService.moveSelectedPixels(
@@ -894,7 +889,10 @@ class PixelDrawController extends _$PixelDrawController {
       );
       _updateCurrentLayerPixels(newPixels);
       state = state.copyWith(
-        selectionState: sel.copyWith(region: sel.region.shifted(delta)),
+        selectionState: sel.copyWith(
+          region: sel.region.shifted(delta),
+          anchorPoint: () => sel.effectiveAnchor + delta,
+        ),
       );
       return;
     }
@@ -910,6 +908,7 @@ class PixelDrawController extends _$PixelDrawController {
     final bh = cachedBounds.height.ceil();
     final origLeft = cachedBounds.left.floor();
     final origTop = cachedBounds.top.floor();
+    final movedRegion = cachedRegion.shifted(_totalMoveOffset);
 
     for (int ly = 0; ly < bh; ly++) {
       for (int lx = 0; lx < bw; lx++) {
@@ -923,21 +922,33 @@ class PixelDrawController extends _$PixelDrawController {
       }
     }
 
-    final movedRegion = cachedRegion.shifted(_totalMoveOffset);
-    _updateCurrentLayerPixels(result);
+    _updateCurrentLayerPreviewPixels(result);
     state = state.copyWith(
-      selectionState: sel.copyWith(region: movedRegion),
+      selectionState: sel.copyWith(
+        region: movedRegion,
+        anchorPoint: () => sel.effectiveAnchor + delta,
+        capturedBounds: () => movedRegion.bounds,
+      ),
     );
   }
 
-  void resizeSelectionNew(Rect targetBounds) {
+  void resizeSelectionNew(
+    Rect targetBounds, {
+    SelectionRegion? region,
+  }) {
     final sel = state.selectionState;
     if (sel == null) return;
 
     final cached = _transformCachedPixels;
+    final cachedLayer = _transformCachedLayerWithoutSelection;
     final cachedBounds = _transformCachedBounds;
     final cachedRegion = _transformCachedRegion;
-    if (cached == null || cachedBounds == null || cachedRegion == null) return;
+    if (cached == null ||
+        cachedLayer == null ||
+        cachedBounds == null ||
+        cachedRegion == null) {
+      return;
+    }
 
     final srcW = cachedBounds.width.ceil().clamp(1, state.width);
     final srcH = cachedBounds.height.ceil().clamp(1, state.height);
@@ -963,51 +974,55 @@ class PixelDrawController extends _$PixelDrawController {
       srcH,
       targetW,
       targetH,
-      1,
+      _selectionTransformInterpolation,
       0,
     );
 
-    // Clear original area and place resized pixels
-    final clearedPixels = _selectionService.clearPixelsInSelection(
-      cachedRegion,
-      currentLayer.pixels,
-      state.width,
-      state.height,
+    final newRegion = region ??
+        _selectionService.createRectangleSelection(
+          constrainedTargetBounds.left.floor(),
+          constrainedTargetBounds.top.floor(),
+          (constrainedTargetBounds.right - 1).floor(),
+          (constrainedTargetBounds.bottom - 1).floor(),
+        );
+    final newAnchor = _remapAnchorToBounds(
+      _transformCachedAnchor ?? sel.effectiveAnchor,
+      cachedRegion.bounds,
+      newRegion.bounds,
     );
 
     final resultPixels = _placeTransformedPixels(
-      clearedPixels,
+      cachedLayer,
       transformedPixels,
       constrainedTargetBounds,
       targetW,
       targetH,
     );
 
-    // Create new selection region matching resized area
-    final newRegion = _selectionService.createRectangleSelection(
-      constrainedTargetBounds.left.floor(),
-      constrainedTargetBounds.top.floor(),
-      (constrainedTargetBounds.right - 1).floor(),
-      (constrainedTargetBounds.bottom - 1).floor(),
-    );
-
-    _updateCurrentLayerPixels(resultPixels);
+    _updateCurrentLayerPreviewPixels(resultPixels);
     state = state.copyWith(
       selectionState: sel.copyWith(
         region: newRegion,
         scale: Size(targetW / srcW, targetH / srcH),
+        anchorPoint: () => newAnchor,
+        capturedPixels: () => Uint32List.fromList(transformedPixels),
+        capturedBounds: () => newRegion.bounds,
       ),
     );
   }
 
-  void rotateSelectionNew(double angle, {Offset? pivot}) {
+  void rotateSelectionNew(
+    double angle, {
+    Offset? pivot,
+    SelectionRegion? region,
+  }) {
     final sel = state.selectionState;
     if (sel == null) return;
 
     final cached = _transformCachedPixels;
+    final cachedLayer = _transformCachedLayerWithoutSelection;
     final cachedBounds = _transformCachedBounds;
-    final cachedRegion = _transformCachedRegion;
-    if (cached == null || cachedBounds == null || cachedRegion == null) return;
+    if (cached == null || cachedLayer == null || cachedBounds == null) return;
 
     // Use anchor point, or provided pivot, or center
     final rotCenter = sel.anchorPoint ?? pivot ?? cachedBounds.center;
@@ -1025,17 +1040,10 @@ class PixelDrawController extends _$PixelDrawController {
       cachedBounds,
       rotatedBounds,
       rotCenter,
-      1,
+      _selectionTransformInterpolation,
       0,
     );
     if (rotatedPixels.isEmpty) return;
-
-    final clearedPixels = _selectionService.clearPixelsInSelection(
-      cachedRegion,
-      currentLayer.pixels,
-      state.width,
-      state.height,
-    );
 
     final constrainedDest = Rect.fromLTRB(
       rotatedBounds.left.clamp(0.0, state.width.toDouble()),
@@ -1047,27 +1055,29 @@ class PixelDrawController extends _$PixelDrawController {
     final targetW = rotatedBounds.width.round().clamp(1, state.width);
     final targetH = rotatedBounds.height.round().clamp(1, state.height);
 
+    final newRegion = region ??
+        _selectionService.createRectangleSelection(
+          constrainedDest.left.floor(),
+          constrainedDest.top.floor(),
+          (constrainedDest.right - 1).floor(),
+          (constrainedDest.bottom - 1).floor(),
+        );
+
     final resultPixels = _placeTransformedPixels(
-      clearedPixels,
+      cachedLayer,
       rotatedPixels,
       constrainedDest,
       targetW,
       targetH,
     );
 
-    // Create new region from rotated bounds
-    final newRegion = _selectionService.createRectangleSelection(
-      constrainedDest.left.floor(),
-      constrainedDest.top.floor(),
-      (constrainedDest.right - 1).floor(),
-      (constrainedDest.bottom - 1).floor(),
-    );
-
-    _updateCurrentLayerPixels(resultPixels);
+    _updateCurrentLayerPreviewPixels(resultPixels);
     state = state.copyWith(
       selectionState: sel.copyWith(
         region: newRegion,
         rotation: angle,
+        capturedPixels: () => Uint32List.fromList(rotatedPixels),
+        capturedBounds: () => newRegion.bounds,
       ),
     );
   }
@@ -1126,6 +1136,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void clearSelection() {
+    _resetSelectionTransformCache();
     state = state.copyWith(selectionState: null);
   }
 
@@ -1316,6 +1327,11 @@ class PixelDrawController extends _$PixelDrawController {
     _updateProject();
   }
 
+  void _updateCurrentLayerPreviewPixels(Uint32List newPixels) {
+    _transformPreviewDirty = true;
+    _updateCurrentLayer(currentLayer.copyWith(pixels: newPixels));
+  }
+
   Future<void> _updateLayerAndFrame(int layerIndex, Layer updatedLayer) async {
     final updatedLayers = List<Layer>.from(currentFrame.layers);
     updatedLayers[layerIndex] = updatedLayer;
@@ -1346,12 +1362,12 @@ class PixelDrawController extends _$PixelDrawController {
 
   void resizeSelection(SelectionRegion region, SelectionRegion oldRegion,
       Rect b, Offset? center) {
-    resizeSelectionNew(region.bounds);
+    resizeSelectionNew(region.bounds, region: region);
   }
 
   void rotateSelection(SelectionRegion region, SelectionRegion oldRegion,
       double angle, Offset? center) {
-    rotateSelectionNew(angle, pivot: center);
+    rotateSelectionNew(angle, pivot: center, region: region);
   }
 
   /// Rotated AABB of [rect] about [center] by [angle] (radians) in screen coords.
@@ -1434,4 +1450,97 @@ class PixelDrawController extends _$PixelDrawController {
 
     state = state.copyWith(frames: updatedFrames);
   }
+
+  _SelectionCapture _captureOpaqueSelection(
+    SelectionRegion region,
+    Uint32List layerPixels,
+  ) {
+    final bounds = region.bounds;
+    final bw = bounds.width.ceil().clamp(1, state.width);
+    final bh = bounds.height.ceil().clamp(1, state.height);
+    final extracted = Uint32List(bw * bh);
+    final basePixels = Uint32List.fromList(layerPixels);
+    final indices = region.getSelectedPixelIndices(state.width, state.height);
+
+    for (final idx in indices) {
+      if (idx < 0 || idx >= layerPixels.length) continue;
+
+      final pixel = layerPixels[idx];
+      if (pixel == 0) continue;
+
+      final x = idx % state.width;
+      final y = idx ~/ state.width;
+      final lx = x - bounds.left.floor();
+      final ly = y - bounds.top.floor();
+
+      if (lx >= 0 && lx < bw && ly >= 0 && ly < bh) {
+        extracted[ly * bw + lx] = pixel;
+      }
+
+      basePixels[idx] = 0;
+    }
+
+    return _SelectionCapture(
+      selectionPixels: extracted,
+      basePixels: basePixels,
+      bounds: bounds,
+    );
+  }
+
+  void _resetSelectionTransformCache() {
+    _transformCachedPixels = null;
+    _transformCachedLayerWithoutSelection = null;
+    _transformCachedBounds = null;
+    _transformCachedRegion = null;
+    _transformCachedAnchor = null;
+    _totalMoveOffset = Offset.zero;
+    _transformPreviewDirty = false;
+  }
+
+  Offset _remapAnchorToBounds(
+    Offset anchor,
+    Rect sourceBounds,
+    Rect targetBounds,
+  ) {
+    final normalizedX = sourceBounds.width == 0
+        ? 0.5
+        : (anchor.dx - sourceBounds.left) / sourceBounds.width;
+    final normalizedY = sourceBounds.height == 0
+        ? 0.5
+        : (anchor.dy - sourceBounds.top) / sourceBounds.height;
+
+    return Offset(
+      targetBounds.left + normalizedX * targetBounds.width,
+      targetBounds.top + normalizedY * targetBounds.height,
+    );
+  }
+
+  void _persistCurrentLayer() {
+    final layer = currentLayer;
+    _layerService.updateLayer(
+      projectId: project.id,
+      frameId: currentFrame.id,
+      layer: layer,
+    );
+    _updateProject();
+  }
+
+  int get _selectionTransformInterpolation {
+    return ref
+        .read(editorSettingsNotifierProvider)
+        .transformInterpolation
+        .pixelUtilsValue;
+  }
+}
+
+class _SelectionCapture {
+  final Uint32List selectionPixels;
+  final Uint32List basePixels;
+  final Rect bounds;
+
+  const _SelectionCapture({
+    required this.selectionPixels,
+    required this.basePixels,
+    required this.bounds,
+  });
 }

@@ -498,6 +498,21 @@ class StringsZh extends Strings {
   String get gridOpacity => '网格不透明度';
 
   @override
+  String get selectionTransforms => '选区变换';
+
+  @override
+  String get transformInterpolation => '插值';
+
+  @override
+  String get transformInterpolationSubtitle => '用于选区缩放和旋转';
+
+  @override
+  String get nearestNeighbor => '最近邻';
+
+  @override
+  String get bilinear => '双线性';
+
+  @override
   String get zoomNavigation => '缩放和导航';
 
   @override

@@ -270,6 +270,9 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           const SelectAllIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyD):
           const DeselectAllIntent(),
+      LogicalKeySet(LogicalKeyboardKey.escape): const DeselectAllIntent(),
+      LogicalKeySet(LogicalKeyboardKey.enter): const DeselectAllIntent(),
+      LogicalKeySet(LogicalKeyboardKey.numpadEnter): const DeselectAllIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyC): const CopyIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyV): const PasteIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyX): const CutIntent(),
@@ -305,6 +308,7 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           final newSize = (widget.currentBrushSize + intent.delta)
               .clamp(1, widget.maxBrushSize);
           widget.onBrushSizeChanged?.call(newSize);
+          return null;
         },
       ),
       ZoomInIntent: CallbackAction<ZoomInIntent>(
@@ -337,6 +341,7 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
             _isSpacePressed = true;
             widget.onPanStart?.call();
           }
+          return null;
         },
       ),
       LayerIntent: CallbackAction<LayerIntent>(
@@ -344,6 +349,7 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           if (intent.layerIndex < widget.maxLayers) {
             widget.onLayerChanged?.call(intent.layerIndex);
           }
+          return null;
         },
       ),
       NewLayerIntent: CallbackAction<NewLayerIntent>(
