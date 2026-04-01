@@ -5,37 +5,41 @@ import 'package:flutter/material.dart';
 import 'package:picell/pixel/tools/eraser_tool.dart';
 
 import '../../data/models/selection_region.dart';
-import '../../data.dart';
 import '../services/selection_service.dart';
 import '../tools.dart';
 import '../tools/fill_tool.dart';
 import '../tools/pencil_tool.dart';
-import '../tools/selection_tool.dart';
-import '../tools/ellipse_selection_tool.dart';
+import '../tools/selection_tools.dart';
 import '../tools/eyedropper_tool.dart';
 import '../tools/pen_tool.dart';
 import '../tools/shape_tool.dart';
 import '../tools/shape_util.dart';
-import '../tools/lasso_tool.dart';
+import '../tools/smart_selection_tool.dart';
 import '../pixel_point.dart';
 import '../tools/curve_tool.dart';
 import '../tools/spray_tool.dart';
-import '../tools/smart_selection_tool.dart';
 import '../tools/texture_brush_tool.dart';
 import 'canvas_controller.dart';
 
-/// Manages tool-specific drawing operations with pixel-perfect generation
+/// Manages tool-specific drawing operations with pixel-perfect generation.
 class ToolDrawingManager {
   final int width;
   final int height;
   final Function(Color)? onColorPicked;
+
+  /// Fired during drag to show live selection preview (local controller only).
   final Function(SelectionRegion?)? onSelectionChanged;
+
+  /// Fired on drag release to confirm the final selection (updates provider).
   final Function(SelectionRegion?)? onSelectionEnd;
+
+  /// Fired on every lasso point update (screen-space points + drawing flag).
+  final Function(List<Offset>, bool)? onLassoUpdate;
 
   late final SelectionService _selectionService;
   late final ShapeUtils _shapeUtils;
 
-  // Current selection for filtering
+  // Current selection for filtering drawing operations
   SelectionRegion? _currentSelection;
 
   late final FillTool _fillTool;
@@ -46,10 +50,13 @@ class ToolDrawingManager {
   late final LineTool _lineTool;
   late final RectangleTool _rectangleTool;
   late final OvalToolBresenham _circleTool;
-  late final SelectionTool _selectionTool;
+
+  // Selection tools (new implementation)
+  late final RectSelectionTool _rectSelectionTool;
   late final EllipseSelectionTool _ellipseSelectionTool;
+  late final LassoSelectionTool _lassoSelectionTool;
   late final SmartSelectionTool _smartSelectionTool;
-  late final LassoTool _lassoTool;
+
   late final EyedropperTool _eyedropperTool;
   late final SprayTool _sprayTool;
 
@@ -80,8 +87,8 @@ class ToolDrawingManager {
   Offset? get curveEndPoint => _curveTool.endPoint;
   Offset? get curveControlPoint => _curveTool.controlPoint;
 
-  List<Offset> get lassoPreviewPoints => _lassoTool.previewPoints;
-  bool get isDrawingLasso => _lassoTool.isDrawing;
+  List<Offset> get lassoPreviewPoints => _lassoSelectionTool.previewPoints;
+  bool get isDrawingLasso => _lassoSelectionTool.isDrawing;
 
   // Texture brush getters
   TextureBrushTool? get currentTextureBrush => _currentTextureBrush;
@@ -94,6 +101,7 @@ class ToolDrawingManager {
     this.onColorPicked,
     this.onSelectionChanged,
     this.onSelectionEnd,
+    this.onLassoUpdate,
   }) {
     _initializeTools();
   }
@@ -118,34 +126,32 @@ class ToolDrawingManager {
     _lineTool = LineTool();
     _rectangleTool = RectangleTool();
     _circleTool = OvalToolBresenham();
-    _selectionTool = SelectionTool(
+
+    // New selection tools
+    _rectSelectionTool = RectSelectionTool(
       selectionService: _selectionService,
-      onSelectionChanged: onSelectionChanged,
-      onSelectionEnd: onSelectionEnd,
-      getCanvasSize: () => Size(width.toDouble(), height.toDouble()),
-      gridWidth: width,
-      gridHeight: height,
+      onPreview: onSelectionChanged,
+      onConfirm: onSelectionEnd,
     );
     _ellipseSelectionTool = EllipseSelectionTool(
       selectionService: _selectionService,
-      onSelectionChanged: onSelectionChanged,
-      onSelectionEnd: onSelectionEnd,
-      getCanvasSize: () => Size(width.toDouble(), height.toDouble()),
-      gridWidth: width,
-      gridHeight: height,
+      onPreview: onSelectionChanged,
+      onConfirm: onSelectionEnd,
     );
-    _lassoTool = LassoTool(
+    _lassoSelectionTool = LassoSelectionTool(
       selectionService: _selectionService,
-      onSelectionEnd: onSelectionEnd,
+      onConfirm: onSelectionEnd,
+      onLassoUpdate: onLassoUpdate,
     );
-    _eyedropperTool = EyedropperTool(
-      onColorPicked: (color) => onColorPicked?.call(color),
-    );
-    _sprayTool = SprayTool();
     _smartSelectionTool = SmartSelectionTool(
       selectionService: _selectionService,
       onSelectionEnd: onSelectionEnd,
     );
+
+    _eyedropperTool = EyedropperTool(
+      onColorPicked: (color) => onColorPicked?.call(color),
+    );
+    _sprayTool = SprayTool();
 
     _heartTool = HeartTool();
     _diamondTool = DiamondTool();
@@ -168,12 +174,12 @@ class ToolDrawingManager {
       PixelTool.rectangle => _rectangleTool,
       PixelTool.circle => _circleTool,
       PixelTool.fill => _fillTool,
-      PixelTool.select => _selectionTool,
-      PixelTool.lasso => _lassoTool,
+      PixelTool.select => _rectSelectionTool,
+      PixelTool.ellipseSelect => _ellipseSelectionTool,
+      PixelTool.lasso => _lassoSelectionTool,
+      PixelTool.smartSelect => _smartSelectionTool,
       PixelTool.eyedropper => _eyedropperTool,
       PixelTool.sprayPaint => _sprayTool,
-      PixelTool.smartSelect => _smartSelectionTool,
-      PixelTool.ellipseSelect => _ellipseSelectionTool,
       PixelTool.heart => _heartTool,
       PixelTool.diamond => _diamondTool,
       PixelTool.arrow => _arrowTool,
@@ -244,8 +250,6 @@ class ToolDrawingManager {
 
   void setTextureBlendMode(BlendMode blendMode) {
     _textureBlendMode = blendMode;
-
-    // Update current texture brush if it exists
     if (_selectedTextureId != null) {
       setTextureBrush(
         textureId: _selectedTextureId,
@@ -294,31 +298,6 @@ class ToolDrawingManager {
 
   void resetCurveTool() {
     _curveTool = CurveTool();
-  }
-
-  /// MARK: Selection Tool
-  void handleSelectionStart(PixelDrawDetails details) {
-    _selectionTool.onStart(details);
-  }
-
-  void handleSelectionEnd(PixelDrawDetails details) {
-    _selectionTool.onEnd(details);
-  }
-
-  void handleSelectionUpdate(PixelDrawDetails details) {
-    _selectionTool.onMove(details);
-  }
-
-  void handleEllipseSelectionStart(PixelDrawDetails details) {
-    _ellipseSelectionTool.onStart(details);
-  }
-
-  void handleEllipseSelectionEnd(PixelDrawDetails details) {
-    _ellipseSelectionTool.onEnd(details);
-  }
-
-  void handleEllipseSelectionUpdate(PixelDrawDetails details) {
-    _ellipseSelectionTool.onMove(details);
   }
 
   /// MARK: Pen Tool
@@ -416,28 +395,12 @@ class ToolDrawingManager {
     }
   }
 
-  /// MARK: Lasso Tool
-  void handleLassoStart(PixelDrawDetails details) {
-    _lassoTool.onStart(details);
-  }
-
-  void handleLassoMove(PixelDrawDetails details) {
-    _lassoTool.onMove(details);
-  }
-
-  void handleLassoEnd(PixelDrawDetails details) {
-    _lassoTool.onEnd(details);
-    // The lasso tool should call onPixelsUpdated with the selected pixels
-    // This will be handled automatically through the tool's onEnd method
-  }
+  // MARK: Selection helpers
 
   List<PixelPoint<int>> filterPointsBySelection(List<PixelPoint<int>> pixels) {
     if (_currentSelection == null) return pixels;
     final sel = _currentSelection!;
-
-    return pixels.where((point) {
-      return sel.contains(point.x, point.y);
-    }).toList();
+    return pixels.where((point) => sel.contains(point.x, point.y)).toList();
   }
 
   List<PixelPoint<int>> applyModifier(
@@ -509,7 +472,6 @@ class ToolDrawingManager {
     final radius = brushSize.toDouble();
 
     for (int i = 0; i < intensity; i++) {
-      // Use circular distribution for more natural spray
       final angle = _random.nextDouble() * 2 * pi;
       final distance = sqrt(_random.nextDouble()) * radius;
 

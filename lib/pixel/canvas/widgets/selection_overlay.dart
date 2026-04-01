@@ -17,6 +17,7 @@ class SelectionOverlay extends StatefulWidget {
   final Size canvasSize;
 
   final Function(Offset delta)? onSelectionMove;
+  final Function(SelectionRegion original)? onSelectionMoveStart;
   final Function(SelectionRegion newRegion, double angle)? onSelectionRotate;
   final Function(SelectionRegion newRegion, double scaleX, double scaleY,
       math.Point<int> pivot)? onSelectionResize;
@@ -34,6 +35,7 @@ class SelectionOverlay extends StatefulWidget {
     required this.canvasHeight,
     required this.canvasSize,
     this.onSelectionMove,
+    this.onSelectionMoveStart,
     this.onSelectionRotate,
     this.onSelectionResize,
     this.onSelectionMoveEnd,
@@ -173,6 +175,7 @@ class _SelectionOverlayState extends State<SelectionOverlay>
 
   void _onMoveStart(DragStartDetails details) {
     _lastPanPosition = details.localPosition;
+    widget.onSelectionMoveStart?.call(widget.selectionRegion);
   }
 
   void _onMoveUpdate(DragUpdateDetails details) {
