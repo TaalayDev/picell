@@ -8,6 +8,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core.dart';
+import '../../data/models/selection_region.dart';
 import '../../l10n/strings.dart';
 import '../../pixel/pixel_canvas_state.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
@@ -47,9 +48,11 @@ class PixelCanvasScreen extends StatefulHookConsumerWidget {
   ConsumerState<PixelCanvasScreen> createState() => _PixelCanvasScreenState();
 }
 
-class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with TickerProviderStateMixin {
+class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
+    with TickerProviderStateMixin {
   late Project project = widget.project;
-  late PixelCanvasNotifierProvider provider = pixelCanvasNotifierProvider(project);
+  late PixelCanvasNotifierProvider provider =
+      pixelCanvasNotifierProvider(project);
   late PixelCanvasNotifier notifier = ref.read(provider.notifier);
 
   final _shortcutsFocusNode = FocusNode();
@@ -109,7 +112,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
               break;
 
             case 'sprite-sheet':
-              final spriteOptions = options['spriteSheetOptions'] as Map<String, dynamic>;
+              final spriteOptions =
+                  options['spriteSheetOptions'] as Map<String, dynamic>;
               await notifier.exportSpriteSheet(
                 context,
                 columns: spriteOptions['columns'] as int,
@@ -137,7 +141,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     });
   }
 
-  void _setZoomFit(ValueNotifier<double> gridScale, ValueNotifier<Offset> gridOffset) {
+  void _setZoomFit(
+      ValueNotifier<double> gridScale, ValueNotifier<Offset> gridOffset) {
     final screenSize = MediaQuery.of(context).size;
     final canvasAspectRatio = project.width / project.height;
     final screenAspectRatio = screenSize.width / screenSize.height;
@@ -153,7 +158,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     gridOffset.value = Offset.zero;
   }
 
-  void _setZoom100(ValueNotifier<double> gridScale, ValueNotifier<Offset> gridOffset) {
+  void _setZoom100(
+      ValueNotifier<double> gridScale, ValueNotifier<Offset> gridOffset) {
     gridScale.value = 1.0;
     gridOffset.value = Offset.zero;
   }
@@ -162,7 +168,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     return ImportDialog.show(context);
   }
 
-  void _handleDroppedImage(DroppedFileResult result, PixelCanvasNotifier notifier) {
+  void _handleDroppedImage(
+      DroppedFileResult result, PixelCanvasNotifier notifier) {
     if (result.image == null) return;
 
     final dropHandler = DropHandlerService();
@@ -203,12 +210,14 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
             onPressed: () {
               Navigator.pop(context);
               // Import first frame as layer
-              if (result.project!.frames.isNotEmpty && result.project!.frames.first.layers.isNotEmpty) {
+              if (result.project!.frames.isNotEmpty &&
+                  result.project!.frames.first.layers.isNotEmpty) {
                 final importedLayer = result.project!.frames.first.layers.first;
                 notifier.addLayerWithPixels(importedLayer);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Imported first layer from "${result.fileName}"'),
+                    content:
+                        Text('Imported first layer from "${result.fileName}"'),
                   ),
                 );
               }
@@ -221,7 +230,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
               // Open as new project
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (context) => PixelCanvasScreen(project: result.project!),
+                  builder: (context) =>
+                      PixelCanvasScreen(project: result.project!),
                 ),
               );
             },
@@ -338,13 +348,18 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   showPrevFramesOpacity: () {
                     showPrevFrames.value = !showPrevFrames.value;
                   },
-                  onEffects: () => handleEffects(context, notifier),
+                  onEffects: () => handleEffects(
+                    context,
+                    notifier,
+                    state.selectionState?.region,
+                  ),
                   onTemplates: () {
                     TemplatesDialog.show(context, (template) {
                       notifier.addTemplate(template);
                     });
                   },
-                  currentLayerHasEffects: notifier.getCurrentLayer().effects.isNotEmpty,
+                  currentLayerHasEffects:
+                      notifier.getCurrentLayer().effects.isNotEmpty,
                 ),
                 Expanded(
                   child: Row(
@@ -362,7 +377,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                             currentColor: state.currentColor,
                             subscription: subscription,
                             onTextureSelected: (texture, blendMode, isFill) {
-                              currentTool.value = isFill ? PixelTool.textureFill : PixelTool.textureBrush;
+                              currentTool.value = isFill
+                                  ? PixelTool.textureFill
+                                  : PixelTool.textureBrush;
                               notifier.pushEvent(TextureBrushPatternEvent(
                                 texture,
                                 blendMode: blendMode,
@@ -374,13 +391,17 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                         ),
                       Expanded(
                         child: CanvasDropTarget(
-                          onImageDropped: (result) => _handleDroppedImage(result, notifier),
-                          onAsepriteDropped: (result) => _handleDroppedAseprite(context, result),
+                          onImageDropped: (result) =>
+                              _handleDroppedImage(result, notifier),
+                          onAsepriteDropped: (result) =>
+                              _handleDroppedAseprite(context, result),
                           child: GestureDetector(
                             onScaleStart: (details) {
                               final pointerCount = details.pointerCount;
                               if (pointerCount == 2) {
-                                normalizedOffset.value = (gridOffset.value - details.focalPoint) / gridScale.value;
+                                normalizedOffset.value =
+                                    (gridOffset.value - details.focalPoint) /
+                                        gridScale.value;
                               }
                             },
                             onScaleUpdate: (details) {
@@ -388,9 +409,11 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                               if (pointerCount == 2) {
                                 const sensitivity = 0.5;
                                 final initialScale = gridScale.value;
-                                final newScale = initialScale * (1 + (details.scale - 1) * sensitivity);
+                                final newScale = initialScale *
+                                    (1 + (details.scale - 1) * sensitivity);
                                 gridScale.value = newScale.clamp(0.5, 5.0);
-                                gridOffset.value = details.focalPoint + normalizedOffset.value * gridScale.value;
+                                gridOffset.value = details.focalPoint +
+                                    normalizedOffset.value * gridScale.value;
                               }
                             },
                             onScaleEnd: (details) {},
@@ -416,7 +439,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                           clipBehavior: Clip.hardEdge,
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            border: Border.all(color: Colors.grey),
+                                            border:
+                                                Border.all(color: Colors.grey),
                                           ),
                                           child: PixelPainter(
                                             project: project,
@@ -425,11 +449,13 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                             gridScale: gridScale,
                                             gridOffset: gridOffset,
                                             currentTool: currentTool.value,
-                                            currentModifier: currentModifier.value,
+                                            currentModifier:
+                                                currentModifier.value,
                                             currentColor: state.currentColor,
                                             brushSize: brushSize,
                                             sprayIntensity: sprayIntensity,
-                                            showPrevFrames: showPrevFrames.value,
+                                            showPrevFrames:
+                                                showPrevFrames.value,
                                             onToolAutoSwitch: (tool) {
                                               currentTool.value = tool;
                                             },
@@ -439,7 +465,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                     ),
                                   ),
                                 ),
-                                if (MediaQuery.sizeOf(context).width < 1000) ...[
+                                if (MediaQuery.sizeOf(context).width <
+                                    1000) ...[
                                   Positioned(
                                     left: 16,
                                     right: 16,
@@ -457,10 +484,14 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                       child: SelectionOptionsButton(
                                         hasSelection: hasSelection,
                                         isFloating: true,
-                                        onClearSelection: () => notifier.clearSelection(),
-                                        onDelete: () => notifier.clearSelectionArea(),
-                                        onCutToNewLayer: () => notifier.cutToNewLayer(),
-                                        onCopyToNewLayer: () => notifier.copyToNewLayer(),
+                                        onClearSelection: () =>
+                                            notifier.clearSelection(),
+                                        onDelete: () =>
+                                            notifier.clearSelectionArea(),
+                                        onCutToNewLayer: () =>
+                                            notifier.cutToNewLayer(),
+                                        onCopyToNewLayer: () =>
+                                            notifier.copyToNewLayer(),
                                       ),
                                     ),
                                 ],
@@ -536,7 +567,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   onSettingsChanged: (settings) {},
                   isExpanded: isAnimationTimelineExpanded.value,
                   onExpandChanged: () {
-                    isAnimationTimelineExpanded.value = !isAnimationTimelineExpanded.value;
+                    isAnimationTimelineExpanded.value =
+                        !isAnimationTimelineExpanded.value;
                   },
                   onAddState: (name) {
                     notifier.addAnimationState(name, 24);
@@ -569,6 +601,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
   void handleEffects(
     BuildContext context,
     PixelCanvasNotifier notifier,
+    SelectionRegion? selectionRegion,
   ) {
     final currentLayer = notifier.getCurrentLayer();
 
@@ -576,6 +609,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       layer: currentLayer,
       width: project.width,
       height: project.height,
+      selectionRegion: selectionRegion,
       onLayerUpdated: (updatedLayer) {
         notifier.updateLayer(updatedLayer);
       },
@@ -713,8 +747,10 @@ class _SliderPill extends StatelessWidget {
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 2,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    overlayShape:
+                        const RoundSliderOverlayShape(overlayRadius: 12),
                     activeTrackColor: accentColor,
                     inactiveTrackColor: accentColor.withOpacity(0.2),
                     thumbColor: accentColor,
