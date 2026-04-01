@@ -344,8 +344,10 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   Uint32List? _transformCachedPixels;
+  Uint32List? _transformCachedLayerWithoutSelection; // layer pixels with selection cleared
   Rect? _transformCachedBounds;
   SelectionRegion? _transformCachedRegion;
+  Offset _totalMoveOffset = Offset.zero;
 
   void startTransformSelection(SelectionRegion region) {
     if (currentLayer.pixels.isEmpty) return;
@@ -377,6 +379,15 @@ class PixelDrawController extends _$PixelDrawController {
     }
     _transformCachedPixels = extracted;
 
+    // Cache the layer with the selection area cleared — used for smooth move
+    _transformCachedLayerWithoutSelection = _selectionService.clearPixelsInSelection(
+      region,
+      currentLayer.pixels,
+      state.width,
+      state.height,
+    );
+    _totalMoveOffset = Offset.zero;
+
     // Enter transform mode in selection state
     state = state.copyWith(
       selectionState: state.selectionState?.copyWith(
@@ -389,8 +400,10 @@ class PixelDrawController extends _$PixelDrawController {
 
   void endTransformSelection() {
     _transformCachedPixels = null;
+    _transformCachedLayerWithoutSelection = null;
     _transformCachedBounds = null;
     _transformCachedRegion = null;
+    _totalMoveOffset = Offset.zero;
 
     if (state.selectionState != null) {
       state = state.copyWith(
@@ -866,16 +879,52 @@ class PixelDrawController extends _$PixelDrawController {
     final sel = state.selectionState;
     if (sel == null) return;
 
-    _saveState();
+    final cached = _transformCachedPixels;
+    final cachedLayer = _transformCachedLayerWithoutSelection;
+    final cachedBounds = _transformCachedBounds;
+    final cachedRegion = _transformCachedRegion;
 
-    final newPixels = _selectionService.moveSelectedPixels(
-      region: sel.region,
-      layerPixels: currentLayer.pixels,
-      delta: delta,
-    );
+    if (cached == null || cachedLayer == null || cachedBounds == null || cachedRegion == null) {
+      // Fallback when transform was not explicitly started (e.g. external call)
+      _saveState();
+      final newPixels = _selectionService.moveSelectedPixels(
+        region: sel.region,
+        layerPixels: currentLayer.pixels,
+        delta: delta,
+      );
+      _updateCurrentLayerPixels(newPixels);
+      state = state.copyWith(
+        selectionState: sel.copyWith(region: sel.region.shifted(delta)),
+      );
+      return;
+    }
 
-    final movedRegion = sel.region.shifted(delta);
-    _updateCurrentLayerPixels(newPixels);
+    // Accumulate total offset from the cached original position
+    _totalMoveOffset += delta;
+
+    // Re-apply from scratch: start with cleared layer, stamp pixels at new position
+    final result = Uint32List.fromList(cachedLayer);
+    final dx = _totalMoveOffset.dx.round();
+    final dy = _totalMoveOffset.dy.round();
+    final bw = cachedBounds.width.ceil();
+    final bh = cachedBounds.height.ceil();
+    final origLeft = cachedBounds.left.floor();
+    final origTop = cachedBounds.top.floor();
+
+    for (int ly = 0; ly < bh; ly++) {
+      for (int lx = 0; lx < bw; lx++) {
+        final srcIdx = ly * bw + lx;
+        if (srcIdx >= cached.length || cached[srcIdx] == 0) continue;
+        final nx = origLeft + lx + dx;
+        final ny = origTop + ly + dy;
+        if (nx >= 0 && nx < state.width && ny >= 0 && ny < state.height) {
+          result[ny * state.width + nx] = cached[srcIdx];
+        }
+      }
+    }
+
+    final movedRegion = cachedRegion.shifted(_totalMoveOffset);
+    _updateCurrentLayerPixels(result);
     state = state.copyWith(
       selectionState: sel.copyWith(region: movedRegion),
     );

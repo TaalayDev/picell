@@ -52,6 +52,10 @@ class PixelCanvasController extends ChangeNotifier {
   Offset? _hoverPosition;
   List<PixelPoint<int>> _hoverPreviewPixels = [];
 
+  // Lasso preview state (screen-space points updated during free-hand draw)
+  List<Offset> _lassoPreviewPoints = [];
+  bool _isDrawingLasso = false;
+
   PixelCanvasController({
     required this.width,
     required this.height,
@@ -91,6 +95,9 @@ class PixelCanvasController extends ChangeNotifier {
 
   Offset? get hoverPosition => _hoverPosition;
   List<PixelPoint<int>> get hoverPreviewPixels => _hoverPreviewPixels;
+
+  List<Offset> get lassoPreviewPoints => _lassoPreviewPoints;
+  bool get isDrawingLasso => _isDrawingLasso;
 
   Layer get currentLayer => _layers[_currentLayerIndex];
   int get currentLayerId => currentLayer.layerId;
@@ -343,6 +350,20 @@ class PixelCanvasController extends ChangeNotifier {
   void clearSelection() {
     if (_currentSelectionRegion != null) {
       _currentSelectionRegion = null;
+      notifyListeners();
+    }
+  }
+
+  void updateLassoPreview(List<Offset> points, bool isDrawing) {
+    _lassoPreviewPoints = List<Offset>.from(points);
+    _isDrawingLasso = isDrawing;
+    notifyListeners();
+  }
+
+  void clearLassoPreview() {
+    if (_lassoPreviewPoints.isNotEmpty || _isDrawingLasso) {
+      _lassoPreviewPoints = [];
+      _isDrawingLasso = false;
       notifyListeners();
     }
   }

@@ -164,17 +164,25 @@ class _PixelCanvasState extends State<PixelCanvas> {
       width: widget.width,
       height: widget.height,
       onColorPicked: widget.onColorPicked,
+      // During drag: update controller only (fast local preview, no provider rebuild)
       onSelectionChanged: (region) {
-        // Preview during drag
+        _controller.setSelection(region);
       },
+      // On release: validate and propagate to provider
       onSelectionEnd: (region) {
         if (region == null || region.bounds.width < 2 || region.bounds.height < 2) {
           _controller.setSelection(null);
+          _toolManager.setCurrentSelection(null);
           widget.onSelectionChanged?.call(null);
         } else {
           _controller.setSelection(region);
+          _toolManager.setCurrentSelection(region);
           widget.onSelectionChanged?.call(region);
         }
+      },
+      // Lasso free-draw preview: store screen-space points in controller
+      onLassoUpdate: (points, isDrawing) {
+        _controller.updateLassoPreview(points, isDrawing);
       },
     );
 
@@ -228,6 +236,13 @@ class _PixelCanvasState extends State<PixelCanvas> {
 
     if (widget.currentOffset != oldWidget.currentOffset) {
       _controller.setOffset(widget.currentOffset);
+    }
+
+    // Sync provider's confirmed selection → controller (e.g. select-all, invert, clear)
+    if (widget.selectionState != oldWidget.selectionState) {
+      final region = widget.selectionState?.region;
+      _controller.setSelection(region);
+      _toolManager.setCurrentSelection(region);
     }
 
     // Update gesture handler settings
@@ -342,19 +357,22 @@ class _PixelCanvasState extends State<PixelCanvas> {
                 ),
               ),
               LayoutBuilder(builder: (context, constraints) {
-                final selState = widget.selectionState;
-                final selRegion = selState?.region ?? _controller.currentSelectionRegion;
+                // Use controller's region — it reflects both live preview and confirmed state
+                final selRegion = _controller.currentSelectionRegion;
                 if (selRegion == null || selRegion.bounds == Rect.zero) {
                   return const SizedBox.shrink();
                 }
                 return SelectionOverlay(
                   selectionRegion: selRegion,
-                  selectionState: selState,
+                  selectionState: widget.selectionState,
                   zoomLevel: widget.zoomLevel,
                   canvasOffset: widget.currentOffset,
                   canvasWidth: widget.width,
                   canvasHeight: widget.height,
                   canvasSize: constraints.biggest,
+                  onSelectionMoveStart: (region) {
+                    widget.onTransformStart?.call(region);
+                  },
                   onSelectionMove: (delta) {
                     widget.onMoveSelection?.call(delta);
                   },
@@ -380,7 +398,7 @@ class _PixelCanvasState extends State<PixelCanvas> {
                   onSelectionRotate: (newRegion, angle) {
                     if (_rotationOriginalRegion == null) {
                       _rotationOriginalRegion = selRegion;
-                      _rotationCenter = selState?.effectiveAnchor ?? selRegion.bounds.center;
+                      _rotationCenter = widget.selectionState?.effectiveAnchor ?? selRegion.bounds.center;
                       widget.onTransformStart?.call(selRegion);
                     }
                     _rotationAngle = angle;
@@ -408,13 +426,12 @@ class _PixelCanvasState extends State<PixelCanvas> {
       strokeWidth: widget.brushSize,
       modifier: _getModifier(),
       onPixelsUpdated: (pixels) {
-        // Selection tools handle their own callbacks via onSelectionEnd
-        if (widget.currentTool == PixelTool.select ||
-            widget.currentTool == PixelTool.ellipseSelect ||
-            widget.currentTool == PixelTool.lasso ||
-            widget.currentTool == PixelTool.smartSelect) {
-          // No-op: handled by tool callbacks
-        } else {
+        // Selection tools handle their own callbacks (onSelectionEnd / onPreview).
+        // Drawing tools write to the preview pixel buffer.
+        if (widget.currentTool != PixelTool.select &&
+            widget.currentTool != PixelTool.ellipseSelect &&
+            widget.currentTool != PixelTool.lasso &&
+            widget.currentTool != PixelTool.smartSelect) {
           _controller.setPreviewPixels(pixels);
         }
       },
