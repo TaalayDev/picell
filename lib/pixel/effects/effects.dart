@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
+import '../../data/models/selection_region.dart';
 import '../../ui/widgets/app_icon.dart';
 import '../../ui/widgets/fields/ui_field.dart';
 import '../pixel_utils.dart';
@@ -302,8 +303,10 @@ abstract class Effect {
         EffectType.city => 'Urban cityscape backdrop',
         EffectType.opacity => 'Adjust layer transparency',
         EffectType.platformer => 'Create platformer tile edges',
-        EffectType.perlinWorms => 'Generate organic worm-like patterns with Perlin noise',
-        EffectType.voronoi => 'Create cellular Voronoi diagram patterns with multiple modes',
+        EffectType.perlinWorms =>
+          'Generate organic worm-like patterns with Perlin noise',
+        EffectType.voronoi =>
+          'Create cellular Voronoi diagram patterns with multiple modes',
       };
 
   bool get isAnimation {
@@ -456,12 +459,17 @@ abstract class Effect {
   Widget getIcon({double? size, Color? color}) {
     return switch (type) {
       // Effects with matching AppIcons
-      EffectType.stainedGlass => AppIcon(AppIcons.church_window, size: size, color: color),
-      EffectType.metal => AppIcon(AppIcons.metal_plate, size: size, color: color),
-      EffectType.sparkle => AppIcon(AppIcons.sparkles, size: size, color: color),
-      EffectType.particle => AppIcon(AppIcons.particle, size: size, color: color),
+      EffectType.stainedGlass =>
+        AppIcon(AppIcons.church_window, size: size, color: color),
+      EffectType.metal =>
+        AppIcon(AppIcons.metal_plate, size: size, color: color),
+      EffectType.sparkle =>
+        AppIcon(AppIcons.sparkles, size: size, color: color),
+      EffectType.particle =>
+        AppIcon(AppIcons.particle, size: size, color: color),
       EffectType.wave => AppIcon(AppIcons.wave, size: size, color: color),
-      EffectType.rotate => AppIcon(AppIcons.rotate_right, size: size, color: color),
+      EffectType.rotate =>
+        AppIcon(AppIcons.rotate_right, size: size, color: color),
       EffectType.float ||
       EffectType.simpleFloat ||
       EffectType.physicsFloat =>
@@ -471,56 +479,92 @@ abstract class Effect {
       EffectType.cameraShake =>
         AppIcon(AppIcons.shake_camera, size: size, color: color),
       EffectType.melt => AppIcon(AppIcons.face_melt, size: size, color: color),
-      EffectType.explosion => AppIcon(AppIcons.explosion, size: size, color: color),
+      EffectType.explosion =>
+        AppIcon(AppIcons.explosion, size: size, color: color),
       EffectType.jello => AppIcon(AppIcons.jelly, size: size, color: color),
       EffectType.wipe => AppIcon(AppIcons.wipe, size: size, color: color),
       EffectType.fog => AppIcon(AppIcons.fog, size: size, color: color),
-      EffectType.stone => AppIcon(AppIcons.stone_sphere, size: size, color: color),
+      EffectType.stone =>
+        AppIcon(AppIcons.stone_sphere, size: size, color: color),
       EffectType.ice => AppIcon(AppIcons.ice, size: size, color: color),
-      EffectType.mountainRange => AppIcon(AppIcons.mountain_top, size: size, color: color),
-      EffectType.oceanWaves || EffectType.ocean => AppIcon(AppIcons.ocean_sea_water, size: size, color: color),
-      EffectType.clouds || EffectType.cloudFormation => AppIcon(AppIcons.cloud, size: size, color: color),
-      EffectType.treeBark => AppIcon(AppIcons.tree_branch, size: size, color: color),
-      EffectType.leafVenation => AppIcon(AppIcons.leaf, size: size, color: color),
+      EffectType.mountainRange =>
+        AppIcon(AppIcons.mountain_top, size: size, color: color),
+      EffectType.oceanWaves ||
+      EffectType.ocean =>
+        AppIcon(AppIcons.ocean_sea_water, size: size, color: color),
+      EffectType.clouds ||
+      EffectType.cloudFormation =>
+        AppIcon(AppIcons.cloud, size: size, color: color),
+      EffectType.treeBark =>
+        AppIcon(AppIcons.tree_branch, size: size, color: color),
+      EffectType.leafVenation =>
+        AppIcon(AppIcons.leaf, size: size, color: color),
       EffectType.city => AppIcon(AppIcons.city, size: size, color: color),
 
       // Effects using flutter_vector_icons
-      EffectType.brightness => Icon(MaterialIcons.brightness_6, size: size, color: color),
+      EffectType.brightness =>
+        Icon(MaterialIcons.brightness_6, size: size, color: color),
       EffectType.contrast => Icon(Icons.contrast, size: size, color: color),
-      EffectType.invert => Icon(MaterialIcons.invert_colors, size: size, color: color),
-      EffectType.grayscale => Icon(MaterialIcons.monochrome_photos, size: size, color: color),
-      EffectType.sepia => Icon(MaterialIcons.filter_vintage, size: size, color: color),
-      EffectType.threshold => Icon(MaterialIcons.tune, size: size, color: color),
-      EffectType.pixelate => Icon(MaterialIcons.grid_on, size: size, color: color),
+      EffectType.invert =>
+        Icon(MaterialIcons.invert_colors, size: size, color: color),
+      EffectType.grayscale =>
+        Icon(MaterialIcons.monochrome_photos, size: size, color: color),
+      EffectType.sepia =>
+        Icon(MaterialIcons.filter_vintage, size: size, color: color),
+      EffectType.threshold =>
+        Icon(MaterialIcons.tune, size: size, color: color),
+      EffectType.pixelate =>
+        Icon(MaterialIcons.grid_on, size: size, color: color),
       EffectType.blur => Icon(MaterialIcons.blur_on, size: size, color: color),
       EffectType.sharpen => Icon(Feather.aperture, size: size, color: color),
       EffectType.emboss => Icon(MaterialIcons.layers, size: size, color: color),
-      EffectType.vignette => Icon(MaterialIcons.vignette, size: size, color: color),
+      EffectType.vignette =>
+        Icon(MaterialIcons.vignette, size: size, color: color),
       EffectType.noise => Icon(MaterialIcons.grain, size: size, color: color),
-      EffectType.colorBalance => Icon(MaterialIcons.tune, size: size, color: color),
-      EffectType.dithering => Icon(MaterialIcons.texture, size: size, color: color),
-      EffectType.outline => Icon(MaterialIcons.border_style, size: size, color: color),
-      EffectType.paletteReduction => Icon(MaterialIcons.palette, size: size, color: color),
+      EffectType.colorBalance =>
+        Icon(MaterialIcons.tune, size: size, color: color),
+      EffectType.dithering =>
+        Icon(MaterialIcons.texture, size: size, color: color),
+      EffectType.outline =>
+        Icon(MaterialIcons.border_style, size: size, color: color),
+      EffectType.paletteReduction =>
+        Icon(MaterialIcons.palette, size: size, color: color),
       EffectType.watercolor => Icon(Ionicons.water, size: size, color: color),
       EffectType.halftone => Icon(Icons.grid_3x3, size: size, color: color),
       EffectType.glow => Icon(Feather.sun, size: size, color: color),
-      EffectType.oilPaint => Icon(MaterialIcons.brush, size: size, color: color),
-      EffectType.gradient => Icon(MaterialIcons.gradient, size: size, color: color),
-      EffectType.fire => Icon(MaterialIcons.local_fire_department, size: size, color: color),
-      EffectType.wood => Icon(MaterialCommunityIcons.tree, size: size, color: color),
+      EffectType.oilPaint =>
+        Icon(MaterialIcons.brush, size: size, color: color),
+      EffectType.gradient =>
+        Icon(MaterialIcons.gradient, size: size, color: color),
+      EffectType.fire =>
+        Icon(MaterialIcons.local_fire_department, size: size, color: color),
+      EffectType.wood =>
+        Icon(MaterialCommunityIcons.tree, size: size, color: color),
       EffectType.rain => Icon(Feather.cloud_rain, size: size, color: color),
       EffectType.crystal => Icon(Icons.diamond, size: size, color: color),
-      EffectType.glitch => Icon(MaterialCommunityIcons.television_classic, size: size, color: color),
-      EffectType.pulse => Icon(MaterialCommunityIcons.heart_pulse, size: size, color: color),
-      EffectType.dissolve || EffectType.fadeDissolve => Icon(MaterialCommunityIcons.blur, size: size, color: color),
-      EffectType.forest => Icon(MaterialCommunityIcons.forest, size: size, color: color),
-      EffectType.sky => Icon(MaterialCommunityIcons.weather_partly_cloudy, size: size, color: color),
-      EffectType.groundTexture => Icon(MaterialCommunityIcons.terrain, size: size, color: color),
-      EffectType.wallTexture => Icon(MaterialCommunityIcons.wall, size: size, color: color),
-      EffectType.opacity => Icon(MaterialCommunityIcons.opacity, size: size, color: color),
-      EffectType.platformer => Icon(MaterialCommunityIcons.grid, size: size, color: color),
-      EffectType.perlinWorms => Icon(MaterialCommunityIcons.creation, size: size, color: color),
-      EffectType.voronoi => Icon(MaterialCommunityIcons.hexagon_multiple, size: size, color: color),
+      EffectType.glitch => Icon(MaterialCommunityIcons.television_classic,
+          size: size, color: color),
+      EffectType.pulse =>
+        Icon(MaterialCommunityIcons.heart_pulse, size: size, color: color),
+      EffectType.dissolve ||
+      EffectType.fadeDissolve =>
+        Icon(MaterialCommunityIcons.blur, size: size, color: color),
+      EffectType.forest =>
+        Icon(MaterialCommunityIcons.forest, size: size, color: color),
+      EffectType.sky => Icon(MaterialCommunityIcons.weather_partly_cloudy,
+          size: size, color: color),
+      EffectType.groundTexture =>
+        Icon(MaterialCommunityIcons.terrain, size: size, color: color),
+      EffectType.wallTexture =>
+        Icon(MaterialCommunityIcons.wall, size: size, color: color),
+      EffectType.opacity =>
+        Icon(MaterialCommunityIcons.opacity, size: size, color: color),
+      EffectType.platformer =>
+        Icon(MaterialCommunityIcons.grid, size: size, color: color),
+      EffectType.perlinWorms =>
+        Icon(MaterialCommunityIcons.creation, size: size, color: color),
+      EffectType.voronoi =>
+        Icon(MaterialCommunityIcons.hexagon_multiple, size: size, color: color),
     };
   }
 
@@ -556,8 +600,14 @@ abstract class Effect {
       EffectType.pulse => const Color(0xFFE91E63), // Pink
       EffectType.wave => const Color(0xFF2196F3), // Blue
       EffectType.rotate => const Color(0xFF673AB7), // Deep purple
-      EffectType.float || EffectType.simpleFloat || EffectType.physicsFloat => const Color(0xFF00BCD4), // Cyan
-      EffectType.shake || EffectType.quickShake || EffectType.cameraShake => const Color(0xFFFF5722), // Deep orange
+      EffectType.float ||
+      EffectType.simpleFloat ||
+      EffectType.physicsFloat =>
+        const Color(0xFF00BCD4), // Cyan
+      EffectType.shake ||
+      EffectType.quickShake ||
+      EffectType.cameraShake =>
+        const Color(0xFFFF5722), // Deep orange
       EffectType.jello => const Color(0xFF4CAF50), // Green
 
       // Nature Effects - Natural colors
@@ -567,9 +617,13 @@ abstract class Effect {
       EffectType.ice => const Color(0xFF00BCD4), // Cyan
       EffectType.stone => const Color(0xFF607D8B), // Blue grey
       EffectType.mountainRange => const Color(0xFF455A64), // Dark blue grey
-      EffectType.oceanWaves || EffectType.ocean => const Color(0xFF006064), // Teal
+      EffectType.oceanWaves ||
+      EffectType.ocean =>
+        const Color(0xFF006064), // Teal
       EffectType.forest => const Color(0xFF388E3C), // Green
-      EffectType.cloudFormation || EffectType.clouds => const Color(0xFF90A4AE), // Blue grey
+      EffectType.cloudFormation ||
+      EffectType.clouds =>
+        const Color(0xFF90A4AE), // Blue grey
       EffectType.treeBark => const Color(0xFF5D4037), // Brown
       EffectType.leafVenation => const Color(0xFF4CAF50), // Green
       EffectType.fog => const Color(0xFFB0BEC5), // Light blue grey
@@ -583,7 +637,9 @@ abstract class Effect {
 
       // Distortion Effects - Electric colors
       EffectType.glitch => const Color(0xFF00FF00), // Bright green
-      EffectType.dissolve || EffectType.fadeDissolve => const Color(0xFF9E9E9E), // Grey
+      EffectType.dissolve ||
+      EffectType.fadeDissolve =>
+        const Color(0xFF9E9E9E), // Grey
       EffectType.melt => const Color(0xFFFF9800), // Orange
       EffectType.wipe => const Color(0xFF607D8B), // Blue grey
 
@@ -636,7 +692,8 @@ abstract class Effect {
           ));
           break;
         case 'color':
-          fields.add(ColorField(key: key, label: label, description: description));
+          fields.add(
+              ColorField(key: key, label: label, description: description));
           break;
         case 'select':
           final rawOptions = meta['options'];
@@ -658,7 +715,8 @@ abstract class Effect {
           ));
           break;
         case 'bool':
-          fields.add(BoolField(key: key, label: label, description: description));
+          fields
+              .add(BoolField(key: key, label: label, description: description));
           break;
         default:
           // Unknown type — skip
@@ -693,6 +751,73 @@ class EffectsManager {
 
     for (final effect in effects) {
       result = effect.apply(result, width, height);
+    }
+
+    return result;
+  }
+
+  static Uint32List applyEffectToSelection(
+    Uint32List pixels,
+    int width,
+    int height,
+    Effect effect,
+    SelectionRegion selectionRegion,
+  ) {
+    return applyMultipleEffectsToSelection(
+      pixels,
+      width,
+      height,
+      [effect],
+      selectionRegion,
+    );
+  }
+
+  static Uint32List applyMultipleEffectsToSelection(
+    Uint32List pixels,
+    int width,
+    int height,
+    List<Effect> effects,
+    SelectionRegion selectionRegion,
+  ) {
+    if (effects.isEmpty) {
+      return Uint32List.fromList(pixels);
+    }
+
+    final processedPixels = applyMultipleEffects(
+      pixels,
+      width,
+      height,
+      effects,
+    );
+
+    return mergeSelectionPixels(
+      originalPixels: pixels,
+      processedPixels: processedPixels,
+      width: width,
+      height: height,
+      selectionRegion: selectionRegion,
+    );
+  }
+
+  static Uint32List mergeSelectionPixels({
+    required Uint32List originalPixels,
+    required Uint32List processedPixels,
+    required int width,
+    required int height,
+    required SelectionRegion selectionRegion,
+  }) {
+    final result = Uint32List.fromList(originalPixels);
+    final selectedIndices = selectionRegion.getSelectedPixelIndices(
+      width,
+      height,
+    );
+
+    for (final index in selectedIndices) {
+      if (index >= 0 &&
+          index < result.length &&
+          index < processedPixels.length) {
+        result[index] = processedPixels[index];
+      }
     }
 
     return result;

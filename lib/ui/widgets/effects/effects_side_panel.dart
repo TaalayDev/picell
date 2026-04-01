@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../data.dart';
 import '../../../data/models/subscription_model.dart';
+import '../../../data/models/selection_region.dart';
 import '../../../l10n/strings.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../../pixel/effects/effects.dart';
@@ -17,6 +18,7 @@ class EffectsSidePanel extends StatefulHookConsumerWidget {
   final Layer layer;
   final int width;
   final int height;
+  final SelectionRegion? selectionRegion;
   final Function(Layer)? onLayerUpdated;
 
   const EffectsSidePanel({
@@ -24,6 +26,7 @@ class EffectsSidePanel extends StatefulHookConsumerWidget {
     required this.layer,
     required this.width,
     required this.height,
+    this.selectionRegion,
     this.onLayerUpdated,
   });
 
@@ -54,6 +57,10 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   }
 
   void _updateLayer() {
+    if (widget.selectionRegion != null) {
+      return;
+    }
+
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       if (widget.onLayerUpdated != null) {
@@ -174,12 +181,20 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
     final effectsToApply = [effect];
     final index = _effects.indexOf(effect);
 
-    final processedPixels = EffectsManager.applyMultipleEffects(
-      widget.layer.pixels,
-      widget.width,
-      widget.height,
-      effectsToApply,
-    );
+    final processedPixels = widget.selectionRegion == null
+        ? EffectsManager.applyMultipleEffects(
+            widget.layer.pixels,
+            widget.width,
+            widget.height,
+            effectsToApply,
+          )
+        : EffectsManager.applyMultipleEffectsToSelection(
+            widget.layer.pixels,
+            widget.width,
+            widget.height,
+            effectsToApply,
+            widget.selectionRegion!,
+          );
 
     setState(() {
       _effects.removeAt(index);
@@ -193,7 +208,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
 
     final updatedLayer = widget.layer.copyWith(
       pixels: processedPixels,
-      effects: _effects,
+      effects: widget.selectionRegion == null ? _effects : const [],
     );
 
     widget.onLayerUpdated!(updatedLayer);

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart' hide SelectionOverlay;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:picell/data/models/layer.dart';
 import 'package:picell/data/models/selection_region.dart';
+import 'package:picell/data/models/selection_state.dart';
+import 'package:picell/pixel/canvas/pixel_canvas.dart';
 import 'package:picell/pixel/canvas/widgets/selection_overlay.dart';
 import 'package:picell/pixel/services/selection_service.dart';
 import 'package:picell/pixel/tools.dart';
@@ -238,6 +240,243 @@ void main() {
       moveDetector.onTap!();
 
       expect(tapCount, 1);
+    });
+
+    testWidgets('move area is disabled when direct move is off',
+        (tester) async {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 100,
+              height: 100,
+              child: SelectionOverlay(
+                selectionRegion: SelectionRegion(
+                  path: Path()..addRect(const Rect.fromLTWH(2, 2, 4, 4)),
+                  bounds: const Rect.fromLTWH(2, 2, 4, 4),
+                  shape: SelectionShape.rectangle,
+                ),
+                allowDirectMove: false,
+                showMoveHandle: true,
+                zoomLevel: 1.0,
+                canvasOffset: Offset.zero,
+                canvasWidth: 10,
+                canvasHeight: 10,
+                canvasSize: const Size(100, 100),
+                onSelectionMove: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      final hasBodyMoveDetector = tester
+          .widgetList<GestureDetector>(find.byType(GestureDetector))
+          .any((widget) => widget.child is SizedBox);
+
+      expect(hasBodyMoveDetector, isFalse);
+      expect(find.byIcon(Icons.open_with), findsOneWidget);
+    });
+
+    testWidgets('tap outside selection clears active selection in canvas',
+        (tester) async {
+      final layer = Layer(
+        layerId: 1,
+        id: 'layer-1',
+        name: 'Layer 1',
+        pixels: Uint32List(100),
+      );
+      final selectionRegion = SelectionRegion(
+        path: Path()..addRect(const Rect.fromLTWH(2, 2, 4, 4)),
+        bounds: const Rect.fromLTWH(2, 2, 4, 4),
+        shape: SelectionShape.rectangle,
+      );
+      SelectionRegion? clearedTo = selectionRegion;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 100,
+              height: 100,
+              child: PixelCanvas(
+                width: 10,
+                height: 10,
+                layers: [layer],
+                currentLayerIndex: 0,
+                onTapPixel: (_, __) {},
+                currentTool: PixelTool.select,
+                currentColor: Colors.black,
+                onDrawShape: (_) {},
+                onStartDrawing: () {},
+                onFinishDrawing: () {},
+                onSelectionChanged: (region) {
+                  clearedTo = region;
+                },
+                selectionState: SelectionState(region: selectionRegion),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.tapAt(const Offset(85, 85));
+      await tester.pump();
+
+      expect(clearedTo, isNull);
+    });
+
+    testWidgets('pencil drawing still reaches canvas with active selection',
+        (tester) async {
+      final layer = Layer(
+        layerId: 1,
+        id: 'layer-1',
+        name: 'Layer 1',
+        pixels: Uint32List(100),
+      );
+      final selectionRegion = SelectionRegion(
+        path: Path()..addRect(const Rect.fromLTWH(2, 2, 4, 4)),
+        bounds: const Rect.fromLTWH(2, 2, 4, 4),
+        shape: SelectionShape.rectangle,
+      );
+      List<dynamic>? drawnPoints;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 100,
+              height: 100,
+              child: PixelCanvas(
+                width: 10,
+                height: 10,
+                layers: [layer],
+                currentLayerIndex: 0,
+                onTapPixel: (_, __) {},
+                currentTool: PixelTool.pencil,
+                currentColor: Colors.black,
+                onDrawShape: (points) {
+                  drawnPoints = points;
+                },
+                onStartDrawing: () {},
+                onFinishDrawing: () {},
+                selectionState: SelectionState(region: selectionRegion),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.tapAt(const Offset(35, 35));
+      await tester.pump();
+
+      expect(drawnPoints, isNotNull);
+      expect(drawnPoints, isNotEmpty);
+    });
+
+    testWidgets('active selection tool drags selection from inside body',
+        (tester) async {
+      final layer = Layer(
+        layerId: 1,
+        id: 'layer-1',
+        name: 'Layer 1',
+        pixels: Uint32List(100),
+      );
+      final selectionRegion = SelectionRegion(
+        path: Path()..addRect(const Rect.fromLTWH(2, 2, 4, 4)),
+        bounds: const Rect.fromLTWH(2, 2, 4, 4),
+        shape: SelectionShape.rectangle,
+      );
+      Offset totalDelta = Offset.zero;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 100,
+              height: 100,
+              child: PixelCanvas(
+                width: 10,
+                height: 10,
+                layers: [layer],
+                currentLayerIndex: 0,
+                onTapPixel: (_, __) {},
+                currentTool: PixelTool.select,
+                currentColor: Colors.black,
+                onDrawShape: (_) {},
+                onStartDrawing: () {},
+                onFinishDrawing: () {},
+                onMoveSelection: (delta) {
+                  totalDelta += delta;
+                },
+                selectionState: SelectionState(region: selectionRegion),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.dragFrom(const Offset(35, 35), const Offset(20, 0));
+      await tester.pump();
+
+      expect(totalDelta, const Offset(2, 0));
+    });
+
+    testWidgets('selection tool keeps pivot visible', (tester) async {
+      final layer = Layer(
+        layerId: 1,
+        id: 'layer-1',
+        name: 'Layer 1',
+        pixels: Uint32List(100),
+      );
+      final selectionRegion = SelectionRegion(
+        path: Path()..addRect(const Rect.fromLTWH(2, 2, 4, 4)),
+        bounds: const Rect.fromLTWH(2, 2, 4, 4),
+        shape: SelectionShape.rectangle,
+      );
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 100,
+              height: 100,
+              child: PixelCanvas(
+                width: 10,
+                height: 10,
+                layers: [layer],
+                currentLayerIndex: 0,
+                onTapPixel: (_, __) {},
+                currentTool: PixelTool.select,
+                currentColor: Colors.black,
+                onDrawShape: (_) {},
+                onStartDrawing: () {},
+                onFinishDrawing: () {},
+                selectionState: SelectionState(region: selectionRegion),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      expect(find.byIcon(Icons.adjust), findsOneWidget);
     });
   });
 }

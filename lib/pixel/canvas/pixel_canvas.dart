@@ -101,6 +101,7 @@ class PixelCanvas extends StatefulWidget {
 
 class _PixelCanvasState extends State<PixelCanvas> {
   final _boxKey = GlobalKey();
+  static const _outsideSelectionDragThreshold = 4.0;
 
   late final PixelCanvasController _controller;
   late final CanvasGestureHandler _gestureHandler;
@@ -111,12 +112,31 @@ class _PixelCanvasState extends State<PixelCanvas> {
   Offset? _rotationCenter;
 
   SelectionRegion? _resizeOriginalRegion;
+  SelectionRegion? _pendingInsideSelectionRegion;
+  int? _pendingInsideSelectionPointer;
+  Offset? _pendingInsideSelectionStart;
+  Offset _pendingInsideSelectionAppliedOffset = Offset.zero;
+  bool _isDraggingInsideSelection = false;
+  PointerDownEvent? _pendingOutsideSelectionDownEvent;
+  Offset? _pendingOutsideSelectionStart;
 
-  bool _isSelectionCreationTool(PixelTool tool) {
+  bool _isSelectionInteractionTool(PixelTool tool) {
     return tool == PixelTool.select ||
         tool == PixelTool.ellipseSelect ||
         tool == PixelTool.lasso ||
         tool == PixelTool.smartSelect;
+  }
+
+  bool _isSelectionDragCreateTool(PixelTool tool) {
+    return tool == PixelTool.select ||
+        tool == PixelTool.ellipseSelect ||
+        tool == PixelTool.lasso;
+  }
+
+  void _syncSelectionStateToController() {
+    final region = widget.selectionState?.region;
+    _controller.setSelection(region);
+    _toolManager.setCurrentSelection(region);
   }
 
   void _clearLocalSelection({bool notifyProvider = false}) {
@@ -124,9 +144,113 @@ class _PixelCanvasState extends State<PixelCanvas> {
     _toolManager.setCurrentSelection(null);
     _clearRotationState();
     _resizeOriginalRegion = null;
+    _clearPendingInsideSelection();
+    _clearPendingOutsideSelection();
 
     if (notifyProvider) {
       widget.onSelectionChanged?.call(null);
+    }
+  }
+
+  void _clearPendingInsideSelection() {
+    _pendingInsideSelectionRegion = null;
+    _pendingInsideSelectionPointer = null;
+    _pendingInsideSelectionStart = null;
+    _pendingInsideSelectionAppliedOffset = Offset.zero;
+    _isDraggingInsideSelection = false;
+  }
+
+  void _clearPendingOutsideSelection() {
+    _pendingOutsideSelectionDownEvent = null;
+    _pendingOutsideSelectionStart = null;
+  }
+
+  bool _isPendingInsideSelectionPointer(int pointer) {
+    return _pendingInsideSelectionPointer == pointer;
+  }
+
+  bool _isPendingOutsideSelectionPointer(int pointer) {
+    return _pendingOutsideSelectionDownEvent?.pointer == pointer;
+  }
+
+  bool _shouldHandleInsideSelectionPointer(PointerDownEvent event) {
+    final selectionRegion = _controller.currentSelectionRegion;
+    if (selectionRegion == null ||
+        !_isSelectionInteractionTool(widget.currentTool)) {
+      return false;
+    }
+
+    final pixelPosition = _createDrawDetails(event.localPosition).pixelPosition;
+    return selectionRegion.contains(pixelPosition.x, pixelPosition.y);
+  }
+
+  bool _shouldHandleOutsideSelectionPointer(PointerDownEvent event) {
+    final selectionRegion = _controller.currentSelectionRegion;
+    if (selectionRegion == null ||
+        !_isSelectionDragCreateTool(widget.currentTool)) {
+      return false;
+    }
+
+    final pixelPosition = _createDrawDetails(event.localPosition).pixelPosition;
+    return !selectionRegion.contains(pixelPosition.x, pixelPosition.y);
+  }
+
+  void _startNewSelectionFromPendingPointer(PointerMoveEvent event) {
+    final downEvent = _pendingOutsideSelectionDownEvent;
+    final startPosition = _pendingOutsideSelectionStart;
+    if (downEvent == null || startPosition == null) return;
+
+    _clearLocalSelection();
+    _gestureHandler.handlePointerDown(
+      downEvent,
+      widget.currentTool,
+      _createDrawDetails(startPosition),
+    );
+    _clearPendingOutsideSelection();
+    _gestureHandler.handlePointerMove(
+      event,
+      widget.currentTool,
+      _createDrawDetails(event.localPosition),
+    );
+  }
+
+  void _handleInsideSelectionMove(PointerMoveEvent event) {
+    final startPosition = _pendingInsideSelectionStart;
+    final baseRegion = _pendingInsideSelectionRegion;
+    final canvasSize = context.size;
+    if (startPosition == null || baseRegion == null || canvasSize == null) {
+      return;
+    }
+
+    final totalScreenDelta = event.localPosition - startPosition;
+    if (!_isDraggingInsideSelection &&
+        totalScreenDelta.distance < _outsideSelectionDragThreshold) {
+      return;
+    }
+
+    if (!_isDraggingInsideSelection) {
+      _isDraggingInsideSelection = true;
+      widget.onTransformStart?.call(baseRegion);
+    }
+
+    final pixelWidth = canvasSize.width / widget.width;
+    final pixelHeight = canvasSize.height / widget.height;
+    if (pixelWidth <= 0 || pixelHeight <= 0) return;
+
+    final totalPixelOffset = Offset(
+      totalScreenDelta.dx / pixelWidth,
+      totalScreenDelta.dy / pixelHeight,
+    );
+    final roundedPixelOffset = Offset(
+      totalPixelOffset.dx.roundToDouble(),
+      totalPixelOffset.dy.roundToDouble(),
+    );
+    final pixelDelta =
+        roundedPixelOffset - _pendingInsideSelectionAppliedOffset;
+
+    if (pixelDelta != Offset.zero) {
+      _pendingInsideSelectionAppliedOffset = roundedPixelOffset;
+      widget.onMoveSelection?.call(pixelDelta);
     }
   }
 
@@ -134,6 +258,7 @@ class _PixelCanvasState extends State<PixelCanvas> {
   void initState() {
     super.initState();
     _initializeComponents();
+    _syncSelectionStateToController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.eventStream?.listen((event) {
@@ -256,9 +381,7 @@ class _PixelCanvasState extends State<PixelCanvas> {
 
     // Sync provider's confirmed selection → controller (e.g. select-all, invert, clear)
     if (widget.selectionState != oldWidget.selectionState) {
-      final region = widget.selectionState?.region;
-      _controller.setSelection(region);
-      _toolManager.setCurrentSelection(region);
+      _syncSelectionStateToController();
     }
 
     // Update gesture handler settings
@@ -335,6 +458,21 @@ class _PixelCanvasState extends State<PixelCanvas> {
                     return;
                   }
 
+                  if (_isPendingInsideSelectionPointer(event.pointer)) {
+                    if (_isDraggingInsideSelection) {
+                      widget.onTransformEnd?.call();
+                      _resizeOriginalRegion = null;
+                      _clearRotationState();
+                    }
+                    _clearPendingInsideSelection();
+                    return;
+                  }
+
+                  if (_isPendingOutsideSelectionPointer(event.pointer)) {
+                    _clearLocalSelection(notifyProvider: true);
+                    return;
+                  }
+
                   _gestureHandler.handlePointerUp(
                     event,
                     widget.currentTool,
@@ -372,6 +510,26 @@ class _PixelCanvasState extends State<PixelCanvas> {
                     size: Size.infinite,
                   ),
                 ),
+                onPointerCancel: (event) {
+                  if (_isPendingInsideSelectionPointer(event.pointer)) {
+                    if (_isDraggingInsideSelection) {
+                      widget.onTransformEnd?.call();
+                    }
+                    _clearPendingInsideSelection();
+                    return;
+                  }
+
+                  if (_isPendingOutsideSelectionPointer(event.pointer)) {
+                    _clearPendingOutsideSelection();
+                    return;
+                  }
+
+                  _gestureHandler.handlePointerCancel(
+                    event,
+                    widget.currentTool,
+                    _createDrawDetails(Offset.zero),
+                  );
+                },
               ),
               LayoutBuilder(builder: (context, constraints) {
                 // Use controller's region — it reflects both live preview and confirmed state
@@ -379,9 +537,16 @@ class _PixelCanvasState extends State<PixelCanvas> {
                 if (selRegion == null || selRegion.bounds == Rect.zero) {
                   return const SizedBox.shrink();
                 }
+                final isSelectionTool =
+                    _isSelectionInteractionTool(widget.currentTool);
                 return SelectionOverlay(
                   selectionRegion: selRegion,
                   selectionState: widget.selectionState,
+                  allowDirectMove: false,
+                  showMoveHandle: !isSelectionTool,
+                  showTransformHandles: isSelectionTool,
+                  showAnchorHandle: isSelectionTool,
+                  anchorHandleInteractive: false,
                   zoomLevel: widget.zoomLevel,
                   canvasOffset: widget.currentOffset,
                   canvasWidth: widget.width,
@@ -393,9 +558,7 @@ class _PixelCanvasState extends State<PixelCanvas> {
                   onSelectionMove: (delta) {
                     widget.onMoveSelection?.call(delta);
                   },
-                  onSelectionTap: _isSelectionCreationTool(widget.currentTool)
-                      ? () => _clearLocalSelection(notifyProvider: true)
-                      : null,
+                  onSelectionTap: null,
                   onSelectionMoveEnd: () {
                     widget.onTransformEnd?.call();
                     _resizeOriginalRegion = null;
@@ -463,6 +626,15 @@ class _PixelCanvasState extends State<PixelCanvas> {
   void _handlePointerDown(PointerDownEvent event) {
     if (widget.currentTool == PixelTool.curve) {
       _handleCurveToolInteraction(event.localPosition);
+    } else if (_shouldHandleInsideSelectionPointer(event)) {
+      _pendingInsideSelectionRegion = _controller.currentSelectionRegion;
+      _pendingInsideSelectionPointer = event.pointer;
+      _pendingInsideSelectionStart = event.localPosition;
+      _pendingInsideSelectionAppliedOffset = Offset.zero;
+      _isDraggingInsideSelection = false;
+    } else if (_shouldHandleOutsideSelectionPointer(event)) {
+      _pendingOutsideSelectionDownEvent = event;
+      _pendingOutsideSelectionStart = event.localPosition;
     } else {
       _gestureHandler.handlePointerDown(
         event,
@@ -473,6 +645,23 @@ class _PixelCanvasState extends State<PixelCanvas> {
   }
 
   void _handlePointerMove(PointerMoveEvent event) {
+    if (_isPendingInsideSelectionPointer(event.pointer)) {
+      _handleInsideSelectionMove(event);
+      return;
+    }
+
+    if (_isPendingOutsideSelectionPointer(event.pointer)) {
+      final startPosition = _pendingOutsideSelectionStart;
+      if (startPosition == null) return;
+
+      final didStartDrag = (event.localPosition - startPosition).distance >=
+          _outsideSelectionDragThreshold;
+      if (didStartDrag) {
+        _startNewSelectionFromPendingPointer(event);
+      }
+      return;
+    }
+
     if (widget.currentTool == PixelTool.curve && _toolManager.isCurveDefining) {
       final details = _createDrawDetails(event.localPosition);
       _toolManager.handleCurveMove(details, _controller);

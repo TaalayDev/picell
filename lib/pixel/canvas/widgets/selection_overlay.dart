@@ -10,6 +10,11 @@ const _handleSize = 12.0;
 class SelectionOverlay extends StatefulWidget {
   final SelectionRegion selectionRegion;
   final SelectionState? selectionState;
+  final bool allowDirectMove;
+  final bool showMoveHandle;
+  final bool showTransformHandles;
+  final bool showAnchorHandle;
+  final bool anchorHandleInteractive;
   final double zoomLevel;
   final Offset canvasOffset;
   final int canvasWidth;
@@ -30,6 +35,11 @@ class SelectionOverlay extends StatefulWidget {
     super.key,
     required this.selectionRegion,
     this.selectionState,
+    this.allowDirectMove = true,
+    this.showMoveHandle = false,
+    this.showTransformHandles = true,
+    this.showAnchorHandle = true,
+    this.anchorHandleInteractive = true,
     required this.zoomLevel,
     required this.canvasOffset,
     required this.canvasWidth,
@@ -133,45 +143,46 @@ class _SelectionOverlayState extends State<SelectionOverlay>
     return Stack(
       children: [
         // Marching ants border
-        AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return CustomPaint(
-              size: widget.canvasSize,
-              painter: _SelectionPathPainter(
-                selectionRegion: widget.selectionRegion,
-                pixelWidth: _pixelWidth,
-                pixelHeight: _pixelHeight,
-                animationValue: _animationController.value,
-              ),
-            );
-          },
-        ),
-
-        // Move area (entire selection)
-        Positioned(
-          left: selRect.left,
-          top: selRect.top,
-          width: selRect.width,
-          height: selRect.height,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: widget.onSelectionTap,
-            onPanStart: _onMoveStart,
-            onPanUpdate: _onMoveUpdate,
-            onPanEnd: _onMoveEnd,
-            child: const SizedBox.expand(),
+        IgnorePointer(
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return CustomPaint(
+                size: widget.canvasSize,
+                painter: _SelectionPathPainter(
+                  selectionRegion: widget.selectionRegion,
+                  pixelWidth: _pixelWidth,
+                  pixelHeight: _pixelHeight,
+                  animationValue: _animationController.value,
+                ),
+              );
+            },
           ),
         ),
 
-        // Resize handles
-        ..._buildResizeHandles(selRect),
+        if (widget.allowDirectMove)
+          Positioned(
+            left: selRect.left,
+            top: selRect.top,
+            width: selRect.width,
+            height: selRect.height,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: widget.onSelectionTap,
+              onPanStart: _onMoveStart,
+              onPanUpdate: _onMoveUpdate,
+              onPanEnd: _onMoveEnd,
+              child: const SizedBox.expand(),
+            ),
+          ),
 
-        // Rotation handle
-        _buildRotationHandle(selRect),
+        if (widget.showTransformHandles) ..._buildResizeHandles(selRect),
 
-        // Anchor point handle
-        _buildAnchorHandle(anchorScreen),
+        if (widget.showTransformHandles) _buildRotationHandle(selRect),
+
+        if (widget.showMoveHandle) _buildMoveHandle(selRect),
+
+        if (widget.showAnchorHandle) _buildAnchorHandle(anchorScreen),
       ],
     );
   }
@@ -206,6 +217,41 @@ class _SelectionOverlayState extends State<SelectionOverlay>
   void _onMoveEnd(DragEndDetails details) {
     _lastAppliedMoveOffset = Offset.zero;
     widget.onSelectionMoveEnd?.call();
+  }
+
+  Widget _buildMoveHandle(Rect selRect) {
+    const moveHandleDistance = 30.0;
+    const moveHandleOffsetX = 28.0;
+    final handlePos = Offset(
+      selRect.center.dx - moveHandleOffsetX,
+      selRect.top - moveHandleDistance,
+    );
+
+    return Positioned(
+      left: handlePos.dx - _centerHandleSize / 2,
+      top: handlePos.dy - _centerHandleSize / 2,
+      width: _centerHandleSize,
+      height: _centerHandleSize,
+      child: GestureDetector(
+        onPanStart: _onMoveStart,
+        onPanUpdate: _onMoveUpdate,
+        onPanEnd: _onMoveEnd,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.blue.shade400,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 4,
+              ),
+            ],
+          ),
+          child: const Icon(Icons.open_with, size: 12, color: Colors.white),
+        ),
+      ),
+    );
   }
 
   // ── Resize Handles ──
@@ -424,35 +470,46 @@ class _SelectionOverlayState extends State<SelectionOverlay>
   // ── Anchor Handle ──
 
   Widget _buildAnchorHandle(Offset anchorScreen) {
+    final handle = GestureDetector(
+      onPanStart: widget.anchorHandleInteractive
+          ? (d) => _isDraggingAnchor = true
+          : null,
+      onPanUpdate: widget.anchorHandleInteractive
+          ? (details) {
+              if (!_isDraggingAnchor) return;
+              final currentScreen = _globalToOverlay(details.globalPosition);
+              final newPixelPos =
+                  _clampPixelOffset(_screenToPixel(currentScreen));
+              widget.onAnchorChanged?.call(newPixelPos);
+            }
+          : null,
+      onPanEnd: widget.anchorHandleInteractive
+          ? (d) => _isDraggingAnchor = false
+          : null,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.orange.withValues(alpha: 0.8),
+          border: Border.all(color: Colors.white, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 4,
+            ),
+          ],
+        ),
+        child: const Icon(Icons.adjust, size: 12, color: Colors.white),
+      ),
+    );
+
     return Positioned(
       left: anchorScreen.dx - _centerHandleSize / 2,
       top: anchorScreen.dy - _centerHandleSize / 2,
       width: _centerHandleSize,
       height: _centerHandleSize,
-      child: GestureDetector(
-        onPanStart: (d) => _isDraggingAnchor = true,
-        onPanUpdate: (details) {
-          if (!_isDraggingAnchor) return;
-          final currentScreen = _globalToOverlay(details.globalPosition);
-          final newPixelPos = _clampPixelOffset(_screenToPixel(currentScreen));
-          widget.onAnchorChanged?.call(newPixelPos);
-        },
-        onPanEnd: (d) => _isDraggingAnchor = false,
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.orange.withValues(alpha: 0.8),
-            border: Border.all(color: Colors.white, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: const Icon(Icons.adjust, size: 12, color: Colors.white),
-        ),
-      ),
+      child: widget.anchorHandleInteractive
+          ? handle
+          : IgnorePointer(child: handle),
     );
   }
 }

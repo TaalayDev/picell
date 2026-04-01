@@ -30,7 +30,8 @@ class DesktopSidePanel extends StatefulHookConsumerWidget {
   ConsumerState<DesktopSidePanel> createState() => _DesktopSidePanelState();
 }
 
-class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with SingleTickerProviderStateMixin {
+class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -66,7 +67,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                     child: TabBar(
                       controller: _tabController,
                       labelColor: colorScheme.primary,
-                      unselectedLabelColor: colorScheme.onSurface.withOpacity(0.5),
+                      unselectedLabelColor:
+                          colorScheme.onSurface.withOpacity(0.5),
                       indicatorColor: colorScheme.primary,
                       indicatorSize: TabBarIndicatorSize.tab,
                       indicatorWeight: 2,
@@ -74,7 +76,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.5,
                       ),
-                      unselectedLabelStyle: theme.textTheme.labelSmall?.copyWith(
+                      unselectedLabelStyle:
+                          theme.textTheme.labelSmall?.copyWith(
                         letterSpacing: 0.5,
                       ),
                       dividerHeight: 0,
@@ -104,7 +107,10 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                       ],
                     ),
                   ),
-                  Divider(height: 1, thickness: 1, color: colorScheme.outlineVariant.withOpacity(0.3)),
+                  Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: colorScheme.outlineVariant.withOpacity(0.3)),
                   Expanded(
                     child: TabBarView(
                       controller: _tabController,
@@ -145,16 +151,20 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                           },
                           onLayerToTemplate: (layer) {
                             LayerToTemplateDialog.show(context,
-                                layer: layer, width: widget.width, height: widget.height);
+                                layer: layer,
+                                width: widget.width,
+                                height: widget.height);
                           },
                           onAutoSelect: () {
                             widget.notifier.autoSelectLayer();
                           },
                         ),
                         EffectsSidePanel(
-                          layer: widget.state.layers[widget.state.currentLayerIndex],
+                          layer: widget
+                              .state.layers[widget.state.currentLayerIndex],
                           width: widget.width,
                           height: widget.height,
+                          selectionRegion: widget.state.selectionState?.region,
                           onLayerUpdated: (updatedLayer) {
                             widget.notifier.updateLayer(updatedLayer);
                           },
@@ -165,13 +175,17 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                 ],
               ),
             ),
-            Divider(height: 1, thickness: 1, color: colorScheme.outlineVariant.withOpacity(0.3)),
+            Divider(
+                height: 1,
+                thickness: 1,
+                color: colorScheme.outlineVariant.withOpacity(0.3)),
             // Color palette — flex 2
             Expanded(
               flex: 2,
               child: ColorPalettePanel(
                 currentColor: widget.state.currentColor,
-                isEyedropperSelected: widget.currentTool.value == PixelTool.eyedropper,
+                isEyedropperSelected:
+                    widget.currentTool.value == PixelTool.eyedropper,
                 onSelectEyedropper: () {
                   widget.currentTool.value = PixelTool.eyedropper;
                 },
