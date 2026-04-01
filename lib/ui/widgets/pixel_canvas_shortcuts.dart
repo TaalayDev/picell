@@ -34,11 +34,16 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
   final ValueNotifier<Offset> gridOffset;
   final PixelCanvasState state;
   final PixelCanvasNotifier notifier;
-  final Function(BuildContext context, PixelCanvasNotifier notifier, PixelCanvasState state) handleExport;
-  final Function(ValueNotifier<double> scale, ValueNotifier<Offset> offset) setZoomFit;
-  final Function(ValueNotifier<double> scale, ValueNotifier<Offset> offset) setZoom100;
-  final Future<ImportDialogResult?> Function(BuildContext context) showImportDialog;
-  final Function(BuildContext context, PixelCanvasNotifier notifier) showColorPicker;
+  final Function(BuildContext context, PixelCanvasNotifier notifier,
+      PixelCanvasState state) handleExport;
+  final Function(ValueNotifier<double> scale, ValueNotifier<Offset> offset)
+      setZoomFit;
+  final Function(ValueNotifier<double> scale, ValueNotifier<Offset> offset)
+      setZoom100;
+  final Future<ImportDialogResult?> Function(BuildContext context)
+      showImportDialog;
+  final Function(BuildContext context, PixelCanvasNotifier notifier)
+      showColorPicker;
   final VoidCallback toggleUI;
   final Widget child;
 
@@ -141,7 +146,9 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       },
       onSelectAll: () {},
       onDeselectAll: () {
-        notifier.setSelection(null);
+        if (state.selectionState != null) {
+          notifier.clearSelection();
+        }
       },
       onCopy: () {
         // TODO: Implement copy functionality

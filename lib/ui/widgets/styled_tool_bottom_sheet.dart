@@ -128,8 +128,29 @@ class StyledToolBottomSheet extends HookConsumerWidget {
       ToolItem(
         tool: PixelTool.select,
         icon: AppIcons.select,
-        label: 'Select',
-        tooltip: 'Select and manipulate areas',
+        label: 'Rect Select',
+        tooltip: 'Select a rectangular area',
+        isPro: !hasProFeature,
+      ),
+      ToolItem(
+        tool: PixelTool.ellipseSelect,
+        icon: AppIcons.circle,
+        label: 'Ellipse',
+        tooltip: 'Select an elliptical area',
+        isPro: !hasProFeature,
+      ),
+      ToolItem(
+        tool: PixelTool.lasso,
+        icon: AppIcons.lasso,
+        label: 'Lasso',
+        tooltip: 'Freehand selection tool',
+        isPro: !hasProFeature,
+      ),
+      ToolItem(
+        tool: PixelTool.smartSelect,
+        icon: AppIcons.magic_stick,
+        label: 'Magic Wand',
+        tooltip: 'Select contiguous pixels by color',
         isPro: !hasProFeature,
       ),
       ToolItem(
@@ -200,7 +221,7 @@ class ToolBottomSheetContainer extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -223,7 +244,9 @@ class BottomSheetHandle extends StatelessWidget {
       width: 40,
       height: 4,
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300],
+        color: theme.brightness == Brightness.dark
+            ? Colors.grey[700]
+            : Colors.grey[300],
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -330,7 +353,9 @@ class ToolGridItem extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isSelected ? theme.primaryColor.withOpacity(0.2) : theme.surfaceVariant,
+              color: isSelected
+                  ? theme.primaryColor.withValues(alpha: 0.2)
+                  : theme.surfaceVariant,
               borderRadius: BorderRadius.circular(12),
               border: isSelected
                   ? Border.all(color: theme.primaryColor, width: 2)

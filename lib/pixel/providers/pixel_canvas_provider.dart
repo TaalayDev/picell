@@ -229,12 +229,19 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
     updateLayer(updatedLayer);
   }
 
-  void resizeSelectionNew(Rect targetBounds) {
-    _controller.resizeSelectionNew(targetBounds);
+  void resizeSelectionNew(
+    Rect targetBounds, {
+    SelectionRegion? region,
+  }) {
+    _controller.resizeSelectionNew(targetBounds, region: region);
   }
 
-  void rotateSelectionNew(double angle, {Offset? pivot}) {
-    _controller.rotateSelectionNew(angle, pivot: pivot);
+  void rotateSelectionNew(
+    double angle, {
+    Offset? pivot,
+    SelectionRegion? region,
+  }) {
+    _controller.rotateSelectionNew(angle, pivot: pivot, region: region);
   }
 
   void startTransformSelection(SelectionRegion region) {

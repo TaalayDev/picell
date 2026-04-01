@@ -197,9 +197,13 @@ class PixelPainter extends HookConsumerWidget {
               },
               selectionState: state.selectionState,
               onSelectionChanged: (region) {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .setSelection(region);
+                final notifier =
+                    ref.read(pixelCanvasNotifierProvider(project).notifier);
+                if (region == null) {
+                  notifier.clearSelection();
+                } else {
+                  notifier.setSelection(region);
+                }
               },
               onMoveSelection: (delta) {
                 ref
@@ -209,12 +213,19 @@ class PixelPainter extends HookConsumerWidget {
               onSelectionResize: (newRegion, oldRegion, newBounds, center) {
                 ref
                     .read(pixelCanvasNotifierProvider(project).notifier)
-                    .resizeSelectionNew(newRegion.bounds);
+                    .resizeSelectionNew(
+                      newRegion.bounds,
+                      region: newRegion,
+                    );
               },
               onSelectionRotate: (newRegion, oldRegion, angle, center) {
                 ref
                     .read(pixelCanvasNotifierProvider(project).notifier)
-                    .rotateSelectionNew(angle, pivot: center);
+                    .rotateSelectionNew(
+                      angle,
+                      pivot: center,
+                      region: newRegion,
+                    );
               },
               onTransformStart: (region) {
                 ref
