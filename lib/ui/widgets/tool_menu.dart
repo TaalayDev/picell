@@ -49,13 +49,13 @@ class ToolMenu extends StatelessWidget {
                 ),
                 onPressed: () => onSelectTool(PixelTool.pencil),
               ),
-              IconButton(
-                icon: AppIcon(
-                  AppIcons.brush,
-                  color: tool == PixelTool.brush ? Colors.blue : null,
-                ),
-                onPressed: () => onSelectTool(PixelTool.brush),
-              ),
+              // IconButton(
+              //   icon: AppIcon(
+              //     AppIcons.brush,
+              //     color: tool == PixelTool.brush ? Colors.blue : null,
+              //   ),
+              //   onPressed: () => onSelectTool(PixelTool.brush),
+              // ),
               IconButton(
                 icon: AppIcon(
                   AppIcons.fill,
@@ -88,9 +88,7 @@ class ToolMenu extends StatelessWidget {
                     AppIcons.pen,
                     color: tool == PixelTool.pen ? Colors.blue : null,
                   ),
-                  onPressed: !subscription.isPro
-                      ? null
-                      : () => onSelectTool(PixelTool.pen),
+                  onPressed: !subscription.isPro ? null : () => onSelectTool(PixelTool.pen),
                 ),
               ),
               ProBadge(
@@ -100,9 +98,7 @@ class ToolMenu extends StatelessWidget {
                     AppIcons.curved_connector,
                     color: tool == PixelTool.curve ? Colors.blue : null,
                   ),
-                  onPressed: !subscription.isPro
-                      ? null
-                      : () => onSelectTool(PixelTool.curve),
+                  onPressed: !subscription.isPro ? null : () => onSelectTool(PixelTool.curve),
                 ),
               ),
               ProBadge(
@@ -112,9 +108,7 @@ class ToolMenu extends StatelessWidget {
                     Feather.move,
                     color: tool == PixelTool.drag ? Colors.blue : null,
                   ),
-                  onPressed: !subscription.isPro
-                      ? null
-                      : () => onSelectTool(PixelTool.drag),
+                  onPressed: !subscription.isPro ? null : () => onSelectTool(PixelTool.drag),
                 ),
               ),
               IconButton(
@@ -131,10 +125,7 @@ class ToolMenu extends StatelessWidget {
                   IconButton(
                     icon: Icon(
                       Icons.texture,
-                      color: tool == PixelTool.textureBrush ||
-                              tool == PixelTool.textureFill
-                          ? Colors.blue
-                          : null,
+                      color: tool == PixelTool.textureBrush || tool == PixelTool.textureFill ? Colors.blue : null,
                     ),
                     onPressed: () {
                       showDialog(
@@ -150,8 +141,7 @@ class ToolMenu extends StatelessWidget {
                               onTextureSelected: (texture, blendMode, isFill) {
                                 Navigator.of(context).pop();
                                 if (texture != null) {
-                                  onTextureSelected?.call(
-                                      texture, blendMode, isFill);
+                                  onTextureSelected?.call(texture, blendMode, isFill);
                                 }
                               },
                             ),
@@ -317,9 +307,7 @@ class ShapesMenuButton extends StatelessWidget {
   }
 
   bool _isShapeTool(PixelTool tool) {
-    return tool == PixelTool.line ||
-        tool == PixelTool.rectangle ||
-        tool == PixelTool.circle;
+    return tool == PixelTool.line || tool == PixelTool.rectangle || tool == PixelTool.circle;
   }
 }
 
@@ -356,8 +344,7 @@ class SelectionToolsMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor =
-        _isSelectionTool(currentTool.value) ? Colors.blue : null;
+    final activeColor = _isSelectionTool(currentTool.value) ? Colors.blue : null;
 
     return PopupMenuButton<PixelTool>(
       icon: Stack(

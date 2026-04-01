@@ -152,6 +152,17 @@ class PixelCanvasController extends ChangeNotifier {
     }
   }
 
+  /// Atomically updates both zoom and offset in a single [notifyListeners] call,
+  /// halving the number of rebuilds per gesture frame compared to calling the
+  /// two setters separately.
+  void setZoomAndOffset(double zoom, Offset offset) {
+    final clamped = zoom.clamp(0.5, 10.0);
+    if (_zoomLevel == clamped && _offset == offset) return;
+    _zoomLevel = clamped;
+    _offset = offset;
+    notifyListeners();
+  }
+
   void setPreviewEffectsEnabled(bool enabled) {
     if (_previewEffectsEnabled != enabled) {
       _previewEffectsEnabled = enabled;

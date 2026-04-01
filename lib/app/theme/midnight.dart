@@ -117,8 +117,15 @@ class _MidnightState {
   double lastFrameTimestamp = 0;
   List<_Star>? stars;
   List<_ShootingStar> shootingStars = [];
-  // Cache mountain paths to keep them static while everything else moves
   List<Path>? mountainPaths;
+
+  // Persistent RNG – avoids creating a new Random() every frame
+  final math.Random rng = math.Random();
+
+  // Cached GPU shaders – rebuilt only when size changes
+  Size? lastSize;
+  ui.Shader? cachedSkyShader;
+  List<ui.Shader>? cachedAuroraShaders;
 }
 
 class _Star {
@@ -172,7 +179,23 @@ class _EnhancedMidnightPainter extends CustomPainter {
   static const Color _auroraGreen = Color(0xFF00E676);
   static const Color _auroraViolet = Color(0xFF7C4DFF);
 
-  final math.Random _rng = math.Random(42);
+  // Reusable Paint objects – avoids per-frame heap allocation and GC pressure
+  final _nebulaPaint = Paint()
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30); // reduced from 60
+  final _auroraFillPaint = Paint()
+    ..style = PaintingStyle.fill
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12); // reduced from 20
+  final _starFillPaint = Paint()..style = PaintingStyle.fill;
+  final _starGlarePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 0.5;
+  final _shootingTrailPaint = Paint()..strokeCap = StrokeCap.round;
+  final _shootingHeadPaint = Paint();
+  final _moonGlowPaint = Paint()
+    ..style = PaintingStyle.fill
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20); // reduced from 30
+  final _moonBodyPaint = Paint()..style = PaintingStyle.fill;
+  final _mountainPaint = Paint()..style = PaintingStyle.fill;
 
   _EnhancedMidnightPainter({
     required Listenable repaint,
@@ -190,6 +213,14 @@ class _EnhancedMidnightPainter extends CustomPainter {
     final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
     state.lastFrameTimestamp = now;
     state.time += dt;
+
+    // Invalidate size-dependent caches on resize
+    if (state.lastSize != size) {
+      state.lastSize = size;
+      state.cachedSkyShader = null;
+      state.cachedAuroraShaders = null;
+      state.mountainPaths = null;
+    }
 
     // Initialization
     if (state.stars == null) _initWorld(size);
@@ -244,48 +275,56 @@ class _EnhancedMidnightPainter extends CustomPainter {
   void _paintNightSky(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
 
-    // Deep space gradient
-    final skyGradient = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(size.width * 0.5, 0),
-        Offset(size.width * 0.5, size.height),
-        [
-          const Color(0xFF050510), // Deepest space
-          const Color(0xFF101025),
-          _mysticalBlue.withOpacity(0.6),
-          _deepPurple.withOpacity(0.3),
-        ],
-        [0.0, 0.4, 0.8, 1.0],
-      );
+    // Sky shader is cached; rebuilt only when size changes (see paint())
+    state.cachedSkyShader ??= ui.Gradient.linear(
+      Offset(size.width * 0.5, 0),
+      Offset(size.width * 0.5, size.height),
+      [
+        const Color(0xFF050510),
+        const Color(0xFF101025),
+        _mysticalBlue.withOpacity(0.6),
+        _deepPurple.withOpacity(0.3),
+      ],
+      [0.0, 0.4, 0.8, 1.0],
+    );
+    canvas.drawRect(rect, Paint()..shader = state.cachedSkyShader);
 
-    canvas.drawRect(rect, skyGradient);
-
-    // Nebula clouds (slowly rotating)
-    final nebulaPaint = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 60);
-
+    // Nebula clouds – blur radius reduced from 60 → 30
     final t = state.time * 0.1;
 
-    nebulaPaint.color = primaryColor.withOpacity(0.05 * intensity);
+    _nebulaPaint.color = primaryColor.withOpacity(0.05 * intensity);
     canvas.drawCircle(
       Offset(size.width * 0.8 + math.sin(t) * 50, size.height * 0.2 + math.cos(t) * 30),
       size.width * 0.4,
-      nebulaPaint,
+      _nebulaPaint,
     );
 
-    nebulaPaint.color = accentColor.withOpacity(0.03 * intensity);
+    _nebulaPaint.color = accentColor.withOpacity(0.03 * intensity);
     canvas.drawCircle(
       Offset(size.width * 0.2 - math.sin(t * 0.8) * 40, size.height * 0.4),
       size.width * 0.5,
-      nebulaPaint,
+      _nebulaPaint,
     );
   }
 
   void _paintAurora(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.fill
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
+    // Cache aurora shaders – rebuilt only when size changes (see paint())
+    state.cachedAuroraShaders ??= List.generate(3, (i) {
+      final auroraColor = i % 2 == 0 ? _auroraGreen : _auroraViolet;
+      return ui.Gradient.linear(
+        Offset.zero,
+        Offset(0, size.height * 0.6),
+        [
+          auroraColor.withOpacity(0.0),
+          auroraColor.withOpacity(0.15 * intensity),
+          Colors.transparent,
+        ],
+        [0.0, 0.5, 1.0],
+      );
+    });
 
-    // Draw swaying aurora curtains
+    // Draw swaying aurora curtains – step increased 20 → 40 (half the vertices),
+    // blur reduced from 20 → 12
     for (int i = 0; i < 3; i++) {
       final t = state.time * 0.5 + i;
       final path = Path();
@@ -293,108 +332,81 @@ class _EnhancedMidnightPainter extends CustomPainter {
       final startY = size.height * (0.3 + i * 0.1);
       path.moveTo(0, startY);
 
-      for (double x = 0; x <= size.width; x += 20) {
+      for (double x = 0; x <= size.width; x += 40) {
         final y = startY + math.sin(x * 0.01 + t) * 30 + math.sin(x * 0.03 - t * 0.5) * 20;
         path.lineTo(x, y);
       }
 
-      path.lineTo(size.width, 0); // Close to top
+      path.lineTo(size.width, 0);
       path.lineTo(0, 0);
       path.close();
 
-      final gradient = ui.Gradient.linear(
-        Offset(0, 0),
-        Offset(0, size.height * 0.6),
-        [
-          (i % 2 == 0 ? _auroraGreen : _auroraViolet).withOpacity(0.0),
-          (i % 2 == 0 ? _auroraGreen : _auroraViolet).withOpacity(0.15 * intensity),
-          Colors.transparent,
-        ],
-        [0.0, 0.5, 1.0],
-      );
-
-      paint.shader = gradient;
-      canvas.drawPath(path, paint);
+      _auroraFillPaint.shader = state.cachedAuroraShaders![i];
+      canvas.drawPath(path, _auroraFillPaint);
     }
+    _auroraFillPaint.shader = null;
   }
 
   void _paintStarField(Canvas canvas, Size size) {
     if (state.stars == null) return;
 
-    final paint = Paint()..style = PaintingStyle.fill;
-
     for (var star in state.stars!) {
-      // Twinkle logic
       final twinkle = math.sin(state.time * star.twinkleSpeed + star.twinklePhase);
-      final alpha = 0.5 + 0.5 * twinkle; // 0.0 to 1.0
+      final alpha = 0.5 + 0.5 * twinkle;
 
       if (alpha < 0.1) continue;
 
-      paint.color = star.color.withOpacity(alpha * 0.8);
-      canvas.drawCircle(Offset(star.x, star.y), star.size, paint);
+      _starFillPaint.color = star.color.withOpacity(alpha * 0.8);
+      canvas.drawCircle(Offset(star.x, star.y), star.size, _starFillPaint);
 
-      // Major stars have glare
+      // Major stars have cross-glare
       if (star.size > 2.0 && alpha > 0.8) {
-        paint.strokeWidth = 0.5;
-        paint.style = PaintingStyle.stroke;
-        canvas.drawLine(Offset(star.x - star.size * 2, star.y), Offset(star.x + star.size * 2, star.y), paint);
-        canvas.drawLine(Offset(star.x, star.y - star.size * 2), Offset(star.x, star.y + star.size * 2), paint);
-        paint.style = PaintingStyle.fill;
+        _starGlarePaint.color = star.color.withOpacity(alpha * 0.6);
+        canvas.drawLine(Offset(star.x - star.size * 2, star.y), Offset(star.x + star.size * 2, star.y), _starGlarePaint);
+        canvas.drawLine(Offset(star.x, star.y - star.size * 2), Offset(star.x, star.y + star.size * 2), _starGlarePaint);
       }
     }
   }
 
   void _updateAndPaintShootingStars(Canvas canvas, Size size, double dt) {
-    final rng = math.Random();
+    // Reuse state.rng – avoids creating a new Random() every frame
+    final rng = state.rng;
 
     // Spawn new shooting stars randomly
     if (rng.nextDouble() < 0.02 * intensity) {
-      // 2% chance per frame approx
-      final startX = rng.nextDouble() * size.width;
-      final startY = rng.nextDouble() * size.height * 0.5;
-
       state.shootingStars.add(_ShootingStar(
-        x: startX,
-        y: startY,
-        speedX: 300 + rng.nextDouble() * 200, // Move right
-        speedY: 100 + rng.nextDouble() * 100, // Move down
+        x: rng.nextDouble() * size.width,
+        y: rng.nextDouble() * size.height * 0.5,
+        speedX: 300 + rng.nextDouble() * 200,
+        speedY: 100 + rng.nextDouble() * 100,
         length: 50 + rng.nextDouble() * 50,
         life: 1.0,
       ));
     }
 
-    final paint = Paint()
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 2 * intensity;
+    _shootingTrailPaint.strokeWidth = 1.5 * intensity;
 
     for (int i = state.shootingStars.length - 1; i >= 0; i--) {
       final s = state.shootingStars[i];
 
-      // Update
       s.x += s.speedX * dt;
       s.y += s.speedY * dt;
-      s.life -= dt * 1.5; // Fade out speed
+      s.life -= dt * 1.5;
 
       if (s.life <= 0 || s.x > size.width || s.y > size.height) {
         state.shootingStars.removeAt(i);
         continue;
       }
 
-      // Draw trail
-      final tailX = s.x - (s.speedX * 0.15); // Simple trail calculation
-      final tailY = s.y - (s.speedY * 0.15);
+      final tailX = s.x - s.speedX * 0.15;
+      final tailY = s.y - s.speedY * 0.15;
 
-      paint.shader = ui.Gradient.linear(
-        Offset(tailX, tailY),
-        Offset(s.x, s.y),
-        [Colors.transparent, Colors.white.withOpacity(s.life)],
-      );
+      // Plain faded line avoids creating a ui.Gradient.linear shader every frame
+      _shootingTrailPaint.color = Colors.white.withOpacity(s.life * 0.6);
+      canvas.drawLine(Offset(tailX, tailY), Offset(s.x, s.y), _shootingTrailPaint);
 
-      canvas.drawLine(Offset(tailX, tailY), Offset(s.x, s.y), paint);
-
-      // Head
-      final headPaint = Paint()..color = Colors.white.withOpacity(s.life);
-      canvas.drawCircle(Offset(s.x, s.y), 1.5 * intensity, headPaint);
+      _shootingHeadPaint.color = Colors.white.withOpacity(s.life);
+      canvas.drawCircle(Offset(s.x, s.y), 1.5 * intensity, _shootingHeadPaint);
     }
   }
 
@@ -402,32 +414,23 @@ class _EnhancedMidnightPainter extends CustomPainter {
     final moonCenter = Offset(size.width * 0.85, size.height * 0.2);
     final moonRadius = 30 * intensity;
 
-    final moonPaint = Paint()..style = PaintingStyle.fill;
+    // Outer glow – blur radius reduced from 30 → 20
+    _moonGlowPaint.color = _moonSilver.withOpacity(0.2 * intensity);
+    canvas.drawCircle(moonCenter, moonRadius * 3, _moonGlowPaint);
 
-    // Outer Glow
-    moonPaint
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30)
-      ..color = _moonSilver.withOpacity(0.2 * intensity);
-    canvas.drawCircle(moonCenter, moonRadius * 3, moonPaint);
+    _moonBodyPaint.color = _moonSilver.withOpacity(0.95);
+    canvas.drawCircle(moonCenter, moonRadius, _moonBodyPaint);
 
-    // Moon Body
-    moonPaint
-      ..maskFilter = null
-      ..color = _moonSilver.withOpacity(0.95);
-    canvas.drawCircle(moonCenter, moonRadius, moonPaint);
-
-    // Craters (Static details)
-    moonPaint.color = const Color(0xFFB0B0B0).withOpacity(0.3);
-    canvas.drawCircle(moonCenter + Offset(-moonRadius * 0.3, moonRadius * 0.2), moonRadius * 0.15, moonPaint);
-    canvas.drawCircle(moonCenter + Offset(moonRadius * 0.4, -moonRadius * 0.1), moonRadius * 0.1, moonPaint);
-    canvas.drawCircle(moonCenter + Offset(moonRadius * 0.1, moonRadius * 0.5), moonRadius * 0.08, moonPaint);
+    _moonBodyPaint.color = const Color(0xFFB0B0B0).withOpacity(0.3);
+    canvas.drawCircle(moonCenter + Offset(-moonRadius * 0.3, moonRadius * 0.2), moonRadius * 0.15, _moonBodyPaint);
+    canvas.drawCircle(moonCenter + Offset(moonRadius * 0.4, -moonRadius * 0.1), moonRadius * 0.1, _moonBodyPaint);
+    canvas.drawCircle(moonCenter + Offset(moonRadius * 0.1, moonRadius * 0.5), moonRadius * 0.08, _moonBodyPaint);
   }
 
   void _paintDistantMountains(Canvas canvas, Size size) {
     // Generate paths once to keep mountains static
     if (state.mountainPaths == null || state.mountainPaths!.isEmpty) {
       state.mountainPaths = [];
-      final rng = math.Random(999); // Deterministic seed for mountains
 
       for (int layer = 0; layer < 3; layer++) {
         final path = Path();
@@ -452,33 +455,24 @@ class _EnhancedMidnightPainter extends CustomPainter {
       }
     }
 
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    // Draw cached paths
+    // Draw cached mountain paths (back → front)
     for (int i = 0; i < state.mountainPaths!.length; i++) {
-      // Atmospheric perspective: Further mountains are lighter/bluer
-      // Layer 0 (Back), Layer 1 (Mid), Layer 2 (Front)
-      // Actually we want back layer first.
-
-      // Let's assume layer 0 is front? No, usually painters algo.
-      // Re-reading init: loops 0 to 2.
-      // We should draw typically back to front.
-      // Let's assign colors assuming i=0 is furthest.
-
       final opacity = (0.3 + i * 0.2) * intensity;
-      paint.color = Color.lerp(
-        const Color(0xFF0D1B2A), // Dark base
+      _mountainPaint.color = Color.lerp(
+        const Color(0xFF0D1B2A),
         _mysticalBlue,
-        0.5 - i * 0.15, // Closer layers get darker/more contrast
-      )!
-          .withOpacity(opacity);
+        0.5 - i * 0.15,
+      )!.withOpacity(opacity);
 
-      canvas.drawPath(state.mountainPaths![i], paint);
+      canvas.drawPath(state.mountainPaths![i], _mountainPaint);
     }
   }
 
   @override
   bool shouldRepaint(covariant _EnhancedMidnightPainter oldDelegate) {
-    return animationEnabled;
+    return animationEnabled ||
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.accentColor != accentColor ||
+        oldDelegate.intensity != intensity;
   }
 }

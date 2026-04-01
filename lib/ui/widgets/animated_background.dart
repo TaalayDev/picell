@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -60,6 +62,8 @@ class AnimatedBackground extends HookConsumerWidget {
     this.appTheme,
   });
 
+  bool get isDesktopOrWeb => kIsWeb || !Platform.isAndroid && !Platform.isIOS;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = appTheme ?? ref.watch(themeProvider).theme;
@@ -72,7 +76,7 @@ class AnimatedBackground extends HookConsumerWidget {
               gradient: _getBaseGradient(theme),
             ),
           ),
-          _buildAnimatedLayer(theme),
+          _buildAnimatedLayer(theme, isDesktopOrWeb && enableAnimation),
           child,
         ],
       ),
@@ -409,7 +413,7 @@ class AnimatedBackground extends HookConsumerWidget {
     }
   }
 
-  Widget _buildAnimatedLayer(AppTheme theme) {
+  Widget _buildAnimatedLayer(AppTheme theme, bool enableAnimation) {
     switch (theme.type) {
       case ThemeType.volcanic:
         return VolcanicBackground(

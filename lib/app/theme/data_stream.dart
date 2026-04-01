@@ -152,6 +152,10 @@ class DataStreamBackground extends HookWidget {
 class _StreamState {
   double time = 0;
   double lastFrameTimestamp = 0;
+  int? cachedIntensityKey;
+  Size? cachedConnectionSize;
+  List<_NodeConnection> nodeConnections = const [];
+  final Map<_GlyphCacheKey, TextPainter> glyphCache = {};
 }
 
 // Pre-computed stream column data
@@ -176,6 +180,40 @@ class _NodeData {
   const _NodeData(this.x, this.y, this.pulseOffset, this.size);
 }
 
+class _NodeConnection {
+  final int fromIndex;
+  final int toIndex;
+  final double normalizedDistance;
+
+  const _NodeConnection(this.fromIndex, this.toIndex, this.normalizedDistance);
+}
+
+class _GlyphCacheKey {
+  final int fontSize;
+  final int styleTier;
+  final int colorType;
+  final int charCode;
+
+  const _GlyphCacheKey({
+    required this.fontSize,
+    required this.styleTier,
+    required this.colorType,
+    required this.charCode,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return other is _GlyphCacheKey &&
+        other.fontSize == fontSize &&
+        other.styleTier == styleTier &&
+        other.colorType == colorType &&
+        other.charCode == charCode;
+  }
+
+  @override
+  int get hashCode => Object.hash(fontSize, styleTier, colorType, charCode);
+}
+
 class _DataStreamPainter extends CustomPainter {
   final _StreamState state;
   final Color primaryColor;
@@ -194,21 +232,22 @@ class _DataStreamPainter extends CustomPainter {
   // Characters for the stream
   static const String _chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF<>{}[]=/\\';
 
-  // Pre-computed stream columns
-  static final List<_StreamColumn> _columns = List.generate(35, (i) {
+  // Pre-computed stream columns (reduced for performance)
+  static const _columnCount = 18;
+  static final List<_StreamColumn> _columns = List.generate(_columnCount, (i) {
     final rng = math.Random(i * 137);
     return _StreamColumn(
-      (i + 0.5) / 35, // Normalized x position
+      (i + 0.5) / _columnCount, // Normalized x position
       0.3 + rng.nextDouble() * 0.5, // Speed
       rng.nextDouble() * 6.28, // Phase offset
-      8 + rng.nextInt(20), // Character count
+      6 + rng.nextInt(12), // Character count (reduced)
       10 + rng.nextDouble() * 8, // Font size
       rng.nextInt(10) < 7 ? 0 : (rng.nextInt(10) < 8 ? 1 : 2), // Color type
     );
   });
 
-  // Pre-computed nodes for network effect
-  static final List<_NodeData> _nodes = List.generate(15, (i) {
+  // Pre-computed nodes for network effect (reduced for performance)
+  static final List<_NodeData> _nodes = List.generate(8, (i) {
     final rng = math.Random(i * 293);
     return _NodeData(
       rng.nextDouble(),
@@ -219,10 +258,13 @@ class _DataStreamPainter extends CustomPainter {
   });
 
   // Pre-computed character indices for each column
-  static final List<List<int>> _columnChars = List.generate(35, (col) {
+  static final List<List<int>> _columnChars = List.generate(_columnCount, (col) {
     final rng = math.Random(col * 571);
-    return List.generate(30, (_) => rng.nextInt(_chars.length));
+    return List.generate(20, (_) => rng.nextInt(_chars.length));
   });
+
+  // Maximum glyph cache entries to prevent unbounded growth
+  static const _maxGlyphCacheSize = 512;
 
   // Reusable objects
   final Paint _fillPaint = Paint()..style = PaintingStyle.fill;
@@ -248,6 +290,8 @@ class _DataStreamPainter extends CustomPainter {
     state.lastFrameTimestamp = now;
     state.time += dt;
 
+    _prepareCaches(size);
+
     _paintBackground(canvas, size);
     _paintGridLines(canvas, size);
     _paintNetworkNodes(canvas, size);
@@ -255,6 +299,47 @@ class _DataStreamPainter extends CustomPainter {
     _paintScanLine(canvas, size);
     _paintGlowEffects(canvas, size);
     _paintVignette(canvas, size);
+  }
+
+  void _prepareCaches(Size size) {
+    final intensityKey = (intensity * 100).round();
+    if (state.cachedIntensityKey != intensityKey) {
+      state.cachedIntensityKey = intensityKey;
+      state.glyphCache.clear();
+    }
+
+    if (state.cachedConnectionSize != size) {
+      state.cachedConnectionSize = size;
+      state.nodeConnections = _buildNodeConnections(size);
+    }
+  }
+
+  List<_NodeConnection> _buildNodeConnections(Size size) {
+    final connections = <_NodeConnection>[];
+    final maxDistance = size.width * 0.25;
+    final maxDistanceSquared = maxDistance * maxDistance;
+
+    for (int i = 0; i < _nodes.length; i++) {
+      final node = _nodes[i];
+      final nodeX = node.x * size.width;
+      final nodeY = node.y * size.height;
+
+      for (int j = i + 1; j < _nodes.length; j++) {
+        final other = _nodes[j];
+        final otherX = other.x * size.width;
+        final otherY = other.y * size.height;
+
+        final dx = nodeX - otherX;
+        final dy = nodeY - otherY;
+        final distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared >= maxDistanceSquared) continue;
+
+        final normalizedDistance = math.sqrt(distanceSquared) / maxDistance;
+        connections.add(_NodeConnection(i, j, normalizedDistance));
+      }
+    }
+
+    return connections;
   }
 
   void _paintBackground(Canvas canvas, Size size) {
@@ -278,96 +363,88 @@ class _DataStreamPainter extends CustomPainter {
   void _paintGridLines(Canvas canvas, Size size) {
     _strokePaint.strokeWidth = 0.5 * intensity;
 
-    // Horizontal grid lines
-    final hLineCount = 30;
+    // Horizontal grid lines (reduced count)
+    const hLineCount = 12;
     for (int i = 0; i < hLineCount; i++) {
       final y = (i / hLineCount) * size.height;
-      final opacity = (0.03 + math.sin(_phase * 2 * math.pi + i * 0.2) * 0.015) * intensity;
+      final opacity = (0.03 + math.sin(_phase * 2 * math.pi + i * 0.5) * 0.015) * intensity;
 
-      _strokePaint.color = _greenDim.withOpacity(opacity);
+      _strokePaint.color = _greenDim.withValues(alpha: opacity);
       canvas.drawLine(Offset(0, y), Offset(size.width, y), _strokePaint);
     }
 
-    // Vertical grid lines
-    final vLineCount = 40;
+    // Vertical grid lines (reduced count)
+    const vLineCount = 16;
     for (int i = 0; i < vLineCount; i++) {
       final x = (i / vLineCount) * size.width;
-      final opacity = (0.02 + math.sin(_phase * 2 * math.pi + i * 0.15) * 0.01) * intensity;
+      final opacity = (0.02 + math.sin(_phase * 2 * math.pi + i * 0.35) * 0.01) * intensity;
 
-      _strokePaint.color = _greenDim.withOpacity(opacity);
+      _strokePaint.color = _greenDim.withValues(alpha: opacity);
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), _strokePaint);
     }
   }
 
   void _paintNetworkNodes(Canvas canvas, Size size) {
+    final nodeOffsets = <Offset>[
+      for (final node in _nodes) Offset(node.x * size.width, node.y * size.height),
+    ];
+
     // Draw connections first
     _strokePaint.strokeWidth = 1 * intensity;
 
-    for (int i = 0; i < _nodes.length; i++) {
-      final node = _nodes[i];
-      final nodeX = node.x * size.width;
-      final nodeY = node.y * size.height;
+    for (final connection in state.nodeConnections) {
+      final node = _nodes[connection.fromIndex];
+      final other = _nodes[connection.toIndex];
+      final nodeOffset = nodeOffsets[connection.fromIndex];
+      final otherOffset = nodeOffsets[connection.toIndex];
 
-      // Connect to nearby nodes
-      for (int j = i + 1; j < _nodes.length; j++) {
-        final other = _nodes[j];
-        final otherX = other.x * size.width;
-        final otherY = other.y * size.height;
+      final pulse = math.sin(
+                _phase * 2 * math.pi * 2 + node.pulseOffset + other.pulseOffset,
+              ) *
+              0.5 +
+          0.5;
+      final opacity = (0.08 * (1 - connection.normalizedDistance) * pulse) * intensity;
 
-        final distance = math.sqrt(math.pow(nodeX - otherX, 2) + math.pow(nodeY - otherY, 2));
+      _strokePaint.color = _greenDark.withValues(alpha: opacity);
+      canvas.drawLine(nodeOffset, otherOffset, _strokePaint);
 
-        if (distance < size.width * 0.25) {
-          final pulse = math.sin(_phase * 2 * math.pi * 2 + node.pulseOffset + other.pulseOffset) * 0.5 + 0.5;
-          final opacity = (0.08 * (1 - distance / (size.width * 0.25)) * pulse) * intensity;
+      if (pulse > 0.7) {
+        final packetProgress = (_phase * 3 + connection.fromIndex * 0.1 + connection.toIndex * 0.05) % 1.0;
+        final packetX = nodeOffset.dx + (otherOffset.dx - nodeOffset.dx) * packetProgress;
+        final packetY = nodeOffset.dy + (otherOffset.dy - nodeOffset.dy) * packetProgress;
 
-          _strokePaint.color = _greenDark.withOpacity(opacity);
-          canvas.drawLine(Offset(nodeX, nodeY), Offset(otherX, otherY), _strokePaint);
-
-          // Data packet traveling along connection
-          if (pulse > 0.7) {
-            final packetProgress = (_phase * 3 + i * 0.1 + j * 0.05) % 1.0;
-            final packetX = nodeX + (otherX - nodeX) * packetProgress;
-            final packetY = nodeY + (otherY - nodeY) * packetProgress;
-
-            _fillPaint.color = _green.withOpacity(0.6 * intensity);
-            canvas.drawCircle(Offset(packetX, packetY), 2 * intensity, _fillPaint);
-          }
-        }
+        _fillPaint.color = _green.withValues(alpha: 0.6 * intensity);
+        canvas.drawCircle(Offset(packetX, packetY), 2 * intensity, _fillPaint);
       }
     }
 
-    // Draw nodes
-    for (final node in _nodes) {
-      final x = node.x * size.width;
-      final y = node.y * size.height;
+    // Draw nodes (no blur for performance)
+    for (int i = 0; i < _nodes.length; i++) {
+      final node = _nodes[i];
+      final offset = nodeOffsets[i];
       final pulse = math.sin(_phase * 2 * math.pi * 1.5 + node.pulseOffset) * 0.3 + 0.7;
       final nodeSize = node.size * intensity * pulse;
 
-      // Outer glow
-      _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 6 * intensity);
-      _fillPaint.color = _green.withOpacity(0.15 * pulse * intensity);
-      canvas.drawCircle(Offset(x, y), nodeSize * 2, _fillPaint);
+      // Outer halo (no blur)
+      _fillPaint.color = _green.withValues(alpha: 0.08 * pulse * intensity);
+      canvas.drawCircle(offset, nodeSize * 2.5, _fillPaint);
 
       // Core
-      _fillPaint.maskFilter = null;
-      _fillPaint.color = _green.withOpacity(0.4 * pulse * intensity);
-      canvas.drawCircle(Offset(x, y), nodeSize, _fillPaint);
+      _fillPaint.color = _green.withValues(alpha: 0.4 * pulse * intensity);
+      canvas.drawCircle(offset, nodeSize, _fillPaint);
 
       // Center bright point
-      _fillPaint.color = _white.withOpacity(0.6 * pulse * intensity);
-      canvas.drawCircle(Offset(x, y), nodeSize * 0.3, _fillPaint);
+      _fillPaint.color = _white.withValues(alpha: 0.6 * pulse * intensity);
+      canvas.drawCircle(offset, nodeSize * 0.3, _fillPaint);
     }
   }
 
   void _paintDataStreams(Canvas canvas, Size size) {
-    final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-    );
-
     for (int col = 0; col < _columns.length; col++) {
       final column = _columns[col];
       final x = column.x * size.width;
-      final charHeight = column.fontSize * 1.2;
+      final fontSize = (column.fontSize * intensity).roundToDouble();
+      final charHeight = fontSize * 1.2;
 
       // Calculate stream position (falling effect) using infinite time phase
       // The modulo ensures it wraps around screen space seamlessly
@@ -394,65 +471,110 @@ class _DataStreamPainter extends CustomPainter {
         // Skip if outside visible area
         if (y < -charHeight || y > size.height + charHeight) continue;
 
-        // Character changes over time
+        // Character changes over time (slowed to reduce cache thrashing)
         final charIndex =
-            (_columnChars[col][i % _columnChars[col].length] + ((_phase * 20 + i * 0.5).floor())) % _chars.length;
+            (_columnChars[col][i % _columnChars[col].length] + ((_phase * 5 + i * 0.3).floor())) % _chars.length;
         final char = _chars[charIndex];
-
-        // Fade based on position in stream (head is brightest)
-        final positionInStream = i / column.charCount;
-        double opacity;
-
-        if (i == 0) {
-          // Leading character - brightest, white
-          opacity = 1.0;
-          textPainter.text = TextSpan(
-            text: char,
-            style: TextStyle(
-              color: _white.withOpacity(opacity * intensity),
-              fontSize: column.fontSize * intensity,
-              fontFamily: 'JetBrains Mono',
-              fontWeight: FontWeight.bold,
-            ),
-          );
-        } else if (i < 3) {
-          // Near head - bright
-          opacity = 0.9 - i * 0.1;
-          textPainter.text = TextSpan(
-            text: char,
-            style: TextStyle(
-              color: baseColor.withOpacity(opacity * intensity),
-              fontSize: column.fontSize * intensity,
-              fontFamily: 'JetBrains Mono',
-              fontWeight: FontWeight.w500,
-            ),
-          );
-        } else {
-          // Trail - fading
-          opacity = (0.6 * (1 - positionInStream)).clamp(0.05, 0.6);
-          textPainter.text = TextSpan(
-            text: char,
-            style: TextStyle(
-              color: baseColor.withOpacity(opacity * intensity),
-              fontSize: column.fontSize * intensity,
-              fontFamily: 'JetBrains Mono',
-            ),
-          );
-        }
-
-        textPainter.layout();
+        final textPainter = _getGlyphPainter(
+          char: char,
+          fontSize: fontSize,
+          colorType: column.colorType,
+          rowIndex: i,
+          charCount: column.charCount,
+          baseColor: baseColor,
+        );
         textPainter.paint(canvas, Offset(x - textPainter.width / 2, y));
       }
 
-      // Glow effect on leading character
+      // Subtle glow on leading character (no blur for performance)
       final leadY = startY;
       if (leadY > -charHeight && leadY < size.height + charHeight) {
-        _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 8 * intensity);
-        _fillPaint.color = baseColor.withOpacity(0.3 * intensity);
-        canvas.drawCircle(Offset(x, leadY + charHeight / 2), column.fontSize * 0.8 * intensity, _fillPaint);
-        _fillPaint.maskFilter = null;
+        _fillPaint.color = baseColor.withValues(alpha: 0.15 * intensity);
+        canvas.drawCircle(Offset(x, leadY + charHeight / 2), column.fontSize * 1.2 * intensity, _fillPaint);
       }
     }
+  }
+
+  TextPainter _getGlyphPainter({
+    required String char,
+    required double fontSize,
+    required int colorType,
+    required int rowIndex,
+    required int charCount,
+    required Color baseColor,
+  }) {
+    final styleTier = _styleTierForRow(rowIndex, charCount);
+    final key = _GlyphCacheKey(
+      fontSize: fontSize.round(),
+      styleTier: styleTier,
+      colorType: colorType,
+      charCode: char.codeUnitAt(0),
+    );
+
+    final cachedPainter = state.glyphCache[key];
+    if (cachedPainter != null) {
+      return cachedPainter;
+    }
+
+    // Evict cache when it grows too large
+    if (state.glyphCache.length >= _maxGlyphCacheSize) {
+      state.glyphCache.clear();
+    }
+
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      text: TextSpan(
+        text: char,
+        style: TextStyle(
+          color: _colorForStyleTier(styleTier, baseColor),
+          fontSize: fontSize,
+          fontFamily: 'JetBrains Mono',
+          fontWeight: _weightForStyleTier(styleTier),
+        ),
+      ),
+    )..layout();
+
+    state.glyphCache[key] = textPainter;
+    return textPainter;
+  }
+
+  int _styleTierForRow(int rowIndex, int charCount) {
+    if (rowIndex == 0) return 0;
+    if (rowIndex == 1) return 1;
+    if (rowIndex == 2) return 2;
+
+    final positionInStream = rowIndex / charCount;
+    return 3 + (positionInStream * 4).floor().clamp(0, 3);
+  }
+
+  FontWeight _weightForStyleTier(int styleTier) {
+    switch (styleTier) {
+      case 0:
+        return FontWeight.bold;
+      case 1:
+      case 2:
+        return FontWeight.w500;
+      default:
+        return FontWeight.normal;
+    }
+  }
+
+  Color _colorForStyleTier(int styleTier, Color baseColor) {
+    final opacity = switch (styleTier) {
+      0 => 1.0,
+      1 => 0.9,
+      2 => 0.8,
+      3 => 0.6,
+      4 => 0.45,
+      5 => 0.3,
+      _ => 0.15,
+    };
+
+    if (styleTier == 0) {
+      return _white.withValues(alpha: opacity * intensity);
+    }
+
+    return baseColor.withValues(alpha: opacity * intensity);
   }
 
   void _paintScanLine(Canvas canvas, Size size) {
@@ -464,9 +586,9 @@ class _DataStreamPainter extends CustomPainter {
       Offset(0, scanY + 30 * intensity),
       [
         Colors.transparent,
-        _green.withOpacity(0.1 * intensity),
-        _green.withOpacity(0.2 * intensity),
-        _green.withOpacity(0.1 * intensity),
+        _green.withValues(alpha: 0.1 * intensity),
+        _green.withValues(alpha: 0.2 * intensity),
+        _green.withValues(alpha: 0.1 * intensity),
         Colors.transparent,
       ],
       const [0.0, 0.3, 0.5, 0.7, 1.0],
@@ -481,43 +603,21 @@ class _DataStreamPainter extends CustomPainter {
 
     // Bright scan line
     _strokePaint.strokeWidth = 1.5 * intensity;
-    _strokePaint.color = _green.withOpacity(0.4 * intensity);
+    _strokePaint.color = _green.withValues(alpha: 0.4 * intensity);
     canvas.drawLine(Offset(0, scanY), Offset(size.width, scanY), _strokePaint);
   }
 
   void _paintGlowEffects(Canvas canvas, Size size) {
-    // Random flicker highlights
-    final rng = math.Random((_phase * 100).floor());
-
-    _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 15 * intensity);
-
-    for (int i = 0; i < 5; i++) {
-      if (rng.nextDouble() > 0.7) {
-        final x = rng.nextDouble() * size.width;
-        final y = rng.nextDouble() * size.height;
-        final glowSize = (20 + rng.nextDouble() * 30) * intensity;
-
-        _fillPaint.color = _green.withOpacity(0.08 * intensity);
-        canvas.drawCircle(Offset(x, y), glowSize, _fillPaint);
-      }
-    }
-
-    _fillPaint.maskFilter = null;
-
-    // Corner accent glows
+    // Corner accent glows (no blur, using larger radii with low opacity instead)
     final cornerGlow = math.sin(_phase * 2 * math.pi) * 0.3 + 0.7;
 
-    _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 50 * intensity);
-    _fillPaint.color = _green.withOpacity(0.05 * cornerGlow * intensity);
+    _fillPaint.color = _green.withValues(alpha: 0.03 * cornerGlow * intensity);
+    canvas.drawCircle(const Offset(0, 0), 140 * intensity, _fillPaint);
+    canvas.drawCircle(Offset(size.width, size.height), 120 * intensity, _fillPaint);
 
-    canvas.drawCircle(Offset(0, 0), 100 * intensity, _fillPaint);
-    canvas.drawCircle(Offset(size.width, size.height), 80 * intensity, _fillPaint);
-
-    _fillPaint.color = _cyan.withOpacity(0.03 * cornerGlow * intensity);
-    canvas.drawCircle(Offset(size.width, 0), 70 * intensity, _fillPaint);
-    canvas.drawCircle(Offset(0, size.height), 60 * intensity, _fillPaint);
-
-    _fillPaint.maskFilter = null;
+    _fillPaint.color = _cyan.withValues(alpha: 0.02 * cornerGlow * intensity);
+    canvas.drawCircle(Offset(size.width, 0), 100 * intensity, _fillPaint);
+    canvas.drawCircle(Offset(0, size.height), 90 * intensity, _fillPaint);
   }
 
   void _paintVignette(Canvas canvas, Size size) {
@@ -529,8 +629,8 @@ class _DataStreamPainter extends CustomPainter {
       radius,
       [
         Colors.transparent,
-        _black.withOpacity(0.4 * intensity),
-        _black.withOpacity(0.85 * intensity),
+        _black.withValues(alpha: 0.4 * intensity),
+        _black.withValues(alpha: 0.85 * intensity),
       ],
       const [0.3, 0.7, 1.0],
     );
@@ -542,6 +642,9 @@ class _DataStreamPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DataStreamPainter oldDelegate) {
-    return animationEnabled;
+    return oldDelegate.animationEnabled != animationEnabled ||
+        oldDelegate.intensity != intensity ||
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.accentColor != accentColor;
   }
 }

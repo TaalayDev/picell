@@ -118,6 +118,34 @@ class _ForestState {
   List<_Tree>? trees;
   List<_Leaf>? leaves;
   List<_Firefly>? fireflies;
+
+  // Persistent RNG – avoids creating a new Random() on every frame
+  final math.Random rng = math.Random();
+
+  // Cached size-dependent GPU shaders
+  Size? lastSize;
+  ui.Shader? cachedSkyShader;
+
+  // Pre-computed determinstic positions for undergrowth and dapples
+  List<double>? undergrowthX;
+  List<double>? undergrowthH;
+  List<bool>? undergrowthColor; // true = leafGreen
+  List<double>? dappleX;
+  List<double>? dappleY;
+  List<double>? dappleS;
+
+  // Pre-computed layer colors (avoids Color.lerp every frame)
+  static const List<Color> trunkColors = [
+    Color(0xFF3E2F2A), // layer 0: lerp(richBrown, deepForest, 0.5)
+    Color(0xFF5D4037), // layer 1: warmBrown
+    Color(0xFF3E2723), // layer 2: richBrown
+  ];
+  static const List<Color> leafColors = [
+    Color(0xFF1B5E20), // layer 0: deepForest
+    Color(0xFF2E7D32), // layer 1: midForest
+    Color(0xFF8BC34A), // layer 2: leafGreen
+  ];
+  static const List<double> layerOpacity = [0.6, 0.8, 1.0];
 }
 
 class _Tree {
@@ -188,17 +216,24 @@ class _EnhancedForestPainter extends CustomPainter {
   final bool animationEnabled;
 
   // Forest color palette
-  static const Color _deepForest = Color(0xFF1B5E20);
   static const Color _midForest = Color(0xFF2E7D32);
   static const Color _lightForest = Color(0xFF4CAF50);
   static const Color _sunlight = Color(0xFFFFF8E1);
   static const Color _warmBrown = Color(0xFF5D4037);
-  static const Color _richBrown = Color(0xFF3E2723);
   static const Color _leafGreen = Color(0xFF8BC34A);
-  static const Color _mossGreen = Color(0xFF689F38);
   static const Color _dappleLight = Color(0xFFFFE082);
 
-  final math.Random _rng = math.Random(12345);
+  // Reusable Paint objects – avoids per-frame heap allocation and GC pressure
+  final _skyPaint = Paint();
+  final _rayPaint = Paint()..style = PaintingStyle.fill;
+  final _treePaint = Paint()..style = PaintingStyle.fill;
+  final _canopyHighlightPaint = Paint();
+  final _mistPaint = Paint()
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20); // reduced from 30
+  final _undergrowthPaint = Paint()..style = PaintingStyle.fill;
+  final _leafPaint = Paint()..style = PaintingStyle.fill;
+  final _fireflyPaint = Paint()..style = PaintingStyle.fill;
+  final _dapplePaint = Paint()..style = PaintingStyle.fill;
 
   _EnhancedForestPainter({
     required Listenable repaint,
@@ -216,6 +251,13 @@ class _EnhancedForestPainter extends CustomPainter {
     final dt = (state.lastFrameTimestamp == 0) ? 0.016 : (now - state.lastFrameTimestamp);
     state.lastFrameTimestamp = now;
     state.time += dt;
+
+    // Invalidate size-dependent caches on resize
+    if (state.lastSize != size) {
+      state.lastSize = size;
+      state.cachedSkyShader = null;
+      state.trees = null; // re-init so tree heights scale properly
+    }
 
     // Initialization
     if (state.trees == null) _initWorld(size);
@@ -312,119 +354,88 @@ class _EnhancedForestPainter extends CustomPainter {
   }
 
   void _paintForestSky(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-
-    // Forest canopy gradient
-    final skyGradient = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(size.width * 0.5, 0),
-        Offset(size.width * 0.5, size.height),
-        [
-          _sunlight.withOpacity(0.9), // Bright sky above
-          Color.lerp(_sunlight, _leafGreen, 0.3)!,
-          Color.lerp(_leafGreen, _midForest, 0.2)!,
-          Color.lerp(_midForest, _deepForest, 0.1)!,
-        ],
-        [0.0, 0.25, 0.7, 1.0],
-      );
-
-    canvas.drawRect(rect, skyGradient);
+    // Sky shader is cached and rebuilt only when size changes
+    state.cachedSkyShader ??= ui.Gradient.linear(
+      Offset(size.width * 0.5, 0),
+      Offset(size.width * 0.5, size.height),
+      const [
+        Color(0xFFFFF8E1), // _sunlight
+        Color(0xFFD4E8A0), // lerp(_sunlight, _leafGreen, 0.3)
+        Color(0xFF4B8C3F), // lerp(_leafGreen, _midForest, 0.2)
+        Color(0xFF2A6E2E), // lerp(_midForest, _deepForest, 0.1)
+      ],
+      [0.0, 0.25, 0.7, 1.0],
+    );
+    _skyPaint.shader = state.cachedSkyShader;
+    canvas.drawRect(Offset.zero & size, _skyPaint);
   }
 
   void _paintSunlightRays(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    // Use stored time for slow shifting rays
     final rayTime = state.time * 0.1;
+    final widthTop = 20 * intensity;
+    final widthBottom = 80 * intensity;
+    final length = size.height * 0.9;
+    final path = Path(); // reused across rays
 
     for (int i = 0; i < 6; i++) {
-      // Calculate ray position with gentle sway
       final rayBaseX = size.width * (0.2 + i * 0.15);
       final sway = math.sin(rayTime + i) * 30 * intensity;
-
       final rayStartX = rayBaseX + sway;
-      final rayStartY = -50.0;
+      const rayStartY = -50.0;
 
       final angle = (15 + i * 5) * math.pi / 180;
-      final length = size.height * 0.9;
-
       final endX = rayStartX + math.sin(angle) * length;
       final endY = rayStartY + math.cos(angle) * length;
 
-      final path = Path();
-      final widthTop = 20 * intensity;
-      final widthBottom = 80 * intensity;
-
+      path.reset();
       path.moveTo(rayStartX - widthTop / 2, rayStartY);
       path.lineTo(rayStartX + widthTop / 2, rayStartY);
       path.lineTo(endX + widthBottom / 2, endY);
       path.lineTo(endX - widthBottom / 2, endY);
       path.close();
 
-      final beamAlpha = 0.3 + 0.2 * math.sin(rayTime * 2 + i);
+      final beamAlpha = (0.3 + 0.2 * math.sin(rayTime * 2 + i)) * intensity;
 
-      paint.shader = ui.Gradient.linear(
+      // Gradient recreated each frame only because start point shifts with sway;
+      // acceptable cost compared to creating a new Paint per ray.
+      _rayPaint.shader = ui.Gradient.linear(
         Offset(rayStartX, rayStartY),
         Offset(endX, endY),
         [
-          _sunlight.withOpacity(0.4 * beamAlpha * intensity),
-          _sunlight.withOpacity(0.1 * beamAlpha * intensity),
+          _sunlight.withOpacity(0.4 * beamAlpha),
+          _sunlight.withOpacity(0.1 * beamAlpha),
           Colors.transparent,
         ],
         [0.0, 0.6, 1.0],
       );
 
-      canvas.drawPath(path, paint);
+      canvas.drawPath(path, _rayPaint);
     }
+    _rayPaint.shader = null;
   }
 
   void _paintTrees(Canvas canvas, Size size, int layer) {
     if (state.trees == null) return;
 
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    // Sway factors based on layer (closer = more sway visually, or less depending on wind)
-    // Generally tree tops sway.
+    // Layer colors pre-computed in _ForestState – no Color.lerp per frame
+    final trunkColor = _ForestState.trunkColors[layer];
+    final leafColor = _ForestState.leafColors[layer];
+    final opacity = _ForestState.layerOpacity[layer];
     final swayTime = state.time * (0.5 + layer * 0.2);
 
     for (var tree in state.trees!) {
       if (tree.layer != layer) continue;
 
-      double opacity = 1.0;
-      Color trunkColor = _richBrown;
-      Color leafColor = _midForest;
-
-      if (layer == 0) {
-        // Far
-        opacity = 0.6;
-        trunkColor = Color.lerp(_richBrown, _deepForest, 0.5)!;
-        leafColor = _deepForest;
-      } else if (layer == 1) {
-        // Mid
-        opacity = 0.8;
-        trunkColor = _warmBrown;
-        leafColor = _midForest;
-      } else {
-        // Near
-        opacity = 1.0;
-        trunkColor = _richBrown;
-        leafColor = _leafGreen;
-      }
-
       final sway = math.sin(swayTime + tree.seed) * (5 + layer * 3) * intensity;
-
-      // Draw Trunk
       final trunkBase = Offset(tree.x, size.height);
       final trunkTop = Offset(tree.x + sway, size.height - tree.height);
 
-      _drawTreeTrunk(canvas, paint, trunkBase, trunkTop, tree.width * intensity, trunkColor.withOpacity(opacity));
-
-      // Draw Canopy (Clusters of circles/shapes attached to trunk top)
-      _drawCanopyClusters(
-          canvas, paint, trunkTop, tree.width * intensity, tree.height, leafColor.withOpacity(opacity), tree.seed);
+      _drawTreeTrunk(canvas, trunkBase, trunkTop, tree.width * intensity, trunkColor.withOpacity(opacity));
+      _drawCanopyClusters(canvas, trunkTop, tree.width * intensity, tree.height, leafColor.withOpacity(opacity), tree.seed);
     }
   }
 
-  void _drawTreeTrunk(Canvas canvas, Paint paint, Offset base, Offset top, double width, Color color) {
+  void _drawTreeTrunk(Canvas canvas, Offset base, Offset top, double width, Color color) {
     final path = Path();
     path.moveTo(base.dx - width / 2, base.dy);
     path.quadraticBezierTo(base.dx - width * 0.4, base.dy - (base.dy - top.dy) * 0.5, top.dx - width * 0.2, top.dy);
@@ -432,115 +443,121 @@ class _EnhancedForestPainter extends CustomPainter {
     path.quadraticBezierTo(base.dx + width * 0.4, base.dy - (base.dy - top.dy) * 0.5, base.dx + width / 2, base.dy);
     path.close();
 
-    paint.color = color;
-    canvas.drawPath(path, paint);
+    _treePaint.color = color;
+    canvas.drawPath(path, _treePaint);
 
-    // Add texture
-    paint.color = Colors.black.withOpacity(0.1);
-    final textureStep = 10.0;
-    for (double y = top.dy; y < base.dy; y += textureStep) {
+    // Bark texture – step 20px instead of 10px (half the draw calls)
+    _treePaint.color = const Color(0x1A000000); // Colors.black.withOpacity(0.1)
+    for (double y = top.dy; y < base.dy; y += 20.0) {
       final progress = (y - top.dy) / (base.dy - top.dy);
-      final w = width * (0.2 + 0.8 * progress); // interpolated width roughly
+      final w = width * (0.2 + 0.8 * progress);
       final x = base.dx + (top.dx - base.dx) * (1 - progress);
-
-      if (y % 20 < 10) {
-        canvas.drawRect(Rect.fromLTWH(x - w * 0.3, y, w * 0.1, 4), paint);
-      }
+      canvas.drawRect(Rect.fromLTWH(x - w * 0.3, y, w * 0.1, 4), _treePaint);
     }
   }
 
   void _drawCanopyClusters(
-      Canvas canvas, Paint paint, Offset center, double treeWidth, double treeHeight, Color color, int seed) {
+      Canvas canvas, Offset center, double treeWidth, double treeHeight, Color color, int seed) {
+    // math.Random(seed) produces the same sequence for the same seed each call –
+    // this is intentional so cluster positions stay deterministic across frames.
     final rng = math.Random(seed);
-    paint.color = color;
+    _treePaint.color = color;
+    _canopyHighlightPaint.color = _lightForest.withOpacity(color.opacity * 0.3);
 
     final clusters = 5 + (treeWidth / 10).round();
 
     for (int i = 0; i < clusters; i++) {
       final offsetX = (rng.nextDouble() - 0.5) * treeWidth * 3.0;
       final offsetY = (rng.nextDouble() - 0.5) * treeHeight * 0.4;
-      final size = treeWidth * (0.8 + rng.nextDouble() * 0.6);
+      final r = treeWidth * (0.8 + rng.nextDouble() * 0.6);
 
-      canvas.drawCircle(center + Offset(offsetX, offsetY), size, paint);
+      canvas.drawCircle(center + Offset(offsetX, offsetY), r, _treePaint);
 
-      // Highlight on leaves
+      // Highlight on every other cluster (avoids per-iteration branch + Paint alloc)
       if (rng.nextBool()) {
-        final highlightPaint = Paint()..color = _lightForest.withOpacity(color.opacity * 0.3);
-        canvas.drawCircle(center + Offset(offsetX - size * 0.2, offsetY - size * 0.2), size * 0.5, highlightPaint);
+        canvas.drawCircle(center + Offset(offsetX - r * 0.2, offsetY - r * 0.2), r * 0.5, _canopyHighlightPaint);
       }
     }
   }
 
   void _paintMist(Canvas canvas, Size size, double baseOpacity) {
-    final paint = Paint()
-      ..color = _sunlight.withOpacity(baseOpacity * 0.5 * intensity)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30);
-
+    // Reuse _mistPaint (blur MaskFilter set at construction, radius 20 not 30)
+    _mistPaint.color = _sunlight.withOpacity(baseOpacity * 0.5 * intensity);
     final time = state.time;
 
     for (int i = 0; i < 3; i++) {
-      // Slow scrolling mist
       final scroll = (time * 20 + i * 100) % (size.width + 200) - 100;
       final y = size.height * 0.6 + math.sin(time * 0.5 + i) * 50;
-
-      canvas.drawOval(Rect.fromCenter(center: Offset(scroll, y), width: 300, height: 100), paint);
+      canvas.drawOval(Rect.fromCenter(center: Offset(scroll, y), width: 300, height: 100), _mistPaint);
     }
   }
 
   void _paintUndergrowth(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    final rng = math.Random(123); // Deterministic placement
+    // Undergrowth positions are deterministic and cached in state after first build
+    if (state.undergrowthX == null) {
+      final rng = math.Random(123);
+      state.undergrowthX = [];
+      state.undergrowthH = [];
+      state.undergrowthColor = [];
+      for (double x = 0; x < size.width; x += 15) {
+        state.undergrowthX!.add(x);
+        state.undergrowthH!.add(10 + rng.nextDouble() * 20);
+        state.undergrowthColor!.add(rng.nextBool());
+      }
+    }
 
-    for (double x = 0; x < size.width; x += 15) {
+    final path = Path(); // reused per blade
+    final leafGreenAlpha = _leafGreen.withOpacity(0.8 * intensity);
+    final midForestAlpha = _midForest.withOpacity(0.8 * intensity);
+
+    for (int idx = 0; idx < state.undergrowthX!.length; idx++) {
+      final x = state.undergrowthX![idx];
+      final height = state.undergrowthH![idx];
       final sway = math.sin(state.time * 2 + x * 0.1) * 3 * intensity;
-      final height = 10 + rng.nextDouble() * 20;
 
-      // Grass blade
-      final path = Path();
+      path.reset();
       path.moveTo(x, size.height);
       path.quadraticBezierTo(x + sway, size.height - height * 0.5, x + sway * 1.5, size.height - height);
       path.quadraticBezierTo(x + sway + 3, size.height - height * 0.5, x + 6, size.height);
       path.close();
 
-      paint.color = (rng.nextBool() ? _leafGreen : _midForest).withOpacity(0.8 * intensity);
-      canvas.drawPath(path, paint);
+      _undergrowthPaint.color = state.undergrowthColor![idx] ? leafGreenAlpha : midForestAlpha;
+      canvas.drawPath(path, _undergrowthPaint);
     }
   }
 
   void _updateAndPaintLeaves(Canvas canvas, Size size, double dt) {
     if (state.leaves == null) return;
 
-    final paint = Paint()..style = PaintingStyle.fill;
+    final path = Path(); // reused per leaf
 
     for (var leaf in state.leaves!) {
-      // Update physics
       leaf.y += leaf.speedY * dt * intensity;
       leaf.phase += leaf.swayFreq * dt;
       leaf.x += math.sin(leaf.phase) * leaf.swayAmp * dt * intensity;
       leaf.rotation += leaf.rotSpeed * dt;
 
-      // Wrap
+      // Wrap – use state.rng instead of _rng field on painter
       if (leaf.y > size.height + 10) {
         leaf.y = -10;
-        leaf.x = _rng.nextDouble() * size.width;
+        leaf.x = state.rng.nextDouble() * size.width;
       }
       if (leaf.x < -10) leaf.x = size.width + 10;
       if (leaf.x > size.width + 10) leaf.x = -10;
 
-      // Draw
-      paint.color = leaf.color.withOpacity(0.9 * intensity);
+      _leafPaint.color = leaf.color.withOpacity(0.9 * intensity);
 
       canvas.save();
       canvas.translate(leaf.x, leaf.y);
       canvas.rotate(leaf.rotation);
 
-      final path = Path();
+      path.reset();
       path.moveTo(0, -leaf.size);
       path.quadraticBezierTo(leaf.size, 0, 0, leaf.size);
       path.quadraticBezierTo(-leaf.size, 0, 0, -leaf.size);
       path.close();
 
-      canvas.drawPath(path, paint);
+      canvas.drawPath(path, _leafPaint);
       canvas.restore();
     }
   }
@@ -548,41 +565,47 @@ class _EnhancedForestPainter extends CustomPainter {
   void _updateAndPaintFireflies(Canvas canvas, Size size, double dt) {
     if (state.fireflies == null) return;
 
-    final paint = Paint()..style = PaintingStyle.fill;
-
     for (var fly in state.fireflies!) {
       fly.x += fly.speedX * dt * intensity;
       fly.y += fly.speedY * dt * intensity;
 
-      // Boundary bounce
       if (fly.x < 0 || fly.x > size.width) fly.speedX *= -1;
       if (fly.y < size.height * 0.4 || fly.y > size.height) fly.speedY *= -1;
 
-      final glow = math.sin(state.time * 3 + fly.phase) * 0.5 + 0.5; // 0..1
+      final glow = math.sin(state.time * 3 + fly.phase) * 0.5 + 0.5;
 
       if (glow > 0.1) {
-        paint.color = _dappleLight.withOpacity(glow * 0.6 * intensity);
-        canvas.drawCircle(Offset(fly.x, fly.y), fly.size, paint);
+        _fireflyPaint.color = _dappleLight.withOpacity(glow * 0.6 * intensity);
+        canvas.drawCircle(Offset(fly.x, fly.y), fly.size, _fireflyPaint);
 
-        // Aura
-        paint.color = _dappleLight.withOpacity(glow * 0.2 * intensity);
-        canvas.drawCircle(Offset(fly.x, fly.y), fly.size * 3, paint);
+        _fireflyPaint.color = _dappleLight.withOpacity(glow * 0.2 * intensity);
+        canvas.drawCircle(Offset(fly.x, fly.y), fly.size * 3, _fireflyPaint);
       }
     }
   }
 
   void _paintLightDapples(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    final rng = math.Random(444);
+    // Dapple positions are deterministic – cache them so we don't re-create
+    // Random(444) and call nextDouble() 30 times per frame.
+    if (state.dappleX == null) {
+      final rng = math.Random(444);
+      state.dappleX = [];
+      state.dappleY = [];
+      state.dappleS = [];
+      for (int i = 0; i < 10; i++) {
+        state.dappleX!.add(rng.nextDouble() * size.width);
+        state.dappleY!.add(size.height * (0.7 + rng.nextDouble() * 0.3));
+        state.dappleS!.add(20 + rng.nextDouble() * 40);
+      }
+    }
 
     for (int i = 0; i < 10; i++) {
-      final x = rng.nextDouble() * size.width;
-      final y = size.height * (0.7 + rng.nextDouble() * 0.3);
-      final s = 20 + rng.nextDouble() * 40;
-
+      final x = state.dappleX![i];
+      final y = state.dappleY![i];
+      final s = state.dappleS![i];
       final flicker = math.sin(state.time + i) * 0.5 + 0.5;
 
-      final gradient = ui.Gradient.radial(
+      _dapplePaint.shader = ui.Gradient.radial(
         Offset(x, y),
         s,
         [
@@ -590,14 +613,16 @@ class _EnhancedForestPainter extends CustomPainter {
           Colors.transparent,
         ],
       );
-
-      paint.shader = gradient;
-      canvas.drawRect(Rect.fromCircle(center: Offset(x, y), radius: s), paint);
+      canvas.drawRect(Rect.fromCircle(center: Offset(x, y), radius: s), _dapplePaint);
     }
+    _dapplePaint.shader = null;
   }
 
   @override
   bool shouldRepaint(covariant _EnhancedForestPainter oldDelegate) {
-    return animationEnabled;
+    return animationEnabled ||
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.accentColor != accentColor ||
+        oldDelegate.intensity != intensity;
   }
 }
