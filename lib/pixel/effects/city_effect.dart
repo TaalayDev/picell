@@ -575,7 +575,7 @@ class CityEffect extends Effect {
     final windowColors = List.generate(numRows * windowsPerRow, (i) {
       if (!litWindows[i]) {
         // Unlit window - dark reflection
-        return isNight ? colors.window.withOpacity(0.3) : _adjustBrightness(colors.window, -0.3);
+        return isNight ? colors.window.withValues(alpha: 0.3) : _adjustBrightness(colors.window, -0.3);
       }
 
       // Lit window with color variation
@@ -708,7 +708,7 @@ class CityEffect extends Effect {
           } else if (!isLit) {
             // Reflection gradient for unlit windows
             final reflectionGradient = wy / windowHeight;
-            finalColor = Color.lerp(color, Colors.white.withOpacity(0.1), reflectionGradient * 0.2)!;
+            finalColor = Color.lerp(color, Colors.white.withValues(alpha: 0.1), reflectionGradient * 0.2)!;
           }
 
           // Add window frame for larger windows
@@ -1074,7 +1074,7 @@ class CityEffect extends Effect {
         if (existing.computeLuminance() < 0.2) {
           final brightness = 0.5 + starRandom.nextDouble() * 0.5;
           final starColor = Color.lerp(Colors.white, const Color(0xFFFFFFAA), starRandom.nextDouble())!;
-          pixels[index] = starColor.withOpacity(brightness).value;
+          pixels[index] = starColor.withValues(alpha: brightness).value;
         }
       }
     }
@@ -1105,7 +1105,7 @@ class CityEffect extends Effect {
         final windowGray = grayValue + (isNight ? 60 : 30);
         final window =
             Color.fromARGB(255, windowGray.clamp(0, 255), windowGray.clamp(0, 255), windowGray.clamp(0, 255));
-        final accent = Colors.white.withOpacity(0.8);
+        final accent = Colors.white.withValues(alpha: 0.8);
         return _BuildingColors(main, window, accent);
 
       case 3: // Sunset

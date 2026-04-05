@@ -48,7 +48,7 @@ class AboutScreen extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: [
             headerColor,
-            headerColor.withOpacity(0.99),
+            headerColor.withValues(alpha: 0.99),
           ],
         ),
       ),
@@ -67,7 +67,7 @@ class AboutScreen extends StatelessWidget {
                 shadows: [
                   Shadow(
                     blurRadius: 10.0,
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     offset: const Offset(2, 2),
                   ),
                 ],
@@ -78,7 +78,7 @@ class AboutScreen extends StatelessWidget {
                 Strings.of(context).version(version),
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                 ),
               ).animate().fadeIn(delay: 300.ms, duration: 600.ms);
             }),
@@ -112,12 +112,8 @@ class AboutScreen extends StatelessWidget {
   }
 
   Widget _buildFeaturesList(BuildContext context) {
-    final features = Strings.of(context)
-        .features
-        .split('\n')
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty)
-        .toList();
+    final features =
+        Strings.of(context).features.split('\n').map((line) => line.trim()).where((line) => line.isNotEmpty).toList();
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -138,9 +134,7 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(child: Text(entry.value)),
                 ],
-              )
-                  .animate()
-                  .fadeIn(delay: (300 + entry.key * 100).ms, duration: 600.ms),
+              ).animate().fadeIn(delay: (300 + entry.key * 100).ms, duration: 600.ms),
             );
           }),
         ],
@@ -191,11 +185,7 @@ class AboutScreen extends StatelessWidget {
               Text(
                 ' • ',
                 style: TextStyle(
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.color
-                      ?.withOpacity(0.7),
+                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                   fontSize: 12,
                 ),
               ),

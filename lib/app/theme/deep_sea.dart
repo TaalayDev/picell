@@ -158,9 +158,9 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
         Offset(size.width * 0.5, 0),
         Offset(size.width * 0.5, size.height),
         [
-          _mesopelagic.withOpacity(0.4), // Twilight zone remnant
-          _bathyal.withOpacity(0.8), // Bathyal zone
-          _abyssal.withOpacity(0.95), // Abyssal depths
+          _mesopelagic.withValues(alpha: 0.4), // Twilight zone remnant
+          _bathyal.withValues(alpha: 0.8), // Bathyal zone
+          _abyssal.withValues(alpha: 0.95), // Abyssal depths
           const Color(0xFF000000), // True abyss
         ],
         [0.0, 0.3, 0.8, 1.0],
@@ -179,7 +179,7 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
           Offset(0, pressureY + 30),
           [
             Colors.transparent,
-            _bathyal.withOpacity(0.1 * pressureIntensity * intensity),
+            _bathyal.withValues(alpha: 0.1 * pressureIntensity * intensity),
             Colors.transparent,
           ],
           [0.0, 0.5, 1.0],
@@ -218,8 +218,8 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
       final currentIntensity = 0.3 + 0.4 * _norm(0.08, layer * 0.6);
       paint.strokeWidth = (1 + layer * 0.5) * intensity;
       paint.color = Color.lerp(
-        primaryColor.withOpacity(0.15 * currentIntensity * intensity),
-        accentColor.withOpacity(0.12 * currentIntensity * intensity),
+        primaryColor.withValues(alpha: 0.15 * currentIntensity * intensity),
+        accentColor.withValues(alpha: 0.12 * currentIntensity * intensity),
         layer / (_currentLayers - 1),
       )!;
 
@@ -243,7 +243,7 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
       final particleSize = (1.5 + layer * 0.5) * intensity;
       final particleOpacity = math.max(0.0, (1.0 - particleProgress) * 0.6) * intensity;
 
-      paint.color = primaryColor.withOpacity(particleOpacity);
+      paint.color = primaryColor.withValues(alpha: particleOpacity);
       canvas.drawCircle(Offset(particleX, particleY), particleSize, paint);
     }
   }
@@ -264,7 +264,7 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
         final ringSize = distortionSize * (1 + ring * 0.3);
         final ringOpacity = (0.03 - ring * 0.01) * pressureIntensity * intensity;
 
-        paint.color = accentColor.withOpacity(ringOpacity);
+        paint.color = accentColor.withValues(alpha: ringOpacity);
         canvas.drawCircle(Offset(distortionX, distortionY), ringSize, paint);
       }
     }
@@ -282,7 +282,7 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
       final sedimentSize = (0.5 + random.nextDouble() * 1.5) * intensity;
       final sedimentOpacity = (0.2 + random.nextDouble() * 0.3) * intensity;
 
-      paint.color = const Color(0xFF4A5568).withOpacity(sedimentOpacity);
+      paint.color = const Color(0xFF4A5568).withValues(alpha: sedimentOpacity);
       canvas.drawCircle(Offset(sedimentX, sedimentY), sedimentSize, paint);
     }
   }
@@ -297,8 +297,8 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
         Offset(size.width * 0.5, size.height * 0.8),
         size.width * 0.6,
         [
-          primaryColor.withOpacity(0.05 * intensity),
-          _biolumBlue.withOpacity(0.03 * intensity),
+          primaryColor.withValues(alpha: 0.05 * intensity),
+          _biolumBlue.withValues(alpha: 0.03 * intensity),
           Colors.transparent,
         ],
         [0.0, 0.4, 1.0],
@@ -313,7 +313,7 @@ class _EnhancedDeepSeaPainter extends CustomPainter {
         Offset(0, size.height),
         [
           Colors.transparent,
-          _abyssal.withOpacity(0.3 * intensity),
+          _abyssal.withValues(alpha: 0.3 * intensity),
         ],
         [0.0, 1.0],
       );

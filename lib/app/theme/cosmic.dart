@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'flagship/cosmic_flagship.dart';
 import 'theme.dart';
 
 AppTheme buildCosmicTheme() {
@@ -61,6 +62,22 @@ AppTheme buildCosmicTheme() {
       ),
     ),
     primaryFontWeight: FontWeight.w500,
+    geometry: AppThemeGeometry.defaults.copyWith(
+      cardRadius: 16,
+      buttonRadius: 12,
+      dialogRadius: 18,
+      chipRadius: 20,
+      inputRadius: 12,
+      bottomSheetRadius: 24,
+      cardElevation: 0,
+      cardBorderWidth: 1.0,
+      shadowColor: const Color(0x6600D9FF),
+      titleLetterSpacing: 0.8,
+      bodyLetterSpacing: 0.3,
+      hoverDuration: const Duration(milliseconds: 180),
+      hoverCurve: Curves.easeOutCubic,
+    ),
+    flagship: buildCosmicFlagshipConfig(),
   );
 }
 
@@ -151,8 +168,8 @@ class _CosmicPainter extends CustomPainter {
       final radius = (random.nextDouble() * 2 + 0.5) * intensity;
 
       paint.color = Color.lerp(
-        primaryColor.withOpacity(0.3),
-        accentColor.withOpacity(0.5),
+        primaryColor.withValues(alpha: 0.3),
+        accentColor.withValues(alpha: 0.5),
         math.sin(animation + i * 0.1) * 0.5 + 0.5,
       )!;
 
@@ -165,8 +182,8 @@ class _CosmicPainter extends CustomPainter {
       final centerY = size.height * (0.3 + math.sin(animation + i) * 0.2);
 
       paint.color = Color.lerp(
-        primaryColor.withOpacity(0.05),
-        accentColor.withOpacity(0.03),
+        primaryColor.withValues(alpha: 0.05),
+        accentColor.withValues(alpha: 0.03),
         math.cos(animation + i * 0.5) * 0.5 + 0.5,
       )!;
 

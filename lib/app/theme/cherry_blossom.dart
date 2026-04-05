@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'flagship/cherry_blossom_flagship.dart';
 import 'theme.dart';
 
 AppTheme buildCherryBlossomTheme() {
@@ -61,6 +62,8 @@ AppTheme buildCherryBlossomTheme() {
       ),
     ),
     primaryFontWeight: FontWeight.w400, // Light weight for elegant feel
+    geometry: AppThemeGeometry.cherryBlossom,
+    flagship: buildCherryBlossomFlagshipConfig(),
   );
 }
 
@@ -131,8 +134,8 @@ class _CherryBlossomPainter extends CustomPainter {
   // Palette (derived to keep theme-compatible pinks)
   late final Color _petal = Color.lerp(primaryColor, const Color(0xFFFFC1D9), 0.6)!;
   late final Color _petalDeep = Color.lerp(accentColor, const Color(0xFFEE6A9E), 0.5)!;
-  late final Color _skyTop = Color.lerp(const Color(0xFFEFF7FF), _petal.withOpacity(1), 0.18)!;
-  late final Color _skyBottom = Color.lerp(const Color(0xFFFFF1F6), _petal.withOpacity(1), 0.35)!;
+  late final Color _skyTop = Color.lerp(const Color(0xFFEFF7FF), _petal.withValues(alpha: 1), 0.18)!;
+  late final Color _skyBottom = Color.lerp(const Color(0xFFFFF1F6), _petal.withValues(alpha: 1), 0.35)!;
 
   // Counts
   int get _backCount => (18 * intensity).round(); // blurred background petals
@@ -165,7 +168,7 @@ class _CherryBlossomPainter extends CustomPainter {
       final cy = size.height * (0.18 + 0.08 * _wave(0.15, i.toDouble()));
       bokeh
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16)
-        ..color = Colors.white.withOpacity(0.05);
+        ..color = Colors.white.withValues(alpha: 0.05);
       canvas.drawCircle(Offset(cx, cy), 24 + 6.0 * i, bokeh);
     }
   }
@@ -193,7 +196,7 @@ class _CherryBlossomPainter extends CustomPainter {
     final paintStroke = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = outline
-      ..color = _petalDeep.withOpacity(0.18);
+      ..color = _petalDeep.withValues(alpha: 0.18);
 
     if (blur > 0) {
       paintFill.maskFilter = MaskFilter.blur(BlurStyle.normal, blur);
@@ -214,17 +217,17 @@ class _CherryBlossomPainter extends CustomPainter {
     // soft highlight near base
     final hl = Paint()
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6)
-      ..color = Colors.white.withOpacity(0.10);
+      ..color = Colors.white.withValues(alpha: 0.10);
     canvas.drawOval(Rect.fromCenter(center: Offset(0, h * 0.25), width: w * 0.8, height: h * 0.45), hl);
     canvas.restore();
   }
 
   void _drawBlossom(Canvas canvas, Offset center, double r, double rot, {double opacity = 1}) {
-    final petalColor = Color.lerp(_petal, Colors.white, 0.25)!.withOpacity(0.92 * opacity);
+    final petalColor = Color.lerp(_petal, Colors.white, 0.25)!.withValues(alpha: 0.92 * opacity);
     final stroke = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = (0.8 + r * 0.02).clamp(0.8, 2.0)
-      ..color = _petalDeep.withOpacity(0.25 * opacity);
+      ..color = _petalDeep.withValues(alpha: 0.25 * opacity);
 
     canvas.save();
     canvas.translate(center.dx, center.dy);
@@ -248,11 +251,11 @@ class _CherryBlossomPainter extends CustomPainter {
     }
 
     // center
-    final core = Paint()..color = Colors.white.withOpacity(0.85 * opacity);
+    final core = Paint()..color = Colors.white.withValues(alpha: 0.85 * opacity);
     canvas.drawCircle(Offset.zero, r * 0.4, core);
 
     // stamens (tiny yellow dots)
-    final stamenPaint = Paint()..color = const Color(0xFFFFE27A).withOpacity(0.9 * opacity);
+    final stamenPaint = Paint()..color = const Color(0xFFFFE27A).withValues(alpha: 0.9 * opacity);
     for (int i = 0; i < 10; i++) {
       final a = i * (2 * math.pi / 10) + 0.2 * _wave(0.3, i.toDouble());
       final rr = r * (0.5 + 0.08 * _norm(0.4, i.toDouble()));
@@ -323,7 +326,7 @@ class _CherryBlossomPainter extends CustomPainter {
         // Color/opacity
         final baseCol = Color.lerp(_petal, Colors.white, 0.25 + 0.35 * rng.nextDouble())!;
         final opacity = (0.65 * edgeFade) * alphaMul; // stronger base, modulated by edge fade
-        final fill = baseCol.withOpacity(opacity.clamp(0.0, 1.0));
+        final fill = baseCol.withValues(alpha: opacity.clamp(0.0, 1.0));
 
         if (opacity <= 0) continue;
 
@@ -352,7 +355,7 @@ class _CherryBlossomPainter extends CustomPainter {
       ..shader = RadialGradient(
         colors: [
           Colors.transparent,
-          Colors.black.withOpacity(0.16),
+          Colors.black.withValues(alpha: 0.16),
         ],
         stops: const [0.82, 1.0],
       ).createShader(Rect.fromCircle(

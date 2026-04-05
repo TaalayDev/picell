@@ -143,7 +143,7 @@ class _ActionButtonsBar extends HookWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        color: Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -348,10 +348,10 @@ class _ActionButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isEnabled ? color.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+              color: isEnabled ? color.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.2),
               width: 1,
             ),
-            color: isEnabled ? color.withOpacity(0.1) : Colors.grey.withOpacity(0.05),
+            color: isEnabled ? color.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.05),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -408,7 +408,7 @@ class _LayerTile extends StatelessWidget {
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         elevation: isSelected ? 3 : 1,
-        color: isSelected ? Colors.blue.withOpacity(0.7) : null,
+        color: isSelected ? Colors.blue.withValues(alpha: 0.7) : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: isSelected ? BorderSide(color: Colors.blue.shade300, width: 2) : BorderSide.none,
@@ -517,7 +517,7 @@ class _BackgroundImageTile extends ConsumerWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: Colors.amber.withOpacity(0.5),
+          color: Colors.amber.withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -555,7 +555,7 @@ class _BackgroundImageTile extends ConsumerWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.amber.withOpacity(0.2),
+                              color: Colors.amber.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text('Reference', style: TextStyle(fontSize: 10, color: Colors.amber.shade800)),
@@ -570,7 +570,7 @@ class _BackgroundImageTile extends ConsumerWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.2),
+                                color: Colors.grey.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text('Reset', style: TextStyle(fontSize: 9, color: Colors.grey.shade700)),
@@ -584,7 +584,7 @@ class _BackgroundImageTile extends ConsumerWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.2),
+                                color: Colors.grey.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text('Fit', style: TextStyle(fontSize: 9, color: Colors.grey.shade700)),
@@ -650,9 +650,9 @@ class _BackgroundImageTile extends ConsumerWidget {
               trackHeight: 4,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-              activeTrackColor: activeColor.withOpacity(0.7),
+              activeTrackColor: activeColor.withValues(alpha: 0.7),
               inactiveTrackColor: Colors.grey.shade300,
-              thumbColor: activeColor.withOpacity(0.9),
+              thumbColor: activeColor.withValues(alpha: 0.9),
             ),
             child: Slider(
               value: value,

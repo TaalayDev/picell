@@ -89,7 +89,7 @@ class AuthDialog extends HookConsumerWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -117,7 +117,7 @@ class AuthDialog extends HookConsumerWidget {
           Text(
             subtitle ?? Strings.of(context).signInToSyncProjects,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
             textAlign: TextAlign.center,
           ),
@@ -130,10 +130,10 @@ class AuthDialog extends HookConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.error.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -246,7 +246,7 @@ class AuthDialog extends HookConsumerWidget {
               child: Text(
                 Strings.of(context).skipForNow,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             ),
@@ -422,7 +422,7 @@ class UserProfileWidget extends ConsumerWidget {
                   Text(
                     user.email ?? Strings.of(context).noEmail,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                   ),
                 ],

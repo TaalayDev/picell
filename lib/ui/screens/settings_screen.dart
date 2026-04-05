@@ -340,7 +340,7 @@ class _SettingScreenState extends State<SettingScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -424,7 +424,7 @@ class _SettingScreenState extends State<SettingScreen> {
           trailing: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: _darkMode ? Colors.white.withOpacity(0.1) : Colors.grey.shade200,
+              color: _darkMode ? Colors.white.withValues(alpha: 0.1) : Colors.grey.shade200,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -441,9 +441,9 @@ class _SettingScreenState extends State<SettingScreen> {
           child: SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: const Color(0xFF00D9FF),
-              inactiveTrackColor: _darkMode ? Colors.white.withOpacity(0.1) : Colors.grey.shade300,
+              inactiveTrackColor: _darkMode ? Colors.white.withValues(alpha: 0.1) : Colors.grey.shade300,
               thumbColor: const Color(0xFF00D9FF),
-              overlayColor: const Color(0xFF00D9FF).withOpacity(0.2),
+              overlayColor: const Color(0xFF00D9FF).withValues(alpha: 0.2),
             ),
             child: Slider(
               value: value,

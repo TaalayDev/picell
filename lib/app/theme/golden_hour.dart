@@ -277,12 +277,12 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
         Offset(size.width * 0.5, 0),
         Offset(size.width * 0.5, size.height),
         [
-          _creamGold.withOpacity(0.3), // High sky
-          _peach.withOpacity(0.4), // Upper atmosphere
-          _honeyglow.withOpacity(0.6), // Mid sky
-          primaryColor.withOpacity(0.7), // Lower atmosphere
-          accentColor.withOpacity(0.5), // Horizon area
-          _burnishedGold.withOpacity(0.3), // Ground level
+          _creamGold.withValues(alpha: 0.3), // High sky
+          _peach.withValues(alpha: 0.4), // Upper atmosphere
+          _honeyglow.withValues(alpha: 0.6), // Mid sky
+          primaryColor.withValues(alpha: 0.7), // Lower atmosphere
+          accentColor.withValues(alpha: 0.5), // Horizon area
+          _burnishedGold.withValues(alpha: 0.3), // Ground level
         ],
         [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
       );
@@ -303,9 +303,9 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
         sunCenter,
         sunRadius * 3,
         [
-          _warmAmber.withOpacity(0.4 * intensity),
-          _honeyglow.withOpacity(0.25 * intensity),
-          _sunsetOrange.withOpacity(0.1 * intensity),
+          _warmAmber.withValues(alpha: 0.4 * intensity),
+          _honeyglow.withValues(alpha: 0.25 * intensity),
+          _sunsetOrange.withValues(alpha: 0.1 * intensity),
           Colors.transparent,
         ],
         [0.0, 0.3, 0.6, 1.0],
@@ -319,10 +319,10 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
         sunCenter,
         sunRadius * 2,
         [
-          Colors.white.withOpacity(0.9),
-          _warmAmber.withOpacity(0.8),
-          _sunsetOrange.withOpacity(0.6),
-          accentColor.withOpacity(0.3),
+          Colors.white.withValues(alpha: 0.9),
+          _warmAmber.withValues(alpha: 0.8),
+          _sunsetOrange.withValues(alpha: 0.6),
+          accentColor.withValues(alpha: 0.3),
         ],
         [0.0, 0.4, 0.7, 1.0],
       );
@@ -335,9 +335,9 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
         sunCenter,
         sunRadius,
         [
-          Colors.white.withOpacity(0.95),
-          _warmAmber.withOpacity(0.9),
-          _deepGold.withOpacity(0.7),
+          Colors.white.withValues(alpha: 0.95),
+          _warmAmber.withValues(alpha: 0.9),
+          _deepGold.withValues(alpha: 0.7),
         ],
         [0.0, 0.6, 1.0],
       );
@@ -374,8 +374,8 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
             sunPosition,
             endPoint,
             [
-              _warmAmber.withOpacity(rayOpacity),
-              _honeyglow.withOpacity(rayOpacity * 0.6),
+              _warmAmber.withValues(alpha: rayOpacity),
+              _honeyglow.withValues(alpha: rayOpacity * 0.6),
               Colors.transparent,
             ],
             [0.0, 0.7, 1.0],
@@ -412,7 +412,7 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
 
       final opacity = (0.1 + sunInfluence * 0.2 + cloud.layer * 0.05) * intensity;
 
-      paint.color = cloudColor.withOpacity(opacity);
+      paint.color = cloudColor.withValues(alpha: opacity);
 
       // Draw cloud shape
       _drawCloudShape(canvas, paint, cloudCenter, cloud.size * intensity, cloud.size * 0.6 * intensity);
@@ -437,7 +437,7 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
       final hazeHeight = (40 + i * 10) * intensity;
 
       final hazeColors = [_peach, _honeyglow, _warmAmber, _rosyGold];
-      paint.color = hazeColors[i % hazeColors.length].withOpacity(0.05 * intensity);
+      paint.color = hazeColors[i % hazeColors.length].withValues(alpha: 0.05 * intensity);
 
       canvas.drawOval(
         Rect.fromCenter(
@@ -472,11 +472,11 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
         final lightIntensity = (shimmer - 0.4) / 0.6;
         final pSize = particle.size * intensity;
 
-        paint.color = _creamGold.withOpacity(0.4 * lightIntensity * intensity);
+        paint.color = _creamGold.withValues(alpha: 0.4 * lightIntensity * intensity);
         canvas.drawCircle(Offset(particle.x, particle.y), pSize, paint);
 
         if (lightIntensity > 0.8) {
-          paint.color = Colors.white.withOpacity(0.6 * lightIntensity * intensity);
+          paint.color = Colors.white.withValues(alpha: 0.6 * lightIntensity * intensity);
           canvas.drawCircle(Offset(particle.x, particle.y), pSize * 0.5, paint);
         }
       }
@@ -502,10 +502,10 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
       final opacity = 0.1 + 0.05 * math.sin(state.time + i); // Slight shimmer
 
       if (i % 2 == 0) {
-        paint.color = _honeyglow.withOpacity(opacity);
+        paint.color = _honeyglow.withValues(alpha: opacity);
         canvas.drawCircle(pos, size, paint);
       } else {
-        paint.color = _peach.withOpacity(opacity);
+        paint.color = _peach.withValues(alpha: opacity);
         // Hexagon shape
         _drawHexagon(canvas, paint, pos, size);
       }
@@ -536,9 +536,9 @@ class _EnhancedGoldenHourPainter extends CustomPainter {
         Offset(size.width * 0.75, size.height * 0.3),
         size.width * 0.9,
         [
-          _warmAmber.withOpacity(0.06 * intensity),
-          _honeyglow.withOpacity(0.04 * intensity),
-          _peach.withOpacity(0.02 * intensity),
+          _warmAmber.withValues(alpha: 0.06 * intensity),
+          _honeyglow.withValues(alpha: 0.04 * intensity),
+          _peach.withValues(alpha: 0.02 * intensity),
           Colors.transparent,
         ],
         [0.0, 0.4, 0.7, 1.0],

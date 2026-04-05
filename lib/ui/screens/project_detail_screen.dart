@@ -107,7 +107,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: theme.toolbarColor.withOpacity(0.8),
+        backgroundColor: theme.toolbarColor.withValues(alpha: 0.8),
         title: Text(
           currentProject.title,
           style: TextStyle(color: theme.textPrimary, fontSize: 20),
@@ -151,7 +151,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
           Container(
             width: 400,
             decoration: BoxDecoration(
-              color: theme.surface.withOpacity(0.8),
+              color: theme.surface.withValues(alpha: 0.8),
               border: Border(left: BorderSide(color: theme.divider)),
             ),
             child: Padding(
@@ -296,7 +296,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
             expandedHeight: 300,
             floating: false,
             pinned: true,
-            backgroundColor: theme.toolbarColor.withOpacity(0.6),
+            backgroundColor: theme.toolbarColor.withValues(alpha: 0.6),
             flexibleSpace: FlexibleSpaceBar(
               title: showAppBar.value
                   ? null
@@ -607,11 +607,11 @@ class ProjectDetailScreen extends HookConsumerWidget {
     return Container(
       height: 500,
       decoration: BoxDecoration(
-        color: theme.surface.withOpacity(0.8),
+        color: theme.surface.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -630,7 +630,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -692,7 +692,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
           end: Alignment.bottomCenter,
           colors: [
             theme.surface,
-            theme.surface.withOpacity(0.0),
+            theme.surface.withValues(alpha: 0.0),
           ],
         ),
       ),
@@ -709,7 +709,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -773,7 +773,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
           end: Alignment.bottomCenter,
           colors: [
             theme.surface,
-            theme.surface.withOpacity(0.0),
+            theme.surface.withValues(alpha: 0.0),
           ],
         ),
       ),
@@ -790,7 +790,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -1013,9 +1013,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding * 0.75),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1029,7 +1029,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 label,
                 style: TextStyle(
                   fontSize: labelSize,
-                  color: color.withOpacity(0.8),
+                  color: color.withValues(alpha: 0.8),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1068,7 +1068,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
         borderRadius: BorderRadius.circular(isDesktop ? 20 : 16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: isDesktop ? 6 : 4,
             offset: const Offset(0, 2),
           ),
@@ -1256,10 +1256,10 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 ),
                 label: Text('${_formatCount(currentProject.likeCount)} Likes'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: currentProject.isLiked == true ? Colors.red.withOpacity(0.1) : theme.surface,
+                  backgroundColor: currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.1) : theme.surface,
                   foregroundColor: currentProject.isLiked == true ? Colors.red : theme.textPrimary,
                   side: BorderSide(
-                    color: currentProject.isLiked == true ? Colors.red.withOpacity(0.3) : theme.divider,
+                    color: currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.3) : theme.divider,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -1309,10 +1309,11 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     ),
                     label: Text('${_formatCount(currentProject.likeCount)}'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: currentProject.isLiked == true ? Colors.red.withOpacity(0.1) : theme.surface,
+                      backgroundColor:
+                          currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.1) : theme.surface,
                       foregroundColor: currentProject.isLiked == true ? Colors.red : theme.textPrimary,
                       side: BorderSide(
-                        color: currentProject.isLiked == true ? Colors.red.withOpacity(0.3) : theme.divider,
+                        color: currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.3) : theme.divider,
                       ),
                     ),
                   ),
@@ -1408,10 +1409,10 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 vertical: tagPadding * 0.5,
               ),
               decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.1),
+                color: theme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(isDesktop ? 20 : 16),
                 border: Border.all(
-                  color: theme.primaryColor.withOpacity(0.3),
+                  color: theme.primaryColor.withValues(alpha: 0.3),
                 ),
               ),
               child: Text(
@@ -1664,10 +1665,10 @@ class ProjectDetailScreen extends HookConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: newVisibility ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                color: newVisibility ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: newVisibility ? Colors.green.withOpacity(0.3) : Colors.orange.withOpacity(0.3),
+                  color: newVisibility ? Colors.green.withValues(alpha: 0.3) : Colors.orange.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -1765,9 +1766,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.withOpacity(0.3)),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [

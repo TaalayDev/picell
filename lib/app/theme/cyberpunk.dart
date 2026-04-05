@@ -147,7 +147,7 @@ class _CyberpunkPainter extends CustomPainter {
 
       if (charY > -10 && charY < size.height + 10) {
         final opacity = math.max(0.0, (1.0 - charProgress) * 0.08) * intensity;
-        paint.color = primaryColor.withOpacity(opacity);
+        paint.color = primaryColor.withValues(alpha: opacity);
 
         canvas.drawRect(
           Rect.fromCenter(
@@ -164,7 +164,7 @@ class _CyberpunkPainter extends CustomPainter {
     paint.style = PaintingStyle.stroke;
     paint.strokeWidth = 1 * intensity;
     final scanY = (animation * size.height * 0.3) % size.height;
-    paint.color = primaryColor.withOpacity(0.05 * intensity);
+    paint.color = primaryColor.withValues(alpha: 0.05 * intensity);
     canvas.drawLine(Offset(0, scanY), Offset(size.width, scanY), paint);
   }
 

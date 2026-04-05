@@ -136,8 +136,8 @@ class _OceanPainter extends CustomPainter {
       path.close();
 
       paint.color = Color.lerp(
-        primaryColor.withOpacity(0.03 + i * 0.01),
-        accentColor.withOpacity(0.02 + i * 0.01),
+        primaryColor.withValues(alpha: 0.03 + i * 0.01),
+        accentColor.withValues(alpha: 0.02 + i * 0.01),
         math.sin(phase) * 0.5 + 0.5,
       )!;
 

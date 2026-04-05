@@ -267,9 +267,9 @@ class _EnhancedDreamscapePainter extends CustomPainter {
       Offset(0, 0),
       Offset(0, size.height),
       [
-        const Color(0xFFE6E6FA).withOpacity(0.5), // Lavender Mist
+        const Color(0xFFE6E6FA).withValues(alpha: 0.5), // Lavender Mist
         const Color(0xFFF8F8FF), // Ghost White
-        const Color(0xFFFFE4E1).withOpacity(0.5), // Misty Rose
+        const Color(0xFFFFE4E1).withValues(alpha: 0.5), // Misty Rose
       ],
       [0.0, 0.5, 1.0],
     );
@@ -284,14 +284,14 @@ class _EnhancedDreamscapePainter extends CustomPainter {
     for (var star in state.stars!) {
       final twinkle = math.sin(state.time * star.twinkleSpeed + star.twinklePhase) * 0.5 + 0.5;
 
-      paint.color = primaryColor.withOpacity(0.3 * twinkle * intensity);
+      paint.color = primaryColor.withValues(alpha: 0.3 * twinkle * intensity);
       canvas.drawCircle(Offset(star.x, star.y), star.size * intensity, paint);
 
       // Star cross shimmer
       if (twinkle > 0.7) {
         paint.style = PaintingStyle.stroke;
         paint.strokeWidth = 0.5 * intensity;
-        paint.color = accentColor.withOpacity(0.4 * twinkle * intensity);
+        paint.color = accentColor.withValues(alpha: 0.4 * twinkle * intensity);
 
         final len = star.size * 2 * intensity;
         canvas.drawLine(Offset(star.x - len, star.y), Offset(star.x + len, star.y), paint);
@@ -304,7 +304,7 @@ class _EnhancedDreamscapePainter extends CustomPainter {
 
   void _paintMist(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = primaryColor.withOpacity(0.05 * intensity)
+      ..color = primaryColor.withValues(alpha: 0.05 * intensity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 40);
 
     for (int i = 0; i < 3; i++) {
@@ -332,7 +332,7 @@ class _EnhancedDreamscapePainter extends CustomPainter {
       }
 
       // Draw
-      paint.color = Colors.white.withOpacity(cloud.opacity);
+      paint.color = Colors.white.withValues(alpha: cloud.opacity);
 
       // Cloud Shape (Cluster of circles)
       canvas.drawCircle(Offset(cloud.x, cloud.y), cloud.size * intensity, paint);
@@ -365,10 +365,10 @@ class _EnhancedDreamscapePainter extends CustomPainter {
       final alpha = 0.3 + 0.2 * math.sin(state.time + i);
 
       paint.shader = ui.Gradient.linear(Offset(0, 0), Offset(size.width, 0), [
-        primaryColor.withOpacity(0.0),
-        primaryColor.withOpacity(0.1 * alpha * intensity),
-        accentColor.withOpacity(0.1 * alpha * intensity),
-        accentColor.withOpacity(0.0),
+        primaryColor.withValues(alpha: 0.0),
+        primaryColor.withValues(alpha: 0.1 * alpha * intensity),
+        accentColor.withValues(alpha: 0.1 * alpha * intensity),
+        accentColor.withValues(alpha: 0.0),
       ], [
         0.0,
         0.4,
@@ -405,18 +405,18 @@ class _EnhancedDreamscapePainter extends CustomPainter {
       final alpha = 0.4 + 0.2 * math.sin(state.time * 2 + bubble.x);
 
       // Main Bubble
-      paint.color = bubble.color.withOpacity(0.2 * alpha * intensity);
+      paint.color = bubble.color.withValues(alpha: 0.2 * alpha * intensity);
       canvas.drawCircle(Offset(bx, by), bubble.size * intensity, paint);
 
       // Rim
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 1 * intensity;
-      paint.color = bubble.color.withOpacity(0.4 * alpha * intensity);
+      paint.color = bubble.color.withValues(alpha: 0.4 * alpha * intensity);
       canvas.drawCircle(Offset(bx, by), bubble.size * intensity, paint);
 
       // Highlight
       paint.style = PaintingStyle.fill;
-      paint.color = Colors.white.withOpacity(0.3 * alpha * intensity);
+      paint.color = Colors.white.withValues(alpha: 0.3 * alpha * intensity);
       canvas.drawCircle(Offset(bx - bubble.size * 0.3, by - bubble.size * 0.3), bubble.size * 0.25 * intensity, paint);
     }
   }
@@ -428,8 +428,8 @@ class _EnhancedDreamscapePainter extends CustomPainter {
       size.longestSide * 0.8,
       [
         Colors.transparent,
-        Colors.white.withOpacity(0.3 * intensity),
-        primaryColor.withOpacity(0.1 * intensity),
+        Colors.white.withValues(alpha: 0.3 * intensity),
+        primaryColor.withValues(alpha: 0.1 * intensity),
       ],
       [0.6, 0.9, 1.0],
     );

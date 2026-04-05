@@ -325,7 +325,7 @@ class _CoralReefPainter extends CustomPainter {
       final causticSize = (40 + pulse * 30) * intensity;
 
       // Organic caustic shape
-      _fillPaint.color = _white.withOpacity(0.12 * pulse * intensity);
+      _fillPaint.color = _white.withValues(alpha: 0.12 * pulse * intensity);
 
       for (int j = 0; j < 3; j++) {
         final offsetX = _wave(1.8, i * 2 + j * 1.5) * 20 * intensity;
@@ -366,8 +366,8 @@ class _CoralReefPainter extends CustomPainter {
         Offset(x, 0),
         Offset(x + sway, size.height * 0.75),
         [
-          _white.withOpacity(0.1 * pulse * intensity),
-          _white.withOpacity(0.03 * pulse * intensity),
+          _white.withValues(alpha: 0.1 * pulse * intensity),
+          _white.withValues(alpha: 0.03 * pulse * intensity),
         ],
       );
 
@@ -395,7 +395,7 @@ class _CoralReefPainter extends CustomPainter {
       final swimProgress = (state.time * speed + i * 0.1) % 1.0;
       final x = (baseX + swimProgress) % 1.0 * size.width;
 
-      _fillPaint.color = _deepBlue.withOpacity(0.18 * intensity);
+      _fillPaint.color = _deepBlue.withValues(alpha: 0.18 * intensity);
       _drawSimpleFish(canvas, Offset(x, y), fishSize, i % 2 == 0);
     }
   }
@@ -441,8 +441,8 @@ class _CoralReefPainter extends CustomPainter {
           Offset(x, size.height),
           Offset(x + sway, size.height - bladeHeight),
           [
-            color.withOpacity(0.75),
-            Color.lerp(color, _white, 0.2)!.withOpacity(0.6),
+            color.withValues(alpha: 0.75),
+            Color.lerp(color, _white, 0.2)!.withValues(alpha: 0.6),
           ],
         );
 
@@ -532,7 +532,7 @@ class _CoralReefPainter extends CustomPainter {
     // Meandering grooves
     _strokePaint.strokeWidth = 1.8 * intensity;
     _strokePaint.strokeCap = StrokeCap.round;
-    _strokePaint.color = Color.lerp(color, Colors.black, 0.25)!.withOpacity(0.6);
+    _strokePaint.color = Color.lerp(color, Colors.black, 0.25)!.withValues(alpha: 0.6);
 
     for (int i = 0; i < 6; i++) {
       final grooveY = centerY - height * 0.35 + i * height * 0.12;
@@ -588,7 +588,7 @@ class _CoralReefPainter extends CustomPainter {
 
     // Delicate ribs
     _strokePaint.strokeWidth = 0.8 * intensity;
-    _strokePaint.color = Color.lerp(color, _white, 0.25)!.withOpacity(0.5);
+    _strokePaint.color = Color.lerp(color, _white, 0.25)!.withValues(alpha: 0.5);
 
     for (int i = 1; i < segments; i += 2) {
       final progress = i / segments;
@@ -678,8 +678,8 @@ class _CoralReefPainter extends CustomPainter {
       Offset(0, size.height * 0.85),
       Offset(0, size.height),
       [
-        _sand.withOpacity(0.5 * intensity),
-        _sand.withOpacity(0.7 * intensity),
+        _sand.withValues(alpha: 0.5 * intensity),
+        _sand.withValues(alpha: 0.7 * intensity),
       ],
     );
 
@@ -694,7 +694,7 @@ class _CoralReefPainter extends CustomPainter {
       final y = size.height * (0.9 + rng.nextDouble() * 0.1);
       final particleSize = (1 + rng.nextDouble() * 2) * intensity;
 
-      _fillPaint.color = Color.lerp(_sand, _white, rng.nextDouble() * 0.3)!.withOpacity(0.5 * intensity);
+      _fillPaint.color = Color.lerp(_sand, _white, rng.nextDouble() * 0.3)!.withValues(alpha: 0.5 * intensity);
       canvas.drawCircle(Offset(x, y), particleSize, _fillPaint);
     }
   }
@@ -733,7 +733,7 @@ class _CoralReefPainter extends CustomPainter {
     _path.quadraticBezierTo(-size * 1.1, 0, -size * 1.35, size * 0.45);
     _path.close();
 
-    _fillPaint.color = Color.lerp(color, Colors.black, 0.1)!.withOpacity(0.85);
+    _fillPaint.color = Color.lerp(color, Colors.black, 0.1)!.withValues(alpha: 0.85);
     canvas.drawPath(_path, _fillPaint);
 
     // Body
@@ -765,7 +765,7 @@ class _CoralReefPainter extends CustomPainter {
     _path.quadraticBezierTo(size * 0.05, -size * 0.55, size * 0.25, -size * 0.18);
     _path.close();
 
-    _fillPaint.color = Color.lerp(color, Colors.black, 0.05)!.withOpacity(0.8);
+    _fillPaint.color = Color.lerp(color, Colors.black, 0.05)!.withValues(alpha: 0.8);
     canvas.drawPath(_path, _fillPaint);
 
     // Pectoral fin
@@ -774,7 +774,7 @@ class _CoralReefPainter extends CustomPainter {
     _path.quadraticBezierTo(size * 0.1, size * 0.35, -size * 0.2, size * 0.25);
     _path.close();
 
-    _fillPaint.color = color.withOpacity(0.7);
+    _fillPaint.color = color.withValues(alpha: 0.7);
     canvas.drawPath(_path, _fillPaint);
 
     // Eye
@@ -784,7 +784,7 @@ class _CoralReefPainter extends CustomPainter {
     canvas.drawCircle(Offset(size * 0.25, -size * 0.05), size * 0.055, _fillPaint);
 
     // Eye highlight
-    _fillPaint.color = _white.withOpacity(0.8);
+    _fillPaint.color = _white.withValues(alpha: 0.8);
     canvas.drawCircle(Offset(size * 0.23, -size * 0.08), size * 0.025, _fillPaint);
 
     canvas.restore();
@@ -824,11 +824,11 @@ class _CoralReefPainter extends CustomPainter {
 
       // Bubble body
       _strokePaint.strokeWidth = 1.2 * intensity;
-      _strokePaint.color = _white.withOpacity(0.5 * intensity);
+      _strokePaint.color = _white.withValues(alpha: 0.5 * intensity);
       canvas.drawCircle(Offset(x, y), bubbleSize, _strokePaint);
 
       // Inner highlight
-      _fillPaint.color = _white.withOpacity(0.25 * intensity);
+      _fillPaint.color = _white.withValues(alpha: 0.25 * intensity);
       canvas.drawCircle(
         Offset(x - bubbleSize * 0.3, y - bubbleSize * 0.3),
         bubbleSize * 0.3,
@@ -836,7 +836,7 @@ class _CoralReefPainter extends CustomPainter {
       );
 
       // Small highlight dot
-      _fillPaint.color = _white.withOpacity(0.5 * intensity);
+      _fillPaint.color = _white.withValues(alpha: 0.5 * intensity);
       canvas.drawCircle(
         Offset(x - bubbleSize * 0.35, y - bubbleSize * 0.35),
         bubbleSize * 0.12,
@@ -864,8 +864,8 @@ class _CoralReefPainter extends CustomPainter {
       Offset.zero,
       Offset(0, 20 * intensity),
       [
-        _white.withOpacity(0.5 * intensity),
-        const Color(0xFFA8E8F0).withOpacity(0.3 * intensity),
+        _white.withValues(alpha: 0.5 * intensity),
+        const Color(0xFFA8E8F0).withValues(alpha: 0.3 * intensity),
       ],
     );
 
@@ -893,7 +893,7 @@ class _CoralReefPainter extends CustomPainter {
         final particleSize = (1 + twinkle * 1.5) * intensity;
         final opacity = (twinkle - 0.4) * 0.5 * intensity;
 
-        _fillPaint.color = _white.withOpacity(opacity);
+        _fillPaint.color = _white.withValues(alpha: opacity);
         canvas.drawCircle(Offset(floatX, floatY), particleSize, _fillPaint);
       }
     }

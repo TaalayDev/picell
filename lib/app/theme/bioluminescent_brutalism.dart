@@ -245,7 +245,7 @@ class _BioluminescentBrutalismPainter extends CustomPainter {
       final edgePaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
-        ..color = Colors.white.withOpacity(0.05);
+        ..color = Colors.white.withValues(alpha: 0.05);
 
       canvas.drawRect(block.rect, edgePaint);
     }
@@ -267,18 +267,18 @@ class _BioluminescentBrutalismPainter extends CustomPainter {
       final glow = math.sin(state.time * 5 + spore.phase) * 0.5 + 0.5;
 
       // Core
-      paint.color = spore.color.withOpacity(0.8 * intensity);
+      paint.color = spore.color.withValues(alpha: 0.8 * intensity);
       canvas.drawCircle(Offset(spore.x, spore.y), spore.size, paint);
 
       // Glow
-      paint.color = spore.color.withOpacity(0.3 * glow * intensity);
+      paint.color = spore.color.withValues(alpha: 0.3 * glow * intensity);
       canvas.drawCircle(Offset(spore.x, spore.y), spore.size * 3, paint);
     }
   }
 
   void _paintScanlines(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.02 * intensity)
+      ..color = Colors.white.withValues(alpha: 0.02 * intensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 

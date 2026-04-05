@@ -336,7 +336,7 @@ class _RoseQuartzGardenPainter extends CustomPainter {
 
     // Sun/Light source glow
     final sunPaint = Paint()
-      ..color = _quartzWhite.withOpacity(0.3)
+      ..color = _quartzWhite.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 60);
 
     canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.2), 100, sunPaint);
@@ -344,7 +344,7 @@ class _RoseQuartzGardenPainter extends CustomPainter {
 
   void _paintMist(Canvas canvas, Size size, double opacity) {
     final paint = Paint()
-      ..color = _mistColor.withOpacity(opacity * 0.5 * intensity)
+      ..color = _mistColor.withValues(alpha: opacity * 0.5 * intensity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
 
     final time = state.time;
@@ -390,7 +390,7 @@ class _RoseQuartzGardenPainter extends CustomPainter {
       final borderPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0
-        ..color = Colors.white.withOpacity(0.3 * opacity);
+        ..color = Colors.white.withValues(alpha: 0.3 * opacity);
 
       for (int i = 0; i < crystal.facets; i++) {
         final angle1 = (i / crystal.facets) * math.pi * 2;
@@ -408,9 +408,9 @@ class _RoseQuartzGardenPainter extends CustomPainter {
           Offset(0, -scale),
           Offset(0, scale * 0.5),
           [
-            Colors.white.withOpacity(0.8 * opacity),
-            crystal.facetColors[i].withOpacity(0.6 * opacity),
-            crystal.facetColors[i].withOpacity(0.9 * opacity),
+            Colors.white.withValues(alpha: 0.8 * opacity),
+            crystal.facetColors[i].withValues(alpha: 0.6 * opacity),
+            crystal.facetColors[i].withValues(alpha: 0.9 * opacity),
           ],
           [0.0, 0.5, 1.0], // Added stops to fix error
         );
@@ -450,7 +450,7 @@ class _RoseQuartzGardenPainter extends CustomPainter {
       final pSize = petal.size * (0.5 + 0.5 * petal.z) * intensity;
       final opacity = (0.4 + 0.6 * petal.z) * intensity;
 
-      paint.color = (petal.z > 0.7 ? _softPink : _deepRose).withOpacity(opacity * 0.8);
+      paint.color = (petal.z > 0.7 ? _softPink : _deepRose).withValues(alpha: opacity * 0.8);
 
       canvas.save();
       canvas.translate(petal.x, petal.y);
@@ -485,17 +485,17 @@ class _RoseQuartzGardenPainter extends CustomPainter {
       final glowOpacity = brightness * 0.8 * intensity;
 
       // Core
-      paint.color = Colors.white.withOpacity(glowOpacity);
+      paint.color = Colors.white.withValues(alpha: glowOpacity);
       canvas.drawCircle(Offset(sparkle.x, sparkle.y), sSize, paint);
 
       // Glow
-      paint.color = _quartzWhite.withOpacity(glowOpacity * 0.3);
+      paint.color = _quartzWhite.withValues(alpha: glowOpacity * 0.3);
       canvas.drawCircle(Offset(sparkle.x, sparkle.y), sSize * 3, paint);
 
       // Cross
       paint.strokeWidth = 1.0;
       paint.style = PaintingStyle.stroke;
-      paint.color = Colors.white.withOpacity(glowOpacity * 0.5);
+      paint.color = Colors.white.withValues(alpha: glowOpacity * 0.5);
       canvas.drawLine(Offset(sparkle.x - sSize * 2, sparkle.y), Offset(sparkle.x + sSize * 2, sparkle.y), paint);
       canvas.drawLine(Offset(sparkle.x, sparkle.y - sSize * 2), Offset(sparkle.x, sparkle.y + sSize * 2), paint);
       paint.style = PaintingStyle.fill;
@@ -510,8 +510,8 @@ class _RoseQuartzGardenPainter extends CustomPainter {
       Offset(0, size.height),
       [
         Colors.transparent,
-        _softPink.withOpacity(0.2 * intensity),
-        _deepRose.withOpacity(0.4 * intensity),
+        _softPink.withValues(alpha: 0.2 * intensity),
+        _deepRose.withValues(alpha: 0.4 * intensity),
       ],
       [0.0, 0.5, 1.0], // Added stops to fix error
     );

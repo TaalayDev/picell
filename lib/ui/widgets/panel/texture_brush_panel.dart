@@ -121,7 +121,7 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             ),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -157,7 +157,7 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
                 const SizedBox(height: 12),
                 Divider(
                   height: 1,
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -183,7 +183,7 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -249,7 +249,7 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
                 'Select Texture',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                     ),
               ),
               const Spacer(),
@@ -312,12 +312,12 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                     color: isSelected
-                        ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1)
+                        ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1)
                         : Theme.of(context).colorScheme.surface,
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -334,12 +334,12 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             border: Border.all(
-                              color: Theme.of(context).dividerColor.withOpacity(0.5),
+                              color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                             ),
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),

@@ -192,7 +192,7 @@ class DrawingTutorialScreen extends HookConsumerWidget {
                           left: 16,
                           right: 16,
                           child: Card(
-                            color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Text(
@@ -252,7 +252,7 @@ class DrawingTutorialScreen extends HookConsumerWidget {
           Text(
             'Step ${currentPage + 1} of $totalPages',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
           ),
         ],
@@ -382,7 +382,7 @@ class LessonSidebar extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
           ),
         ],

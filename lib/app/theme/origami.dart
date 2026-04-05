@@ -6,6 +6,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3, Matrix4;
 
+import 'app_theme_geometry.dart';
+import 'flagship/origami_flagship.dart';
 import 'theme.dart';
 
 // ============================================================================
@@ -85,6 +87,8 @@ AppTheme buildOrigamiTheme() {
       ),
     ),
     primaryFontWeight: FontWeight.w600,
+    geometry: AppThemeGeometry.origami,
+    flagship: buildOrigamiFlagshipConfig(),
   );
 }
 
@@ -326,7 +330,7 @@ class _OrigamiPainter extends CustomPainter {
 
   void _paintPaperTexture(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.grey.withOpacity(0.02 * intensity)
+      ..color = Colors.grey.withValues(alpha: 0.02 * intensity)
       ..style = PaintingStyle.fill;
 
     final rng = math.Random(1);
@@ -450,7 +454,7 @@ class _OrigamiPainter extends CustomPainter {
     canvas.drawPath(
         path.shift(const Offset(2, 2)),
         Paint()
-          ..color = Colors.black.withOpacity(0.05)
+          ..color = Colors.black.withValues(alpha: 0.05)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2));
 
     // Main Face
@@ -464,7 +468,7 @@ class _OrigamiPainter extends CustomPainter {
     canvas.drawPath(
         path,
         Paint()
-          ..color = Colors.black.withOpacity(0.05)
+          ..color = Colors.black.withValues(alpha: 0.05)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 0.5);
   }
@@ -519,7 +523,7 @@ class _OrigamiPainter extends CustomPainter {
       if (d.y < 0) d.y = size.height;
       if (d.y > size.height) d.y = 0;
 
-      paint.color = primaryColor.withOpacity(d.opacity * 0.3 * intensity);
+      paint.color = primaryColor.withValues(alpha: d.opacity * 0.3 * intensity);
       canvas.drawCircle(Offset(d.x, d.y), d.size, paint);
     }
   }
@@ -531,7 +535,7 @@ class _OrigamiPainter extends CustomPainter {
       size.longestSide * 0.7,
       [
         Colors.transparent,
-        Colors.white.withOpacity(0.4 * intensity),
+        Colors.white.withValues(alpha: 0.4 * intensity),
       ],
       [0.6, 1.0],
     );

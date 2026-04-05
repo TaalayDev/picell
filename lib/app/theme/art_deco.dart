@@ -244,7 +244,7 @@ class _ArtDecoPainter extends CustomPainter {
 
     // Subtle noise texture
     final rng = math.Random(42);
-    _fillPaint.color = _cream.withOpacity(0.008 * intensity);
+    _fillPaint.color = _cream.withValues(alpha: 0.008 * intensity);
     for (int i = 0; i < (200 * intensity).round(); i++) {
       canvas.drawCircle(
         Offset(rng.nextDouble() * size.width, rng.nextDouble() * size.height),
@@ -282,13 +282,13 @@ class _ArtDecoPainter extends CustomPainter {
       );
       _path.close();
 
-      _fillPaint.color = _gold.withOpacity((rayOpacity + shimmer) * intensity);
+      _fillPaint.color = _gold.withValues(alpha: (rayOpacity + shimmer) * intensity);
       canvas.drawPath(_path, _fillPaint);
     }
 
     // Central glow
     _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 40 * intensity);
-    _fillPaint.color = _gold.withOpacity(0.08 * pulsePhase * intensity);
+    _fillPaint.color = _gold.withValues(alpha: 0.08 * pulsePhase * intensity);
     canvas.drawCircle(center, 80 * intensity, _fillPaint);
     _fillPaint.maskFilter = null;
   }
@@ -306,7 +306,7 @@ class _ArtDecoPainter extends CustomPainter {
       final shimmer = _norm(0.2, i * 0.5) * 0.3 + 0.2;
 
       // Left chevron
-      _strokePaint.color = _gold.withOpacity(shimmer * 0.4 * intensity);
+      _strokePaint.color = _gold.withValues(alpha: shimmer * 0.4 * intensity);
 
       _path.reset();
       _path.moveTo(0, y);
@@ -372,11 +372,11 @@ class _ArtDecoPainter extends CustomPainter {
         );
         _path.close();
 
-        _fillPaint.color = (isAccent ? _gold : _teal).withOpacity(shimmer * intensity);
+        _fillPaint.color = (isAccent ? _gold : _teal).withValues(alpha: shimmer * intensity);
         canvas.drawPath(_path, _fillPaint);
 
         // Fan segment outline
-        _strokePaint.color = _gold.withOpacity(0.3 * intensity);
+        _strokePaint.color = _gold.withValues(alpha: 0.3 * intensity);
         _strokePaint.strokeWidth = 1 * intensity;
         canvas.drawPath(_path, _strokePaint);
       }
@@ -384,7 +384,7 @@ class _ArtDecoPainter extends CustomPainter {
       // Concentric arcs
       for (int r = 1; r <= 3; r++) {
         final arcRadius = fanRadius * r / 4;
-        _strokePaint.color = _gold.withOpacity(0.2 * intensity);
+        _strokePaint.color = _gold.withValues(alpha: 0.2 * intensity);
         _strokePaint.strokeWidth = 1 * intensity;
         canvas.drawArc(
           Rect.fromCircle(center: origin, radius: arcRadius),
@@ -407,7 +407,7 @@ class _ArtDecoPainter extends CustomPainter {
       final shimmer = _norm(0.12, i * 0.8) * 0.3 + 0.15;
 
       // Main pillar line
-      _strokePaint.color = _gold.withOpacity(shimmer * intensity);
+      _strokePaint.color = _gold.withValues(alpha: shimmer * intensity);
       _strokePaint.strokeWidth = pillarWidth;
       canvas.drawLine(
         Offset(x, size.height * 0.15),
@@ -439,10 +439,10 @@ class _ArtDecoPainter extends CustomPainter {
     _path.lineTo(center.dx - capSize, center.dy);
     _path.close();
 
-    _fillPaint.color = _gold.withOpacity(opacity * 0.5 * intensity);
+    _fillPaint.color = _gold.withValues(alpha: opacity * 0.5 * intensity);
     canvas.drawPath(_path, _fillPaint);
 
-    _strokePaint.color = _gold.withOpacity(opacity * intensity);
+    _strokePaint.color = _gold.withValues(alpha: opacity * intensity);
     _strokePaint.strokeWidth = 1.5 * intensity;
     canvas.drawPath(_path, _strokePaint);
   }
@@ -457,7 +457,7 @@ class _ArtDecoPainter extends CustomPainter {
     _path.lineTo(center.dx - size * 0.6, center.dy);
     _path.close();
 
-    _fillPaint.color = _teal.withOpacity(opacity * intensity);
+    _fillPaint.color = _teal.withValues(alpha: opacity * intensity);
     canvas.drawPath(_path, _fillPaint);
   }
 
@@ -471,7 +471,7 @@ class _ArtDecoPainter extends CustomPainter {
 
     // Top border
     final topShimmer = _norm(0.15) * 0.3 + 0.3;
-    _strokePaint.color = _gold.withOpacity(topShimmer * intensity);
+    _strokePaint.color = _gold.withValues(alpha: topShimmer * intensity);
 
     _path.reset();
     _path.moveTo(0, zigzagHeight);
@@ -483,7 +483,7 @@ class _ArtDecoPainter extends CustomPainter {
 
     // Bottom border
     final bottomShimmer = _norm(0.15, 2.0) * 0.3 + 0.3;
-    _strokePaint.color = _gold.withOpacity(bottomShimmer * intensity);
+    _strokePaint.color = _gold.withValues(alpha: bottomShimmer * intensity);
 
     _path.reset();
     _path.moveTo(0, size.height - zigzagHeight);
@@ -495,7 +495,7 @@ class _ArtDecoPainter extends CustomPainter {
 
     // Inner accent lines
     _strokePaint.strokeWidth = 1 * intensity;
-    _strokePaint.color = _teal.withOpacity(0.25 * intensity);
+    _strokePaint.color = _teal.withValues(alpha: 0.25 * intensity);
 
     canvas.drawLine(
       Offset(0, zigzagHeight + 5 * intensity),
@@ -517,7 +517,7 @@ class _ArtDecoPainter extends CustomPainter {
 
     // Outer glow
     _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 20 * intensity);
-    _fillPaint.color = _gold.withOpacity(0.1 * pulse * intensity);
+    _fillPaint.color = _gold.withValues(alpha: 0.1 * pulse * intensity);
     canvas.drawCircle(center, radius * 1.5, _fillPaint);
     _fillPaint.maskFilter = null;
 
@@ -536,13 +536,13 @@ class _ArtDecoPainter extends CustomPainter {
     }
     _path.close();
 
-    _strokePaint.color = _gold.withOpacity(0.6 * pulse * intensity);
+    _strokePaint.color = _gold.withValues(alpha: 0.6 * pulse * intensity);
     _strokePaint.strokeWidth = 2.5 * intensity;
     canvas.drawPath(_path, _strokePaint);
 
     // Inner circles
     _strokePaint.strokeWidth = 1.5 * intensity;
-    _strokePaint.color = _gold.withOpacity(0.4 * pulse * intensity);
+    _strokePaint.color = _gold.withValues(alpha: 0.4 * pulse * intensity);
     canvas.drawCircle(center, radius, _strokePaint);
     canvas.drawCircle(center, radius * 0.7, _strokePaint);
 
@@ -571,10 +571,10 @@ class _ArtDecoPainter extends CustomPainter {
     _path.lineTo(center.dx - diamondSize, center.dy);
     _path.close();
 
-    _fillPaint.color = _teal.withOpacity(0.6 * pulse * intensity);
+    _fillPaint.color = _teal.withValues(alpha: 0.6 * pulse * intensity);
     canvas.drawPath(_path, _fillPaint);
 
-    _strokePaint.color = _gold.withOpacity(0.8 * pulse * intensity);
+    _strokePaint.color = _gold.withValues(alpha: 0.8 * pulse * intensity);
     _strokePaint.strokeWidth = 1.5 * intensity;
     canvas.drawPath(_path, _strokePaint);
   }
@@ -603,7 +603,7 @@ class _ArtDecoPainter extends CustomPainter {
             _path.lineTo(floatX, floatY + particleSize);
             _path.lineTo(floatX - particleSize * 0.6, floatY);
             _path.close();
-            _fillPaint.color = _gold.withOpacity(opacity);
+            _fillPaint.color = _gold.withValues(alpha: opacity);
             canvas.drawPath(_path, _fillPaint);
             break;
 
@@ -613,12 +613,12 @@ class _ArtDecoPainter extends CustomPainter {
             _path.lineTo(floatX + particleSize * 0.866, floatY + particleSize * 0.5);
             _path.lineTo(floatX - particleSize * 0.866, floatY + particleSize * 0.5);
             _path.close();
-            _fillPaint.color = _teal.withOpacity(opacity * 0.8);
+            _fillPaint.color = _teal.withValues(alpha: opacity * 0.8);
             canvas.drawPath(_path, _fillPaint);
             break;
 
           case 2: // Circle
-            _fillPaint.color = _gold.withOpacity(opacity * 0.6);
+            _fillPaint.color = _gold.withValues(alpha: opacity * 0.6);
             canvas.drawCircle(Offset(floatX, floatY), particleSize * 0.5, _fillPaint);
             break;
 
@@ -626,7 +626,7 @@ class _ArtDecoPainter extends CustomPainter {
             canvas.save();
             canvas.translate(floatX, floatY);
             canvas.rotate(_slowTime * math.pi);
-            _fillPaint.color = _copper.withOpacity(opacity * 0.7);
+            _fillPaint.color = _copper.withValues(alpha: opacity * 0.7);
             canvas.drawRect(
               Rect.fromCenter(center: Offset.zero, width: particleSize, height: particleSize),
               _fillPaint,
@@ -648,9 +648,9 @@ class _ArtDecoPainter extends CustomPainter {
       Offset(shimmerX + size.width * 0.3, size.height),
       [
         Colors.transparent,
-        _gold.withOpacity(0.03 * intensity),
-        _gold.withOpacity(0.06 * intensity),
-        _gold.withOpacity(0.03 * intensity),
+        _gold.withValues(alpha: 0.03 * intensity),
+        _gold.withValues(alpha: 0.06 * intensity),
+        _gold.withValues(alpha: 0.03 * intensity),
         Colors.transparent,
       ],
       const [0.0, 0.3, 0.5, 0.7, 1.0],
@@ -670,8 +670,8 @@ class _ArtDecoPainter extends CustomPainter {
       radius,
       [
         Colors.transparent,
-        Colors.black.withOpacity(0.3 * intensity),
-        Colors.black.withOpacity(0.7 * intensity),
+        Colors.black.withValues(alpha: 0.3 * intensity),
+        Colors.black.withValues(alpha: 0.7 * intensity),
       ],
       const [0.4, 0.75, 1.0],
     );

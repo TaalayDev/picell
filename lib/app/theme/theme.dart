@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:picell/data.dart';
 
+import 'app_theme_geometry.dart';
+import 'flagship/flagship_config.dart';
 import 'art_deco.dart';
 import 'art_nouevau.dart';
 import 'autumn_harvest.dart';
@@ -47,6 +49,8 @@ import 'halloween.dart';
 import 'bioluminescent_brutalism.dart';
 
 export 'theme_type.dart';
+export 'app_theme_geometry.dart';
+export 'flagship/flagship_config.dart';
 
 class AppTheme {
   static const defaultType = ThemeType.retroWave;
@@ -98,6 +102,12 @@ class AppTheme {
   final TextTheme textTheme;
   final FontWeight primaryFontWeight;
 
+  // Geometry — dimensional configuration (radii, paddings, elevations)
+  final AppThemeGeometry geometry;
+
+  // Flagship — null for non-flagship themes
+  final FlagshipConfig? flagship;
+
   AppTheme({
     required this.type,
     required this.isDark,
@@ -126,6 +136,8 @@ class AppTheme {
     required this.inactiveIcon,
     required this.textTheme,
     required this.primaryFontWeight,
+    this.geometry = AppThemeGeometry.defaults,
+    this.flagship,
   });
 
   factory AppTheme.fromType(ThemeType type) {
@@ -218,6 +230,17 @@ class AppTheme {
   }
 
   ThemeData get themeData {
+    final g = geometry;
+    final cardShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(g.cardRadius),
+      side: g.cardBorderWidth > 0
+          ? BorderSide(
+              color: primaryColor.withValues(alpha: 0.4),
+              width: g.cardBorderWidth,
+            )
+          : BorderSide.none,
+    );
+
     var t = ThemeData(
       useMaterial3: true,
       brightness: isDark ? Brightness.dark : Brightness.light,
@@ -237,29 +260,60 @@ class AppTheme {
       primaryColor: primaryColor,
       scaffoldBackgroundColor: background,
       cardColor: surface,
-      dividerColor: divider,
+      dividerColor: g.hasDividers ? divider : Colors.transparent,
       textTheme: textTheme,
       iconTheme: IconThemeData(
         color: activeIcon,
+        size: g.iconSize,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: toolbarColor,
         foregroundColor: textPrimary,
         centerTitle: true,
+        elevation: g.appBarElevation,
+        titleTextStyle: textTheme.titleMedium?.copyWith(
+          color: textPrimary,
+          letterSpacing: g.titleLetterSpacing,
+        ),
       ),
       dialogBackgroundColor: surface,
+      dialogTheme: DialogThemeData(
+        elevation: g.dialogElevation,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(g.dialogRadius),
+        ),
+      ),
       popupMenuTheme: PopupMenuThemeData(
         color: surface,
         textStyle: TextStyle(color: textPrimary),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(g.dialogRadius),
+        ),
       ),
       bottomAppBarTheme: BottomAppBarThemeData(
         color: toolbarColor,
       ),
+      bottomSheetTheme: BottomSheetThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(g.bottomSheetRadius),
+          ),
+        ),
+        backgroundColor: surface,
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(g.tooltipRadius),
+          border: Border.all(color: divider),
+        ),
+        textStyle: textTheme.bodySmall?.copyWith(color: textPrimary),
+      ),
       cardTheme: CardThemeData(
         color: surface,
-        shadowColor: isDark ? Colors.black54 : Colors.black12,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shadowColor: g.shadowColor ?? (isDark ? Colors.black54 : Colors.black12),
+        elevation: g.cardElevation,
+        shape: cardShape,
       ),
       inputDecorationTheme: InputDecorationTheme(
         fillColor: surfaceVariant,
@@ -267,38 +321,39 @@ class AppTheme {
         labelStyle: TextStyle(color: textSecondary),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: divider),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(g.inputRadius),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: primaryColor, width: 2),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(g.inputRadius),
         ),
         errorBorder: OutlineInputBorder(
           borderSide: BorderSide(color: error),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(g.inputRadius),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderSide: BorderSide(color: error, width: 2),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(g.inputRadius),
         ),
+        contentPadding: g.buttonPadding,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           foregroundColor: onPrimary,
           backgroundColor: primaryColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(g.buttonRadius),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: g.buttonPadding,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primaryColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(g.buttonRadius),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: g.buttonPadding,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -306,9 +361,9 @@ class AppTheme {
           foregroundColor: onPrimary,
           backgroundColor: primaryColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(g.buttonRadius),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: g.buttonPadding,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -316,14 +371,14 @@ class AppTheme {
           foregroundColor: primaryColor,
           side: BorderSide(color: primaryColor),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(g.buttonRadius),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: g.buttonPadding,
         ),
       ),
       sliderTheme: SliderThemeData(
         activeTrackColor: primaryColor,
-        inactiveTrackColor: primaryColor.withOpacity(0.3),
+        inactiveTrackColor: primaryColor.withValues(alpha: 0.3),
         thumbColor: onPrimary,
       ),
       checkboxTheme: CheckboxThemeData(
@@ -334,6 +389,9 @@ class AppTheme {
           return isDark ? Colors.grey.shade800 : Colors.grey.shade200;
         }),
         checkColor: WidgetStateProperty.all(onPrimary),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(g.buttonRadius * 0.25),
+        ),
       ),
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith<Color>((states) {
@@ -357,6 +415,9 @@ class AppTheme {
           return isDark ? Colors.grey.shade200 : Colors.white;
         }),
       ),
+      extensions: <ThemeExtension<dynamic>>[
+        if (flagship != null) flagship!,
+      ],
     );
 
     return t;

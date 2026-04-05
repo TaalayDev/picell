@@ -122,7 +122,7 @@ class _NeonPainter extends CustomPainter {
     final pulseIntensity = (math.sin(animation * 2 * math.pi) * 0.5 + 0.5) * intensity;
 
     paint.strokeWidth = 1;
-    paint.color = primaryColor.withOpacity(0.1 * pulseIntensity);
+    paint.color = primaryColor.withValues(alpha: 0.1 * pulseIntensity);
 
     // Vertical lines
     for (double x = 0; x < size.width; x += gridSpacing) {
@@ -140,8 +140,8 @@ class _NeonPainter extends CustomPainter {
       for (double y = 0; y < size.height; y += gridSpacing) {
         final nodeIntensity = math.sin(animation * 4 * math.pi + x * 0.01 + y * 0.01) * 0.5 + 0.5;
         paint.color = Color.lerp(
-          primaryColor.withOpacity(0.05),
-          accentColor.withOpacity(0.1),
+          primaryColor.withValues(alpha: 0.05),
+          accentColor.withValues(alpha: 0.1),
           nodeIntensity,
         )!;
 

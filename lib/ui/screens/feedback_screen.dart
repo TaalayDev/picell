@@ -99,7 +99,7 @@ class FeedbackScreen extends ConsumerWidget {
                       Text(
                         s.feedback_intro,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                       if (notifier.getAnsweredCount() > 0) ...[
@@ -474,13 +474,13 @@ class _RatingInput extends ConsumerWidget {
             Text(
               s.feedback_very_poor,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
             Text(
               s.feedback_excellent,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ],

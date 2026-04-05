@@ -83,7 +83,7 @@ class _EffectListItemState extends State<EffectListItem> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: widget.isSelected ? theme.colorScheme.primary : theme.colorScheme.outline.withOpacity(0.2),
+          color: widget.isSelected ? theme.colorScheme.primary : theme.colorScheme.outline.withValues(alpha: 0.2),
           width: widget.isSelected ? 2 : 1,
         ),
       ),
@@ -98,7 +98,7 @@ class _EffectListItemState extends State<EffectListItem> {
                 children: [
                   // Icon
                   CircleAvatar(
-                    backgroundColor: effectColor.withOpacity(0.2),
+                    backgroundColor: effectColor.withValues(alpha: 0.2),
                     radius: 10,
                     child: effectIcon,
                   ),
@@ -178,7 +178,7 @@ class _EffectListItemState extends State<EffectListItem> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                color: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(8),
                   bottomRight: Radius.circular(8),

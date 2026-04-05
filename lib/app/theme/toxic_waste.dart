@@ -289,8 +289,8 @@ class _EnhancedToxicWastePainter extends CustomPainter {
         Offset(0, size.height * 0.7),
         Offset(0, size.height),
         [
-          primaryColor.withOpacity(0.3 * intensity),
-          primaryColor.withOpacity(0.6 * intensity),
+          primaryColor.withValues(alpha: 0.3 * intensity),
+          primaryColor.withValues(alpha: 0.6 * intensity),
         ],
         [0.0, 1.0], // Explicit stops to fix error
       );
@@ -317,7 +317,7 @@ class _EnhancedToxicWastePainter extends CustomPainter {
     final borderPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3 * intensity
-      ..color = accentColor.withOpacity(0.6 * intensity);
+      ..color = accentColor.withValues(alpha: 0.6 * intensity);
 
     canvas.drawPath(path, borderPaint);
   }
@@ -344,15 +344,15 @@ class _EnhancedToxicWastePainter extends CustomPainter {
       final by = bubble.y;
 
       // Bubble body
-      paint.color = primaryColor.withOpacity(0.3 * intensity);
+      paint.color = primaryColor.withValues(alpha: 0.3 * intensity);
       canvas.drawCircle(Offset(bx, by), bubble.size * intensity, paint);
 
       // Highlight
-      paint.color = Colors.white.withOpacity(0.4 * intensity);
+      paint.color = Colors.white.withValues(alpha: 0.4 * intensity);
       canvas.drawCircle(Offset(bx - bubble.size * 0.3, by - bubble.size * 0.3), bubble.size * 0.25 * intensity, paint);
 
       // Toxic outline
-      paint.color = accentColor.withOpacity(0.5 * intensity);
+      paint.color = accentColor.withValues(alpha: 0.5 * intensity);
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 1.0 * intensity;
       canvas.drawCircle(Offset(bx, by), bubble.size * intensity, paint);
@@ -364,7 +364,7 @@ class _EnhancedToxicWastePainter extends CustomPainter {
     if (state.drips == null) return;
 
     final paint = Paint()
-      ..color = primaryColor.withOpacity(0.7 * intensity)
+      ..color = primaryColor.withValues(alpha: 0.7 * intensity)
       ..style = PaintingStyle.fill;
 
     for (var drip in state.drips!) {
@@ -423,7 +423,7 @@ class _EnhancedToxicWastePainter extends CustomPainter {
 
       if (p.isSymbol) {
         // Draw Biohazard-ish symbol (3 circles)
-        paint.color = accentColor.withOpacity(0.4 * intensity);
+        paint.color = accentColor.withValues(alpha: 0.4 * intensity);
         paint.strokeWidth = 2 * intensity;
         double r = p.size * intensity;
 
@@ -435,12 +435,12 @@ class _EnhancedToxicWastePainter extends CustomPainter {
             Offset.zero,
             r * 0.3,
             Paint()
-              ..color = primaryColor.withOpacity(0.5)
+              ..color = primaryColor.withValues(alpha: 0.5)
               ..style = PaintingStyle.fill);
       } else {
         // Dust speck
         paint.style = PaintingStyle.fill;
-        paint.color = primaryColor.withOpacity(0.3 * intensity);
+        paint.color = primaryColor.withValues(alpha: 0.3 * intensity);
         canvas.drawCircle(Offset.zero, p.size * 0.5 * intensity, paint);
       }
 
@@ -455,8 +455,8 @@ class _EnhancedToxicWastePainter extends CustomPainter {
       size.longestSide * 0.7,
       [
         Colors.transparent,
-        const Color(0xFF0A150A).withOpacity(0.4 * intensity),
-        const Color(0xFF000000).withOpacity(0.8 * intensity),
+        const Color(0xFF0A150A).withValues(alpha: 0.4 * intensity),
+        const Color(0xFF000000).withValues(alpha: 0.8 * intensity),
       ],
       [0.5, 0.8, 1.0],
     );

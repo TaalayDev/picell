@@ -404,7 +404,7 @@ class DeleteAccountDialog extends HookConsumerWidget {
                       child: Text(
                         'This action is irreversible and will take effect immediately.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                               fontStyle: FontStyle.italic,
                             ),
                         textAlign: TextAlign.center,
@@ -462,7 +462,7 @@ class DeleteAccountDialog extends HookConsumerWidget {
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                 ),
               ],
@@ -536,7 +536,7 @@ class QuickDeleteAccountDialog extends HookConsumerWidget {
             '• Cloud backups will be deleted\n'
             '• This action cannot be undone',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
                 ),
           ),
         ],

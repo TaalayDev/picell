@@ -252,7 +252,7 @@ class _AnimationScreenState extends ConsumerState<AnimationScreen> with TickerPr
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, -2),
               ),
@@ -1006,7 +1006,7 @@ class ResponsiveAnimationTimelinePanel extends StatelessWidget {
                       final isSelected = index == currentFrame;
 
                       return Card(
-                        color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : null,
+                        color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : null,
                         margin: const EdgeInsets.only(bottom: 4),
                         child: ListTile(
                           leading: CircleAvatar(
@@ -1366,7 +1366,7 @@ class AnimationCanvasPainter extends CustomPainter {
 
   void _drawGrid(Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
     final paint = Paint()
-      ..color = Colors.grey.withOpacity(0.3)
+      ..color = Colors.grey.withValues(alpha: 0.3)
       ..strokeWidth = 0.5;
 
     for (int x = 0; x <= project.width; x++) {

@@ -62,7 +62,7 @@ class PixelCanvasPainter extends CustomPainter {
       if (needsSaveLayer) {
         canvas.saveLayer(
           canvasRect,
-          Paint()..color = Colors.white.withOpacity(layer.opacity),
+          Paint()..color = Colors.white.withValues(alpha: layer.opacity),
         );
       }
 
@@ -313,10 +313,10 @@ class PixelCanvasPainter extends CustomPainter {
       final Color hoverColor;
       if (isErasing) {
         // For eraser, show red semi-transparent preview
-        hoverColor = Colors.red.withOpacity(0.4);
+        hoverColor = Colors.red.withValues(alpha: 0.4);
       } else {
         // For other tools, show the color with reduced opacity
-        hoverColor = baseColor.withOpacity(0.6);
+        hoverColor = baseColor.withValues(alpha: 0.6);
       }
 
       final left = point.x * pixelWidth;
@@ -368,7 +368,7 @@ class PixelCanvasPainter extends CustomPainter {
     if (hoverPixels.isEmpty) return;
 
     final borderPaint = Paint()
-      ..color = Colors.white.withOpacity(0.8)
+      ..color = Colors.white.withValues(alpha: 0.8)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0 / controller.zoomLevel;
 
@@ -464,7 +464,7 @@ class PixelCanvasPainter extends CustomPainter {
     final points = controller.lassoPreviewPoints;
 
     final lassoPaint = Paint()
-      ..color = Colors.blue.withOpacity(0.8)
+      ..color = Colors.blue.withValues(alpha: 0.8)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0 / controller.zoomLevel;
 
@@ -489,7 +489,7 @@ class PixelCanvasPainter extends CustomPainter {
           points.last,
           points.first,
           Paint()
-            ..color = Colors.green.withOpacity(0.8)
+            ..color = Colors.green.withValues(alpha: 0.8)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2.0 / controller.zoomLevel,
         );
@@ -497,7 +497,7 @@ class PixelCanvasPainter extends CustomPainter {
           points.first,
           4.0 / controller.zoomLevel,
           Paint()
-            ..color = Colors.green.withOpacity(0.6)
+            ..color = Colors.green.withValues(alpha: 0.6)
             ..style = PaintingStyle.fill,
         );
       }
@@ -508,7 +508,7 @@ class PixelCanvasPainter extends CustomPainter {
           point,
           1.5 / controller.zoomLevel,
           Paint()
-            ..color = Colors.blue.withOpacity(0.7)
+            ..color = Colors.blue.withValues(alpha: 0.7)
             ..style = PaintingStyle.fill,
         );
       }
@@ -523,7 +523,7 @@ class PixelCanvasPainter extends CustomPainter {
     if (!controller.isDrawingCurve || curveStart == null) return;
 
     final guidePaint = Paint()
-      ..color = Colors.blue.withOpacity(0.7)
+      ..color = Colors.blue.withValues(alpha: 0.7)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5 / controller.zoomLevel;
 
@@ -536,7 +536,7 @@ class PixelCanvasPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final controlLinePaint = Paint()
-      ..color = Colors.red.withOpacity(0.5)
+      ..color = Colors.red.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0 / controller.zoomLevel;
 
@@ -579,7 +579,7 @@ class PixelCanvasPainter extends CustomPainter {
 
   void _drawCurvePreview(Canvas canvas, Offset start, Offset control, Offset end) {
     final curvePaint = Paint()
-      ..color = currentColor.withOpacity(0.8)
+      ..color = currentColor.withValues(alpha: 0.8)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0 / controller.zoomLevel;
 

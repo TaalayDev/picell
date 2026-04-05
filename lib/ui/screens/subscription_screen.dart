@@ -216,7 +216,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
           // Loading overlay
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               child: const Center(
                 child: CircularProgressIndicator(),
               ),
@@ -248,7 +248,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.3),
+            color: Colors.green.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -276,7 +276,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
                 Text(
                   'Time remaining: ${minutes}m ${seconds}s',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                       ),
                 ),
               ],
@@ -302,10 +302,10 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
       decoration: BoxDecoration(
         color: theme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -421,7 +421,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -468,7 +468,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
               ? _getUpgradePromptSubtitle(widget.featurePrompt!)
               : 'One-time purchase • No recurring fees • Try with ads first',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.7),
+                color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.7),
               ),
           textAlign: TextAlign.center,
         ).animate().fadeIn(
@@ -551,7 +551,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -593,7 +593,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                         decoration: BoxDecoration(
-                          color: theme.primaryColor.withOpacity(0.2),
+                          color: theme.primaryColor.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -618,7 +618,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
                     border: index < features.length - 1
                         ? Border(
                             top: BorderSide(
-                            color: theme.divider.withOpacity(0.3),
+                            color: theme.divider.withValues(alpha: 0.3),
                           ))
                         : null,
                   ),
@@ -757,7 +757,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
           Text(
             'By continuing, you agree to our Terms of Service and Privacy Policy.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
             textAlign: TextAlign.center,
           ),
@@ -780,7 +780,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
               Text(
                 ' • ',
                 style: TextStyle(
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                   fontSize: 12,
                 ),
               ),
@@ -802,7 +802,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
           Text(
             'One-time purchase • No recurring charges • Lifetime access',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   fontSize: 11,
                 ),
             textAlign: TextAlign.center,
@@ -825,7 +825,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 5,
             offset: const Offset(0, -3),
           ),
@@ -983,15 +983,18 @@ class _PurchaseOfferCard extends StatelessWidget {
         duration: const Duration(milliseconds: 300),
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.08) : Theme.of(context).cardColor,
+          color:
+              isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08) : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor.withOpacity(0.3),
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).dividerColor.withValues(alpha: 0.3),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 5,
               offset: const Offset(0, 2),
             ),

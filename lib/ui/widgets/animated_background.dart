@@ -764,8 +764,8 @@ class _DefaultPainter extends CustomPainter {
       final radius = (5 + random.nextDouble() * 15) * intensity;
 
       paint.color = Color.lerp(
-        primaryColor.withOpacity(0.03),
-        accentColor.withOpacity(0.05),
+        primaryColor.withValues(alpha: 0.03),
+        accentColor.withValues(alpha: 0.05),
         math.sin(animation * 2 * math.pi + i) * 0.5 + 0.5,
       )!;
 

@@ -67,11 +67,11 @@ class _LivePreviewWidgetState extends ConsumerState<LivePreviewWidget> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.image_not_supported, color: Colors.white.withOpacity(0.2), size: 32),
+          Icon(Icons.image_not_supported, color: Colors.white.withValues(alpha: 0.2), size: 32),
           const SizedBox(height: 8),
           Text(
             'Connect nodes to Output',
-            style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12),
           ),
         ],
       ),
@@ -85,11 +85,11 @@ class _LivePreviewWidgetState extends ConsumerState<LivePreviewWidget> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, color: Colors.red.withOpacity(0.7), size: 32),
+            Icon(Icons.error_outline, color: Colors.red.withValues(alpha: 0.7), size: 32),
             const SizedBox(height: 8),
             Text(
               error,
-              style: TextStyle(color: Colors.red.withOpacity(0.7), fontSize: 11),
+              style: TextStyle(color: Colors.red.withValues(alpha: 0.7), fontSize: 11),
               textAlign: TextAlign.center,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -181,10 +181,10 @@ class _TilePreviewState extends State<_TilePreview> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 8,
             ),
           ],

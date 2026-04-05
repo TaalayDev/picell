@@ -137,7 +137,7 @@ class SprayTool extends Tool {
 
         // Lower opacity for spread effect
         final opacity = 0.4 + _random.nextDouble() * 0.5; // 40% to 90% opacity
-        final sprayColor = color.withOpacity(opacity);
+        final sprayColor = color.withValues(alpha: opacity);
         pixels.add(PixelPoint(pixelX, pixelY, color: sprayColor.value));
       }
     }
@@ -188,7 +188,7 @@ class SprayTool extends Tool {
 
         if (_random.nextDouble() < probability) {
           final opacity = 0.3 + _random.nextDouble() * 0.6; // 30% to 90% opacity
-          final sprayColor = color.withOpacity(opacity);
+          final sprayColor = color.withValues(alpha: opacity);
           pixels.add(PixelPoint(pixelX, pixelY, color: sprayColor.value));
         }
       }
@@ -235,7 +235,7 @@ class SprayTool extends Tool {
 
         if (_random.nextDouble() < density) {
           final opacity = 0.2 + _random.nextDouble() * 0.7; // 20% to 90% opacity
-          final sprayColor = color.withOpacity(opacity);
+          final sprayColor = color.withValues(alpha: opacity);
           pixels.add(PixelPoint(pixelX, pixelY, color: sprayColor.value));
         }
       }

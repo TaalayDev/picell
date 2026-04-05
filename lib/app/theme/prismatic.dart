@@ -198,7 +198,7 @@ class _EnhancedPrismaticPainter extends CustomPainter {
           Offset(size.width * (0.3 + i * 0.2), size.height * (0.2 + i * 0.3)),
           size.width * (0.6 + i * 0.2),
           [
-            overlayColor.withOpacity(0.05 * overlayIntensity * intensity),
+            overlayColor.withValues(alpha: 0.05 * overlayIntensity * intensity),
             Colors.transparent,
           ],
           const [0.0, 1.0],
@@ -232,20 +232,20 @@ class _EnhancedPrismaticPainter extends CustomPainter {
         final g = (glowCycle - 0.3) / 0.7;
 
         // Spectrum color (core)
-        paint.color = _getRainbowColor(staticPos, colorK).withOpacity(0.9 * g * intensity);
+        paint.color = _getRainbowColor(staticPos, colorK).withValues(alpha: 0.9 * g * intensity);
         canvas.drawCircle(Offset(floatX, floatY), particleSize * g, paint);
 
         // Shimmer rings (static positions, same k=1 animation)
         for (int ring = 1; ring <= 3; ring++) {
           final ringOpacity = g * (0.4 - ring * 0.1);
           final ringPos = (staticPos + ring * 0.15) % 1.0;
-          paint.color = _getRainbowColor(ringPos, colorK).withOpacity(ringOpacity * intensity);
+          paint.color = _getRainbowColor(ringPos, colorK).withValues(alpha: ringOpacity * intensity);
           canvas.drawCircle(Offset(floatX, floatY), particleSize * g * (1 + ring * 0.8), paint);
         }
 
         // Bright core
         if (g > 0.7) {
-          paint.color = Colors.white.withOpacity(0.9 * g * intensity);
+          paint.color = Colors.white.withValues(alpha: 0.9 * g * intensity);
           canvas.drawCircle(Offset(floatX, floatY), particleSize * 0.4, paint);
         }
       }
@@ -275,7 +275,7 @@ class _EnhancedPrismaticPainter extends CustomPainter {
         final c2 = _getRainbowColor(pos2, 1);
         final mixed = Color.lerp(c1, c2, 0.5)!;
 
-        paint.color = mixed.withOpacity(0.15 * ringIntensity * intensity);
+        paint.color = mixed.withValues(alpha: 0.15 * ringIntensity * intensity);
 
         // 12 points around the ring; subtle radius modulation with k=1 (loop-safe)
         for (int seg = 0; seg < 12; seg++) {
@@ -335,7 +335,7 @@ class _EnhancedPrismaticPainter extends CustomPainter {
 
         paint
           ..strokeWidth = (3 - facet) * intensity
-          ..color = _getRainbowColor(pos, 1).withOpacity(0.6 * bright * intensity);
+          ..color = _getRainbowColor(pos, 1).withValues(alpha: 0.6 * bright * intensity);
         canvas.drawPath(path, paint);
 
         if (facet == 0) {
@@ -375,7 +375,7 @@ class _EnhancedPrismaticPainter extends CustomPainter {
         final gInt = _norm(1, x * 0.02 + y * 0.015);
 
         if (gInt > 0.3) {
-          paint.color = _getRainbowColor(pos, 1).withOpacity(0.12 * gInt * intensity);
+          paint.color = _getRainbowColor(pos, 1).withValues(alpha: 0.12 * gInt * intensity);
 
           canvas.drawRect(
             Rect.fromLTWH(gx, gy, spacing * 0.8, spacing * 0.8),
@@ -430,14 +430,14 @@ class _EnhancedPrismaticPainter extends CustomPainter {
         final pos = (s * 0.33) % 1.0;
         paint
           ..strokeWidth = (4 - s) * intensity
-          ..color = _getRainbowColor(pos, 1).withOpacity(0.8 * vI * intensity);
+          ..color = _getRainbowColor(pos, 1).withValues(alpha: 0.8 * vI * intensity);
         canvas.drawPath(path, paint);
       }
 
       // Core
       paint
         ..style = PaintingStyle.fill
-        ..color = Colors.white.withOpacity(0.9 * vI * intensity);
+        ..color = Colors.white.withValues(alpha: 0.9 * vI * intensity);
       canvas.drawCircle(Offset(cx, cy), 4 * intensity * vI, paint);
     }
   }

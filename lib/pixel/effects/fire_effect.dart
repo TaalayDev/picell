@@ -182,7 +182,7 @@ class FireEffect extends Effect {
       color = _alphaBlend(Color(color.value), smokeColor);
     }
 
-    return color.withOpacity((alpha * 255).clamp(0, 255) / 255.0);
+    return color.withValues(alpha: (alpha * 255).clamp(0, 255) / 255.0);
   }
 
   /// Alpha blends two colors together.

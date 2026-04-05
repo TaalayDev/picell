@@ -313,10 +313,10 @@ class _ScenicPastelPainter extends CustomPainter {
         Alignment.topCenter.withinRect(rect),
         Alignment.bottomCenter.withinRect(rect),
         [
-          _skyBlue.withOpacity(0.6),
-          _lavenderMist.withOpacity(0.4),
-          _softPeach.withOpacity(0.3),
-          Colors.white.withOpacity(0.8),
+          _skyBlue.withValues(alpha: 0.6),
+          _lavenderMist.withValues(alpha: 0.4),
+          _softPeach.withValues(alpha: 0.3),
+          Colors.white.withValues(alpha: 0.8),
         ],
         [0.0, 0.3, 0.6, 1.0],
       );
@@ -333,19 +333,19 @@ class _ScenicPastelPainter extends CustomPainter {
 
     // Sun glow
     paint
-      ..color = _sunYellow.withOpacity(0.6 * intensity)
+      ..color = _sunYellow.withValues(alpha: 0.6 * intensity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
     canvas.drawCircle(sunCenter, sunRadius * 2.5 * sunPulse, paint);
 
     // Sun body
     paint
-      ..color = _sunYellow.withOpacity(0.8 * intensity)
+      ..color = _sunYellow.withValues(alpha: 0.8 * intensity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
     canvas.drawCircle(sunCenter, sunRadius * sunPulse, paint);
 
     // Sun core
     paint
-      ..color = Colors.white.withOpacity(0.9 * intensity)
+      ..color = Colors.white.withValues(alpha: 0.9 * intensity)
       ..maskFilter = null;
     canvas.drawCircle(sunCenter, sunRadius * 0.6 * sunPulse, paint);
   }
@@ -366,7 +366,7 @@ class _ScenicPastelPainter extends CustomPainter {
       }
 
       // Paint
-      paint.color = Colors.white.withOpacity(0.8);
+      paint.color = Colors.white.withValues(alpha: 0.8);
       _drawCloud(canvas, paint, Offset(cloud.x, cloud.y), cloud.size * intensity, cloud.puffiness);
     }
   }
@@ -423,8 +423,8 @@ class _ScenicPastelPainter extends CustomPainter {
 
     for (int layer = 0; layer < state.hillPaths!.length; layer++) {
       final hillOpacity = (0.6 - layer * 0.1) * intensity;
-      final hillColors = [_hillGreen, _softMint, primaryColor.withOpacity(0.3), _lavenderMist];
-      paint.color = hillColors[layer % hillColors.length].withOpacity(hillOpacity);
+      final hillColors = [_hillGreen, _softMint, primaryColor.withValues(alpha: 0.3), _lavenderMist];
+      paint.color = hillColors[layer % hillColors.length].withValues(alpha: hillOpacity);
 
       canvas.drawPath(state.hillPaths![layer], paint);
     }
@@ -446,8 +446,8 @@ class _ScenicPastelPainter extends CustomPainter {
       final treeOpacity = (0.5 + 0.2 * math.sin(tree.swayOffset)) * intensity;
 
       // Tree colors
-      final treeColors = [_hillGreen, _softMint, primaryColor.withOpacity(0.4)];
-      paint.color = treeColors[i % treeColors.length].withOpacity(treeOpacity);
+      final treeColors = [_hillGreen, _softMint, primaryColor.withValues(alpha: 0.4)];
+      paint.color = treeColors[i % treeColors.length].withValues(alpha: treeOpacity);
 
       // Simple tree shape
       _drawSimpleTree(canvas, paint, Offset(swayX, treeY), tree.size * intensity);
@@ -460,7 +460,7 @@ class _ScenicPastelPainter extends CustomPainter {
     canvas.drawCircle(base + Offset(0, -size), size * 0.8, paint);
 
     // Tree trunk
-    paint.color = const Color(0xFFD2B48C).withOpacity(0.3 * intensity); // Tan
+    paint.color = const Color(0xFFD2B48C).withValues(alpha: 0.3 * intensity); // Tan
     canvas.drawRect(
       Rect.fromCenter(
         center: base + Offset(0, -size * 0.3),
@@ -478,7 +478,7 @@ class _ScenicPastelPainter extends CustomPainter {
     final meadowY = size.height * 0.75;
     final meadowRect = Rect.fromLTWH(0, meadowY, size.width, size.height - meadowY);
 
-    paint.color = _softMint.withOpacity(0.3 * intensity);
+    paint.color = _softMint.withValues(alpha: 0.3 * intensity);
     canvas.drawRect(meadowRect, paint);
 
     // Grass texture with gentle waves
@@ -492,7 +492,7 @@ class _ScenicPastelPainter extends CustomPainter {
       final grassSway = math.sin(state.time + i * 0.1) * 3 * intensity;
       final grassY = meadowY + math.sin(i * 0.1) * 3 * intensity;
 
-      paint.color = _hillGreen.withOpacity(0.4 * intensity);
+      paint.color = _hillGreen.withValues(alpha: 0.4 * intensity);
 
       // Draw bent grass blade
       final path = Path();
@@ -515,13 +515,13 @@ class _ScenicPastelPainter extends CustomPainter {
       final bloom = 0.5 * (1 + math.sin(state.time * 0.5 + flower.swayOffset)); // 0..1 pulse
 
       if (bloom > 0.3) {
-        paint.color = flower.color.withOpacity(0.6 * bloom * intensity);
+        paint.color = flower.color.withValues(alpha: 0.6 * bloom * intensity);
 
         // Simple flower (small circle)
         canvas.drawCircle(Offset(swayX, flower.y), flower.size * bloom * intensity, paint);
 
         // Flower center
-        paint.color = _sunYellow.withOpacity(0.8 * bloom * intensity);
+        paint.color = _sunYellow.withValues(alpha: 0.8 * bloom * intensity);
         canvas.drawCircle(Offset(swayX, flower.y), flower.size * 0.3 * bloom * intensity, paint);
       }
     }
@@ -544,7 +544,7 @@ class _ScenicPastelPainter extends CustomPainter {
 
       // Draw
       final alpha = 0.3 + 0.2 * math.sin(state.time * 2 + particle.phase);
-      paint.color = Colors.white.withOpacity(alpha * intensity);
+      paint.color = Colors.white.withValues(alpha: alpha * intensity);
       canvas.drawCircle(Offset(particle.x, particle.y), particle.size, paint);
     }
   }
@@ -558,8 +558,8 @@ class _ScenicPastelPainter extends CustomPainter {
         Offset(size.width * 0.5, 0), // Top center
         size.height,
         [
-          Colors.white.withOpacity(0.2 * intensity),
-          _lavenderMist.withOpacity(0.1 * intensity),
+          Colors.white.withValues(alpha: 0.2 * intensity),
+          _lavenderMist.withValues(alpha: 0.1 * intensity),
           Colors.transparent,
         ],
         [0.0, 0.6, 1.0],
@@ -569,7 +569,7 @@ class _ScenicPastelPainter extends CustomPainter {
 
     // Gentle morning mist balls drifting
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1 * intensity)
+      ..color = Colors.white.withValues(alpha: 0.1 * intensity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
 
     for (int i = 0; i < 3; i++) {

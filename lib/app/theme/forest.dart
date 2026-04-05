@@ -228,8 +228,7 @@ class _EnhancedForestPainter extends CustomPainter {
   final _rayPaint = Paint()..style = PaintingStyle.fill;
   final _treePaint = Paint()..style = PaintingStyle.fill;
   final _canopyHighlightPaint = Paint();
-  final _mistPaint = Paint()
-    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20); // reduced from 30
+  final _mistPaint = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20); // reduced from 30
   final _undergrowthPaint = Paint()..style = PaintingStyle.fill;
   final _leafPaint = Paint()..style = PaintingStyle.fill;
   final _fireflyPaint = Paint()..style = PaintingStyle.fill;
@@ -402,8 +401,8 @@ class _EnhancedForestPainter extends CustomPainter {
         Offset(rayStartX, rayStartY),
         Offset(endX, endY),
         [
-          _sunlight.withOpacity(0.4 * beamAlpha),
-          _sunlight.withOpacity(0.1 * beamAlpha),
+          _sunlight.withValues(alpha: 0.4 * beamAlpha),
+          _sunlight.withValues(alpha: 0.1 * beamAlpha),
           Colors.transparent,
         ],
         [0.0, 0.6, 1.0],
@@ -430,8 +429,9 @@ class _EnhancedForestPainter extends CustomPainter {
       final trunkBase = Offset(tree.x, size.height);
       final trunkTop = Offset(tree.x + sway, size.height - tree.height);
 
-      _drawTreeTrunk(canvas, trunkBase, trunkTop, tree.width * intensity, trunkColor.withOpacity(opacity));
-      _drawCanopyClusters(canvas, trunkTop, tree.width * intensity, tree.height, leafColor.withOpacity(opacity), tree.seed);
+      _drawTreeTrunk(canvas, trunkBase, trunkTop, tree.width * intensity, trunkColor.withValues(alpha: opacity));
+      _drawCanopyClusters(
+          canvas, trunkTop, tree.width * intensity, tree.height, leafColor.withValues(alpha: opacity), tree.seed);
     }
   }
 
@@ -447,7 +447,7 @@ class _EnhancedForestPainter extends CustomPainter {
     canvas.drawPath(path, _treePaint);
 
     // Bark texture – step 20px instead of 10px (half the draw calls)
-    _treePaint.color = const Color(0x1A000000); // Colors.black.withOpacity(0.1)
+    _treePaint.color = const Color(0x1A000000); // Colors.black.withValues(alpha:0.1)
     for (double y = top.dy; y < base.dy; y += 20.0) {
       final progress = (y - top.dy) / (base.dy - top.dy);
       final w = width * (0.2 + 0.8 * progress);
@@ -456,13 +456,12 @@ class _EnhancedForestPainter extends CustomPainter {
     }
   }
 
-  void _drawCanopyClusters(
-      Canvas canvas, Offset center, double treeWidth, double treeHeight, Color color, int seed) {
+  void _drawCanopyClusters(Canvas canvas, Offset center, double treeWidth, double treeHeight, Color color, int seed) {
     // math.Random(seed) produces the same sequence for the same seed each call –
     // this is intentional so cluster positions stay deterministic across frames.
     final rng = math.Random(seed);
     _treePaint.color = color;
-    _canopyHighlightPaint.color = _lightForest.withOpacity(color.opacity * 0.3);
+    _canopyHighlightPaint.color = _lightForest.withValues(alpha: color.opacity * 0.3);
 
     final clusters = 5 + (treeWidth / 10).round();
 
@@ -482,7 +481,7 @@ class _EnhancedForestPainter extends CustomPainter {
 
   void _paintMist(Canvas canvas, Size size, double baseOpacity) {
     // Reuse _mistPaint (blur MaskFilter set at construction, radius 20 not 30)
-    _mistPaint.color = _sunlight.withOpacity(baseOpacity * 0.5 * intensity);
+    _mistPaint.color = _sunlight.withValues(alpha: baseOpacity * 0.5 * intensity);
     final time = state.time;
 
     for (int i = 0; i < 3; i++) {
@@ -507,8 +506,8 @@ class _EnhancedForestPainter extends CustomPainter {
     }
 
     final path = Path(); // reused per blade
-    final leafGreenAlpha = _leafGreen.withOpacity(0.8 * intensity);
-    final midForestAlpha = _midForest.withOpacity(0.8 * intensity);
+    final leafGreenAlpha = _leafGreen.withValues(alpha: 0.8 * intensity);
+    final midForestAlpha = _midForest.withValues(alpha: 0.8 * intensity);
 
     for (int idx = 0; idx < state.undergrowthX!.length; idx++) {
       final x = state.undergrowthX![idx];
@@ -545,7 +544,7 @@ class _EnhancedForestPainter extends CustomPainter {
       if (leaf.x < -10) leaf.x = size.width + 10;
       if (leaf.x > size.width + 10) leaf.x = -10;
 
-      _leafPaint.color = leaf.color.withOpacity(0.9 * intensity);
+      _leafPaint.color = leaf.color.withValues(alpha: 0.9 * intensity);
 
       canvas.save();
       canvas.translate(leaf.x, leaf.y);
@@ -575,10 +574,10 @@ class _EnhancedForestPainter extends CustomPainter {
       final glow = math.sin(state.time * 3 + fly.phase) * 0.5 + 0.5;
 
       if (glow > 0.1) {
-        _fireflyPaint.color = _dappleLight.withOpacity(glow * 0.6 * intensity);
+        _fireflyPaint.color = _dappleLight.withValues(alpha: glow * 0.6 * intensity);
         canvas.drawCircle(Offset(fly.x, fly.y), fly.size, _fireflyPaint);
 
-        _fireflyPaint.color = _dappleLight.withOpacity(glow * 0.2 * intensity);
+        _fireflyPaint.color = _dappleLight.withValues(alpha: glow * 0.2 * intensity);
         canvas.drawCircle(Offset(fly.x, fly.y), fly.size * 3, _fireflyPaint);
       }
     }
@@ -609,7 +608,7 @@ class _EnhancedForestPainter extends CustomPainter {
         Offset(x, y),
         s,
         [
-          _dappleLight.withOpacity(0.2 * flicker * intensity),
+          _dappleLight.withValues(alpha: 0.2 * flicker * intensity),
           Colors.transparent,
         ],
       );

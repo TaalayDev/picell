@@ -55,7 +55,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: theme.divider.withOpacity(0.3),
+                          color: theme.divider.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -168,12 +168,12 @@ class NodeGraphScreen extends HookConsumerWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                theme.surface.withOpacity(0.95),
-                theme.surface.withOpacity(0.85),
+                theme.surface.withValues(alpha: 0.95),
+                theme.surface.withValues(alpha: 0.85),
               ],
             ),
             border: Border(
-              right: BorderSide(color: theme.divider.withOpacity(0.5)),
+              right: BorderSide(color: theme.divider.withValues(alpha: 0.5)),
             ),
           ),
           child: Column(
@@ -185,7 +185,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      theme.primaryColor.withOpacity(0.15),
+                      theme.primaryColor.withValues(alpha: 0.15),
                       Colors.transparent,
                     ],
                     begin: Alignment.topCenter,
@@ -201,14 +201,14 @@ class NodeGraphScreen extends HookConsumerWidget {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                theme.primaryColor.withOpacity(0.3),
-                                theme.accentColor.withOpacity(0.2),
+                                theme.primaryColor.withValues(alpha: 0.3),
+                                theme.accentColor.withValues(alpha: 0.2),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               BoxShadow(
-                                color: theme.primaryColor.withOpacity(0.2),
+                                color: theme.primaryColor.withValues(alpha: 0.2),
                                 blurRadius: 8,
                                 spreadRadius: -2,
                               ),
@@ -251,7 +251,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                         hintStyle: TextStyle(color: theme.textDisabled, fontSize: 13),
                         prefixIcon: Icon(Icons.search, color: theme.textSecondary, size: 16),
                         filled: true,
-                        fillColor: theme.surfaceVariant.withOpacity(0.3),
+                        fillColor: theme.surfaceVariant.withValues(alpha: 0.3),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
@@ -264,7 +264,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                 ),
               ),
 
-              Divider(height: 1, color: theme.divider.withOpacity(0.3)),
+              Divider(height: 1, color: theme.divider.withValues(alpha: 0.3)),
 
               // Categories
               SingleChildScrollView(
@@ -281,7 +281,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                 ),
               ),
 
-              Divider(height: 1, color: theme.divider.withOpacity(0.3)),
+              Divider(height: 1, color: theme.divider.withValues(alpha: 0.3)),
 
               // Node type list
               Expanded(
@@ -305,19 +305,19 @@ class NodeGraphScreen extends HookConsumerWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      theme.primaryColor.withOpacity(0.08),
-                      theme.accentColor.withOpacity(0.05),
+                      theme.primaryColor.withValues(alpha: 0.08),
+                      theme.accentColor.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: theme.divider.withOpacity(0.3)),
+                  border: Border.all(color: theme.divider.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: theme.primaryColor.withOpacity(0.15),
+                        color: theme.primaryColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Icon(Icons.output, color: theme.primaryColor, size: 16),
@@ -359,10 +359,10 @@ class NodeGraphScreen extends HookConsumerWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: isSelected ? theme.primaryColor.withOpacity(0.2) : theme.surfaceVariant.withOpacity(0.3),
+            color: isSelected ? theme.primaryColor.withValues(alpha: 0.2) : theme.surfaceVariant.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? theme.primaryColor.withOpacity(0.5) : Colors.transparent,
+              color: isSelected ? theme.primaryColor.withValues(alpha: 0.5) : Colors.transparent,
               width: 1,
             ),
           ),
@@ -400,18 +400,18 @@ class NodeGraphScreen extends HookConsumerWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                nodeType.color.withOpacity(0.12),
-                nodeType.color.withOpacity(0.04),
+                nodeType.color.withValues(alpha: 0.12),
+                nodeType.color.withValues(alpha: 0.04),
               ],
             ),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: nodeType.color.withOpacity(0.25),
+              color: nodeType.color.withValues(alpha: 0.25),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: nodeType.color.withOpacity(0.1),
+                color: nodeType.color.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -426,14 +426,14 @@ class NodeGraphScreen extends HookConsumerWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      nodeType.color.withOpacity(0.25),
-                      nodeType.color.withOpacity(0.1),
+                      nodeType.color.withValues(alpha: 0.25),
+                      nodeType.color.withValues(alpha: 0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: nodeType.color.withOpacity(0.15),
+                      color: nodeType.color.withValues(alpha: 0.15),
                       blurRadius: 6,
                       spreadRadius: -2,
                     ),
@@ -467,7 +467,7 @@ class NodeGraphScreen extends HookConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: nodeType.color.withOpacity(0.15),
+                  color: nodeType.color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Icon(Icons.add, color: nodeType.color, size: 16),
@@ -489,12 +489,12 @@ class NodeGraphScreen extends HookConsumerWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                theme.toolbarColor.withOpacity(0.9),
-                theme.surface.withOpacity(0.85),
+                theme.toolbarColor.withValues(alpha: 0.9),
+                theme.surface.withValues(alpha: 0.85),
               ],
             ),
             border: Border(
-              bottom: BorderSide(color: theme.divider.withOpacity(0.3)),
+              bottom: BorderSide(color: theme.divider.withValues(alpha: 0.3)),
             ),
           ),
           child: Row(
@@ -502,7 +502,7 @@ class NodeGraphScreen extends HookConsumerWidget {
               // Back button
               Container(
                 decoration: BoxDecoration(
-                  color: theme.surfaceVariant.withOpacity(0.5),
+                  color: theme.surfaceVariant.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: IconButton(
@@ -520,12 +520,12 @@ class NodeGraphScreen extends HookConsumerWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      theme.primaryColor.withOpacity(0.1),
-                      theme.accentColor.withOpacity(0.05),
+                      theme.primaryColor.withValues(alpha: 0.1),
+                      theme.accentColor.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.primaryColor.withOpacity(0.2)),
+                  border: Border.all(color: theme.primaryColor.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   children: [
@@ -549,9 +549,9 @@ class NodeGraphScreen extends HookConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: theme.surfaceVariant.withOpacity(0.4),
+                  color: theme.surfaceVariant.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: theme.divider.withOpacity(0.2)),
+                  border: Border.all(color: theme.divider.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -578,7 +578,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: theme.success.withOpacity(0.3),
+                      color: theme.success.withValues(alpha: 0.3),
                       blurRadius: 12,
                       spreadRadius: -2,
                     ),
@@ -638,12 +638,12 @@ class NodeGraphScreen extends HookConsumerWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                theme.surface.withOpacity(0.95),
-                theme.surface.withOpacity(0.85),
+                theme.surface.withValues(alpha: 0.95),
+                theme.surface.withValues(alpha: 0.85),
               ],
             ),
             border: Border(
-              left: BorderSide(color: theme.divider.withOpacity(0.5)),
+              left: BorderSide(color: theme.divider.withValues(alpha: 0.5)),
             ),
           ),
           child: Column(
@@ -654,7 +654,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      theme.accentColor.withOpacity(0.1),
+                      theme.accentColor.withValues(alpha: 0.1),
                       Colors.transparent,
                     ],
                   ),
@@ -664,7 +664,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: theme.accentColor.withOpacity(0.15),
+                        color: theme.accentColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(Icons.preview_outlined, color: theme.accentColor, size: 16),
@@ -719,10 +719,10 @@ class NodeGraphScreen extends HookConsumerWidget {
                 decoration: BoxDecoration(
                   color: theme.canvasBackground,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.divider.withOpacity(0.3)),
+                  border: Border.all(color: theme.divider.withValues(alpha: 0.3)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -751,7 +751,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      theme.primaryColor.withOpacity(0.08),
+                      theme.primaryColor.withValues(alpha: 0.08),
                       Colors.transparent,
                     ],
                   ),
@@ -761,7 +761,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: theme.primaryColor.withOpacity(0.15),
+                        color: theme.primaryColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(Icons.tune, color: theme.primaryColor, size: 16),
@@ -780,7 +780,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: theme.primaryColor.withOpacity(0.15),
+                          color: theme.primaryColor.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -815,7 +815,7 @@ class NodeGraphScreen extends HookConsumerWidget {
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: theme.surfaceVariant.withOpacity(0.3),
+                                color: theme.surfaceVariant.withValues(alpha: 0.3),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -889,7 +889,7 @@ class _GridPainter extends CustomPainter {
     );
 
     final paint = Paint()
-      ..color = gridColor.withOpacity(0.15)
+      ..color = gridColor.withValues(alpha: 0.15)
       ..strokeWidth = 1;
 
     const gridSize = 50.0;
@@ -904,7 +904,7 @@ class _GridPainter extends CustomPainter {
 
     // Draw major grid lines (every 5 cells)
     final majorPaint = Paint()
-      ..color = gridColor.withOpacity(0.25)
+      ..color = gridColor.withValues(alpha: 0.25)
       ..strokeWidth = 1.5;
 
     const majorGridSize = gridSize * 5;

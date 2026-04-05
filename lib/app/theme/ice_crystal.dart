@@ -301,7 +301,7 @@ class _IceCrystalPainter extends CustomPainter {
       final t = state.time * 0.2 + i * 2.0;
       final y = size.height * (0.2 + i * 0.25) + math.sin(t) * 50;
 
-      streakPaint.color = accentColor.withOpacity(0.05 * intensity);
+      streakPaint.color = accentColor.withValues(alpha: 0.05 * intensity);
 
       final path = Path();
       path.moveTo(0, y);
@@ -338,12 +338,12 @@ class _IceCrystalPainter extends CustomPainter {
       // Prepare paints
       final fillPaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = primaryColor.withOpacity(opacity * 0.3);
+        ..color = primaryColor.withValues(alpha: opacity * 0.3);
 
       final borderPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = (1 + shard.z) * intensity
-        ..color = accentColor.withOpacity(opacity);
+        ..color = accentColor.withValues(alpha: opacity);
 
       // Create Shard Path
       final path = Path();
@@ -371,9 +371,9 @@ class _IceCrystalPainter extends CustomPainter {
         Offset(shard.x - drawSize, shard.y - drawSize),
         Offset(shard.x + drawSize, shard.y + drawSize),
         [
-          primaryColor.withOpacity(opacity * 0.1),
-          Colors.white.withOpacity(opacity * 0.4),
-          primaryColor.withOpacity(opacity * 0.1),
+          primaryColor.withValues(alpha: opacity * 0.1),
+          Colors.white.withValues(alpha: opacity * 0.4),
+          primaryColor.withValues(alpha: opacity * 0.1),
         ],
         [0.0, 0.5 + math.sin(state.time + shard.x) * 0.2, 1.0], // Shimmer effect
       );
@@ -383,7 +383,7 @@ class _IceCrystalPainter extends CustomPainter {
 
       // Draw internal facet lines
       borderPaint.strokeWidth = 0.5 * intensity;
-      borderPaint.color = Colors.white.withOpacity(opacity * 0.5);
+      borderPaint.color = Colors.white.withValues(alpha: opacity * 0.5);
       for (int i = 0; i < shard.points; i++) {
         final angle = (i * 2 * math.pi / shard.points) + currentRotation;
         final r = drawSize * shard.vertices[i];
@@ -418,7 +418,7 @@ class _IceCrystalPainter extends CustomPainter {
 
       // Draw
       final alpha = (0.3 + 0.7 * math.sin(flake.wobblePhase)) * intensity;
-      paint.color = Colors.white.withOpacity(alpha.clamp(0.0, 1.0));
+      paint.color = Colors.white.withValues(alpha: alpha.clamp(0.0, 1.0));
       canvas.drawCircle(Offset(flake.x, flake.y), flake.size * intensity, paint);
     }
   }
@@ -430,8 +430,8 @@ class _IceCrystalPainter extends CustomPainter {
       size.longestSide * 0.7,
       [
         Colors.transparent,
-        primaryColor.withOpacity(0.1 * intensity),
-        primaryColor.withOpacity(0.3 * intensity),
+        primaryColor.withValues(alpha: 0.1 * intensity),
+        primaryColor.withValues(alpha: 0.3 * intensity),
       ],
       [0.6, 0.85, 1.0],
     );

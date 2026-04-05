@@ -121,7 +121,7 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
             Text(
               'This will create multiple animation frames that you can add to your timeline.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
             ),
           ],
@@ -360,7 +360,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -791,7 +791,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
             Text(
               'Current effect settings will be used as the base for animation',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
             ),
 

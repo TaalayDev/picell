@@ -183,7 +183,7 @@ class _VolcanicPainter extends CustomPainter {
       ..shader = RadialGradient(
         center: Alignment(0.0, 1.05),
         radius: 0.9,
-        colors: [lavaCore.withOpacity(0.22 * intensity), Colors.transparent],
+        colors: [lavaCore.withValues(alpha: 0.22 * intensity), Colors.transparent],
       ).createShader(Offset.zero & size);
     canvas.drawRect(Offset.zero & size, glow1);
 
@@ -194,7 +194,7 @@ class _VolcanicPainter extends CustomPainter {
           center: Alignment(x, 1.15),
           radius: 0.55,
           colors: [
-            _mix(lavaCore, theme.accentColor, 0.25).withOpacity(0.18 * intensity),
+            _mix(lavaCore, theme.accentColor, 0.25).withValues(alpha: 0.18 * intensity),
             Colors.transparent,
           ],
         ).createShader(
@@ -246,7 +246,7 @@ class _VolcanicPainter extends CustomPainter {
       final glowPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = river.thickness * 2.8
-        ..color = lavaCool.withOpacity(0.10 * intensity)
+        ..color = lavaCool.withValues(alpha: 0.10 * intensity)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       canvas.drawPath(path, glowPaint);
 
@@ -254,7 +254,7 @@ class _VolcanicPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round
         ..strokeWidth = river.thickness * 1.8
-        ..color = lavaMid.withOpacity(0.18 * intensity)
+        ..color = lavaMid.withValues(alpha: 0.18 * intensity)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
       canvas.drawPath(path, midGlowPaint);
 
@@ -297,14 +297,14 @@ class _VolcanicPainter extends CustomPainter {
 
       // soft glow
       emberPaint
-        ..color = base.withOpacity(alpha)
+        ..color = base.withValues(alpha: alpha)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.2);
       canvas.drawCircle(Offset(x, y), radius * 2.4, emberPaint);
 
       // core
       emberPaint
         ..maskFilter = null
-        ..color = _mix(base, theme.primaryColor, 0.35).withOpacity(alpha);
+        ..color = _mix(base, theme.primaryColor, 0.35).withValues(alpha: alpha);
       canvas.drawCircle(Offset(x, y), radius, emberPaint);
     }
   }
@@ -320,7 +320,7 @@ class _VolcanicPainter extends CustomPainter {
         end: Alignment.topCenter,
         colors: [
           Colors.transparent,
-          _mix(theme.primaryColor, theme.accentColor, 0.25).withOpacity(alpha),
+          _mix(theme.primaryColor, theme.accentColor, 0.25).withValues(alpha: alpha),
           Colors.transparent,
         ],
         stops: const [0.2, 0.5, 0.8],
@@ -336,8 +336,8 @@ class _VolcanicPainter extends CustomPainter {
         radius: 0.95,
         colors: [
           Colors.transparent,
-          Colors.black.withOpacity(0.10),
-          Colors.black.withOpacity(0.20),
+          Colors.black.withValues(alpha: 0.10),
+          Colors.black.withValues(alpha: 0.20),
         ],
         stops: const [0.65, 0.9, 1.0],
       ).createShader(Offset.zero & size);

@@ -87,7 +87,7 @@ class ToolsBottomBar extends HookWidget {
                   }).toList(),
                 ).animate().fadeIn(duration: const Duration(milliseconds: 200)),
               ),
-            if (showExtraTools.value) Divider(color: Colors.grey.withOpacity(0.5), thickness: 0.1),
+            if (showExtraTools.value) Divider(color: Colors.grey.withValues(alpha: 0.5), thickness: 0.1),
             Expanded(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,

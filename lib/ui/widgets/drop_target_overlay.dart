@@ -111,9 +111,9 @@ class _DropTargetOverlayState extends State<DropTargetOverlay> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        color: overlayColor.withOpacity(_isDragging ? 0.15 : 0.1),
+        color: overlayColor.withValues(alpha: _isDragging ? 0.15 : 0.1),
         border: Border.all(
-          color: overlayColor.withOpacity(_isDragging ? 0.8 : 0.5),
+          color: overlayColor.withValues(alpha: _isDragging ? 0.8 : 0.5),
           width: 3,
           strokeAlign: BorderSide.strokeAlignInside,
         ),
@@ -133,11 +133,11 @@ class _DropTargetOverlayState extends State<DropTargetOverlay> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.3),
+              color: color.withValues(alpha: 0.3),
               blurRadius: 20,
               spreadRadius: 5,
             ),
@@ -164,7 +164,7 @@ class _DropTargetOverlayState extends State<DropTargetOverlay> {
             Text(
               _getSupportedExtensions(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
               textAlign: TextAlign.center,
             ),
@@ -178,11 +178,11 @@ class _DropTargetOverlayState extends State<DropTargetOverlay> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 20,
             spreadRadius: 5,
           ),
@@ -291,7 +291,7 @@ class _CanvasDropTargetState extends State<CanvasDropTarget> {
               child: IgnorePointer(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     border: Border.all(
                       color: Theme.of(context).colorScheme.primary,
                       width: 2,

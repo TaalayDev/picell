@@ -40,12 +40,12 @@ class NodeWidget extends ConsumerWidget {
           ),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? nodeColor : Colors.white.withOpacity(0.1),
+            color: isSelected ? nodeColor : Colors.white.withValues(alpha: 0.1),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: isSelected ? nodeColor.withOpacity(0.3) : Colors.black.withOpacity(0.4),
+              color: isSelected ? nodeColor.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.4),
               blurRadius: isSelected ? 16 : 10,
               offset: const Offset(0, 4),
             ),
@@ -61,8 +61,8 @@ class NodeWidget extends ConsumerWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    nodeColor.withOpacity(0.3),
-                    nodeColor.withOpacity(0.1),
+                    nodeColor.withValues(alpha: 0.3),
+                    nodeColor.withValues(alpha: 0.1),
                   ],
                 ),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
@@ -72,7 +72,7 @@ class NodeWidget extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: nodeColor.withOpacity(0.3),
+                      color: nodeColor.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Icon(_getNodeIcon(), size: 14, color: nodeColor),
@@ -96,13 +96,13 @@ class NodeWidget extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Icon(
                           Icons.close,
                           size: 12,
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.white.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
@@ -148,10 +148,10 @@ class NodeWidget extends ConsumerWidget {
         decoration: BoxDecoration(
           color: colorNode.color,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
-              color: colorNode.color.withOpacity(0.3),
+              color: colorNode.color.withValues(alpha: 0.3),
               blurRadius: 8,
               spreadRadius: -2,
             ),
@@ -165,7 +165,7 @@ class NodeWidget extends ConsumerWidget {
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(5),
@@ -181,14 +181,14 @@ class NodeWidget extends ConsumerWidget {
         height: 40,
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Center(
           child: Icon(
             _getShapeIcon(shapeNode.shapeType),
-            color: Colors.green.withOpacity(0.7),
+            color: Colors.green.withValues(alpha: 0.7),
             size: 24,
           ),
         ),
@@ -200,12 +200,12 @@ class NodeWidget extends ConsumerWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.blue.withOpacity(0.2),
-              Colors.purple.withOpacity(0.2),
+              Colors.blue.withValues(alpha: 0.2),
+              Colors.purple.withValues(alpha: 0.2),
             ],
           ),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.blue.withOpacity(0.3)),
+          border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
         ),
         child: const Center(
           child: Text(
@@ -250,12 +250,12 @@ class NodeWidget extends ConsumerWidget {
             const SizedBox(width: 6),
             Text(
               socket.name,
-              style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11),
             ),
           ] else ...[
             Text(
               socket.name,
-              style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11),
             ),
             const SizedBox(width: 6),
             _SocketCircle(color: color, isInput: false, socket: socket),
@@ -340,7 +340,7 @@ class _SocketCircle extends ConsumerWidget {
               border: Border.all(color: Colors.white, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.5),
+                  color: color.withValues(alpha: 0.5),
                   blurRadius: 8,
                 ),
               ],
@@ -354,10 +354,10 @@ class _SocketCircle extends ConsumerWidget {
               color: color,
               shape: BoxShape.circle,
               border: Border.all(
-                color: isHovering ? Colors.white : color.withOpacity(0.5),
+                color: isHovering ? Colors.white : color.withValues(alpha: 0.5),
                 width: isHovering ? 2 : 1,
               ),
-              boxShadow: isHovering ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 6)] : null,
+              boxShadow: isHovering ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6)] : null,
             ),
           ),
         );

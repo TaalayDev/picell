@@ -125,7 +125,7 @@ class _MonochromePainter extends CustomPainter {
       final sides = 3 + i * 2;
       final rotation = animation * (i.isEven ? 1 : -1) + i * math.pi / 6;
 
-      paint.color = primaryColor.withOpacity(0.05 * intensity * (1 - i * 0.2));
+      paint.color = primaryColor.withValues(alpha: 0.05 * intensity * (1 - i * 0.2));
 
       final path = Path();
       for (int j = 0; j < sides; j++) {

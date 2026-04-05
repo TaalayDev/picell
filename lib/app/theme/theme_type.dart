@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 enum ThemeType {
   darkMode,
   lightMode,
@@ -44,16 +42,15 @@ enum ThemeType {
   candyCarnival,
   bioluminescentBrutalism;
 
+  // Flagship themes (retroWave, candyCarnival, cherryBlossom, steampunk,
+  // origami, crystalline, cosmic) are intentionally excluded — they are always free.
   static List<ThemeType> lockedThemeTypes = [
     ThemeType.ocean,
     ThemeType.monochrome,
     ThemeType.neon,
-    ThemeType.cosmic,
     ThemeType.purpleRain,
     ThemeType.goldenHour,
     ThemeType.cyberpunk,
-    ThemeType.cherryBlossom,
-    ThemeType.retroWave,
     ThemeType.volcanic,
     ThemeType.arcticAurora,
     ThemeType.toxicWaste,
@@ -62,16 +59,13 @@ enum ThemeType {
     ThemeType.copperSteampunk,
     ThemeType.prismatic,
     ThemeType.autumnHarvest,
-    ThemeType.steampunk,
     ThemeType.gothic,
     ThemeType.artDeco,
-    ThemeType.crystalline,
     ThemeType.enchantedForest,
     ThemeType.coralReef,
     ThemeType.stainedGlass,
     ThemeType.lofiNight,
     ThemeType.artNouveau,
-    ThemeType.origami,
     ThemeType.pointillism,
   ];
 

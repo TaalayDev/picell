@@ -5,6 +5,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import '../../../data.dart';
 import '../../../l10n/strings.dart';
 import 'project_card.dart';
+import 'theme_aware_project_card.dart';
 
 class AdaptiveProjectGrid extends StatelessWidget {
   final List<Project> projects;
@@ -68,7 +69,7 @@ class AdaptiveProjectGrid extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           itemCount: projects.length,
           itemBuilder: (context, index) {
-            return ProjectCard(
+            return ThemeAwareProjectCard(
               key: ValueKey(projects[index].id),
               project: projects[index],
               onTapProject: onTapProject,

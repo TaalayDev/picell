@@ -864,7 +864,7 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
             width: format == value ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
-          color: format == value ? Theme.of(context).colorScheme.primary.withOpacity(0.1) : null,
+          color: format == value ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

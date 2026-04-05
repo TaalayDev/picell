@@ -23,6 +23,7 @@ enum StorageKey {
   editorTwoFingerUndo,
   editorShowPixelGrid,
   editorPixelGridOpacity,
+  editorOnboardingShown,
 }
 
 /// A singleton class to handle simple storage operations.
@@ -104,6 +105,9 @@ abstract class LocalStorage {
 
   bool get hasBioAuth => getBool(StorageKey.hasBioAuth.name) ?? false;
   set hasBioAuth(bool val) => setBool(StorageKey.hasBioAuth.name, val);
+
+  bool get editorOnboardingShown => getBool(StorageKey.editorOnboardingShown.name) ?? false;
+  set editorOnboardingShown(bool val) => setBool(StorageKey.editorOnboardingShown.name, val);
 
   String? get token => getString(StorageKey.token.name);
   set token(String? token) => setString(StorageKey.token.name, token ?? '');

@@ -180,8 +180,7 @@ class _EnhancedMidnightPainter extends CustomPainter {
   static const Color _auroraViolet = Color(0xFF7C4DFF);
 
   // Reusable Paint objects – avoids per-frame heap allocation and GC pressure
-  final _nebulaPaint = Paint()
-    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30); // reduced from 60
+  final _nebulaPaint = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30); // reduced from 60
   final _auroraFillPaint = Paint()
     ..style = PaintingStyle.fill
     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12); // reduced from 20
@@ -282,8 +281,8 @@ class _EnhancedMidnightPainter extends CustomPainter {
       [
         const Color(0xFF050510),
         const Color(0xFF101025),
-        _mysticalBlue.withOpacity(0.6),
-        _deepPurple.withOpacity(0.3),
+        _mysticalBlue.withValues(alpha: 0.6),
+        _deepPurple.withValues(alpha: 0.3),
       ],
       [0.0, 0.4, 0.8, 1.0],
     );
@@ -292,14 +291,14 @@ class _EnhancedMidnightPainter extends CustomPainter {
     // Nebula clouds – blur radius reduced from 60 → 30
     final t = state.time * 0.1;
 
-    _nebulaPaint.color = primaryColor.withOpacity(0.05 * intensity);
+    _nebulaPaint.color = primaryColor.withValues(alpha: 0.05 * intensity);
     canvas.drawCircle(
       Offset(size.width * 0.8 + math.sin(t) * 50, size.height * 0.2 + math.cos(t) * 30),
       size.width * 0.4,
       _nebulaPaint,
     );
 
-    _nebulaPaint.color = accentColor.withOpacity(0.03 * intensity);
+    _nebulaPaint.color = accentColor.withValues(alpha: 0.03 * intensity);
     canvas.drawCircle(
       Offset(size.width * 0.2 - math.sin(t * 0.8) * 40, size.height * 0.4),
       size.width * 0.5,
@@ -315,8 +314,8 @@ class _EnhancedMidnightPainter extends CustomPainter {
         Offset.zero,
         Offset(0, size.height * 0.6),
         [
-          auroraColor.withOpacity(0.0),
-          auroraColor.withOpacity(0.15 * intensity),
+          auroraColor.withValues(alpha: 0.0),
+          auroraColor.withValues(alpha: 0.15 * intensity),
           Colors.transparent,
         ],
         [0.0, 0.5, 1.0],
@@ -356,14 +355,16 @@ class _EnhancedMidnightPainter extends CustomPainter {
 
       if (alpha < 0.1) continue;
 
-      _starFillPaint.color = star.color.withOpacity(alpha * 0.8);
+      _starFillPaint.color = star.color.withValues(alpha: alpha * 0.8);
       canvas.drawCircle(Offset(star.x, star.y), star.size, _starFillPaint);
 
       // Major stars have cross-glare
       if (star.size > 2.0 && alpha > 0.8) {
-        _starGlarePaint.color = star.color.withOpacity(alpha * 0.6);
-        canvas.drawLine(Offset(star.x - star.size * 2, star.y), Offset(star.x + star.size * 2, star.y), _starGlarePaint);
-        canvas.drawLine(Offset(star.x, star.y - star.size * 2), Offset(star.x, star.y + star.size * 2), _starGlarePaint);
+        _starGlarePaint.color = star.color.withValues(alpha: alpha * 0.6);
+        canvas.drawLine(
+            Offset(star.x - star.size * 2, star.y), Offset(star.x + star.size * 2, star.y), _starGlarePaint);
+        canvas.drawLine(
+            Offset(star.x, star.y - star.size * 2), Offset(star.x, star.y + star.size * 2), _starGlarePaint);
       }
     }
   }
@@ -402,10 +403,10 @@ class _EnhancedMidnightPainter extends CustomPainter {
       final tailY = s.y - s.speedY * 0.15;
 
       // Plain faded line avoids creating a ui.Gradient.linear shader every frame
-      _shootingTrailPaint.color = Colors.white.withOpacity(s.life * 0.6);
+      _shootingTrailPaint.color = Colors.white.withValues(alpha: s.life * 0.6);
       canvas.drawLine(Offset(tailX, tailY), Offset(s.x, s.y), _shootingTrailPaint);
 
-      _shootingHeadPaint.color = Colors.white.withOpacity(s.life);
+      _shootingHeadPaint.color = Colors.white.withValues(alpha: s.life);
       canvas.drawCircle(Offset(s.x, s.y), 1.5 * intensity, _shootingHeadPaint);
     }
   }
@@ -415,13 +416,13 @@ class _EnhancedMidnightPainter extends CustomPainter {
     final moonRadius = 30 * intensity;
 
     // Outer glow – blur radius reduced from 30 → 20
-    _moonGlowPaint.color = _moonSilver.withOpacity(0.2 * intensity);
+    _moonGlowPaint.color = _moonSilver.withValues(alpha: 0.2 * intensity);
     canvas.drawCircle(moonCenter, moonRadius * 3, _moonGlowPaint);
 
-    _moonBodyPaint.color = _moonSilver.withOpacity(0.95);
+    _moonBodyPaint.color = _moonSilver.withValues(alpha: 0.95);
     canvas.drawCircle(moonCenter, moonRadius, _moonBodyPaint);
 
-    _moonBodyPaint.color = const Color(0xFFB0B0B0).withOpacity(0.3);
+    _moonBodyPaint.color = const Color(0xFFB0B0B0).withValues(alpha: 0.3);
     canvas.drawCircle(moonCenter + Offset(-moonRadius * 0.3, moonRadius * 0.2), moonRadius * 0.15, _moonBodyPaint);
     canvas.drawCircle(moonCenter + Offset(moonRadius * 0.4, -moonRadius * 0.1), moonRadius * 0.1, _moonBodyPaint);
     canvas.drawCircle(moonCenter + Offset(moonRadius * 0.1, moonRadius * 0.5), moonRadius * 0.08, _moonBodyPaint);
@@ -462,7 +463,8 @@ class _EnhancedMidnightPainter extends CustomPainter {
         const Color(0xFF0D1B2A),
         _mysticalBlue,
         0.5 - i * 0.15,
-      )!.withOpacity(opacity);
+      )!
+          .withValues(alpha: opacity);
 
       canvas.drawPath(state.mountainPaths![i], _mountainPaint);
     }

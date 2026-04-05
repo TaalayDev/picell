@@ -101,6 +101,7 @@ dependencies:
   # drag and drop
   desktop_drop: ^0.5.0
   archive: ^4.0.4
+  onboarding_overlay: ^3.2.3
 
 
 dependency_overrides:

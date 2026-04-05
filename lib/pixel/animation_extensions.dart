@@ -129,7 +129,7 @@ extension AnimationEffects on AnimationFrame {
       final pixel = pixels[i];
       if (pixel != 0) {
         final color = Color(pixel);
-        final fadedColor = color.withOpacity(color.opacity * opacity);
+        final fadedColor = color.withValues(alpha: color.opacity * opacity);
         fadedPixels[i] = fadedColor.value;
       }
     }

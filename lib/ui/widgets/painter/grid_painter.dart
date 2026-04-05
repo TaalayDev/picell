@@ -20,7 +20,7 @@ class GridPainter extends CustomPainter {
     canvas.scale(scale);
 
     final paint = Paint()
-      ..color = Colors.grey.withOpacity(0.2)
+      ..color = Colors.grey.withValues(alpha: 0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
 

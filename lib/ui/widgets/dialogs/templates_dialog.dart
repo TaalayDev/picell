@@ -617,7 +617,7 @@ class _CategoryChip extends StatelessWidget {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => onTap(),
-      selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+      selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
       checkmarkColor: Theme.of(context).colorScheme.primary,
       labelStyle: TextStyle(
         color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
@@ -913,7 +913,7 @@ class _FooterWidget extends StatelessWidget {
             Text(
               'Showing $displayedCount${totalCount > 0 ? ' of $totalCount' : ''} templates',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
             ),
           Row(
@@ -921,13 +921,13 @@ class _FooterWidget extends StatelessWidget {
               Icon(
                 Icons.info_outline,
                 size: 16,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               const SizedBox(width: 4),
               Text(
                 'Click a template to apply it',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
               ),
             ],
@@ -1015,7 +1015,7 @@ class _TemplateCardState extends State<_TemplateCard> {
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Stack(
@@ -1037,7 +1037,7 @@ class _TemplateCardState extends State<_TemplateCard> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.9),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Row(
@@ -1068,7 +1068,7 @@ class _TemplateCardState extends State<_TemplateCard> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.9),
+                                color: Colors.green.withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Row(
@@ -1095,7 +1095,7 @@ class _TemplateCardState extends State<_TemplateCard> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.9),
+                                color: Colors.blue.withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Row(
@@ -1155,7 +1155,7 @@ class _TemplateCardState extends State<_TemplateCard> {
                           left: 6,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.9),
+                              color: Colors.red.withValues(alpha: 0.9),
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
@@ -1181,7 +1181,7 @@ class _TemplateCardState extends State<_TemplateCard> {
                 widget.template.name,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: widget.isLocked ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6) : null,
+                      color: widget.isLocked ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6) : null,
                     ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -1197,7 +1197,7 @@ class _TemplateCardState extends State<_TemplateCard> {
                     widget.template.sizeString,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: widget.isLocked
-                              ? Theme.of(context).colorScheme.outline.withOpacity(0.5)
+                              ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)
                               : Theme.of(context).colorScheme.outline,
                         ),
                   ),
@@ -1206,7 +1206,7 @@ class _TemplateCardState extends State<_TemplateCard> {
                       widget.template.categoryDisplayName,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: widget.isLocked
-                                ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
+                                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
                                 : Theme.of(context).colorScheme.primary,
                             fontSize: 10,
                           ),
@@ -1222,14 +1222,14 @@ class _TemplateCardState extends State<_TemplateCard> {
                     Icon(
                       Icons.favorite,
                       size: 12,
-                      color: widget.isLocked ? Colors.red.withOpacity(0.3) : Colors.red.withOpacity(0.7),
+                      color: widget.isLocked ? Colors.red.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.7),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${widget.template.likeCount}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: widget.isLocked
-                                ? Theme.of(context).colorScheme.outline.withOpacity(0.5)
+                                ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)
                                 : Theme.of(context).colorScheme.outline,
                             fontSize: 10,
                           ),

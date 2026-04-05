@@ -18,7 +18,7 @@ Future<T?> showTopFlushbar<T>(
       vertical: 5.0,
     ),
     borderRadius: BorderRadius.circular(5.0),
-    backgroundColor: const Color(0xffCBCBCB).withOpacity(0.8),
+    backgroundColor: const Color(0xffCBCBCB).withValues(alpha: 0.8),
     messageText: DefaultTextStyle(
       style: TextStyle(
         color: color ?? Theme.of(context).colorScheme.onSurface,
@@ -56,7 +56,7 @@ Future<T?> showBottomFlushbar<T>(
       vertical: 5.0,
     ),
     borderRadius: BorderRadius.circular(5.0),
-    backgroundColor: const Color(0xffCBCBCB).withOpacity(0.4),
+    backgroundColor: const Color(0xffCBCBCB).withValues(alpha: 0.4),
     messageText: DefaultTextStyle(
       style: TextStyle(
         color: color ?? Theme.of(context).colorScheme.onSurface,

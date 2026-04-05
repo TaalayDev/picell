@@ -24,7 +24,7 @@ class CustomSlider extends StatelessWidget {
         inactiveTrackColor: const Color(0xFFE2E8F0),
         thumbColor: Colors.white,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14),
-        overlayColor: const Color(0xFF667EEA).withOpacity(0.2),
+        overlayColor: const Color(0xFF667EEA).withValues(alpha: 0.2),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
         trackShape: const GradientRectSliderTrackShape(
           gradient: LinearGradient(
@@ -68,7 +68,7 @@ class CustomRangeSlider extends StatelessWidget {
         inactiveTrackColor: const Color(0xFFE2E8F0),
         thumbColor: Colors.white,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14),
-        overlayColor: const Color(0xFF48BB78).withOpacity(0.2),
+        overlayColor: const Color(0xFF48BB78).withValues(alpha: 0.2),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
         rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 14),
         rangeTrackShape: GradientRectRangeSliderTrackShape(

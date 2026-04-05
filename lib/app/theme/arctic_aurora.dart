@@ -150,8 +150,8 @@ class _ArcticAuroraPainter extends CustomPainter {
 
       final auroraIntensity = math.sin(animation * 3 * math.pi + i * 0.7) * 0.3 + 0.7;
       paint.color = Color.lerp(
-        primaryColor.withOpacity(0.08 * auroraIntensity * intensity),
-        accentColor.withOpacity(0.06 * auroraIntensity * intensity),
+        primaryColor.withValues(alpha: 0.08 * auroraIntensity * intensity),
+        accentColor.withValues(alpha: 0.06 * auroraIntensity * intensity),
         i / 3.0,
       )!;
 
@@ -167,8 +167,8 @@ class _ArcticAuroraPainter extends CustomPainter {
 
       if (beamIntensity > 0.3) {
         paint.color = Color.lerp(
-          primaryColor.withOpacity(0.05 * beamIntensity * intensity),
-          accentColor.withOpacity(0.04 * beamIntensity * intensity),
+          primaryColor.withValues(alpha: 0.05 * beamIntensity * intensity),
+          accentColor.withValues(alpha: 0.04 * beamIntensity * intensity),
           math.sin(animation * math.pi + i) * 0.5 + 0.5,
         )!;
 
@@ -192,8 +192,8 @@ class _ArcticAuroraPainter extends CustomPainter {
 
       if (sparkleIntensity > 0.6) {
         paint.color = Color.lerp(
-          primaryColor.withOpacity(0.4 * sparkleIntensity),
-          accentColor.withOpacity(0.5 * sparkleIntensity),
+          primaryColor.withValues(alpha: 0.4 * sparkleIntensity),
+          accentColor.withValues(alpha: 0.5 * sparkleIntensity),
           sparkleIntensity,
         )!;
 
@@ -216,7 +216,7 @@ class _ArcticAuroraPainter extends CustomPainter {
       }
 
       final reflectionIntensity = math.sin(animation * 2 * math.pi + i * 1.1) * 0.3 + 0.4;
-      paint.color = primaryColor.withOpacity(0.03 * reflectionIntensity * intensity);
+      paint.color = primaryColor.withValues(alpha: 0.03 * reflectionIntensity * intensity);
 
       canvas.drawPath(path, paint);
     }

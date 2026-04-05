@@ -134,7 +134,7 @@ class _SunsetPainter extends CustomPainter {
         sunCenter.dy + math.sin(angle) * length,
       );
 
-      paint.color = primaryColor.withOpacity(0.05 * intensity);
+      paint.color = primaryColor.withValues(alpha: 0.05 * intensity);
       paint.strokeWidth = 2 * intensity;
       paint.style = PaintingStyle.stroke;
 
@@ -146,8 +146,8 @@ class _SunsetPainter extends CustomPainter {
       final radius = (30 + i * 20 + math.sin(animation * 2 * math.pi) * 10) * intensity;
       paint.style = PaintingStyle.fill;
       paint.color = Color.lerp(
-        primaryColor.withOpacity(0.02),
-        accentColor.withOpacity(0.01),
+        primaryColor.withValues(alpha: 0.02),
+        accentColor.withValues(alpha: 0.01),
         i / 2.0,
       )!;
 

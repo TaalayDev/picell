@@ -133,7 +133,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                           shadows: [
                             Shadow(
                               blurRadius: 10.0,
-                              color: theme.primaryColor.withOpacity(0.6),
+                              color: theme.primaryColor.withValues(alpha: 0.6),
                               offset: const Offset(0, 0),
                             ),
                           ],
@@ -185,7 +185,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                       return Text(
                         version,
                         style: TextStyle(
-                          color: theme.textSecondary.withOpacity(0.5),
+                          color: theme.textSecondary.withValues(alpha: 0.5),
                           fontSize: 12,
                         ),
                       );
@@ -284,8 +284,8 @@ class PixelLogoPainter extends CustomPainter {
           // Determine pixel color with alternating pattern
           final isEven = (x + y) % 2 == 0;
           paint.color = isEven
-              ? primaryColor.withOpacity(animationProgress.toDouble())
-              : secondaryColor.withOpacity(animationProgress.toDouble());
+              ? primaryColor.withValues(alpha: animationProgress.toDouble())
+              : secondaryColor.withValues(alpha: animationProgress.toDouble());
 
           // Calculate pixel position
           final pixelX = startX + x * gridSize;
@@ -311,7 +311,7 @@ class PixelLogoPainter extends CustomPainter {
       if (squareAnimation > 0) {
         final squareOpacity = math.sin(squareAnimation * math.pi) * 0.6;
 
-        paint.color = primaryColor.withOpacity(squareOpacity * 0.3);
+        paint.color = primaryColor.withValues(alpha: squareOpacity * 0.3);
 
         // Calculate square position with rotation around the center
         final angle = square.rotationSpeed * animation * math.pi * 2;
@@ -364,7 +364,7 @@ class PixelBackgroundPainter extends CustomPainter {
         final pulse = (math.sin(animation * 3 + dot.animationDelay * 10) + 1) / 2;
         final dotOpacity = 0.3 + pulse * 0.7;
 
-        paint.color = color.withOpacity(dotOpacity * 0.5);
+        paint.color = color.withValues(alpha: dotOpacity * 0.5);
 
         // Moving outward
         final angle = dot.position.direction;

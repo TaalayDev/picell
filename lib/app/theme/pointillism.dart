@@ -453,7 +453,7 @@ class _PointillismPainter extends CustomPainter {
       final y = rng.nextDouble() * size.height;
       final dotSize = 1 + rng.nextDouble() * 2;
 
-      _fillPaint.color = grainColors[rng.nextInt(grainColors.length)].withOpacity(0.4 + rng.nextDouble() * 0.3);
+      _fillPaint.color = grainColors[rng.nextInt(grainColors.length)].withValues(alpha: 0.4 + rng.nextDouble() * 0.3);
       canvas.drawCircle(Offset(x, y), dotSize * intensity, _fillPaint);
     }
   }
@@ -480,7 +480,7 @@ class _PointillismPainter extends CustomPainter {
       // Subtle animation
       final pulse = _norm(0.1, i * 0.1) * 0.2 + 0.8;
 
-      _fillPaint.color = color.withOpacity(opacity * pulse * intensity);
+      _fillPaint.color = color.withValues(alpha: opacity * pulse * intensity);
       canvas.drawCircle(Offset(x, y), dotSize * intensity, _fillPaint);
     }
 
@@ -501,7 +501,7 @@ class _PointillismPainter extends CustomPainter {
 
       final pulse = _norm(0.15, i * 0.2) * 0.15 + 0.85;
 
-      _fillPaint.color = color.withOpacity(opacity * pulse * intensity);
+      _fillPaint.color = color.withValues(alpha: opacity * pulse * intensity);
       canvas.drawCircle(Offset(x, y), dotSize * intensity, _fillPaint);
     }
   }
@@ -524,7 +524,7 @@ class _PointillismPainter extends CustomPainter {
         final dotPulse = _norm(0.12, dot.phase) * 0.1 + 0.9;
         final opacity = 0.6 + _norm(0.1, dot.phase + cluster.phase) * 0.3;
 
-        _fillPaint.color = color.withOpacity(opacity * pulse * dotPulse * intensity);
+        _fillPaint.color = color.withValues(alpha: opacity * pulse * dotPulse * intensity);
         canvas.drawCircle(Offset(x, y), dot.size * intensity, _fillPaint);
       }
     }
@@ -552,7 +552,7 @@ class _PointillismPainter extends CustomPainter {
 
       final pulse = _norm(0.15, i * 0.08) * 0.2 + 0.8;
 
-      _fillPaint.color = color.withOpacity(opacity * pulse * intensity);
+      _fillPaint.color = color.withValues(alpha: opacity * pulse * intensity);
       canvas.drawOval(
         Rect.fromCenter(
           center: Offset(x + ripple, y),
@@ -572,7 +572,7 @@ class _PointillismPainter extends CustomPainter {
       final colors = _yellowFamily;
       final color = colors[rng.nextInt(colors.length)];
 
-      _fillPaint.color = color.withOpacity(0.3 * shimmer * intensity);
+      _fillPaint.color = color.withValues(alpha: 0.3 * shimmer * intensity);
       canvas.drawOval(
         Rect.fromCenter(
           center: Offset(x, y),
@@ -608,7 +608,7 @@ class _PointillismPainter extends CustomPainter {
 
         final pulse = _norm(0.1, i * 0.15 + x * 0.01) * 0.15 + 0.85;
 
-        _fillPaint.color = color.withOpacity(opacity * pulse * intensity);
+        _fillPaint.color = color.withValues(alpha: opacity * pulse * intensity);
         canvas.drawCircle(Offset(x, y), dotSize * intensity, _fillPaint);
       }
     }
@@ -628,7 +628,7 @@ class _PointillismPainter extends CustomPainter {
       final dotSize = 2 + rng.nextDouble() * 4;
       final opacity = 0.5 + rng.nextDouble() * 0.35;
 
-      _fillPaint.color = color.withOpacity(opacity * intensity);
+      _fillPaint.color = color.withValues(alpha: opacity * intensity);
       canvas.drawCircle(Offset(x, y), dotSize * intensity, _fillPaint);
     }
   }
@@ -650,7 +650,7 @@ class _PointillismPainter extends CustomPainter {
 
       final dotSize = 2 + rng.nextDouble() * 3;
 
-      _fillPaint.color = color.withOpacity(brightness * 0.6 * intensity);
+      _fillPaint.color = color.withValues(alpha: brightness * 0.6 * intensity);
       canvas.drawCircle(Offset(x, y), dotSize * intensity, _fillPaint);
     }
   }
@@ -672,7 +672,7 @@ class _PointillismPainter extends CustomPainter {
       final color = allColors[dot.colorIndex % allColors.length];
       final pulse = _norm(0.2, dot.phase) * 0.3 + 0.7;
 
-      _fillPaint.color = color.withOpacity(0.7 * pulse * intensity);
+      _fillPaint.color = color.withValues(alpha: 0.7 * pulse * intensity);
       canvas.drawCircle(Offset(x, y), dot.size * intensity, _fillPaint);
     }
   }
@@ -691,7 +691,7 @@ class _PointillismPainter extends CustomPainter {
       final brightness = (twinkle - 0.7) * 3.33;
       final dotSize = 1.5 + rng.nextDouble() * 2;
 
-      _fillPaint.color = Colors.white.withOpacity(brightness * 0.5 * intensity);
+      _fillPaint.color = Colors.white.withValues(alpha: brightness * 0.5 * intensity);
       canvas.drawCircle(Offset(x, y), dotSize * intensity, _fillPaint);
     }
   }
@@ -705,8 +705,8 @@ class _PointillismPainter extends CustomPainter {
       radius,
       [
         Colors.transparent,
-        const Color(0xFF3A3028).withOpacity(0.08 * intensity),
-        const Color(0xFF3A3028).withOpacity(0.2 * intensity),
+        const Color(0xFF3A3028).withValues(alpha: 0.08 * intensity),
+        const Color(0xFF3A3028).withValues(alpha: 0.2 * intensity),
       ],
       const [0.5, 0.8, 1.0],
     );

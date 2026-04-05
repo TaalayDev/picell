@@ -83,7 +83,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.6),
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -350,7 +350,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -370,7 +370,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
               description,
               style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ],

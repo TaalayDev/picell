@@ -136,7 +136,7 @@ class ProjectUploadDialog extends HookConsumerWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.9),
+                            color: Colors.green.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Row(
@@ -210,7 +210,7 @@ class ProjectUploadDialog extends HookConsumerWidget {
                       isPublic.value = value;
                     },
                     activeColor: Theme.of(context).colorScheme.primary,
-                    activeTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    activeTrackColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                   ),
                 ],
               ),
@@ -220,7 +220,7 @@ class ProjectUploadDialog extends HookConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(

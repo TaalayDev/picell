@@ -256,7 +256,7 @@ class _ArtNouveauPainter extends CustomPainter {
         isLeft: i % 2 == 0,
         phase: rng.nextDouble() * math.pi * 2,
         speed: 0.5 + rng.nextDouble() * 0.5,
-        color: _sageGreen.withOpacity(0.3),
+        color: _sageGreen.withValues(alpha: 0.3),
         complexity: 3 + rng.nextInt(2),
       ));
     }
@@ -270,7 +270,7 @@ class _ArtNouveauPainter extends CustomPainter {
         isLeft: i % 2 != 0,
         phase: rng.nextDouble() * math.pi * 2,
         speed: 0.7 + rng.nextDouble() * 0.5,
-        color: _gold.withOpacity(0.8), // Foreground darker/richer
+        color: _gold.withValues(alpha: 0.8), // Foreground darker/richer
         complexity: 4,
       ));
     }
@@ -298,7 +298,7 @@ class _ArtNouveauPainter extends CustomPainter {
     final rng = math.Random(1); // Fixed seed for texture
 
     for (int i = 0; i < 1000; i++) {
-      grainPaint.color = Colors.brown.withOpacity(0.03 * intensity);
+      grainPaint.color = Colors.brown.withValues(alpha: 0.03 * intensity);
       grainPaint.strokeWidth = rng.nextDouble();
       final x = rng.nextDouble() * size.width;
       final y = rng.nextDouble() * size.height;
@@ -318,7 +318,7 @@ class _ArtNouveauPainter extends CustomPainter {
       bool isBgVine = vine.color.opacity < 0.5;
       if (backgroundLayer != isBgVine) continue;
 
-      paint.color = vine.color.withOpacity(vine.color.opacity * intensity);
+      paint.color = vine.color.withValues(alpha: vine.color.opacity * intensity);
       // Width tapers at top? No, Art Nouveau lines often keep uniform or taper elegantly.
       // We'll vary width slightly.
 
@@ -377,7 +377,7 @@ class _ArtNouveauPainter extends CustomPainter {
   void _drawStylizedLeaf(Canvas canvas, Offset pos, double anglePhase, bool isLeft) {
     final paint = Paint()
       ..style = PaintingStyle.fill
-      ..color = _sageGreen.withOpacity(0.8 * intensity);
+      ..color = _sageGreen.withValues(alpha: 0.8 * intensity);
 
     final size = 15.0 * intensity;
     final sway = math.sin(anglePhase) * 0.2;
@@ -399,7 +399,7 @@ class _ArtNouveauPainter extends CustomPainter {
   void _drawNouveauFlower(Canvas canvas, Offset pos, double time) {
     final paint = Paint()
       ..style = PaintingStyle.fill
-      ..color = _dustyRose.withOpacity(0.9 * intensity);
+      ..color = _dustyRose.withValues(alpha: 0.9 * intensity);
 
     final size = 12.0 * intensity;
     final breathe = 1.0 + 0.1 * math.sin(time * 2);
@@ -442,7 +442,7 @@ class _ArtNouveauPainter extends CustomPainter {
 
       final shimmer = 0.5 + 0.5 * math.sin(state.time + d.x);
 
-      paint.color = _gold.withOpacity(d.alpha * shimmer * intensity);
+      paint.color = _gold.withValues(alpha: d.alpha * shimmer * intensity);
       canvas.drawCircle(Offset(d.x, d.y), d.size, paint);
     }
   }
@@ -451,7 +451,7 @@ class _ArtNouveauPainter extends CustomPainter {
     // Ornamental Art Nouveau Frame corners
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..color = primaryColor.withOpacity(0.5 * intensity)
+      ..color = primaryColor.withValues(alpha: 0.5 * intensity)
       ..strokeWidth = 2.0 * intensity;
 
     final cornerSize = 100.0 * intensity;

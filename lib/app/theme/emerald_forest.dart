@@ -263,8 +263,8 @@ class _EmeraldForestPainter extends CustomPainter {
       path.close();
 
       paint.color = Color.lerp(
-        primaryColor.withOpacity(layerOpacity),
-        const Color(0xFF228B22).withOpacity(layerOpacity * 0.8), // Forest green mix
+        primaryColor.withValues(alpha: layerOpacity),
+        const Color(0xFF228B22).withValues(alpha: layerOpacity * 0.8), // Forest green mix
         layer / 3.0,
       )!;
 
@@ -309,8 +309,8 @@ class _EmeraldForestPainter extends CustomPainter {
       final shimmer = math.sin(state.time * 2 + leaf.x) * 0.5 + 0.5;
 
       paint.color = Color.lerp(
-        primaryColor.withOpacity(0.4),
-        const Color(0xFF9ACD32).withOpacity(0.5), // Yellow green
+        primaryColor.withValues(alpha: 0.4),
+        const Color(0xFF9ACD32).withValues(alpha: 0.5), // Yellow green
         shimmer,
       )!;
 
@@ -320,7 +320,7 @@ class _EmeraldForestPainter extends CustomPainter {
       final veinPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 0.5 * intensity
-        ..color = paint.color.withOpacity(0.6);
+        ..color = paint.color.withValues(alpha: 0.6);
 
       canvas.drawLine(Offset(0, -leaf.size * 0.8), Offset(0, leaf.size * 0.8), veinPaint);
 
@@ -348,11 +348,11 @@ class _EmeraldForestPainter extends CustomPainter {
         final glowRadius = (2 + pulse * 4) * intensity;
 
         // Core
-        paint.color = accentColor.withOpacity(0.8 * pulse);
+        paint.color = accentColor.withValues(alpha: 0.8 * pulse);
         canvas.drawCircle(Offset(sprite.x, sprite.y), sprite.size, paint);
 
         // Glow
-        paint.color = accentColor.withOpacity(0.2 * pulse);
+        paint.color = accentColor.withValues(alpha: 0.2 * pulse);
         canvas.drawCircle(Offset(sprite.x, sprite.y), glowRadius, paint);
       }
     }
@@ -372,8 +372,8 @@ class _EmeraldForestPainter extends CustomPainter {
 
       // Mushroom cap (dome)
       paint.color = Color.lerp(
-        primaryColor.withOpacity(0.15 * mushroomGlow),
-        const Color(0xFF8B4513).withOpacity(0.1 * mushroomGlow), // Saddle brown
+        primaryColor.withValues(alpha: 0.15 * mushroomGlow),
+        const Color(0xFF8B4513).withValues(alpha: 0.1 * mushroomGlow), // Saddle brown
         mushroomGlow,
       )!;
 
@@ -390,7 +390,7 @@ class _EmeraldForestPainter extends CustomPainter {
       );
 
       // Mushroom stem
-      paint.color = const Color(0xFFF5F5DC).withOpacity(0.1 * mushroomGlow); // Beige
+      paint.color = const Color(0xFFF5F5DC).withValues(alpha: 0.1 * mushroomGlow); // Beige
       canvas.drawRect(
         Rect.fromCenter(
           center: Offset(mushroomX, mushroomY),
@@ -422,8 +422,8 @@ class _EmeraldForestPainter extends CustomPainter {
         Offset(rayX, 0),
         Offset(rayEndX, rayEndY),
         [
-          accentColor.withOpacity(0.08 * rayIntensity * intensity),
-          accentColor.withOpacity(0.02 * rayIntensity * intensity),
+          accentColor.withValues(alpha: 0.08 * rayIntensity * intensity),
+          accentColor.withValues(alpha: 0.02 * rayIntensity * intensity),
           Colors.transparent,
         ],
         [0.0, 0.6, 1.0], // Fixed stops

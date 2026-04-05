@@ -103,7 +103,7 @@ class AnimationTimeline extends HookWidget {
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).dividerColor.withOpacity(0.5),
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -120,7 +120,7 @@ class AnimationTimeline extends HookWidget {
               onPreviousFrame: onPreviousFrame,
             ),
             VerticalDivider(
-              color: Theme.of(context).dividerColor.withOpacity(0.5),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
               width: 1,
               thickness: 1,
             ),
@@ -329,7 +329,7 @@ class _StatesPanel extends StatelessWidget {
               return Container(
                 key: ValueKey(state.id),
                 height: 40,
-                color: state.id == selectedStateId ? Theme.of(context).primaryColor.withOpacity(0.1) : null,
+                color: state.id == selectedStateId ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : null,
                 child: Row(
                   children: [
                     SizedBox(
@@ -360,7 +360,7 @@ class _StatesPanel extends StatelessWidget {
                       ),
                     ),
                     VerticalDivider(
-                      color: Theme.of(context).dividerColor.withOpacity(0.5),
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                       width: 1,
                       thickness: 1,
                     ),
@@ -487,10 +487,10 @@ class _FramesGrid extends StatelessWidget {
                 border: Border.all(
                   color: isSelected
                       ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).dividerColor.withOpacity(0.2),
+                      : Theme.of(context).dividerColor.withValues(alpha: 0.2),
                   width: isSelected ? 1.5 : 1,
                 ),
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: ClipRRect(
@@ -602,7 +602,7 @@ class _AnimationPreviewState extends State<AnimationPreview> {
             height: (widget.height * 10).clamp(0, 400).toDouble(),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.white),
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
             ),
             child: LayersPreview(
               width: widget.width,

@@ -224,7 +224,7 @@ class _CopperSteampunkPainter extends CustomPainter {
     canvas.drawRect(Offset.zero & size, paint);
 
     // Subtle noise texture overlay
-    final noisePaint = Paint()..color = Colors.white.withOpacity(0.015 * intensity);
+    final noisePaint = Paint()..color = Colors.white.withValues(alpha: 0.015 * intensity);
     for (int i = 0; i < (200 * intensity).round(); i++) {
       final x = _random.nextDouble() * size.width;
       final y = _random.nextDouble() * size.height;
@@ -246,7 +246,7 @@ class _CopperSteampunkPainter extends CustomPainter {
       final height = 80 + _random.nextDouble() * 150;
 
       final opacity = 0.03 + _random.nextDouble() * 0.02;
-      paint.color = primaryColor.withOpacity(opacity * intensity);
+      paint.color = primaryColor.withValues(alpha: opacity * intensity);
 
       final rect = RRect.fromRectAndRadius(
         Rect.fromLTWH(x, y, width, height),
@@ -257,7 +257,7 @@ class _CopperSteampunkPainter extends CustomPainter {
       // Rivet corners
       final rivetPaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = primaryColor.withOpacity(opacity * 1.5 * intensity);
+        ..color = primaryColor.withValues(alpha: opacity * 1.5 * intensity);
 
       for (final corner in [
         Offset(x + 8, y + 8),
@@ -290,7 +290,7 @@ class _CopperSteampunkPainter extends CustomPainter {
 
       // Very subtle opacity for background depth
       final baseOpacity = 0.04 * intensity;
-      paint.color = primaryColor.withOpacity(baseOpacity);
+      paint.color = primaryColor.withValues(alpha: baseOpacity);
       paint.strokeWidth = 3 * intensity;
 
       _drawDetailedGear(
@@ -340,8 +340,8 @@ class _CopperSteampunkPainter extends CustomPainter {
         // Breathing opacity effect
         final breathe = math.sin(secondaryAnimation * 4 * math.pi + i * 1.2) * 0.02 + 0.08;
         paint.color = Color.lerp(
-          primaryColor.withOpacity(breathe * intensity),
-          accentColor.withOpacity(breathe * 0.8 * intensity),
+          primaryColor.withValues(alpha: breathe * intensity),
+          accentColor.withValues(alpha: breathe * 0.8 * intensity),
           i / cluster.length,
         )!;
         paint.strokeWidth = 2 * intensity;
@@ -456,7 +456,7 @@ class _CopperSteampunkPainter extends CustomPainter {
     // Center bolt
     final boltPaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = paint.color.withOpacity(paint.color.opacity * 0.5);
+      ..color = paint.color.withValues(alpha: paint.color.opacity * 0.5);
     canvas.drawCircle(Offset.zero, hubRadius * 0.4, boltPaint);
 
     canvas.restore();
@@ -482,7 +482,7 @@ class _CopperSteampunkPainter extends CustomPainter {
 
       // Pipe shadow
       paint.strokeWidth = 10 * intensity;
-      paint.color = Colors.black.withOpacity(0.1 * intensity);
+      paint.color = Colors.black.withValues(alpha: 0.1 * intensity);
       canvas.drawLine(
         pipe[0] + Offset(2, 2),
         pipe[1] + Offset(2, 2),
@@ -491,12 +491,12 @@ class _CopperSteampunkPainter extends CustomPainter {
 
       // Main pipe
       paint.strokeWidth = 8 * intensity;
-      paint.color = _darkIron.withOpacity(pipeOpacity * intensity);
+      paint.color = _darkIron.withValues(alpha: pipeOpacity * intensity);
       canvas.drawLine(pipe[0], pipe[1], paint);
 
       // Pipe highlight
       paint.strokeWidth = 2 * intensity;
-      paint.color = primaryColor.withOpacity(pipeOpacity * 0.5 * intensity);
+      paint.color = primaryColor.withValues(alpha: pipeOpacity * 0.5 * intensity);
       canvas.drawLine(
         pipe[0] + const Offset(-2, -2),
         pipe[1] + const Offset(-2, -2),
@@ -513,7 +513,7 @@ class _CopperSteampunkPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2 * intensity
-      ..color = primaryColor.withOpacity(opacity * 0.8 * intensity);
+      ..color = primaryColor.withValues(alpha: opacity * 0.8 * intensity);
 
     canvas.drawCircle(position, 12 * intensity, paint);
 
@@ -527,7 +527,7 @@ class _CopperSteampunkPainter extends CustomPainter {
           );
       final boltPaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = primaryColor.withOpacity(opacity * 0.6 * intensity);
+        ..color = primaryColor.withValues(alpha: opacity * 0.6 * intensity);
       canvas.drawCircle(boltPos, 1.5 * intensity, boltPaint);
     }
   }
@@ -547,7 +547,7 @@ class _CopperSteampunkPainter extends CustomPainter {
       final rotation = secondaryAnimation * 2 * math.pi * (i % 2 == 0 ? 1 : -0.6);
       final opacity = 0.07 + math.cos(secondaryAnimation * 3 * math.pi + i * 1.1) * 0.02;
 
-      paint.color = accentColor.withOpacity(opacity * intensity);
+      paint.color = accentColor.withValues(alpha: opacity * intensity);
       paint.strokeWidth = 1.5 * intensity;
 
       canvas.save();
@@ -605,7 +605,7 @@ class _CopperSteampunkPainter extends CustomPainter {
       // Center hub
       final hubPaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = accentColor.withOpacity(opacity * 0.5 * intensity);
+        ..color = accentColor.withValues(alpha: opacity * 0.5 * intensity);
       canvas.drawCircle(Offset.zero, 4 * intensity, hubPaint);
 
       canvas.restore();
@@ -631,7 +631,7 @@ class _CopperSteampunkPainter extends CustomPainter {
       final paint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2 * intensity
-        ..color = primaryColor.withOpacity(opacity * intensity);
+        ..color = primaryColor.withValues(alpha: opacity * intensity);
 
       // Gauge housing
       canvas.drawCircle(center, radius, paint);
@@ -644,7 +644,7 @@ class _CopperSteampunkPainter extends CustomPainter {
           center,
           radius,
           [
-            _darkIron.withOpacity(0.1 * intensity),
+            _darkIron.withValues(alpha: 0.1 * intensity),
             Colors.transparent,
           ],
         );
@@ -654,7 +654,7 @@ class _CopperSteampunkPainter extends CustomPainter {
       final dangerPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4 * intensity
-        ..color = _hotMetal.withOpacity(0.1 * intensity);
+        ..color = _hotMetal.withValues(alpha: 0.1 * intensity);
 
       final dangerRect = Rect.fromCircle(center: center, radius: radius * 0.7);
       canvas.drawArc(dangerRect, -math.pi * 0.25, math.pi * 0.5, false, dangerPaint);
@@ -679,7 +679,7 @@ class _CopperSteampunkPainter extends CustomPainter {
         _hotMetal,
         pressure,
       )!
-          .withOpacity(opacity * 1.5 * intensity);
+          .withValues(alpha: opacity * 1.5 * intensity);
 
       canvas.drawLine(
         center,
@@ -694,7 +694,7 @@ class _CopperSteampunkPainter extends CustomPainter {
       // Center pivot
       final pivotPaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = accentColor.withOpacity(opacity * intensity);
+        ..color = accentColor.withValues(alpha: opacity * intensity);
       canvas.drawCircle(center, 3 * intensity, pivotPaint);
     }
   }
@@ -728,11 +728,11 @@ class _CopperSteampunkPainter extends CustomPainter {
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
           // Core
-          steamPaint.color = _steam.withOpacity(steamOpacity);
+          steamPaint.color = _steam.withValues(alpha: steamOpacity);
           canvas.drawCircle(steamPos, expand * intensity, steamPaint);
 
           // Secondary puffs
-          steamPaint.color = _steam.withOpacity(steamOpacity * 0.6);
+          steamPaint.color = _steam.withValues(alpha: steamOpacity * 0.6);
           canvas.drawCircle(
             steamPos + Offset(-expand * 0.4, expand * 0.2),
             expand * 0.7 * intensity,
@@ -770,7 +770,7 @@ class _CopperSteampunkPainter extends CustomPainter {
           accentColor,
           _random.nextDouble(),
         )!
-            .withOpacity(particleOpacity);
+            .withValues(alpha: particleOpacity);
 
         paint.color = particleColor;
 
@@ -798,7 +798,7 @@ class _CopperSteampunkPainter extends CustomPainter {
 
           case 3: // Rivet
             canvas.drawCircle(Offset(floatX, floatY), 1.8 * intensity * twinkle, paint);
-            paint.color = particleColor.withOpacity(particleOpacity * 0.5);
+            paint.color = particleColor.withValues(alpha: particleOpacity * 0.5);
             canvas.drawCircle(Offset(floatX, floatY), 1 * intensity * twinkle, paint);
             break;
 
@@ -829,12 +829,12 @@ class _CopperSteampunkPainter extends CustomPainter {
       final pulsate = math.sin(mainAnimation * 2 * math.pi + i * 0.9) * 0.15 + 0.3;
 
       // Verdigris (green oxidation)
-      paint.color = _verdigris.withOpacity(0.025 * pulsate * intensity);
+      paint.color = _verdigris.withValues(alpha: 0.025 * pulsate * intensity);
       canvas.drawCircle(Offset(x, y), radius, paint);
 
       // Rust spots
       if (i % 2 == 0) {
-        paint.color = _rust.withOpacity(0.02 * pulsate * intensity);
+        paint.color = _rust.withValues(alpha: 0.02 * pulsate * intensity);
         canvas.drawCircle(
           Offset(x + radius * 0.3, y + radius * 0.2),
           radius * 0.6,
@@ -856,7 +856,7 @@ class _CopperSteampunkPainter extends CustomPainter {
       Offset(size.width * 0.2, size.height * 0.1),
       size.longestSide * 0.6,
       [
-        accentColor.withOpacity(lightOpacity * intensity),
+        accentColor.withValues(alpha: lightOpacity * intensity),
         Colors.transparent,
       ],
     );
@@ -869,7 +869,7 @@ class _CopperSteampunkPainter extends CustomPainter {
       Offset(0, size.height),
       Offset(0, size.height * 0.7),
       [
-        _hotMetal.withOpacity(0.02 * intensity),
+        _hotMetal.withValues(alpha: 0.02 * intensity),
         Colors.transparent,
       ],
     );
@@ -887,8 +887,8 @@ class _CopperSteampunkPainter extends CustomPainter {
       radius,
       [
         Colors.transparent,
-        Colors.black.withOpacity(0.3 * intensity),
-        Colors.black.withOpacity(0.5 * intensity),
+        Colors.black.withValues(alpha: 0.3 * intensity),
+        Colors.black.withValues(alpha: 0.5 * intensity),
       ],
       [0.5, 0.8, 1.0],
     );

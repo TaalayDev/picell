@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'flagship/candy_carnival_flagship.dart';
 import 'theme.dart';
 
 // ============================================================================
@@ -90,6 +91,8 @@ AppTheme buildCandyCarnivalTheme() {
       ),
     ),
     primaryFontWeight: FontWeight.w600,
+    geometry: AppThemeGeometry.candyCarnival,
+    flagship: buildCandyCarnivalFlagshipConfig(),
   );
 }
 
@@ -296,19 +299,19 @@ class _CandyCarnivalPainter extends CustomPainter {
       _SwirlSpec(
         center: Offset(size.width * 0.2, size.height * 0.25),
         radius: size.width * 0.38,
-        color: primaryColor.withOpacity(0.08 * intensity),
+        color: primaryColor.withValues(alpha: 0.08 * intensity),
         phase: 0.0,
       ),
       _SwirlSpec(
         center: Offset(size.width * 0.85, size.height * 0.18),
         radius: size.width * 0.28,
-        color: accentColor.withOpacity(0.07 * intensity),
+        color: accentColor.withValues(alpha: 0.07 * intensity),
         phase: 1.6,
       ),
       _SwirlSpec(
         center: Offset(size.width * 0.7, size.height * 0.6),
         radius: size.width * 0.42,
-        color: primaryColor.withOpacity(0.05 * intensity),
+        color: primaryColor.withValues(alpha: 0.05 * intensity),
         phase: 3.1,
       ),
     ];
@@ -341,7 +344,7 @@ class _CandyCarnivalPainter extends CustomPainter {
 
       ribbonPaint
         ..strokeWidth = 2.0 + i * 0.6
-        ..color = Color.lerp(primaryColor, accentColor, i / 2)!.withOpacity(0.2 - i * 0.04);
+        ..color = Color.lerp(primaryColor, accentColor, i / 2)!.withValues(alpha: 0.2 - i * 0.04);
 
       final path = Path();
       for (double x = 0; x <= size.width; x += 6) {
@@ -373,7 +376,7 @@ class _CandyCarnivalPainter extends CustomPainter {
         center,
         bubble.radius,
         [
-          accentColor.withOpacity(bubble.opacity * 1.2),
+          accentColor.withValues(alpha: bubble.opacity * 1.2),
           Colors.transparent,
         ],
       );
@@ -402,7 +405,7 @@ class _CandyCarnivalPainter extends CustomPainter {
         piece.x = -20;
       }
 
-      paint.color = piece.color.withOpacity(0.85);
+      paint.color = piece.color.withValues(alpha: 0.85);
 
       canvas.save();
       canvas.translate(piece.x, piece.y);
@@ -450,7 +453,7 @@ class _CandyCarnivalPainter extends CustomPainter {
       size.longestSide * 0.8,
       [
         Colors.transparent,
-        primaryColor.withOpacity(0.08 * intensity),
+        primaryColor.withValues(alpha: 0.08 * intensity),
       ],
     );
     canvas.drawRect(Offset.zero & size, Paint()..shader = vignette);

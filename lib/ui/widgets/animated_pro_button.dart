@@ -72,7 +72,7 @@ class _AnimatedProButtonState extends State<AnimatedProButton> with SingleTicker
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: widget.theme.accentColor.withOpacity(_glowAnimation.value),
+                  color: widget.theme.accentColor.withValues(alpha: _glowAnimation.value),
                   blurRadius: 8,
                   spreadRadius: 1,
                   offset: const Offset(0, 2),

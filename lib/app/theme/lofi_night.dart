@@ -308,7 +308,7 @@ class _LofiNightPainter extends CustomPainter {
         moonCenter,
         moonRadius * 2.5,
         Paint()
-          ..color = accentColor.withOpacity(0.1 * intensity)
+          ..color = accentColor.withValues(alpha: 0.1 * intensity)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20));
 
     // Moon Body
@@ -327,7 +327,7 @@ class _LofiNightPainter extends CustomPainter {
     if (totalWidth < size.width * 2) totalWidth = size.width * 2;
 
     final paint = Paint()..color = color;
-    final windowPaint = Paint()..color = _windowLight.withOpacity(0.6 * intensity);
+    final windowPaint = Paint()..color = _windowLight.withValues(alpha: 0.6 * intensity);
     final antennaPaint = Paint()
       ..color = color
       ..strokeWidth = 1.0
@@ -373,7 +373,7 @@ class _LofiNightPainter extends CustomPainter {
           // Red blinking light
           final blink = (math.sin(state.time * 2 + b.x) + 1) / 2;
           canvas.drawCircle(Offset(drawX + b.width / 2, size.height - b.height - 20), 2 * blink,
-              Paint()..color = Colors.red.withOpacity(blink));
+              Paint()..color = Colors.red.withValues(alpha: blink));
         }
       }
     }
@@ -383,7 +383,7 @@ class _LofiNightPainter extends CustomPainter {
     if (state.rainDrops == null) return;
 
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withValues(alpha: 0.3)
       ..strokeWidth = 1.0
       ..strokeCap = StrokeCap.round;
 
@@ -400,7 +400,7 @@ class _LofiNightPainter extends CustomPainter {
       }
 
       // Draw
-      paint.color = Colors.white.withOpacity(drop.alpha * 0.5 * intensity);
+      paint.color = Colors.white.withValues(alpha: drop.alpha * 0.5 * intensity);
       canvas.drawLine(Offset(drop.x, drop.y), Offset(drop.x - 2, drop.y + drop.length), paint);
     }
   }
@@ -413,8 +413,8 @@ class _LofiNightPainter extends CustomPainter {
       size.longestSide * 0.8,
       [
         Colors.transparent,
-        Colors.black.withOpacity(0.3 * intensity),
-        Colors.black.withOpacity(0.8 * intensity),
+        Colors.black.withValues(alpha: 0.3 * intensity),
+        Colors.black.withValues(alpha: 0.8 * intensity),
       ],
       [0.6, 0.85, 1.0],
     );
@@ -422,7 +422,7 @@ class _LofiNightPainter extends CustomPainter {
 
     // 2. Scanlines (Subtle retro feel)
     final scanlinePaint = Paint()
-      ..color = Colors.black.withOpacity(0.05 * intensity)
+      ..color = Colors.black.withValues(alpha: 0.05 * intensity)
       ..strokeWidth = 1.0;
 
     for (double y = 0; y < size.height; y += 4) {

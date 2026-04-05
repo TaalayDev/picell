@@ -355,7 +355,7 @@ class _EnchantedForestPainter extends CustomPainter {
 
     // Moon disc (partially obscured)
     _fillPaint.maskFilter = null;
-    _fillPaint.color = _moonlight.withOpacity(0.15 * pulse * intensity);
+    _fillPaint.color = _moonlight.withValues(alpha: 0.15 * pulse * intensity);
     canvas.drawCircle(moonCenter, 18 * intensity, _fillPaint);
 
     _fillPaint.maskFilter = null;

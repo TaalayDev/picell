@@ -31,7 +31,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                _getNodeColor().withOpacity(0.2),
+                _getNodeColor().withValues(alpha: 0.2),
                 Colors.transparent,
               ],
               begin: Alignment.topCenter,
@@ -147,7 +147,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
               border: Border.all(color: Colors.white24),
               boxShadow: [
                 BoxShadow(
-                  color: node.color.withOpacity(0.4),
+                  color: node.color.withValues(alpha: 0.4),
                   blurRadius: 12,
                   spreadRadius: -4,
                 ),
@@ -168,7 +168,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -194,7 +194,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
           icon: const Icon(Icons.palette, size: 18),
           label: const Text('Pick Color'),
           style: FilledButton.styleFrom(
-            backgroundColor: Colors.white.withOpacity(0.1),
+            backgroundColor: Colors.white.withValues(alpha: 0.1),
             foregroundColor: Colors.white,
           ),
         ),
@@ -324,7 +324,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
                 width: 70,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.green.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                  color: isSelected ? Colors.green.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isSelected ? Colors.green : Colors.white24,
@@ -364,7 +364,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: const Text(
@@ -515,7 +515,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.white24),
             ),
@@ -930,7 +930,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: DropdownButton<String>(
@@ -961,7 +961,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: value ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
+          color: value ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.transparent,
           border: Border.all(
             color: value ? Colors.blueAccent : Colors.white24,
             width: 1,
@@ -996,12 +996,12 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.blue.withOpacity(0.15),
-                Colors.purple.withOpacity(0.1),
+                Colors.blue.withValues(alpha: 0.15),
+                Colors.purple.withValues(alpha: 0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+            border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
           ),
           child: Column(
             children: [
@@ -1018,7 +1018,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
               Text(
                 'Connect nodes here to generate the final tile',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 12,
                 ),
                 textAlign: TextAlign.center,
@@ -1034,7 +1034,7 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
     return Text(
       title.toUpperCase(),
       style: TextStyle(
-        color: Colors.white.withOpacity(0.5),
+        color: Colors.white.withValues(alpha: 0.5),
         fontSize: 11,
         fontWeight: FontWeight.bold,
         letterSpacing: 1.2,
@@ -1070,9 +1070,9 @@ class _PropertiesPanelState extends ConsumerState<PropertiesPanel> {
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: Colors.purple[400],
-            inactiveTrackColor: Colors.white.withOpacity(0.1),
+            inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
             thumbColor: Colors.purple[300],
-            overlayColor: Colors.purple.withOpacity(0.2),
+            overlayColor: Colors.purple.withValues(alpha: 0.2),
           ),
           child: Slider(
             value: value,

@@ -261,7 +261,7 @@ class _StainedGlassPainter extends CustomPainter {
         Offset.zero,
         size.longestSide * 0.8,
         [
-          accentColor.withOpacity(0.05 * rayIntensity * intensity),
+          accentColor.withValues(alpha: 0.05 * rayIntensity * intensity),
           Colors.transparent,
         ],
         [0.0, 0.7],
@@ -312,8 +312,8 @@ class _StainedGlassPainter extends CustomPainter {
         shard.center,
         shard.radius * 1.5,
         [
-          color.withOpacity(alpha), // Center
-          color.withOpacity(alpha * 0.6), // Edge (darker in appearance due to background)
+          color.withValues(alpha: alpha), // Center
+          color.withValues(alpha: alpha * 0.6), // Edge (darker in appearance due to background)
         ],
         [0.1, 1.0],
       );
@@ -358,7 +358,7 @@ class _StainedGlassPainter extends CustomPainter {
       final highlightPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0 * intensity
-        ..color = Colors.white.withOpacity(0.15 * intensity)
+        ..color = Colors.white.withValues(alpha: 0.15 * intensity)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.5);
 
       canvas.save();
@@ -386,7 +386,7 @@ class _StainedGlassPainter extends CustomPainter {
 
       if (proximity > 0) {
         final alpha = proximity * mote.baseAlpha * intensity;
-        pPaint.color = accentColor.withOpacity(alpha);
+        pPaint.color = accentColor.withValues(alpha: alpha);
         canvas.drawCircle(pos, mote.size * intensity, pPaint);
       }
     }
@@ -399,8 +399,8 @@ class _StainedGlassPainter extends CustomPainter {
       radius: 1.0,
       colors: [
         Colors.transparent,
-        Colors.black.withOpacity(0.4 * intensity),
-        Colors.black.withOpacity(0.9 * intensity),
+        Colors.black.withValues(alpha: 0.4 * intensity),
+        Colors.black.withValues(alpha: 0.9 * intensity),
       ],
       stops: const [0.4, 0.8, 1.0],
     );

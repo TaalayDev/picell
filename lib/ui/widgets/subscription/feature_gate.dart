@@ -92,7 +92,7 @@ class FeatureGate extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -140,7 +140,7 @@ class FeatureGate extends ConsumerWidget {
               imageFilter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
               child: ColorFiltered(
                 colorFilter: ColorFilter.mode(
-                  Colors.grey.withOpacity(0.7),
+                  Colors.grey.withValues(alpha: 0.7),
                   BlendMode.saturation,
                 ),
                 child: child,
@@ -151,7 +151,7 @@ class FeatureGate extends ConsumerWidget {
 
           // Lock overlay
           Container(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             child: Center(
               child: _buildLockContent(context),
             ),
@@ -165,10 +165,10 @@ class FeatureGate extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.black.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -193,7 +193,7 @@ class FeatureGate extends ConsumerWidget {
           Text(
             'Tap to Upgrade',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 12,
             ),
           ),
@@ -320,8 +320,7 @@ class ProBadge extends StatelessWidget {
                 top: alignment.y,
                 right: alignment.x,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -376,7 +375,7 @@ class UpgradePrompt extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
         ),
       ),
       child: Column(
@@ -435,8 +434,7 @@ class FeatureButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasAccess =
-        ref.watch(subscriptionStateProvider).hasFeatureAccess(feature);
+    final hasAccess = ref.watch(subscriptionStateProvider).hasFeatureAccess(feature);
 
     return FilledButton(
       style: style,

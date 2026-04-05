@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'flagship/crystaline_flagship.dart';
 import 'theme.dart';
 
 // ============================================================================
@@ -94,6 +95,8 @@ AppTheme buildCrystallineTheme() {
       ),
     ),
     primaryFontWeight: FontWeight.w400,
+    geometry: AppThemeGeometry.crystaline,
+    flagship: buildCrystalineFlagshipConfig(),
   );
 }
 
@@ -281,14 +284,14 @@ class _CrystallinePainter extends CustomPainter {
     final pulse = _norm(0.5) * 0.3 + 0.7;
 
     _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 80 * intensity);
-    _fillPaint.color = _amethyst.withOpacity(0.08 * pulse * intensity);
+    _fillPaint.color = _amethyst.withValues(alpha: 0.08 * pulse * intensity);
     canvas.drawCircle(
       Offset(size.width * 0.5, size.height * 0.45),
       size.shortestSide * 0.35,
       _fillPaint,
     );
 
-    _fillPaint.color = _amethystLight.withOpacity(0.06 * pulse * intensity);
+    _fillPaint.color = _amethystLight.withValues(alpha: 0.06 * pulse * intensity);
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(size.width * 0.5, size.height * 0.88),
@@ -298,7 +301,7 @@ class _CrystallinePainter extends CustomPainter {
       _fillPaint,
     );
 
-    _fillPaint.color = _aqua.withOpacity(0.03 * pulse * intensity);
+    _fillPaint.color = _aqua.withValues(alpha: 0.03 * pulse * intensity);
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(size.width * 0.5, size.height * 0.08),
@@ -320,7 +323,7 @@ class _CrystallinePainter extends CustomPainter {
         Offset(c.x * size.width, c.y * size.height),
         c.height * 55 * intensity * shimmer,
         c.angle,
-        _crystalColors[c.colorIndex].withOpacity(0.15 * intensity * shimmer),
+        _crystalColors[c.colorIndex].withValues(alpha: 0.15 * intensity * shimmer),
         isBackground: true,
       );
     }
@@ -333,7 +336,7 @@ class _CrystallinePainter extends CustomPainter {
         Offset(c.x * size.width, c.y * size.height),
         c.height * 80 * intensity * shimmer,
         c.angle,
-        _crystalColors[c.colorIndex].withOpacity(0.25 * intensity * shimmer),
+        _crystalColors[c.colorIndex].withValues(alpha: 0.25 * intensity * shimmer),
         isBackground: false,
       );
     }
@@ -347,7 +350,7 @@ class _CrystallinePainter extends CustomPainter {
         Offset(c.x * size.width, c.y * size.height),
         c.height * 110 * intensity * shimmer * grow,
         c.angle,
-        _crystalColors[c.colorIndex].withOpacity(0.35 * intensity * shimmer),
+        _crystalColors[c.colorIndex].withValues(alpha: 0.35 * intensity * shimmer),
         isBackground: false,
       );
     }
@@ -376,9 +379,9 @@ class _CrystallinePainter extends CustomPainter {
       Offset(-width, 0),
       Offset(width, 0),
       [
-        color.withOpacity(color.opacity * 0.6),
+        color.withValues(alpha: color.opacity * 0.6),
         color,
-        color.withOpacity(color.opacity * 0.7),
+        color.withValues(alpha: color.opacity * 0.7),
       ],
       const [0.0, 0.4, 1.0],
     );
@@ -388,7 +391,7 @@ class _CrystallinePainter extends CustomPainter {
     _fillPaint.shader = null;
 
     _strokePaint.strokeWidth = (isBackground ? 0.8 : 1.2) * intensity;
-    _strokePaint.color = _crystal.withOpacity(color.opacity * 0.4);
+    _strokePaint.color = _crystal.withValues(alpha: color.opacity * 0.4);
     canvas.drawPath(_crystalPath, _strokePaint);
 
     if (!isBackground) {
@@ -399,15 +402,15 @@ class _CrystallinePainter extends CustomPainter {
       _highlightPath.lineTo(0, height * 0.35);
       _highlightPath.close();
 
-      _fillPaint.color = Colors.white.withOpacity(color.opacity * 0.15);
+      _fillPaint.color = Colors.white.withValues(alpha: color.opacity * 0.15);
       canvas.drawPath(_highlightPath, _fillPaint);
 
       _strokePaint.strokeWidth = 0.8 * intensity;
-      _strokePaint.color = _crystal.withOpacity(color.opacity * 0.2);
+      _strokePaint.color = _crystal.withValues(alpha: color.opacity * 0.2);
       canvas.drawLine(Offset(0, height * 0.08), Offset(0, height * 0.92), _strokePaint);
 
       _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 4 * intensity);
-      _fillPaint.color = Colors.white.withOpacity(color.opacity * 0.3);
+      _fillPaint.color = Colors.white.withValues(alpha: color.opacity * 0.3);
       canvas.drawCircle(Offset(0, height * 0.95), 3 * intensity, _fillPaint);
       _fillPaint.maskFilter = null;
     }
@@ -443,8 +446,8 @@ class _CrystallinePainter extends CustomPainter {
           source,
           endCenter,
           [
-            rayColors[r].withOpacity(0.12 * basePulse * intensity),
-            rayColors[r].withOpacity(0.0),
+            rayColors[r].withValues(alpha: 0.12 * basePulse * intensity),
+            rayColors[r].withValues(alpha: 0.0),
           ],
         );
 
@@ -477,7 +480,7 @@ class _CrystallinePainter extends CustomPainter {
       final twinkle = _norm(0.8, p.phaseOffset) * 0.5 + 0.5;
       final particleSize = (2.5 + twinkle * 2) * intensity;
 
-      _fillPaint.color = _crystalColors[p.colorIndex].withOpacity(0.35 * twinkle * intensity);
+      _fillPaint.color = _crystalColors[p.colorIndex].withValues(alpha: 0.35 * twinkle * intensity);
       canvas.drawCircle(Offset(floatX, floatY), particleSize, _fillPaint);
     }
 
@@ -496,20 +499,20 @@ class _CrystallinePainter extends CustomPainter {
         final opacity = sparkleIntensity * 0.9 * intensity;
 
         _strokePaint.strokeWidth = 1.0 * intensity;
-        _strokePaint.color = _sparkleColors[s.colorIndex].withOpacity(opacity);
+        _strokePaint.color = _sparkleColors[s.colorIndex].withValues(alpha: opacity);
 
         canvas.drawLine(Offset(x - sparkleSize, y), Offset(x + sparkleSize, y), _strokePaint);
         canvas.drawLine(Offset(x, y - sparkleSize), Offset(x, y + sparkleSize), _strokePaint);
 
         if (sparkleIntensity > 0.6) {
           final diagSize = sparkleSize * 0.6;
-          _strokePaint.color = _sparkleColors[s.colorIndex].withOpacity(opacity * 0.5);
+          _strokePaint.color = _sparkleColors[s.colorIndex].withValues(alpha: opacity * 0.5);
           canvas.drawLine(Offset(x - diagSize, y - diagSize), Offset(x + diagSize, y + diagSize), _strokePaint);
           canvas.drawLine(Offset(x + diagSize, y - diagSize), Offset(x - diagSize, y + diagSize), _strokePaint);
         }
 
         _fillPaint.maskFilter = MaskFilter.blur(BlurStyle.normal, 2 * intensity);
-        _fillPaint.color = Colors.white.withOpacity(opacity * 0.7);
+        _fillPaint.color = Colors.white.withValues(alpha: opacity * 0.7);
         canvas.drawCircle(Offset(x, y), sparkleSize * 0.25, _fillPaint);
         _fillPaint.maskFilter = null;
       }
@@ -525,8 +528,8 @@ class _CrystallinePainter extends CustomPainter {
       radius,
       [
         Colors.transparent,
-        const Color(0xFF0D0A14).withOpacity(0.35 * intensity),
-        const Color(0xFF0D0A14).withOpacity(0.75 * intensity),
+        const Color(0xFF0D0A14).withValues(alpha: 0.35 * intensity),
+        const Color(0xFF0D0A14).withValues(alpha: 0.75 * intensity),
       ],
       const [0.45, 0.78, 1.0],
     );

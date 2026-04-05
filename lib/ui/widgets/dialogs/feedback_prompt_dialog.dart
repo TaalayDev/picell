@@ -148,7 +148,7 @@ class _DialogContentState extends State<_DialogContent> with SingleTickerProvide
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -185,7 +185,7 @@ class _DialogContentState extends State<_DialogContent> with SingleTickerProvide
                           height: 100,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                       ),
@@ -197,7 +197,7 @@ class _DialogContentState extends State<_DialogContent> with SingleTickerProvide
                           height: 120,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                       ),
@@ -206,7 +206,7 @@ class _DialogContentState extends State<_DialogContent> with SingleTickerProvide
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -240,7 +240,7 @@ class _DialogContentState extends State<_DialogContent> with SingleTickerProvide
                       Text(
                         widget.s.feedback_dialog_description,
                         style: widget.theme.textTheme.bodyMedium?.copyWith(
-                          color: widget.theme.colorScheme.onSurface.withOpacity(0.7),
+                          color: widget.theme.colorScheme.onSurface.withValues(alpha: 0.7),
                           height: 1.5,
                         ),
                         textAlign: TextAlign.center,
@@ -313,7 +313,7 @@ class _DialogContentState extends State<_DialogContent> with SingleTickerProvide
                         child: Text(
                           widget.s.feedback_dialog_dont_ask,
                           style: widget.theme.textTheme.bodySmall?.copyWith(
-                            color: widget.theme.colorScheme.onSurface.withOpacity(0.5),
+                            color: widget.theme.colorScheme.onSurface.withValues(alpha: 0.5),
                           ),
                         ),
                       ),
@@ -361,7 +361,7 @@ class _BenefitItem extends StatelessWidget {
           child: Text(
             text,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.8),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
             ),
           ),
         ),

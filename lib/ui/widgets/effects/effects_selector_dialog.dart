@@ -167,7 +167,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
         height: isMobile ? double.infinity : 500,
         child: AnimatedBackground(
           child: Container(
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.6),
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
@@ -324,7 +324,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundColor: color.withOpacity(0.2),
+                backgroundColor: color.withValues(alpha: 0.2),
                 child: icon,
               ),
               const SizedBox(height: 12),
@@ -340,7 +340,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
               Text(
                 effect.getDescription(context),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                 textAlign: TextAlign.center,
                 maxLines: 2,

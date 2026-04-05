@@ -251,7 +251,7 @@ class _EnhancedWinterPainter extends CustomPainter {
       double drawSize = flake.size * (0.5 + 0.5 * flake.z);
       double opacity = (0.4 + 0.6 * flake.z) * intensity;
 
-      paint.color = _snowWhite.withOpacity(opacity);
+      paint.color = _snowWhite.withValues(alpha: opacity);
 
       // Simple flake or detailed based on size
       if (drawSize < 2.0) {
@@ -314,8 +314,8 @@ class _EnhancedWinterPainter extends CustomPainter {
       size.longestSide * 0.8,
       [
         Colors.transparent,
-        Colors.white.withOpacity(0.1 * intensity),
-        Colors.white.withOpacity(0.3 * intensity), // Frosty edges
+        Colors.white.withValues(alpha: 0.1 * intensity),
+        Colors.white.withValues(alpha: 0.3 * intensity), // Frosty edges
       ],
       [0.6, 0.85, 1.0],
     );

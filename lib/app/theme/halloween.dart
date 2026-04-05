@@ -30,16 +30,16 @@ AppTheme buildHalloweenTheme() {
     textPrimary: ghostWhite,
     textSecondary: Color.lerp(ghostWhite, primaryOrange, 0.3)!,
     textDisabled: Color.lerp(ghostWhite, Colors.black, 0.5)!,
-    divider: deepPurple.withOpacity(0.3),
+    divider: deepPurple.withValues(alpha: 0.3),
     toolbarColor: Color.lerp(surfaceDark, Colors.black, 0.2)!,
     error: bloodRed,
     success: toxicGreen,
     warning: primaryOrange,
-    gridLine: deepPurple.withOpacity(0.4),
+    gridLine: deepPurple.withValues(alpha: 0.4),
     gridBackground: Color.lerp(darkBg, surfaceDark, 0.3)!,
     canvasBackground: darkBg,
     selectionOutline: primaryOrange,
-    selectionFill: primaryOrange.withOpacity(0.2),
+    selectionFill: primaryOrange.withValues(alpha: 0.2),
     activeIcon: primaryOrange,
     inactiveIcon: Color.lerp(ghostWhite, deepPurple, 0.5)!,
     textTheme: GoogleFonts.creepsterTextTheme(
@@ -110,7 +110,7 @@ class HalloweenBackground extends HookWidget {
           child: Image.asset(
             'assets/images/halloween_background.webp',
             fit: BoxFit.cover,
-            color: Colors.black.withOpacity(0.3 * intensity),
+            color: Colors.black.withValues(alpha: 0.3 * intensity),
             colorBlendMode: BlendMode.darken,
           ),
         ),
@@ -118,7 +118,7 @@ class HalloweenBackground extends HookWidget {
         CustomPaint(
           painter: _FogPainter(
             animation: slowAnimation,
-            color: theme.primaryVariant.withOpacity(0.1 * intensity),
+            color: theme.primaryVariant.withValues(alpha: 0.1 * intensity),
             animationEnabled: enableAnimation,
           ),
           size: Size.infinite,
@@ -127,7 +127,7 @@ class HalloweenBackground extends HookWidget {
         CustomPaint(
           painter: _BatPainter(
             animation: fastAnimation,
-            color: Colors.black.withOpacity(0.6 * intensity),
+            color: Colors.black.withValues(alpha: 0.6 * intensity),
             intensity: intensity,
             animationEnabled: enableAnimation,
           ),
@@ -137,7 +137,7 @@ class HalloweenBackground extends HookWidget {
         CustomPaint(
           painter: _GhostPainter(
             animation: slowAnimation,
-            color: Colors.white.withOpacity(0.15 * intensity),
+            color: Colors.white.withValues(alpha: 0.15 * intensity),
             intensity: intensity,
             animationEnabled: enableAnimation,
           ),
@@ -157,7 +157,7 @@ class HalloweenBackground extends HookWidget {
         // Cobweb corners
         CustomPaint(
           painter: _CobwebPainter(
-            color: Colors.white.withOpacity(0.08 * intensity),
+            color: Colors.white.withValues(alpha: 0.08 * intensity),
             animationEnabled: enableAnimation,
           ),
           size: Size.infinite,
@@ -282,7 +282,7 @@ class _GhostPainter extends CustomPainter {
       // Ghost eyes
       final eyePaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = Colors.black.withOpacity(0.5);
+        ..color = Colors.black.withValues(alpha: 0.5);
 
       canvas.drawCircle(
         Offset(x + ghostSize * 0.3, y - ghostSize * 0.65),
@@ -421,8 +421,8 @@ class _PumpkinGlowPainter extends CustomPainter {
 
       final gradient = RadialGradient(
         colors: [
-          primaryColor.withOpacity(0.15 * intensity),
-          primaryColor.withOpacity(0.05 * intensity),
+          primaryColor.withValues(alpha: 0.15 * intensity),
+          primaryColor.withValues(alpha: 0.05 * intensity),
           Colors.transparent,
         ],
         stops: const [0.0, 0.5, 1.0],
@@ -437,7 +437,7 @@ class _PumpkinGlowPainter extends CustomPainter {
       if (i % 3 == 0) {
         final accentGradient = RadialGradient(
           colors: [
-            accentColor.withOpacity(0.1 * intensity),
+            accentColor.withValues(alpha: 0.1 * intensity),
             Colors.transparent,
           ],
           stops: const [0.0, 1.0],

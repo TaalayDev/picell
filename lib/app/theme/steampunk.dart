@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'app_theme_geometry.dart';
+import 'flagship/steampunk_flagship.dart';
 import 'theme.dart';
 
 // ============================================================================
@@ -91,6 +93,8 @@ AppTheme buildSteampunkTheme() {
       ),
     ),
     primaryFontWeight: FontWeight.w600,
+    geometry: AppThemeGeometry.steampunk,
+    flagship: buildSteampunkFlagshipConfig(),
   );
 }
 
@@ -275,7 +279,7 @@ class _SteampunkPainter extends CustomPainter {
 
     // Subtle grain texture
     final grainRng = math.Random(123); // Deterministic seed
-    final grainPaint = Paint()..color = _parchment.withOpacity(0.008 * intensity);
+    final grainPaint = Paint()..color = _parchment.withValues(alpha: 0.008 * intensity);
     for (int i = 0; i < (300 * intensity).round(); i++) {
       canvas.drawCircle(
         Offset(grainRng.nextDouble() * size.width, grainRng.nextDouble() * size.height),
@@ -288,7 +292,7 @@ class _SteampunkPainter extends CustomPainter {
   void _paintFactorySilhouettes(Canvas canvas, Size size) {
     final paint = Paint()
       ..style = PaintingStyle.fill
-      ..color = const Color(0xFF0A0908).withOpacity(0.6 * intensity);
+      ..color = const Color(0xFF0A0908).withValues(alpha: 0.6 * intensity);
 
     // Factory 1 - left side
     final factory1 = Path()
@@ -347,7 +351,7 @@ class _SteampunkPainter extends CustomPainter {
         gear.radius * intensity,
         gear.teeth,
         rotation,
-        _brass.withOpacity(opacity),
+        _brass.withValues(alpha: opacity),
       );
     }
   }
@@ -458,17 +462,17 @@ class _SteampunkPainter extends CustomPainter {
 
       // Pipe shadow
       paint.strokeWidth = 14 * intensity;
-      paint.color = Colors.black.withOpacity(0.2 * intensity);
+      paint.color = Colors.black.withValues(alpha: 0.2 * intensity);
       canvas.drawLine(pipe[0] + const Offset(3, 3), pipe[1] + const Offset(3, 3), paint);
 
       // Main pipe body
       paint.strokeWidth = 12 * intensity;
-      paint.color = _iron.withOpacity(pulseOpacity * intensity);
+      paint.color = _iron.withValues(alpha: pulseOpacity * intensity);
       canvas.drawLine(pipe[0], pipe[1], paint);
 
       // Pipe highlight
       paint.strokeWidth = 3 * intensity;
-      paint.color = _brass.withOpacity(pulseOpacity * 0.3 * intensity);
+      paint.color = _brass.withValues(alpha: pulseOpacity * 0.3 * intensity);
       canvas.drawLine(
         pipe[0] + const Offset(-2, -2),
         pipe[1] + const Offset(-2, -2),
@@ -482,7 +486,7 @@ class _SteampunkPainter extends CustomPainter {
   }
 
   void _drawPipeJoint(Canvas canvas, Offset center, double opacity) {
-    final paint = Paint()..color = _brass.withOpacity(opacity * 0.6 * intensity);
+    final paint = Paint()..color = _brass.withValues(alpha: opacity * 0.6 * intensity);
 
     // Flange
     paint.style = PaintingStyle.stroke;
@@ -491,7 +495,7 @@ class _SteampunkPainter extends CustomPainter {
 
     // Bolts
     paint.style = PaintingStyle.fill;
-    paint.color = _brass.withOpacity(opacity * 0.4 * intensity);
+    paint.color = _brass.withValues(alpha: opacity * 0.4 * intensity);
     for (int i = 0; i < 8; i++) {
       final angle = i * math.pi / 4;
       final boltPos = center +
@@ -524,7 +528,7 @@ class _SteampunkPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2 * intensity
-      ..color = _brass.withOpacity(opacity * intensity);
+      ..color = _brass.withValues(alpha: opacity * intensity);
 
     // Outer decorative ring
     canvas.drawCircle(center, radius, paint);
@@ -598,7 +602,7 @@ class _SteampunkPainter extends CustomPainter {
     // Second hand (fast)
     final secondAngle = _fastTime * 2 * math.pi - math.pi / 2;
     paint.strokeWidth = 1 * intensity;
-    paint.color = _copper.withOpacity(opacity * intensity);
+    paint.color = _copper.withValues(alpha: opacity * intensity);
     canvas.drawLine(
       center,
       center +
@@ -612,7 +616,7 @@ class _SteampunkPainter extends CustomPainter {
     // Center hub
     final hubPaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = _brass.withOpacity(opacity * 0.6 * intensity);
+      ..color = _brass.withValues(alpha: opacity * 0.6 * intensity);
     canvas.drawCircle(center, 5 * intensity, hubPaint);
   }
 
@@ -647,7 +651,7 @@ class _SteampunkPainter extends CustomPainter {
         final rotation = _mediumTime * 2 * math.pi * gear.speed;
 
         final breathe = math.sin(_mediumTime * 4 * math.pi + i * 1.5) * 0.03 + 0.1;
-        final color = Color.lerp(_brass, _copper, i / cluster.length)!.withOpacity(breathe * intensity);
+        final color = Color.lerp(_brass, _copper, i / cluster.length)!.withValues(alpha: breathe * intensity);
 
         _drawDetailedGear(canvas, center, radius, gear.teeth, rotation, color);
       }
@@ -713,7 +717,7 @@ class _SteampunkPainter extends CustomPainter {
     // Center bolt
     final boltPaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = color.withOpacity(color.opacity * 0.5);
+      ..color = color.withValues(alpha: color.opacity * 0.5);
     canvas.drawCircle(Offset.zero, hubRadius * 0.5, boltPaint);
 
     canvas.restore();
@@ -737,7 +741,7 @@ class _SteampunkPainter extends CustomPainter {
 
       // Boiler body
       paint.strokeWidth = 3 * intensity;
-      paint.color = _iron.withOpacity(opacity);
+      paint.color = _iron.withValues(alpha: opacity);
       final boilerRect = RRect.fromRectAndRadius(
         Rect.fromCenter(center: center, width: width, height: height),
         Radius.circular(width * 0.3),
@@ -746,7 +750,7 @@ class _SteampunkPainter extends CustomPainter {
 
       // Rivets along edges
       paint.style = PaintingStyle.fill;
-      paint.color = _brass.withOpacity(opacity * 0.6);
+      paint.color = _brass.withValues(alpha: opacity * 0.6);
       for (int r = 0; r < 6; r++) {
         final rivetY = center.dy - height * 0.4 + r * height * 0.16;
         canvas.drawCircle(Offset(center.dx - width * 0.4, rivetY), 2 * intensity, paint);
@@ -757,7 +761,7 @@ class _SteampunkPainter extends CustomPainter {
       final glowPaint = Paint()
         ..style = PaintingStyle.fill
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15)
-        ..color = _fireGlow.withOpacity(0.05 * heatGlow * intensity);
+        ..color = _fireGlow.withValues(alpha: 0.05 * heatGlow * intensity);
       canvas.drawOval(
         Rect.fromCenter(
           center: center + Offset(0, height * 0.4),
@@ -770,7 +774,7 @@ class _SteampunkPainter extends CustomPainter {
       // Pressure release valve on top
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2 * intensity;
-      paint.color = _brass.withOpacity(opacity);
+      paint.color = _brass.withValues(alpha: opacity);
       final valveBase = center - Offset(0, height * 0.5);
       canvas.drawLine(valveBase, valveBase - Offset(0, 15 * intensity), paint);
       canvas.drawCircle(valveBase - Offset(0, 20 * intensity), 6 * intensity, paint);
@@ -808,7 +812,7 @@ class _SteampunkPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2 * intensity
-      ..color = _brass.withOpacity(opacity * intensity);
+      ..color = _brass.withValues(alpha: opacity * intensity);
 
     // Gauge housing
     canvas.drawCircle(center, radius, paint);
@@ -818,7 +822,7 @@ class _SteampunkPainter extends CustomPainter {
     final dangerPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4 * intensity
-      ..color = _fireGlow.withOpacity(0.15 * intensity);
+      ..color = _fireGlow.withValues(alpha: 0.15 * intensity);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius * 0.7),
       -math.pi * 0.2,
@@ -842,7 +846,7 @@ class _SteampunkPainter extends CustomPainter {
     // Needle
     final needleAngle = -math.pi * 0.75 + pressure * math.pi * 1.5;
     paint.strokeWidth = 2 * intensity;
-    paint.color = Color.lerp(_brass, _fireGlow, pressure)!.withOpacity(opacity * 1.2 * intensity);
+    paint.color = Color.lerp(_brass, _fireGlow, pressure)!.withValues(alpha: opacity * 1.2 * intensity);
     canvas.drawLine(
       center,
       center +
@@ -856,7 +860,7 @@ class _SteampunkPainter extends CustomPainter {
     // Center cap
     final capPaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = _brass.withOpacity(opacity * 0.5 * intensity);
+      ..color = _brass.withValues(alpha: opacity * 0.5 * intensity);
     canvas.drawCircle(center, 3 * intensity, capPaint);
   }
 
@@ -887,7 +891,7 @@ class _SteampunkPainter extends CustomPainter {
         final y = start.dy + dy * t;
 
         final opacity = 0.06 + math.sin(_fastTime * 6 * math.pi + i * 0.5) * 0.02;
-        paint.color = _iron.withOpacity(opacity * intensity);
+        paint.color = _iron.withValues(alpha: opacity * intensity);
 
         // Draw chain link
         final linkRect = Rect.fromCenter(
@@ -905,7 +909,7 @@ class _SteampunkPainter extends CustomPainter {
       final sprocketPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2 * intensity
-        ..color = _brass.withOpacity(0.08 * intensity);
+        ..color = _brass.withValues(alpha: 0.08 * intensity);
 
       canvas.drawCircle(start, 12 * intensity, sprocketPaint);
       canvas.drawCircle(end, 10 * intensity, sprocketPaint);
@@ -940,11 +944,11 @@ class _SteampunkPainter extends CustomPainter {
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
 
           // Main puff
-          steamPaint.color = _steam.withOpacity(steamOpacity);
+          steamPaint.color = _steam.withValues(alpha: steamOpacity);
           canvas.drawCircle(pos, expand * intensity, steamPaint);
 
           // Secondary wisps
-          steamPaint.color = _steam.withOpacity(steamOpacity * 0.5);
+          steamPaint.color = _steam.withValues(alpha: steamOpacity * 0.5);
           canvas.drawCircle(pos + Offset(-expand * 0.5, expand * 0.3), expand * 0.6 * intensity, steamPaint);
           canvas.drawCircle(pos + Offset(expand * 0.4, -expand * 0.2), expand * 0.5 * intensity, steamPaint);
         }
@@ -983,11 +987,11 @@ class _SteampunkPainter extends CustomPainter {
 
         if (sparkOpacity > 0.05 && y < size.height) {
           // Core spark
-          paint.color = _fireGlow.withOpacity(sparkOpacity);
+          paint.color = _fireGlow.withValues(alpha: sparkOpacity);
           canvas.drawCircle(Offset(x, y), 2 * intensity, paint);
 
           // Hot core
-          paint.color = Colors.white.withOpacity(sparkOpacity * 0.5);
+          paint.color = Colors.white.withValues(alpha: sparkOpacity * 0.5);
           canvas.drawCircle(Offset(x, y), 1 * intensity, paint);
         }
       }
@@ -1014,7 +1018,7 @@ class _SteampunkPainter extends CustomPainter {
 
       if (twinkle > 0.25) {
         final particleOpacity = twinkle * 0.2 * intensity;
-        paint.color = Color.lerp(_brass, _copper, r3)!.withOpacity(particleOpacity);
+        paint.color = Color.lerp(_brass, _copper, r3)!.withValues(alpha: particleOpacity);
 
         switch (i % 6) {
           case 0: // Spark
@@ -1039,7 +1043,7 @@ class _SteampunkPainter extends CustomPainter {
 
           case 3: // Rivet head
             canvas.drawCircle(Offset(floatX, floatY), 2 * intensity * twinkle, paint);
-            paint.color = paint.color.withOpacity(particleOpacity * 0.4);
+            paint.color = paint.color.withValues(alpha: particleOpacity * 0.4);
             canvas.drawCircle(Offset(floatX, floatY), 1 * intensity * twinkle, paint);
             break;
 
@@ -1092,7 +1096,7 @@ class _SteampunkPainter extends CustomPainter {
       Offset(size.width * 0.15, size.height * 0.1),
       size.longestSide * 0.7,
       [
-        _brass.withOpacity(0.04 * intensity),
+        _brass.withValues(alpha: 0.04 * intensity),
         Colors.transparent,
       ],
     );
@@ -1107,7 +1111,7 @@ class _SteampunkPainter extends CustomPainter {
       Offset(size.width * 0.5, size.height),
       Offset(size.width * 0.5, size.height * 0.6),
       [
-        _fireGlow.withOpacity(0.03 * intensity),
+        _fireGlow.withValues(alpha: 0.03 * intensity),
         Colors.transparent,
       ],
     );
@@ -1119,7 +1123,7 @@ class _SteampunkPainter extends CustomPainter {
 
     // Subtle dust in light beams
     final dustPaint = Paint()
-      ..color = _parchment.withOpacity(0.015 * intensity)
+      ..color = _parchment.withValues(alpha: 0.015 * intensity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30);
 
     final beamPath = Path()
@@ -1141,8 +1145,8 @@ class _SteampunkPainter extends CustomPainter {
       radius,
       [
         Colors.transparent,
-        Colors.black.withOpacity(0.25 * intensity),
-        Colors.black.withOpacity(0.5 * intensity),
+        Colors.black.withValues(alpha: 0.25 * intensity),
+        Colors.black.withValues(alpha: 0.5 * intensity),
       ],
       const [0.4, 0.75, 1.0],
     );

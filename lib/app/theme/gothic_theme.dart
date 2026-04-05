@@ -283,7 +283,7 @@ class _GothicPainter extends CustomPainter {
     );
 
     // Stone texture overlay
-    final stonePaint = Paint()..color = _stone.withOpacity(0.015 * intensity);
+    final stonePaint = Paint()..color = _stone.withValues(alpha: 0.015 * intensity);
     for (int i = 0; i < (400 * intensity).round(); i++) {
       final x = _rng.nextDouble() * size.width;
       final y = _rng.nextDouble() * size.height;
@@ -299,15 +299,15 @@ class _GothicPainter extends CustomPainter {
     final glowPaint = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 60);
 
     // Large atmospheric glow
-    glowPaint.color = _moonlight.withOpacity(0.03 * intensity);
+    glowPaint.color = _moonlight.withValues(alpha: 0.03 * intensity);
     canvas.drawCircle(moonCenter, moonRadius * 4, glowPaint);
 
     // Medium glow
-    glowPaint.color = _moonlight.withOpacity(0.05 * intensity);
+    glowPaint.color = _moonlight.withValues(alpha: 0.05 * intensity);
     canvas.drawCircle(moonCenter, moonRadius * 2.5, glowPaint);
 
     // Inner glow
-    glowPaint.color = _moonlight.withOpacity(0.08 * intensity);
+    glowPaint.color = _moonlight.withValues(alpha: 0.08 * intensity);
     canvas.drawCircle(moonCenter, moonRadius * 1.5, glowPaint);
 
     // Moon body with slight animation (breathing)
@@ -316,9 +316,9 @@ class _GothicPainter extends CustomPainter {
       moonCenter - Offset(moonRadius * 0.3, moonRadius * 0.3),
       moonRadius * breathe,
       [
-        _moonlight.withOpacity(0.15 * intensity),
-        _moonlight.withOpacity(0.08 * intensity),
-        _moonlight.withOpacity(0.03 * intensity),
+        _moonlight.withValues(alpha: 0.15 * intensity),
+        _moonlight.withValues(alpha: 0.08 * intensity),
+        _moonlight.withValues(alpha: 0.03 * intensity),
       ],
       [0.0, 0.5, 1.0],
     );
@@ -331,7 +331,7 @@ class _GothicPainter extends CustomPainter {
 
     // Moon craters (subtle)
     final craterPaint = Paint()
-      ..color = _shadow.withOpacity(0.1 * intensity)
+      ..color = _shadow.withValues(alpha: 0.1 * intensity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
 
     canvas.drawCircle(moonCenter + Offset(moonRadius * 0.2, -moonRadius * 0.1), moonRadius * 0.15, craterPaint);
@@ -342,7 +342,7 @@ class _GothicPainter extends CustomPainter {
   void _paintCathedralSilhouette(Canvas canvas, Size size) {
     final paint = Paint()
       ..style = PaintingStyle.fill
-      ..color = _ravenBlack.withOpacity(0.7 * intensity);
+      ..color = _ravenBlack.withValues(alpha: 0.7 * intensity);
 
     // Main cathedral body - distant
     final cathedral = Path()
@@ -371,19 +371,19 @@ class _GothicPainter extends CustomPainter {
     canvas.drawPath(cathedral, paint);
 
     // Flying buttresses hint
-    paint.color = _ravenBlack.withOpacity(0.5 * intensity);
+    paint.color = _ravenBlack.withValues(alpha: 0.5 * intensity);
     canvas.drawLine(
       Offset(size.width * 0.28, size.height * 0.7),
       Offset(size.width * 0.3, size.height * 0.55),
       Paint()
-        ..color = _ravenBlack.withOpacity(0.4 * intensity)
+        ..color = _ravenBlack.withValues(alpha: 0.4 * intensity)
         ..strokeWidth = 3 * intensity,
     );
     canvas.drawLine(
       Offset(size.width * 0.62, size.height * 0.7),
       Offset(size.width * 0.6, size.height * 0.55),
       Paint()
-        ..color = _ravenBlack.withOpacity(0.4 * intensity)
+        ..color = _ravenBlack.withValues(alpha: 0.4 * intensity)
         ..strokeWidth = 3 * intensity,
     );
   }
@@ -402,7 +402,7 @@ class _GothicPainter extends CustomPainter {
     for (int i = 0; i < arches.length; i++) {
       final rect = arches[i];
       final opacity = 0.08 + math.sin(slowAnimation * 2 * math.pi + i) * 0.02;
-      paint.color = _stone.withOpacity(opacity * intensity);
+      paint.color = _stone.withValues(alpha: opacity * intensity);
 
       // Pointed arch
       final archPath = Path()
@@ -465,7 +465,7 @@ class _GothicPainter extends CustomPainter {
     // Outer glow
     final glowPaint = Paint()
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20)
-      ..color = _stainedGlass.withOpacity(0.08 * glowIntensity * intensity);
+      ..color = _stainedGlass.withValues(alpha: 0.08 * glowIntensity * intensity);
     canvas.drawCircle(roseCenter, roseRadius * 1.8, glowPaint);
 
     // Rose window segments
@@ -477,7 +477,7 @@ class _GothicPainter extends CustomPainter {
       final startAngle = i * math.pi / 4;
       final color = colors[i % colors.length];
 
-      segmentPaint.color = color.withOpacity(0.15 * glowIntensity * intensity);
+      segmentPaint.color = color.withValues(alpha: 0.15 * glowIntensity * intensity);
       canvas.drawArc(
         Rect.fromCircle(center: roseCenter, radius: roseRadius),
         startAngle,
@@ -491,7 +491,7 @@ class _GothicPainter extends CustomPainter {
     final framePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5 * intensity
-      ..color = _stone.withOpacity(0.1 * intensity);
+      ..color = _stone.withValues(alpha: 0.1 * intensity);
 
     canvas.drawCircle(roseCenter, roseRadius, framePaint);
     canvas.drawCircle(roseCenter, roseRadius * 0.6, framePaint);
@@ -527,7 +527,7 @@ class _GothicPainter extends CustomPainter {
 
       // Column shadow
       paint.strokeWidth = columnWidth + 4;
-      paint.color = Colors.black.withOpacity(0.15 * intensity);
+      paint.color = Colors.black.withValues(alpha: 0.15 * intensity);
       canvas.drawLine(
         base + const Offset(3, 0),
         Offset(base.dx + 3, base.dy - columnHeight),
@@ -536,7 +536,7 @@ class _GothicPainter extends CustomPainter {
 
       // Main column
       paint.strokeWidth = columnWidth;
-      paint.color = _stone.withOpacity(opacity * intensity);
+      paint.color = _stone.withValues(alpha: opacity * intensity);
       canvas.drawLine(
         base,
         Offset(base.dx, base.dy - columnHeight),
@@ -545,7 +545,7 @@ class _GothicPainter extends CustomPainter {
 
       // Column highlight
       paint.strokeWidth = 3 * intensity;
-      paint.color = _moonlight.withOpacity(opacity * 0.3 * intensity);
+      paint.color = _moonlight.withValues(alpha: opacity * 0.3 * intensity);
       canvas.drawLine(
         Offset(base.dx - columnWidth * 0.3, base.dy),
         Offset(base.dx - columnWidth * 0.3, base.dy - columnHeight),
@@ -555,7 +555,7 @@ class _GothicPainter extends CustomPainter {
       // Capital (top decoration)
       final capitalY = base.dy - columnHeight;
       paint.strokeWidth = 2 * intensity;
-      paint.color = _stone.withOpacity(opacity * 1.2 * intensity);
+      paint.color = _stone.withValues(alpha: opacity * 1.2 * intensity);
 
       // Simple gothic capital
       canvas.drawLine(
@@ -582,7 +582,7 @@ class _GothicPainter extends CustomPainter {
 
     // Horizontal rails
     paint.strokeWidth = 3 * intensity;
-    paint.color = _ravenBlack.withOpacity(0.15 * intensity);
+    paint.color = _ravenBlack.withValues(alpha: 0.15 * intensity);
     canvas.drawLine(
       Offset(0, fenceY),
       Offset(size.width, fenceY),
@@ -620,7 +620,7 @@ class _GothicPainter extends CustomPainter {
 
     // Decorative scrollwork
     paint.strokeWidth = 1.5 * intensity;
-    paint.color = _ravenBlack.withOpacity(0.1 * intensity);
+    paint.color = _ravenBlack.withValues(alpha: 0.1 * intensity);
 
     for (int i = 0; i < barCount - 1; i++) {
       final x = i * barSpacing + barSpacing / 2;
@@ -648,7 +648,7 @@ class _GothicPainter extends CustomPainter {
       final stoneWidth = (15 + _rng.nextDouble() * 10) * intensity;
 
       final opacity = 0.08 + math.sin(slowAnimation * math.pi + i * 1.2) * 0.02;
-      final paint = Paint()..color = _stone.withOpacity(opacity * intensity);
+      final paint = Paint()..color = _stone.withValues(alpha: opacity * intensity);
 
       if (i % 2 == 0) {
         // Regular gravestone
@@ -712,7 +712,7 @@ class _GothicPainter extends CustomPainter {
       final sway = math.sin(fastAnimation * 6 * math.pi + i * 1.7) * 3 * intensity;
 
       // Candle body
-      final candlePaint = Paint()..color = const Color(0xFFF5F0E0).withOpacity(0.12 * intensity);
+      final candlePaint = Paint()..color = const Color(0xFFF5F0E0).withValues(alpha: 0.12 * intensity);
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromLTWH(
@@ -730,7 +730,7 @@ class _GothicPainter extends CustomPainter {
       final flameTop = base.dy - candleHeight - 15 * intensity;
       final glowPaint = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 25);
 
-      glowPaint.color = _candleGlow.withOpacity(0.06 * flicker * intensity);
+      glowPaint.color = _candleGlow.withValues(alpha: 0.06 * flicker * intensity);
       canvas.drawCircle(
         Offset(base.dx + sway, flameTop + 5 * intensity),
         30 * intensity,
@@ -738,7 +738,7 @@ class _GothicPainter extends CustomPainter {
       );
 
       // Flame glow (medium)
-      glowPaint.color = _candleLight.withOpacity(0.1 * flicker * intensity);
+      glowPaint.color = _candleLight.withValues(alpha: 0.1 * flicker * intensity);
       canvas.drawCircle(
         Offset(base.dx + sway, flameTop + 3 * intensity),
         15 * intensity,
@@ -767,9 +767,9 @@ class _GothicPainter extends CustomPainter {
         Offset(base.dx, base.dy - candleHeight),
         Offset(base.dx + sway, flameTop),
         [
-          _candleGlow.withOpacity(0.4 * flicker * intensity),
-          _candleLight.withOpacity(0.6 * flicker * intensity),
-          Colors.white.withOpacity(0.3 * flicker * intensity),
+          _candleGlow.withValues(alpha: 0.4 * flicker * intensity),
+          _candleLight.withValues(alpha: 0.6 * flicker * intensity),
+          Colors.white.withValues(alpha: 0.3 * flicker * intensity),
         ],
         [0.0, 0.5, 1.0],
       );
@@ -806,7 +806,7 @@ class _GothicPainter extends CustomPainter {
 
       final paint = Paint()
         ..style = PaintingStyle.fill
-        ..color = _ravenBlack.withOpacity(0.25 * intensity);
+        ..color = _ravenBlack.withValues(alpha: 0.25 * intensity);
 
       // Raven body
       final bodyPath = Path()
@@ -839,7 +839,7 @@ class _GothicPainter extends CustomPainter {
         Offset(x + ravenSize * 0.55, y - ravenSize * 0.1),
         Offset(x + ravenSize * 0.75, y),
         Paint()
-          ..color = _ravenBlack.withOpacity(0.2 * intensity)
+          ..color = _ravenBlack.withValues(alpha: 0.2 * intensity)
           ..strokeWidth = 2 * intensity,
       );
     }
@@ -864,7 +864,7 @@ class _GothicPainter extends CustomPainter {
 
       final paint = Paint()
         ..style = PaintingStyle.fill
-        ..color = _ravenBlack.withOpacity(0.2 * intensity);
+        ..color = _ravenBlack.withValues(alpha: 0.2 * intensity);
 
       // Simple bat silhouette
       final batPath = Path()
@@ -907,7 +907,7 @@ class _GothicPainter extends CustomPainter {
         final mistWidth = (150 + _rng.nextDouble() * 100) * intensity;
         final mistHeight = (40 + _rng.nextDouble() * 30) * intensity;
 
-        mistPaint.color = _mist.withOpacity(opacity);
+        mistPaint.color = _mist.withValues(alpha: opacity);
         canvas.drawOval(
           Rect.fromCenter(
             center: Offset(x, layerY),
@@ -928,7 +928,7 @@ class _GothicPainter extends CustomPainter {
       final opacity = math.sin(progress * math.pi) * 0.03 * intensity;
 
       if (opacity > 0.005) {
-        mistPaint.color = _mist.withOpacity(opacity);
+        mistPaint.color = _mist.withValues(alpha: opacity);
         canvas.drawOval(
           Rect.fromCenter(
             center: Offset(x, y),
@@ -958,17 +958,17 @@ class _GothicPainter extends CustomPainter {
       if (twinkle > 0.3) {
         // Dust motes
         if (i % 3 == 0) {
-          paint.color = _moonlight.withOpacity(0.15 * twinkle * intensity);
+          paint.color = _moonlight.withValues(alpha: 0.15 * twinkle * intensity);
           canvas.drawCircle(Offset(floatX, floatY), 1.5 * intensity, paint);
         }
         // Ash particles
         else if (i % 3 == 1) {
-          paint.color = _stone.withOpacity(0.1 * twinkle * intensity);
+          paint.color = _stone.withValues(alpha: 0.1 * twinkle * intensity);
           canvas.drawCircle(Offset(floatX, floatY), 2 * intensity, paint);
         }
         // Embers (near candles)
         else if (floatY > size.height * 0.5) {
-          paint.color = _candleGlow.withOpacity(0.2 * twinkle * intensity);
+          paint.color = _candleGlow.withValues(alpha: 0.2 * twinkle * intensity);
           paint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
           canvas.drawCircle(Offset(floatX, floatY), 1.5 * intensity, paint);
           paint.maskFilter = null;
@@ -1007,7 +1007,7 @@ class _GothicPainter extends CustomPainter {
 
         canvas.drawPath(
           petalPath,
-          Paint()..color = _bloodRed.withOpacity(opacity),
+          Paint()..color = _bloodRed.withValues(alpha: opacity),
         );
 
         canvas.restore();
@@ -1031,7 +1031,7 @@ class _GothicPainter extends CustomPainter {
       final webSize = 80.0 * intensity;
       final opacity = 0.04 + math.sin(slowAnimation * math.pi + w) * 0.01;
 
-      paint.color = _moonlight.withOpacity(opacity * intensity);
+      paint.color = _moonlight.withValues(alpha: opacity * intensity);
 
       // Radial threads
       final threadCount = 8;
@@ -1074,12 +1074,12 @@ class _GothicPainter extends CustomPainter {
       ..lineTo(size.width * 0.5, size.height * 0.5)
       ..close();
 
-    rayPaint.color = _moonlight.withOpacity(rayOpacity * intensity);
+    rayPaint.color = _moonlight.withValues(alpha: rayOpacity * intensity);
     canvas.drawPath(moonRayPath, rayPaint);
 
     // Candle light rays (warm)
     final candleRayOpacity = 0.015 * intensity;
-    rayPaint.color = _candleGlow.withOpacity(candleRayOpacity);
+    rayPaint.color = _candleGlow.withValues(alpha: candleRayOpacity);
 
     // Left candle area
     final leftRay = Path()
@@ -1110,8 +1110,8 @@ class _GothicPainter extends CustomPainter {
       radius,
       [
         Colors.transparent,
-        Colors.black.withOpacity(0.3 * intensity),
-        Colors.black.withOpacity(0.6 * intensity),
+        Colors.black.withValues(alpha: 0.3 * intensity),
+        Colors.black.withValues(alpha: 0.6 * intensity),
       ],
       [0.3, 0.7, 1.0],
     );
@@ -1124,7 +1124,7 @@ class _GothicPainter extends CustomPainter {
     // Additional corner darkness
     final cornerPaint = Paint()
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 50)
-      ..color = Colors.black.withOpacity(0.4 * intensity);
+      ..color = Colors.black.withValues(alpha: 0.4 * intensity);
 
     canvas.drawCircle(Offset.zero, size.width * 0.3, cornerPaint);
     canvas.drawCircle(Offset(size.width, 0), size.width * 0.3, cornerPaint);

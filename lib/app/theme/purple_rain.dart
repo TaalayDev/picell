@@ -351,9 +351,9 @@ class _CalmPurpleRainPainter extends CustomPainter {
         Offset(size.width * 0.5, 0),
         Offset(size.width * 0.5, size.height),
         [
-          Color.lerp(_deepPurple, Colors.white, flash * 0.5)!.withOpacity(0.95),
-          _royalPurple.withOpacity(0.72),
-          primaryColor.withOpacity(0.5),
+          Color.lerp(_deepPurple, Colors.white, flash * 0.5)!.withValues(alpha: 0.95),
+          _royalPurple.withValues(alpha: 0.72),
+          primaryColor.withValues(alpha: 0.5),
           Color.lerp(_deepPurple, Colors.black, 0.35)!,
         ],
         const [0.0, 0.4, 0.75, 1.0],
@@ -372,7 +372,7 @@ class _CalmPurpleRainPainter extends CustomPainter {
       final color = drop.z > 0.7 ? _brightViolet : (drop.z > 0.4 ? _amethyst : _lavender);
       final alpha = (0.1 + drop.z * 0.2) * intensity;
 
-      paint.color = color.withOpacity(alpha.clamp(0.0, 1.0));
+      paint.color = color.withValues(alpha: alpha.clamp(0.0, 1.0));
 
       final tailY = drop.y - drop.length * drop.z;
       canvas.drawLine(Offset(drop.x, drop.y), Offset(drop.x - 2 * drop.z, tailY), paint);
@@ -382,11 +382,11 @@ class _CalmPurpleRainPainter extends CustomPainter {
   void _paintSplashes(Canvas canvas, Size size) {
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..color = _lavender.withOpacity(0.2 * intensity);
+      ..color = _lavender.withValues(alpha: 0.2 * intensity);
 
     for (var s in state.splashes!) {
       paint.strokeWidth = s.life * intensity;
-      paint.color = _lavender.withOpacity(s.life * 0.3 * intensity);
+      paint.color = _lavender.withValues(alpha: s.life * 0.3 * intensity);
 
       final radius = s.maxRadius * (1 - s.life);
       // Oval splash on ground
@@ -401,7 +401,7 @@ class _CalmPurpleRainPainter extends CustomPainter {
       final cloud = state.mist![i];
       final opacity = (0.03 + 0.01 * (i % 2)) * intensity;
 
-      paint.color = _royalPurple.withOpacity(opacity);
+      paint.color = _royalPurple.withValues(alpha: opacity);
 
       final rrect = RRect.fromRectAndRadius(
         Rect.fromLTWH(cloud.x, cloud.y, cloud.w, cloud.h),
@@ -419,8 +419,8 @@ class _CalmPurpleRainPainter extends CustomPainter {
         size.longestSide * 0.78,
         [
           Colors.transparent,
-          _deepPurple.withOpacity(0.10 + 0.05 * flash),
-          _deepPurple.withOpacity(0.16 + 0.07 * flash),
+          _deepPurple.withValues(alpha: 0.10 + 0.05 * flash),
+          _deepPurple.withValues(alpha: 0.16 + 0.07 * flash),
         ],
         const [0.0, 0.82, 1.0],
       );

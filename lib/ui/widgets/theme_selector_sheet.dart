@@ -5,272 +5,369 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../app/theme/theme.dart';
 import '../../data/models/subscription_model.dart';
-import '../../providers/ad/reward_video_ad_controller.dart';
 import '../../providers/subscription_provider.dart';
 import '../screens/subscription_screen.dart';
 import 'animated_background.dart';
 import 'theme_selector.dart';
 
+// Flagship theme types — lazily computed once.
+final _flagshipTypes = ThemeType.values
+    .where((t) => AppTheme.fromType(t).flagship != null)
+    .toList();
+
 class ThemeSelectorBottomSheet extends HookConsumerWidget {
   const ThemeSelectorBottomSheet({super.key});
 
+  /// Shows a dialog on desktop (width ≥ 800) or a bottom sheet on mobile.
   static Future<void> show(BuildContext context) {
+    if (MediaQuery.sizeOf(context).width >= 800) {
+      return showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => const _ThemeSelectorDialog(),
+      );
+    }
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const ThemeSelectorBottomSheet(),
+      builder: (_) => const ThemeSelectorBottomSheet(),
     );
   }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.85,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (_, scrollController) => _ThemeSelectorContent(
+        scrollController: scrollController,
+        showHandle: true,
+        isDialog: false,
+      ),
+    );
+  }
+}
+
+class _ThemeSelectorDialog extends HookConsumerWidget {
+  const _ThemeSelectorDialog();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = useScrollController();
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 900, maxHeight: 760),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: _ThemeSelectorContent(
+            scrollController: scrollController,
+            showHandle: false,
+            isDialog: true,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeSelectorContent extends HookConsumerWidget {
+  final ScrollController scrollController;
+  final bool showHandle;
+  final bool isDialog;
+
+  const _ThemeSelectorContent({
+    required this.scrollController,
+    required this.showHandle,
+    required this.isDialog,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeManager = ref.watch(themeProvider);
     final currentTheme = themeManager.theme;
     final subscription = ref.watch(subscriptionStateProvider);
-    final isAdLoaded = ref.watch(rewardVideoAdProvider);
 
     final unlockedThemeTypes = useState(
       ThemeType.values.where((type) => !type.isLocked || subscription.isPro).toList(),
     );
 
     final selectedTheme = useState<ThemeType?>(null);
-    final previewTheme = selectedTheme.value != null ? AppTheme.fromType(selectedTheme.value!) : currentTheme;
+    final previewTheme = selectedTheme.value != null
+        ? AppTheme.fromType(selectedTheme.value!)
+        : currentTheme;
 
     final isSmallScreen = MediaQuery.sizeOf(context).width < 600;
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.85,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) {
-        return AnimatedBackground(
-          intensity: 0.3,
-          enableAnimation: true,
-          child: Container(
-            decoration: BoxDecoration(
-              color: previewTheme.surface.withOpacity(0.95),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-              border: Border.all(
-                color: previewTheme.divider.withOpacity(0.3),
-                width: 1,
+    // Flagship themes are always treated as unlocked.
+    final effectiveUnlocked = [
+      ...unlockedThemeTypes.value,
+      ..._flagshipTypes,
+    ];
+
+    return AnimatedBackground(
+      intensity: 0.3,
+      enableAnimation: true,
+      child: Container(
+        decoration: BoxDecoration(
+          color: previewTheme.surface.withValues(alpha: 0.95),
+          borderRadius: showHandle
+              ? const BorderRadius.vertical(top: Radius.circular(20))
+              : BorderRadius.circular(20),
+          border: Border.all(
+            color: previewTheme.divider.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            // Handle bar — bottom sheet only
+            if (showHandle)
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: previewTheme.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                // Handle bar
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: previewTheme.divider,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
 
-                // Header
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.palette_outlined,
-                        color: previewTheme.primaryColor,
-                        size: 28,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Choose Theme',
-                              style: TextStyle(
-                                fontSize: isSmallScreen ? 20 : 24,
-                                fontWeight: FontWeight.bold,
-                                color: previewTheme.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              selectedTheme.value != null
-                                  ? 'Previewing ${selectedTheme.value!.displayName}'
-                                  : 'Current: ${currentTheme.type.displayName}',
-                              style: TextStyle(
-                                fontSize: isSmallScreen ? 12 : 14,
-                                color: previewTheme.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (selectedTheme.value != null) ...[
-                        if (!isSmallScreen) ...[
-                          TextButton(
-                            onPressed: () {
-                              selectedTheme.value = null;
-                            },
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(color: previewTheme.textSecondary),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        OutlinedButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => ThemeShowcase(theme: previewTheme),
-                            );
-                          },
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: previewTheme.primaryColor),
-                            foregroundColor: previewTheme.primaryColor,
-                          ),
-                          child: const Text('Preview'),
-                        ),
-                        const SizedBox(width: 8),
-                        FilledButton(
-                          onPressed: () {
-                            final type = selectedTheme.value!;
-                            if (type.isLocked && !subscription.isPro) {
-                              Navigator.of(context).pop();
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const SubscriptionOfferScreen(),
-                                ),
-                              );
-
-                              return;
-                            }
-                            themeManager.setTheme(type);
-                            Navigator.of(context).pop();
-                          },
-                          style: FilledButton.styleFrom(
-                            backgroundColor: previewTheme.primaryColor,
-                            foregroundColor: previewTheme.onPrimary,
-                          ),
-                          child: const Text('Apply'),
-                        ),
-                      ] else
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: Icon(
-                            Icons.close,
-                            color: previewTheme.textSecondary,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-
-                // Theme categories
-                if (!subscription.isPro) ...[
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          previewTheme.primaryColor.withOpacity(0.1),
-                          previewTheme.accentColor.withOpacity(0.05),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: previewTheme.primaryColor.withOpacity(0.2),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          MaterialCommunityIcons.crown,
-                          color: previewTheme.primaryColor,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Unlock Premium Themes',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: previewTheme.textPrimary,
-                                ),
-                              ),
-                              Text(
-                                'Get access to all themes with Pro',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: previewTheme.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            SubscriptionOfferScreen.show(context);
-                          },
-                          child: Text(
-                            'Get Pro',
-                            style: TextStyle(
-                              color: previewTheme.primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-
-                // Theme grid
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+            // ── Header ───────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Icon(Icons.palette_outlined,
+                      color: previewTheme.primaryColor, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Free themes
-                        _ThemeList(
-                          title: const Text('Free Themes'),
-                          themes: ThemeType.values.where((t) => !t.isLocked).toList(),
-                          currentTheme: currentTheme,
-                          selectedTheme: selectedTheme,
-                          unlockedThemes: unlockedThemeTypes.value,
-                          subscription: subscription,
-                          previewTheme: previewTheme,
+                        Text(
+                          'Choose Theme',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 20 : 24,
+                            fontWeight: FontWeight.bold,
+                            color: previewTheme.textPrimary,
+                          ),
                         ),
-
-                        // Premium themes
-                        _ThemeList(
-                          title: const Text('Premium Themes'),
-                          themes: ThemeType.values.where((t) => t.isLocked).toList(),
-                          currentTheme: currentTheme,
-                          selectedTheme: selectedTheme,
-                          unlockedThemes: unlockedThemeTypes.value,
-                          subscription: subscription,
-                          previewTheme: previewTheme,
+                        Text(
+                          selectedTheme.value != null
+                              ? 'Previewing ${selectedTheme.value!.displayName}'
+                              : 'Current: ${currentTheme.type.displayName}',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 12 : 14,
+                            color: previewTheme.textSecondary,
+                          ),
                         ),
-
-                        const SizedBox(height: 100),
                       ],
                     ),
                   ),
-                ),
-              ],
+                  if (selectedTheme.value != null) ...[
+                    if (!isSmallScreen) ...[
+                      TextButton(
+                        onPressed: () => selectedTheme.value = null,
+                        child: Text('Cancel',
+                            style:
+                                TextStyle(color: previewTheme.textSecondary)),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    OutlinedButton(
+                      onPressed: () => showDialog(
+                        context: context,
+                        builder: (_) => ThemeShowcase(theme: previewTheme),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: previewTheme.primaryColor),
+                        foregroundColor: previewTheme.primaryColor,
+                      ),
+                      child: const Text('Preview'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: () {
+                        final type = selectedTheme.value!;
+                        if (type.isLocked && !subscription.isPro) {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => const SubscriptionOfferScreen(),
+                          ));
+                          return;
+                        }
+                        themeManager.setTheme(type);
+                        Navigator.of(context).pop();
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: previewTheme.primaryColor,
+                        foregroundColor: previewTheme.onPrimary,
+                      ),
+                      child: const Text('Apply'),
+                    ),
+                  ] else
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(Icons.close, color: previewTheme.textSecondary),
+                    ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+
+            // ── Pro promo banner ─────────────────────────────────────────
+            if (!subscription.isPro) ...[
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      previewTheme.primaryColor.withValues(alpha: 0.1),
+                      previewTheme.accentColor.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: previewTheme.primaryColor.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(MaterialCommunityIcons.crown,
+                        color: previewTheme.primaryColor, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Unlock Premium Themes',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: previewTheme.textPrimary)),
+                          Text('Get access to all themes with Pro',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: previewTheme.textSecondary)),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        SubscriptionOfferScreen.show(context);
+                      },
+                      child: Text('Get Pro',
+                          style: TextStyle(
+                              color: previewTheme.primaryColor,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // ── Theme grid ───────────────────────────────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ✦ Flagship — always free, shown first
+                    _ThemeList(
+                      title: Row(
+                        children: [
+                          Text(
+                            '✦ Flagship',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: previewTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: previewTheme.primaryColor
+                                  .withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: previewTheme.primaryColor
+                                      .withValues(alpha: 0.3)),
+                            ),
+                            child: Text(
+                              'FREE',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: previewTheme.primaryColor,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      themes: _flagshipTypes,
+                      currentTheme: currentTheme,
+                      selectedTheme: selectedTheme,
+                      unlockedThemes: effectiveUnlocked,
+                      subscription: subscription,
+                      previewTheme: previewTheme,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Free themes (non-flagship)
+                    _ThemeList(
+                      title: Text('Free Themes',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: previewTheme.textPrimary)),
+                      themes: ThemeType.values
+                          .where((t) =>
+                              !t.isLocked && !_flagshipTypes.contains(t))
+                          .toList(),
+                      currentTheme: currentTheme,
+                      selectedTheme: selectedTheme,
+                      unlockedThemes: unlockedThemeTypes.value,
+                      subscription: subscription,
+                      previewTheme: previewTheme,
+                    ),
+
+                    // Premium themes (non-flagship)
+                    _ThemeList(
+                      title: Text('Premium Themes',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: previewTheme.textPrimary)),
+                      themes: ThemeType.values
+                          .where((t) =>
+                              t.isLocked && !_flagshipTypes.contains(t))
+                          .toList(),
+                      currentTheme: currentTheme,
+                      selectedTheme: selectedTheme,
+                      unlockedThemes: unlockedThemeTypes.value,
+                      subscription: subscription,
+                      previewTheme: previewTheme,
+                    ),
+
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -297,47 +394,49 @@ class _ThemeList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (themes.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DefaultTextStyle(
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: previewTheme.textPrimary,
-          ),
-          child: title,
-        ),
+        title,
         const SizedBox(height: 16),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.2,
-          ),
-          itemCount: themes.length,
-          itemBuilder: (context, index) {
-            final themeType = themes[index];
-            final theme = AppTheme.fromType(themeType);
-            final isLocked = !unlockedThemes.contains(themeType) && !subscription.isPro;
-            final isSelected = selectedTheme.value == themeType;
-            final isCurrent = currentTheme.type == themeType && selectedTheme.value == null;
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = constraints.maxWidth >= 600 ? 3 : 2;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.2,
+              ),
+              itemCount: themes.length,
+              itemBuilder: (context, index) {
+                final themeType = themes[index];
+                final theme = AppTheme.fromType(themeType);
+                final isLocked =
+                    !unlockedThemes.contains(themeType) && !subscription.isPro;
+                final isSelected = selectedTheme.value == themeType;
+                final isCurrent =
+                    currentTheme.type == themeType && selectedTheme.value == null;
 
-            return ThemePreviewCard(
-              themeType: themeType,
-              theme: theme,
-              isLocked: isLocked,
-              isSelected: isSelected,
-              isCurrent: isCurrent,
-              onTap: () {
-                selectedTheme.value = isSelected ? null : themeType;
+                return ThemePreviewCard(
+                  themeType: themeType,
+                  theme: theme,
+                  isLocked: isLocked,
+                  isSelected: isSelected,
+                  isCurrent: isCurrent,
+                  onTap: () {
+                    selectedTheme.value = isSelected ? null : themeType;
+                  },
+                );
               },
             );
           },
         ),
+        const SizedBox(height: 24),
       ],
     );
   }
@@ -380,7 +479,7 @@ class ThemePreviewCard extends HookWidget {
           boxShadow: [
             if (isSelected || isCurrent)
               BoxShadow(
-                color: (isSelected ? theme.primaryColor : theme.accentColor).withOpacity(0.3),
+                color: (isSelected ? theme.primaryColor : theme.accentColor).withValues(alpha: 0.3),
                 blurRadius: 8,
                 spreadRadius: 0,
                 offset: const Offset(0, 2),
@@ -426,7 +525,7 @@ class ThemePreviewCard extends HookWidget {
               //       end: Alignment.bottomCenter,
               //       colors: [
               //         Colors.transparent,
-              //         theme.background.withOpacity(0.8),
+              //         theme.background.withValues(alpha:0.8),
               //       ],
               //     ),
               //   ),
@@ -445,7 +544,7 @@ class ThemePreviewCard extends HookWidget {
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.2),
+                              color: Colors.orange.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -454,6 +553,31 @@ class ThemePreviewCard extends HookWidget {
                               color: Colors.orange,
                             ),
                           ),
+                        // Flagship badge
+                        Builder(builder: (context) {
+                          final flagship = theme.flagship;
+                          if (flagship == null || !flagship.isFlagship) {
+                            return const SizedBox.shrink();
+                          }
+                          return Container(
+                            margin: EdgeInsets.only(left: isLocked ? 4 : 0),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: flagship.badgeColor.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              flagship.badgeLabel,
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w700,
+                                color: flagship.badgeTextColor,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          );
+                        }),
                         const Spacer(),
                         if (isCurrent)
                           Container(
@@ -530,7 +654,7 @@ class ThemePreviewCard extends HookWidget {
               if (isLocked)
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: const Center(
@@ -569,7 +693,7 @@ class ThemeShowcase extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 20,
               spreadRadius: 5,
             ),
@@ -586,8 +710,8 @@ class ThemeShowcase extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    theme.primaryColor.withOpacity(0.8),
-                    theme.accentColor.withOpacity(0.6),
+                    theme.primaryColor.withValues(alpha: 0.8),
+                    theme.accentColor.withValues(alpha: 0.6),
                   ],
                 ),
               ),
@@ -631,7 +755,7 @@ class ThemeShowcase extends StatelessWidget {
                                 '${theme.isDark ? 'Dark' : 'Light'} Theme Preview',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: theme.onPrimary.withOpacity(0.8),
+                                  color: theme.onPrimary.withValues(alpha: 0.8),
                                 ),
                               ),
                             ],
@@ -767,7 +891,7 @@ class _ColorBox extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               ),
@@ -895,7 +1019,7 @@ class _InputsRow extends StatelessWidget {
             value: 0.7,
             onChanged: (_) {},
             activeColor: theme.primaryColor,
-            inactiveColor: theme.primaryColor.withOpacity(0.3),
+            inactiveColor: theme.primaryColor.withValues(alpha: 0.3),
           ),
         ),
       ],
@@ -911,7 +1035,7 @@ Widget _buildColorDot(Color color) {
       color: color,
       shape: BoxShape.circle,
       border: Border.all(
-        color: Colors.white.withOpacity(0.3),
+        color: Colors.white.withValues(alpha: 0.3),
         width: 1,
       ),
     ),

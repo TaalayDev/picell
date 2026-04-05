@@ -39,6 +39,7 @@ import '../widgets/theme_selector_sheet.dart';
 import 'feedback_screen.dart';
 import 'subscription_screen.dart';
 import 'about_screen.dart';
+import '../../app/routing/flagship_page_route.dart';
 import 'pixel_canvas_screen.dart';
 import 'project_detail_screen.dart' hide CheckerboardPainter;
 
@@ -139,7 +140,7 @@ class ProjectsScreen extends HookConsumerWidget {
                     }
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -171,7 +172,7 @@ class ProjectsScreen extends HookConsumerWidget {
                     }
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   ),
                 ),
               ],
@@ -210,7 +211,7 @@ class ProjectsScreen extends HookConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 8,
-                        shadowColor: Theme.of(context).shadowColor.withOpacity(0.3),
+                        shadowColor: Theme.of(context).shadowColor.withValues(alpha: 0.3),
                         surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
                         onSelected: (value) {
                           if (value == 'delete_account') {
@@ -296,7 +297,7 @@ class ProjectsScreen extends HookConsumerWidget {
               preferredSize: const Size.fromHeight(60),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 child: SizedBox(
@@ -315,11 +316,11 @@ class ProjectsScreen extends HookConsumerWidget {
                     ],
                     indicatorColor: Theme.of(context).colorScheme.primary,
                     labelColor: Theme.of(context).colorScheme.primary,
-                    unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     indicatorWeight: 3,
                     indicatorSize: TabBarIndicatorSize.tab,
                     indicator: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
                   ),
@@ -606,7 +607,8 @@ class ProjectsScreen extends HookConsumerWidget {
         loader.remove();
 
         Navigator.of(context).push(
-          MaterialPageRoute(
+          FlagshipPageRoute(
+            context: context,
             builder: (context) => PixelCanvasScreen(project: newProject),
           ),
         );
@@ -629,7 +631,8 @@ class ProjectsScreen extends HookConsumerWidget {
 
     if (project != null && context.mounted) {
       Navigator.of(context).push(
-        MaterialPageRoute(
+        FlagshipPageRoute(
+          context: context,
           builder: (context) => PixelCanvasScreen(project: project),
         ),
       );
@@ -792,7 +795,7 @@ class CloudProjectsView extends HookConsumerWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
           ),
           child: Row(
@@ -902,7 +905,7 @@ class CloudProjectsView extends HookConsumerWidget {
               child: FilterChip(
                 label: const Text('All'),
                 selected: state.filters.tags.isEmpty,
-                selectedColor: theme.primaryColor.withOpacity(0.2),
+                selectedColor: theme.primaryColor.withValues(alpha: 0.2),
                 labelStyle: TextStyle(
                   color: state.filters.tags.isEmpty ? theme.primaryColor : theme.textPrimary,
                 ),
@@ -926,7 +929,7 @@ class CloudProjectsView extends HookConsumerWidget {
             child: FilterChip(
               label: Text(tag.name),
               selected: isSelected,
-              selectedColor: theme.primaryColor.withOpacity(0.2),
+              selectedColor: theme.primaryColor.withValues(alpha: 0.2),
               labelStyle: TextStyle(
                 color: isSelected ? theme.primaryColor : theme.textPrimary,
               ),

@@ -161,7 +161,7 @@ class ToolBar extends ConsumerWidget {
                       ),
                       VerticalDivider(
                         width: 0,
-                        color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
                       ),
                       const SizedBox(width: 8),
                       ValueListenableBuilder(
@@ -222,7 +222,8 @@ class ToolBar extends ConsumerWidget {
                       ],
                       SizedBox(
                         height: 30,
-                        child: VerticalDivider(width: 0, color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
+                        child: VerticalDivider(
+                            width: 0, color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
                       ),
                       const SizedBox(width: 8),
                       IconButton.filledTonal(
