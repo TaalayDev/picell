@@ -6,7 +6,6 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:onboarding_overlay/onboarding_overlay.dart';
 
 import '../../core.dart';
 import '../../data/models/selection_region.dart';
@@ -16,7 +15,6 @@ import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/animation_frame_controller.dart' hide AnimationController;
 import '../../pixel/tools.dart';
 import '../../data.dart';
-import '../../providers/providers.dart';
 import '../../providers/subscription_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/dialogs/import_dialog.dart';
@@ -56,7 +54,6 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
   late PixelCanvasNotifier notifier = ref.read(provider.notifier);
 
   final _shortcutsFocusNode = FocusNode();
-  final _onboardingKey = GlobalKey<OnboardingState>();
   final _toolbarOnboardingNode = FocusNode(debugLabel: 'editor_toolbar');
   final _toolsOnboardingNode = FocusNode(debugLabel: 'editor_tools');
   final _canvasOnboardingNode = FocusNode(debugLabel: 'editor_canvas');
@@ -76,16 +73,6 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
         }
       });
     }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final storage = ref.read(localStorageProvider);
-      if (storage.editorOnboardingShown) return;
-
-      Future<void>.delayed(const Duration(milliseconds: 350), () {
-        if (!mounted || storage.editorOnboardingShown) return;
-        _onboardingKey.currentState?.show();
-      });
-    });
   }
 
   void handleExport(
@@ -294,443 +281,340 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
 
     final size = MediaQuery.sizeOf(context);
     final screenSize = ScreenSize.forWidth(size.width) ?? ScreenSize.xs;
-    final useDesktopTools = size.width > 1050;
 
-    return Onboarding(
-      key: _onboardingKey,
-      autoSizeTexts: true,
-      globalOnboarding: true,
-      onEnd: (_) {
-        ref.read(localStorageProvider).editorOnboardingShown = true;
-      },
-      steps: _buildOnboardingSteps(
-        context,
-        useDesktopTools: useDesktopTools,
-      ),
-      child: PixelCanvasShortcutsWrapper(
-        shortcutsFocusNode: _shortcutsFocusNode,
-        currentTool: currentTool,
-        brushSize: brushSize,
-        gridScale: gridScale,
-        gridOffset: gridOffset,
-        state: state,
-        notifier: notifier,
-        handleExport: handleExport,
-        setZoomFit: _setZoomFit,
-        setZoom100: _setZoom100,
-        showImportDialog: showImportDialog,
-        showColorPicker: showColorPicker,
-        toggleUI: _toggleUI,
-        child: Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          body: SafeArea(
-            child: AnimatedBackground(
-              enableAnimation: false,
-              child: Column(
-                children: [
-                  Focus(
-                    focusNode: _toolbarOnboardingNode,
-                    canRequestFocus: false,
-                    skipTraversal: true,
-                    descendantsAreFocusable: false,
-                    child: ToolBar(
-                      project: project,
-                      currentTool: currentTool,
-                      brushSize: brushSize,
-                      sprayIntensity: sprayIntensity,
-                      subscription: subscription,
-                      onSelectTool: (tool) => currentTool.value = tool,
-                      onUndo: state.canUndo ? notifier.undo : null,
-                      onRedo: state.canRedo ? notifier.redo : null,
-                      exportAsImage: () => handleExport(
-                        context,
-                        notifier,
-                        state,
-                      ),
-                      export: () => notifier.exportJson(context),
-                      currentColor: state.currentColor,
-                      showPrevFrames: showPrevFrames.value,
-                      onColorPicker: () {
-                        showColorPicker(context, notifier);
-                      },
-                      import: () async {
-                        final result = await showImportDialog(context);
-                        if (!context.mounted || result == null) return;
-
-                        notifier.importImage(
-                          context,
-                          isBackground: result.isBackground,
-                          options: result.conversionOptions,
-                        );
-                      },
-                      currentModifier: currentModifier,
-                      onSelectModifier: (modifier) {
-                        currentModifier.value = modifier;
-                        notifier.setCurrentModifier(modifier);
-                      },
-                      onZoomIn: () {
-                        gridScale.value = (gridScale.value * 1.1).clamp(0.5, 5.0);
-                      },
-                      onZoomOut: () {
-                        gridScale.value = (gridScale.value / 1.1).clamp(0.5, 5.0);
-                      },
-                      onShare: () => notifier.share(context),
-                      showPrevFramesOpacity: () {
-                        showPrevFrames.value = !showPrevFrames.value;
-                      },
-                      onEffects: () => handleEffects(
-                        context,
-                        notifier,
-                        state.selectionState?.region,
-                      ),
-                      onTemplates: () {
-                        TemplatesDialog.show(context, (template) {
-                          notifier.addTemplate(template);
-                        });
-                      },
-                      currentLayerHasEffects: notifier.getCurrentLayer().effects.isNotEmpty,
+    return PixelCanvasShortcutsWrapper(
+      shortcutsFocusNode: _shortcutsFocusNode,
+      currentTool: currentTool,
+      brushSize: brushSize,
+      gridScale: gridScale,
+      gridOffset: gridOffset,
+      state: state,
+      notifier: notifier,
+      handleExport: handleExport,
+      setZoomFit: _setZoomFit,
+      setZoom100: _setZoom100,
+      showImportDialog: showImportDialog,
+      showColorPicker: showColorPicker,
+      toggleUI: _toggleUI,
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        body: SafeArea(
+          child: AnimatedBackground(
+            enableAnimation: false,
+            child: Column(
+              children: [
+                Focus(
+                  focusNode: _toolbarOnboardingNode,
+                  canRequestFocus: false,
+                  skipTraversal: true,
+                  descendantsAreFocusable: false,
+                  child: ToolBar(
+                    project: project,
+                    currentTool: currentTool,
+                    brushSize: brushSize,
+                    sprayIntensity: sprayIntensity,
+                    subscription: subscription,
+                    onSelectTool: (tool) => currentTool.value = tool,
+                    onUndo: state.canUndo ? notifier.undo : null,
+                    onRedo: state.canRedo ? notifier.redo : null,
+                    exportAsImage: () => handleExport(
+                      context,
+                      notifier,
+                      state,
                     ),
+                    export: () => notifier.exportJson(context),
+                    currentColor: state.currentColor,
+                    showPrevFrames: showPrevFrames.value,
+                    onColorPicker: () {
+                      showColorPicker(context, notifier);
+                    },
+                    import: () async {
+                      final result = await showImportDialog(context);
+                      if (!context.mounted || result == null) return;
+
+                      notifier.importImage(
+                        context,
+                        isBackground: result.isBackground,
+                        options: result.conversionOptions,
+                      );
+                    },
+                    currentModifier: currentModifier,
+                    onSelectModifier: (modifier) {
+                      currentModifier.value = modifier;
+                      notifier.setCurrentModifier(modifier);
+                    },
+                    onZoomIn: () {
+                      gridScale.value = (gridScale.value * 1.1).clamp(0.5, 5.0);
+                    },
+                    onZoomOut: () {
+                      gridScale.value = (gridScale.value / 1.1).clamp(0.5, 5.0);
+                    },
+                    onShare: () => notifier.share(context),
+                    showPrevFramesOpacity: () {
+                      showPrevFrames.value = !showPrevFrames.value;
+                    },
+                    onEffects: () => handleEffects(
+                      context,
+                      notifier,
+                      state.selectionState?.region,
+                    ),
+                    onTemplates: () {
+                      TemplatesDialog.show(context, (template) {
+                        notifier.addTemplate(template);
+                      });
+                    },
+                    currentLayerHasEffects: notifier.getCurrentLayer().effects.isNotEmpty,
                   ),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        if (MediaQuery.sizeOf(context).width > 1050)
-                          Focus(
-                            focusNode: _toolsOnboardingNode,
-                            canRequestFocus: false,
-                            skipTraversal: true,
-                            descendantsAreFocusable: false,
-                            child: Container(
-                              width: 45,
-                              color: Theme.of(context).colorScheme.surface,
-                              child: ToolMenu(
-                                currentTool: currentTool,
-                                onSelectTool: (tool) => currentTool.value = tool,
-                                onColorPicker: () {
-                                  showColorPicker(context, notifier);
-                                },
-                                currentColor: state.currentColor,
-                                subscription: subscription,
-                                onTextureSelected: (texture, blendMode, isFill) {
-                                  currentTool.value = isFill ? PixelTool.textureFill : PixelTool.textureBrush;
-                                  notifier.pushEvent(TextureBrushPatternEvent(
-                                    texture,
-                                    blendMode: blendMode,
-                                    isFill: isFill,
-                                  ));
-                                },
-                                // onColorSelected: (color) {},
-                              ),
+                ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      if (MediaQuery.sizeOf(context).width > 1050)
+                        Focus(
+                          focusNode: _toolsOnboardingNode,
+                          canRequestFocus: false,
+                          skipTraversal: true,
+                          descendantsAreFocusable: false,
+                          child: Container(
+                            width: 45,
+                            color: Theme.of(context).colorScheme.surface,
+                            child: ToolMenu(
+                              currentTool: currentTool,
+                              onSelectTool: (tool) => currentTool.value = tool,
+                              onColorPicker: () {
+                                showColorPicker(context, notifier);
+                              },
+                              currentColor: state.currentColor,
+                              subscription: subscription,
+                              onTextureSelected: (texture, blendMode, isFill) {
+                                currentTool.value = isFill ? PixelTool.textureFill : PixelTool.textureBrush;
+                                notifier.pushEvent(TextureBrushPatternEvent(
+                                  texture,
+                                  blendMode: blendMode,
+                                  isFill: isFill,
+                                ));
+                              },
+                              // onColorSelected: (color) {},
                             ),
                           ),
-                        Expanded(
-                          child: Focus(
-                            focusNode: _canvasOnboardingNode,
-                            canRequestFocus: false,
-                            skipTraversal: true,
-                            descendantsAreFocusable: false,
-                            child: CanvasDropTarget(
-                              onImageDropped: (result) => _handleDroppedImage(result, notifier),
-                              onAsepriteDropped: (result) => _handleDroppedAseprite(context, result),
-                              child: GestureDetector(
-                                onScaleStart: (details) {
-                                  final pointerCount = details.pointerCount;
-                                  if (pointerCount == 2) {
-                                    normalizedOffset.value = (gridOffset.value - details.focalPoint) / gridScale.value;
-                                  }
-                                },
-                                onScaleUpdate: (details) {
-                                  final pointerCount = details.pointerCount;
-                                  if (pointerCount == 2) {
-                                    const sensitivity = 0.5;
-                                    final initialScale = gridScale.value;
-                                    final newScale = initialScale * (1 + (details.scale - 1) * sensitivity);
-                                    gridScale.value = newScale.clamp(0.5, 5.0);
-                                    gridOffset.value = details.focalPoint + normalizedOffset.value * gridScale.value;
-                                  }
-                                },
-                                onScaleEnd: (details) {},
-                                child: Stack(
-                                  clipBehavior: Clip.hardEdge,
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.center,
-                                      decoration: const BoxDecoration(),
-                                      clipBehavior: Clip.hardEdge,
-                                      child: AspectRatio(
-                                        aspectRatio: width / height,
-                                        child: Transform(
-                                          transform: Matrix4.identity()
-                                            ..translateByDouble(
-                                              gridOffset.value.dx,
-                                              gridOffset.value.dy,
-                                              0,
-                                              1,
-                                            )
-                                            ..scaleByDouble(
-                                              gridScale.value,
-                                              gridScale.value,
-                                              1,
-                                              1,
+                        ),
+                      Expanded(
+                        child: Focus(
+                          focusNode: _canvasOnboardingNode,
+                          canRequestFocus: false,
+                          skipTraversal: true,
+                          descendantsAreFocusable: false,
+                          child: CanvasDropTarget(
+                            onImageDropped: (result) => _handleDroppedImage(result, notifier),
+                            onAsepriteDropped: (result) => _handleDroppedAseprite(context, result),
+                            child: GestureDetector(
+                              onScaleStart: (details) {
+                                final pointerCount = details.pointerCount;
+                                if (pointerCount == 2) {
+                                  normalizedOffset.value = (gridOffset.value - details.focalPoint) / gridScale.value;
+                                }
+                              },
+                              onScaleUpdate: (details) {
+                                final pointerCount = details.pointerCount;
+                                if (pointerCount == 2) {
+                                  const sensitivity = 0.5;
+                                  final initialScale = gridScale.value;
+                                  final newScale = initialScale * (1 + (details.scale - 1) * sensitivity);
+                                  gridScale.value = newScale.clamp(0.5, 5.0);
+                                  gridOffset.value = details.focalPoint + normalizedOffset.value * gridScale.value;
+                                }
+                              },
+                              onScaleEnd: (details) {},
+                              child: Stack(
+                                clipBehavior: Clip.hardEdge,
+                                children: [
+                                  Container(
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(),
+                                    clipBehavior: Clip.hardEdge,
+                                    child: AspectRatio(
+                                      aspectRatio: width / height,
+                                      child: Transform(
+                                        transform: Matrix4.identity()
+                                          ..translateByDouble(
+                                            gridOffset.value.dx,
+                                            gridOffset.value.dy,
+                                            0,
+                                            1,
+                                          )
+                                          ..scaleByDouble(
+                                            gridScale.value,
+                                            gridScale.value,
+                                            1,
+                                            1,
+                                          ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Container(
+                                            clipBehavior: Clip.hardEdge,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              border: Border.all(color: Colors.grey),
                                             ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Container(
-                                              clipBehavior: Clip.hardEdge,
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                border: Border.all(color: Colors.grey),
-                                              ),
-                                              child: PixelPainter(
-                                                project: project,
-                                                state: state,
-                                                notifier: notifier,
-                                                gridScale: gridScale,
-                                                gridOffset: gridOffset,
-                                                currentTool: currentTool.value,
-                                                currentModifier: currentModifier.value,
-                                                currentColor: state.currentColor,
-                                                brushSize: brushSize,
-                                                sprayIntensity: sprayIntensity,
-                                                showPrevFrames: showPrevFrames.value,
-                                                onToolAutoSwitch: (tool) {
-                                                  currentTool.value = tool;
-                                                },
-                                              ),
+                                            child: PixelPainter(
+                                              project: project,
+                                              state: state,
+                                              notifier: notifier,
+                                              gridScale: gridScale,
+                                              gridOffset: gridOffset,
+                                              currentTool: currentTool.value,
+                                              currentModifier: currentModifier.value,
+                                              currentColor: state.currentColor,
+                                              brushSize: brushSize,
+                                              sprayIntensity: sprayIntensity,
+                                              showPrevFrames: showPrevFrames.value,
+                                              onToolAutoSwitch: (tool) {
+                                                currentTool.value = tool;
+                                              },
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                    if (MediaQuery.sizeOf(context).width < 1000) ...[
+                                  ),
+                                  if (MediaQuery.sizeOf(context).width < 1000) ...[
+                                    Positioned(
+                                      left: 16,
+                                      right: 16,
+                                      top: 16,
+                                      child: _ToolElements(
+                                        currentTool: currentTool,
+                                        brushSize: brushSize,
+                                        sprayIntensity: sprayIntensity,
+                                      ),
+                                    ),
+                                    if (screenSize.isMobile)
                                       Positioned(
-                                        left: 16,
-                                        right: 16,
-                                        top: 16,
-                                        child: _ToolElements(
-                                          currentTool: currentTool,
-                                          brushSize: brushSize,
-                                          sprayIntensity: sprayIntensity,
+                                        right: 26,
+                                        bottom: 26,
+                                        child: SelectionOptionsButton(
+                                          hasSelection: hasSelection,
+                                          isFloating: true,
+                                          onClearSelection: () => notifier.clearSelection(),
+                                          onDelete: () => notifier.clearSelectionArea(),
+                                          onCutToNewLayer: () => notifier.cutToNewLayer(),
+                                          onCopyToNewLayer: () => notifier.copyToNewLayer(),
                                         ),
                                       ),
-                                      if (screenSize.isMobile)
-                                        Positioned(
-                                          right: 26,
-                                          bottom: 26,
-                                          child: SelectionOptionsButton(
-                                            hasSelection: hasSelection,
-                                            isFloating: true,
-                                            onClearSelection: () => notifier.clearSelection(),
-                                            onDelete: () => notifier.clearSelectionArea(),
-                                            onCutToNewLayer: () => notifier.cutToNewLayer(),
-                                            onCopyToNewLayer: () => notifier.copyToNewLayer(),
-                                          ),
-                                        ),
-                                    ],
                                   ],
-                                ),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                        if (MediaQuery.sizeOf(context).width > 1050)
-                          DesktopSidePanel(
-                            width: width,
-                            height: height,
-                            state: state,
-                            notifier: notifier,
-                            currentTool: currentTool,
-                          ),
-                      ],
-                    ),
+                      ),
+                      if (MediaQuery.sizeOf(context).width > 1050)
+                        DesktopSidePanel(
+                          width: width,
+                          height: height,
+                          state: state,
+                          notifier: notifier,
+                          currentTool: currentTool,
+                        ),
+                    ],
                   ),
+                ),
+                Focus(
+                  focusNode: _timelineOnboardingNode,
+                  canRequestFocus: false,
+                  skipTraversal: true,
+                  descendantsAreFocusable: false,
+                  child: AnimationTimeline(
+                    width: width,
+                    height: height,
+                    // itemsHeight: 80,
+                    onSelectFrame: notifier.selectFrame,
+                    onAddFrame: () {
+                      notifier.addFrame(
+                        'Frame ${state.currentFrames.length + 1}',
+                      );
+                    },
+                    copyFrame: (id) {
+                      notifier.addFrame(
+                        'Frame ${state.currentFrames.length + 1}',
+                        copyFrame: id,
+                      );
+                    },
+                    onDeleteFrame: notifier.removeFrame,
+                    onDurationChanged: (index, duration) {
+                      notifier.updateFrame(
+                        index,
+                        state.frames[index].copyWith(duration: duration),
+                      );
+                    },
+                    onFrameReordered: (oldIndex, newIndex) {},
+                    onPlayPause: () {
+                      isPlaying.value = !isPlaying.value;
+                      if (isPlaying.value) {
+                        showAnimationPreviewDialog(
+                          context,
+                          frames: state.currentFrames,
+                          width: width,
+                          height: height,
+                        ).then((_) {
+                          isPlaying.value = false;
+                        });
+                      }
+                    },
+                    onStop: () {
+                      isPlaying.value = false;
+                      notifier.selectFrame(0);
+                    },
+                    onNextFrame: () {
+                      notifier.nextFrame();
+                    },
+                    onPreviousFrame: () {
+                      notifier.prevFrame();
+                    },
+                    frames: state.frames,
+                    states: state.animationStates,
+                    selectedStateId: state.currentAnimationState.id,
+                    selectedFrameId: state.currentFrame.id,
+                    isPlaying: isPlaying.value,
+                    settings: const AnimationSettings(),
+                    onSettingsChanged: (settings) {},
+                    isExpanded: isAnimationTimelineExpanded.value,
+                    onExpandChanged: () {
+                      isAnimationTimelineExpanded.value = !isAnimationTimelineExpanded.value;
+                    },
+                    onAddState: (name) {
+                      notifier.addAnimationState(name, 24);
+                    },
+                    onDeleteState: notifier.removeAnimationState,
+                    onRenameState: (id, name) {},
+                    onSelectedStateChanged: notifier.selectAnimationState,
+                    onDuplicateState: (id) {},
+                    onCopyState: (id) {
+                      notifier.copyAnimationState(id);
+                    },
+                  ),
+                ),
+                if (MediaQuery.sizeOf(context).width <= 1050)
                   Focus(
-                    focusNode: _timelineOnboardingNode,
+                    focusNode: _toolsOnboardingNode,
                     canRequestFocus: false,
                     skipTraversal: true,
                     descendantsAreFocusable: false,
-                    child: AnimationTimeline(
+                    child: ToolsBottomBar(
+                      currentTool: currentTool,
+                      state: state,
+                      notifier: notifier,
+                      subscription: subscription,
                       width: width,
                       height: height,
-                      // itemsHeight: 80,
-                      onSelectFrame: notifier.selectFrame,
-                      onAddFrame: () {
-                        notifier.addFrame(
-                          'Frame ${state.currentFrames.length + 1}',
-                        );
-                      },
-                      copyFrame: (id) {
-                        notifier.addFrame(
-                          'Frame ${state.currentFrames.length + 1}',
-                          copyFrame: id,
-                        );
-                      },
-                      onDeleteFrame: notifier.removeFrame,
-                      onDurationChanged: (index, duration) {
-                        notifier.updateFrame(
-                          index,
-                          state.frames[index].copyWith(duration: duration),
-                        );
-                      },
-                      onFrameReordered: (oldIndex, newIndex) {},
-                      onPlayPause: () {
-                        isPlaying.value = !isPlaying.value;
-                        if (isPlaying.value) {
-                          showAnimationPreviewDialog(
-                            context,
-                            frames: state.currentFrames,
-                            width: width,
-                            height: height,
-                          ).then((_) {
-                            isPlaying.value = false;
-                          });
-                        }
-                      },
-                      onStop: () {
-                        isPlaying.value = false;
-                        notifier.selectFrame(0);
-                      },
-                      onNextFrame: () {
-                        notifier.nextFrame();
-                      },
-                      onPreviousFrame: () {
-                        notifier.prevFrame();
-                      },
-                      frames: state.frames,
-                      states: state.animationStates,
-                      selectedStateId: state.currentAnimationState.id,
-                      selectedFrameId: state.currentFrame.id,
-                      isPlaying: isPlaying.value,
-                      settings: const AnimationSettings(),
-                      onSettingsChanged: (settings) {},
-                      isExpanded: isAnimationTimelineExpanded.value,
-                      onExpandChanged: () {
-                        isAnimationTimelineExpanded.value = !isAnimationTimelineExpanded.value;
-                      },
-                      onAddState: (name) {
-                        notifier.addAnimationState(name, 24);
-                      },
-                      onDeleteState: notifier.removeAnimationState,
-                      onRenameState: (id, name) {},
-                      onSelectedStateChanged: notifier.selectAnimationState,
-                      onDuplicateState: (id) {},
-                      onCopyState: (id) {
-                        notifier.copyAnimationState(id);
-                      },
                     ),
                   ),
-                  if (MediaQuery.sizeOf(context).width <= 1050)
-                    Focus(
-                      focusNode: _toolsOnboardingNode,
-                      canRequestFocus: false,
-                      skipTraversal: true,
-                      descendantsAreFocusable: false,
-                      child: ToolsBottomBar(
-                        currentTool: currentTool,
-                        state: state,
-                        notifier: notifier,
-                        subscription: subscription,
-                        width: width,
-                        height: height,
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
           ),
         ),
       ),
     );
-  }
-
-  List<OnboardingStep> _buildOnboardingSteps(
-    BuildContext context, {
-    required bool useDesktopTools,
-  }) {
-    final theme = Theme.of(context);
-    final titleStyle = (theme.textTheme.titleLarge ?? const TextStyle(fontSize: 20)).copyWith(
-      color: theme.colorScheme.onSurface,
-      fontWeight: FontWeight.w700,
-    );
-    final bodyStyle = (theme.textTheme.bodyMedium ?? const TextStyle(fontSize: 14)).copyWith(
-      color: theme.colorScheme.onSurface.withValues(alpha: 0.88),
-      height: 1.4,
-    );
-
-    BoxDecoration decoration(Color accent) => BoxDecoration(
-          color: theme.colorScheme.surface.withValues(alpha: 0.96),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: accent.withValues(alpha: 0.40),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: accent.withValues(alpha: 0.12),
-              blurRadius: 14,
-              spreadRadius: 1,
-            ),
-          ],
-        );
-
-    OnboardingStep buildStep({
-      required FocusNode focusNode,
-      required String title,
-      required String body,
-      required Color accent,
-      bool pulse = false,
-    }) {
-      return OnboardingStep(
-        focusNode: focusNode,
-        titleText: title,
-        bodyText: body,
-        titleTextStyle: titleStyle,
-        bodyTextStyle: bodyStyle,
-        overlayColor: Colors.black.withValues(alpha: 0.72),
-        hasLabelBox: true,
-        hasArrow: true,
-        fullscreen: true,
-        margin: const EdgeInsets.all(10),
-        labelBoxPadding: const EdgeInsets.all(16),
-        labelBoxMargin: const EdgeInsets.all(12),
-        labelBoxDecoration: decoration(accent),
-        arrowPosition: ArrowPosition.autoVertical,
-        showPulseAnimation: pulse,
-        pulseInnerColor: accent.withValues(alpha: 0.45),
-        pulseOuterColor: accent.withValues(alpha: 0.22),
-      );
-    }
-
-    return [
-      buildStep(
-        focusNode: _toolbarOnboardingNode,
-        title: 'Editor toolbar',
-        body: 'Undo, redo, import, templates and export actions are all available here.',
-        accent: theme.colorScheme.primary,
-      ),
-      buildStep(
-        focusNode: _toolsOnboardingNode,
-        title: useDesktopTools ? 'Tool palette' : 'Quick tools',
-        body: useDesktopTools
-            ? 'Pick the pencil, fill, eraser and advanced drawing tools from this panel.'
-            : 'Your most-used drawing tools stay in the bottom bar for quick access.',
-        accent: theme.colorScheme.secondary,
-      ),
-      buildStep(
-        focusNode: _canvasOnboardingNode,
-        title: 'Canvas',
-        body:
-            'Draw directly on the canvas. Pinch to zoom on touch devices, or use zoom controls and shortcuts on desktop.',
-        accent: theme.colorScheme.primary,
-        pulse: true,
-      ),
-      buildStep(
-        focusNode: _timelineOnboardingNode,
-        title: 'Animation timeline',
-        body: 'Add frames, preview motion and build GIF-ready animations from this area.',
-        accent: theme.colorScheme.secondary,
-      ),
-    ];
   }
 
   void handleEffects(
