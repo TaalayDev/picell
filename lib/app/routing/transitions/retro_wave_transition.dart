@@ -39,41 +39,34 @@ class RetroWaveTransition extends StatelessWidget {
 
     return AnimatedBuilder(
       animation: curved,
-      builder: (context, _) {
-        final offset = aberrationOffset.value;
+      builder: (context, child) {
+        final chromaStrength = (aberrationOffset.value / 10).clamp(0.0, 1.0);
         return Stack(
+          fit: StackFit.expand,
           children: [
-            // Red channel — shifted right
-            Transform.translate(
-              offset: Offset(slide.value.dx * MediaQuery.sizeOf(context).width + offset, 0),
-              child: ColorFiltered(
-                colorFilter: const ColorFilter.matrix(<double>[
-                  1, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0,
-                  0, 0, 0, 0.4, 0,
-                ]),
-                child: child,
-              ),
-            ),
-            // Blue channel — shifted left
-            Transform.translate(
-              offset: Offset(slide.value.dx * MediaQuery.sizeOf(context).width - offset, 0),
-              child: ColorFiltered(
-                colorFilter: const ColorFilter.matrix(<double>[
-                  0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0,
-                  0, 0, 1, 0, 0,
-                  0, 0, 0, 0.4, 0,
-                ]),
-                child: child,
-              ),
-            ),
-            // Full image on top
             SlideTransition(position: slide, child: child),
+            if (chromaStrength > 0)
+              IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        const Color(0xFFFF4D6D)
+                            .withValues(alpha: 0.08 * chromaStrength),
+                        Colors.transparent,
+                        const Color(0xFF4DD2FF)
+                            .withValues(alpha: 0.08 * chromaStrength),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },
+      child: child,
     );
   }
 }

@@ -31,7 +31,7 @@ import '../widgets/dialogs/delete_account_dialog.dart';
 import '../widgets/dialogs/project_upload_dialog.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/feedback_prompt_dialog.dart';
 import '../widgets/drop_target_overlay.dart';
-import '../widgets/project/adaprive_project_grid.dart';
+import '../widgets/project/adaptive_project_grid.dart';
 import '../widgets/subscription/subscription_menu.dart';
 import '../widgets/theme_selector.dart';
 import '../widgets.dart';
@@ -131,17 +131,13 @@ class ProjectsScreen extends HookConsumerWidget {
                   onTabChanged: (i) => tabController.animateTo(i),
                   theme: currentTheme,
                   subscription: subscription,
-                  onNewProject: () =>
-                      _navigateToNewProject(context, ref, subscription),
+                  onNewProject: () => _navigateToNewProject(context, ref, subscription),
                   onImport: () async {
-                    final error = await ref
-                        .read(projectsProvider.notifier)
-                        .importProject(context);
+                    final error = await ref.read(projectsProvider.notifier).importProject(context);
                     if (error != null && context.mounted) {
                       showTopFlushbar(
                         context,
-                        message:
-                            Text(Strings.of(context).invalidFileContent),
+                        message: Text(Strings.of(context).invalidFileContent),
                       );
                     }
                   },
@@ -171,20 +167,16 @@ class ProjectsScreen extends HookConsumerWidget {
                         theme: currentTheme,
                         flagship: flagship,
                         projects: projects,
-                        onNewProject: () =>
-                            _navigateToNewProject(context, ref, subscription),
+                        onNewProject: () => _navigateToNewProject(context, ref, subscription),
                       ),
                       if (!subscription.isPro && showBadge.value)
-                        SubscriptionPromoBanner(
-                            onDismiss: () => showBadge.value = false),
+                        SubscriptionPromoBanner(onDismiss: () => showBadge.value = false),
                       Expanded(
                         child: TabBarView(
                           controller: tabController,
                           children: [
-                            _buildLocalProjectsTab(context, ref, projects,
-                                subscription, overlayLoader, authState),
-                            _buildCloudProjectsTab(
-                                context, ref, theme, subscription),
+                            _buildLocalProjectsTab(context, ref, projects, subscription, overlayLoader, authState),
+                            _buildCloudProjectsTab(context, ref, theme, subscription),
                           ],
                         ),
                       ),
@@ -1043,8 +1035,7 @@ class _DesktopSidebar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(9),
                     ),
                     child: Center(
-                      child: Icon(Icons.grid_view_rounded,
-                          size: 18, color: theme.primaryColor),
+                      child: Icon(Icons.grid_view_rounded, size: 18, color: theme.primaryColor),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -1064,8 +1055,7 @@ class _DesktopSidebar extends StatelessWidget {
               if (hasFlagship) ...[
                 const SizedBox(height: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: flagship.badgeColor.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(6),
@@ -1116,22 +1106,20 @@ class _NavItem extends StatelessWidget {
     final iconWidget = Icon(icon, size: 18, color: iconColor);
 
     // Optional glow for flagship active items
-    final displayIcon =
-        (flagship != null && flagship!.enableIconGlow && selected)
-            ? DecoratedBox(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: (flagship!.iconGlowColor ?? activeColor)
-                          .withValues(alpha: 0.55),
-                      blurRadius: flagship!.iconGlowRadius * 0.7,
-                      spreadRadius: 1,
-                    ),
-                  ],
+    final displayIcon = (flagship != null && flagship!.enableIconGlow && selected)
+        ? DecoratedBox(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: (flagship!.iconGlowColor ?? activeColor).withValues(alpha: 0.55),
+                  blurRadius: flagship!.iconGlowRadius * 0.7,
+                  spreadRadius: 1,
                 ),
-                child: iconWidget,
-              )
-            : iconWidget;
+              ],
+            ),
+            child: iconWidget,
+          )
+        : iconWidget;
 
     return InkWell(
       onTap: onTap,
@@ -1152,8 +1140,7 @@ class _NavItem extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                   color: selected ? activeColor : theme.textSecondary,
                 ),
               ),
@@ -1183,10 +1170,8 @@ class _DesktopContentHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLocal = tabIndex == 0;
-    final hasFlagshipGradient =
-        flagship != null && flagship!.appBarGradient != null;
-    final titleColor =
-        hasFlagshipGradient ? Colors.white : theme.textPrimary;
+    final hasFlagshipGradient = flagship != null && flagship!.appBarGradient != null;
+    final titleColor = hasFlagshipGradient ? Colors.white : theme.textPrimary;
 
     return Container(
       height: 56,
@@ -1194,14 +1179,11 @@ class _DesktopContentHeader extends StatelessWidget {
       decoration: hasFlagshipGradient
           ? BoxDecoration(
               gradient: flagship!.appBarGradient,
-              border: Border(
-                  bottom: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.15), width: 1)),
+              border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.15), width: 1)),
             )
           : BoxDecoration(
               color: theme.surface.withValues(alpha: 0.85),
-              border: Border(
-                  bottom: BorderSide(color: theme.divider, width: 1)),
+              border: Border(bottom: BorderSide(color: theme.divider, width: 1)),
             ),
       child: Row(
         children: [
@@ -1236,19 +1218,14 @@ class _DesktopContentHeader extends StatelessWidget {
               icon: const Icon(Feather.plus, size: 14),
               label: const Text('New Project'),
               style: FilledButton.styleFrom(
-                backgroundColor: hasFlagshipGradient
-                    ? Colors.white.withValues(alpha: 0.22)
-                    : theme.primaryColor,
-                foregroundColor:
-                    hasFlagshipGradient ? Colors.white : theme.onPrimary,
+                backgroundColor: hasFlagshipGradient ? Colors.white.withValues(alpha: 0.22) : theme.primaryColor,
+                foregroundColor: hasFlagshipGradient ? Colors.white : theme.onPrimary,
                 visualDensity: VisualDensity.compact,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                   side: hasFlagshipGradient
-                      ? BorderSide(
-                          color: Colors.white.withValues(alpha: 0.3), width: 1)
+                      ? BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 1)
                       : BorderSide.none,
                 ),
               ),

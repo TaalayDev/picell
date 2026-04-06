@@ -43,8 +43,10 @@ class PixelCanvas extends StatefulWidget {
   final Function(List<PixelPoint<int>>) onDrawShape;
   final Function(SelectionRegion?)? onSelectionChanged;
   final Function(Offset)? onMoveSelection;
-  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)? onSelectionResize;
-  final Function(SelectionRegion, SelectionRegion, double, Offset?)? onSelectionRotate;
+  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)?
+      onSelectionResize;
+  final Function(SelectionRegion, SelectionRegion, double, Offset?)?
+      onSelectionRotate;
   final Function(SelectionRegion)? onTransformStart;
   final Function()? onTransformEnd;
   final Function(Offset)? onAnchorChanged;
@@ -98,7 +100,6 @@ class PixelCanvas extends StatefulWidget {
 }
 
 class _PixelCanvasState extends State<PixelCanvas> {
-  final _boxKey = GlobalKey();
   static const _outsideSelectionDragThreshold = 4.0;
 
   late final PixelCanvasController _controller;
@@ -126,7 +127,9 @@ class _PixelCanvasState extends State<PixelCanvas> {
   }
 
   bool _isSelectionDragCreateTool(PixelTool tool) {
-    return tool == PixelTool.select || tool == PixelTool.ellipseSelect || tool == PixelTool.lasso;
+    return tool == PixelTool.select ||
+        tool == PixelTool.ellipseSelect ||
+        tool == PixelTool.lasso;
   }
 
   void _syncSelectionStateToController() {
@@ -171,7 +174,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
 
   bool _shouldHandleInsideSelectionPointer(PointerDownEvent event) {
     final selectionRegion = _controller.currentSelectionRegion;
-    if (selectionRegion == null || !_isSelectionInteractionTool(widget.currentTool)) {
+    if (selectionRegion == null ||
+        !_isSelectionInteractionTool(widget.currentTool)) {
       return false;
     }
 
@@ -181,7 +185,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
 
   bool _shouldHandleOutsideSelectionPointer(PointerDownEvent event) {
     final selectionRegion = _controller.currentSelectionRegion;
-    if (selectionRegion == null || !_isSelectionDragCreateTool(widget.currentTool)) {
+    if (selectionRegion == null ||
+        !_isSelectionDragCreateTool(widget.currentTool)) {
       return false;
     }
 
@@ -217,7 +222,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
     }
 
     final totalScreenDelta = event.localPosition - startPosition;
-    if (!_isDraggingInsideSelection && totalScreenDelta.distance < _outsideSelectionDragThreshold) {
+    if (!_isDraggingInsideSelection &&
+        totalScreenDelta.distance < _outsideSelectionDragThreshold) {
       return;
     }
 
@@ -238,7 +244,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
       totalPixelOffset.dx.roundToDouble(),
       totalPixelOffset.dy.roundToDouble(),
     );
-    final pixelDelta = roundedPixelOffset - _pendingInsideSelectionAppliedOffset;
+    final pixelDelta =
+        roundedPixelOffset - _pendingInsideSelectionAppliedOffset;
 
     if (pixelDelta != Offset.zero) {
       _pendingInsideSelectionAppliedOffset = roundedPixelOffset;
@@ -261,7 +268,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
             textureId: event.texture.id,
             blendMode: event.blendMode,
             mode: event.isFill ? TextureBrushMode.fill : TextureBrushMode.brush,
-            fillMode: event.isFill ? TextureFillMode.stretch : TextureFillMode.center,
+            fillMode:
+                event.isFill ? TextureFillMode.stretch : TextureFillMode.center,
           );
         } else if (event is ClearSelectionEvent) {
           _clearLocalSelection();
@@ -301,7 +309,9 @@ class _PixelCanvasState extends State<PixelCanvas> {
       },
       // On release: validate and propagate to provider
       onSelectionEnd: (region) {
-        if (region == null || region.bounds.width < 2 || region.bounds.height < 2) {
+        if (region == null ||
+            region.bounds.width < 2 ||
+            region.bounds.height < 2) {
           _clearLocalSelection(notifyProvider: true);
         } else {
           _controller.setSelection(region);
@@ -324,7 +334,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
         _controller.applyLayerCache();
       },
       onDrawShape: (shape) {
-        if (widget.currentTool == PixelTool.select || widget.currentTool == PixelTool.ellipseSelect) {
+        if (widget.currentTool == PixelTool.select ||
+            widget.currentTool == PixelTool.ellipseSelect) {
           // Selection tools handle their own callbacks
         } else {
           widget.onDrawShape(shape);
@@ -431,7 +442,6 @@ class _PixelCanvasState extends State<PixelCanvas> {
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      key: _boxKey,
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
@@ -475,7 +485,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
                     }
 
                     _controller.setHoverPosition(event.localPosition);
-                    if (widget.currentTool == PixelTool.curve && _toolManager.isCurveDefining) {
+                    if (widget.currentTool == PixelTool.curve &&
+                        _toolManager.isCurveDefining) {
                       final details = _createDrawDetails(event.localPosition);
                       _toolManager.handleCurveMove(details, _controller);
                     } else {
@@ -524,7 +535,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
                 if (selRegion == null || selRegion.bounds == Rect.zero) {
                   return const SizedBox.shrink();
                 }
-                final isSelectionTool = _isSelectionInteractionTool(widget.currentTool);
+                final isSelectionTool =
+                    _isSelectionInteractionTool(widget.currentTool);
                 return SelectionOverlay(
                   selectionRegion: selRegion,
                   selectionState: widget.selectionState,
@@ -567,11 +579,14 @@ class _PixelCanvasState extends State<PixelCanvas> {
                   onSelectionRotate: (newRegion, angle) {
                     if (_rotationOriginalRegion == null) {
                       _rotationOriginalRegion = selRegion;
-                      _rotationCenter = widget.selectionState?.effectiveAnchor ?? selRegion.bounds.center;
+                      _rotationCenter =
+                          widget.selectionState?.effectiveAnchor ??
+                              selRegion.bounds.center;
                       widget.onTransformStart?.call(selRegion);
                     }
                     _controller.setSelection(newRegion);
-                    widget.onSelectionRotate?.call(newRegion, _rotationOriginalRegion!, angle, _rotationCenter);
+                    widget.onSelectionRotate?.call(newRegion,
+                        _rotationOriginalRegion!, angle, _rotationCenter);
                   },
                   onAnchorChanged: widget.onAnchorChanged,
                 );
@@ -637,7 +652,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
       final startPosition = _pendingOutsideSelectionStart;
       if (startPosition == null) return;
 
-      final didStartDrag = (event.localPosition - startPosition).distance >= _outsideSelectionDragThreshold;
+      final didStartDrag = (event.localPosition - startPosition).distance >=
+          _outsideSelectionDragThreshold;
       if (didStartDrag) {
         _startNewSelectionFromPendingPointer(event);
       }
@@ -677,7 +693,8 @@ class _PixelCanvasState extends State<PixelCanvas> {
   }
 
   MouseCursor _getCursor() {
-    return CursorManager.instance.getCursor(widget.currentTool) ?? widget.currentTool.cursor;
+    return CursorManager.instance.getCursor(widget.currentTool) ??
+        widget.currentTool.cursor;
   }
 
   void _clearRotationState() {

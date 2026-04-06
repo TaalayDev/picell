@@ -33,7 +33,7 @@ class NewProjectDialog extends StatefulWidget {
 }
 
 class _NewProjectDialogState extends State<NewProjectDialog> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>(debugLabel: 'new-project-form');
   String _projectName = '';
   int _width = 16;
   int _height = 16;
@@ -74,7 +74,8 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
         localizedName = s.largeScene;
         break;
       case 'Custom':
-        localizedName = s.paletteCustom; // Using paletteCustom as it's already "Custom"
+        localizedName =
+            s.paletteCustom; // Using paletteCustom as it's already "Custom"
         break;
       default:
         localizedName = template.name;
@@ -88,7 +89,8 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final maxCanvasSize = SubscriptionFeatureConfig.maxCanvasSize[widget.subscription.plan] ?? 64;
+    final maxCanvasSize =
+        SubscriptionFeatureConfig.maxCanvasSize[widget.subscription.plan] ?? 64;
 
     return AlertDialog(
       title: Text(
@@ -189,7 +191,9 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
             if (value == null) {
               return Strings.of(context).templateRequired;
             }
-            if (!kIsDemo && value != _templates.length - 1 && (_width > maxCanvasSize || _height > maxCanvasSize)) {
+            if (!kIsDemo &&
+                value != _templates.length - 1 &&
+                (_width > maxCanvasSize || _height > maxCanvasSize)) {
               return Strings.of(context).planLimitError(maxCanvasSize);
             }
             return null;
@@ -224,7 +228,8 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                     }
                     int? width = int.tryParse(value);
                     if (width == null || width < 1 || width > kMaxPixelWidth) {
-                      return Strings.of(context).widthRangeError(kMaxPixelWidth);
+                      return Strings.of(context)
+                          .widthRangeError(kMaxPixelWidth);
                     }
                     return null;
                   },
@@ -247,8 +252,11 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                       return Strings.of(context).heightRequired;
                     }
                     int? height = int.tryParse(value);
-                    if (height == null || height < 1 || height > kMaxPixelHeight) {
-                      return Strings.of(context).heightRangeError(kMaxPixelHeight);
+                    if (height == null ||
+                        height < 1 ||
+                        height > kMaxPixelHeight) {
+                      return Strings.of(context)
+                          .heightRangeError(kMaxPixelHeight);
                     }
                     return null;
                   },

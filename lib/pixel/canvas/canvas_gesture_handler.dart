@@ -387,7 +387,7 @@ class CanvasGestureHandler {
     final shouldNavigate = _shouldUseForNavigation(pointerKind);
 
     if (shouldNavigate || currentTool == PixelTool.drag) {
-      _panStartPosition = event.localPosition - controller.offset;
+      _panStartPosition = event.position;
       onStartDrag?.call(controller.zoomLevel, controller.offset);
       return;
     }
@@ -426,14 +426,14 @@ class CanvasGestureHandler {
     final shouldNavigate = _shouldUseForNavigation(pointerKind);
 
     if (shouldNavigate && _panStartPosition != null) {
-      final newOffset = event.localPosition - _panStartPosition!;
+      final newOffset = controller.offset + event.delta;
       controller.setOffset(newOffset);
       onDrag?.call(controller.zoomLevel, newOffset);
       return;
     }
 
     if (currentTool == PixelTool.drag && _panStartPosition != null) {
-      final newOffset = event.localPosition - _panStartPosition!;
+      final newOffset = controller.offset + event.delta;
       controller.setOffset(newOffset);
       onDrag?.call(controller.zoomLevel, newOffset);
     } else if (currentTool == PixelTool.curve) {

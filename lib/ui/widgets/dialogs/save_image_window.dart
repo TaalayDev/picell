@@ -96,7 +96,7 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
   int spriteSheetSpacing = 0;
   bool includeAllFrames = false;
   List<int> columnOptions = [2, 4, 8, 16];
-  final previewKey = GlobalKey();
+  final previewKey = GlobalKey(debugLabel: 'save-image-bottom-sheet-preview');
   late double width = widget.state.width.toDouble();
   late double height = widget.state.height.toDouble();
   double scale = 1.0;
@@ -539,7 +539,7 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
   int spriteSheetSpacing = 0;
   bool includeAllFrames = false;
   List<int> columnOptions = [2, 4, 8, 16];
-  final previewKey = GlobalKey();
+  final previewKey = GlobalKey(debugLabel: 'save-image-desktop-preview');
   late double width = widget.state.width.toDouble();
   late double height = widget.state.height.toDouble();
   double scale = 1.0;
@@ -979,7 +979,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
   int spriteSheetSpacing = 0;
   bool includeAllFrames = false;
   List<int> columnOptions = [2, 4, 8, 16];
-  final previewKey = GlobalKey();
+  final previewKey = GlobalKey(debugLabel: 'save-image-tablet-preview');
   late double width = widget.state.width.toDouble();
   late double height = widget.state.height.toDouble();
   double scale = 1.0;
