@@ -63,6 +63,7 @@ class ProjectsScreen extends HookConsumerWidget {
     final currentTheme = ref.watch(themeProvider).theme;
 
     final tabController = useTabController(initialLength: 2);
+    useListenable(tabController); // reactive for desktop sidebar selection
 
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -108,6 +109,96 @@ class ProjectsScreen extends HookConsumerWidget {
       });
     }, []);
 
+    final isDesktop = MediaQuery.sizeOf(context).width >= 800;
+    final flagship = currentTheme.flagship;
+
+    // ── Desktop layout ─────────────────────────────────────────────────────
+    if (isDesktop) {
+      return DropTargetOverlay(
+        onFilesDropped: (results) => _handleDroppedFiles(context, ref, results),
+        acceptedTypes: const [
+          DroppedFileType.image,
+          DroppedFileType.aseprite,
+          DroppedFileType.project,
+        ],
+        child: AnimatedBackground(
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Row(
+              children: [
+                _DesktopSidebar(
+                  selectedIndex: tabController.index,
+                  onTabChanged: (i) => tabController.animateTo(i),
+                  theme: currentTheme,
+                  subscription: subscription,
+                  onNewProject: () =>
+                      _navigateToNewProject(context, ref, subscription),
+                  onImport: () async {
+                    final error = await ref
+                        .read(projectsProvider.notifier)
+                        .importProject(context);
+                    if (error != null && context.mounted) {
+                      showTopFlushbar(
+                        context,
+                        message:
+                            Text(Strings.of(context).invalidFileContent),
+                      );
+                    }
+                  },
+                  onFeedback: () => _navigateToFeedback(context, ref),
+                  onAbout: () => showDialog(
+                    context: context,
+                    builder: (_) => Dialog(
+                      child: ClipRRect(
+                        clipBehavior: Clip.antiAlias,
+                        borderRadius: BorderRadius.circular(16),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 600),
+                          child: const AboutScreen(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  onTheme: () => ThemeSelectorBottomSheet.show(context),
+                  onPro: () => _showSubscriptionScreen(context),
+                ),
+                // ── Content area ──────────────────────────────────────
+                Expanded(
+                  child: Column(
+                    children: [
+                      _DesktopContentHeader(
+                        tabIndex: tabController.index,
+                        theme: currentTheme,
+                        flagship: flagship,
+                        projects: projects,
+                        onNewProject: () =>
+                            _navigateToNewProject(context, ref, subscription),
+                      ),
+                      if (!subscription.isPro && showBadge.value)
+                        SubscriptionPromoBanner(
+                            onDismiss: () => showBadge.value = false),
+                      Expanded(
+                        child: TabBarView(
+                          controller: tabController,
+                          children: [
+                            _buildLocalProjectsTab(context, ref, projects,
+                                subscription, overlayLoader, authState),
+                            _buildCloudProjectsTab(
+                                context, ref, theme, subscription),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // ── Mobile layout ──────────────────────────────────────────────────────
     return DropTargetOverlay(
       onFilesDropped: (results) => _handleDroppedFiles(context, ref, results),
       acceptedTypes: const [
@@ -758,6 +849,417 @@ class ProjectsScreen extends HookConsumerWidget {
     }
   }
 }
+
+// ── Desktop widgets ────────────────────────────────────────────────────────
+
+class _DesktopSidebar extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onTabChanged;
+  final AppTheme theme;
+  final UserSubscription subscription;
+  final VoidCallback onNewProject;
+  final VoidCallback onImport;
+  final VoidCallback onFeedback;
+  final VoidCallback onAbout;
+  final VoidCallback onTheme;
+  final VoidCallback onPro;
+
+  const _DesktopSidebar({
+    required this.selectedIndex,
+    required this.onTabChanged,
+    required this.theme,
+    required this.subscription,
+    required this.onNewProject,
+    required this.onImport,
+    required this.onFeedback,
+    required this.onAbout,
+    required this.onTheme,
+    required this.onPro,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final flagship = theme.flagship;
+
+    return Container(
+      width: 232,
+      decoration: BoxDecoration(
+        color: theme.surface,
+        border: Border(right: BorderSide(color: theme.divider, width: 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildHeader(flagship),
+          Divider(color: theme.divider, height: 1),
+          const SizedBox(height: 8),
+
+          // ── Main nav ───────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              children: [
+                _NavItem(
+                  icon: Feather.hard_drive,
+                  label: 'Local',
+                  selected: selectedIndex == 0,
+                  theme: theme,
+                  flagship: flagship,
+                  onTap: () => onTabChanged(0),
+                ),
+                const SizedBox(height: 2),
+                _NavItem(
+                  icon: Feather.cloud,
+                  label: 'Community',
+                  selected: selectedIndex == 1,
+                  theme: theme,
+                  flagship: flagship,
+                  onTap: () => onTabChanged(1),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(color: theme.divider, height: 1),
+          ),
+          const SizedBox(height: 12),
+
+          // ── New Project ────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: FilledButton.icon(
+              onPressed: onNewProject,
+              icon: const Icon(Feather.plus, size: 15),
+              label: const Text('New Project'),
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.primaryColor,
+                foregroundColor: theme.onPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // ── Import ─────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: _NavItem(
+              icon: Feather.file,
+              label: 'Import File',
+              selected: false,
+              theme: theme,
+              flagship: flagship,
+              onTap: onImport,
+            ),
+          ),
+
+          const Spacer(),
+
+          // ── Bottom actions ─────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(color: theme.divider, height: 1),
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              children: [
+                _NavItem(
+                  icon: Icons.palette_outlined,
+                  label: 'Theme',
+                  selected: false,
+                  theme: theme,
+                  flagship: flagship,
+                  onTap: onTheme,
+                ),
+                _NavItem(
+                  icon: Feather.info,
+                  label: 'About',
+                  selected: false,
+                  theme: theme,
+                  flagship: flagship,
+                  onTap: onAbout,
+                ),
+                if (!subscription.isPro)
+                  _NavItem(
+                    icon: MaterialCommunityIcons.crown,
+                    label: 'Get Pro',
+                    selected: false,
+                    theme: theme,
+                    flagship: flagship,
+                    onTap: onPro,
+                    accentColor: Colors.orange,
+                  ),
+                _NavItem(
+                  icon: Icons.feedback_outlined,
+                  label: 'Feedback',
+                  selected: false,
+                  theme: theme,
+                  flagship: flagship,
+                  onTap: onFeedback,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(FlagshipConfig? flagship) {
+    final hasFlagship = flagship != null && flagship.isFlagship;
+    return Stack(
+      children: [
+        // Flagship gradient tint
+        if (hasFlagship && flagship.appBarGradient != null)
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.18,
+              child: DecoratedBox(
+                decoration: BoxDecoration(gradient: flagship.appBarGradient),
+              ),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 22, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: theme.primaryColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: Center(
+                      child: Icon(Icons.grid_view_rounded,
+                          size: 18, color: theme.primaryColor),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'PixelVerse',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: theme.textPrimary,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (hasFlagship) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: flagship.badgeColor.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    flagship.badgeLabel,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: flagship.badgeTextColor,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final AppTheme theme;
+  final FlagshipConfig? flagship;
+  final VoidCallback onTap;
+  final Color? accentColor;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.theme,
+    required this.flagship,
+    required this.onTap,
+    this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = accentColor ?? theme.primaryColor;
+    final iconColor = selected ? activeColor : theme.textSecondary;
+
+    final iconWidget = Icon(icon, size: 18, color: iconColor);
+
+    // Optional glow for flagship active items
+    final displayIcon =
+        (flagship != null && flagship!.enableIconGlow && selected)
+            ? DecoratedBox(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: (flagship!.iconGlowColor ?? activeColor)
+                          .withValues(alpha: 0.55),
+                      blurRadius: flagship!.iconGlowRadius * 0.7,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: iconWidget,
+              )
+            : iconWidget;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? activeColor.withValues(alpha: 0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            displayIcon,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight:
+                      selected ? FontWeight.w600 : FontWeight.normal,
+                  color: selected ? activeColor : theme.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopContentHeader extends StatelessWidget {
+  final int tabIndex;
+  final AppTheme theme;
+  final FlagshipConfig? flagship;
+  final AsyncValue<List<Project>> projects;
+  final VoidCallback onNewProject;
+
+  const _DesktopContentHeader({
+    required this.tabIndex,
+    required this.theme,
+    required this.flagship,
+    required this.projects,
+    required this.onNewProject,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLocal = tabIndex == 0;
+    final hasFlagshipGradient =
+        flagship != null && flagship!.appBarGradient != null;
+    final titleColor =
+        hasFlagshipGradient ? Colors.white : theme.textPrimary;
+
+    return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: hasFlagshipGradient
+          ? BoxDecoration(
+              gradient: flagship!.appBarGradient,
+              border: Border(
+                  bottom: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.15), width: 1)),
+            )
+          : BoxDecoration(
+              color: theme.surface.withValues(alpha: 0.85),
+              border: Border(
+                  bottom: BorderSide(color: theme.divider, width: 1)),
+            ),
+      child: Row(
+        children: [
+          Text(
+            isLocal ? 'My Projects' : 'Community',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: titleColor,
+            ),
+          ),
+          if (isLocal)
+            projects.when(
+              data: (p) => Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(
+                  '(${p.length})',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: titleColor.withValues(alpha: 0.55),
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+          const Spacer(),
+          if (isLocal)
+            FilledButton.icon(
+              onPressed: onNewProject,
+              icon: const Icon(Feather.plus, size: 14),
+              label: const Text('New Project'),
+              style: FilledButton.styleFrom(
+                backgroundColor: hasFlagshipGradient
+                    ? Colors.white.withValues(alpha: 0.22)
+                    : theme.primaryColor,
+                foregroundColor:
+                    hasFlagshipGradient ? Colors.white : theme.onPrimary,
+                visualDensity: VisualDensity.compact,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: hasFlagshipGradient
+                      ? BorderSide(
+                          color: Colors.white.withValues(alpha: 0.3), width: 1)
+                      : BorderSide.none,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Cloud / Community tab ──────────────────────────────────────────────────
 
 class CloudProjectsView extends HookConsumerWidget {
   final AppTheme theme;
