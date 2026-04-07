@@ -87,10 +87,8 @@ class RenderPixelViewportGestureLayer extends RenderProxyBox {
           (pointers[0].localPosition.dy + pointers[1].localPosition.dy) / 2,
         );
         _gestureStartScale = controller.scale;
-        _normalizedOffset = (controller.offset - focalPoint) /
-            math.max(controller.scale, 0.0001);
-        _initialPointerDistance =
-            (pointers[0].localPosition - pointers[1].localPosition).distance;
+        _normalizedOffset = (controller.offset - focalPoint) / math.max(controller.scale, 0.0001);
+        _initialPointerDistance = (pointers[0].localPosition - pointers[1].localPosition).distance;
       }
       return;
     }
@@ -109,17 +107,14 @@ class RenderPixelViewportGestureLayer extends RenderProxyBox {
         (pointers[0].localPosition.dx + pointers[1].localPosition.dx) / 2,
         (pointers[0].localPosition.dy + pointers[1].localPosition.dy) / 2,
       );
-      final currentDistance =
-          (pointers[0].localPosition - pointers[1].localPosition).distance;
+      final currentDistance = (pointers[0].localPosition - pointers[1].localPosition).distance;
       if (_initialPointerDistance <= 0) {
         return;
       }
 
       final scaleRatio = currentDistance / _initialPointerDistance;
-      final adjustedScaleRatio =
-          1 + ((scaleRatio - 1) * _touchScaleSensitivity);
-      final nextScale = (_gestureStartScale! * adjustedScaleRatio)
-          .clamp(_minScale, _maxScale);
+      final adjustedScaleRatio = 1 + ((scaleRatio - 1) * _touchScaleSensitivity);
+      final nextScale = (_gestureStartScale! * adjustedScaleRatio).clamp(_minScale, _maxScale);
       final nextOffset = focalPoint + _normalizedOffset * nextScale;
       controller.setViewport(nextScale, nextOffset);
       return;
@@ -136,8 +131,7 @@ class RenderPixelViewportGestureLayer extends RenderProxyBox {
   void _handlePanZoomStart(PointerPanZoomStartEvent event) {
     _trackpadStartFocalPoint = event.localPosition;
     _trackpadStartScale = controller.scale;
-    _normalizedOffset = (controller.offset - event.localPosition) /
-        math.max(controller.scale, 0.0001);
+    _normalizedOffset = (controller.offset - event.localPosition) / math.max(controller.scale, 0.0001);
   }
 
   void _handlePanZoomUpdate(PointerPanZoomUpdateEvent event) {
