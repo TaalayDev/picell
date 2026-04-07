@@ -7,6 +7,7 @@ import '../pixel_canvas_state.dart';
 import '../tools.dart';
 import 'canvas_host_runtime.dart';
 import 'canvas_render_layer.dart';
+import 'canvas_surface_image_resolver.dart';
 import 'canvas_widget_bindings.dart';
 
 class PixelCanvasRenderHost extends StatelessWidget {
@@ -24,6 +25,12 @@ class PixelCanvasRenderHost extends StatelessWidget {
     required this.mirrorAxis,
     required this.selectionState,
     required this.selectionAnimation,
+    required this.gridWidth,
+    required this.gridHeight,
+    required this.imageResolver,
+    this.backgroundOpacity = 0.3,
+    this.backgroundScale = 1.0,
+    this.backgroundOffset = Offset.zero,
     this.eventStream,
     this.onSelectionChanged,
     this.onMoveSelection,
@@ -46,6 +53,12 @@ class PixelCanvasRenderHost extends StatelessWidget {
   final MirrorAxis mirrorAxis;
   final SelectionState? selectionState;
   final Animation<double> selectionAnimation;
+  final int gridWidth;
+  final int gridHeight;
+  final PixelCanvasSurfaceImageResolver imageResolver;
+  final double backgroundOpacity;
+  final double backgroundScale;
+  final Offset backgroundOffset;
   final Stream<PixelDrawEvent>? eventStream;
   final Function(SelectionRegion?)? onSelectionChanged;
   final Function(Offset)? onMoveSelection;
@@ -87,6 +100,12 @@ class PixelCanvasRenderHost extends StatelessWidget {
         gestureHandler: runtime.gestureHandler,
         toolManager: runtime.toolManager,
         config: config,
+        gridWidth: gridWidth,
+        gridHeight: gridHeight,
+        imageResolver: imageResolver,
+        backgroundOpacity: backgroundOpacity,
+        backgroundScale: backgroundScale,
+        backgroundOffset: backgroundOffset,
         eventStream: eventStream,
       ),
     );

@@ -16,11 +16,12 @@ import '../../pixel/animation_frame_controller.dart' hide AnimationController;
 import '../../pixel/canvas/pixel_viewport_controller.dart';
 import '../../pixel/tools.dart';
 import '../../data.dart';
+import '../../providers/editor_settings_provider.dart';
 import '../../providers/subscription_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/dialogs/import_dialog.dart';
 import '../widgets/drop_target_overlay.dart';
-import '../widgets/painter/pixel_painter.dart';
+import '../widgets/painter/pixel_canvas_scene_host.dart';
 import '../widgets/painter/pixel_viewport_gesture_layer.dart';
 import '../widgets/painter/pixel_viewport_transform.dart';
 import '../widgets/panel/desktop_side_panel.dart';
@@ -277,6 +278,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     final isAnimationTimelineExpanded = useState(false);
 
     final subscription = ref.watch(subscriptionStateProvider);
+    final editorSettings = ref.watch(editorSettingsNotifierProvider);
     final hasSelection = state.selectionState != null;
 
     final size = MediaQuery.sizeOf(context);
@@ -423,16 +425,20 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                                 height: canvasHeight,
                                                 child: Padding(
                                                   padding: const EdgeInsets.all(8.0),
-                                                  child: PixelPainter(
+                                                  child: PixelCanvasSceneHost(
                                                     project: project,
                                                     state: state,
                                                     notifier: notifier,
                                                     viewportController: viewportController,
                                                     currentTool: currentTool.value,
-                                                    currentModifier: currentModifier.value,
+                                                    modifier: currentModifier.value,
                                                     currentColor: state.currentColor,
-                                                    brushSize: brushSize,
-                                                    sprayIntensity: sprayIntensity,
+                                                    brushSize: brushSize.value,
+                                                    sprayIntensity: sprayIntensity.value,
+                                                    mirrorAxis: MirrorAxis.vertical,
+                                                    eventStream: notifier.eventStream,
+                                                    editorSettings: editorSettings,
+                                                    enableMultiTouchViewportNavigation: false,
                                                     showPrevFrames: showPrevFrames.value,
                                                     onToolAutoSwitch: (tool) {
                                                       currentTool.value = tool;
