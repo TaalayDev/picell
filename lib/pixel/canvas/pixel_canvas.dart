@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../data/models/selection_region.dart';
 import '../../data/models/selection_state.dart';
 import '../../pixel/tools.dart';
 import '../../data.dart';
 import '../pixel_canvas_state.dart';
-import '../pixel_point.dart';
 import 'canvas_gesture_handler.dart';
 import 'canvas_host_runtime.dart';
+import 'pixel_canvas_callbacks.dart';
 import 'canvas_render_host.dart';
 import 'canvas_widget_bindings.dart';
 import 'pixel_viewport_controller.dart';
@@ -30,28 +29,8 @@ class PixelCanvas extends StatefulWidget {
   final GestureInputMode inputMode;
   final bool twoFingerUndoEnabled;
   final bool enableMultiTouchViewportNavigation;
-
-  // Callbacks
-  final Function(int x, int y) onTapPixel;
-  final Function() onStartDrawing;
-  final Function() onFinishDrawing;
-  final Function(List<PixelPoint<int>>) onDrawShape;
-  final Function(SelectionRegion?)? onSelectionChanged;
-  final Function(Offset)? onMoveSelection;
-  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)?
-      onSelectionResize;
-  final Function(SelectionRegion, SelectionRegion, double, Offset?)?
-      onSelectionRotate;
-  final Function(SelectionRegion)? onTransformStart;
-  final Function()? onTransformEnd;
-  final Function(Offset)? onAnchorChanged;
+  final PixelCanvasCallbacks callbacks;
   final SelectionState? selectionState;
-  final Function(Color)? onColorPicked;
-  final Function(List<Color>)? onGradientApplied;
-  final Function(double, Offset)? onStartDrag;
-  final Function(double, Offset)? onDrag;
-  final Function(double, Offset)? onDragEnd;
-  final Function()? onUndo;
 
   const PixelCanvas({
     super.key,
@@ -59,32 +38,16 @@ class PixelCanvas extends StatefulWidget {
     required this.height,
     required this.layers,
     required this.currentLayerIndex,
-    required this.onTapPixel,
     required this.currentTool,
     required this.currentColor,
     this.modifier = PixelModifier.none,
-    required this.onDrawShape,
-    required this.onStartDrawing,
-    required this.onFinishDrawing,
-    this.onColorPicked,
+    required this.callbacks,
     this.brushSize = 1,
-    this.onSelectionChanged,
-    this.onMoveSelection,
-    this.onSelectionResize,
-    this.onSelectionRotate,
-    this.onTransformStart,
-    this.onTransformEnd,
-    this.onAnchorChanged,
     this.selectionState,
-    this.onGradientApplied,
     this.sprayIntensity = 5,
     required this.viewportController,
     this.mirrorAxis = MirrorAxis.vertical,
     this.eventStream,
-    this.onStartDrag,
-    this.onDrag,
-    this.onDragEnd,
-    this.onUndo,
     this.inputMode = GestureInputMode.standard,
     this.twoFingerUndoEnabled = true,
     this.enableMultiTouchViewportNavigation = true,
@@ -116,15 +79,15 @@ class _PixelCanvasState extends State<PixelCanvas>
       selectionState: widget.selectionState,
       callbacks: PixelCanvasWidgetBindings.buildHostCallbacks(
         getCurrentTool: () => widget.currentTool,
-        onStartDrawing: () => widget.onStartDrawing(),
-        onFinishDrawing: () => widget.onFinishDrawing(),
-        onDrawShape: (points) => widget.onDrawShape(points),
-        onSelectionChanged: (region) => widget.onSelectionChanged?.call(region),
-        onColorPicked: (color) => widget.onColorPicked?.call(color),
-        onStartDrag: (scale, offset) => widget.onStartDrag?.call(scale, offset),
-        onDrag: (scale, offset) => widget.onDrag?.call(scale, offset),
-        onDragEnd: (scale, offset) => widget.onDragEnd?.call(scale, offset),
-        onUndo: () => widget.onUndo?.call(),
+        onStartDrawing: widget.callbacks.onStartDrawing,
+        onFinishDrawing: widget.callbacks.onFinishDrawing,
+        onDrawShape: widget.callbacks.onDrawShape,
+        onSelectionChanged: widget.callbacks.onSelectionChanged,
+        onColorPicked: widget.callbacks.onColorPicked,
+        onStartPixelDrag: widget.callbacks.onStartPixelDrag,
+        onPixelDrag: widget.callbacks.onPixelDrag,
+        onPixelDragEnd: widget.callbacks.onPixelDragEnd,
+        onUndo: widget.callbacks.onUndo,
       ),
     );
     _selectionAnimationController = AnimationController(
@@ -172,13 +135,13 @@ class _PixelCanvasState extends State<PixelCanvas>
       selectionState: widget.selectionState,
       selectionAnimation: _selectionAnimationController,
       eventStream: widget.eventStream,
-      onSelectionChanged: widget.onSelectionChanged,
-      onMoveSelection: widget.onMoveSelection,
-      onSelectionResize: widget.onSelectionResize,
-      onSelectionRotate: widget.onSelectionRotate,
-      onTransformStart: widget.onTransformStart,
-      onTransformEnd: widget.onTransformEnd,
-      onAnchorChanged: widget.onAnchorChanged,
+      onSelectionChanged: widget.callbacks.onSelectionChanged,
+      onMoveSelection: widget.callbacks.onMoveSelection,
+      onSelectionResize: widget.callbacks.onSelectionResize,
+      onSelectionRotate: widget.callbacks.onSelectionRotate,
+      onTransformStart: widget.callbacks.onTransformStart,
+      onTransformEnd: widget.callbacks.onTransformEnd,
+      onAnchorChanged: widget.callbacks.onAnchorChanged,
     );
   }
 }

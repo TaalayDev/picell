@@ -13,6 +13,7 @@ import '../../../pixel/tools.dart';
 import '../../../providers/background_image_provider.dart';
 import '../../../providers/editor_settings_provider.dart';
 import 'pixel_canvas_surface.dart';
+import 'pixel_painter_bindings.dart';
 
 class PixelPainter extends HookConsumerWidget {
   const PixelPainter({
@@ -59,6 +60,11 @@ class PixelPainter extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final backgroundImage = ref.watch(backgroundImageProvider);
     final editorSettings = ref.watch(editorSettingsNotifierProvider);
+    final canvasCallbacks = PixelPainterBindings.buildCanvasCallbacks(
+      notifier: notifier,
+      currentTool: currentTool,
+      onToolAutoSwitch: onToolAutoSwitch,
+    );
 
     // Map editor settings to gesture handler input mode
     final inputMode = editorSettings.inputMode == InputMode.stylusOnly
@@ -93,130 +99,18 @@ class PixelPainter extends HookConsumerWidget {
         height: project.height,
         layers: state.layers,
         currentLayerIndex: state.currentLayerIndex,
-        onTapPixel: (x, y) {
-          switch (currentTool) {
-            case PixelTool.pencil:
-            case PixelTool.brush:
-            case PixelTool.pixelPerfectLine:
-            case PixelTool.sprayPaint:
-              notifier.setPixel(x, y);
-              break;
-            case PixelTool.fill:
-              notifier.fill(x, y);
-              break;
-            case PixelTool.eraser:
-              final originalColor = notifier.currentColor;
-              notifier.currentColor = Colors.transparent;
-              notifier.setPixel(x, y);
-              notifier.currentColor = originalColor;
-              break;
-            default:
-              break;
-          }
-        },
         currentTool: currentTool,
         currentColor: currentColor,
         modifier: currentModifier,
         brushSize: brushSize.value,
         sprayIntensity: sprayIntensity.value,
+        callbacks: canvasCallbacks,
         viewportController: viewportController,
         eventStream: notifier.eventStream,
         inputMode: inputMode,
         twoFingerUndoEnabled: editorSettings.twoFingerUndoEnabled,
         enableMultiTouchViewportNavigation: false,
-        onDrawShape: (points) {
-          ref
-              .read(pixelCanvasNotifierProvider(project).notifier)
-              .fillPixels(points);
-        },
-        onStartDrawing: () {
-          ref
-              .read(pixelCanvasNotifierProvider(project).notifier)
-              .startDrawing();
-        },
-        onFinishDrawing: () {
-          ref.read(pixelCanvasNotifierProvider(project).notifier).endDrawing();
-        },
         selectionState: state.selectionState,
-        onSelectionChanged: (region) {
-          final notifier =
-              ref.read(pixelCanvasNotifierProvider(project).notifier);
-          if (region == null) {
-            notifier.clearSelection();
-          } else {
-            notifier.setSelection(region);
-          }
-        },
-        onMoveSelection: (delta) {
-          ref
-              .read(pixelCanvasNotifierProvider(project).notifier)
-              .moveSelection(delta);
-        },
-        onSelectionResize: (newRegion, oldRegion, newBounds, center) {
-          ref
-              .read(pixelCanvasNotifierProvider(project).notifier)
-              .resizeSelectionNew(
-                newRegion.bounds,
-                region: newRegion,
-              );
-        },
-        onSelectionRotate: (newRegion, oldRegion, angle, center) {
-          ref
-              .read(pixelCanvasNotifierProvider(project).notifier)
-              .rotateSelectionNew(
-                angle,
-                pivot: center,
-                region: newRegion,
-              );
-        },
-        onTransformStart: (region) {
-          ref
-              .read(pixelCanvasNotifierProvider(project).notifier)
-              .startTransformSelection(region);
-        },
-        onTransformEnd: () {
-          ref
-              .read(pixelCanvasNotifierProvider(project).notifier)
-              .endTransformSelection();
-        },
-        onAnchorChanged: (anchor) {
-          ref
-              .read(pixelCanvasNotifierProvider(project).notifier)
-              .setAnchorPoint(anchor);
-        },
-        onColorPicked: (color) {
-          ref.read(pixelCanvasNotifierProvider(project).notifier).currentColor =
-              color == Colors.transparent ? Colors.white : color;
-          onToolAutoSwitch?.call(PixelTool.pencil);
-        },
-        onGradientApplied: (gradientColors) {
-          ref
-              .read(pixelCanvasNotifierProvider(project).notifier)
-              .applyGradient(gradientColors);
-        },
-        onStartDrag: (scale, offset) {
-          if (currentTool == PixelTool.drag) {
-            return ref
-                .read(pixelCanvasNotifierProvider(project).notifier)
-                .startDrag();
-          }
-        },
-        onDrag: (scale, offset) {
-          if (currentTool == PixelTool.drag) {
-            return ref
-                .read(pixelCanvasNotifierProvider(project).notifier)
-                .dragPixels(scale, offset);
-          }
-
-          viewportController.setViewport(scale, offset);
-        },
-        onDragEnd: (s, o) {
-          if (currentTool == PixelTool.drag) {
-            return ref
-                .read(pixelCanvasNotifierProvider(project).notifier)
-                .endDrag();
-          }
-        },
       ),
     );
   }

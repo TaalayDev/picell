@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../pixel/tools.dart';
 import '../pixel_point.dart';
 import 'canvas_controller.dart';
+import 'pixel_viewport_controller.dart';
 import 'tool_drawing_manager.dart';
 
 /// Input mode for touch/stylus handling
@@ -18,13 +19,14 @@ enum GestureInputMode {
 class CanvasGestureHandler {
   final PixelCanvasController controller;
   final ToolDrawingManager toolManager;
+  PixelViewportController viewportController;
 
   final VoidCallback onStartDrawing;
   final VoidCallback onFinishDrawing;
   final Function(List<PixelPoint<int>>) onDrawShape;
-  final Function(double, Offset)? onStartDrag;
-  final Function(double, Offset)? onDrag;
-  final Function(double, Offset)? onDragEnd;
+  final Function(Offset)? onStartPixelDrag;
+  final Function(Offset)? onPixelDrag;
+  final Function(Offset)? onPixelDragEnd;
   final VoidCallback? onUndo;
 
   /// Current input mode - determines how touch vs stylus is handled
@@ -80,12 +82,13 @@ class CanvasGestureHandler {
   CanvasGestureHandler({
     required this.controller,
     required this.toolManager,
+    required this.viewportController,
     required this.onStartDrawing,
     required this.onFinishDrawing,
     required this.onDrawShape,
-    this.onStartDrag,
-    this.onDrag,
-    this.onDragEnd,
+    this.onStartPixelDrag,
+    this.onPixelDrag,
+    this.onPixelDragEnd,
     this.onUndo,
   });
 
@@ -212,7 +215,7 @@ class CanvasGestureHandler {
   ) {
     if (currentTool == PixelTool.drag) {
       _panStartPosition = details.localFocalPoint - controller.offset;
-      onStartDrag?.call(controller.zoomLevel, controller.offset);
+      onStartPixelDrag?.call(controller.offset);
     } else if (_isSelectionTool(currentTool) && !_isDrawingActive) {
       toolManager.startDrawing(currentTool, drawDetails);
       _isDrawingActive = true;
@@ -231,7 +234,7 @@ class CanvasGestureHandler {
     if (currentTool == PixelTool.drag) {
       final newOffset = details.localFocalPoint - _panStartPosition!;
       controller.setOffset(newOffset);
-      onDrag?.call(controller.zoomLevel, newOffset);
+      onPixelDrag?.call(newOffset);
     } else if (currentTool == PixelTool.curve) {
       if (toolManager.isCurveDefining) {
         toolManager.handleCurveMove(drawDetails, controller);
@@ -246,7 +249,7 @@ class CanvasGestureHandler {
     PixelDrawDetails drawDetails,
   ) {
     if (currentTool == PixelTool.drag) {
-      onDragEnd?.call(controller.zoomLevel, controller.offset);
+      onPixelDragEnd?.call(controller.offset);
     } else if (_isSelectionTool(currentTool) && _isDrawingActive) {
       toolManager.endDrawing(currentTool, drawDetails);
     } else if (_isDrawingActive) {
@@ -281,8 +284,7 @@ class CanvasGestureHandler {
     final newScale = (_initialTwoFingerScale! * details.scale).clamp(0.5, 10.0);
     final newOffset = details.localFocalPoint + _normalizedOffset * newScale;
 
-    controller.setZoomAndOffset(newScale, newOffset);
-    onDrag?.call(newScale, newOffset);
+    viewportController.setViewport(newScale, newOffset);
   }
 
   bool _handleUndoGesture(int startTimeForUndo) {
@@ -398,7 +400,9 @@ class CanvasGestureHandler {
 
     if (shouldNavigate || currentTool == PixelTool.drag) {
       _panStartPosition = event.position;
-      onStartDrag?.call(controller.zoomLevel, controller.offset);
+      if (currentTool == PixelTool.drag) {
+        onStartPixelDrag?.call(controller.offset);
+      }
       return;
     }
 
@@ -437,15 +441,14 @@ class CanvasGestureHandler {
 
     if (shouldNavigate && _panStartPosition != null) {
       final newOffset = controller.offset + event.delta;
-      controller.setOffset(newOffset);
-      onDrag?.call(controller.zoomLevel, newOffset);
+      viewportController.setViewport(controller.zoomLevel, newOffset);
       return;
     }
 
     if (currentTool == PixelTool.drag && _panStartPosition != null) {
       final newOffset = controller.offset + event.delta;
       controller.setOffset(newOffset);
-      onDrag?.call(controller.zoomLevel, newOffset);
+      onPixelDrag?.call(newOffset);
     } else if (currentTool == PixelTool.curve) {
       if (toolManager.isCurveDefining) {
         toolManager.handleCurveMove(drawDetails, controller);
@@ -538,8 +541,7 @@ class CanvasGestureHandler {
       final newScale = (_initialTwoFingerScale! * scale).clamp(0.5, 10.0);
       final newOffset = currentFocalPoint + _normalizedOffset * newScale;
 
-      controller.setZoomAndOffset(newScale, newOffset);
-      onDrag?.call(newScale, newOffset);
+      viewportController.setViewport(newScale, newOffset);
     }
   }
 
@@ -556,7 +558,7 @@ class CanvasGestureHandler {
     }
 
     if (currentTool == PixelTool.drag) {
-      onDragEnd?.call(controller.zoomLevel, controller.offset);
+      onPixelDragEnd?.call(controller.offset);
     } else if (_isSelectionDrawingActive) {
       toolManager.endDrawing(currentTool, drawDetails);
       _isSelectionDrawingActive = false;

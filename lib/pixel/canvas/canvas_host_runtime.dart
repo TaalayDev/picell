@@ -19,9 +19,9 @@ class PixelCanvasHostCallbacks {
     required this.onDrawShape,
     this.onSelectionChanged,
     this.onColorPicked,
-    this.onStartDrag,
-    this.onDrag,
-    this.onDragEnd,
+    this.onStartPixelDrag,
+    this.onPixelDrag,
+    this.onPixelDragEnd,
     this.onUndo,
   });
 
@@ -31,9 +31,9 @@ class PixelCanvasHostCallbacks {
   final Function(List<PixelPoint<int>>) onDrawShape;
   final Function(SelectionRegion?)? onSelectionChanged;
   final Function(Color)? onColorPicked;
-  final Function(double, Offset)? onStartDrag;
-  final Function(double, Offset)? onDrag;
-  final Function(double, Offset)? onDragEnd;
+  final Function(Offset)? onStartPixelDrag;
+  final Function(Offset)? onPixelDrag;
+  final Function(Offset)? onPixelDragEnd;
   final Function()? onUndo;
 }
 
@@ -116,6 +116,7 @@ class PixelCanvasHostRuntime {
     final gestureHandler = CanvasGestureHandler(
       controller: controller,
       toolManager: toolManager,
+      viewportController: viewportController,
       onStartDrawing: callbacks.onStartDrawing,
       onFinishDrawing: () {
         callbacks.onFinishDrawing();
@@ -129,9 +130,9 @@ class PixelCanvasHostRuntime {
         }
         callbacks.onDrawShape(shape);
       },
-      onStartDrag: callbacks.onStartDrag,
-      onDrag: callbacks.onDrag,
-      onDragEnd: callbacks.onDragEnd,
+      onStartPixelDrag: callbacks.onStartPixelDrag,
+      onPixelDrag: callbacks.onPixelDrag,
+      onPixelDragEnd: callbacks.onPixelDragEnd,
       onUndo: callbacks.onUndo,
     );
 
@@ -208,6 +209,7 @@ class PixelCanvasHostRuntime {
     if (!identical(viewportController, _viewportController)) {
       _unbindViewportController();
       _viewportController = viewportController;
+      gestureHandler.viewportController = viewportController;
       _bindViewportController();
       _syncViewportFromController();
     }

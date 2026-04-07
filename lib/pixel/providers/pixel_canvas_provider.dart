@@ -57,8 +57,7 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
 
   // Drag operations
   void startDrag() => _controller.startDrag();
-  void dragPixels(double scale, Offset offset) =>
-      _controller.dragPixels(scale, offset);
+  void dragPixels(Offset offset) => _controller.dragPixels(offset);
   void endDrag() => _controller.endDrag();
 
   // Layer operations

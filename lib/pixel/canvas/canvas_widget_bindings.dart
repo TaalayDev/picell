@@ -18,9 +18,9 @@ class PixelCanvasWidgetBindings {
     required Function(List<PixelPoint<int>>) onDrawShape,
     Function(SelectionRegion?)? onSelectionChanged,
     Function(Color)? onColorPicked,
-    Function(double, Offset)? onStartDrag,
-    Function(double, Offset)? onDrag,
-    Function(double, Offset)? onDragEnd,
+    Function(Offset)? onStartPixelDrag,
+    Function(Offset)? onPixelDrag,
+    Function(Offset)? onPixelDragEnd,
     Function()? onUndo,
   }) {
     return PixelCanvasHostCallbacks(
@@ -30,9 +30,9 @@ class PixelCanvasWidgetBindings {
       onDrawShape: onDrawShape,
       onSelectionChanged: onSelectionChanged,
       onColorPicked: onColorPicked,
-      onStartDrag: onStartDrag,
-      onDrag: onDrag,
-      onDragEnd: onDragEnd,
+      onStartPixelDrag: onStartPixelDrag,
+      onPixelDrag: onPixelDrag,
+      onPixelDragEnd: onPixelDragEnd,
       onUndo: onUndo,
     );
   }

@@ -260,7 +260,7 @@ class PixelDrawController extends _$PixelDrawController {
     _originalPixels = null;
   }
 
-  void dragPixels(double scale, Offset offset) {
+  void dragPixels(Offset offset) {
     if (_dragStartOffset == null) {
       // First time, store the starting offset and original pixels
       _dragStartOffset = offset;
