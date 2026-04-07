@@ -33,6 +33,10 @@ class CanvasGestureHandler {
   /// Whether two-finger tap undo is enabled
   bool twoFingerUndoEnabled = true;
 
+  /// Whether raw two-pointer navigation should be handled inside the canvas.
+  /// When false, parent viewport runtime owns pinch/pan.
+  bool enableMultiTouchViewportNavigation = true;
+
   int _pointerCount = 0;
   Offset? _panStartPosition;
   Offset? _twoFingerStartFocalPoint;
@@ -56,7 +60,8 @@ class CanvasGestureHandler {
 
   bool _canDrawWithPointer(PointerDeviceKind kind) {
     if (inputMode == GestureInputMode.standard) return true;
-    return kind == PointerDeviceKind.stylus || kind == PointerDeviceKind.invertedStylus;
+    return kind == PointerDeviceKind.stylus ||
+        kind == PointerDeviceKind.invertedStylus;
   }
 
   bool _shouldUseForNavigation(PointerDeviceKind kind) {
@@ -123,7 +128,9 @@ class CanvasGestureHandler {
 
     _resetTwoFingerState();
 
-    if (wasUndoAttempt && startTimeForUndo != null && currentPointerCountAtEnd == 2) {
+    if (wasUndoAttempt &&
+        startTimeForUndo != null &&
+        currentPointerCountAtEnd == 2) {
       if (_handleUndoGesture(startTimeForUndo)) {
         _pointerCount = 0;
         _isDrawingActive = false;
@@ -169,7 +176,8 @@ class CanvasGestureHandler {
     PixelTool currentTool,
     PixelDrawDetails drawDetails,
   ) {
-    if (!_shouldHandleDirectTap(currentTool) && !_isSelectionTool(currentTool)) {
+    if (!_shouldHandleDirectTap(currentTool) &&
+        !_isSelectionTool(currentTool)) {
       _finishDrawing();
     } else if (_isSelectionTool(currentTool) && _isDrawingActive) {
       toolManager.endDrawing(currentTool, drawDetails);
@@ -253,12 +261,14 @@ class CanvasGestureHandler {
     _twoFingerStartTimeMs = DateTime.now().millisecondsSinceEpoch;
     _initialTwoFingerScale = controller.zoomLevel;
     _isTwoFingerPotentiallyUndo = true;
-    _normalizedOffset = (controller.offset - details.localFocalPoint) / controller.zoomLevel;
+    _normalizedOffset =
+        (controller.offset - details.localFocalPoint) / controller.zoomLevel;
   }
 
   void _handleTwoFingerUpdate(ScaleUpdateDetails details) {
     if (_isTwoFingerPotentiallyUndo) {
-      final distanceMoved = (details.localFocalPoint - _twoFingerStartFocalPoint!).distance;
+      final distanceMoved =
+          (details.localFocalPoint - _twoFingerStartFocalPoint!).distance;
       if (distanceMoved > 12.0 || (details.scale - 1.0).abs() > 0.05) {
         _isTwoFingerPotentiallyUndo = false;
       }
@@ -459,6 +469,11 @@ class CanvasGestureHandler {
       _isSelectionDrawingActive = false;
     }
 
+    if (!enableMultiTouchViewportNavigation) {
+      _resetTwoFingerState();
+      return;
+    }
+
     final pointers = _activePointers.values.toList();
     if (pointers.length >= 2) {
       final pointer1 = pointers[0];
@@ -472,7 +487,8 @@ class CanvasGestureHandler {
       _twoFingerStartTimeMs = DateTime.now().millisecondsSinceEpoch;
       _initialTwoFingerScale = controller.zoomLevel;
       _isTwoFingerPotentiallyUndo = true;
-      _normalizedOffset = (controller.offset - focalPoint) / controller.zoomLevel;
+      _normalizedOffset =
+          (controller.offset - focalPoint) / controller.zoomLevel;
       // Capture distance once here — _activePointers already has both pointers.
       _initialTwoPointerDistance = _getCurrentTwoPointerDistance();
     }
@@ -482,6 +498,10 @@ class CanvasGestureHandler {
     PointerMoveEvent event,
     PixelTool currentTool,
   ) {
+    if (!enableMultiTouchViewportNavigation) {
+      return;
+    }
+
     final pointers = _activePointers.values.toList();
     if (pointers.length < 2) return;
 
@@ -493,14 +513,17 @@ class CanvasGestureHandler {
       (pointer1.localPosition.dy + pointer2.localPosition.dy) / 2,
     );
 
-    final currentDistance = (pointer1.localPosition - pointer2.localPosition).distance;
+    final currentDistance =
+        (pointer1.localPosition - pointer2.localPosition).distance;
     // Use the distance captured when both fingers first touched (not current).
     final initialDistance = _initialTwoPointerDistance;
 
     if (_isTwoFingerPotentiallyUndo && _twoFingerStartFocalPoint != null) {
-      final distanceMoved = (currentFocalPoint - _twoFingerStartFocalPoint!).distance;
-      final scaleChange =
-          initialDistance > 0 ? (currentDistance / initialDistance - 1.0).abs() : 0.0;
+      final distanceMoved =
+          (currentFocalPoint - _twoFingerStartFocalPoint!).distance;
+      final scaleChange = initialDistance > 0
+          ? (currentDistance / initialDistance - 1.0).abs()
+          : 0.0;
 
       if (distanceMoved > 12.0 || scaleChange > 0.05) {
         _isTwoFingerPotentiallyUndo = false;
@@ -546,12 +569,18 @@ class CanvasGestureHandler {
   }
 
   void _handleMultiToSinglePointer(PixelTool currentTool) {
-    _resetTwoFingerState();
+    if (!_isTwoFingerPotentiallyUndo) {
+      // Gesture was confirmed as zoom/pan — safe to clear two-finger state.
+      _resetTwoFingerState();
+    }
+    // If still potentially undo, preserve state so _handleAllPointersUp can
+    // fire the undo when the last finger lifts.
   }
 
   void _finishRawPointerDrawing() {
     if (_isRawPointerDrawing) {
-      final previewPixels = List<PixelPoint<int>>.from(controller.previewPixels);
+      final previewPixels =
+          List<PixelPoint<int>>.from(controller.previewPixels);
       if (previewPixels.isNotEmpty) {
         onDrawShape(previewPixels);
       }

@@ -555,7 +555,7 @@ class ProjectsScreen extends HookConsumerWidget {
         projects: projects,
         onCreateNew: () => _navigateToNewProject(context, ref, subscription),
         onTapProject: (project) {
-          _openProject(context, ref, project.id, overlayLoader);
+          _openProject(context, ref, project, overlayLoader);
         },
         onDeleteProject: (project) {
           ref.read(projectsProvider.notifier).deleteProject(project);
@@ -702,26 +702,45 @@ class ProjectsScreen extends HookConsumerWidget {
   void _openProject(
     BuildContext context,
     WidgetRef ref,
-    int projectId,
+    Project project,
     ValueNotifier<OverlayEntry?> loader,
   ) async {
-    loader.value = showLoader(
-      context,
-      loadingText: Strings.of(context).openingProject,
-    );
+    Project? projectToOpen = project;
 
-    final project = await ref.read(projectsProvider.notifier).getProject(projectId);
+    // Local projects grid already holds full project data. Re-fetching large
+    // projects duplicates all layer pixel buffers right before the editor
+    // mounts, which causes a visible open-time stall for existing projects.
+    // Only hit the database if this entry somehow lacks frame/layer payloads.
+    if (!_hasProjectCanvasData(project)) {
+      loader.value = showLoader(
+        context,
+        loadingText: Strings.of(context).openingProject,
+      );
+      projectToOpen = await _resolveFullProject(ref, project);
+    }
 
-    if (project != null && context.mounted) {
+    if (projectToOpen != null && context.mounted) {
       Navigator.of(context).push(
         FlagshipPageRoute(
           context: context,
-          builder: (context) => PixelCanvasScreen(project: project),
+          builder: (context) => PixelCanvasScreen(project: projectToOpen!),
         ),
       );
     }
 
     loader.value?.remove();
+  }
+
+  bool _hasProjectCanvasData(Project project) {
+    return project.frames.isNotEmpty && project.frames.first.layers.isNotEmpty;
+  }
+
+  Future<Project?> _resolveFullProject(WidgetRef ref, Project project) async {
+    if (_hasProjectCanvasData(project)) {
+      return project;
+    }
+
+    return ref.read(projectsProvider.notifier).getProject(project.id);
   }
 
   Future<void> checkAndShowReviewDialog(
@@ -746,13 +765,18 @@ class ProjectsScreen extends HookConsumerWidget {
     Project project,
     AuthState authState,
   ) async {
+    final fullProject = await _resolveFullProject(ref, project);
+    if (fullProject == null || !context.mounted) {
+      return;
+    }
+
     if (authState.isSignedIn) {
-      ProjectUploadDialog.show(context, project);
+      ProjectUploadDialog.show(context, fullProject);
     } else {
       final auth = await AuthDialog.show(context);
       if (!context.mounted) return;
       if (auth == true) {
-        ProjectUploadDialog.show(context, project);
+        ProjectUploadDialog.show(context, fullProject);
       } else {
         showTopFlushbar(
           context,
@@ -768,6 +792,11 @@ class ProjectsScreen extends HookConsumerWidget {
     Project project,
     AuthState authState,
   ) async {
+    final fullProject = await _resolveFullProject(ref, project);
+    if (fullProject == null || !context.mounted) {
+      return;
+    }
+
     if (!authState.isSignedIn) {
       showTopFlushbar(
         context,
@@ -776,7 +805,7 @@ class ProjectsScreen extends HookConsumerWidget {
       return;
     }
 
-    if (!project.isCloudSynced || project.remoteId == null) {
+    if (!fullProject.isCloudSynced || fullProject.remoteId == null) {
       showTopFlushbar(
         context,
         message: const Text('Project is not synced to cloud'),
@@ -789,7 +818,7 @@ class ProjectsScreen extends HookConsumerWidget {
       message: const Text('Syncing project to cloud...'),
     );
 
-    ref.read(projectUploadProvider.notifier).updateProject(localProject: project);
+    ref.read(projectUploadProvider.notifier).updateProject(localProject: fullProject);
   }
 
   Future<void> _onDeleteCloudProject(

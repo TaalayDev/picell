@@ -38,7 +38,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     final scrollController = useScrollController();
     final showAppBar = useState(true);
 
-    final projectDetail = ref.watch(communityProjectProvider(project.id, includeData: true));
+    final projectDetail =
+        ref.watch(communityProjectProvider(project.id, includeData: true));
     final comments = ref.watch(projectCommentsProvider(project.id));
 
     final currentProject = projectDetail.valueOrNull ?? project;
@@ -68,7 +69,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     return AnimatedBackground(
       child: Builder(builder: (context) {
         if (isDesktop) {
-          return _buildDesktopLayout(context, ref, theme, subscription, comments, currentProject);
+          return _buildDesktopLayout(
+              context, ref, theme, subscription, comments, currentProject);
         } else if (isTablet) {
           return _buildTabletLayout(
             context,
@@ -113,7 +115,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
           style: TextStyle(color: theme.textPrimary, fontSize: 20),
         ),
         actions: [
-          _buildQuickActions(context, ref, currentProject, theme, isDesktop: true),
+          _buildQuickActions(context, ref, currentProject, theme,
+              isDesktop: true),
         ],
       ),
       body: Row(
@@ -128,12 +131,14 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Project preview
-                  _buildDesktopProjectPreview(context, ref, currentProject, theme),
+                  _buildDesktopProjectPreview(
+                      context, ref, currentProject, theme),
 
                   const SizedBox(height: 32),
 
                   // Project info
-                  _buildProjectInfo(context, ref, currentProject, theme, isDesktop: true),
+                  _buildProjectInfo(context, ref, currentProject, theme,
+                      isDesktop: true),
 
                   const SizedBox(height: 32),
 
@@ -160,12 +165,14 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Author info
-                  _buildAuthorInfo(context, ref, currentProject, theme, isDesktop: true),
+                  _buildAuthorInfo(context, ref, currentProject, theme,
+                      isDesktop: true),
 
                   const SizedBox(height: 24),
 
                   // Project actions
-                  _buildProjectActions(context, ref, currentProject, theme, isDesktop: true),
+                  _buildProjectActions(context, ref, currentProject, theme,
+                      isDesktop: true),
 
                   const SizedBox(height: 32),
 
@@ -216,10 +223,12 @@ class ProjectDetailScreen extends HookConsumerWidget {
                       currentProject.title,
                       style: TextStyle(color: theme.textPrimary, fontSize: 18),
                     ),
-              background: _buildTabletProjectPreview(context, ref, currentProject, theme),
+              background: _buildTabletProjectPreview(
+                  context, ref, currentProject, theme),
             ),
             actions: [
-              _buildQuickActions(context, ref, currentProject, theme, isTablet: true),
+              _buildQuickActions(context, ref, currentProject, theme,
+                  isTablet: true),
             ],
           ),
           SliverToBoxAdapter(
@@ -235,18 +244,22 @@ class ProjectDetailScreen extends HookConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Project info
-                        _buildProjectInfo(context, ref, currentProject, theme, isTablet: true),
+                        _buildProjectInfo(context, ref, currentProject, theme,
+                            isTablet: true),
 
                         const SizedBox(height: 24),
 
                         // Tags
                         if (currentProject.tags.isNotEmpty) ...[
-                          _buildTags(context, currentProject, theme, isTablet: true),
+                          _buildTags(context, currentProject, theme,
+                              isTablet: true),
                           const SizedBox(height: 24),
                         ],
 
                         // Comments on tablet (below main content)
-                        _buildCommentsSection(context, ref, comments, theme, currentProject, isTablet: true),
+                        _buildCommentsSection(
+                            context, ref, comments, theme, currentProject,
+                            isTablet: true),
                       ],
                     ),
                   ),
@@ -259,12 +272,15 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     child: Column(
                       children: [
                         // Author info
-                        _buildAuthorInfo(context, ref, currentProject, theme, isTablet: true),
+                        _buildAuthorInfo(context, ref, currentProject, theme,
+                            isTablet: true),
 
                         const SizedBox(height: 20),
 
                         // Project actions
-                        _buildProjectActions(context, ref, currentProject, theme, isTablet: true),
+                        _buildProjectActions(
+                            context, ref, currentProject, theme,
+                            isTablet: true),
                       ],
                     ),
                   ),
@@ -304,7 +320,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                       currentProject.title,
                       style: TextStyle(color: theme.textPrimary, fontSize: 16),
                     ),
-              background: _buildProjectPreview(context, ref, currentProject, theme),
+              background:
+                  _buildProjectPreview(context, ref, currentProject, theme),
             ),
             actions: [
               _buildQuickActions(context, ref, currentProject, theme),
@@ -338,7 +355,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   ],
 
                   // Comments section
-                  _buildCommentsSection(context, ref, comments, theme, currentProject),
+                  _buildCommentsSection(
+                      context, ref, comments, theme, currentProject),
                 ],
               ),
             ),
@@ -369,7 +387,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
         ),
       );
 
-      final result = await ref.read(communityProjectsProvider.notifier).deleteProject(currentProject);
+      final result = await ref
+          .read(communityProjectsProvider.notifier)
+          .deleteProject(currentProject);
       if (!context.mounted) return;
 
       if (result) {
@@ -412,8 +432,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
     bool isTablet = false,
   }) {
     final authState = ref.watch(authProvider);
-    final isAuthor =
-        authState.isSignedIn && authState.apiUser != null && (authState.apiUser?.id == currentProject.userId);
+    final isAuthor = authState.isSignedIn &&
+        authState.apiUser != null &&
+        (authState.apiUser?.id == currentProject.userId);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -422,11 +443,17 @@ class ProjectDetailScreen extends HookConsumerWidget {
         if (!isAuthor) ...[
           IconButton(
             icon: Icon(
-              currentProject.isLiked == true ? Icons.favorite : Icons.favorite_border,
-              color: currentProject.isLiked == true ? Colors.red : theme.activeIcon,
+              currentProject.isLiked == true
+                  ? Icons.favorite
+                  : Icons.favorite_border,
+              color: currentProject.isLiked == true
+                  ? Colors.red
+                  : theme.activeIcon,
             ),
             onPressed: () {
-              ref.read(communityProjectsProvider.notifier).toggleLike(currentProject);
+              ref
+                  .read(communityProjectsProvider.notifier)
+                  .toggleLike(currentProject);
             },
             tooltip: currentProject.isLiked == true ? 'Unlike' : 'Like',
           ),
@@ -462,7 +489,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
           IconButton(
             icon: Icon(Icons.delete, color: theme.error),
             onPressed: () async {
-              final result = await _showDeleteDialog(context, ref, currentProject);
+              final result =
+                  await _showDeleteDialog(context, ref, currentProject);
               if (result == true) {
                 _deleteProject(context, ref, currentProject);
               }
@@ -730,7 +758,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                       CachedNetworkImage(
                         imageUrl: currentProject.thumbnailUrl,
                         httpHeaders: {
-                          'Authorization': 'Bearer ${ref.read(localStorageProvider).token}',
+                          'Authorization':
+                              'Bearer ${ref.read(localStorageProvider).token}',
                         },
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Center(
@@ -886,7 +915,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
           ),
         ),
 
-        if (currentProject.description != null && currentProject.description!.isNotEmpty) ...[
+        if (currentProject.description != null &&
+            currentProject.description!.isNotEmpty) ...[
           SizedBox(height: isDesktop ? 16 : 12),
           Text(
             currentProject.description!,
@@ -913,7 +943,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                       context,
                       icon: Feather.grid,
                       label: 'Size',
-                      value: '${currentProject.width} × ${currentProject.height}',
+                      value:
+                          '${currentProject.width} × ${currentProject.height}',
                       color: theme.primaryColor,
                       isLarge: isDesktop,
                     ),
@@ -1011,7 +1042,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     final padding = isLarge ? 12.0 : 8.0;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding * 0.75),
+      padding:
+          EdgeInsets.symmetric(horizontal: padding, vertical: padding * 0.75),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
@@ -1080,7 +1112,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
             radius: avatarRadius,
             backgroundColor: theme.primaryColor,
             child: Text(
-              (currentProject.displayName ?? currentProject.username ?? 'U')[0].toUpperCase(),
+              (currentProject.displayName ?? currentProject.username ?? 'U')[0]
+                  .toUpperCase(),
               style: TextStyle(
                 color: theme.onPrimary,
                 fontSize: avatarRadius * 0.7,
@@ -1097,7 +1130,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        currentProject.displayName ?? currentProject.username ?? 'Unknown Artist',
+                        currentProject.displayName ??
+                            currentProject.username ??
+                            'Unknown Artist',
                         style: TextStyle(
                           fontSize: nameSize,
                           fontWeight: FontWeight.bold,
@@ -1140,7 +1175,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
     bool isTablet = false,
   }) {
     final authState = ref.watch(authProvider);
-    final isAuthor = authState.isSignedIn && authState.user != null && (authState.apiUser?.id == currentProject.userId);
+    final isAuthor = authState.isSignedIn &&
+        authState.user != null &&
+        (authState.apiUser?.id == currentProject.userId);
 
     final isDownloaded = ref.watch(isProjectDownloadedProvider(project.id));
     final localProject = ref.watch(localProjectByRemoteIdProvider(project.id));
@@ -1168,22 +1205,29 @@ class ProjectDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _toggleVisibility(context, ref, currentProject),
-                    icon: Icon(currentProject.isPublic ? Icons.public : Icons.lock),
+                    onPressed: () =>
+                        _toggleVisibility(context, ref, currentProject),
+                    icon: Icon(
+                        currentProject.isPublic ? Icons.public : Icons.lock),
                     label: Text(currentProject.isPublic ? 'Public' : 'Private'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       side: BorderSide(
-                        color: currentProject.isPublic ? theme.success : theme.warning,
+                        color: currentProject.isPublic
+                            ? theme.success
+                            : theme.warning,
                       ),
-                      foregroundColor: currentProject.isPublic ? theme.success : theme.warning,
+                      foregroundColor: currentProject.isPublic
+                          ? theme.success
+                          : theme.warning,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _showAnalytics(context, ref, currentProject),
+                    onPressed: () =>
+                        _showAnalytics(context, ref, currentProject),
                     icon: const Icon(Icons.analytics),
                     label: const Text('Analytics'),
                     style: OutlinedButton.styleFrom(
@@ -1215,21 +1259,28 @@ class ProjectDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _toggleVisibility(context, ref, currentProject),
-                    icon: Icon(currentProject.isPublic ? Icons.public : Icons.lock),
+                    onPressed: () =>
+                        _toggleVisibility(context, ref, currentProject),
+                    icon: Icon(
+                        currentProject.isPublic ? Icons.public : Icons.lock),
                     label: Text(currentProject.isPublic ? 'Public' : 'Private'),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
-                        color: currentProject.isPublic ? theme.success : theme.warning,
+                        color: currentProject.isPublic
+                            ? theme.success
+                            : theme.warning,
                       ),
-                      foregroundColor: currentProject.isPublic ? theme.success : theme.warning,
+                      foregroundColor: currentProject.isPublic
+                          ? theme.success
+                          : theme.warning,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _showAnalytics(context, ref, currentProject),
+                    onPressed: () =>
+                        _showAnalytics(context, ref, currentProject),
                     icon: const Icon(Icons.analytics),
                     label: const Text('Stats'),
                   ),
@@ -1248,18 +1299,28 @@ class ProjectDetailScreen extends HookConsumerWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  ref.read(communityProjectsProvider.notifier).toggleLike(currentProject);
+                  ref
+                      .read(communityProjectsProvider.notifier)
+                      .toggleLike(currentProject);
                 },
                 icon: Icon(
-                  currentProject.isLiked == true ? Icons.favorite : Icons.favorite_border,
+                  currentProject.isLiked == true
+                      ? Icons.favorite
+                      : Icons.favorite_border,
                   color: currentProject.isLiked == true ? Colors.red : null,
                 ),
                 label: Text('${_formatCount(currentProject.likeCount)} Likes'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.1) : theme.surface,
-                  foregroundColor: currentProject.isLiked == true ? Colors.red : theme.textPrimary,
+                  backgroundColor: currentProject.isLiked == true
+                      ? Colors.red.withValues(alpha: 0.1)
+                      : theme.surface,
+                  foregroundColor: currentProject.isLiked == true
+                      ? Colors.red
+                      : theme.textPrimary,
                   side: BorderSide(
-                    color: currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.3) : theme.divider,
+                    color: currentProject.isLiked == true
+                        ? Colors.red.withValues(alpha: 0.3)
+                        : theme.divider,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -1273,7 +1334,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   // Scroll to comments
                 },
                 icon: const Icon(Icons.comment_outlined),
-                label: Text('${_formatCount(currentProject.commentCount)} Comments'),
+                label: Text(
+                    '${_formatCount(currentProject.commentCount)} Comments'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -1283,7 +1345,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _downloadProject(context, ref, currentProject, ref.read(subscriptionStateProvider)),
+                onPressed: () => _downloadProject(context, ref, currentProject,
+                    ref.read(subscriptionStateProvider)),
                 icon: const Icon(Icons.download),
                 label: const Text('Download'),
                 style: OutlinedButton.styleFrom(
@@ -1301,19 +1364,28 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      ref.read(communityProjectsProvider.notifier).toggleLike(currentProject);
+                      ref
+                          .read(communityProjectsProvider.notifier)
+                          .toggleLike(currentProject);
                     },
                     icon: Icon(
-                      currentProject.isLiked == true ? Icons.favorite : Icons.favorite_border,
+                      currentProject.isLiked == true
+                          ? Icons.favorite
+                          : Icons.favorite_border,
                       color: currentProject.isLiked == true ? Colors.red : null,
                     ),
                     label: Text('${_formatCount(currentProject.likeCount)}'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.1) : theme.surface,
-                      foregroundColor: currentProject.isLiked == true ? Colors.red : theme.textPrimary,
+                      backgroundColor: currentProject.isLiked == true
+                          ? Colors.red.withValues(alpha: 0.1)
+                          : theme.surface,
+                      foregroundColor: currentProject.isLiked == true
+                          ? Colors.red
+                          : theme.textPrimary,
                       side: BorderSide(
-                        color: currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.3) : theme.divider,
+                        color: currentProject.isLiked == true
+                            ? Colors.red.withValues(alpha: 0.3)
+                            : theme.divider,
                       ),
                     ),
                   ),
@@ -1336,7 +1408,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    _openLocalProject(context, localProject);
+                    _openLocalProject(context, ref, localProject);
                   },
                   icon: const Icon(Icons.folder_open),
                   label: const Text('Open Project'),
@@ -1346,7 +1418,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => _downloadProject(context, ref, currentProject, ref.read(subscriptionStateProvider)),
+                  onPressed: () => _downloadProject(context, ref,
+                      currentProject, ref.read(subscriptionStateProvider)),
                   icon: const Icon(Icons.download),
                   label: const Text('Download Project'),
                 ),
@@ -1358,7 +1431,11 @@ class ProjectDetailScreen extends HookConsumerWidget {
     }
   }
 
-  void _openLocalProject(BuildContext context, Project? localProject) {
+  void _openLocalProject(
+    BuildContext context,
+    WidgetRef ref,
+    Project? localProject,
+  ) async {
     if (localProject == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -1369,9 +1446,21 @@ class ProjectDetailScreen extends HookConsumerWidget {
       return;
     }
 
+    Project? projectToOpen = localProject;
+    final hasCanvasData = localProject.frames.isNotEmpty &&
+        localProject.frames.first.layers.isNotEmpty;
+    if (!hasCanvasData) {
+      projectToOpen =
+          await ref.read(projectsProvider.notifier).getProject(localProject.id);
+    }
+
+    if (!context.mounted || projectToOpen == null) {
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => PixelCanvasScreen(project: localProject),
+        builder: (context) => PixelCanvasScreen(project: projectToOpen!),
       ),
     );
   }
@@ -1458,13 +1547,15 @@ class ProjectDetailScreen extends HookConsumerWidget {
             ),
             if (isDesktop) ...[
               ElevatedButton.icon(
-                onPressed: () => _showAddCommentDialog(context, ref, currentProject),
+                onPressed: () =>
+                    _showAddCommentDialog(context, ref, currentProject),
                 icon: const Icon(Icons.add_comment, color: Colors.white),
                 label: const Text('Add Comment'),
               ),
             ] else ...[
               TextButton.icon(
-                onPressed: () => _showAddCommentDialog(context, ref, currentProject),
+                onPressed: () =>
+                    _showAddCommentDialog(context, ref, currentProject),
                 icon: const Icon(Icons.add_comment),
                 label: const Text('Add Comment'),
               ),
@@ -1645,13 +1736,15 @@ class ProjectDetailScreen extends HookConsumerWidget {
     );
   }
 
-  void _toggleVisibility(BuildContext context, WidgetRef ref, ApiProject currentProject) {
+  void _toggleVisibility(
+      BuildContext context, WidgetRef ref, ApiProject currentProject) {
     final newVisibility = !currentProject.isPublic;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(newVisibility ? 'Make Project Public' : 'Make Project Private'),
+        title: Text(
+            newVisibility ? 'Make Project Public' : 'Make Project Private'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1665,10 +1758,14 @@ class ProjectDetailScreen extends HookConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: newVisibility ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
+                color: newVisibility
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: newVisibility ? Colors.green.withValues(alpha: 0.3) : Colors.orange.withValues(alpha: 0.3),
+                  color: newVisibility
+                      ? Colors.green.withValues(alpha: 0.3)
+                      : Colors.orange.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -1681,9 +1778,13 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      newVisibility ? 'Project will be publicly visible' : 'Project will be private',
+                      newVisibility
+                          ? 'Project will be publicly visible'
+                          : 'Project will be private',
                       style: TextStyle(
-                        color: newVisibility ? Colors.green.shade700 : Colors.orange.shade700,
+                        color: newVisibility
+                            ? Colors.green.shade700
+                            : Colors.orange.shade700,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1725,7 +1826,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        newVisibility ? 'Project is now public' : 'Project is now private',
+                        newVisibility
+                            ? 'Project is now public'
+                            : 'Project is now private',
                       ),
                     ),
                   );
@@ -1750,7 +1853,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     );
   }
 
-  Future<bool?> _showDeleteDialog(BuildContext context, WidgetRef ref, ApiProject currentProject) {
+  Future<bool?> _showDeleteDialog(
+      BuildContext context, WidgetRef ref, ApiProject currentProject) {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1835,7 +1939,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     );
   }
 
-  void _editProject(BuildContext context, WidgetRef ref, ApiProject currentProject) {
+  void _editProject(
+      BuildContext context, WidgetRef ref, ApiProject currentProject) {
     // Navigate to project editor or show edit dialog
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -1845,7 +1950,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     // Implementation would navigate to the pixel art editor with this project
   }
 
-  void _showAnalytics(BuildContext context, WidgetRef ref, ApiProject currentProject) {
+  void _showAnalytics(
+      BuildContext context, WidgetRef ref, ApiProject currentProject) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -1925,11 +2031,13 @@ class ProjectDetailScreen extends HookConsumerWidget {
                           padding: EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              Icon(Icons.analytics, size: 48, color: Colors.grey),
+                              Icon(Icons.analytics,
+                                  size: 48, color: Colors.grey),
                               SizedBox(height: 16),
                               Text(
                                 'Detailed Analytics',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                               SizedBox(height: 8),
                               Text(
@@ -1951,7 +2059,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildAnalyticsCard(String title, String value, IconData icon, Color color) {
+  Widget _buildAnalyticsCard(
+      String title, String value, IconData icon, Color color) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -2000,7 +2109,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     );
   }
 
-  void _saveToFavorites(BuildContext context, WidgetRef ref, ApiProject currentProject) {
+  void _saveToFavorites(
+      BuildContext context, WidgetRef ref, ApiProject currentProject) {
     // Implement save to favorites functionality
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -2010,11 +2120,13 @@ class ProjectDetailScreen extends HookConsumerWidget {
     );
   }
 
-  void _followArtist(BuildContext context, WidgetRef ref, ApiProject currentProject) {
+  void _followArtist(
+      BuildContext context, WidgetRef ref, ApiProject currentProject) {
     // Implement follow artist functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Now following ${currentProject.displayName ?? currentProject.username}!'),
+        content: Text(
+            'Now following ${currentProject.displayName ?? currentProject.username}!'),
         duration: Duration(seconds: 2),
       ),
     );
@@ -2039,7 +2151,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Thank you for your report. We will review it shortly.'),
+                  content: Text(
+                      'Thank you for your report. We will review it shortly.'),
                 ),
               );
             },
@@ -2064,7 +2177,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Premium subscription required to download projects'),
+            content: const Text(
+                'Premium subscription required to download projects'),
             duration: const Duration(seconds: 3),
             action: SnackBarAction(
               label: 'Upgrade',
@@ -2091,7 +2205,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     );
   }
 
-  void _showDownloadOptionsDialog(BuildContext context, WidgetRef ref, ApiProject currentProject) {
+  void _showDownloadOptionsDialog(
+      BuildContext context, WidgetRef ref, ApiProject currentProject) {
     RewardDialog.show(
       context,
       title: 'Download Project',
@@ -2100,7 +2215,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
         // User successfully watched the video, allow download
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Thank you for watching! Your download is starting...'),
+            content:
+                Text('Thank you for watching! Your download is starting...'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
           ),
@@ -2116,7 +2232,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     );
   }
 
-  void _showAddCommentDialog(BuildContext context, WidgetRef ref, ApiProject currentProject) {
+  void _showAddCommentDialog(
+      BuildContext context, WidgetRef ref, ApiProject currentProject) {
     final authState = ref.read(authProvider);
     if (!authState.isSignedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2158,7 +2275,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   if (context.mounted) {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Comment added successfully!')),
+                      const SnackBar(
+                          content: Text('Comment added successfully!')),
                     );
                   }
                 } catch (e) {

@@ -13,6 +13,7 @@ import '../../l10n/strings.dart';
 import '../../pixel/pixel_canvas_state.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/animation_frame_controller.dart' hide AnimationController;
+import '../../pixel/canvas/pixel_viewport_controller.dart';
 import '../../pixel/tools.dart';
 import '../../data.dart';
 import '../../providers/subscription_provider.dart';
@@ -20,6 +21,8 @@ import '../widgets/animated_background.dart';
 import '../widgets/dialogs/import_dialog.dart';
 import '../widgets/drop_target_overlay.dart';
 import '../widgets/painter/pixel_painter.dart';
+import '../widgets/painter/pixel_viewport_gesture_layer.dart';
+import '../widgets/painter/pixel_viewport_transform.dart';
 import '../widgets/panel/desktop_side_panel.dart';
 import '../widgets/pixel_canvas_shortcuts.dart';
 import '../widgets/dialogs/animation_preview_dialog.dart';
@@ -145,8 +148,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
     });
   }
 
-  void _setZoomFit(
-      ValueNotifier<double> gridScale, ValueNotifier<Offset> gridOffset) {
+  void _setZoomFit(PixelViewportController viewportController) {
     final screenSize = MediaQuery.of(context).size;
     final canvasAspectRatio = project.width / project.height;
     final screenAspectRatio = screenSize.width / screenSize.height;
@@ -158,14 +160,11 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
       newScale = (screenSize.height * 0.8) / project.height;
     }
 
-    gridScale.value = newScale.clamp(0.5, 5.0);
-    gridOffset.value = Offset.zero;
+    viewportController.setViewport(newScale.clamp(0.5, 5.0), Offset.zero);
   }
 
-  void _setZoom100(
-      ValueNotifier<double> gridScale, ValueNotifier<Offset> gridOffset) {
-    gridScale.value = 1.0;
-    gridOffset.value = Offset.zero;
+  void _setZoom100(PixelViewportController viewportController) {
+    viewportController.reset();
   }
 
   Future<ImportDialogResult?> showImportDialog(BuildContext context) {
@@ -272,14 +271,13 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
       return null;
     }, [currentTool.value]);
 
-    final gridScale = useState(1.0);
-    final gridOffset = useState(Offset.zero);
+    final viewportController = useMemoized(PixelViewportController.new);
+    useListenable(viewportController);
+    useEffect(() {
+      return viewportController.dispose;
+    }, [viewportController]);
     final brushSize = useState(1);
     final sprayIntensity = useState(5);
-    final normalizedOffset = useState(Offset(
-      gridOffset.value.dx / gridScale.value,
-      gridOffset.value.dy / gridScale.value,
-    ));
 
     final isPlaying = useState(false);
     final showPrevFrames = useState(false);
@@ -295,8 +293,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
       shortcutsFocusNode: _shortcutsFocusNode,
       currentTool: currentTool,
       brushSize: brushSize,
-      gridScale: gridScale,
-      gridOffset: gridOffset,
+      viewportController: viewportController,
       state: state,
       notifier: notifier,
       handleExport: handleExport,
@@ -348,10 +345,10 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                     notifier.setCurrentModifier(modifier);
                   },
                   onZoomIn: () {
-                    gridScale.value = (gridScale.value * 1.1).clamp(0.5, 5.0);
+                    viewportController.zoomIn();
                   },
                   onZoomOut: () {
-                    gridScale.value = (gridScale.value / 1.1).clamp(0.5, 5.0);
+                    viewportController.zoomOut();
                   },
                   onShare: () => notifier.share(context),
                   showPrevFramesOpacity: () {
@@ -404,28 +401,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                               _handleDroppedImage(result, notifier),
                           onAsepriteDropped: (result) =>
                               _handleDroppedAseprite(context, result),
-                          child: GestureDetector(
-                            onScaleStart: (details) {
-                              final pointerCount = details.pointerCount;
-                              if (pointerCount == 2) {
-                                normalizedOffset.value =
-                                    (gridOffset.value - details.focalPoint) /
-                                        gridScale.value;
-                              }
-                            },
-                            onScaleUpdate: (details) {
-                              final pointerCount = details.pointerCount;
-                              if (pointerCount == 2) {
-                                const sensitivity = 0.5;
-                                final initialScale = gridScale.value;
-                                final newScale = initialScale *
-                                    (1 + (details.scale - 1) * sensitivity);
-                                gridScale.value = newScale.clamp(0.5, 5.0);
-                                gridOffset.value = details.focalPoint +
-                                    normalizedOffset.value * gridScale.value;
-                              }
-                            },
-                            onScaleEnd: (details) {},
+                          child: PixelViewportGestureLayer(
+                            controller: viewportController,
                             child: Stack(
                               clipBehavior: Clip.hardEdge,
                               children: [
@@ -454,54 +431,34 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                                           maxWidth: double.infinity,
                                           maxHeight: double.infinity,
                                           alignment: Alignment.center,
-                                          child: Transform(
-                                            transform: Matrix4.identity()
-                                              ..translateByDouble(
-                                                gridOffset.value.dx,
-                                                gridOffset.value.dy,
-                                                0,
-                                                1,
-                                              )
-                                              ..scaleByDouble(
-                                                gridScale.value,
-                                                gridScale.value,
-                                                1,
-                                                1,
-                                              ),
+                                          child: PixelViewportTransform(
+                                            controller: viewportController,
                                             child: SizedBox(
                                               width: canvasWidth,
                                               height: canvasHeight,
                                               child: Padding(
                                                 padding:
                                                     const EdgeInsets.all(8.0),
-                                                child: Container(
-                                                  clipBehavior: Clip.none,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(
-                                                        color: Colors.grey),
-                                                  ),
-                                                  child: PixelPainter(
-                                                    project: project,
-                                                    state: state,
-                                                    notifier: notifier,
-                                                    gridScale: gridScale,
-                                                    gridOffset: gridOffset,
-                                                    currentTool:
-                                                        currentTool.value,
-                                                    currentModifier:
-                                                        currentModifier.value,
-                                                    currentColor:
-                                                        state.currentColor,
-                                                    brushSize: brushSize,
-                                                    sprayIntensity:
-                                                        sprayIntensity,
-                                                    showPrevFrames:
-                                                        showPrevFrames.value,
-                                                    onToolAutoSwitch: (tool) {
-                                                      currentTool.value = tool;
-                                                    },
-                                                  ),
+                                                child: PixelPainter(
+                                                  project: project,
+                                                  state: state,
+                                                  notifier: notifier,
+                                                  viewportController:
+                                                      viewportController,
+                                                  currentTool:
+                                                      currentTool.value,
+                                                  currentModifier:
+                                                      currentModifier.value,
+                                                  currentColor:
+                                                      state.currentColor,
+                                                  brushSize: brushSize,
+                                                  sprayIntensity:
+                                                      sprayIntensity,
+                                                  showPrevFrames:
+                                                      showPrevFrames.value,
+                                                  onToolAutoSwitch: (tool) {
+                                                    currentTool.value = tool;
+                                                  },
                                                 ),
                                               ),
                                             ),

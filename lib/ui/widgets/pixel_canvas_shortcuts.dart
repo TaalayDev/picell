@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../pixel/canvas/pixel_viewport_controller.dart';
 import '../../pixel/pixel_canvas_state.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/tools.dart';
@@ -14,8 +15,7 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
     required this.shortcutsFocusNode,
     required this.currentTool,
     required this.brushSize,
-    required this.gridScale,
-    required this.gridOffset,
+    required this.viewportController,
     required this.state,
     required this.notifier,
     required this.handleExport,
@@ -30,16 +30,13 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
   final FocusNode shortcutsFocusNode;
   final ValueNotifier<PixelTool> currentTool;
   final ValueNotifier<int> brushSize;
-  final ValueNotifier<double> gridScale;
-  final ValueNotifier<Offset> gridOffset;
+  final PixelViewportController viewportController;
   final PixelCanvasState state;
   final PixelCanvasNotifier notifier;
   final Function(BuildContext context, PixelCanvasNotifier notifier,
       PixelCanvasState state) handleExport;
-  final Function(ValueNotifier<double> scale, ValueNotifier<Offset> offset)
-      setZoomFit;
-  final Function(ValueNotifier<double> scale, ValueNotifier<Offset> offset)
-      setZoom100;
+  final Function(PixelViewportController controller) setZoomFit;
+  final Function(PixelViewportController controller) setZoom100;
   final Future<ImportDialogResult?> Function(BuildContext context)
       showImportDialog;
   final Function(BuildContext context, PixelCanvasNotifier notifier)
@@ -66,13 +63,12 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       onExport: () => handleExport(context, notifier, state),
       onImport: () async {
         final result = await showImportDialog(context);
-        if (result != null) {
-          notifier.importImage(
-            context,
-            isBackground: result.isBackground,
-            options: result.conversionOptions,
-          );
-        }
+        if (!context.mounted || result == null) return;
+        notifier.importImage(
+          context,
+          isBackground: result.isBackground,
+          options: result.conversionOptions,
+        );
       },
       onToolChanged: (tool) {
         currentTool.value = tool;
@@ -86,13 +82,13 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
         brushSize.value = size;
       },
       onZoomIn: () {
-        gridScale.value = (gridScale.value * 1.1).clamp(0.5, 5.0);
+        viewportController.zoomIn();
       },
       onZoomOut: () {
-        gridScale.value = (gridScale.value / 1.1).clamp(0.5, 5.0);
+        viewportController.zoomOut();
       },
-      onZoomFit: () => setZoomFit(gridScale, gridOffset),
-      onZoom100: () => setZoom100(gridScale, gridOffset),
+      onZoomFit: () => setZoomFit(viewportController),
+      onZoom100: () => setZoom100(viewportController),
       onSwapColors: () {},
       onDefaultColors: () {},
       onToggleUI: toggleUI,

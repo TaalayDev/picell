@@ -28,8 +28,9 @@ class PixelCanvasController extends ChangeNotifier {
   Offset _offset = Offset.zero;
 
   ui.Image? _livePreviewImage;
-  Uint32List? _strokeSnapshotPixels;
   Timer? _previewImageUpdateTimer;
+  int _previewRevision = 0;
+  int _livePreviewRevision = -1;
 
   List<PixelPoint<int>> _previewPixels = [];
   Uint32List _cachedPixels = Uint32List(0);
@@ -74,6 +75,8 @@ class PixelCanvasController extends ChangeNotifier {
   Offset get offset => _offset;
 
   ui.Image? get livePreviewImage => _livePreviewImage;
+  bool get hasFreshLivePreviewImage =>
+      _livePreviewImage != null && _previewPixels.isNotEmpty && _livePreviewRevision == _previewRevision;
 
   List<PixelPoint<int>> get previewPixels => _previewPixels;
   Uint32List get cachedPixels => _cachedPixels;
@@ -167,69 +170,63 @@ class PixelCanvasController extends ChangeNotifier {
     if (_previewEffectsEnabled != enabled) {
       _previewEffectsEnabled = enabled;
       _updatePreviewPixelsWithEffects();
+      if (_previewPixels.isNotEmpty) {
+        _schedulePreviewImageRebuild(_previewRevision);
+      }
       notifyListeners();
     }
   }
 
-  void updatePreviewPixels(List<PixelPoint<int>> newPoints) {
-    if (newPoints.isEmpty) return;
-
-    // Start stroke snapshot if needed (first points of a stroke)
-    _strokeSnapshotPixels ??= Uint32List.fromList(currentLayer.processedPixels);
-
-    // Incrementally apply new points to snapshot (fast, no list bloat)
-    for (final point in newPoints) {
-      final index = point.y * width + point.x;
-      if (index >= 0 && index < _strokeSnapshotPixels!.length) {
-        _strokeSnapshotPixels![index] = point.color;
-      }
+  void _schedulePreviewImageRebuild(int revision) {
+    _previewImageUpdateTimer?.cancel();
+    if (_previewPixels.isEmpty) {
+      _clearLivePreviewImage();
+      return;
     }
 
-    // Keep old list for now (used by commit logic in provider)
-    _previewPixels.addAll(newPoints);
-
-    // Debounced image rebuild – feels instant but caps CPU/GPU load
-    _schedulePreviewImageUpdate();
-    notifyListeners();
-  }
-
-  void _schedulePreviewImageUpdate({bool immediate = false}) async {
-    if (_strokeSnapshotPixels == null) return;
-
-    _previewImageUpdateTimer?.cancel();
-    final delay = immediate ? Duration.zero : const Duration(milliseconds: 10);
-
-    Uint32List pixelsForPreview = Uint32List.fromList(_strokeSnapshotPixels!);
-
-    // Optional: skip heavy effects during active drawing for extra speed
-    // Remove this block if you want full effects live (still fast with compute)
-    if (currentLayer.effects.isNotEmpty && previewEffectsEnabled == false) {
-      // use raw snapshot – super fast
-    } else {
-      pixelsForPreview = EffectsManager.applyMultipleEffects(
-        _strokeSnapshotPixels!,
+    _previewImageUpdateTimer = Timer(const Duration(milliseconds: 10), () async {
+      final pixelsForPreview = _buildPreviewLayerPixels();
+      final image = await ImageHelper.createImageFromPixels(
+        pixelsForPreview,
         width,
         height,
-        currentLayer.effects,
       );
-    }
 
-    final image = await ImageHelper.createImageFromPixels(
-      pixelsForPreview,
-      width,
-      height,
-    );
-    _livePreviewImage?.dispose();
-    _livePreviewImage = image;
-    notifyListeners();
+      if (revision != _previewRevision || _previewPixels.isEmpty) {
+        image.dispose();
+        return;
+      }
+
+      _livePreviewImage?.dispose();
+      _livePreviewImage = image;
+      _livePreviewRevision = revision;
+      notifyListeners();
+    });
   }
 
-  static Future<ui.Image> _createImageFromPixels(List<dynamic> args) async {
-    final Uint32List pixels = args[0];
-    final int w = args[1];
-    final int h = args[2];
+  Uint32List _buildPreviewLayerPixels() {
+    final mergedPixels = _mergePixelsWithPoints(
+      currentLayer.processedPixels,
+      _previewPixels,
+    );
 
-    return ImageHelper.createImageFromPixels(pixels, w, h);
+    if (!_previewEffectsEnabled || currentLayer.effects.isEmpty) {
+      return mergedPixels;
+    }
+
+    return EffectsManager.applyMultipleEffects(
+      mergedPixels,
+      width,
+      height,
+      currentLayer.effects,
+    );
+  }
+
+  void _clearLivePreviewImage() {
+    _previewImageUpdateTimer?.cancel();
+    _livePreviewImage?.dispose();
+    _livePreviewImage = null;
+    _livePreviewRevision = -1;
   }
 
   /// Called on stroke end / tool finish – commits preview to layer & cleans up
@@ -238,10 +235,8 @@ class PixelCanvasController extends ChangeNotifier {
     // Provider will apply the points to raw layer pixels via DrawingService
 
     // Clean up new system
-    _strokeSnapshotPixels = null;
-    _livePreviewImage?.dispose();
-    _livePreviewImage = null;
-    _previewImageUpdateTimer?.cancel();
+    _clearLivePreviewImage();
+    _previewRevision = 0;
 
     // Keep old clear for now
     _previewPixels = [];
@@ -252,15 +247,7 @@ class PixelCanvasController extends ChangeNotifier {
   }
 
   void clearPreviewPixels() {
-    if (_strokeSnapshotPixels != null) {
-      _strokeSnapshotPixels = null;
-      _livePreviewImage?.dispose();
-      _livePreviewImage = null;
-      _previewImageUpdateTimer?.cancel();
-    }
-
-    _previewPixels = [];
-    _processedPreviewPixels = Uint32List(0);
+    _clearPreviewPixels();
     notifyListeners();
   }
 
@@ -292,11 +279,10 @@ class PixelCanvasController extends ChangeNotifier {
 
   void setPreviewPixels(List<PixelPoint<int>> pixels) {
     _previewPixels = List<PixelPoint<int>>.from(filterPixelsInSelection(pixels));
-    // _updateCurrentLayerCache();
+    _previewRevision++;
     _updatePreviewPixelsWithEffects();
+    _schedulePreviewImageRebuild(_previewRevision);
     notifyListeners();
-
-    // updatePreviewPixels(pixels);
   }
 
   // void clearPreviewPixels() {
@@ -356,6 +342,12 @@ class PixelCanvasController extends ChangeNotifier {
   void setSelection(SelectionRegion? region) {
     _currentSelectionRegion = region;
     notifyListeners();
+  }
+
+  /// Keeps widget-owned selection state in sync without triggering a rebuild
+  /// while the widget tree is already updating.
+  void syncSelectionWithoutNotify(SelectionRegion? region) {
+    _currentSelectionRegion = region;
   }
 
   void clearSelection() {
@@ -462,6 +454,8 @@ class PixelCanvasController extends ChangeNotifier {
   }
 
   void _clearPreviewPixels() {
+    _clearLivePreviewImage();
+    _previewRevision = 0;
     _previewPixels = [];
     _processedPreviewPixels = Uint32List(0);
     _gradientStart = null;
@@ -498,14 +492,9 @@ class PixelCanvasController extends ChangeNotifier {
     for (final point in points) {
       final index = point.y * width + point.x;
       if (index >= 0 && index < merged.length) {
-        merged[index] = _currentTool == PixelTool.eraser ? Colors.transparent.value : point.color;
+        merged[index] = _currentTool == PixelTool.eraser ? Colors.transparent.toARGB32() : point.color;
       }
     }
     return merged;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }

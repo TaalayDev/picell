@@ -6,14 +6,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../data.dart';
 import '../../../pixel/canvas/canvas_gesture_handler.dart';
 import '../../../pixel/canvas/pixel_canvas.dart';
-import '../../../pixel/image_painter.dart';
+import '../../../pixel/canvas/pixel_viewport_controller.dart';
 import '../../../pixel/pixel_canvas_state.dart';
 import '../../../pixel/providers/pixel_canvas_provider.dart';
 import '../../../pixel/tools.dart';
 import '../../../providers/background_image_provider.dart';
 import '../../../providers/editor_settings_provider.dart';
-import '../layers_preview.dart';
-import 'grid_painter.dart';
+import 'pixel_canvas_surface.dart';
 
 class PixelPainter extends HookConsumerWidget {
   const PixelPainter({
@@ -21,8 +20,7 @@ class PixelPainter extends HookConsumerWidget {
     required this.project,
     required this.state,
     required this.notifier,
-    required this.gridScale,
-    required this.gridOffset,
+    required this.viewportController,
     required this.currentTool,
     required this.currentModifier,
     required this.currentColor,
@@ -35,8 +33,7 @@ class PixelPainter extends HookConsumerWidget {
   final Project project;
   final PixelCanvasState state;
   final PixelCanvasNotifier notifier;
-  final ValueNotifier<double> gridScale;
-  final ValueNotifier<Offset> gridOffset;
+  final PixelViewportController viewportController;
   final PixelTool currentTool;
   final PixelModifier currentModifier;
   final Color currentColor;
@@ -67,221 +64,159 @@ class PixelPainter extends HookConsumerWidget {
     final inputMode = editorSettings.inputMode == InputMode.stylusOnly
         ? GestureInputMode.stylusOnly
         : GestureInputMode.standard;
-
-    return CustomPaint(
-      painter: GridPainter(
-        width: min(project.width, 64),
-        height: min(project.height, 64),
-        // scale: gridScale.value,
-        // offset: gridOffset.value,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (backgroundImage.image != null)
-            Positioned.fill(
-              child: LayoutBuilder(builder: (context, constraints) {
-                final maXWidth = constraints.maxWidth;
-                final maXHeight = constraints.maxHeight;
-
-                return Opacity(
-                  opacity: backgroundImage.opacity,
-                  child: Transform(
-                    transform: Matrix4.identity()
-                      ..scale(backgroundImage.scale)
-                      ..translate(
-                        backgroundImage.offset.dx * maXWidth,
-                        backgroundImage.offset.dy * maXHeight,
-                      ),
-                    child: Image.memory(
-                      backgroundImage.image!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                );
-              }),
-            ),
-          // Positioned.fill(
-          //   child: LayoutBuilder(builder: (context, constraints) {
-          //     final maXWidth = constraints.maxWidth;
-          //     final maXHeight = constraints.maxHeight;
-
-          //     return Opacity(
-          //       opacity: backgroundImage.opacity,
-          //       child: Transform(
-          //         transform: Matrix4.identity()
-          //           ..scale(backgroundImage.scale)
-          //           ..translate(
-          //             backgroundImage.offset.dx * maXWidth,
-          //             backgroundImage.offset.dy * maXHeight,
-          //           ),
-          //         child: SvgPicture.asset(
-          //           'assets/vectors/black_hole.svg',
-          //           fit: BoxFit.cover,
-          //         ),
-          //       ),
-          //     );
-          //   }),
-          // ),
-          if (showPrevFrames)
-            for (var i = 0; i < state.currentFrameIndex; i++)
-              Positioned.fill(
-                child: Opacity(
-                  opacity: calculateOnionSkinOpacity(
-                    i,
-                    state.currentFrameIndex,
-                  ),
-                  child: LayersPreview(
-                    width: project.width,
-                    height: project.height,
-                    layers: state.frames[i].layers,
-                    builder: (context, image) {
-                      return image != null
-                          ? CustomPaint(painter: ImagePainter(image))
-                          : const ColoredBox(color: Colors.transparent);
-                    },
-                  ),
-                ),
-              ),
-          Positioned.fill(
-            child: PixelCanvas(
+    final onionSkinFrames = showPrevFrames
+        ? List<PixelCanvasOnionSkinFrame>.generate(
+            state.currentFrameIndex,
+            (index) => PixelCanvasOnionSkinFrame(
+              frameId: state.frames[index].id,
               width: project.width,
               height: project.height,
-              layers: state.layers,
-              currentLayerIndex: state.currentLayerIndex,
-              onTapPixel: (x, y) {
-                switch (currentTool) {
-                  case PixelTool.pencil:
-                  case PixelTool.brush:
-                  case PixelTool.pixelPerfectLine:
-                  case PixelTool.sprayPaint:
-                    notifier.setPixel(x, y);
-                    break;
-                  case PixelTool.fill:
-                    notifier.fill(x, y);
-                    break;
-                  case PixelTool.eraser:
-                    final originalColor = notifier.currentColor;
-                    notifier.currentColor = Colors.transparent;
-                    notifier.setPixel(x, y);
-                    notifier.currentColor = originalColor;
-                    break;
-                  default:
-                    break;
-                }
-              },
-              currentTool: currentTool,
-              currentColor: currentColor,
-              modifier: currentModifier,
-              brushSize: brushSize.value,
-              sprayIntensity: sprayIntensity.value,
-              zoomLevel: gridScale.value,
-              currentOffset: gridOffset.value,
-              eventStream: notifier.eventStream,
-              inputMode: inputMode,
-              twoFingerUndoEnabled: editorSettings.twoFingerUndoEnabled,
-              onDrawShape: (points) {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .fillPixels(points);
-              },
-              onStartDrawing: () {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .startDrawing();
-              },
-              onFinishDrawing: () {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .endDrawing();
-              },
-              selectionState: state.selectionState,
-              onSelectionChanged: (region) {
-                final notifier =
-                    ref.read(pixelCanvasNotifierProvider(project).notifier);
-                if (region == null) {
-                  notifier.clearSelection();
-                } else {
-                  notifier.setSelection(region);
-                }
-              },
-              onMoveSelection: (delta) {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .moveSelection(delta);
-              },
-              onSelectionResize: (newRegion, oldRegion, newBounds, center) {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .resizeSelectionNew(
-                      newRegion.bounds,
-                      region: newRegion,
-                    );
-              },
-              onSelectionRotate: (newRegion, oldRegion, angle, center) {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .rotateSelectionNew(
-                      angle,
-                      pivot: center,
-                      region: newRegion,
-                    );
-              },
-              onTransformStart: (region) {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .startTransformSelection(region);
-              },
-              onTransformEnd: () {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .endTransformSelection();
-              },
-              onAnchorChanged: (anchor) {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .setAnchorPoint(anchor);
-              },
-              onColorPicked: (color) {
-                ref
-                        .read(pixelCanvasNotifierProvider(project).notifier)
-                        .currentColor =
-                    color == Colors.transparent ? Colors.white : color;
-                // Auto-switch back to pencil after picking a color
-                onToolAutoSwitch?.call(PixelTool.pencil);
-              },
-              onGradientApplied: (gradientColors) {
-                ref
-                    .read(pixelCanvasNotifierProvider(project).notifier)
-                    .applyGradient(gradientColors);
-              },
-              onStartDrag: (scale, offset) {
-                if (currentTool == PixelTool.drag) {
-                  return ref
-                      .read(pixelCanvasNotifierProvider(project).notifier)
-                      .startDrag();
-                }
-              },
-              onDrag: (scale, offset) {
-                if (currentTool == PixelTool.drag) {
-                  return ref
-                      .read(pixelCanvasNotifierProvider(project).notifier)
-                      .dragPixels(scale, offset);
-                }
-
-                gridScale.value = scale;
-                gridOffset.value = offset;
-              },
-              onDragEnd: (s, o) {
-                if (currentTool == PixelTool.drag) {
-                  return ref
-                      .read(pixelCanvasNotifierProvider(project).notifier)
-                      .endDrag();
-                }
-              },
+              layers: state.frames[index].layers,
+              opacity: calculateOnionSkinOpacity(
+                index,
+                state.currentFrameIndex,
+              ),
             ),
-          ),
-        ],
+          )
+        : const <PixelCanvasOnionSkinFrame>[];
+
+    return PixelCanvasSurface(
+      gridWidth: min(project.width, 64),
+      gridHeight: min(project.height, 64),
+      backgroundImageBytes: backgroundImage.image,
+      backgroundOpacity: backgroundImage.opacity,
+      backgroundScale: backgroundImage.scale,
+      backgroundOffset: backgroundImage.offset,
+      onionSkinFrames: onionSkinFrames,
+      child: PixelCanvas(
+        width: project.width,
+        height: project.height,
+        layers: state.layers,
+        currentLayerIndex: state.currentLayerIndex,
+        onTapPixel: (x, y) {
+          switch (currentTool) {
+            case PixelTool.pencil:
+            case PixelTool.brush:
+            case PixelTool.pixelPerfectLine:
+            case PixelTool.sprayPaint:
+              notifier.setPixel(x, y);
+              break;
+            case PixelTool.fill:
+              notifier.fill(x, y);
+              break;
+            case PixelTool.eraser:
+              final originalColor = notifier.currentColor;
+              notifier.currentColor = Colors.transparent;
+              notifier.setPixel(x, y);
+              notifier.currentColor = originalColor;
+              break;
+            default:
+              break;
+          }
+        },
+        currentTool: currentTool,
+        currentColor: currentColor,
+        modifier: currentModifier,
+        brushSize: brushSize.value,
+        sprayIntensity: sprayIntensity.value,
+        viewportController: viewportController,
+        eventStream: notifier.eventStream,
+        inputMode: inputMode,
+        twoFingerUndoEnabled: editorSettings.twoFingerUndoEnabled,
+        enableMultiTouchViewportNavigation: false,
+        onDrawShape: (points) {
+          ref
+              .read(pixelCanvasNotifierProvider(project).notifier)
+              .fillPixels(points);
+        },
+        onStartDrawing: () {
+          ref
+              .read(pixelCanvasNotifierProvider(project).notifier)
+              .startDrawing();
+        },
+        onFinishDrawing: () {
+          ref.read(pixelCanvasNotifierProvider(project).notifier).endDrawing();
+        },
+        selectionState: state.selectionState,
+        onSelectionChanged: (region) {
+          final notifier =
+              ref.read(pixelCanvasNotifierProvider(project).notifier);
+          if (region == null) {
+            notifier.clearSelection();
+          } else {
+            notifier.setSelection(region);
+          }
+        },
+        onMoveSelection: (delta) {
+          ref
+              .read(pixelCanvasNotifierProvider(project).notifier)
+              .moveSelection(delta);
+        },
+        onSelectionResize: (newRegion, oldRegion, newBounds, center) {
+          ref
+              .read(pixelCanvasNotifierProvider(project).notifier)
+              .resizeSelectionNew(
+                newRegion.bounds,
+                region: newRegion,
+              );
+        },
+        onSelectionRotate: (newRegion, oldRegion, angle, center) {
+          ref
+              .read(pixelCanvasNotifierProvider(project).notifier)
+              .rotateSelectionNew(
+                angle,
+                pivot: center,
+                region: newRegion,
+              );
+        },
+        onTransformStart: (region) {
+          ref
+              .read(pixelCanvasNotifierProvider(project).notifier)
+              .startTransformSelection(region);
+        },
+        onTransformEnd: () {
+          ref
+              .read(pixelCanvasNotifierProvider(project).notifier)
+              .endTransformSelection();
+        },
+        onAnchorChanged: (anchor) {
+          ref
+              .read(pixelCanvasNotifierProvider(project).notifier)
+              .setAnchorPoint(anchor);
+        },
+        onColorPicked: (color) {
+          ref.read(pixelCanvasNotifierProvider(project).notifier).currentColor =
+              color == Colors.transparent ? Colors.white : color;
+          onToolAutoSwitch?.call(PixelTool.pencil);
+        },
+        onGradientApplied: (gradientColors) {
+          ref
+              .read(pixelCanvasNotifierProvider(project).notifier)
+              .applyGradient(gradientColors);
+        },
+        onStartDrag: (scale, offset) {
+          if (currentTool == PixelTool.drag) {
+            return ref
+                .read(pixelCanvasNotifierProvider(project).notifier)
+                .startDrag();
+          }
+        },
+        onDrag: (scale, offset) {
+          if (currentTool == PixelTool.drag) {
+            return ref
+                .read(pixelCanvasNotifierProvider(project).notifier)
+                .dragPixels(scale, offset);
+          }
+
+          viewportController.setViewport(scale, offset);
+        },
+        onDragEnd: (s, o) {
+          if (currentTool == PixelTool.drag) {
+            return ref
+                .read(pixelCanvasNotifierProvider(project).notifier)
+                .endDrag();
+          }
+        },
       ),
     );
   }
