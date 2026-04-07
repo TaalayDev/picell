@@ -4,11 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../../../pixel/canvas/pixel_viewport_controller.dart';
 
 class PixelViewportTransform extends SingleChildRenderObjectWidget {
-  const PixelViewportTransform({
-    super.key,
-    required this.controller,
-    required super.child,
-  });
+  const PixelViewportTransform({super.key, required this.controller, required super.child});
 
   final PixelViewportController controller;
 
@@ -20,17 +16,11 @@ class PixelViewportTransform extends SingleChildRenderObjectWidget {
 
   @override
   RenderTransform createRenderObject(BuildContext context) {
-    return RenderTransform(
-      transform: _buildTransform(),
-      transformHitTests: true,
-    );
+    return RenderTransform(transform: _buildTransform(), transformHitTests: true);
   }
 
   @override
-  void updateRenderObject(
-    BuildContext context,
-    covariant RenderTransform renderObject,
-  ) {
+  void updateRenderObject(BuildContext context, covariant RenderTransform renderObject) {
     renderObject.transform = _buildTransform();
   }
 }

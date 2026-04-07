@@ -6,12 +6,7 @@ class GridPainter extends CustomPainter {
   final double scale;
   final Offset offset;
 
-  GridPainter({
-    required this.width,
-    required this.height,
-    this.scale = 1.0,
-    this.offset = Offset.zero,
-  });
+  GridPainter({required this.width, required this.height, this.scale = 1.0, this.offset = Offset.zero});
 
   @override
   void paint(Canvas canvas, Size size) {

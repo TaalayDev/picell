@@ -7,34 +7,23 @@ import 'package:flutter/widgets.dart';
 import '../../../pixel/canvas/pixel_viewport_controller.dart';
 
 class PixelViewportGestureLayer extends SingleChildRenderObjectWidget {
-  const PixelViewportGestureLayer({
-    super.key,
-    required this.controller,
-    required super.child,
-  });
+  const PixelViewportGestureLayer({super.key, required this.controller, required super.child});
 
   final PixelViewportController controller;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return RenderPixelViewportGestureLayer(
-      controller: controller,
-    );
+    return RenderPixelViewportGestureLayer(controller: controller);
   }
 
   @override
-  void updateRenderObject(
-    BuildContext context,
-    covariant RenderPixelViewportGestureLayer renderObject,
-  ) {
+  void updateRenderObject(BuildContext context, covariant RenderPixelViewportGestureLayer renderObject) {
     renderObject.controller = controller;
   }
 }
 
 class RenderPixelViewportGestureLayer extends RenderProxyBox {
-  RenderPixelViewportGestureLayer({
-    required PixelViewportController controller,
-  }) : _controller = controller;
+  RenderPixelViewportGestureLayer({required PixelViewportController controller}) : _controller = controller;
 
   static const double _minScale = 0.5;
   static const double _maxScale = 5.0;

@@ -5,11 +5,7 @@ class CheckerboardPainter extends CustomPainter {
   final Color color1;
   final Color color2;
 
-  CheckerboardPainter({
-    required this.cellSize,
-    required this.color1,
-    required this.color2,
-  });
+  CheckerboardPainter({required this.cellSize, required this.color1, required this.color2});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -22,15 +18,7 @@ class CheckerboardPainter extends CustomPainter {
         final color = (row + col) % 2 == 0 ? color1 : color2;
         paint.color = color;
 
-        canvas.drawRect(
-          Rect.fromLTWH(
-            col * cellSize,
-            row * cellSize,
-            cellSize,
-            cellSize,
-          ),
-          paint,
-        );
+        canvas.drawRect(Rect.fromLTWH(col * cellSize, row * cellSize, cellSize, cellSize), paint);
       }
     }
   }

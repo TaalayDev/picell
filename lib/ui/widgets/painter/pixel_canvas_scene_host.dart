@@ -63,10 +63,7 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
   @override
   void initState() {
     super.initState();
-    _selectionAnimationController = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    )..repeat();
+    _selectionAnimationController = AnimationController(duration: const Duration(seconds: 1), vsync: this)..repeat();
     final sceneConfig = _buildSceneConfig();
     _canvasRuntime = PixelCanvasHostRuntime.create(
       width: widget.project.width,
@@ -84,10 +81,7 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
     _surfaceRuntime = PixelCanvasSurfaceRuntime();
 
     final backgroundImage = ref.read(backgroundImageProvider);
-    _surfaceRuntime.update(
-      backgroundImageBytes: backgroundImage.image,
-      onionSkinFrames: sceneConfig.onionSkinFrames,
-    );
+    _surfaceRuntime.update(backgroundImageBytes: backgroundImage.image, onionSkinFrames: sceneConfig.onionSkinFrames);
   }
 
   @override
@@ -106,10 +100,7 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
     );
 
     final backgroundImage = ref.read(backgroundImageProvider);
-    _surfaceRuntime.update(
-      backgroundImageBytes: backgroundImage.image,
-      onionSkinFrames: sceneConfig.onionSkinFrames,
-    );
+    _surfaceRuntime.update(backgroundImageBytes: backgroundImage.image, onionSkinFrames: sceneConfig.onionSkinFrames);
   }
 
   @override
@@ -125,10 +116,7 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
     final sceneConfig = _buildSceneConfig();
     final backgroundImage = ref.watch(backgroundImageProvider);
     ref.listen(backgroundImageProvider, (_, next) {
-      _surfaceRuntime.update(
-        backgroundImageBytes: next.image,
-        onionSkinFrames: sceneConfig.onionSkinFrames,
-      );
+      _surfaceRuntime.update(backgroundImageBytes: next.image, onionSkinFrames: sceneConfig.onionSkinFrames);
     });
 
     return PixelCanvasRenderHost(
@@ -216,17 +204,10 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
         },
         onMoveSelection: widget.notifier.moveSelection,
         onSelectionResize: (newRegion, oldRegion, newBounds, center) {
-          widget.notifier.resizeSelectionNew(
-            newRegion.bounds,
-            region: newRegion,
-          );
+          widget.notifier.resizeSelectionNew(newRegion.bounds, region: newRegion);
         },
         onSelectionRotate: (newRegion, oldRegion, angle, center) {
-          widget.notifier.rotateSelectionNew(
-            angle,
-            pivot: center,
-            region: newRegion,
-          );
+          widget.notifier.rotateSelectionNew(angle, pivot: center, region: newRegion);
         },
         onTransformStart: widget.notifier.startTransformSelection,
         onTransformEnd: widget.notifier.endTransformSelection,
@@ -265,10 +246,7 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
                 width: widget.project.width,
                 height: widget.project.height,
                 layers: widget.state.frames[index].layers,
-                opacity: _calculateOnionSkinOpacity(
-                  index,
-                  widget.state.currentFrameIndex,
-                ),
+                opacity: _calculateOnionSkinOpacity(index, widget.state.currentFrameIndex),
               ),
             )
           : const <PixelCanvasOnionSkinFrame>[],
