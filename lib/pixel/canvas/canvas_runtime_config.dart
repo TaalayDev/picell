@@ -48,10 +48,8 @@ class PixelCanvasRuntimeConfig {
   final Animation<double>? selectionAnimation;
   final Function(SelectionRegion?)? onSelectionChanged;
   final Function(Offset)? onMoveSelection;
-  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)?
-      onSelectionResize;
-  final Function(SelectionRegion, SelectionRegion, double, Offset?)?
-      onSelectionRotate;
+  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)? onSelectionResize;
+  final Function(SelectionRegion, SelectionRegion, double, Offset?)? onSelectionRotate;
   final Function(SelectionRegion)? onTransformStart;
   final VoidCallback? onTransformEnd;
   final Function(Offset)? onAnchorChanged;

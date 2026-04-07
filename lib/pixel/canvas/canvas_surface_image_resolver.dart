@@ -13,34 +13,23 @@ class PixelCanvasSurfaceImageResolver extends ChangeNotifier {
   ui.Image? get backgroundImage => _backgroundImage;
 
   Uint8List? _requestedBackgroundImageBytes;
-  List<PixelCanvasOnionSkinFrame> _requestedOnionSkinFrames =
-      const <PixelCanvasOnionSkinFrame>[];
-  List<PixelCanvasOnionSkinFrame> _lastOnionSkinFrames =
-      const <PixelCanvasOnionSkinFrame>[];
-  List<PixelCanvasResolvedOnionSkinFrame> _onionSkinImages =
-      const <PixelCanvasResolvedOnionSkinFrame>[];
-  List<PixelCanvasResolvedOnionSkinFrame> get onionSkinFrames =>
-      _onionSkinImages;
+  List<PixelCanvasOnionSkinFrame> _requestedOnionSkinFrames = const <PixelCanvasOnionSkinFrame>[];
+  List<PixelCanvasOnionSkinFrame> _lastOnionSkinFrames = const <PixelCanvasOnionSkinFrame>[];
+  List<PixelCanvasResolvedOnionSkinFrame> _onionSkinImages = const <PixelCanvasResolvedOnionSkinFrame>[];
+  List<PixelCanvasResolvedOnionSkinFrame> get onionSkinFrames => _onionSkinImages;
 
   int _decodeGeneration = 0;
   int _onionSkinGeneration = 0;
   bool _isDisposed = false;
 
-  void update({
-    required Uint8List? backgroundImageBytes,
-    required List<PixelCanvasOnionSkinFrame> onionSkinFrames,
-  }) {
+  void update({required Uint8List? backgroundImageBytes, required List<PixelCanvasOnionSkinFrame> onionSkinFrames}) {
     if (!identical(backgroundImageBytes, _requestedBackgroundImageBytes)) {
       _requestedBackgroundImageBytes = backgroundImageBytes;
       unawaited(_syncBackgroundImage(backgroundImageBytes));
     }
 
-    if (!samePixelCanvasOnionSkinFrames(
-      _requestedOnionSkinFrames,
-      onionSkinFrames,
-    )) {
-      _requestedOnionSkinFrames =
-          List<PixelCanvasOnionSkinFrame>.from(onionSkinFrames);
+    if (!samePixelCanvasOnionSkinFrames(_requestedOnionSkinFrames, onionSkinFrames)) {
+      _requestedOnionSkinFrames = List<PixelCanvasOnionSkinFrame>.from(onionSkinFrames);
       unawaited(_syncOnionSkinImages(_requestedOnionSkinFrames));
     }
   }
@@ -71,9 +60,7 @@ class PixelCanvasSurfaceImageResolver extends ChangeNotifier {
     return completer.future;
   }
 
-  Future<void> _syncOnionSkinImages(
-    List<PixelCanvasOnionSkinFrame> nextFrames,
-  ) async {
+  Future<void> _syncOnionSkinImages(List<PixelCanvasOnionSkinFrame> nextFrames) async {
     final generation = ++_onionSkinGeneration;
     final previousFramesById = <int, PixelCanvasOnionSkinFrame>{
       for (final frame in _lastOnionSkinFrames) frame.frameId: frame,
@@ -104,30 +91,16 @@ class PixelCanvasSurfaceImageResolver extends ChangeNotifier {
     for (final frame in nextFrames) {
       final previousFrame = previousFramesById[frame.frameId];
       final previousImage = previousImagesById[frame.frameId];
-      if (previousFrame != null &&
-          previousImage != null &&
-          frame.hasSameRasterData(previousFrame)) {
+      if (previousFrame != null && previousImage != null && frame.hasSameRasterData(previousFrame)) {
         nextImages.add(
-          PixelCanvasResolvedOnionSkinFrame(
-            frameId: frame.frameId,
-            image: previousImage.image,
-            opacity: frame.opacity,
-          ),
+          PixelCanvasResolvedOnionSkinFrame(frameId: frame.frameId, image: previousImage.image, opacity: frame.opacity),
         );
         reusedImages.add(previousImage.image);
         continue;
       }
 
-      final mergedPixels = PixelUtils.mergeLayersPixels(
-        width: frame.width,
-        height: frame.height,
-        layers: frame.layers,
-      );
-      final image = await ImageHelper.createImageFromPixels(
-        mergedPixels,
-        frame.width,
-        frame.height,
-      );
+      final mergedPixels = PixelUtils.mergeLayersPixels(width: frame.width, height: frame.height, layers: frame.layers);
+      final image = await ImageHelper.createImageFromPixels(mergedPixels, frame.width, frame.height);
       createdImages.add(image);
 
       if (_isDisposed || generation != _onionSkinGeneration) {
@@ -137,13 +110,7 @@ class PixelCanvasSurfaceImageResolver extends ChangeNotifier {
         return;
       }
 
-      nextImages.add(
-        PixelCanvasResolvedOnionSkinFrame(
-          frameId: frame.frameId,
-          image: image,
-          opacity: frame.opacity,
-        ),
-      );
+      nextImages.add(PixelCanvasResolvedOnionSkinFrame(frameId: frame.frameId, image: image, opacity: frame.opacity));
     }
 
     if (_isDisposed || generation != _onionSkinGeneration) {

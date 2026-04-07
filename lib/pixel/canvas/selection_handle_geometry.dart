@@ -37,8 +37,7 @@ class CanvasSelectionHandleGeometry {
   final Offset? moveHandleCenter;
   final Offset? anchorHandleCenter;
 
-  Iterable<Offset> get transformHandleCenters =>
-      transformHandleRects.values.map((rect) => rect.center);
+  Iterable<Offset> get transformHandleCenters => transformHandleRects.values.map((rect) => rect.center);
 
   static double get centerHandleRadius => centerHandleSize / 2;
 
@@ -158,17 +157,11 @@ class CanvasSelectionHandleGeometry {
         ),
       });
 
-      rotationHandleCenter = Offset(
-        selectionRect.center.dx,
-        selectionRect.top - rotationHandleDistance,
-      );
+      rotationHandleCenter = Offset(selectionRect.center.dx, selectionRect.top - rotationHandleDistance);
     }
 
     if (showSelectionMoveHandle) {
-      moveHandleCenter = Offset(
-        selectionRect.center.dx - moveHandleOffsetX,
-        selectionRect.top - moveHandleDistance,
-      );
+      moveHandleCenter = Offset(selectionRect.center.dx - moveHandleOffsetX, selectionRect.top - moveHandleDistance);
     }
 
     if (showSelectionAnchorHandle) {
@@ -191,14 +184,11 @@ class CanvasSelectionHandleGeometry {
   }
 
   CanvasSelectionHandle? hitTest(Offset localPosition) {
-    if (anchorHandleCenter != null &&
-        (localPosition - anchorHandleCenter!).distance <= centerHandleRadius) {
+    if (anchorHandleCenter != null && (localPosition - anchorHandleCenter!).distance <= centerHandleRadius) {
       return CanvasSelectionHandle.anchor;
     }
 
-    if (rotationHandleCenter != null &&
-        (localPosition - rotationHandleCenter!).distance <=
-            centerHandleRadius) {
+    if (rotationHandleCenter != null && (localPosition - rotationHandleCenter!).distance <= centerHandleRadius) {
       return CanvasSelectionHandle.rotate;
     }
 
@@ -208,8 +198,7 @@ class CanvasSelectionHandleGeometry {
       }
     }
 
-    if (moveHandleCenter != null &&
-        (localPosition - moveHandleCenter!).distance <= centerHandleRadius) {
+    if (moveHandleCenter != null && (localPosition - moveHandleCenter!).distance <= centerHandleRadius) {
       return CanvasSelectionHandle.move;
     }
 

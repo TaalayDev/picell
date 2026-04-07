@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
 class PixelViewportController extends ChangeNotifier {
-  PixelViewportController({
-    double initialScale = 1.0,
-    Offset initialOffset = Offset.zero,
-  })  : _scale = initialScale,
-        _offset = initialOffset;
+  PixelViewportController({double initialScale = 1.0, Offset initialOffset = Offset.zero})
+    : _scale = initialScale,
+      _offset = initialOffset;
 
   static const double minScale = 0.5;
   static const double maxScale = 5.0;

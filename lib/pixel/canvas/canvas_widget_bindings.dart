@@ -51,10 +51,8 @@ class PixelCanvasWidgetBindings {
     required Animation<double> selectionAnimation,
     Function(SelectionRegion?)? onSelectionChanged,
     Function(Offset)? onMoveSelection,
-    Function(SelectionRegion, SelectionRegion, Rect, Offset?)?
-        onSelectionResize,
-    Function(SelectionRegion, SelectionRegion, double, Offset?)?
-        onSelectionRotate,
+    Function(SelectionRegion, SelectionRegion, Rect, Offset?)? onSelectionResize,
+    Function(SelectionRegion, SelectionRegion, double, Offset?)? onSelectionRotate,
     Function(SelectionRegion)? onTransformStart,
     VoidCallback? onTransformEnd,
     Function(Offset)? onAnchorChanged,
@@ -94,10 +92,7 @@ class PixelCanvasWidgetBindings {
         tool == PixelTool.smartSelect;
   }
 
-  static Modifier? _resolveModifier(
-    PixelModifier modifier,
-    MirrorAxis mirrorAxis,
-  ) {
+  static Modifier? _resolveModifier(PixelModifier modifier, MirrorAxis mirrorAxis) {
     if (modifier == PixelModifier.mirror) {
       return MirrorModifier(mirrorAxis);
     }

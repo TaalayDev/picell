@@ -113,10 +113,7 @@ class ToolDrawingManager {
   void _initializeTools() {
     _selectionService = SelectionService(width: width, height: height);
 
-    _shapeUtils = ShapeUtils(
-      width: width,
-      height: height,
-    );
+    _shapeUtils = ShapeUtils(width: width, height: height);
 
     _fillTool = FillTool();
     _pencilTool = PencilTool();
@@ -143,14 +140,9 @@ class ToolDrawingManager {
       onConfirm: onSelectionEnd,
       onLassoUpdate: onLassoUpdate,
     );
-    _smartSelectionTool = SmartSelectionTool(
-      selectionService: _selectionService,
-      onSelectionEnd: onSelectionEnd,
-    );
+    _smartSelectionTool = SmartSelectionTool(selectionService: _selectionService, onSelectionEnd: onSelectionEnd);
 
-    _eyedropperTool = EyedropperTool(
-      onColorPicked: (color) => onColorPicked?.call(color),
-    );
+    _eyedropperTool = EyedropperTool(onColorPicked: (color) => onColorPicked?.call(color));
     _sprayTool = SprayTool();
 
     _heartTool = HeartTool();
@@ -251,10 +243,7 @@ class ToolDrawingManager {
   void setTextureBlendMode(BlendMode blendMode) {
     _textureBlendMode = blendMode;
     if (_selectedTextureId != null) {
-      setTextureBrush(
-        textureId: _selectedTextureId,
-        blendMode: blendMode,
-      );
+      setTextureBrush(textureId: _selectedTextureId, blendMode: blendMode);
     }
   }
 
@@ -276,11 +265,7 @@ class ToolDrawingManager {
     _curveTool.onStart(details);
 
     if (_curveTool.hasStartPoint && _curveTool.hasEndPoint) {
-      controller.setCurvePoints(
-        _curveTool.startPoint,
-        _curveTool.endPoint,
-        _curveTool.controlPoint,
-      );
+      controller.setCurvePoints(_curveTool.startPoint, _curveTool.endPoint, _curveTool.controlPoint);
     }
   }
 
@@ -288,11 +273,7 @@ class ToolDrawingManager {
     if (_curveTool.isDefiningCurve) {
       _curveTool.onMove(details);
 
-      controller.setCurvePoints(
-        _curveTool.startPoint,
-        _curveTool.endPoint,
-        details.position,
-      );
+      controller.setCurvePoints(_curveTool.startPoint, _curveTool.endPoint, details.position);
     }
   }
 
@@ -301,11 +282,7 @@ class ToolDrawingManager {
   }
 
   /// MARK: Pen Tool
-  void handlePenTap(
-    PixelDrawDetails details,
-    PixelCanvasController controller, {
-    VoidCallback? onPathClosed,
-  }) {
+  void handlePenTap(PixelDrawDetails details, PixelCanvasController controller, {VoidCallback? onPathClosed}) {
     final position = details.position;
     final penPoints = List<Offset>.from(controller.penPoints);
     const closeThreshold = 10.0;
@@ -329,11 +306,7 @@ class ToolDrawingManager {
     }
   }
 
-  void _updatePenPathPreview(
-    List<Offset> penPoints,
-    PixelDrawDetails details,
-    PixelCanvasController controller,
-  ) {
+  void _updatePenPathPreview(List<Offset> penPoints, PixelDrawDetails details, PixelCanvasController controller) {
     if (penPoints.length < 2) {
       final pixelPos = details.pixelPosition;
       if (_isValidPoint(pixelPos.x, pixelPos.y)) {
@@ -343,18 +316,10 @@ class ToolDrawingManager {
       return;
     }
 
-    final pixels = _shapeUtils.getPenPathPixels(
-      penPoints,
-      close: false,
-      size: details.size,
-    );
+    final pixels = _shapeUtils.getPenPathPixels(penPoints, close: false, size: details.size);
 
     final coloredPixels = pixels.map((point) {
-      return PixelPoint(
-        point.x,
-        point.y,
-        color: details.color.value,
-      );
+      return PixelPoint(point.x, point.y, color: details.color.value);
     }).toList();
 
     controller.setPreviewPixels(coloredPixels);
@@ -367,18 +332,10 @@ class ToolDrawingManager {
     bool close = true,
   }) {
     if (penPoints.length > 1) {
-      final pixels = _shapeUtils.getPenPathPixels(
-        penPoints,
-        close: close,
-        size: details.size,
-      );
+      final pixels = _shapeUtils.getPenPathPixels(penPoints, close: close, size: details.size);
 
       final coloredPixels = pixels.map((point) {
-        return PixelPoint(
-          point.x,
-          point.y,
-          color: details.color.value,
-        );
+        return PixelPoint(point.x, point.y, color: details.color.value);
       }).toList();
 
       controller.setPreviewPixels(coloredPixels);
@@ -403,10 +360,7 @@ class ToolDrawingManager {
     return pixels.where((point) => sel.contains(point.x, point.y)).toList();
   }
 
-  List<PixelPoint<int>> applyModifier(
-    PixelPoint<int> pixel,
-    Modifier? modifier,
-  ) {
+  List<PixelPoint<int>> applyModifier(PixelPoint<int> pixel, Modifier? modifier) {
     if (modifier == null) return [pixel];
 
     final modifiedPixels = modifier.apply(pixel, width, height);
@@ -440,16 +394,8 @@ class ToolDrawingManager {
     final linePoints = _shapeUtils.getLinePoints(startX, startY, endX, endY);
 
     for (final point in linePoints) {
-      final brushPixels = _shapeUtils.getBrushPixels(
-        point.x,
-        point.y,
-        brushSize,
-      );
-      pixels.addAll(brushPixels.map((p) => PixelPoint(
-            p.x,
-            p.y,
-            color: color.value,
-          )));
+      final brushPixels = _shapeUtils.getBrushPixels(point.x, point.y, brushSize);
+      pixels.addAll(brushPixels.map((p) => PixelPoint(p.x, p.y, color: color.value)));
     }
 
     return filterPointsBySelection(pixels);
@@ -520,13 +466,7 @@ class ToolDrawingManager {
         break;
     }
 
-    return filterPointsBySelection(shapePixels
-        .map((p) => PixelPoint(
-              p.x,
-              p.y,
-              color: color.value,
-            ))
-        .toList());
+    return filterPointsBySelection(shapePixels.map((p) => PixelPoint(p.x, p.y, color: color.value)).toList());
   }
 
   bool _isValidPoint(int x, int y) {

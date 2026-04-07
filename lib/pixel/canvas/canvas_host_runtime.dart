@@ -51,15 +51,14 @@ class PixelCanvasHostRuntime {
     required bool twoFingerUndoEnabled,
     required bool enableMultiTouchViewportNavigation,
     required SelectionState? selectionState,
-  })  : _lastLayers = layers,
-        _lastCurrentLayerIndex = currentLayerIndex,
-        _lastCurrentTool = currentTool,
-        _lastInputMode = inputMode,
-        _lastTwoFingerUndoEnabled = twoFingerUndoEnabled,
-        _lastEnableMultiTouchViewportNavigation =
-            enableMultiTouchViewportNavigation,
-        _lastSelectionState = selectionState,
-        _viewportController = viewportController;
+  }) : _lastLayers = layers,
+       _lastCurrentLayerIndex = currentLayerIndex,
+       _lastCurrentTool = currentTool,
+       _lastInputMode = inputMode,
+       _lastTwoFingerUndoEnabled = twoFingerUndoEnabled,
+       _lastEnableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation,
+       _lastSelectionState = selectionState,
+       _viewportController = viewportController;
 
   factory PixelCanvasHostRuntime.create({
     required int width,
@@ -74,10 +73,7 @@ class PixelCanvasHostRuntime {
     required SelectionState? selectionState,
     required PixelCanvasHostCallbacks callbacks,
   }) {
-    final cacheManager = LayerCacheManager(
-      width: width,
-      height: height,
-    );
+    final cacheManager = LayerCacheManager(width: width, height: height);
 
     final controller = PixelCanvasController(
       width: width,
@@ -96,9 +92,7 @@ class PixelCanvasHostRuntime {
         controller.setSelection(region);
       },
       onSelectionEnd: (region) {
-        if (region == null ||
-            region.bounds.width < 2 ||
-            region.bounds.height < 2) {
+        if (region == null || region.bounds.width < 2 || region.bounds.height < 2) {
           controller.clearSelection();
           toolManager.setCurrentSelection(null);
           callbacks.onSelectionChanged?.call(null);
@@ -124,8 +118,7 @@ class PixelCanvasHostRuntime {
       },
       onDrawShape: (shape) {
         final currentToolValue = callbacks.getCurrentTool();
-        if (currentToolValue == PixelTool.select ||
-            currentToolValue == PixelTool.ellipseSelect) {
+        if (currentToolValue == PixelTool.select || currentToolValue == PixelTool.ellipseSelect) {
           return;
         }
         callbacks.onDrawShape(shape);
@@ -138,14 +131,10 @@ class PixelCanvasHostRuntime {
 
     controller.initialize(layers);
     controller.setCurrentTool(currentTool);
-    controller.setZoomAndOffset(
-      viewportController.scale,
-      viewportController.offset,
-    );
+    controller.setZoomAndOffset(viewportController.scale, viewportController.offset);
     gestureHandler.inputMode = inputMode;
     gestureHandler.twoFingerUndoEnabled = twoFingerUndoEnabled;
-    gestureHandler.enableMultiTouchViewportNavigation =
-        enableMultiTouchViewportNavigation;
+    gestureHandler.enableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation;
 
     final runtime = PixelCanvasHostRuntime._(
       controller: controller,
@@ -229,12 +218,9 @@ class PixelCanvasHostRuntime {
       _lastTwoFingerUndoEnabled = twoFingerUndoEnabled;
     }
 
-    if (enableMultiTouchViewportNavigation !=
-        _lastEnableMultiTouchViewportNavigation) {
-      gestureHandler.enableMultiTouchViewportNavigation =
-          enableMultiTouchViewportNavigation;
-      _lastEnableMultiTouchViewportNavigation =
-          enableMultiTouchViewportNavigation;
+    if (enableMultiTouchViewportNavigation != _lastEnableMultiTouchViewportNavigation) {
+      gestureHandler.enableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation;
+      _lastEnableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation;
     }
   }
 
@@ -245,10 +231,7 @@ class PixelCanvasHostRuntime {
   }
 
   void _syncViewportFromController() {
-    controller.setZoomAndOffset(
-      _viewportController.scale,
-      _viewportController.offset,
-    );
+    controller.setZoomAndOffset(_viewportController.scale, _viewportController.offset);
   }
 
   void _handleViewportChanged() {

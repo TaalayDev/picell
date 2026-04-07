@@ -12,10 +12,7 @@ class LayerCacheManager extends ChangeNotifier {
   final Map<int, LayerCacheEntry> _cachedLayers = {};
   bool _isBatchUpdate = false;
 
-  LayerCacheManager({
-    required this.width,
-    required this.height,
-  });
+  LayerCacheManager({required this.width, required this.height});
 
   /// Get cached image for a layer
   ui.Image? getLayerImage(int layerId) {
@@ -82,18 +79,9 @@ class LayerCacheManager extends ChangeNotifier {
     );
   }
 
-  Future<void> _createImageAsync(
-    int layerId,
-    Uint32List pixels,
-    int width,
-    int height,
-  ) async {
+  Future<void> _createImageAsync(int layerId, Uint32List pixels, int width, int height) async {
     try {
-      final image = await ImageHelper.createImageFromPixels(
-        Uint32List.fromList(pixels),
-        width,
-        height,
-      );
+      final image = await ImageHelper.createImageFromPixels(Uint32List.fromList(pixels), width, height);
 
       _updateLayerImage(layerId, image);
     } catch (e) {
@@ -105,11 +93,7 @@ class LayerCacheManager extends ChangeNotifier {
     // Dispose old image if it exists
     _cachedLayers[layerId]?.dispose();
 
-    _cachedLayers[layerId] = LayerCacheEntry(
-      image: image,
-      isDirty: false,
-      lastUpdated: DateTime.now(),
-    );
+    _cachedLayers[layerId] = LayerCacheEntry(image: image, isDirty: false, lastUpdated: DateTime.now());
 
     if (!_isBatchUpdate) {
       notifyListeners();
@@ -129,11 +113,7 @@ class LayerCacheEntry {
   bool isDirty;
   DateTime lastUpdated;
 
-  LayerCacheEntry({
-    required this.image,
-    required this.isDirty,
-    required this.lastUpdated,
-  });
+  LayerCacheEntry({required this.image, required this.isDirty, required this.lastUpdated});
 
   void dispose() {
     image.dispose();
@@ -146,11 +126,7 @@ class CacheMemoryInfo {
   final int dirtyImages;
   final int estimatedMemoryBytes;
 
-  const CacheMemoryInfo({
-    required this.totalImages,
-    required this.dirtyImages,
-    required this.estimatedMemoryBytes,
-  });
+  const CacheMemoryInfo({required this.totalImages, required this.dirtyImages, required this.estimatedMemoryBytes});
 
   String get estimatedMemoryMB => '${(estimatedMemoryBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
 

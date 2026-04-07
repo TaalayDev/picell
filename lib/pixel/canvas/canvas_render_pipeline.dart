@@ -11,34 +11,26 @@ class PixelCanvasRenderPipeline {
     required PixelCanvasController controller,
     required LayerCacheManager cacheManager,
     required PixelCanvasRuntimeConfig config,
-  })  : _controller = controller,
-        _cacheManager = cacheManager,
-        _config = config,
-        _delegate = PixelCanvasPaintDelegate(
-          controller: controller,
-          cacheManager: cacheManager,
-          config: config,
-          quadVerticesBuffer: PixelCanvasQuadVerticesBuffer(),
-        );
+  }) : _controller = controller,
+       _cacheManager = cacheManager,
+       _config = config,
+       _delegate = PixelCanvasPaintDelegate(
+         controller: controller,
+         cacheManager: cacheManager,
+         config: config,
+         quadVerticesBuffer: PixelCanvasQuadVerticesBuffer(),
+       );
 
   PixelCanvasController _controller;
   LayerCacheManager _cacheManager;
   PixelCanvasRuntimeConfig _config;
   final PixelCanvasPaintDelegate _delegate;
 
-  void update({
-    PixelCanvasController? controller,
-    LayerCacheManager? cacheManager,
-    PixelCanvasRuntimeConfig? config,
-  }) {
+  void update({PixelCanvasController? controller, LayerCacheManager? cacheManager, PixelCanvasRuntimeConfig? config}) {
     _controller = controller ?? _controller;
     _cacheManager = cacheManager ?? _cacheManager;
     _config = config ?? _config;
-    _delegate.update(
-      controller: controller,
-      cacheManager: cacheManager,
-      config: config,
-    );
+    _delegate.update(controller: controller, cacheManager: cacheManager, config: config);
   }
 
   void paint(PaintingContext context, Offset offset, Size size) {

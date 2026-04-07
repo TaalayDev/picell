@@ -10,9 +10,9 @@ class PixelCanvasEventDispatcher {
     required PixelCanvasInputAdapter inputAdapter,
     required ToolDrawingManager toolManager,
     Stream<canvas_events.PixelDrawEvent>? eventStream,
-  })  : _inputAdapter = inputAdapter,
-        _toolManager = toolManager,
-        _eventStream = eventStream;
+  }) : _inputAdapter = inputAdapter,
+       _toolManager = toolManager,
+       _eventStream = eventStream;
 
   PixelCanvasInputAdapter _inputAdapter;
   ToolDrawingManager _toolManager;

@@ -85,20 +85,14 @@ class PixelCanvasQuadVerticesBuffer {
       newCapacity = maxQuadsPerBatch;
     }
 
-    _positions = _growFloat32List(
-      _positions,
-      newCapacity * _positionScalarsPerQuad,
-    );
+    _positions = _growFloat32List(_positions, newCapacity * _positionScalarsPerQuad);
     _colors = _growInt32List(_colors, newCapacity * verticesPerQuad);
     _indices = _growUint16List(_indices, newCapacity * indicesPerQuad);
     _primeIndices(startQuad: _quadCapacity, endQuad: newCapacity);
     _quadCapacity = newCapacity;
   }
 
-  void _primeIndices({
-    required int startQuad,
-    required int endQuad,
-  }) {
+  void _primeIndices({required int startQuad, required int endQuad}) {
     for (int quad = startQuad; quad < endQuad; quad++) {
       final vertexOffset = quad * verticesPerQuad;
       final indexOffset = quad * indicesPerQuad;

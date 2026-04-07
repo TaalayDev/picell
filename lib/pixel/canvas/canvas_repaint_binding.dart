@@ -9,10 +9,10 @@ class PixelCanvasRepaintBinding {
     required LayerCacheManager cacheManager,
     required Animation<double>? selectionAnimation,
     required VoidCallback onRepaint,
-  })  : _controller = controller,
-        _cacheManager = cacheManager,
-        _selectionAnimation = selectionAnimation,
-        _onRepaint = onRepaint;
+  }) : _controller = controller,
+       _cacheManager = cacheManager,
+       _selectionAnimation = selectionAnimation,
+       _onRepaint = onRepaint;
 
   PixelCanvasController _controller;
   LayerCacheManager _cacheManager;

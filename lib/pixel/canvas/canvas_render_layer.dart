@@ -66,10 +66,7 @@ class PixelCanvasRenderLayer extends LeafRenderObjectWidget {
   }
 
   @override
-  void updateRenderObject(
-    BuildContext context,
-    covariant RenderPixelCanvasLayer renderObject,
-  ) {
+  void updateRenderObject(BuildContext context, covariant RenderPixelCanvasLayer renderObject) {
     renderObject
       ..controller = controller
       ..cacheManager = cacheManager
@@ -86,8 +83,7 @@ class PixelCanvasRenderLayer extends LeafRenderObjectWidget {
   }
 }
 
-class RenderPixelCanvasLayer extends RenderBox
-    implements MouseTrackerAnnotation {
+class RenderPixelCanvasLayer extends RenderBox implements MouseTrackerAnnotation {
   RenderPixelCanvasLayer({
     required PixelCanvasController controller,
     required LayerCacheManager cacheManager,
@@ -101,28 +97,24 @@ class RenderPixelCanvasLayer extends RenderBox
     required double backgroundScale,
     required Offset backgroundOffset,
     Stream<canvas_events.PixelDrawEvent>? eventStream,
-  })  : _controller = controller,
-        _cacheManager = cacheManager,
-        _gestureHandler = gestureHandler,
-        _toolManager = toolManager,
-        _config = config,
-        _gridWidth = gridWidth,
-        _gridHeight = gridHeight,
-        _imageResolver = imageResolver,
-        _backgroundOpacity = backgroundOpacity,
-        _backgroundScale = backgroundScale,
-        _backgroundOffset = backgroundOffset {
+  }) : _controller = controller,
+       _cacheManager = cacheManager,
+       _gestureHandler = gestureHandler,
+       _toolManager = toolManager,
+       _config = config,
+       _gridWidth = gridWidth,
+       _gridHeight = gridHeight,
+       _imageResolver = imageResolver,
+       _backgroundOpacity = backgroundOpacity,
+       _backgroundScale = backgroundScale,
+       _backgroundOffset = backgroundOffset {
     _inputAdapter = _createInputAdapter();
     _eventDispatcher = PixelCanvasEventDispatcher(
       inputAdapter: _inputAdapter,
       toolManager: _toolManager,
       eventStream: eventStream,
     );
-    _renderPipeline = PixelCanvasRenderPipeline(
-      controller: _controller,
-      cacheManager: _cacheManager,
-      config: _config,
-    );
+    _renderPipeline = PixelCanvasRenderPipeline(controller: _controller, cacheManager: _cacheManager, config: _config);
     _surfaceDelegate = PixelCanvasSurfacePaintDelegate(
       gridWidth: _gridWidth,
       gridHeight: _gridHeight,
@@ -185,8 +177,7 @@ class RenderPixelCanvasLayer extends RenderBox
     if (identical(_config, value)) return;
 
     final oldConfig = _config;
-    final layoutChanged =
-        oldConfig.width != value.width || oldConfig.height != value.height;
+    final layoutChanged = oldConfig.width != value.width || oldConfig.height != value.height;
 
     _config = value;
     _inputAdapter.updateConfig(value);
@@ -260,8 +251,7 @@ class RenderPixelCanvasLayer extends RenderBox
     markNeedsPaint();
   }
 
-  Stream<canvas_events.PixelDrawEvent>? get eventStream =>
-      _eventDispatcher.eventStream;
+  Stream<canvas_events.PixelDrawEvent>? get eventStream => _eventDispatcher.eventStream;
   set eventStream(Stream<canvas_events.PixelDrawEvent>? value) {
     _eventDispatcher.eventStream = value;
   }
@@ -298,10 +288,7 @@ class RenderPixelCanvasLayer extends RenderBox
 
   void _recreateInputAdapter() {
     _inputAdapter = _createInputAdapter();
-    _eventDispatcher.update(
-      inputAdapter: _inputAdapter,
-      toolManager: _toolManager,
-    );
+    _eventDispatcher.update(inputAdapter: _inputAdapter, toolManager: _toolManager);
   }
 
   void _handleRepaint() {
@@ -349,8 +336,7 @@ class RenderPixelCanvasLayer extends RenderBox
 
     final selection = controller.currentSelectionRegion?.bounds;
     if (selection != null) {
-      final selectionPart =
-          'selection ${selection.width.round()} by ${selection.height.round()} pixels';
+      final selectionPart = 'selection ${selection.width.round()} by ${selection.height.round()} pixels';
       if (config.selectionState?.isTransforming ?? false) {
         parts.add('$selectionPart, transforming');
       } else {
@@ -429,12 +415,8 @@ class RenderPixelCanvasLayer extends RenderBox
   @override
   void performLayout() {
     final desiredSize = Size(
-      constraints.hasBoundedWidth
-          ? constraints.maxWidth
-          : config.width.toDouble(),
-      constraints.hasBoundedHeight
-          ? constraints.maxHeight
-          : config.height.toDouble(),
+      constraints.hasBoundedWidth ? constraints.maxWidth : config.width.toDouble(),
+      constraints.hasBoundedHeight ? constraints.maxHeight : config.height.toDouble(),
     );
     size = constraints.constrain(desiredSize);
   }
@@ -442,12 +424,8 @@ class RenderPixelCanvasLayer extends RenderBox
   @override
   Size computeDryLayout(BoxConstraints constraints) {
     final desiredSize = Size(
-      constraints.hasBoundedWidth
-          ? constraints.maxWidth
-          : config.width.toDouble(),
-      constraints.hasBoundedHeight
-          ? constraints.maxHeight
-          : config.height.toDouble(),
+      constraints.hasBoundedWidth ? constraints.maxWidth : config.width.toDouble(),
+      constraints.hasBoundedHeight ? constraints.maxHeight : config.height.toDouble(),
     );
     return constraints.constrain(desiredSize);
   }

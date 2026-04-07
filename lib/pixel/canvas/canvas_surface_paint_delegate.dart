@@ -10,12 +10,12 @@ class PixelCanvasSurfacePaintDelegate {
     required double backgroundOpacity,
     required double backgroundScale,
     required Offset backgroundOffset,
-  })  : _gridWidth = gridWidth,
-        _gridHeight = gridHeight,
-        _imageResolver = imageResolver,
-        _backgroundOpacity = backgroundOpacity,
-        _backgroundScale = backgroundScale,
-        _backgroundOffset = backgroundOffset;
+  }) : _gridWidth = gridWidth,
+       _gridHeight = gridHeight,
+       _imageResolver = imageResolver,
+       _backgroundOpacity = backgroundOpacity,
+       _backgroundScale = backgroundScale,
+       _backgroundOffset = backgroundOffset;
 
   int _gridWidth;
   int _gridHeight;
@@ -100,15 +100,9 @@ class PixelCanvasSurfacePaintDelegate {
     final outputSize = rect.size;
     final imageSize = Size(image.width.toDouble(), image.height.toDouble());
     final fitted = applyBoxFit(BoxFit.cover, imageSize, outputSize);
-    final sourceRect = Alignment.center.inscribe(
-      fitted.source,
-      Offset.zero & imageSize,
-    );
+    final sourceRect = Alignment.center.inscribe(fitted.source, Offset.zero & imageSize);
 
-    final offsetDelta = Offset(
-      _backgroundOffset.dx * rect.width,
-      _backgroundOffset.dy * rect.height,
-    );
+    final offsetDelta = Offset(_backgroundOffset.dx * rect.width, _backgroundOffset.dy * rect.height);
 
     _backgroundPaint
       ..color = Colors.white.withValues(alpha: _backgroundOpacity)
@@ -116,19 +110,12 @@ class PixelCanvasSurfacePaintDelegate {
 
     canvas.save();
     canvas.clipRect(rect);
-    canvas.translate(
-      rect.center.dx + offsetDelta.dx,
-      rect.center.dy + offsetDelta.dy,
-    );
+    canvas.translate(rect.center.dx + offsetDelta.dx, rect.center.dy + offsetDelta.dy);
     canvas.scale(_backgroundScale);
     canvas.drawImageRect(
       image,
       sourceRect,
-      Rect.fromCenter(
-        center: Offset.zero,
-        width: fitted.destination.width,
-        height: fitted.destination.height,
-      ),
+      Rect.fromCenter(center: Offset.zero, width: fitted.destination.width, height: fitted.destination.height),
       _backgroundPaint,
     );
     canvas.restore();
@@ -141,12 +128,7 @@ class PixelCanvasSurfacePaintDelegate {
     }
 
     for (final frame in onionSkinFrames) {
-      final sourceRect = Rect.fromLTWH(
-        0,
-        0,
-        frame.image.width.toDouble(),
-        frame.image.height.toDouble(),
-      );
+      final sourceRect = Rect.fromLTWH(0, 0, frame.image.width.toDouble(), frame.image.height.toDouble());
       _onionSkinPaint.color = Colors.white.withValues(alpha: frame.opacity);
       canvas.drawImageRect(frame.image, sourceRect, rect, _onionSkinPaint);
     }

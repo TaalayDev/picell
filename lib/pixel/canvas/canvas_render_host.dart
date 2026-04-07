@@ -62,10 +62,8 @@ class PixelCanvasRenderHost extends StatelessWidget {
   final Stream<PixelDrawEvent>? eventStream;
   final Function(SelectionRegion?)? onSelectionChanged;
   final Function(Offset)? onMoveSelection;
-  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)?
-      onSelectionResize;
-  final Function(SelectionRegion, SelectionRegion, double, Offset?)?
-      onSelectionRotate;
+  final Function(SelectionRegion, SelectionRegion, Rect, Offset?)? onSelectionResize;
+  final Function(SelectionRegion, SelectionRegion, double, Offset?)? onSelectionRotate;
   final Function(SelectionRegion)? onTransformStart;
   final VoidCallback? onTransformEnd;
   final Function(Offset)? onAnchorChanged;

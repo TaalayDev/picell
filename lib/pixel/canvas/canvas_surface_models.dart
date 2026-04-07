@@ -18,9 +18,7 @@ class PixelCanvasOnionSkinFrame {
   final double opacity;
 
   bool hasSameRasterData(PixelCanvasOnionSkinFrame other) {
-    if (frameId != other.frameId ||
-        width != other.width ||
-        height != other.height) {
+    if (frameId != other.frameId || width != other.width || height != other.height) {
       return false;
     }
     if (layers.length != other.layers.length) {
@@ -36,21 +34,14 @@ class PixelCanvasOnionSkinFrame {
 }
 
 class PixelCanvasResolvedOnionSkinFrame {
-  const PixelCanvasResolvedOnionSkinFrame({
-    required this.frameId,
-    required this.image,
-    required this.opacity,
-  });
+  const PixelCanvasResolvedOnionSkinFrame({required this.frameId, required this.image, required this.opacity});
 
   final int frameId;
   final ui.Image image;
   final double opacity;
 }
 
-bool samePixelCanvasOnionSkinFrames(
-  List<PixelCanvasOnionSkinFrame> a,
-  List<PixelCanvasOnionSkinFrame> b,
-) {
+bool samePixelCanvasOnionSkinFrames(List<PixelCanvasOnionSkinFrame> a, List<PixelCanvasOnionSkinFrame> b) {
   if (identical(a, b)) {
     return true;
   }

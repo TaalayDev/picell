@@ -63,9 +63,9 @@ class PixelCanvasController extends ChangeNotifier {
     required List<Layer> layers,
     required int currentLayerIndex,
     required this.cacheManager,
-  })  : _layers = List.from(layers),
-        _currentLayerIndex = currentLayerIndex,
-        _cachedPixels = Uint32List(width * height);
+  }) : _layers = List.from(layers),
+       _currentLayerIndex = currentLayerIndex,
+       _cachedPixels = Uint32List(width * height);
 
   // Getters
   List<Layer> get layers => _layers;
@@ -186,11 +186,7 @@ class PixelCanvasController extends ChangeNotifier {
 
     _previewImageUpdateTimer = Timer(const Duration(milliseconds: 10), () async {
       final pixelsForPreview = _buildPreviewLayerPixels();
-      final image = await ImageHelper.createImageFromPixels(
-        pixelsForPreview,
-        width,
-        height,
-      );
+      final image = await ImageHelper.createImageFromPixels(pixelsForPreview, width, height);
 
       if (revision != _previewRevision || _previewPixels.isEmpty) {
         image.dispose();
@@ -205,21 +201,13 @@ class PixelCanvasController extends ChangeNotifier {
   }
 
   Uint32List _buildPreviewLayerPixels() {
-    final mergedPixels = _mergePixelsWithPoints(
-      currentLayer.processedPixels,
-      _previewPixels,
-    );
+    final mergedPixels = _mergePixelsWithPoints(currentLayer.processedPixels, _previewPixels);
 
     if (!_previewEffectsEnabled || currentLayer.effects.isEmpty) {
       return mergedPixels;
     }
 
-    return EffectsManager.applyMultipleEffects(
-      mergedPixels,
-      width,
-      height,
-      currentLayer.effects,
-    );
+    return EffectsManager.applyMultipleEffects(mergedPixels, width, height, currentLayer.effects);
   }
 
   void _clearLivePreviewImage() {
@@ -371,10 +359,7 @@ class PixelCanvasController extends ChangeNotifier {
     }
   }
 
-  void setHoverPosition(
-    Offset? position, {
-    List<PixelPoint<int>>? previewPixels,
-  }) {
+  void setHoverPosition(Offset? position, {List<PixelPoint<int>>? previewPixels}) {
     _hoverPosition = position;
     _hoverPreviewPixels = List<PixelPoint<int>>.from(previewPixels ?? []);
     notifyListeners();
@@ -416,10 +401,7 @@ class PixelCanvasController extends ChangeNotifier {
     final pixelWidth = canvasSize.width / width;
     final pixelHeight = canvasSize.height / height;
 
-    return Point<int>(
-      (position.dx / pixelWidth).floor(),
-      (position.dy / pixelHeight).floor(),
-    );
+    return Point<int>((position.dx / pixelWidth).floor(), (position.dy / pixelHeight).floor());
   }
 
   // void _updateCachedPixels({bool cacheAll = false}) {
@@ -484,10 +466,7 @@ class PixelCanvasController extends ChangeNotifier {
     return merged;
   }
 
-  Uint32List _mergePixelsWithPoints(
-    Uint32List base,
-    List<PixelPoint<int>> points,
-  ) {
+  Uint32List _mergePixelsWithPoints(Uint32List base, List<PixelPoint<int>> points) {
     final merged = Uint32List.fromList(base);
     for (final point in points) {
       final index = point.y * width + point.x;
