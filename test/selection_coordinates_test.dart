@@ -13,8 +13,7 @@ import 'package:picell/pixel/tools/selection_tools.dart';
 
 void main() {
   group('Selection coordinates', () {
-    test('rectangle selection uses widget size to map to pixel coordinates',
-        () {
+    test('rectangle selection uses widget size to map to pixel coordinates', () {
       SelectionRegion? result;
       final layer = Layer(
         layerId: 1,
@@ -87,8 +86,7 @@ void main() {
       expect(result, isNull);
     });
 
-    testWidgets('resize handle respects parent scale transform',
-        (tester) async {
+    testWidgets('resize handle respects parent scale transform', (tester) async {
       SelectionRegion? resizedRegion;
       double? resizedScaleX;
       double? resizedScaleY;
@@ -139,8 +137,7 @@ void main() {
       expect(resizedRegion!.bounds, const Rect.fromLTRB(2, 2, 5, 4));
     });
 
-    testWidgets('move accumulates sub-pixel drag under parent scale',
-        (tester) async {
+    testWidgets('move accumulates sub-pixel drag under parent scale', (tester) async {
       Offset totalDelta = Offset.zero;
 
       await tester.pumpWidget(
@@ -177,9 +174,7 @@ void main() {
 
       await tester.pump();
 
-      final moveDetector = tester
-          .widgetList<GestureDetector>(find.byType(GestureDetector))
-          .firstWhere(
+      final moveDetector = tester.widgetList<GestureDetector>(find.byType(GestureDetector)).firstWhere(
             (widget) => widget.onPanStart != null && widget.child is SizedBox,
           );
 
@@ -200,8 +195,7 @@ void main() {
       expect(totalDelta, const Offset(2, 0));
     });
 
-    testWidgets('tap on selection body can clear active selection',
-        (tester) async {
+    testWidgets('tap on selection body can clear active selection', (tester) async {
       var tapCount = 0;
 
       await tester.pumpWidget(
@@ -234,16 +228,14 @@ void main() {
 
       await tester.pump();
 
-      final moveDetector = tester
-          .widgetList<GestureDetector>(find.byType(GestureDetector))
-          .firstWhere((widget) => widget.onTap != null);
+      final moveDetector =
+          tester.widgetList<GestureDetector>(find.byType(GestureDetector)).firstWhere((widget) => widget.onTap != null);
       moveDetector.onTap!();
 
       expect(tapCount, 1);
     });
 
-    testWidgets('move area is disabled when direct move is off',
-        (tester) async {
+    testWidgets('move area is disabled when direct move is off', (tester) async {
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,
@@ -274,16 +266,14 @@ void main() {
 
       await tester.pump();
 
-      final hasBodyMoveDetector = tester
-          .widgetList<GestureDetector>(find.byType(GestureDetector))
-          .any((widget) => widget.child is SizedBox);
+      final hasBodyMoveDetector =
+          tester.widgetList<GestureDetector>(find.byType(GestureDetector)).any((widget) => widget.child is SizedBox);
 
       expect(hasBodyMoveDetector, isFalse);
       expect(find.byIcon(Icons.open_with), findsOneWidget);
     });
 
-    testWidgets('tap outside selection clears active selection in canvas',
-        (tester) async {
+    testWidgets('tap outside selection clears active selection in canvas', (tester) async {
       final layer = Layer(
         layerId: 1,
         id: 'layer-1',
@@ -333,8 +323,7 @@ void main() {
       expect(clearedTo, isNull);
     });
 
-    testWidgets('pencil drawing still reaches canvas with active selection',
-        (tester) async {
+    testWidgets('pencil drawing still reaches canvas with active selection', (tester) async {
       final layer = Layer(
         layerId: 1,
         id: 'layer-1',
@@ -384,8 +373,7 @@ void main() {
       expect(drawnPoints, isNotEmpty);
     });
 
-    testWidgets('active selection tool drags selection from inside body',
-        (tester) async {
+    testWidgets('active selection tool drags selection from inside body', (tester) async {
       final layer = Layer(
         layerId: 1,
         id: 'layer-1',

@@ -11,9 +11,7 @@ import 'animated_background.dart';
 import 'theme_selector.dart';
 
 // Flagship theme types — lazily computed once.
-final _flagshipTypes = ThemeType.values
-    .where((t) => AppTheme.fromType(t).flagship != null)
-    .toList();
+final _flagshipTypes = ThemeType.values.where((t) => AppTheme.fromType(t).flagship != null).toList();
 
 class ThemeSelectorBottomSheet extends HookConsumerWidget {
   const ThemeSelectorBottomSheet({super.key});
@@ -96,9 +94,7 @@ class _ThemeSelectorContent extends HookConsumerWidget {
     );
 
     final selectedTheme = useState<ThemeType?>(null);
-    final previewTheme = selectedTheme.value != null
-        ? AppTheme.fromType(selectedTheme.value!)
-        : currentTheme;
+    final previewTheme = selectedTheme.value != null ? AppTheme.fromType(selectedTheme.value!) : currentTheme;
 
     final isSmallScreen = MediaQuery.sizeOf(context).width < 600;
 
@@ -114,9 +110,7 @@ class _ThemeSelectorContent extends HookConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           color: previewTheme.surface.withValues(alpha: 0.95),
-          borderRadius: showHandle
-              ? const BorderRadius.vertical(top: Radius.circular(20))
-              : BorderRadius.circular(20),
+          borderRadius: showHandle ? const BorderRadius.vertical(top: Radius.circular(20)) : BorderRadius.circular(20),
           border: Border.all(
             color: previewTheme.divider.withValues(alpha: 0.3),
             width: 1,
@@ -141,8 +135,7 @@ class _ThemeSelectorContent extends HookConsumerWidget {
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  Icon(Icons.palette_outlined,
-                      color: previewTheme.primaryColor, size: 28),
+                  Icon(Icons.palette_outlined, color: previewTheme.primaryColor, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -172,9 +165,7 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                     if (!isSmallScreen) ...[
                       TextButton(
                         onPressed: () => selectedTheme.value = null,
-                        child: Text('Cancel',
-                            style:
-                                TextStyle(color: previewTheme.textSecondary)),
+                        child: Text('Cancel', style: TextStyle(color: previewTheme.textSecondary)),
                       ),
                       const SizedBox(width: 8),
                     ],
@@ -231,26 +222,20 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: previewTheme.primaryColor.withValues(alpha: 0.2)),
+                  border: Border.all(color: previewTheme.primaryColor.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   children: [
-                    Icon(MaterialCommunityIcons.crown,
-                        color: previewTheme.primaryColor, size: 20),
+                    Icon(MaterialCommunityIcons.crown, color: previewTheme.primaryColor, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Unlock Premium Themes',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: previewTheme.textPrimary)),
+                              style: TextStyle(fontWeight: FontWeight.bold, color: previewTheme.textPrimary)),
                           Text('Get access to all themes with Pro',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: previewTheme.textSecondary)),
+                              style: TextStyle(fontSize: 12, color: previewTheme.textSecondary)),
                         ],
                       ),
                     ),
@@ -260,9 +245,7 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                         SubscriptionOfferScreen.show(context);
                       },
                       child: Text('Get Pro',
-                          style: TextStyle(
-                              color: previewTheme.primaryColor,
-                              fontWeight: FontWeight.bold)),
+                          style: TextStyle(color: previewTheme.primaryColor, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -292,15 +275,11 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: previewTheme.primaryColor
-                                  .withValues(alpha: 0.15),
+                              color: previewTheme.primaryColor.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: previewTheme.primaryColor
-                                      .withValues(alpha: 0.3)),
+                              border: Border.all(color: previewTheme.primaryColor.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               'FREE',
@@ -327,14 +306,8 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                     // Free themes (non-flagship)
                     _ThemeList(
                       title: Text('Free Themes',
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: previewTheme.textPrimary)),
-                      themes: ThemeType.values
-                          .where((t) =>
-                              !t.isLocked && !_flagshipTypes.contains(t))
-                          .toList(),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: previewTheme.textPrimary)),
+                      themes: ThemeType.values.where((t) => !t.isLocked && !_flagshipTypes.contains(t)).toList(),
                       currentTheme: currentTheme,
                       selectedTheme: selectedTheme,
                       unlockedThemes: unlockedThemeTypes.value,
@@ -345,14 +318,8 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                     // Premium themes (non-flagship)
                     _ThemeList(
                       title: Text('Premium Themes',
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: previewTheme.textPrimary)),
-                      themes: ThemeType.values
-                          .where((t) =>
-                              t.isLocked && !_flagshipTypes.contains(t))
-                          .toList(),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: previewTheme.textPrimary)),
+                      themes: ThemeType.values.where((t) => t.isLocked && !_flagshipTypes.contains(t)).toList(),
                       currentTheme: currentTheme,
                       selectedTheme: selectedTheme,
                       unlockedThemes: unlockedThemeTypes.value,
@@ -416,11 +383,9 @@ class _ThemeList extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final themeType = themes[index];
                 final theme = AppTheme.fromType(themeType);
-                final isLocked =
-                    !unlockedThemes.contains(themeType) && !subscription.isPro;
+                final isLocked = !unlockedThemes.contains(themeType) && !subscription.isPro;
                 final isSelected = selectedTheme.value == themeType;
-                final isCurrent =
-                    currentTheme.type == themeType && selectedTheme.value == null;
+                final isCurrent = currentTheme.type == themeType && selectedTheme.value == null;
 
                 return ThemePreviewCard(
                   themeType: themeType,
@@ -561,8 +526,7 @@ class ThemePreviewCard extends HookWidget {
                           }
                           return Container(
                             margin: EdgeInsets.only(left: isLocked ? 4 : 0),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                             decoration: BoxDecoration(
                               color: flagship.badgeColor.withValues(alpha: 0.85),
                               borderRadius: BorderRadius.circular(6),

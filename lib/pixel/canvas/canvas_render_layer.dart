@@ -97,17 +97,17 @@ class RenderPixelCanvasLayer extends RenderBox implements MouseTrackerAnnotation
     required double backgroundScale,
     required Offset backgroundOffset,
     Stream<canvas_events.PixelDrawEvent>? eventStream,
-  }) : _controller = controller,
-       _cacheManager = cacheManager,
-       _gestureHandler = gestureHandler,
-       _toolManager = toolManager,
-       _config = config,
-       _gridWidth = gridWidth,
-       _gridHeight = gridHeight,
-       _imageResolver = imageResolver,
-       _backgroundOpacity = backgroundOpacity,
-       _backgroundScale = backgroundScale,
-       _backgroundOffset = backgroundOffset {
+  })  : _controller = controller,
+        _cacheManager = cacheManager,
+        _gestureHandler = gestureHandler,
+        _toolManager = toolManager,
+        _config = config,
+        _gridWidth = gridWidth,
+        _gridHeight = gridHeight,
+        _imageResolver = imageResolver,
+        _backgroundOpacity = backgroundOpacity,
+        _backgroundScale = backgroundScale,
+        _backgroundOffset = backgroundOffset {
     _inputAdapter = _createInputAdapter();
     _eventDispatcher = PixelCanvasEventDispatcher(
       inputAdapter: _inputAdapter,

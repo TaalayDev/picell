@@ -18,15 +18,18 @@ part 'pixel_canvas_provider.g.dart';
 
 @riverpod
 class PixelCanvasNotifier extends _$PixelCanvasNotifier {
+  PixelDrawController? _cachedController;
+
   @override
   PixelCanvasState build(Project project) {
+    _cachedController = ref.watch(pixelDrawControllerProvider(project).notifier);
     return ref.watch(pixelDrawControllerProvider(project));
   }
 
   final StreamController<PixelDrawEvent> _eventController = StreamController.broadcast();
   late Stream<PixelDrawEvent> eventStream = _eventController.stream;
 
-  PixelDrawController get _controller => ref.read(pixelDrawControllerProvider(project).notifier);
+  PixelDrawController get _controller => _cachedController!;
 
   // Expose frequently used getters
   AnimationFrame get currentFrame => _controller.currentFrame;
