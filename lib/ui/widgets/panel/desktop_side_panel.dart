@@ -56,9 +56,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
         width: 250,
         child: Column(
           children: [
-            // Layers + Effects with TabBar — flex 3
             Expanded(
-              flex: 3,
+              flex: 2,
               child: Column(
                 children: [
                   Material(
@@ -84,8 +83,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.layers_outlined, size: 14),
-                              SizedBox(width: 4),
+                              const Icon(Icons.layers_outlined, size: 14),
+                              const SizedBox(width: 4),
                               Text(Strings.of(context).layers),
                             ],
                           ),
@@ -95,8 +94,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.auto_fix_high_outlined, size: 14),
-                              SizedBox(width: 4),
+                              const Icon(Icons.auto_fix_high_outlined, size: 14),
+                              const SizedBox(width: 4),
                               Text(Strings.of(context).effects),
                             ],
                           ),
@@ -167,9 +166,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
               ),
             ),
             Divider(height: 1, thickness: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
-            // Color palette — flex 2
             Expanded(
-              flex: 2,
+              flex: 3,
               child: ColorPalettePanel(
                 currentColor: widget.state.currentColor,
                 isEyedropperSelected: widget.currentTool.value == PixelTool.eyedropper,

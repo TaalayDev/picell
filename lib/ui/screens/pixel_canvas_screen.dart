@@ -22,6 +22,7 @@ import '../widgets/animated_background.dart';
 import '../widgets/dialogs/import_dialog.dart';
 import '../widgets/drop_target_overlay.dart';
 import '../widgets/painter/pixel_canvas_scene_host.dart';
+import '../widgets/painter/tiled_canvas_wrap.dart';
 import '../widgets/painter/pixel_viewport_gesture_layer.dart';
 import '../widgets/painter/pixel_viewport_transform.dart';
 import '../widgets/panel/desktop_side_panel.dart';
@@ -246,6 +247,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     final isPlaying = useState(false);
     final showPrevFrames = useState(false);
     final isAnimationTimelineExpanded = useState(false);
+    final tileModeEnabled = useState(false);
 
     final subscription = ref.watch(subscriptionStateProvider);
     final editorSettings = ref.watch(editorSettingsNotifierProvider);
@@ -312,6 +314,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                     showPrevFrames.value = !showPrevFrames.value;
                   },
                   onEffects: () => handleEffects(context, notifier, state.selectionState?.region),
+                  tileModeEnabled: tileModeEnabled.value,
+                  onToggleTileMode: () => tileModeEnabled.value = !tileModeEnabled.value,
                   onTemplates: () {
                     TemplatesDialog.show(context, (template) {
                       notifier.addTemplate(template);
@@ -376,29 +380,37 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                             alignment: Alignment.center,
                                             child: PixelViewportTransform(
                                               controller: viewportController,
-                                              child: SizedBox(
-                                                width: canvasWidth,
-                                                height: canvasHeight,
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: PixelCanvasSceneHost(
-                                                    project: project,
-                                                    state: state,
-                                                    notifier: notifier,
-                                                    viewportController: viewportController,
-                                                    currentTool: currentTool.value,
-                                                    modifier: currentModifier.value,
-                                                    currentColor: state.currentColor,
-                                                    brushSize: brushSize.value,
-                                                    sprayIntensity: sprayIntensity.value,
-                                                    mirrorAxis: MirrorAxis.vertical,
-                                                    eventStream: notifier.eventStream,
-                                                    editorSettings: editorSettings,
-                                                    enableMultiTouchViewportNavigation: false,
-                                                    showPrevFrames: showPrevFrames.value,
-                                                    onToolAutoSwitch: (tool) {
-                                                      currentTool.value = tool;
-                                                    },
+                                              child: TiledCanvasWrap(
+                                                enabled: tileModeEnabled.value,
+                                                layers: state.currentFrame.layers,
+                                                width: width,
+                                                height: height,
+                                                canvasWidth: canvasWidth,
+                                                canvasHeight: canvasHeight,
+                                                child: SizedBox(
+                                                  width: canvasWidth,
+                                                  height: canvasHeight,
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.all(8.0),
+                                                    child: PixelCanvasSceneHost(
+                                                      project: project,
+                                                      state: state,
+                                                      notifier: notifier,
+                                                      viewportController: viewportController,
+                                                      currentTool: currentTool.value,
+                                                      modifier: currentModifier.value,
+                                                      currentColor: state.currentColor,
+                                                      brushSize: brushSize.value,
+                                                      sprayIntensity: sprayIntensity.value,
+                                                      mirrorAxis: MirrorAxis.vertical,
+                                                      eventStream: notifier.eventStream,
+                                                      editorSettings: editorSettings,
+                                                      enableMultiTouchViewportNavigation: false,
+                                                      showPrevFrames: showPrevFrames.value,
+                                                      onToolAutoSwitch: (tool) {
+                                                        currentTool.value = tool;
+                                                      },
+                                                    ),
                                                   ),
                                                 ),
                                               ),

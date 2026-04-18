@@ -43,6 +43,8 @@ class ToolBar extends ConsumerWidget {
   final bool currentLayerHasEffects; // Added flag to show if layer has effects
   final UserSubscription subscription;
   final Project project;
+  final bool tileModeEnabled;
+  final VoidCallback? onToggleTileMode;
 
   const ToolBar({
     super.key,
@@ -70,6 +72,8 @@ class ToolBar extends ConsumerWidget {
     this.currentLayerHasEffects = false,
     required this.subscription,
     required this.project,
+    this.tileModeEnabled = false,
+    this.onToggleTileMode,
   });
 
   @override
@@ -205,6 +209,17 @@ class ToolBar extends ConsumerWidget {
                         ),
                         tooltip: 'Layer Effects',
                         onPressed: onEffects,
+                      ),
+                      const SizedBox(width: 8),
+                      // tile mode toggle
+                      IconButton.filledTonal(
+                        icon: const Icon(Icons.grid_view_rounded, size: 18),
+                        tooltip: 'Tile Mode — preview seamless tiling',
+                        splashColor: Colors.transparent,
+                        style: IconButton.styleFrom(
+                          backgroundColor: tileModeEnabled ? null : Colors.transparent,
+                        ),
+                        onPressed: onToggleTileMode,
                       ),
                       const SizedBox(width: 8),
                       // zoom in and out

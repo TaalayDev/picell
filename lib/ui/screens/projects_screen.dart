@@ -1054,52 +1054,15 @@ class _DesktopSidebar extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: theme.primaryColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: Center(
-                      child: Icon(Icons.grid_view_rounded, size: 18, color: theme.primaryColor),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'PixelVerse',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: theme.textPrimary,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (hasFlagship) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: flagship.badgeColor.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    flagship.badgeLabel,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: flagship.badgeTextColor,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
+              Text(
+                'Picell',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: theme.textPrimary,
+                  letterSpacing: 0.2,
                 ),
-              ],
+              ),
             ],
           ),
         ),

@@ -61,7 +61,7 @@ class ProjectCard extends StatelessWidget {
                               {
                                 ScreenSize.md: Theme.of(context).textTheme.titleMedium,
                                 ScreenSize.lg: Theme.of(context).textTheme.titleMedium,
-                                ScreenSize.xl: Theme.of(context).textTheme.titleLarge,
+                                ScreenSize.xl: Theme.of(context).textTheme.titleMedium,
                               },
                             )?.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
