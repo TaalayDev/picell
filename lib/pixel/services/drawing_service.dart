@@ -186,6 +186,54 @@ class DrawingService {
     return newPixels;
   }
 
+  /// Computes a per-pixel color list for a linear gradient between two canvas
+  /// pixel positions.  Pixels outside the gradient projection (t < 0 or t > 1)
+  /// are clamped to the nearest stop colour.
+  ///
+  /// [startPx] / [endPx] are in canvas pixel coordinates (not screen pixels).
+  /// [selectionRegion] limits which pixels are filled (null = entire canvas).
+  List<Color> computeLinearGradientColors({
+    required int width,
+    required int height,
+    required Offset startPx,
+    required Offset endPx,
+    required Color startColor,
+    required Color endColor,
+    SelectionRegion? selectionRegion,
+  }) {
+    final result = List<Color>.filled(width * height, Colors.transparent);
+
+    final dx = endPx.dx - startPx.dx;
+    final dy = endPx.dy - startPx.dy;
+    final lenSq = dx * dx + dy * dy;
+
+    // Degenerate gradient (start == end) — fill uniform start colour.
+    if (lenSq == 0) {
+      for (int idx = 0; idx < result.length; idx++) {
+        if (selectionRegion == null ||
+            selectionRegion.contains(idx % width, idx ~/ width)) {
+          result[idx] = startColor;
+        }
+      }
+      return result;
+    }
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        if (selectionRegion != null && !selectionRegion.contains(x, y)) {
+          continue;
+        }
+        // Project (x,y) onto the gradient line → normalised t in [0,1].
+        final px = x - startPx.dx;
+        final py = y - startPx.dy;
+        final t = ((px * dx + py * dy) / lenSq).clamp(0.0, 1.0);
+
+        result[y * width + x] = Color.lerp(startColor, endColor, t)!;
+      }
+    }
+    return result;
+  }
+
   Color getPixelColor({
     required Uint32List pixels,
     required int x,

@@ -36,6 +36,10 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   Layer get currentLayer => _controller.currentLayer;
   bool get canUndo => _controller.canUndo;
   bool get canRedo => _controller.canRedo;
+  int get undoStackSize => _controller.undoStackSize;
+  int get redoStackSize => _controller.redoStackSize;
+  List<String> get undoStackSummary => _controller.undoStackSummary;
+  List<String> get redoStackSummary => _controller.redoStackSummary;
 
   // Tool and color operations
   set currentTool(PixelTool tool) => _controller.setCurrentTool(tool);
@@ -53,6 +57,8 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   void clear() => _controller.clearCanvas();
   Color getPixelColor(int x, int y) => _controller.getPixelColor(x, y);
   void applyGradient(List<Color> gradientColors) => _controller.applyGradient(gradientColors);
+  void applyGradientFromPoints(Offset startPx, Offset endPx, Color endColor) =>
+      _controller.applyGradientFromPoints(startPx, endPx, endColor);
 
   // Drag operations
   void startDrag() => _controller.startDrag();
@@ -98,6 +104,16 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   void clearSelectionArea() => _controller.clearSelectionArea();
   Future<void> cutToNewLayer() => _controller.selectionToNewLayer(clearSource: true);
   Future<void> copyToNewLayer() => _controller.selectionToNewLayer(clearSource: false);
+
+  /// Returns copied pixels (canvas-sized, non-selected pixels are 0).
+  Uint32List? copySelectionPixels() => _controller.copySelectionPixels();
+
+  /// Clears selected pixels and returns their data.
+  Uint32List? cutSelectionPixels() => _controller.cutSelectionPixels();
+
+  /// Pastes [pixels] as a new floating layer and selects it.
+  Future<void> pastePixels(Uint32List pixels, SelectionRegion region) =>
+      _controller.pastePixels(pixels, region);
   void selectAll() => _controller.selectAll();
   void invertSelection() => _controller.invertSelectionRegion();
   void autoSelectLayer() => _controller.autoSelectLayer();

@@ -102,6 +102,10 @@ class PixelDrawController extends _$PixelDrawController {
   Layer get currentLayer => state.currentLayer;
   bool get canUndo => _undoRedoService.canUndo;
   bool get canRedo => _undoRedoService.canRedo;
+  int get undoStackSize => _undoRedoService.undoStackSize;
+  int get redoStackSize => _undoRedoService.redoStackSize;
+  List<String> get undoStackSummary => _undoRedoService.getUndoStackSummary();
+  List<String> get redoStackSummary => _undoRedoService.getRedoStackSummary();
 
   // State management
   void _saveState() {
@@ -239,6 +243,24 @@ class PixelDrawController extends _$PixelDrawController {
     );
   }
 
+  void applyGradientFromPoints(Offset startPx, Offset endPx, Color endColor) {
+    _saveState();
+    final colors = _drawingService.computeLinearGradientColors(
+      width: state.width,
+      height: state.height,
+      startPx: startPx,
+      endPx: endPx,
+      startColor: state.currentColor,
+      endColor: endColor,
+      selectionRegion: state.selectionState?.region,
+    );
+    final newPixels = _drawingService.applyGradient(
+      pixels: currentLayer.pixels,
+      gradientColors: colors,
+    );
+    _updateCurrentLayerPixels(newPixels);
+  }
+
   void applyGradient(List<Color> gradientColors) {
     _saveState();
 
@@ -299,6 +321,47 @@ class PixelDrawController extends _$PixelDrawController {
       state.height,
     );
     _updateCurrentLayerPixels(clearedPixels);
+  }
+
+  /// Returns a pixel buffer containing only the selected pixels (canvas-sized).
+  /// Returns null if there is no active selection.
+  Uint32List? copySelectionPixels() {
+    final sel = state.selectionState?.region;
+    if (sel == null || currentLayer.pixels.isEmpty) return null;
+    return _selectionService.copySelectedPixels(sel, currentLayer.pixels);
+  }
+
+  /// Clears the selected pixels from the current layer and returns their data.
+  Uint32List? cutSelectionPixels() {
+    final sel = state.selectionState?.region;
+    if (sel == null || currentLayer.pixels.isEmpty) return null;
+    _saveState();
+    final copied = _selectionService.copySelectedPixels(sel, currentLayer.pixels);
+    final cleared = _selectionService.clearPixelsInSelection(
+      sel,
+      currentLayer.pixels,
+      state.width,
+      state.height,
+    );
+    _updateCurrentLayerPixels(cleared);
+    return copied;
+  }
+
+  /// Pastes [pixels] as a floating new layer and selects it.
+  Future<void> pastePixels(Uint32List pixels, SelectionRegion region) async {
+    _saveState();
+    final layerId = const Uuid().v4();
+    final newLayer = Layer(
+      layerId: 0,
+      id: layerId,
+      name: 'Pasted',
+      pixels: pixels,
+      isVisible: true,
+      order: state.currentFrame.layers.length,
+    );
+    await addLayerWithPixels(newLayer);
+    selectLayer(state.currentFrame.layers.length - 1);
+    setSelection(region);
   }
 
   Future<void> selectionToNewLayer({bool clearSource = false}) async {

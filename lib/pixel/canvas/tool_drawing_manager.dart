@@ -18,6 +18,7 @@ import '../tools/smart_selection_tool.dart';
 import '../pixel_point.dart';
 import '../tools/curve_tool.dart';
 import '../tools/spray_tool.dart';
+import '../tools/gradient_tool.dart';
 import '../tools/texture_brush_tool.dart';
 import 'canvas_controller.dart';
 
@@ -35,6 +36,9 @@ class ToolDrawingManager {
 
   /// Fired on every lasso point update (screen-space points + drawing flag).
   final Function(List<Offset>, bool)? onLassoUpdate;
+  final void Function(Offset start, Offset end)? onGradientPreview;
+  final void Function(Offset startPx, Offset endPx)? onGradientApply;
+  final VoidCallback? onGradientClear;
 
   late final SelectionService _selectionService;
   late final ShapeUtils _shapeUtils;
@@ -71,6 +75,8 @@ class ToolDrawingManager {
   late final SpiralTool _spiralTool;
   late final CloudTool _cloudTool;
 
+  late final GradientTool _gradientTool;
+
   // Texture tools
   TextureBrushTool? _currentTextureBrush;
   int? _selectedTextureId;
@@ -102,6 +108,9 @@ class ToolDrawingManager {
     this.onSelectionChanged,
     this.onSelectionEnd,
     this.onLassoUpdate,
+    this.onGradientPreview,
+    this.onGradientApply,
+    this.onGradientClear,
   }) {
     _initializeTools();
   }
@@ -144,6 +153,11 @@ class ToolDrawingManager {
 
     _eyedropperTool = EyedropperTool(onColorPicked: (color) => onColorPicked?.call(color));
     _sprayTool = SprayTool();
+    _gradientTool = GradientTool(
+      onGradientPreview: onGradientPreview ?? (_, __) {},
+      onGradientApply: onGradientApply ?? (_, __) {},
+      onGradientClear: onGradientClear ?? () {},
+    );
 
     _heartTool = HeartTool();
     _diamondTool = DiamondTool();
@@ -166,6 +180,7 @@ class ToolDrawingManager {
       PixelTool.rectangle => _rectangleTool,
       PixelTool.circle => _circleTool,
       PixelTool.fill => _fillTool,
+      PixelTool.gradient => _gradientTool,
       PixelTool.select => _rectSelectionTool,
       PixelTool.ellipseSelect => _ellipseSelectionTool,
       PixelTool.lasso => _lassoSelectionTool,

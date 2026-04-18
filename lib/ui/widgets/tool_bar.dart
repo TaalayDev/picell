@@ -15,6 +15,7 @@ import '../../pixel/tools/texture_brush_tool.dart';
 import '../../providers/editor_settings_provider.dart';
 import 'app_icon.dart';
 import 'dialogs/editor_settings_dialog.dart';
+import 'dialogs/keyboard_shortcuts_dialog.dart';
 import 'menu_value_field.dart';
 import 'selection_options_button.dart';
 
@@ -40,11 +41,18 @@ class ToolBar extends ConsumerWidget {
   final Color currentColor;
   final Function() onColorPicker;
   final Function()? showPrevFramesOpacity;
+  final double onionSkinOpacity;
+  final ValueChanged<double>? onionSkinOpacityChanged;
   final bool currentLayerHasEffects; // Added flag to show if layer has effects
   final UserSubscription subscription;
   final Project project;
   final bool tileModeEnabled;
   final VoidCallback? onToggleTileMode;
+  final VoidCallback? onCopySelection;
+  final VoidCallback? onCutSelection;
+  final VoidCallback? onPasteSelection;
+  final bool canPaste;
+  final VoidCallback? onShowHistory;
 
   const ToolBar({
     super.key,
@@ -69,11 +77,18 @@ class ToolBar extends ConsumerWidget {
     required this.currentColor,
     required this.onColorPicker,
     this.showPrevFramesOpacity,
+    this.onionSkinOpacity = 0.5,
+    this.onionSkinOpacityChanged,
     this.currentLayerHasEffects = false,
     required this.subscription,
     required this.project,
     this.tileModeEnabled = false,
     this.onToggleTileMode,
+    this.onCopySelection,
+    this.onCutSelection,
+    this.onPasteSelection,
+    this.canPaste = false,
+    this.onShowHistory,
   });
 
   @override
@@ -222,6 +237,8 @@ class ToolBar extends ConsumerWidget {
                         onPressed: onToggleTileMode,
                       ),
                       const SizedBox(width: 8),
+                      _GridToggleButton(),
+                      const SizedBox(width: 8),
                       // zoom in and out
                       if (MediaQuery.of(context).size.width > 600) ...[
                         IconButton(
@@ -241,13 +258,11 @@ class ToolBar extends ConsumerWidget {
                             width: 0, color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
                       ),
                       const SizedBox(width: 8),
-                      IconButton.filledTonal(
-                        icon: const Icon(Icons.animation_rounded),
-                        onPressed: showPrevFramesOpacity,
-                        splashColor: Colors.transparent,
-                        style: IconButton.styleFrom(
-                          backgroundColor: showPrevFrames ? null : Colors.transparent,
-                        ),
+                      _OnionSkinButton(
+                        isActive: showPrevFrames,
+                        opacity: onionSkinOpacity,
+                        onToggle: showPrevFramesOpacity,
+                        onOpacityChanged: onionSkinOpacityChanged,
                       ),
                       if (MediaQuery.of(context).size.width > 600) ...[
                         const SizedBox(width: 8),
@@ -288,6 +303,9 @@ class ToolBar extends ConsumerWidget {
                           onDelete: () => notifier.clearSelectionArea(),
                           onCutToNewLayer: () => notifier.cutToNewLayer(),
                           onCopyToNewLayer: () => notifier.copyToNewLayer(),
+                          onCopy: onCopySelection,
+                          onCut: onCutSelection,
+                          onPaste: canPaste ? onPasteSelection : null,
                         ),
                       ],
                     ],
@@ -300,6 +318,12 @@ class ToolBar extends ConsumerWidget {
             onPressed: onTemplates,
             icon: const AppIcon(AppIcons.gallery_wide, size: 20),
             tooltip: 'Templates',
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            onPressed: () => KeyboardShortcutsDialog.show(context),
+            icon: const Icon(Icons.keyboard_rounded, size: 20),
+            tooltip: 'Keyboard shortcuts',
           ),
           const SizedBox(width: 4),
           _EditorSettingsButton(),
@@ -315,6 +339,11 @@ class ToolBar extends ConsumerWidget {
                 icon: Icon(Icons.redo, color: onRedo != null ? null : Colors.grey),
                 onPressed: onRedo,
                 tooltip: Strings.of(context).redo,
+              ),
+              IconButton(
+                icon: const Icon(Icons.history_rounded, size: 20),
+                onPressed: onShowHistory,
+                tooltip: 'Undo history',
               ),
             ],
           ),
@@ -355,6 +384,162 @@ class _EditorSettingsButton extends ConsumerWidget {
         ],
       ),
       tooltip: isStylusMode ? 'Settings (Stylus Mode)' : 'Editor Settings',
+    );
+  }
+}
+
+/// Onion skin toggle button with a long-press popup opacity slider.
+class _OnionSkinButton extends StatelessWidget {
+  const _OnionSkinButton({
+    required this.isActive,
+    required this.opacity,
+    required this.onToggle,
+    this.onOpacityChanged,
+  });
+
+  final bool isActive;
+  final double opacity;
+  final VoidCallback? onToggle;
+  final ValueChanged<double>? onOpacityChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onLongPress: () => _showOpacityPopup(context),
+      child: IconButton.filledTonal(
+        icon: const Icon(Icons.animation_rounded),
+        tooltip: 'Onion Skin (long-press to set opacity)',
+        onPressed: onToggle,
+        splashColor: Colors.transparent,
+        style: IconButton.styleFrom(
+          backgroundColor: isActive ? null : Colors.transparent,
+        ),
+      ),
+    );
+  }
+
+  void _showOpacityPopup(BuildContext context) {
+    final RenderBox button = context.findRenderObject()! as RenderBox;
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(Offset.zero, ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu<void>(
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem<void>(
+          enabled: false,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: _OpacitySlider(
+            opacity: opacity,
+            onChanged: onOpacityChanged,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OpacitySlider extends StatefulWidget {
+  const _OpacitySlider({required this.opacity, this.onChanged});
+  final double opacity;
+  final ValueChanged<double>? onChanged;
+
+  @override
+  State<_OpacitySlider> createState() => _OpacitySliderState();
+}
+
+class _OpacitySliderState extends State<_OpacitySlider> {
+  late double _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.opacity;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 180,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Onion skin opacity',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: Slider(
+                  value: _value,
+                  min: 0.05,
+                  max: 1.0,
+                  divisions: 19,
+                  onChanged: (v) {
+                    setState(() => _value = v);
+                    widget.onChanged?.call(v);
+                  },
+                ),
+              ),
+              Text(
+                '${(_value * 100).round()}%',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Quick toggle for pixel grid overlay, with a dot indicator when active.
+class _GridToggleButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(editorSettingsNotifierProvider);
+    final active = settings.showPixelGrid;
+
+    return IconButton.filledTonal(
+      icon: Stack(
+        children: [
+          const Icon(Icons.grid_on_rounded, size: 18),
+          if (active)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.surface,
+                    width: 1,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+      tooltip: active ? 'Hide pixel grid' : 'Show pixel grid',
+      splashColor: Colors.transparent,
+      style: IconButton.styleFrom(
+        backgroundColor: active ? null : Colors.transparent,
+      ),
+      onPressed: () {
+        ref.read(editorSettingsNotifierProvider.notifier).setShowPixelGrid(!active);
+      },
     );
   }
 }

@@ -23,6 +23,7 @@ class PixelCanvasHostCallbacks {
     this.onPixelDrag,
     this.onPixelDragEnd,
     this.onUndo,
+    this.onGradientFromPoints,
   });
 
   final PixelTool Function() getCurrentTool;
@@ -35,6 +36,7 @@ class PixelCanvasHostCallbacks {
   final Function(Offset)? onPixelDrag;
   final Function(Offset)? onPixelDragEnd;
   final Function()? onUndo;
+  final void Function(Offset startPx, Offset endPx)? onGradientFromPoints;
 }
 
 class PixelCanvasHostRuntime {
@@ -104,6 +106,15 @@ class PixelCanvasHostRuntime {
       },
       onLassoUpdate: (points, isDrawing) {
         controller.updateLassoPreview(points, isDrawing);
+      },
+      onGradientPreview: (start, end) {
+        controller.setGradient(start, end);
+      },
+      onGradientApply: (startPx, endPx) {
+        callbacks.onGradientFromPoints?.call(startPx, endPx);
+      },
+      onGradientClear: () {
+        controller.setGradient(null, null);
       },
     );
 

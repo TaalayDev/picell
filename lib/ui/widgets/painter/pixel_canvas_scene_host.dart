@@ -32,6 +32,7 @@ class PixelCanvasSceneHost extends ConsumerStatefulWidget {
     required this.editorSettings,
     required this.enableMultiTouchViewportNavigation,
     required this.showPrevFrames,
+    this.onionSkinOpacity = 0.5,
     this.onToolAutoSwitch,
   });
 
@@ -49,6 +50,7 @@ class PixelCanvasSceneHost extends ConsumerStatefulWidget {
   final EditorSettings editorSettings;
   final bool enableMultiTouchViewportNavigation;
   final bool showPrevFrames;
+  final double onionSkinOpacity;
   final Function(PixelTool)? onToolAutoSwitch;
 
   @override
@@ -182,6 +184,9 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
         }
       },
       onUndo: widget.notifier.undo,
+      onGradientFromPoints: (startPx, endPx) {
+        widget.notifier.applyGradientFromPoints(startPx, endPx, Colors.transparent);
+      },
     );
   }
 
@@ -246,23 +251,21 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
                 width: widget.project.width,
                 height: widget.project.height,
                 layers: widget.state.frames[index].layers,
-                opacity: _calculateOnionSkinOpacity(index, widget.state.currentFrameIndex),
+                opacity: _calculateOnionSkinOpacity(index, widget.state.currentFrameIndex, widget.onionSkinOpacity),
               ),
             )
           : const <PixelCanvasOnionSkinFrame>[],
     );
   }
 
-  double _calculateOnionSkinOpacity(int forIndex, int count) {
-    if (count <= 0 || forIndex.abs() > count) {
-      return 0.0;
-    }
+  double _calculateOnionSkinOpacity(int forIndex, int count, double maxOpacity) {
+    if (count <= 0 || forIndex.abs() > count) return 0.0;
 
-    const opacityRange = 0.5 - 0.01;
+    final opacityRange = maxOpacity - 0.01;
     final step = opacityRange / count;
     final opacity = step * (forIndex.abs() - 1);
 
-    return opacity.clamp(0.1, 0.5);
+    return opacity.clamp(0.05, maxOpacity);
   }
 }
 

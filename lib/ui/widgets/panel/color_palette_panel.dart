@@ -163,8 +163,15 @@ class ColorPalettePanel extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final customColors = useState<List<Color>>([]);
+    final recentColors = useState<List<Color>>([]);
     final selectedTab = useState(_kTabBasic);
     final opacity = useState(currentColor.a);
+
+    void trackRecentColor(Color color) {
+      final withoutDupe = recentColors.value.where((c) => c != color).toList();
+      recentColors.value = [color, ...withoutDupe].take(12).toList();
+      onColorSelected(color);
+    }
 
     // Watch the imported palette; auto-switch to Imported tab when it changes
     final importedColors = ref.watch(importedPaletteProvider);
@@ -311,6 +318,56 @@ class ColorPalettePanel extends HookConsumerWidget {
             ],
           ),
 
+          // Recent colors row
+          if (recentColors.value.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 22,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.history,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: recentColors.value.length,
+                      itemBuilder: (context, index) {
+                        final c = recentColors.value[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 3),
+                          child: Tooltip(
+                            message: '#${c.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
+                            child: GestureDetector(
+                              onTap: () => trackRecentColor(c),
+                              child: Container(
+                                width: 18,
+                                height: 18,
+                                decoration: BoxDecoration(
+                                  color: c,
+                                  borderRadius: BorderRadius.circular(3),
+                                  border: Border.all(
+                                    color: c == currentColor
+                                        ? Colors.blue
+                                        : Colors.grey.withValues(alpha: 0.4),
+                                    width: c == currentColor ? 2 : 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           const SizedBox(height: 5),
 
           // Tabs for different palette types
@@ -382,6 +439,7 @@ class ColorPalettePanel extends HookConsumerWidget {
                           colors[index],
                           customColors,
                           isCustomTab,
+                          onTap: trackRecentColor,
                         );
                       }
                       return const SizedBox.shrink();
@@ -418,10 +476,11 @@ class ColorPalettePanel extends HookConsumerWidget {
   Widget _buildColorItem(
     Color color,
     ValueNotifier<List<Color>> customColors,
-    bool showDeleteOption,
-  ) {
+    bool showDeleteOption, {
+    void Function(Color)? onTap,
+  }) {
     return InkWell(
-      onTap: () => onColorSelected(color),
+      onTap: () => (onTap ?? onColorSelected)(color),
       borderRadius: BorderRadius.circular(4),
       child: Stack(
         children: [

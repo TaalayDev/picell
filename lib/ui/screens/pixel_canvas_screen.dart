@@ -17,6 +17,7 @@ import '../../pixel/canvas/pixel_viewport_controller.dart';
 import '../../pixel/tools.dart';
 import '../../data.dart';
 import '../../providers/editor_settings_provider.dart';
+import '../../providers/pixel_clipboard_provider.dart';
 import '../../providers/subscription_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/dialogs/import_dialog.dart';
@@ -32,6 +33,7 @@ import '../widgets/animation_timeline.dart';
 import '../widgets/effects/effects_panel.dart';
 import '../widgets/dialogs/save_image_window.dart';
 import '../widgets/dialogs/templates_dialog.dart';
+import '../widgets/dialogs/undo_history_dialog.dart';
 import '../widgets/selection_options_button.dart';
 import '../widgets/tool_bar.dart';
 import '../widgets/tool_menu.dart';
@@ -248,10 +250,13 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     final showPrevFrames = useState(false);
     final isAnimationTimelineExpanded = useState(false);
     final tileModeEnabled = useState(false);
+    final onionSkinOpacity = useState(0.5);
 
     final subscription = ref.watch(subscriptionStateProvider);
     final editorSettings = ref.watch(editorSettingsNotifierProvider);
     final hasSelection = state.selectionState != null;
+    final clipboard = ref.watch(pixelClipboardProvider);
+    final clipboardNotifier = ref.read(pixelClipboardProvider.notifier);
 
     final size = MediaQuery.sizeOf(context);
     final screenSize = ScreenSize.forWidth(size.width) ?? ScreenSize.xs;
@@ -313,13 +318,52 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   showPrevFramesOpacity: () {
                     showPrevFrames.value = !showPrevFrames.value;
                   },
+                  onionSkinOpacity: onionSkinOpacity.value,
+                  onionSkinOpacityChanged: (v) => onionSkinOpacity.value = v,
                   onEffects: () => handleEffects(context, notifier, state.selectionState?.region),
                   tileModeEnabled: tileModeEnabled.value,
                   onToggleTileMode: () => tileModeEnabled.value = !tileModeEnabled.value,
+                  canPaste: clipboard != null,
+                  onCopySelection: () {
+                    final pixels = notifier.copySelectionPixels();
+                    final region = state.selectionState?.region;
+                    if (pixels != null && region != null) {
+                      clipboardNotifier.state = PixelClipboardData(
+                        pixels: pixels,
+                        width: width,
+                        height: height,
+                        region: region,
+                      );
+                    }
+                  },
+                  onCutSelection: () {
+                    final region = state.selectionState?.region;
+                    final pixels = notifier.cutSelectionPixels();
+                    if (pixels != null && region != null) {
+                      clipboardNotifier.state = PixelClipboardData(
+                        pixels: pixels,
+                        width: width,
+                        height: height,
+                        region: region,
+                      );
+                    }
+                  },
+                  onPasteSelection: () {
+                    final clip = clipboard;
+                    if (clip != null) notifier.pastePixels(clip.pixels, clip.region);
+                  },
                   onTemplates: () {
                     TemplatesDialog.show(context, (template) {
                       notifier.addTemplate(template);
                     });
+                  },
+                  onShowHistory: () {
+                    UndoHistorySheet.show(
+                      context,
+                      notifier: notifier,
+                      onUndo: notifier.undo,
+                      onRedo: notifier.redo,
+                    );
                   },
                   currentLayerHasEffects: notifier.getCurrentLayer().effects.isNotEmpty,
                 ),
@@ -407,6 +451,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                                       editorSettings: editorSettings,
                                                       enableMultiTouchViewportNavigation: false,
                                                       showPrevFrames: showPrevFrames.value,
+                                                      onionSkinOpacity: onionSkinOpacity.value,
                                                       onToolAutoSwitch: (tool) {
                                                         currentTool.value = tool;
                                                       },
@@ -442,6 +487,33 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                           onDelete: () => notifier.clearSelectionArea(),
                                           onCutToNewLayer: () => notifier.cutToNewLayer(),
                                           onCopyToNewLayer: () => notifier.copyToNewLayer(),
+                                          onCopy: () {
+                                            final pixels = notifier.copySelectionPixels();
+                                            final region = state.selectionState?.region;
+                                            if (pixels != null && region != null) {
+                                              clipboardNotifier.state = PixelClipboardData(
+                                                pixels: pixels,
+                                                width: width,
+                                                height: height,
+                                                region: region,
+                                              );
+                                            }
+                                          },
+                                          onCut: () {
+                                            final region = state.selectionState?.region;
+                                            final pixels = notifier.cutSelectionPixels();
+                                            if (pixels != null && region != null) {
+                                              clipboardNotifier.state = PixelClipboardData(
+                                                pixels: pixels,
+                                                width: width,
+                                                height: height,
+                                                region: region,
+                                              );
+                                            }
+                                          },
+                                          onPaste: clipboard != null
+                                              ? () => notifier.pastePixels(clipboard.pixels, clipboard.region)
+                                              : null,
                                         ),
                                       ),
                                   ],
