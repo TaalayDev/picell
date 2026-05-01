@@ -165,6 +165,16 @@ class PixelDrawController extends _$PixelDrawController {
     _isBatching = false;
   }
 
+  /// Cancels an in-progress batch drawing without committing the buffer
+  /// and pops the undo snapshot saved at [startBatchDrawing].
+  void cancelBatchDrawing() {
+    if (!_isBatching) return;
+    _activeBuffer = null;
+    _isBatching = false;
+    _undoRedoService.discardLastSavedState();
+    state = state.copyWith(canUndo: canUndo, canRedo: canRedo);
+  }
+
   // MARK: Drawing Operations
 
   // Drawing operations

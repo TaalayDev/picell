@@ -59,6 +59,14 @@ class UndoRedoService {
     _redoStack.clear();
   }
 
+  /// Discards the most recently saved undo entry without restoring it.
+  /// Used to cancel a drawing that was started but never produced changes.
+  void discardLastSavedState() {
+    if (_undoStack.isNotEmpty) {
+      _undoStack.removeLast();
+    }
+  }
+
   int get undoStackSize => _undoStack.length;
   int get redoStackSize => _redoStack.length;
 

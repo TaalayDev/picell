@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -244,9 +245,7 @@ class BottomSheetHandle extends StatelessWidget {
       width: 40,
       height: 4,
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? Colors.grey[700]
-            : Colors.grey[300],
+        color: theme.brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300],
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -298,15 +297,12 @@ class ToolGrid extends StatelessWidget {
         horizontal: 16.0,
         vertical: 8.0,
       ),
-      child: GridView.builder(
+      child: MasonryGridView.count(
+        crossAxisCount: 3,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          childAspectRatio: 2.0,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
         itemCount: tools.length,
         itemBuilder: (context, index) {
           final tool = tools[index];
@@ -353,9 +349,7 @@ class ToolGridItem extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? theme.primaryColor.withValues(alpha: 0.2)
-                  : theme.surfaceVariant,
+              color: isSelected ? theme.primaryColor.withValues(alpha: 0.2) : theme.surfaceVariant,
               borderRadius: BorderRadius.circular(12),
               border: isSelected
                   ? Border.all(color: theme.primaryColor, width: 2)
@@ -410,6 +404,7 @@ class ToolItemContent extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
               overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
         ],

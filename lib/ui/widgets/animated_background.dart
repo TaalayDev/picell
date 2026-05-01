@@ -68,18 +68,19 @@ class AnimatedBackground extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = appTheme ?? ref.watch(themeProvider).theme;
 
-    return RepaintBoundary(
-      child: Stack(
-        children: [
-          Container(
+    return Stack(
+      children: [
+        RepaintBoundary(
+          child: Container(
             decoration: BoxDecoration(
               gradient: _getBaseGradient(theme),
             ),
           ),
-          _buildAnimatedLayer(theme, isDesktopOrWeb && enableAnimation),
-          child,
-        ],
-      ),
+        ),
+        //if (isDesktopOrWeb)
+        RepaintBoundary(child: _buildAnimatedLayer(theme, enableAnimation)),
+        child,
+      ],
     );
   }
 
@@ -414,6 +415,14 @@ class AnimatedBackground extends HookConsumerWidget {
   }
 
   Widget _buildAnimatedLayer(AppTheme theme, bool enableAnimation) {
+    if (!isDesktopOrWeb) {
+      return _DefaultBackground(
+        theme: theme,
+        intensity: intensity,
+        enableAnimation: enableAnimation,
+      );
+    }
+
     switch (theme.type) {
       case ThemeType.volcanic:
         return VolcanicBackground(
@@ -728,9 +737,83 @@ class _DefaultBackground extends HookWidget {
         accentColor: theme.accentColor,
         intensity: intensity,
         animationEnabled: enableAnimation,
+        style: _shapeStyleFor(theme.type),
       ),
       size: Size.infinite,
     );
+  }
+}
+
+enum _ShapeStyle {
+  bubbles,
+  stars,
+  embers,
+  snow,
+  stripes,
+  diamonds,
+  leaves,
+  rain,
+}
+
+_ShapeStyle _shapeStyleFor(ThemeType type) {
+  switch (type) {
+    case ThemeType.cosmic:
+    case ThemeType.midnight:
+    case ThemeType.neon:
+    case ThemeType.lofiNight:
+    case ThemeType.prismatic:
+    case ThemeType.bioluminescentBrutalism:
+      return _ShapeStyle.stars;
+
+    case ThemeType.volcanic:
+    case ThemeType.sunset:
+    case ThemeType.goldenHour:
+    case ThemeType.halloween:
+    case ThemeType.toxicWaste:
+    case ThemeType.autumnHarvest:
+      return _ShapeStyle.embers;
+
+    case ThemeType.winterWonderland:
+    case ThemeType.arcticAurora:
+    case ThemeType.iceCrystal:
+      return _ShapeStyle.snow;
+
+    case ThemeType.cyberpunk:
+    case ThemeType.retroWave:
+    case ThemeType.dataStream:
+      return _ShapeStyle.stripes;
+
+    case ThemeType.crystalline:
+    case ThemeType.stainedGlass:
+    case ThemeType.artDeco:
+    case ThemeType.copperSteampunk:
+    case ThemeType.steampunk:
+    case ThemeType.gothic:
+      return _ShapeStyle.diamonds;
+
+    case ThemeType.forest:
+    case ThemeType.emeraldForest:
+    case ThemeType.enchantedForest:
+    case ThemeType.cherryBlossom:
+    case ThemeType.artNouveau:
+    case ThemeType.origami:
+      return _ShapeStyle.leaves;
+
+    case ThemeType.purpleRain:
+      return _ShapeStyle.rain;
+
+    case ThemeType.ocean:
+    case ThemeType.deepSea:
+    case ThemeType.coralReef:
+    case ThemeType.dreamscape:
+    case ThemeType.pastel:
+    case ThemeType.roseQuartzGarden:
+    case ThemeType.candyCarnival:
+    case ThemeType.pointillism:
+    case ThemeType.monochrome:
+    case ThemeType.darkMode:
+    case ThemeType.lightMode:
+      return _ShapeStyle.bubbles;
   }
 }
 
@@ -739,37 +822,188 @@ class _DefaultPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
   final double intensity;
-
   final bool animationEnabled;
+  final _ShapeStyle style;
+
   _DefaultPainter({
     required this.animation,
     required this.primaryColor,
     required this.accentColor,
     required this.intensity,
+    required this.style,
     this.animationEnabled = true,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    switch (style) {
+      case _ShapeStyle.bubbles:
+        _paintBubbles(canvas, size);
+        break;
+      case _ShapeStyle.stars:
+        _paintStars(canvas, size);
+        break;
+      case _ShapeStyle.embers:
+        _paintEmbers(canvas, size);
+        break;
+      case _ShapeStyle.snow:
+        _paintSnow(canvas, size);
+        break;
+      case _ShapeStyle.stripes:
+        _paintStripes(canvas, size);
+        break;
+      case _ShapeStyle.diamonds:
+        _paintDiamonds(canvas, size);
+        break;
+      case _ShapeStyle.leaves:
+        _paintLeaves(canvas, size);
+        break;
+      case _ShapeStyle.rain:
+        _paintRain(canvas, size);
+        break;
+    }
+  }
+
+  double get _t => animation * 2 * math.pi;
+
+  Color _mix(double phase, {double alphaA = 0.03, double alphaB = 0.05}) {
+    return Color.lerp(
+      primaryColor.withValues(alpha: alphaA),
+      accentColor.withValues(alpha: alphaB),
+      math.sin(phase) * 0.5 + 0.5,
+    )!;
+  }
+
+  void _paintBubbles(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
     final random = math.Random(456);
-
-    for (int i = 0; i < (15 * intensity).round(); i++) {
-      final baseX = random.nextDouble() * size.width;
+    final count = (15 * intensity).round();
+    for (int i = 0; i < count; i++) {
+      final x = random.nextDouble() * size.width;
       final baseY = random.nextDouble() * size.height;
-      final offset = math.sin(animation * 2 * math.pi + i * 0.5) * 20 * intensity;
+      final dy = math.sin(_t + i * 0.5) * 20 * intensity;
+      final r = (5 + random.nextDouble() * 15) * intensity;
+      paint.color = _mix(_t + i);
+      canvas.drawCircle(Offset(x, baseY + dy), r, paint);
+    }
+  }
 
-      final x = baseX;
-      final y = baseY + offset;
-      final radius = (5 + random.nextDouble() * 15) * intensity;
+  void _paintStars(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    final random = math.Random(123);
+    final count = (24 * intensity).round();
+    for (int i = 0; i < count; i++) {
+      final x = random.nextDouble() * size.width;
+      final y = random.nextDouble() * size.height;
+      final twinkle = math.sin(_t * 1.5 + i * 1.3) * 0.5 + 0.5;
+      final r = (0.8 + random.nextDouble() * 1.6) * intensity;
+      paint.color = (i.isEven ? primaryColor : accentColor).withValues(alpha: 0.10 + 0.18 * twinkle);
+      canvas.drawCircle(Offset(x, y), r, paint);
+    }
+  }
 
-      paint.color = Color.lerp(
-        primaryColor.withValues(alpha: 0.03),
-        accentColor.withValues(alpha: 0.05),
-        math.sin(animation * 2 * math.pi + i) * 0.5 + 0.5,
-      )!;
+  void _paintEmbers(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    final random = math.Random(789);
+    final count = (18 * intensity).round();
+    for (int i = 0; i < count; i++) {
+      final baseX = random.nextDouble() * size.width;
+      final yPhase = (random.nextDouble() + animation * 0.5) % 1.0;
+      final y = size.height * (1.0 - yPhase);
+      final dx = math.sin(_t + i * 0.7) * 12 * intensity;
+      final r = (1.2 + random.nextDouble() * 2.2) * intensity;
+      paint.color = _mix(_t * 0.7 + i, alphaA: 0.18, alphaB: 0.12);
+      canvas.drawCircle(Offset(baseX + dx, y), r, paint);
+    }
+  }
 
-      canvas.drawCircle(Offset(x, y), radius, paint);
+  void _paintSnow(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    final random = math.Random(321);
+    final count = (20 * intensity).round();
+    for (int i = 0; i < count; i++) {
+      final baseX = random.nextDouble() * size.width;
+      final yPhase = (random.nextDouble() + animation * 0.3) % 1.0;
+      final y = size.height * yPhase;
+      final dx = math.sin(_t * 0.5 + i * 0.4) * 18 * intensity;
+      final r = (1.4 + random.nextDouble() * 1.6) * intensity;
+      paint.color = accentColor.withValues(alpha: 0.18);
+      canvas.drawCircle(Offset(baseX + dx, y), r, paint);
+    }
+  }
+
+  void _paintStripes(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    const count = 12;
+    final span = size.width + size.height;
+    for (int i = 0; i < count; i++) {
+      final phase = (i / count + animation * 0.1) % 1.0;
+      final offset = phase * span;
+      final glow = math.sin(_t + i * 0.6) * 0.5 + 0.5;
+      paint.color = (i.isEven ? primaryColor : accentColor).withValues(alpha: 0.05 + 0.05 * glow);
+      canvas.drawLine(
+        Offset(offset, 0),
+        Offset(offset - size.height, size.height),
+        paint,
+      );
+    }
+  }
+
+  void _paintDiamonds(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    final random = math.Random(987);
+    final count = (12 * intensity).round();
+    for (int i = 0; i < count; i++) {
+      final cx = random.nextDouble() * size.width;
+      final cy = random.nextDouble() * size.height;
+      final dy = math.sin(_t * 0.6 + i * 0.5) * 8 * intensity;
+      final r = (6 + random.nextDouble() * 10) * intensity;
+      paint.color = _mix(_t * 0.5 + i, alphaA: 0.05, alphaB: 0.07);
+      final path = Path()
+        ..moveTo(cx, cy + dy - r)
+        ..lineTo(cx + r, cy + dy)
+        ..lineTo(cx, cy + dy + r)
+        ..lineTo(cx - r, cy + dy)
+        ..close();
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  void _paintLeaves(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    final random = math.Random(654);
+    final count = (16 * intensity).round();
+    for (int i = 0; i < count; i++) {
+      final baseX = random.nextDouble() * size.width;
+      final yPhase = (random.nextDouble() + animation * 0.2) % 1.0;
+      final y = size.height * yPhase;
+      final dx = math.sin(_t * 0.4 + i * 0.6) * 24 * intensity;
+      final rx = (3 + random.nextDouble() * 4) * intensity;
+      final ry = (1.4 + random.nextDouble() * 1.6) * intensity;
+      paint.color = _mix(_t * 0.3 + i, alphaA: 0.07, alphaB: 0.05);
+      canvas.save();
+      canvas.translate(baseX + dx, y);
+      canvas.rotate(math.sin(_t * 0.3 + i) * 0.6 + i.toDouble());
+      canvas.drawOval(Rect.fromCenter(center: Offset.zero, width: rx * 2, height: ry * 2), paint);
+      canvas.restore();
+    }
+  }
+
+  void _paintRain(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    final random = math.Random(222);
+    final count = (22 * intensity).round();
+    for (int i = 0; i < count; i++) {
+      final baseX = random.nextDouble() * size.width;
+      final yPhase = (random.nextDouble() + animation * 1.2) % 1.0;
+      final y = size.height * yPhase;
+      final len = (8 + random.nextDouble() * 8) * intensity;
+      paint.color = (i.isEven ? primaryColor : accentColor).withValues(alpha: 0.18);
+      canvas.drawLine(Offset(baseX, y), Offset(baseX - len * 0.4, y + len), paint);
     }
   }
 
@@ -780,7 +1014,8 @@ class _DefaultPainter extends CustomPainter {
         oldDelegate.animationEnabled != animationEnabled ||
         oldDelegate.primaryColor != primaryColor ||
         oldDelegate.accentColor != accentColor ||
-        oldDelegate.intensity != intensity;
+        oldDelegate.intensity != intensity ||
+        oldDelegate.style != style;
   }
 }
 

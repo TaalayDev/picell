@@ -16,6 +16,7 @@ class EraserTool extends Tool {
     final point = details.pixelPosition.copyWith(color: 0x00000000); // Transparent
     if (_isValidPoint(point, details.width, details.height)) {
       _addPoint(point, details);
+      _previousPoint = point;
       details.onPixelsUpdated(_currentPixels);
     }
   }
@@ -39,7 +40,16 @@ class EraserTool extends Tool {
 
   @override
   void onEnd(PixelDrawDetails details) {
-    // Reset state
+    final point = details.pixelPosition.copyWith(color: 0x00000000);
+    if (_previousPoint != null &&
+        _previousPoint != point &&
+        _isValidPoint(point, details.width, details.height)) {
+      final linePoints = _getLinePoints(_previousPoint!, point);
+      for (final p in linePoints) {
+        _addPixelPoints(p, details);
+      }
+    }
+
     _currentPixels = [];
     _previousPoint = null;
   }

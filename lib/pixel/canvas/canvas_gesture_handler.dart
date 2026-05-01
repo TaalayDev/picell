@@ -23,6 +23,7 @@ class CanvasGestureHandler {
 
   final VoidCallback onStartDrawing;
   final VoidCallback onFinishDrawing;
+  final VoidCallback? onCancelDrawing;
   final Function(List<PixelPoint<int>>) onDrawShape;
   final Function(Offset)? onStartPixelDrag;
   final Function(Offset)? onPixelDrag;
@@ -85,6 +86,7 @@ class CanvasGestureHandler {
     required this.onStartDrawing,
     required this.onFinishDrawing,
     required this.onDrawShape,
+    this.onCancelDrawing,
     this.onStartPixelDrag,
     this.onPixelDrag,
     this.onPixelDragEnd,
@@ -393,16 +395,16 @@ class CanvasGestureHandler {
 
   void _handleTwoPointerDown(PointerDownEvent event, PixelTool currentTool) {
     if (_isRawPointerDrawing) {
-      _finishRawPointerDrawing();
+      // A second finger landed — discard the in-progress single-finger stroke
+      // (preview pixels and the undo snapshot saved at onStartDrawing) so
+      // two-finger tap-to-undo doesn't leave stray state from the first finger.
+      controller.clearPreviewPixels();
+      (onCancelDrawing ?? onFinishDrawing).call();
+      _isRawPointerDrawing = false;
     }
     if (_isSelectionDrawingActive) {
       // Cancel ongoing selection if user adds a second finger
       _isSelectionDrawingActive = false;
-    }
-
-    if (!enableMultiTouchViewportNavigation) {
-      _resetTwoFingerState();
-      return;
     }
 
     final pointers = _activePointers.values.toList();
@@ -414,21 +416,21 @@ class CanvasGestureHandler {
         (pointer1.localPosition.dy + pointer2.localPosition.dy) / 2,
       );
 
+      // Always capture undo-tracking state so two-finger tap-to-undo works
+      // even when zoom/pan is delegated to a parent viewport.
       _twoFingerStartFocalPoint = focalPoint;
       _twoFingerStartTimeMs = DateTime.now().millisecondsSinceEpoch;
-      _initialTwoFingerScale = controller.zoomLevel;
       _isTwoFingerPotentiallyUndo = true;
-      _normalizedOffset = (controller.offset - focalPoint) / controller.zoomLevel;
-      // Capture distance once here — _activePointers already has both pointers.
       _initialTwoPointerDistance = _getCurrentTwoPointerDistance();
+
+      if (enableMultiTouchViewportNavigation) {
+        _initialTwoFingerScale = controller.zoomLevel;
+        _normalizedOffset = (controller.offset - focalPoint) / controller.zoomLevel;
+      }
     }
   }
 
   void _handleTwoPointerMove(PointerMoveEvent event, PixelTool currentTool) {
-    if (!enableMultiTouchViewportNavigation) {
-      return;
-    }
-
     final pointers = _activePointers.values.toList();
     if (pointers.length < 2) return;
 
@@ -452,6 +454,8 @@ class CanvasGestureHandler {
         _isTwoFingerPotentiallyUndo = false;
       }
     }
+
+    if (!enableMultiTouchViewportNavigation) return;
 
     // Don't commit zoom/pan while we're still deciding if this is a tap-to-undo.
     if (_isTwoFingerPotentiallyUndo) return;
@@ -525,9 +529,12 @@ class CanvasGestureHandler {
     _activePointers.remove(event.pointer);
 
     if (_activePointers.isEmpty) {
+      if (_isTwoFingerPotentiallyUndo && _twoFingerStartTimeMs != null) {
+        _handleUndoGesture(_twoFingerStartTimeMs!);
+      }
       if (_isRawPointerDrawing) {
         controller.clearPreviewPixels();
-        onFinishDrawing();
+        (onCancelDrawing ?? onFinishDrawing).call();
         _isRawPointerDrawing = false;
       }
       _isSelectionDrawingActive = false;

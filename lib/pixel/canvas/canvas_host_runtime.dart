@@ -17,6 +17,7 @@ class PixelCanvasHostCallbacks {
     required this.onStartDrawing,
     required this.onFinishDrawing,
     required this.onDrawShape,
+    this.onCancelDrawing,
     this.onSelectionChanged,
     this.onColorPicked,
     this.onStartPixelDrag,
@@ -29,6 +30,7 @@ class PixelCanvasHostCallbacks {
   final PixelTool Function() getCurrentTool;
   final VoidCallback onStartDrawing;
   final VoidCallback onFinishDrawing;
+  final VoidCallback? onCancelDrawing;
   final Function(List<PixelPoint<int>>) onDrawShape;
   final Function(SelectionRegion?)? onSelectionChanged;
   final Function(Color)? onColorPicked;
@@ -133,6 +135,10 @@ class PixelCanvasHostRuntime {
           return;
         }
         callbacks.onDrawShape(shape);
+      },
+      onCancelDrawing: () {
+        callbacks.onCancelDrawing?.call();
+        controller.applyLayerCache();
       },
       onStartPixelDrag: callbacks.onStartPixelDrag,
       onPixelDrag: callbacks.onPixelDrag,

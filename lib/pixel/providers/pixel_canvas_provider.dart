@@ -51,6 +51,7 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   // Drawing operations
   void startDrawing() => _controller.startBatchDrawing();
   void endDrawing() => _controller.endBatchDrawing();
+  void cancelDrawing() => _controller.cancelBatchDrawing();
   void setPixel(int x, int y) => _controller.batchSetPixel(x, y);
   void fillPixels(List<PixelPoint<int>> points) => _controller.batchFillPixels(points);
   void fill(int x, int y) => _controller.floodFill(x, y);

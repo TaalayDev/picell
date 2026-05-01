@@ -237,10 +237,10 @@ class ToolBar extends ConsumerWidget {
                         onPressed: onToggleTileMode,
                       ),
                       const SizedBox(width: 8),
-                      _GridToggleButton(),
-                      const SizedBox(width: 8),
                       // zoom in and out
                       if (MediaQuery.of(context).size.width > 600) ...[
+                        _GridToggleButton(),
+                        const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Feather.zoom_in),
                           onPressed: onZoomIn,
@@ -255,7 +255,9 @@ class ToolBar extends ConsumerWidget {
                       SizedBox(
                         height: 30,
                         child: VerticalDivider(
-                            width: 0, color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+                          width: 0,
+                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _OnionSkinButton(
@@ -320,12 +322,14 @@ class ToolBar extends ConsumerWidget {
             tooltip: 'Templates',
           ),
           const SizedBox(width: 4),
-          IconButton(
-            onPressed: () => KeyboardShortcutsDialog.show(context),
-            icon: const Icon(Icons.keyboard_rounded, size: 20),
-            tooltip: 'Keyboard shortcuts',
-          ),
-          const SizedBox(width: 4),
+          if (!screenSize.isMobile) ...[
+            IconButton(
+              onPressed: () => KeyboardShortcutsDialog.show(context),
+              icon: const Icon(Icons.keyboard_rounded, size: 20),
+              tooltip: 'Keyboard shortcuts',
+            ),
+            const SizedBox(width: 4),
+          ],
           _EditorSettingsButton(),
           const SizedBox(width: 8),
           Row(
@@ -340,11 +344,13 @@ class ToolBar extends ConsumerWidget {
                 onPressed: onRedo,
                 tooltip: Strings.of(context).redo,
               ),
-              IconButton(
-                icon: const Icon(Icons.history_rounded, size: 20),
-                onPressed: onShowHistory,
-                tooltip: 'Undo history',
-              ),
+              if (!screenSize.isMobile) ...[
+                IconButton(
+                  icon: const Icon(Icons.history_rounded, size: 20),
+                  onPressed: onShowHistory,
+                  tooltip: 'Undo history',
+                ),
+              ]
             ],
           ),
         ],

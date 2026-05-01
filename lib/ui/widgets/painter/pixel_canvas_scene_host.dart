@@ -156,6 +156,7 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
       getCurrentTool: () => widget.currentTool,
       onStartDrawing: () => widget.notifier.startDrawing(),
       onFinishDrawing: () => widget.notifier.endDrawing(),
+      onCancelDrawing: () => widget.notifier.cancelDrawing(),
       onDrawShape: (points) => widget.notifier.fillPixels(points),
       onSelectionChanged: (region) {
         if (region == null) {
@@ -241,8 +242,8 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
       ),
       inputMode: inputMode,
       twoFingerUndoEnabled: widget.editorSettings.twoFingerUndoEnabled,
-      gridWidth: widget.project.width < 64 ? widget.project.width : 64,
-      gridHeight: widget.project.height < 64 ? widget.project.height : 64,
+      gridWidth: widget.editorSettings.showGrid ? (widget.project.width < 64 ? widget.project.width : 64) : 0,
+      gridHeight: widget.editorSettings.showGrid ? (widget.project.height < 64 ? widget.project.height : 64) : 0,
       onionSkinFrames: widget.showPrevFrames
           ? List<PixelCanvasOnionSkinFrame>.generate(
               widget.state.currentFrameIndex,
