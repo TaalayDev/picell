@@ -292,6 +292,12 @@ class ToolDrawingManager {
     }
   }
 
+  /// Commits the curve at the current control point (used for drag-release
+  /// commit on touch where there's no hover phase).
+  void commitCurve(PixelDrawDetails details) {
+    _curveTool.commit(details);
+  }
+
   void resetCurveTool() {
     _curveTool = CurveTool();
   }

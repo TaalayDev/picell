@@ -208,6 +208,11 @@ class PixelCanvasHostRuntime {
     }
 
     if (currentTool != _lastCurrentTool) {
+      // If we're leaving the curve tool with an in-progress curve, abort it
+      // so the orphaned undo snapshot and preview pixels don't linger.
+      if (_lastCurrentTool == PixelTool.curve && currentTool != PixelTool.curve && toolManager.isCurveActive) {
+        gestureHandler.resetCurveTool();
+      }
       controller.setCurrentTool(currentTool);
       _lastCurrentTool = currentTool;
     }

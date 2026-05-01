@@ -542,8 +542,32 @@ class CanvasGestureHandler {
     }
   }
 
-  void resetCurveTool() {
+  /// Begins a batched drawing for the curve tool. Called on the first tap of
+  /// a curve so that the eventual commit goes through the normal batch path
+  /// and produces a single undo entry.
+  void beginCurveDrawing() {
+    if (_isCurveDrawingActive) return;
+    onStartDrawing();
+    _isCurveDrawingActive = true;
+  }
+
+  /// True while a curve has been started but not yet committed or cancelled.
+  bool get isCurveDrawingActive => _isCurveDrawingActive;
+  bool _isCurveDrawingActive = false;
+
+  /// Marks the curve batch as committed. Caller is responsible for invoking
+  /// [finishDrawing] separately to actually flush the preview pixels.
+  void markCurveDrawingFinished() {
+    _isCurveDrawingActive = false;
+  }
+
+  void resetCurveTool({bool cancelBatch = true}) {
     toolManager.resetCurveTool();
     controller.clearCurvePoints();
+    controller.clearPreviewPixels();
+    if (cancelBatch && _isCurveDrawingActive) {
+      _isCurveDrawingActive = false;
+      (onCancelDrawing ?? onFinishDrawing).call();
+    }
   }
 }

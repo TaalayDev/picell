@@ -41,6 +41,14 @@ class PixelCanvasInputAdapter {
   bool _isDraggingInsideSelection = false;
   PointerDownEvent? _pendingOutsideSelectionDownEvent;
   Offset? _pendingOutsideSelectionStart;
+
+  /// Pointer that started the curve-defining gesture (the second tap of a
+  /// curve). If the user drags meaningfully with this pointer and releases,
+  /// the curve commits on release — natural touch UX.
+  int? _curveDefiningPointer;
+  Offset? _curveDefiningStart;
+  bool _curveDefiningDidDrag = false;
+  static const _curveDragCommitThreshold = 6.0;
   int? _activeSelectionHandlePointer;
   CanvasSelectionHandle? _activeSelectionHandle;
   Offset _selectionHandleStartScreen = Offset.zero;
@@ -90,7 +98,7 @@ class PixelCanvasInputAdapter {
     }
 
     if (_config.currentTool == PixelTool.curve) {
-      _handleCurveToolInteraction(event.localPosition);
+      _handleCurveToolInteraction(event.localPosition, event.pointer);
     } else if (_shouldHandleInsideSelectionPointer(event)) {
       _pendingInsideSelectionRegion = controller.currentSelectionRegion;
       _pendingInsideSelectionPointer = event.pointer;
@@ -128,6 +136,11 @@ class PixelCanvasInputAdapter {
     }
 
     if (_config.currentTool == PixelTool.curve && toolManager.isCurveDefining) {
+      if (_curveDefiningPointer == event.pointer && _curveDefiningStart != null) {
+        if ((event.localPosition - _curveDefiningStart!).distance >= _curveDragCommitThreshold) {
+          _curveDefiningDidDrag = true;
+        }
+      }
       final details = _createDrawDetails(event.localPosition);
       toolManager.handleCurveMove(details, controller);
       return;
@@ -143,6 +156,22 @@ class PixelCanvasInputAdapter {
     }
 
     if (_config.currentTool == PixelTool.curve) {
+      // Drag-release commit: if this pointer started the defining gesture
+      // and the user dragged before lifting, commit the curve here so they
+      // don't have to make a third tap.
+      if (_curveDefiningPointer == event.pointer) {
+        final didDrag = _curveDefiningDidDrag;
+        _curveDefiningPointer = null;
+        _curveDefiningStart = null;
+        _curveDefiningDidDrag = false;
+        if (didDrag && toolManager.isCurveDefining) {
+          final details = _createDrawDetails(event.localPosition);
+          toolManager.commitCurve(details);
+          gestureHandler.markCurveDrawingFinished();
+          gestureHandler.finishDrawing();
+          controller.clearCurvePoints();
+        }
+      }
       return;
     }
 
@@ -164,6 +193,12 @@ class PixelCanvasInputAdapter {
   }
 
   void handlePointerCancel(PointerCancelEvent event) {
+    if (_curveDefiningPointer == event.pointer) {
+      _curveDefiningPointer = null;
+      _curveDefiningStart = null;
+      _curveDefiningDidDrag = false;
+    }
+
     if (_isActiveSelectionHandlePointer(event.pointer)) {
       _finishSelectionHandleInteraction();
       return;
@@ -574,16 +609,35 @@ class PixelCanvasInputAdapter {
     _clearSelectionHandleInteraction();
   }
 
-  void _handleCurveToolInteraction(Offset position) {
+  void _handleCurveToolInteraction(Offset position, int pointer) {
     if (_config.currentTool != PixelTool.curve) return;
 
+    final wasCurveActive = toolManager.isCurveActive;
+    final wasCurveDefining = toolManager.isCurveDefining;
     final details = _createDrawDetails(position);
+
+    if (!wasCurveActive) {
+      // First tap of a new curve — open a batch so the commit produces
+      // exactly one undo entry and goes through the normal commit path.
+      gestureHandler.beginCurveDrawing();
+    }
 
     toolManager.handleCurveTap(details, controller);
 
     if (!toolManager.isCurveActive) {
+      // Curve was committed by this tap — finalize the batch.
+      gestureHandler.markCurveDrawingFinished();
       gestureHandler.finishDrawing();
       controller.clearCurvePoints();
+      _curveDefiningPointer = null;
+      _curveDefiningStart = null;
+      _curveDefiningDidDrag = false;
+    } else if (!wasCurveDefining && toolManager.isCurveDefining) {
+      // This tap was the second one — defining just started. Track the
+      // pointer so we can commit on its release if the user drags.
+      _curveDefiningPointer = pointer;
+      _curveDefiningStart = position;
+      _curveDefiningDidDrag = false;
     }
   }
 
