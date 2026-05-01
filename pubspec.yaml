@@ -2,7 +2,7 @@ name: picell
 description: "Powerful and intuitive pixel art editor for all platforms."
 
 version: 2.1.2+28
-android_version: 1.0.0+1
+android_version: 1.0.0+5
 
 environment:
   sdk: ">=3.4.4 <4.0.0"
@@ -107,6 +107,7 @@ dependencies:
 
 dependency_overrides:
   intl: ^0.19.0
+  sqlite3_flutter_libs: ^0.5.26
   
 dev_dependencies:
   flutter_test:
