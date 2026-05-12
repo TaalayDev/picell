@@ -80,7 +80,7 @@ class _$PixelCanvasStateCopyWithImpl<$Res, $Val extends PixelCanvasState>
     Object? currentAnimationStateIndex = null,
     Object? currentFrameIndex = null,
     Object? currentLayerIndex = null,
-    Object? currentColor = freezed,
+    Object? currentColor = null,
     Object? currentTool = null,
     Object? mirrorAxis = null,
     Object? selectionState = freezed,
@@ -117,7 +117,7 @@ class _$PixelCanvasStateCopyWithImpl<$Res, $Val extends PixelCanvasState>
           ? _value.currentLayerIndex
           : currentLayerIndex // ignore: cast_nullable_to_non_nullable
               as int,
-      currentColor: freezed == currentColor
+      currentColor: null == currentColor
           ? _value.currentColor
           : currentColor // ignore: cast_nullable_to_non_nullable
               as Color,
@@ -192,7 +192,7 @@ class __$$PixelCanvasStateImplCopyWithImpl<$Res>
     Object? currentAnimationStateIndex = null,
     Object? currentFrameIndex = null,
     Object? currentLayerIndex = null,
-    Object? currentColor = freezed,
+    Object? currentColor = null,
     Object? currentTool = null,
     Object? mirrorAxis = null,
     Object? selectionState = freezed,
@@ -229,7 +229,7 @@ class __$$PixelCanvasStateImplCopyWithImpl<$Res>
           ? _value.currentLayerIndex
           : currentLayerIndex // ignore: cast_nullable_to_non_nullable
               as int,
-      currentColor: freezed == currentColor
+      currentColor: null == currentColor
           ? _value.currentColor
           : currentColor // ignore: cast_nullable_to_non_nullable
               as Color,
@@ -353,8 +353,8 @@ class _$PixelCanvasStateImpl extends _PixelCanvasState {
                 other.currentFrameIndex == currentFrameIndex) &&
             (identical(other.currentLayerIndex, currentLayerIndex) ||
                 other.currentLayerIndex == currentLayerIndex) &&
-            const DeepCollectionEquality()
-                .equals(other.currentColor, currentColor) &&
+            (identical(other.currentColor, currentColor) ||
+                other.currentColor == currentColor) &&
             (identical(other.currentTool, currentTool) ||
                 other.currentTool == currentTool) &&
             (identical(other.mirrorAxis, mirrorAxis) ||
@@ -377,7 +377,7 @@ class _$PixelCanvasStateImpl extends _PixelCanvasState {
       currentAnimationStateIndex,
       currentFrameIndex,
       currentLayerIndex,
-      const DeepCollectionEquality().hash(currentColor),
+      currentColor,
       currentTool,
       mirrorAxis,
       selectionState,
@@ -483,7 +483,7 @@ class _$BackgroundImageStateCopyWithImpl<$Res,
     Object? image = freezed,
     Object? opacity = null,
     Object? scale = null,
-    Object? offset = freezed,
+    Object? offset = null,
   }) {
     return _then(_value.copyWith(
       image: freezed == image
@@ -498,7 +498,7 @@ class _$BackgroundImageStateCopyWithImpl<$Res,
           ? _value.scale
           : scale // ignore: cast_nullable_to_non_nullable
               as double,
-      offset: freezed == offset
+      offset: null == offset
           ? _value.offset
           : offset // ignore: cast_nullable_to_non_nullable
               as Offset,
@@ -531,7 +531,7 @@ class __$$BackgroundImageStateImplCopyWithImpl<$Res>
     Object? image = freezed,
     Object? opacity = null,
     Object? scale = null,
-    Object? offset = freezed,
+    Object? offset = null,
   }) {
     return _then(_$BackgroundImageStateImpl(
       image: freezed == image
@@ -546,7 +546,7 @@ class __$$BackgroundImageStateImplCopyWithImpl<$Res>
           ? _value.scale
           : scale // ignore: cast_nullable_to_non_nullable
               as double,
-      offset: freezed == offset
+      offset: null == offset
           ? _value.offset
           : offset // ignore: cast_nullable_to_non_nullable
               as Offset,
@@ -589,16 +589,12 @@ class _$BackgroundImageStateImpl extends _BackgroundImageState {
             const DeepCollectionEquality().equals(other.image, image) &&
             (identical(other.opacity, opacity) || other.opacity == opacity) &&
             (identical(other.scale, scale) || other.scale == scale) &&
-            const DeepCollectionEquality().equals(other.offset, offset));
+            (identical(other.offset, offset) || other.offset == offset));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(image),
-      opacity,
-      scale,
-      const DeepCollectionEquality().hash(offset));
+  int get hashCode => Object.hash(runtimeType,
+      const DeepCollectionEquality().hash(image), opacity, scale, offset);
 
   @JsonKey(ignore: true)
   @override

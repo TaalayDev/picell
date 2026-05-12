@@ -6,7 +6,7 @@ part of 'project_upload_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$projectUploadHash() => r'6478d0b316c353733a3bbd17b47f8660e9407ed4';
+String _$projectUploadHash() => r'05c8117114c2613e486c2c5cbadd8a47dccec5e0';
 
 /// See also [ProjectUpload].
 @ProviderFor(ProjectUpload)

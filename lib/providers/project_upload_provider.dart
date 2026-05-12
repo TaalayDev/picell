@@ -22,6 +22,9 @@ class ProjectUploadState with _$ProjectUploadState {
     ApiProject? uploadedProject,
     @Default(false) bool isSuccess,
     @Default(false) bool isUpdating,
+    // Background silent sync (no UI modal)
+    @Default(false) bool isSilentSyncing,
+    int? lastSyncedRemoteId,
   }) = _ProjectUploadState;
 }
 
@@ -117,8 +120,7 @@ class ProjectUpload extends _$ProjectUpload {
       } else {
         throw Exception(response.error ?? 'Upload failed');
       }
-    } catch (e, s) {
-      print('Upload error: $e');
+    } catch (e) {
       state = state.copyWith(
         isUploading: false,
         error: e.toString(),
@@ -279,6 +281,81 @@ class ProjectUpload extends _$ProjectUpload {
     );
 
     return Uint8List.fromList(img.encodePng(thumbnail));
+  }
+
+  /// Silent background resync — called automatically when a cloud-synced project
+  /// is saved locally. Does not show any upload UI; just pushes the latest data.
+  Future<void> silentSyncProject({required Project localProject}) async {
+    if (!localProject.isCloudSynced || localProject.remoteId == null) return;
+    if (state.isUploading || state.isSilentSyncing) return;
+
+    try {
+      state = state.copyWith(isSilentSyncing: true, error: null);
+
+      final projectData = jsonEncode(localProject.toJson());
+      final thumbnailBytes = await _generateThumbnail(localProject);
+
+      final response = await ref.read(projectAPIRepoProvider).updateProject(
+        projectId: localProject.remoteId!,
+        projectData: projectData,
+        thumbnailBytes: thumbnailBytes,
+      );
+
+      if (response.success) {
+        state = state.copyWith(
+          isSilentSyncing: false,
+          lastSyncedRemoteId: localProject.remoteId,
+        );
+
+        ref.read(analyticsProvider).logEvent(
+          name: 'project_silent_sync_success',
+          parameters: {'project_id': localProject.remoteId.toString()},
+        );
+      } else {
+        state = state.copyWith(isSilentSyncing: false);
+      }
+    } catch (_) {
+      state = state.copyWith(isSilentSyncing: false);
+    }
+  }
+
+  /// Toggle cloud visibility for an already-uploaded project without re-uploading data.
+  Future<void> toggleCloudVisibility({
+    required Project localProject,
+    required bool isPublic,
+  }) async {
+    if (!localProject.isCloudSynced || localProject.remoteId == null) return;
+
+    try {
+      state = state.copyWith(isUpdating: true, error: null);
+
+      final response = await ref.read(projectAPIRepoProvider).updateProject(
+        projectId: localProject.remoteId!,
+        isPublic: isPublic,
+      );
+
+      if (response.success && response.data != null) {
+        state = state.copyWith(
+          isUpdating: false,
+          isSuccess: true,
+          uploadedProject: response.data,
+        );
+        ref.read(analyticsProvider).logEvent(
+          name: 'project_visibility_changed',
+          parameters: {
+            'project_id': localProject.remoteId.toString(),
+            'is_public': isPublic.toString(),
+          },
+        );
+      } else {
+        throw Exception(response.error ?? 'Failed to update visibility');
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isUpdating: false,
+        error: e.toString(),
+      );
+    }
   }
 
   void resetState() {

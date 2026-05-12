@@ -813,12 +813,9 @@ class ProjectsScreen extends HookConsumerWidget {
       return;
     }
 
-    showTopFlushbar(
-      context,
-      message: const Text('Syncing project to cloud...'),
-    );
-
-    ref.read(projectUploadProvider.notifier).updateProject(localProject: fullProject);
+    // Open the upload dialog in update mode so the user can also change
+    // visibility, tags, description, or take it down.
+    ProjectUploadDialog.show(context, fullProject, isUpdate: true);
   }
 
   Future<void> _onDeleteCloudProject(

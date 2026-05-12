@@ -21,7 +21,10 @@ mixin _$ProjectUploadState {
   String? get error => throw _privateConstructorUsedError;
   ApiProject? get uploadedProject => throw _privateConstructorUsedError;
   bool get isSuccess => throw _privateConstructorUsedError;
-  bool get isUpdating => throw _privateConstructorUsedError;
+  bool get isUpdating =>
+      throw _privateConstructorUsedError; // Background silent sync (no UI modal)
+  bool get isSilentSyncing => throw _privateConstructorUsedError;
+  int? get lastSyncedRemoteId => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $ProjectUploadStateCopyWith<ProjectUploadState> get copyWith =>
@@ -40,7 +43,9 @@ abstract class $ProjectUploadStateCopyWith<$Res> {
       String? error,
       ApiProject? uploadedProject,
       bool isSuccess,
-      bool isUpdating});
+      bool isUpdating,
+      bool isSilentSyncing,
+      int? lastSyncedRemoteId});
 
   $ApiProjectCopyWith<$Res>? get uploadedProject;
 }
@@ -64,6 +69,8 @@ class _$ProjectUploadStateCopyWithImpl<$Res, $Val extends ProjectUploadState>
     Object? uploadedProject = freezed,
     Object? isSuccess = null,
     Object? isUpdating = null,
+    Object? isSilentSyncing = null,
+    Object? lastSyncedRemoteId = freezed,
   }) {
     return _then(_value.copyWith(
       isUploading: null == isUploading
@@ -90,6 +97,14 @@ class _$ProjectUploadStateCopyWithImpl<$Res, $Val extends ProjectUploadState>
           ? _value.isUpdating
           : isUpdating // ignore: cast_nullable_to_non_nullable
               as bool,
+      isSilentSyncing: null == isSilentSyncing
+          ? _value.isSilentSyncing
+          : isSilentSyncing // ignore: cast_nullable_to_non_nullable
+              as bool,
+      lastSyncedRemoteId: freezed == lastSyncedRemoteId
+          ? _value.lastSyncedRemoteId
+          : lastSyncedRemoteId // ignore: cast_nullable_to_non_nullable
+              as int?,
     ) as $Val);
   }
 
@@ -120,7 +135,9 @@ abstract class _$$ProjectUploadStateImplCopyWith<$Res>
       String? error,
       ApiProject? uploadedProject,
       bool isSuccess,
-      bool isUpdating});
+      bool isUpdating,
+      bool isSilentSyncing,
+      int? lastSyncedRemoteId});
 
   @override
   $ApiProjectCopyWith<$Res>? get uploadedProject;
@@ -143,6 +160,8 @@ class __$$ProjectUploadStateImplCopyWithImpl<$Res>
     Object? uploadedProject = freezed,
     Object? isSuccess = null,
     Object? isUpdating = null,
+    Object? isSilentSyncing = null,
+    Object? lastSyncedRemoteId = freezed,
   }) {
     return _then(_$ProjectUploadStateImpl(
       isUploading: null == isUploading
@@ -169,6 +188,14 @@ class __$$ProjectUploadStateImplCopyWithImpl<$Res>
           ? _value.isUpdating
           : isUpdating // ignore: cast_nullable_to_non_nullable
               as bool,
+      isSilentSyncing: null == isSilentSyncing
+          ? _value.isSilentSyncing
+          : isSilentSyncing // ignore: cast_nullable_to_non_nullable
+              as bool,
+      lastSyncedRemoteId: freezed == lastSyncedRemoteId
+          ? _value.lastSyncedRemoteId
+          : lastSyncedRemoteId // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -182,7 +209,9 @@ class _$ProjectUploadStateImpl implements _ProjectUploadState {
       this.error,
       this.uploadedProject,
       this.isSuccess = false,
-      this.isUpdating = false});
+      this.isUpdating = false,
+      this.isSilentSyncing = false,
+      this.lastSyncedRemoteId});
 
   @override
   @JsonKey()
@@ -200,10 +229,16 @@ class _$ProjectUploadStateImpl implements _ProjectUploadState {
   @override
   @JsonKey()
   final bool isUpdating;
+// Background silent sync (no UI modal)
+  @override
+  @JsonKey()
+  final bool isSilentSyncing;
+  @override
+  final int? lastSyncedRemoteId;
 
   @override
   String toString() {
-    return 'ProjectUploadState(isUploading: $isUploading, uploadProgress: $uploadProgress, error: $error, uploadedProject: $uploadedProject, isSuccess: $isSuccess, isUpdating: $isUpdating)';
+    return 'ProjectUploadState(isUploading: $isUploading, uploadProgress: $uploadProgress, error: $error, uploadedProject: $uploadedProject, isSuccess: $isSuccess, isUpdating: $isUpdating, isSilentSyncing: $isSilentSyncing, lastSyncedRemoteId: $lastSyncedRemoteId)';
   }
 
   @override
@@ -221,12 +256,24 @@ class _$ProjectUploadStateImpl implements _ProjectUploadState {
             (identical(other.isSuccess, isSuccess) ||
                 other.isSuccess == isSuccess) &&
             (identical(other.isUpdating, isUpdating) ||
-                other.isUpdating == isUpdating));
+                other.isUpdating == isUpdating) &&
+            (identical(other.isSilentSyncing, isSilentSyncing) ||
+                other.isSilentSyncing == isSilentSyncing) &&
+            (identical(other.lastSyncedRemoteId, lastSyncedRemoteId) ||
+                other.lastSyncedRemoteId == lastSyncedRemoteId));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, isUploading, uploadProgress,
-      error, uploadedProject, isSuccess, isUpdating);
+  int get hashCode => Object.hash(
+      runtimeType,
+      isUploading,
+      uploadProgress,
+      error,
+      uploadedProject,
+      isSuccess,
+      isUpdating,
+      isSilentSyncing,
+      lastSyncedRemoteId);
 
   @JsonKey(ignore: true)
   @override
@@ -243,7 +290,9 @@ abstract class _ProjectUploadState implements ProjectUploadState {
       final String? error,
       final ApiProject? uploadedProject,
       final bool isSuccess,
-      final bool isUpdating}) = _$ProjectUploadStateImpl;
+      final bool isUpdating,
+      final bool isSilentSyncing,
+      final int? lastSyncedRemoteId}) = _$ProjectUploadStateImpl;
 
   @override
   bool get isUploading;
@@ -257,6 +306,10 @@ abstract class _ProjectUploadState implements ProjectUploadState {
   bool get isSuccess;
   @override
   bool get isUpdating;
+  @override // Background silent sync (no UI modal)
+  bool get isSilentSyncing;
+  @override
+  int? get lastSyncedRemoteId;
   @override
   @JsonKey(ignore: true)
   _$$ProjectUploadStateImplCopyWith<_$ProjectUploadStateImpl> get copyWith =>

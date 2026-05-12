@@ -192,7 +192,6 @@ class ProjectCard extends StatelessWidget {
 
     // Cloud-related options
     if (project.isCloudSynced) {
-      // Update cloud project
       items.add(
         const PopupMenuItem(
           value: 'update',
@@ -206,7 +205,7 @@ class ProjectCard extends StatelessWidget {
         ),
       );
     } else if (project.remoteId == null) {
-      // Upload to cloud
+      // Local-only project — offer first-time upload
       items.add(
         const PopupMenuItem(
           value: 'upload',

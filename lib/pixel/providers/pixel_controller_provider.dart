@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
@@ -17,6 +18,7 @@ import '../../providers/providers.dart';
 import '../../providers/background_image_provider.dart';
 import '../../providers/editor_settings_provider.dart';
 import '../../providers/imported_palette_provider.dart';
+import '../../providers/project_upload_provider.dart';
 import '../services/animation_service.dart';
 import '../services/drawing_service.dart';
 import '../services/frame_service.dart';
@@ -45,7 +47,8 @@ class PixelDrawController extends _$PixelDrawController {
   bool _isBatching = false;
   Uint32List? _activeBuffer;
 
-  // Current project reference
+  // Debounce timer for cloud auto-sync (30s after last save)
+  Timer? _cloudSyncTimer;
 
   @override
   PixelCanvasState build(Project project) {
@@ -59,6 +62,8 @@ class PixelDrawController extends _$PixelDrawController {
     _undoRedoService = UndoRedoService();
     _importExportService = ImportExportService();
     _templateService = TemplateService(ref.read(templateAPIRepoProvider));
+
+    ref.onDispose(() => _cloudSyncTimer?.cancel());
 
     return PixelCanvasState(
       width: project.width,
@@ -114,14 +119,25 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void _updateProject() {
-    ref.read(projectRepo).updateProject(
-          project.copyWith(
-            frames: state.frames,
-            states: state.animationStates,
-            editedAt: DateTime.now(),
-          ),
-        );
+    final updated = project.copyWith(
+      frames: state.frames,
+      states: state.animationStates,
+      editedAt: DateTime.now(),
+    );
+    ref.read(projectRepo).updateProject(updated);
+    _scheduleCloudSync(updated);
   }
+
+  void _scheduleCloudSync(Project updated) {
+    if (!updated.isCloudSynced || updated.remoteId == null) return;
+    _cloudSyncTimer?.cancel();
+    _cloudSyncTimer = Timer(const Duration(seconds: 30), () {
+      ref.read(projectUploadProvider.notifier).silentSyncProject(
+        localProject: updated,
+      );
+    });
+  }
+
 
   // MARK: Batch Drawing Methods
 
