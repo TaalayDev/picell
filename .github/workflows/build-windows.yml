@@ -1,0 +1,115 @@
+name: Build Windows
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Windows Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create .env file
+        run: |
+          echo "IOS_INTERSTITIAL_ID=${{ secrets.IOS_INTERSTITIAL_ID }}" > .env
+          echo "IOS_BANNER_ID=${{ secrets.IOS_BANNER_ID }}" >> .env
+          echo "IOS_REWARDED_ID=${{ secrets.IOS_REWARDED_ID }}" >> .env
+        shell: bash
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Create release archive
+        run: |
+          $version = "${{ github.ref_name }}"
+          if (-not $version.StartsWith("v")) { $version = "dev" }
+          $archiveName = "PixelVerse-Windows-$version"
+          Compress-Archive `
+            -Path "build\windows\x64\runner\Release\*" `
+            -DestinationPath "$archiveName.zip"
+          echo "ARCHIVE_NAME=$archiveName" >> $env:GITHUB_ENV
+        shell: pwsh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          path: build/windows/x64/runner/Release/
+          retention-days: 30
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVE_NAME }}-zip
+          path: ${{ env.ARCHIVE_NAME }}.zip
+          retention-days: 30
+
+  release:
+    name: Create GitHub Release
+    runs-on: windows-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create .env file
+        run: |
+          echo "IOS_INTERSTITIAL_ID=${{ secrets.IOS_INTERSTITIAL_ID }}" > .env
+          echo "IOS_BANNER_ID=${{ secrets.IOS_BANNER_ID }}" >> .env
+          echo "IOS_REWARDED_ID=${{ secrets.IOS_REWARDED_ID }}" >> .env
+        shell: bash
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Package release
+        run: |
+          $tag = "${{ github.ref_name }}"
+          Compress-Archive `
+            -Path "build\windows\x64\runner\Release\*" `
+            -DestinationPath "PixelVerse-Windows-$tag.zip"
+        shell: pwsh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: PixelVerse-Windows-${{ github.ref_name }}.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
