@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     name: Build Windows Release
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
       - name: Checkout code
@@ -27,11 +27,6 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Enable MSVC Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
       - name: Install dependencies
         run: flutter pub get
 
@@ -43,8 +38,6 @@ jobs:
         shell: bash
 
       - name: Build Windows release
-        env:
-          CMAKE_GENERATOR: "Visual Studio 17 2022"
         run: flutter build windows --release
 
       - name: Create release archive
@@ -74,7 +67,7 @@ jobs:
 
   release:
     name: Create GitHub Release
-    runs-on: windows-latest
+    runs-on: windows-2019
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
 
@@ -92,11 +85,6 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Enable MSVC Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
       - name: Install dependencies
         run: flutter pub get
 
@@ -108,8 +96,6 @@ jobs:
         shell: bash
 
       - name: Build Windows release
-        env:
-          CMAKE_GENERATOR: "Visual Studio 17 2022"
         run: flutter build windows --release
 
       - name: Package release
