@@ -27,6 +27,11 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Enable MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -38,6 +43,8 @@ jobs:
         shell: bash
 
       - name: Build Windows release
+        env:
+          CMAKE_GENERATOR: "Visual Studio 17 2022"
         run: flutter build windows --release
 
       - name: Create release archive
@@ -85,6 +92,11 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Enable MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -96,6 +108,8 @@ jobs:
         shell: bash
 
       - name: Build Windows release
+        env:
+          CMAKE_GENERATOR: "Visual Studio 17 2022"
         run: flutter build windows --release
 
       - name: Package release
