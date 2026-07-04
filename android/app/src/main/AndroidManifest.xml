@@ -35,6 +35,15 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- Impeller on Android: this app leans heavily on drawVertices and
+             saveLayer, which behave very differently between Skia and
+             Impeller. Uncomment to A/B-test on real devices and keep it only
+             if measured raster times improve:
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="true" /> -->
+
+
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-5153941317881091~3634617586"/>

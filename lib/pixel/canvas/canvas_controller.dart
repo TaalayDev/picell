@@ -177,15 +177,35 @@ class PixelCanvasController extends ChangeNotifier {
     }
   }
 
+  /// Whether the preview must be composited into a merged layer image.
+  /// Opaque strokes without effects render identically through the cheap
+  /// vertices path in the painter; translucent or erasing previews need the
+  /// merged image because vertices would blend over the current layer's
+  /// pixels instead of replacing them.
+  bool get _needsLivePreviewImage {
+    if (_previewPixels.isEmpty) return false;
+    if (_previewEffectsEnabled && currentLayer.effects.isNotEmpty) return true;
+    return (_previewPixels.last.color >>> 24) != 0xFF;
+  }
+
   void _schedulePreviewImageRebuild(int revision) {
     _previewImageUpdateTimer?.cancel();
-    if (_previewPixels.isEmpty) {
+    if (!_needsLivePreviewImage) {
       _clearLivePreviewImage();
       return;
     }
 
-    _previewImageUpdateTimer = Timer(const Duration(milliseconds: 10), () async {
-      final pixelsForPreview = _buildPreviewLayerPixels();
+    // Effects need a full-buffer pass (possibly in an isolate) — give them a
+    // longer debounce so mid-stroke updates don't queue up.
+    final hasEffects = _previewEffectsEnabled && currentLayer.effects.isNotEmpty;
+    final debounce = Duration(milliseconds: hasEffects ? 33 : 10);
+
+    _previewImageUpdateTimer = Timer(debounce, () async {
+      final pixelsForPreview = await _buildPreviewLayerPixels();
+      if (revision != _previewRevision || _previewPixels.isEmpty) {
+        return;
+      }
+
       final image = await ImageHelper.createImageFromPixels(pixelsForPreview, width, height);
 
       if (revision != _previewRevision || _previewPixels.isEmpty) {
@@ -200,14 +220,14 @@ class PixelCanvasController extends ChangeNotifier {
     });
   }
 
-  Uint32List _buildPreviewLayerPixels() {
+  Future<Uint32List> _buildPreviewLayerPixels() async {
     final mergedPixels = _mergePixelsWithPoints(currentLayer.processedPixels, _previewPixels);
 
     if (!_previewEffectsEnabled || currentLayer.effects.isEmpty) {
       return mergedPixels;
     }
 
-    return EffectsManager.applyMultipleEffects(mergedPixels, width, height, currentLayer.effects);
+    return EffectsManager.applyMultipleEffectsAsync(mergedPixels, width, height, currentLayer.effects);
   }
 
   void _clearLivePreviewImage() {
@@ -305,6 +325,11 @@ class PixelCanvasController extends ChangeNotifier {
     return pixels.where((point) => sel.contains(point.x, point.y)).toList();
   }
 
+  // Latest-wins guard for the async effects pass: at most one isolate job in
+  // flight; a request arriving mid-job re-runs once at the end.
+  bool _previewEffectsJobRunning = false;
+  bool _previewEffectsJobPending = false;
+
   void _updatePreviewPixelsWithEffects() {
     final currentLayer = _layers[_currentLayerIndex];
 
@@ -312,6 +337,11 @@ class PixelCanvasController extends ChangeNotifier {
       if (_processedPreviewPixels.isNotEmpty) {
         _processedPreviewPixels = Uint32List(0);
       }
+      return;
+    }
+
+    if (_previewEffectsJobRunning) {
+      _previewEffectsJobPending = true;
       return;
     }
 
@@ -324,7 +354,23 @@ class PixelCanvasController extends ChangeNotifier {
       }
     }
 
-    _processedPreviewPixels = EffectsManager.applyMultipleEffects(tempPixels, width, height, currentLayer.effects);
+    final revision = _previewRevision;
+    _previewEffectsJobRunning = true;
+    EffectsManager.applyMultipleEffectsAsync(tempPixels, width, height, currentLayer.effects).then((result) {
+      _previewEffectsJobRunning = false;
+      if (revision == _previewRevision && _previewPixels.isNotEmpty) {
+        _processedPreviewPixels = result;
+        notifyListeners();
+      }
+      if (_previewEffectsJobPending) {
+        _previewEffectsJobPending = false;
+        _updatePreviewPixelsWithEffects();
+      }
+    }).catchError((Object e) {
+      _previewEffectsJobRunning = false;
+      _previewEffectsJobPending = false;
+      debugPrint('Preview effects failed: $e');
+    });
   }
 
   void setSelection(SelectionRegion? region) {
@@ -360,8 +406,11 @@ class PixelCanvasController extends ChangeNotifier {
   }
 
   void setHoverPosition(Offset? position, {List<PixelPoint<int>>? previewPixels}) {
+    if (position == null && _hoverPosition == null && _hoverPreviewPixels.isEmpty) {
+      return;
+    }
     _hoverPosition = position;
-    _hoverPreviewPixels = List<PixelPoint<int>>.from(previewPixels ?? []);
+    _hoverPreviewPixels = List<PixelPoint<int>>.from(previewPixels ?? const []);
     notifyListeners();
   }
 

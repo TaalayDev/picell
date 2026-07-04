@@ -50,6 +50,14 @@ class PixelDrawController extends _$PixelDrawController {
   // Debounce timer for cloud auto-sync (30s after last save)
   Timer? _cloudSyncTimer;
 
+  // Debounced local project save: strokes only schedule a save; the latest
+  // pending snapshot is written after [_localSaveDebounce] or on flush.
+  static const _localSaveDebounce = Duration(seconds: 2);
+  Timer? _projectSaveTimer;
+  Project? _pendingProjectSave;
+  AppLifecycleListener? _lifecycleListener;
+  late final ProjectRepo _projectRepo;
+
   @override
   PixelCanvasState build(Project project) {
     // Initialize services
@@ -62,8 +70,20 @@ class PixelDrawController extends _$PixelDrawController {
     _undoRedoService = UndoRedoService();
     _importExportService = ImportExportService();
     _templateService = TemplateService(ref.read(templateAPIRepoProvider));
+    _projectRepo = ref.read(projectRepo);
 
-    ref.onDispose(() => _cloudSyncTimer?.cancel());
+    // Flush the pending save when the app is backgrounded or closing so the
+    // debounce window can't drop the last edits.
+    _lifecycleListener = AppLifecycleListener(
+      onPause: flushPendingProjectSave,
+      onDetach: flushPendingProjectSave,
+    );
+
+    ref.onDispose(() {
+      _cloudSyncTimer?.cancel();
+      _lifecycleListener?.dispose();
+      flushPendingProjectSave();
+    });
 
     return PixelCanvasState(
       width: project.width,
@@ -118,14 +138,43 @@ class PixelDrawController extends _$PixelDrawController {
     state = state.copyWith(canUndo: canUndo, canRedo: canRedo);
   }
 
+  // Pending pixel-op undo capture: pre-op state and the current layer's
+  // pre-op buffer. Consumed by _updateCurrentLayerPixels, which records a
+  // compact pixel diff instead of retaining a full snapshot. Only set by
+  // single-commit, pixel-only operations.
+  PixelCanvasState? _pendingUndoPreState;
+  Uint32List? _pendingUndoPrePixels;
+
+  void _beginPixelUndo() {
+    _pendingUndoPreState = state;
+    _pendingUndoPrePixels = currentLayer.pixels;
+  }
+
+  void _clearPendingPixelUndo() {
+    _pendingUndoPreState = null;
+    _pendingUndoPrePixels = null;
+  }
+
   void _updateProject() {
     final updated = project.copyWith(
       frames: state.frames,
       states: state.animationStates,
       editedAt: DateTime.now(),
     );
-    ref.read(projectRepo).updateProject(updated);
+    _pendingProjectSave = updated;
+    _projectSaveTimer?.cancel();
+    _projectSaveTimer = Timer(_localSaveDebounce, flushPendingProjectSave);
     _scheduleCloudSync(updated);
+  }
+
+  /// Writes the most recent pending project snapshot immediately.
+  void flushPendingProjectSave() {
+    _projectSaveTimer?.cancel();
+    _projectSaveTimer = null;
+    final pending = _pendingProjectSave;
+    if (pending == null) return;
+    _pendingProjectSave = null;
+    _projectRepo.updateProject(pending);
   }
 
   void _scheduleCloudSync(Project updated) {
@@ -143,7 +192,7 @@ class PixelDrawController extends _$PixelDrawController {
 
   void startBatchDrawing() {
     _isBatching = true;
-    _saveState();
+    _beginPixelUndo();
     _activeBuffer = Uint32List.fromList(currentLayer.pixels);
   }
 
@@ -181,13 +230,14 @@ class PixelDrawController extends _$PixelDrawController {
     _isBatching = false;
   }
 
-  /// Cancels an in-progress batch drawing without committing the buffer
-  /// and pops the undo snapshot saved at [startBatchDrawing].
+  /// Cancels an in-progress batch drawing without committing the buffer.
+  /// The undo capture from [startBatchDrawing] is discarded — nothing was
+  /// pushed to the undo stack yet (diffs are recorded at commit time).
   void cancelBatchDrawing() {
     if (!_isBatching) return;
     _activeBuffer = null;
     _isBatching = false;
-    _undoRedoService.discardLastSavedState();
+    _clearPendingPixelUndo();
     state = state.copyWith(canUndo: canUndo, canRedo: canRedo);
   }
 
@@ -195,7 +245,7 @@ class PixelDrawController extends _$PixelDrawController {
 
   // Drawing operations
   void setPixel(int x, int y) {
-    _saveState();
+    _beginPixelUndo();
 
     final modifier = _drawingService.createModifier(
       state.currentModifier,
@@ -223,7 +273,7 @@ class PixelDrawController extends _$PixelDrawController {
       final anyInside = points.any((p) => sel.contains(p.x, p.y));
       if (!anyInside) return;
     }
-    _saveState();
+    _beginPixelUndo();
 
     final newPixels = _drawingService.fillPixels(
       pixels: currentLayer.pixels,
@@ -237,7 +287,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void floodFill(int x, int y) {
-    _saveState();
+    _beginPixelUndo();
 
     final newPixels = _drawingService.floodFill(
       pixels: currentLayer.pixels,
@@ -253,7 +303,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void clearCanvas() {
-    _saveState();
+    _beginPixelUndo();
 
     final newPixels = _drawingService.clearPixels(state.width, state.height);
     _updateCurrentLayerPixels(newPixels);
@@ -270,7 +320,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void applyGradientFromPoints(Offset startPx, Offset endPx, Color endColor) {
-    _saveState();
+    _beginPixelUndo();
     final colors = _drawingService.computeLinearGradientColors(
       width: state.width,
       height: state.height,
@@ -288,7 +338,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void applyGradient(List<Color> gradientColors) {
-    _saveState();
+    _beginPixelUndo();
 
     final newPixels = _drawingService.applyGradient(
       pixels: currentLayer.pixels,
@@ -339,7 +389,7 @@ class PixelDrawController extends _$PixelDrawController {
   void clearSelectionArea() {
     final sel = state.selectionState?.region;
     if (sel == null || currentLayer.pixels.isEmpty) return;
-    _saveState();
+    _beginPixelUndo();
     final clearedPixels = _selectionService.clearPixelsInSelection(
       sel,
       currentLayer.pixels,
@@ -361,7 +411,7 @@ class PixelDrawController extends _$PixelDrawController {
   Uint32List? cutSelectionPixels() {
     final sel = state.selectionState?.region;
     if (sel == null || currentLayer.pixels.isEmpty) return null;
-    _saveState();
+    _beginPixelUndo();
     final copied = _selectionService.copySelectedPixels(sel, currentLayer.pixels);
     final cleared = _selectionService.clearPixelsInSelection(
       sel,
@@ -482,6 +532,12 @@ class PixelDrawController extends _$PixelDrawController {
 
   void endTransformSelection() {
     if (_transformPreviewDirty) {
+      // Keep the layer's serialized anchor in sync with where the selection
+      // (and its anchor) ended up — otherwise it goes stale after any move.
+      final anchor = state.selectionState?.anchorPoint;
+      if (anchor != null && currentLayer.anchorPoint != anchor) {
+        _updateCurrentLayer(currentLayer.copyWith(anchorPoint: () => anchor));
+      }
       _persistCurrentLayer();
     }
 
@@ -492,6 +548,28 @@ class PixelDrawController extends _$PixelDrawController {
       state = state.copyWith(
         selectionState: state.selectionState!.copyWith(
           isTransforming: false,
+        ),
+      );
+    }
+  }
+
+  /// Ends any in-progress transform and drops the transform caches before
+  /// the current layer or frame changes. The cached "layer without
+  /// selection" and captured pixels alias the OLD layer — reusing them after
+  /// a switch would stamp the old layer's content onto the new one. The
+  /// selection region and anchor survive (standard editor behavior); the
+  /// next transform recaptures from the new layer.
+  void _detachSelectionFromLayer() {
+    if (state.selectionState?.isTransforming == true) {
+      endTransformSelection();
+    }
+    _resetSelectionTransformCache();
+    final sel = state.selectionState;
+    if (sel != null && (sel.capturedPixels != null || sel.capturedBounds != null)) {
+      state = state.copyWith(
+        selectionState: sel.copyWith(
+          capturedPixels: () => null,
+          capturedBounds: () => null,
         ),
       );
     }
@@ -546,6 +624,7 @@ class PixelDrawController extends _$PixelDrawController {
   Future<void> removeLayer(int index) async {
     if (currentFrame.layers.length <= 1) return;
 
+    _detachSelectionFromLayer();
     final layerToRemove = currentFrame.layers[index];
     await _layerService.deleteLayer(layerToRemove.layerId);
 
@@ -567,6 +646,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   Future<int> duplicateLayer(int index) async {
+    _detachSelectionFromLayer();
     _saveState();
     final layerToDuplicate = currentFrame.layers[index];
     final insertIndex = index + 1;
@@ -604,6 +684,8 @@ class PixelDrawController extends _$PixelDrawController {
 
   void selectLayer(int index) {
     if (index < 0 || index >= currentFrame.layers.length) return;
+    if (index == state.currentLayerIndex) return;
+    _detachSelectionFromLayer();
     state = state.copyWith(currentLayerIndex: index);
   }
 
@@ -615,6 +697,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   Future<void> reorderLayers(int oldIndex, int newIndex) async {
+    _detachSelectionFromLayer();
     final reorderedLayers = _layerService.reorderLayers(
       currentFrame.layers,
       oldIndex,
@@ -723,6 +806,7 @@ class PixelDrawController extends _$PixelDrawController {
     final index =
         state.currentFrames.indexWhere((frame) => frame.id == frameId);
     if (index >= 0) {
+      _detachSelectionFromLayer();
       state = state.copyWith(
         currentFrameIndex: index,
         currentLayerIndex: 0,
@@ -733,6 +817,7 @@ class PixelDrawController extends _$PixelDrawController {
   void nextFrame() {
     final nextIndex =
         (state.currentFrameIndex + 1) % state.currentFrames.length;
+    _detachSelectionFromLayer();
     state = state.copyWith(
       currentFrameIndex: nextIndex,
       currentLayerIndex: 0,
@@ -743,6 +828,7 @@ class PixelDrawController extends _$PixelDrawController {
     final prevIndex =
         (state.currentFrameIndex - 1 + state.currentFrames.length) %
             state.currentFrames.length;
+    _detachSelectionFromLayer();
     state = state.copyWith(
       currentFrameIndex: prevIndex,
       currentLayerIndex: 0,
@@ -1053,9 +1139,12 @@ class PixelDrawController extends _$PixelDrawController {
       return;
     }
 
-    final targetW = constrainedTargetBounds.width.round().clamp(1, state.width);
-    final targetH =
-        constrainedTargetBounds.height.round().clamp(1, state.height);
+    // Pixel math uses the UNCLAMPED rect: dragging a handle past the canvas
+    // edge clips the overhang (per pixel, in _placeTransformedPixels)
+    // instead of squashing the artwork into the remaining space. Only the
+    // displayed region rect is clamped.
+    final targetW = targetBounds.width.round().clamp(1, 4096);
+    final targetH = targetBounds.height.round().clamp(1, 4096);
 
     final transformedPixels = PixelUtils.resize(
       cached,
@@ -1065,6 +1154,15 @@ class PixelDrawController extends _$PixelDrawController {
       targetH,
       _selectionTransformInterpolation,
       0,
+    );
+
+    // Geometry of the transformed buffer in canvas space — this is what the
+    // next transform session must use as its source bounds.
+    final bufferBounds = Rect.fromLTWH(
+      targetBounds.left.roundToDouble(),
+      targetBounds.top.roundToDouble(),
+      targetW.toDouble(),
+      targetH.toDouble(),
     );
 
     final newRegion = region ??
@@ -1083,7 +1181,7 @@ class PixelDrawController extends _$PixelDrawController {
     final resultPixels = _placeTransformedPixels(
       cachedLayer,
       transformedPixels,
-      constrainedTargetBounds,
+      bufferBounds,
       targetW,
       targetH,
     );
@@ -1095,7 +1193,7 @@ class PixelDrawController extends _$PixelDrawController {
         scale: Size(targetW / srcW, targetH / srcH),
         anchorPoint: () => newAnchor,
         capturedPixels: () => Uint32List.fromList(transformedPixels),
-        capturedBounds: () => newRegion.bounds,
+        capturedBounds: () => bufferBounds,
       ),
     );
   }
@@ -1141,8 +1239,19 @@ class PixelDrawController extends _$PixelDrawController {
       rotatedBounds.bottom.clamp(1.0, state.height.toDouble()),
     );
 
-    final targetW = rotatedBounds.width.round().clamp(1, state.width);
-    final targetH = rotatedBounds.height.round().clamp(1, state.height);
+    // The rotated buffer is laid out for the UNCLAMPED rotatedBounds (see
+    // PixelUtils.applyRotationWithBounds). Placement must use that same
+    // geometry — indexing it against the clamped rect shifts every pixel
+    // when the rotation overhangs a canvas edge. _placeTransformedPixels
+    // clips out-of-canvas pixels itself.
+    final targetW = rotatedBounds.width.round().clamp(1, 4096);
+    final targetH = rotatedBounds.height.round().clamp(1, 4096);
+    final bufferBounds = Rect.fromLTWH(
+      rotatedBounds.left.roundToDouble(),
+      rotatedBounds.top.roundToDouble(),
+      targetW.toDouble(),
+      targetH.toDouble(),
+    );
 
     final newRegion = region ??
         _selectionService.createRectangleSelection(
@@ -1155,7 +1264,7 @@ class PixelDrawController extends _$PixelDrawController {
     final resultPixels = _placeTransformedPixels(
       cachedLayer,
       rotatedPixels,
-      constrainedDest,
+      bufferBounds,
       targetW,
       targetH,
     );
@@ -1166,7 +1275,7 @@ class PixelDrawController extends _$PixelDrawController {
         region: newRegion,
         rotation: angle,
         capturedPixels: () => Uint32List.fromList(rotatedPixels),
-        capturedBounds: () => newRegion.bounds,
+        capturedBounds: () => bufferBounds,
       ),
     );
   }
@@ -1180,8 +1289,25 @@ class PixelDrawController extends _$PixelDrawController {
       selectionState: sel.copyWith(anchorPoint: () => anchor),
     );
 
-    // Persist to layer
+    // Mirror onto the layer in memory only — this fires per drag move.
+    // [persistAnchorPoint] writes it to the database when the drag ends.
     _updateCurrentLayer(currentLayer.copyWith(anchorPoint: () => anchor));
+  }
+
+  /// Persists the current anchor point to the database. Called once when an
+  /// anchor-handle drag ends.
+  void persistAnchorPoint() {
+    final anchor = state.selectionState?.anchorPoint ?? currentLayer.anchorPoint;
+    if (anchor == null) return;
+
+    final layer = currentLayer.copyWith(anchorPoint: () => anchor);
+    _updateCurrentLayer(layer);
+    _layerService.updateLayer(
+      projectId: project.id,
+      frameId: currentFrame.id,
+      layer: layer,
+    );
+    _updateProject();
   }
 
   void autoSelectLayer() {
@@ -1211,11 +1337,35 @@ class PixelDrawController extends _$PixelDrawController {
     setSelection(inverted);
   }
 
+  void growSelectionRegion({int by = 1}) {
+    final sel = state.selectionState;
+    if (sel == null) return;
+
+    final grown = _selectionService.growSelection(sel.region, by: by);
+    if (grown.bounds.isEmpty) {
+      clearSelection();
+    } else {
+      setSelection(grown);
+    }
+  }
+
+  void shrinkSelectionRegion({int by = 1}) {
+    final sel = state.selectionState;
+    if (sel == null) return;
+
+    final shrunk = _selectionService.shrinkSelection(sel.region, by: by);
+    if (shrunk.bounds.isEmpty) {
+      clearSelection();
+    } else {
+      setSelection(shrunk);
+    }
+  }
+
   void flipSelectionPixels({required bool horizontal}) {
     final sel = state.selectionState;
     if (sel == null) return;
 
-    _saveState();
+    _beginPixelUndo();
     final newPixels = _selectionService.flipSelectedPixels(
       region: sel.region,
       layerPixels: currentLayer.pixels,
@@ -1401,12 +1551,25 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void _updateCurrentLayerPixels(Uint32List newPixels) {
+    final undoPreState = _pendingUndoPreState;
+    final undoPrePixels = _pendingUndoPrePixels;
+    _clearPendingPixelUndo();
+
     final updatedLayer = currentLayer.copyWith(pixels: newPixels);
     final updatedLayers = List<Layer>.from(currentFrame.layers);
     updatedLayers[state.currentLayerIndex] = updatedLayer;
 
     final updatedFrame = currentFrame.copyWith(layers: updatedLayers);
     _updateCurrentFrame(updatedFrame);
+
+    if (undoPreState != null && undoPrePixels != null) {
+      _undoRedoService.savePixelDiff(
+        preState: undoPreState,
+        prePixels: undoPrePixels,
+        postPixels: newPixels,
+      );
+      state = state.copyWith(canUndo: canUndo, canRedo: canRedo);
+    }
 
     _layerService.updateLayer(
       projectId: project.id,

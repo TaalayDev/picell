@@ -32,6 +32,9 @@ class ShortcutsWrapper extends StatefulWidget {
     this.onImport,
     this.onSelectAll,
     this.onDeselectAll,
+    this.onInvertSelection,
+    this.onGrowSelection,
+    this.onShrinkSelection,
     this.onCopy,
     this.onPaste,
     this.onCut,
@@ -84,6 +87,9 @@ class ShortcutsWrapper extends StatefulWidget {
   // Selection actions
   final VoidCallback? onSelectAll;
   final VoidCallback? onDeselectAll;
+  final VoidCallback? onInvertSelection;
+  final VoidCallback? onGrowSelection;
+  final VoidCallback? onShrinkSelection;
   final VoidCallback? onCopy;
   final VoidCallback? onPaste;
   final VoidCallback? onCut;
@@ -278,6 +284,12 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyX): const CutIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyJ):
           const DuplicateIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.shift, LogicalKeyboardKey.keyI):
+          const InvertSelectionIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.shift, LogicalKeyboardKey.keyG):
+          const GrowSelectionIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.shift, LogicalKeyboardKey.keyH):
+          const ShrinkSelectionIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.enter):
           CallbackIntent(widget.onCtrlEnter ?? () {}),
     };
@@ -375,6 +387,15 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       ),
       DuplicateIntent: CallbackAction<DuplicateIntent>(
         onInvoke: (intent) => widget.onDuplicate?.call(),
+      ),
+      InvertSelectionIntent: CallbackAction<InvertSelectionIntent>(
+        onInvoke: (intent) => widget.onInvertSelection?.call(),
+      ),
+      GrowSelectionIntent: CallbackAction<GrowSelectionIntent>(
+        onInvoke: (intent) => widget.onGrowSelection?.call(),
+      ),
+      ShrinkSelectionIntent: CallbackAction<ShrinkSelectionIntent>(
+        onInvoke: (intent) => widget.onShrinkSelection?.call(),
       ),
       CallbackIntent: CallbackAction<CallbackIntent>(
           onInvoke: (intent) => intent.callback()),
@@ -484,6 +505,18 @@ class CutIntent extends Intent {
 
 class DuplicateIntent extends Intent {
   const DuplicateIntent();
+}
+
+class InvertSelectionIntent extends Intent {
+  const InvertSelectionIntent();
+}
+
+class GrowSelectionIntent extends Intent {
+  const GrowSelectionIntent();
+}
+
+class ShrinkSelectionIntent extends Intent {
+  const ShrinkSelectionIntent();
 }
 
 class CallbackIntent extends Intent {

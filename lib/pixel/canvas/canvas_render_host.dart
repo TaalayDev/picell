@@ -25,6 +25,7 @@ class PixelCanvasRenderHost extends StatelessWidget {
     required this.mirrorAxis,
     required this.selectionState,
     required this.selectionAnimation,
+    this.selectionMode = SelectionMode.replace,
     required this.gridWidth,
     required this.gridHeight,
     required this.imageResolver,
@@ -39,6 +40,7 @@ class PixelCanvasRenderHost extends StatelessWidget {
     this.onTransformStart,
     this.onTransformEnd,
     this.onAnchorChanged,
+    this.onAnchorChangeEnd,
   });
 
   final PixelCanvasHostRuntime runtime;
@@ -53,6 +55,7 @@ class PixelCanvasRenderHost extends StatelessWidget {
   final MirrorAxis mirrorAxis;
   final SelectionState? selectionState;
   final Animation<double> selectionAnimation;
+  final SelectionMode selectionMode;
   final int gridWidth;
   final int gridHeight;
   final PixelCanvasSurfaceImageResolver imageResolver;
@@ -67,6 +70,7 @@ class PixelCanvasRenderHost extends StatelessWidget {
   final Function(SelectionRegion)? onTransformStart;
   final VoidCallback? onTransformEnd;
   final Function(Offset)? onAnchorChanged;
+  final VoidCallback? onAnchorChangeEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +86,7 @@ class PixelCanvasRenderHost extends StatelessWidget {
       mirrorAxis: mirrorAxis,
       selectionState: selectionState,
       selectionAnimation: selectionAnimation,
+      selectionMode: selectionMode,
       onSelectionChanged: onSelectionChanged,
       onMoveSelection: onMoveSelection,
       onSelectionResize: onSelectionResize,
@@ -89,6 +94,7 @@ class PixelCanvasRenderHost extends StatelessWidget {
       onTransformStart: onTransformStart,
       onTransformEnd: onTransformEnd,
       onAnchorChanged: onAnchorChanged,
+      onAnchorChangeEnd: onAnchorChangeEnd,
     );
 
     return RepaintBoundary(

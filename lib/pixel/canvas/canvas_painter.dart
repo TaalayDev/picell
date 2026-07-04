@@ -63,6 +63,18 @@ class PixelCanvasPaintDelegate {
   final Path _lassoPath = Path();
   final Path _curvePath = Path();
   final Float64List _selectionScaleTransform = Float64List(16);
+
+  // Marching-ants dash cache: the dash geometry is precomputed into a few
+  // quantized phase variants when the selection or zoom changes, so the
+  // per-frame cost is two drawPath calls instead of Path.computeMetrics()
+  // plus dash extraction on every tick.
+  static const int _dashPhaseSteps = 10;
+  SelectionRegion? _cachedDashRegion;
+  double _cachedDashPixelWidth = 0;
+  double _cachedDashPixelHeight = 0;
+  Path? _cachedScaledSelectionPath;
+  List<Path>? _cachedDashPhases;
+
   Size? _cachedGradientSize;
   Offset? _cachedGradientStart;
   Offset? _cachedGradientEnd;
@@ -382,28 +394,54 @@ class PixelCanvasPaintDelegate {
       return;
     }
 
-    _updateSelectionScaleTransform(pixelWidth, pixelHeight);
-    final scaledPath = selectionRegion.path.transform(_selectionScaleTransform);
+    _ensureSelectionDashCache(selectionRegion, pixelWidth, pixelHeight);
 
-    canvas.drawPath(scaledPath, _selectionOutlineBackgroundPaint);
+    canvas.drawPath(_cachedScaledSelectionPath!, _selectionOutlineBackgroundPaint);
+
+    final phase = (selectionAnimationValue * _dashPhaseSteps).floor() % _dashPhaseSteps;
+    canvas.drawPath(_cachedDashPhases![phase], _selectionOutlineDashPaint);
+  }
+
+  void _ensureSelectionDashCache(SelectionRegion region, double pixelWidth, double pixelHeight) {
+    if (identical(region, _cachedDashRegion) &&
+        _cachedDashPixelWidth == pixelWidth &&
+        _cachedDashPixelHeight == pixelHeight &&
+        _cachedDashPhases != null) {
+      return;
+    }
+
+    _updateSelectionScaleTransform(pixelWidth, pixelHeight);
+    final scaledPath = region.path.transform(_selectionScaleTransform);
 
     const dashLength = 6.0;
     const gapLength = 4.0;
     const totalDash = dashLength + gapLength;
-    final offset = selectionAnimationValue * totalDash;
 
-    for (final metric in scaledPath.computeMetrics()) {
-      double distance = -offset;
-      while (distance < metric.length) {
-        final start = distance.clamp(0.0, metric.length);
-        final end = (distance + dashLength).clamp(0.0, metric.length);
-        if (end > start) {
-          final extractedPath = metric.extractPath(start, end);
-          canvas.drawPath(extractedPath, _selectionOutlineDashPaint);
+    // PathMetrics is single-pass; materialize once. The PathMetric objects
+    // stay valid because the source path is retained in the cache.
+    final metrics = scaledPath.computeMetrics().toList();
+    final phases = List<Path>.generate(_dashPhaseSteps, (step) {
+      final offset = (step / _dashPhaseSteps) * totalDash;
+      final dashPath = Path();
+      for (final metric in metrics) {
+        double distance = -offset;
+        while (distance < metric.length) {
+          final start = distance.clamp(0.0, metric.length);
+          final end = (distance + dashLength).clamp(0.0, metric.length);
+          if (end > start) {
+            dashPath.addPath(metric.extractPath(start, end), Offset.zero);
+          }
+          distance += totalDash;
         }
-        distance += totalDash;
       }
-    }
+      return dashPath;
+    });
+
+    _cachedDashRegion = region;
+    _cachedDashPixelWidth = pixelWidth;
+    _cachedDashPixelHeight = pixelHeight;
+    _cachedScaledSelectionPath = scaledPath;
+    _cachedDashPhases = phases;
   }
 
   void _drawSelectionHandles(Canvas canvas, double pixelWidth, double pixelHeight) {

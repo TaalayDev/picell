@@ -3,6 +3,9 @@ import '../tools.dart';
 
 class EraserTool extends Tool {
   List<PixelPoint<int>> _currentPixels = [];
+  // Cells already erased this stroke, keyed by y * width + x. A List
+  // .contains scan here makes long strokes quadratic.
+  final Set<int> _occupiedCells = {};
   PixelPoint<int>? _previousPoint;
 
   EraserTool() : super(PixelTool.eraser);
@@ -10,6 +13,7 @@ class EraserTool extends Tool {
   @override
   void onStart(PixelDrawDetails details) {
     _currentPixels = [];
+    _occupiedCells.clear();
     _previousPoint = null;
 
     // Create eraser pixel with transparent color but mark it specially
@@ -51,6 +55,7 @@ class EraserTool extends Tool {
     }
 
     _currentPixels = [];
+    _occupiedCells.clear();
     _previousPoint = null;
   }
 
@@ -81,7 +86,7 @@ class EraserTool extends Tool {
   }
 
   void _addPoint(PixelPoint<int> point, PixelDrawDetails details) {
-    if (!_currentPixels.contains(point)) {
+    if (_occupiedCells.add(point.y * details.width + point.x)) {
       _currentPixels.add(point);
 
       // Handle modifier
@@ -93,8 +98,11 @@ class EraserTool extends Tool {
           details.height,
         );
         // Make sure modifier points are also transparent
-        final eraserModPoints = modPoints.map((p) => PixelPoint(p.x, p.y, color: 0x00000000)).toList();
-        _currentPixels.addAll(eraserModPoints);
+        for (final p in modPoints) {
+          if (_occupiedCells.add(p.y * details.width + p.x)) {
+            _currentPixels.add(PixelPoint(p.x, p.y, color: 0x00000000));
+          }
+        }
       }
     }
   }

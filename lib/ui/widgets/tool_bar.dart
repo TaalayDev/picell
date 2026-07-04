@@ -9,6 +9,7 @@ import '../../data.dart';
 import '../../l10n/strings.dart';
 import '../../config/assets.dart';
 import '../../data/models/subscription_model.dart';
+import '../../data/models/selection_region.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/tools.dart';
 import '../../pixel/tools/texture_brush_tool.dart';
@@ -17,7 +18,9 @@ import 'app_icon.dart';
 import 'dialogs/editor_settings_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
 import 'menu_value_field.dart';
+import 'selection_mode_toggle.dart';
 import 'selection_options_button.dart';
+import 'wand_options_bar.dart';
 
 class ToolBar extends ConsumerWidget {
   final ValueNotifier<PixelTool> currentTool;
@@ -53,6 +56,7 @@ class ToolBar extends ConsumerWidget {
   final VoidCallback? onPasteSelection;
   final bool canPaste;
   final VoidCallback? onShowHistory;
+  final ValueNotifier<SelectionMode>? selectionMode;
 
   const ToolBar({
     super.key,
@@ -89,6 +93,7 @@ class ToolBar extends ConsumerWidget {
     this.onPasteSelection,
     this.canPaste = false,
     this.onShowHistory,
+    this.selectionMode,
   });
 
   @override
@@ -297,6 +302,18 @@ class ToolBar extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                         ],
+                        if (selectionMode != null &&
+                            (tool == PixelTool.select ||
+                                tool == PixelTool.ellipseSelect ||
+                                tool == PixelTool.lasso ||
+                                tool == PixelTool.smartSelect)) ...[
+                          SelectionModeToggle(mode: selectionMode!),
+                          const SizedBox(width: 8),
+                        ],
+                        if (tool == PixelTool.smartSelect) ...[
+                          const WandOptionsBar(),
+                          const SizedBox(width: 8),
+                        ],
                       ],
                       if (!screenSize.isMobile) ...[
                         SelectionOptionsButton(
@@ -308,6 +325,9 @@ class ToolBar extends ConsumerWidget {
                           onCopy: onCopySelection,
                           onCut: onCutSelection,
                           onPaste: canPaste ? onPasteSelection : null,
+                          onInvert: () => notifier.invertSelection(),
+                          onGrow: () => notifier.growSelection(),
+                          onShrink: () => notifier.shrinkSelection(),
                         ),
                       ],
                     ],

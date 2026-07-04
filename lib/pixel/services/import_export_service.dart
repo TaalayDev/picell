@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:share_plus/share_plus.dart';
@@ -10,6 +11,86 @@ import '../../data.dart';
 import '../../gifencoder/gifencoder.dart' as gifencoder;
 
 const _kGifFps = 10;
+
+/// Composites all animation frames and encodes the GIF (LZW compression is
+/// CPU-heavy). Top-level so it can run in a background isolate via [compute].
+Uint8List _encodeGifAnimation(
+  ({
+    int width,
+    int height,
+    int outputWidth,
+    int outputHeight,
+    bool wantTransparent,
+    List<List<Layer>> frameLayers,
+    int fps,
+  }) args,
+) {
+  final needsResize = args.outputWidth != args.width || args.outputHeight != args.height;
+  final gb = gifencoder.GifBuffer(args.outputWidth, args.outputHeight);
+
+  for (final layers in args.frameLayers) {
+    var pixelsAARRGGBB = PixelUtils.mergeLayersPixels(
+      width: args.width,
+      height: args.height,
+      layers: layers,
+    );
+
+    Uint32List framePixels;
+    if (args.wantTransparent) {
+      // Snap alpha and set RGB to 0 for transparent to avoid fringes
+      final snapped = Uint32List.fromList(pixelsAARRGGBB);
+      for (int i = 0; i < snapped.length; i++) {
+        final pixel = snapped[i];
+        final a = (pixel >> 24) & 0xFF;
+        if (a < 128) {
+          snapped[i] = 0;
+        } else {
+          // Unpremultiply if needed
+          if (a < 255) {
+            final scale = 255.0 / a;
+            int r = (((pixel >> 16) & 0xFF) * scale).round().clamp(0, 255);
+            int g = (((pixel >> 8) & 0xFF) * scale).round().clamp(0, 255);
+            int b = ((pixel & 0xFF) * scale).round().clamp(0, 255);
+            snapped[i] = (255 << 24) | (r << 16) | (g << 8) | b;
+          }
+        }
+      }
+      framePixels = snapped;
+    } else {
+      // Blend with white for non-transparent background
+      final forced = Uint32List.fromList(pixelsAARRGGBB);
+      for (int i = 0; i < forced.length; i++) {
+        final pixel = forced[i];
+        final a = (pixel >> 24) & 0xFF;
+        int r = ((pixel >> 16) & 0xFF) + 255 - a;
+        int g = ((pixel >> 8) & 0xFF) + 255 - a;
+        int b = (pixel & 0xFF) + 255 - a;
+        r = r.clamp(0, 255);
+        g = g.clamp(0, 255);
+        b = b.clamp(0, 255);
+        forced[i] = (255 << 24) | (r << 16) | (g << 8) | b;
+      }
+      framePixels = forced;
+    }
+
+    if (needsResize) {
+      framePixels = PixelUtils.resizeWithImagePackage(
+        framePixels,
+        args.width,
+        args.height,
+        args.outputWidth,
+        args.outputHeight,
+        interpolation: img.Interpolation.nearest,
+      );
+    }
+
+    final rgba = PixelUtils.aarrggbbToRgbaForGif(framePixels);
+
+    gb.add(rgba);
+  }
+
+  return Uint8List.fromList(gb.build(args.fps));
+}
 
 class ImportExportService {
   Future<void> exportProjectAsJson({
@@ -64,73 +145,20 @@ class ImportExportService {
 
     final outputWidth = exportWidth?.toInt() ?? project.width;
     final outputHeight = exportHeight?.toInt() ?? project.height;
-    final needsResize = outputWidth != project.width || outputHeight != project.height;
 
-    final gb = gifencoder.GifBuffer(outputWidth, outputHeight);
+    // Frame composition + LZW encoding happens in a background isolate so a
+    // long animation export doesn't freeze the UI.
+    final data = await compute(_encodeGifAnimation, (
+      width: project.width,
+      height: project.height,
+      outputWidth: outputWidth,
+      outputHeight: outputHeight,
+      wantTransparent: wantTransparent,
+      frameLayers: [for (final frame in frames) frame.layers],
+      fps: _kGifFps,
+    ));
 
-    for (final frame in frames) {
-      var pixelsAARRGGBB = PixelUtils.mergeLayersPixels(
-        width: project.width,
-        height: project.height,
-        layers: frame.layers,
-      );
-
-      Uint32List framePixels;
-      if (wantTransparent) {
-        // Snap alpha and set RGB to 0 for transparent to avoid fringes
-        final snapped = Uint32List.fromList(pixelsAARRGGBB);
-        for (int i = 0; i < snapped.length; i++) {
-          final pixel = snapped[i];
-          final a = (pixel >> 24) & 0xFF;
-          if (a < 128) {
-            snapped[i] = 0;
-          } else {
-            // Unpremultiply if needed
-            if (a < 255) {
-              final scale = 255.0 / a;
-              int r = (((pixel >> 16) & 0xFF) * scale).round().clamp(0, 255);
-              int g = (((pixel >> 8) & 0xFF) * scale).round().clamp(0, 255);
-              int b = ((pixel & 0xFF) * scale).round().clamp(0, 255);
-              snapped[i] = (255 << 24) | (r << 16) | (g << 8) | b;
-            }
-          }
-        }
-        framePixels = snapped;
-      } else {
-        // Blend with white for non-transparent background
-        final forced = Uint32List.fromList(pixelsAARRGGBB);
-        for (int i = 0; i < forced.length; i++) {
-          final pixel = forced[i];
-          final a = (pixel >> 24) & 0xFF;
-          int r = ((pixel >> 16) & 0xFF) + 255 - a;
-          int g = ((pixel >> 8) & 0xFF) + 255 - a;
-          int b = (pixel & 0xFF) + 255 - a;
-          r = r.clamp(0, 255);
-          g = g.clamp(0, 255);
-          b = b.clamp(0, 255);
-          forced[i] = (255 << 24) | (r << 16) | (g << 8) | b;
-        }
-        framePixels = forced;
-      }
-
-      if (needsResize) {
-        framePixels = PixelUtils.resizeWithImagePackage(
-          framePixels,
-          project.width,
-          project.height,
-          outputWidth,
-          outputHeight,
-          interpolation: img.Interpolation.nearest,
-        );
-      }
-
-      final rgba = PixelUtils.aarrggbbToRgbaForGif(framePixels);
-
-      gb.add(rgba);
-    }
-
-    final data = Uint8List.fromList(gb.build(_kGifFps));
-
+    if (!context.mounted) return;
     await FileUtils(context).saveImage(data, '${project.name}.gif');
   }
 

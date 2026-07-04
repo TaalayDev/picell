@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../data/models/selection_region.dart';
 import '../../pixel/tools.dart';
@@ -58,8 +59,14 @@ class PixelCanvasInputAdapter {
   Offset? _rotationCenterScreen;
   double _initialRotationAngle = 0.0;
 
+  // Last canvas cell a hover preview was generated for. Hover events arrive
+  // at pointer rate; the preview only changes when the cursor crosses into
+  // another cell.
+  math.Point<int>? _lastHoverCell;
+
   void updateConfig(PixelCanvasRuntimeConfig value) {
     _config = value;
+    _lastHoverCell = null;
   }
 
   void clearLocalSelection({bool notifyProvider = false}) {
@@ -92,23 +99,43 @@ class PixelCanvasInputAdapter {
     gestureHandler.finishDrawing();
   }
 
+  /// Combine mode for a selection gesture starting now: Shift adds, Alt
+  /// subtracts, otherwise the toolbar toggle applies. Computed once at
+  /// pointer-down — never per (frame-coalesced) move.
+  SelectionMode _effectiveSelectionMode() {
+    final keyboard = HardwareKeyboard.instance;
+    if (keyboard.isShiftPressed) return SelectionMode.add;
+    if (keyboard.isAltPressed) return SelectionMode.subtract;
+    return _config.selectionMode;
+  }
+
   void handlePointerDown(PointerDownEvent event) {
     if (_startSelectionHandleInteraction(event)) {
       return;
     }
 
+    final isSelectionTool = _isSelectionInteractionTool(_config.currentTool);
+    final selectionMode = isSelectionTool ? _effectiveSelectionMode() : SelectionMode.replace;
+    final isCombineGesture = isSelectionTool && selectionMode != SelectionMode.replace;
+    if (isSelectionTool) {
+      toolManager.beginSelectionGesture(selectionMode, controller.currentSelectionRegion);
+    }
+
     if (_config.currentTool == PixelTool.curve) {
       _handleCurveToolInteraction(event.localPosition, event.pointer);
-    } else if (_shouldHandleInsideSelectionPointer(event)) {
+    } else if (!isCombineGesture && _shouldHandleInsideSelectionPointer(event)) {
       _pendingInsideSelectionRegion = controller.currentSelectionRegion;
       _pendingInsideSelectionPointer = event.pointer;
       _pendingInsideSelectionStart = event.localPosition;
       _pendingInsideSelectionAppliedOffset = Offset.zero;
       _isDraggingInsideSelection = false;
-    } else if (_shouldHandleOutsideSelectionPointer(event)) {
+    } else if (!isCombineGesture && _shouldHandleOutsideSelectionPointer(event)) {
       _pendingOutsideSelectionDownEvent = event;
       _pendingOutsideSelectionStart = event.localPosition;
     } else {
+      // Combine gestures skip the inside-selection move machinery (Shift/Alt
+      // drag draws a new shape instead of moving) and must not clear the
+      // base selection before the confirm-time combine.
       gestureHandler.handlePointerDown(event, _config.currentTool, _createDrawDetails(event.localPosition));
     }
   }
@@ -193,6 +220,7 @@ class PixelCanvasInputAdapter {
   }
 
   void handlePointerCancel(PointerCancelEvent event) {
+    toolManager.cancelSelectionGesture();
     if (_curveDefiningPointer == event.pointer) {
       _curveDefiningPointer = null;
       _curveDefiningStart = null;
@@ -236,6 +264,7 @@ class PixelCanvasInputAdapter {
   }
 
   void handlePointerExit(PointerExitEvent event) {
+    _lastHoverCell = null;
     controller.setHoverPosition(null);
   }
 
@@ -603,6 +632,7 @@ class PixelCanvasInputAdapter {
         _clearRotationState();
         break;
       case CanvasSelectionHandle.anchor:
+        _config.onAnchorChangeEnd?.call();
         break;
     }
 
@@ -676,11 +706,18 @@ class PixelCanvasInputAdapter {
 
   void _updateHoverPreview(Offset? position) {
     if (position == null || !_shouldShowHoverPreview(_config.currentTool)) {
+      _lastHoverCell = null;
       controller.setHoverPosition(null);
       return;
     }
 
     final canvasSize = _getCanvasSize();
+    final cell = controller.getPixelCoordinates(position, canvasSize);
+    if (cell == _lastHoverCell) {
+      return;
+    }
+    _lastHoverCell = cell;
+
     List<PixelPoint<int>> previewPixels;
 
     if (_config.currentTool == PixelTool.sprayPaint) {

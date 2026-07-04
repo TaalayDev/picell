@@ -14,6 +14,27 @@ import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 
 import 'image_helper.dart';
 
+/// Converts raw ARGB pixels to (optionally resized) PNG bytes. Top-level so
+/// it can run in a background isolate via [compute].
+Uint8List _encode32BitPng(
+  ({Uint32List pixels, int width, int height, int? exportWidth, int? exportHeight}) args,
+) {
+  img.Image image = img.Image.fromBytes(
+    width: args.width,
+    height: args.height,
+    bytes: ImageHelper.fixColorChannels(args.pixels).buffer,
+    numChannels: 4,
+  );
+  if (args.exportWidth != null && args.exportHeight != null) {
+    image = img.copyResize(
+      image,
+      width: args.exportWidth!,
+      height: args.exportHeight!,
+    );
+  }
+  return Uint8List.fromList(img.encodePng(image));
+}
+
 class FileUtils {
   final BuildContext context;
 
@@ -39,25 +60,17 @@ class FileUtils {
     double? exportWidth,
     double? exportHeight,
   }) async {
-    img.Image image = img.Image.fromBytes(
+    final png = await compute(_encode32BitPng, (
+      pixels: pixels,
       width: width,
       height: height,
-      bytes: ImageHelper.fixColorChannels(pixels).buffer,
-      numChannels: 4,
-    );
-    if (exportWidth != null && exportHeight != null) {
-      image = img.copyResize(
-        image,
-        width: exportWidth.toInt(),
-        height: exportHeight.toInt(),
-      );
-    }
-
-    final jpg = img.encodePng(image);
+      exportWidth: exportWidth?.toInt(),
+      exportHeight: exportHeight?.toInt(),
+    ));
 
     final fileName = 'pixelart_${DateTime.now().millisecondsSinceEpoch}.png';
 
-    await saveImage(jpg, fileName);
+    await saveImage(png, fileName);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Image saved as $fileName')),

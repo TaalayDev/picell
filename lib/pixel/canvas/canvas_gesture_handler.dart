@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../pixel/tools.dart';
 import '../pixel_point.dart';
@@ -55,6 +56,14 @@ class CanvasGestureHandler {
   final Map<int, PointerEvent> _activePointers = {};
   bool _isRawPointerDrawing = false;
 
+  // Frame-coalesced drawing moves: high-rate input devices (120Hz+ touch,
+  // gaming mice, trackpads) deliver several move events per display frame.
+  // Tools interpolate from their previous point, so only the latest position
+  // per frame needs processing — the stroke stays continuous.
+  PixelDrawDetails? _pendingMoveDetails;
+  PixelTool? _pendingMoveTool;
+  bool _moveFlushScheduled = false;
+
   /// Separate flag for selection tools — they don't trigger onStartDrawing/onFinishDrawing.
   bool _isSelectionDrawingActive = false;
 
@@ -92,6 +101,35 @@ class CanvasGestureHandler {
     this.onPixelDragEnd,
     this.onUndo,
   });
+
+  void _scheduleDrawingMove(PixelTool tool, PixelDrawDetails details) {
+    _pendingMoveTool = tool;
+    _pendingMoveDetails = details;
+    if (_moveFlushScheduled) return;
+    _moveFlushScheduled = true;
+    SchedulerBinding.instance.scheduleFrameCallback((_) {
+      _moveFlushScheduled = false;
+      _flushPendingMove();
+    });
+  }
+
+  /// Processes the latest buffered move immediately. Must run before a
+  /// stroke ends so its final segment isn't dropped.
+  void _flushPendingMove() {
+    final tool = _pendingMoveTool;
+    final details = _pendingMoveDetails;
+    _pendingMoveTool = null;
+    _pendingMoveDetails = null;
+    if (tool == null || details == null) return;
+    if (_isRawPointerDrawing || _isSelectionDrawingActive || _isDrawingActive) {
+      toolManager.continueDrawing(tool, details);
+    }
+  }
+
+  void _discardPendingMove() {
+    _pendingMoveTool = null;
+    _pendingMoveDetails = null;
+  }
 
   void handleScaleStart(ScaleStartDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
     _pointerCount = details.pointerCount;
@@ -158,6 +196,7 @@ class CanvasGestureHandler {
   }
 
   void handleTapUp(TapUpDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
+    _flushPendingMove();
     if (!_shouldHandleDirectTap(currentTool) && !_isSelectionTool(currentTool)) {
       _finishDrawing();
     } else if (_isSelectionTool(currentTool) && _isDrawingActive) {
@@ -202,11 +241,12 @@ class CanvasGestureHandler {
         toolManager.handleCurveMove(drawDetails, controller);
       }
     } else if (_isDrawingActive) {
-      toolManager.continueDrawing(currentTool, drawDetails);
+      _scheduleDrawingMove(currentTool, drawDetails);
     }
   }
 
   void _handleSingleFingerEnd(PixelTool currentTool, PixelDrawDetails drawDetails) {
+    _flushPendingMove();
     if (currentTool == PixelTool.drag) {
       onPixelDragEnd?.call(controller.offset);
     } else if (_isSelectionTool(currentTool) && _isDrawingActive) {
@@ -274,6 +314,7 @@ class CanvasGestureHandler {
   }
 
   void finishDrawing() {
+    _flushPendingMove();
     if (_isRawPointerDrawing) {
       _finishRawPointerDrawing();
     } else {
@@ -387,13 +428,14 @@ class CanvasGestureHandler {
         toolManager.handleCurveMove(drawDetails, controller);
       }
     } else if (_isSelectionDrawingActive) {
-      toolManager.continueDrawing(currentTool, drawDetails);
+      _scheduleDrawingMove(currentTool, drawDetails);
     } else if (_isRawPointerDrawing) {
-      toolManager.continueDrawing(currentTool, drawDetails);
+      _scheduleDrawingMove(currentTool, drawDetails);
     }
   }
 
   void _handleTwoPointerDown(PointerDownEvent event, PixelTool currentTool) {
+    _discardPendingMove();
     if (_isRawPointerDrawing) {
       // A second finger landed — discard the in-progress single-finger stroke
       // (preview pixels and the undo snapshot saved at onStartDrawing) so
@@ -472,10 +514,13 @@ class CanvasGestureHandler {
   void _handleAllPointersUp(PointerUpEvent event, PixelTool currentTool, PixelDrawDetails drawDetails) {
     if (_isTwoFingerPotentiallyUndo && _twoFingerStartTimeMs != null) {
       if (_handleUndoGesture(_twoFingerStartTimeMs!)) {
+        _discardPendingMove();
         _resetPointerState();
         return;
       }
     }
+
+    _flushPendingMove();
 
     if (currentTool == PixelTool.drag) {
       onPixelDragEnd?.call(controller.offset);
@@ -526,6 +571,7 @@ class CanvasGestureHandler {
   }
 
   void handlePointerCancel(PointerCancelEvent event, PixelTool currentTool, PixelDrawDetails drawDetails) {
+    _discardPendingMove();
     _activePointers.remove(event.pointer);
 
     if (_activePointers.isEmpty) {

@@ -55,6 +55,8 @@ class PixelCanvasHostRuntime {
     required bool twoFingerUndoEnabled,
     required bool enableMultiTouchViewportNavigation,
     required SelectionState? selectionState,
+    required int wandTolerance,
+    required bool wandContiguous,
   }) : _lastLayers = layers,
        _lastCurrentLayerIndex = currentLayerIndex,
        _lastCurrentTool = currentTool,
@@ -62,6 +64,8 @@ class PixelCanvasHostRuntime {
        _lastTwoFingerUndoEnabled = twoFingerUndoEnabled,
        _lastEnableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation,
        _lastSelectionState = selectionState,
+       _lastWandTolerance = wandTolerance,
+       _lastWandContiguous = wandContiguous,
        _viewportController = viewportController;
 
   factory PixelCanvasHostRuntime.create({
@@ -76,6 +80,8 @@ class PixelCanvasHostRuntime {
     required bool enableMultiTouchViewportNavigation,
     required SelectionState? selectionState,
     required PixelCanvasHostCallbacks callbacks,
+    int wandTolerance = 0,
+    bool wandContiguous = true,
   }) {
     final cacheManager = LayerCacheManager(width: width, height: height);
 
@@ -96,14 +102,23 @@ class PixelCanvasHostRuntime {
         controller.setSelection(region);
       },
       onSelectionEnd: (region) {
-        if (region == null || region.bounds.width < 2 || region.bounds.height < 2) {
+        // Combine gestures (Shift/Alt or toolbar add/subtract) merge the new
+        // shape with the base selection captured at pointer-down. The min-
+        // size rejection only applies to plain replace gestures — a 1-px
+        // wand subtract is legitimate.
+        final wasCombineGesture = toolManager.hasActiveCombineGesture;
+        final resolved = toolManager.resolveSelectionGesture(region);
+        final tooSmall = !wasCombineGesture &&
+            (resolved == null || resolved.bounds.width < 2 || resolved.bounds.height < 2);
+
+        if (resolved == null || resolved.bounds.isEmpty || tooSmall) {
           controller.clearSelection();
           toolManager.setCurrentSelection(null);
           callbacks.onSelectionChanged?.call(null);
         } else {
-          controller.setSelection(region);
-          toolManager.setCurrentSelection(region);
-          callbacks.onSelectionChanged?.call(region);
+          controller.setSelection(resolved);
+          toolManager.setCurrentSelection(resolved);
+          callbacks.onSelectionChanged?.call(resolved);
         }
       },
       onLassoUpdate: (points, isDrawing) {
@@ -149,6 +164,7 @@ class PixelCanvasHostRuntime {
     controller.initialize(layers);
     controller.setCurrentTool(currentTool);
     controller.setZoomAndOffset(viewportController.scale, viewportController.offset);
+    toolManager.setWandOptions(tolerance: wandTolerance, contiguous: wandContiguous);
     gestureHandler.inputMode = inputMode;
     gestureHandler.twoFingerUndoEnabled = twoFingerUndoEnabled;
     gestureHandler.enableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation;
@@ -166,6 +182,8 @@ class PixelCanvasHostRuntime {
       twoFingerUndoEnabled: twoFingerUndoEnabled,
       enableMultiTouchViewportNavigation: enableMultiTouchViewportNavigation,
       selectionState: selectionState,
+      wandTolerance: wandTolerance,
+      wandContiguous: wandContiguous,
     );
 
     runtime._bindViewportController();
@@ -186,6 +204,8 @@ class PixelCanvasHostRuntime {
   bool _lastTwoFingerUndoEnabled;
   bool _lastEnableMultiTouchViewportNavigation;
   SelectionState? _lastSelectionState;
+  int _lastWandTolerance;
+  bool _lastWandContiguous;
 
   void update({
     required List<Layer> layers,
@@ -196,6 +216,8 @@ class PixelCanvasHostRuntime {
     required bool twoFingerUndoEnabled,
     required bool enableMultiTouchViewportNavigation,
     required SelectionState? selectionState,
+    int wandTolerance = 0,
+    bool wandContiguous = true,
   }) {
     if (layers != _lastLayers) {
       controller.updateLayers(layers);
@@ -243,6 +265,12 @@ class PixelCanvasHostRuntime {
     if (enableMultiTouchViewportNavigation != _lastEnableMultiTouchViewportNavigation) {
       gestureHandler.enableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation;
       _lastEnableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation;
+    }
+
+    if (wandTolerance != _lastWandTolerance || wandContiguous != _lastWandContiguous) {
+      toolManager.setWandOptions(tolerance: wandTolerance, contiguous: wandContiguous);
+      _lastWandTolerance = wandTolerance;
+      _lastWandContiguous = wandContiguous;
     }
   }
 

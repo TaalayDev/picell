@@ -7,11 +7,19 @@ class SmartSelectionTool extends Tool {
     required this.selectionService,
     this.onSelectionEnd,
     this.tolerance = 0,
+    this.contiguous = true,
   }) : super(PixelTool.smartSelect);
 
   final SelectionService selectionService;
   final void Function(SelectionRegion?)? onSelectionEnd;
-  final int tolerance;
+
+  /// Color-distance threshold (Euclidean in ARGB, 0-441 range; UI maps
+  /// 0-100% onto 0-255). Updated live from editor settings.
+  int tolerance;
+
+  /// Flood-fill from the tapped pixel when true; select-by-color across the
+  /// whole layer when false.
+  bool contiguous;
 
   @override
   void onStart(PixelDrawDetails details) {
@@ -30,6 +38,7 @@ class SmartSelectionTool extends Tool {
       w: details.width,
       h: details.height,
       tolerance: tolerance,
+      contiguous: contiguous,
     );
 
     onSelectionEnd?.call(region);

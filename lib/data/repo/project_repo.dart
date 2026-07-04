@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import '../../core/utils.dart';
 import '../../data.dart';
 
@@ -27,6 +29,19 @@ abstract class ProjectRepo {
   Future<void> deleteLayer(int layerId);
 }
 
+/// Merges the first frame's layers and converts them to raw RGBA bytes.
+/// Top-level so it can run in a background isolate via [compute].
+Uint8List _generateProjectThumbnail(
+  ({int width, int height, List<Layer> layers}) args,
+) {
+  final pixels = PixelUtils.mergeLayersPixels(
+    width: args.width,
+    height: args.height,
+    layers: args.layers,
+  );
+  return ImageHelper.convertToBytes(pixels);
+}
+
 class ProjectLocalRepo extends ProjectRepo {
   final AppDatabase db;
   final QueueManager queueManager;
@@ -40,70 +55,49 @@ class ProjectLocalRepo extends ProjectRepo {
   @override
   Future<Project> createProject(Project project) => db.insertProject(project);
   @override
-  Future<void> updateProject(Project project) async {
-    final completer = Completer<void>();
-    queueManager.add(() async {
+  Future<void> updateProject(Project project) {
+    // Latest-wins: a burst of saves for the same project collapses into one
+    // pending queue entry instead of stacking thumbnail + DB work.
+    return queueManager.addCoalesced('updateProject:${project.id}', () async {
       Project projectToSave = project;
 
       // For tile generator projects, the thumbnail is provided by the caller
       // For pixel art projects, regenerate thumbnail from layers
       if (project.type == ProjectType.pixelArt && project.frames.isNotEmpty && project.frames.first.layers.isNotEmpty) {
-        final pixels = PixelUtils.mergeLayersPixels(
+        final thumbnail = await compute(_generateProjectThumbnail, (
           width: project.width,
           height: project.height,
           layers: project.frames.first.layers,
-        );
-        projectToSave = project.copyWith(thumbnail: ImageHelper.convertToBytes(pixels));
+        ));
+        projectToSave = project.copyWith(thumbnail: thumbnail);
       }
 
       await db.updateProject(projectToSave);
-      completer.complete();
     });
-    return completer.future;
   }
 
   @override
-  Future<void> renameProject(int projectId, String name) async {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.renameProject(projectId, name);
-      completer.complete();
-    });
-    return completer.future;
+  Future<void> renameProject(int projectId, String name) {
+    return queueManager.add(() => db.renameProject(projectId, name));
   }
 
   @override
-  Future<void> markProjectAsSynced(int projectId, int? remoteProjectId) async {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.markProjectAsSynced(projectId, remoteProjectId);
-      completer.complete();
-    });
-    return completer.future;
+  Future<void> markProjectAsSynced(int projectId, int? remoteProjectId) {
+    return queueManager.add(() => db.markProjectAsSynced(projectId, remoteProjectId));
   }
 
   @override
-  Future<void> markProjectAsUnsynced(int projectId) async {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.markProjectAsUnsynced(projectId);
-      completer.complete();
-    });
-    return completer.future;
+  Future<void> markProjectAsUnsynced(int projectId) {
+    return queueManager.add(() => db.markProjectAsUnsynced(projectId));
   }
 
   @override
-  Future<void> deleteProject(Project project) async {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.deleteProject(project.id);
-      completer.complete();
-    });
-    return completer.future;
+  Future<void> deleteProject(Project project) {
+    return queueManager.add(() => db.deleteProject(project.id));
   }
 
   @override
-  Future<Layer> createLayer(int projectId, int frameId, Layer layer) async {
+  Future<Layer> createLayer(int projectId, int frameId, Layer layer) {
     final completer = Completer<Layer>();
     queueManager.add(() async {
       final newLayer = await db.insertLayer(projectId, frameId, layer);
@@ -113,23 +107,17 @@ class ProjectLocalRepo extends ProjectRepo {
   }
 
   @override
-  Future<void> updateLayer(int projectId, int frameId, Layer layer) async {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.updateLayer(projectId, frameId, layer);
-      completer.complete();
-    });
-    return completer.future;
+  Future<void> updateLayer(int projectId, int frameId, Layer layer) {
+    // Latest-wins per layer: consecutive stroke saves overwrite the same row.
+    return queueManager.addCoalesced(
+      'updateLayer:$projectId:$frameId:${layer.layerId}',
+      () => db.updateLayer(projectId, frameId, layer),
+    );
   }
 
   @override
-  Future<void> deleteLayer(int layerId) async {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.deleteLayer(layerId);
-      completer.complete();
-    });
-    return completer.future;
+  Future<void> deleteLayer(int layerId) {
+    return queueManager.add(() => db.deleteLayer(layerId));
   }
 
   @override
@@ -144,22 +132,12 @@ class ProjectLocalRepo extends ProjectRepo {
 
   @override
   Future<void> deleteFrame(int frameId) {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.deleteFrame(frameId);
-      completer.complete();
-    });
-    return completer.future;
+    return queueManager.add(() => db.deleteFrame(frameId));
   }
 
   @override
   Future<void> updateFrame(int projectId, AnimationFrame frame) {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.updateFrame(projectId, frame);
-      completer.complete();
-    });
-    return completer.future;
+    return queueManager.add(() => db.updateFrame(projectId, frame));
   }
 
   @override
@@ -177,22 +155,12 @@ class ProjectLocalRepo extends ProjectRepo {
 
   @override
   Future<void> deleteState(int stateId) {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.deleteState(stateId);
-      completer.complete();
-    });
-    return completer.future;
+    return queueManager.add(() => db.deleteState(stateId));
   }
 
   @override
   Future<void> updateState(int projectId, AnimationStateModel state) {
-    final completer = Completer<void>();
-    queueManager.add(() async {
-      await db.updateState(projectId, state);
-      completer.complete();
-    });
-    return completer.future;
+    return queueManager.add(() => db.updateState(projectId, state));
   }
 
   @override

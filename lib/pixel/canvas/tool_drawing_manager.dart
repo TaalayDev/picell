@@ -119,6 +119,59 @@ class ToolDrawingManager {
     _currentSelection = selection;
   }
 
+  /// Updates magic-wand behavior from editor settings.
+  void setWandOptions({required int tolerance, required bool contiguous}) {
+    _smartSelectionTool
+      ..tolerance = tolerance
+      ..contiguous = contiguous;
+  }
+
+  // ── Selection combine gestures (add/subtract) ──
+  //
+  // Captured once at pointer-down; the tool draws its new shape normally and
+  // the combine with the base region happens at confirm time via
+  // [resolveSelectionGesture]. Live preview intentionally shows only the new
+  // shape — combining per pointer-move would rebuild the marching-ants dash
+  // cache every frame.
+  SelectionMode _activeGestureMode = SelectionMode.replace;
+  SelectionRegion? _gestureBaseRegion;
+
+  /// True while an add/subtract gesture is in flight (queried before
+  /// [resolveSelectionGesture], which resets the state).
+  bool get hasActiveCombineGesture => _gestureBaseRegion != null;
+
+  void beginSelectionGesture(SelectionMode mode, SelectionRegion? base) {
+    _activeGestureMode = mode;
+    _gestureBaseRegion = mode == SelectionMode.replace ? null : base;
+  }
+
+  void cancelSelectionGesture() {
+    _activeGestureMode = SelectionMode.replace;
+    _gestureBaseRegion = null;
+  }
+
+  /// Combines [newRegion] with the base region captured at gesture start and
+  /// resets the gesture state. Returns null when the result is empty (e.g.
+  /// everything was subtracted) — callers should clear the selection.
+  SelectionRegion? resolveSelectionGesture(SelectionRegion? newRegion) {
+    final mode = _activeGestureMode;
+    final base = _gestureBaseRegion;
+    cancelSelectionGesture();
+
+    if (newRegion == null || newRegion.bounds == Rect.zero) {
+      // Degenerate new shape: replace clears as before; add/subtract keep
+      // the existing selection untouched.
+      return mode == SelectionMode.replace ? newRegion : base;
+    }
+    if (mode == SelectionMode.replace || base == null) {
+      return newRegion;
+    }
+
+    final combined = base.combine(newRegion, mode);
+    if (combined.bounds.isEmpty) return null;
+    return combined;
+  }
+
   void _initializeTools() {
     _selectionService = SelectionService(width: width, height: height);
 

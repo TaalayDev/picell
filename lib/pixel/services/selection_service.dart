@@ -118,6 +118,9 @@ class SelectionService {
     );
   }
 
+  /// Wand selection. [contiguous] flood-fills from the tapped pixel;
+  /// non-contiguous selects every pixel on the layer within [tolerance] of
+  /// the tapped color (select-by-color).
   SelectionRegion createWandSelection({
     required Uint32List pixels,
     required int x,
@@ -125,14 +128,25 @@ class SelectionService {
     required int w,
     required int h,
     int tolerance = 0,
+    bool contiguous = true,
   }) {
     if (x < 0 || x >= w || y < 0 || y >= h) {
       return SelectionRegion(path: Path(), bounds: Rect.zero, shape: SelectionShape.wand);
     }
 
     final targetColor = pixels[y * w + x];
-    final visited = <int>{};
     final matched = <int>{};
+
+    if (!contiguous) {
+      for (int i = 0; i < pixels.length; i++) {
+        if (_colorDistance(pixels[i], targetColor) <= tolerance) {
+          matched.add(i);
+        }
+      }
+      return _pixelIndicesToRegion(matched, w, SelectionShape.wand);
+    }
+
+    final visited = <int>{};
     final queue = Queue<int>();
     queue.add(y * w + x);
 
@@ -192,6 +206,63 @@ class SelectionService {
       bounds: invertedPath.getBounds(),
       shape: SelectionShape.custom,
     );
+  }
+
+  /// Dilates the selection by [by] pixels using the 8-neighborhood
+  /// (Chebyshev distance), which keeps rectangular selections rectangular.
+  /// The result is clamped to the canvas.
+  SelectionRegion growSelection(SelectionRegion region, {int by = 1}) {
+    var current = region.getSelectedPixelIndices(width, height).toSet();
+    for (int step = 0; step < by && current.isNotEmpty; step++) {
+      final grown = Set<int>.from(current);
+      for (final idx in current) {
+        final x = idx % width;
+        final y = idx ~/ width;
+        for (int dy = -1; dy <= 1; dy++) {
+          for (int dx = -1; dx <= 1; dx++) {
+            final nx = x + dx;
+            final ny = y + dy;
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+              grown.add(ny * width + nx);
+            }
+          }
+        }
+      }
+      current = grown;
+    }
+    return _pixelIndicesToRegion(current, width, SelectionShape.custom);
+  }
+
+  /// Erodes the selection by [by] pixels (8-neighborhood). Out-of-canvas
+  /// neighbors count as selected, so a selection flush against the canvas
+  /// edge doesn't erode inward from that edge (matches common editor
+  /// behavior). Returns an empty region when everything erodes away.
+  SelectionRegion shrinkSelection(SelectionRegion region, {int by = 1}) {
+    var current = region.getSelectedPixelIndices(width, height).toSet();
+    for (int step = 0; step < by && current.isNotEmpty; step++) {
+      final kept = <int>{};
+      for (final idx in current) {
+        final x = idx % width;
+        final y = idx ~/ width;
+        var interior = true;
+        for (int dy = -1; dy <= 1 && interior; dy++) {
+          for (int dx = -1; dx <= 1; dx++) {
+            final nx = x + dx;
+            final ny = y + dy;
+            if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+              continue; // canvas edge counts as selected
+            }
+            if (!current.contains(ny * width + nx)) {
+              interior = false;
+              break;
+            }
+          }
+        }
+        if (interior) kept.add(idx);
+      }
+      current = kept;
+    }
+    return _pixelIndicesToRegion(current, width, SelectionShape.custom);
   }
 
   // ── Pixel Operations ──

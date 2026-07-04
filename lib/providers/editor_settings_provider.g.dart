@@ -7,7 +7,7 @@ part of 'editor_settings_provider.dart';
 // **************************************************************************
 
 String _$editorSettingsNotifierHash() =>
-    r'1742c2e76a4cd524809ea8408f258096bb77f436';
+    r'421bca38baf7da0da0c9aa052df4d9320bf12688';
 
 /// See also [EditorSettingsNotifier].
 @ProviderFor(EditorSettingsNotifier)

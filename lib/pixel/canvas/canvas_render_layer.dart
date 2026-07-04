@@ -380,6 +380,7 @@ class RenderPixelCanvasLayer extends RenderBox implements MouseTrackerAnnotation
     _imageResolver.removeListener(_handleSurfaceImagesChanged);
     _eventDispatcher.detach();
     _repaintBinding.detach();
+    _surfaceDelegate.dispose();
     super.detach();
   }
 

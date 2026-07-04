@@ -19,6 +19,7 @@ class PixelCanvasRuntimeConfig {
     required this.showSelectionMoveHandle,
     required this.showSelectionTransformHandles,
     required this.showSelectionAnchorHandle,
+    this.selectionMode = SelectionMode.replace,
     this.cursor = MouseCursor.defer,
     this.selectionAnchorPoint,
     this.selectionAnimation,
@@ -29,6 +30,7 @@ class PixelCanvasRuntimeConfig {
     this.onTransformStart,
     this.onTransformEnd,
     this.onAnchorChanged,
+    this.onAnchorChangeEnd,
   });
 
   final int width;
@@ -43,6 +45,10 @@ class PixelCanvasRuntimeConfig {
   final bool showSelectionMoveHandle;
   final bool showSelectionTransformHandles;
   final bool showSelectionAnchorHandle;
+
+  /// Base combine mode for new selection gestures (toolbar toggle). Shift or
+  /// Alt held at pointer-down override this per gesture.
+  final SelectionMode selectionMode;
   final MouseCursor cursor;
   final Offset? selectionAnchorPoint;
   final Animation<double>? selectionAnimation;
@@ -53,4 +59,7 @@ class PixelCanvasRuntimeConfig {
   final Function(SelectionRegion)? onTransformStart;
   final VoidCallback? onTransformEnd;
   final Function(Offset)? onAnchorChanged;
+
+  /// Fired once when an anchor-handle drag ends (persist point).
+  final VoidCallback? onAnchorChangeEnd;
 }

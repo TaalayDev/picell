@@ -24,6 +24,9 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
     required this.showImportDialog,
     required this.showColorPicker,
     required this.toggleUI,
+    required this.onCopySelection,
+    required this.onCutSelection,
+    required this.onPasteSelection,
     required this.child,
   });
 
@@ -42,7 +45,17 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
   final Function(BuildContext context, PixelCanvasNotifier notifier)
       showColorPicker;
   final VoidCallback toggleUI;
+  final VoidCallback onCopySelection;
+  final VoidCallback onCutSelection;
+  final VoidCallback onPasteSelection;
   final Widget child;
+
+  static bool _isSelectionTool(PixelTool tool) {
+    return tool == PixelTool.select ||
+        tool == PixelTool.ellipseSelect ||
+        tool == PixelTool.lasso ||
+        tool == PixelTool.smartSelect;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -109,6 +122,9 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
         }
       },
       onPipetteStart: () {
+        // Alt is the subtract-from-selection modifier for selection tools —
+        // don't hijack it into the eyedropper temp-switch.
+        if (_isSelectionTool(currentTool.value)) return;
         if (!isPipetteMode.value && !isPanMode.value) {
           // Store the current tool before switching to pipette mode
           previousTool.value = currentTool.value;
@@ -140,26 +156,38 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
           notifier.removeLayer(state.currentLayerIndex);
         }
       },
-      onSelectAll: () {},
+      onSelectAll: notifier.selectAll,
       onDeselectAll: () {
         if (state.selectionState != null) {
           notifier.clearSelection();
         }
       },
-      onCopy: () {
-        // TODO: Implement copy functionality
+      onInvertSelection: () {
+        if (state.selectionState != null) {
+          notifier.invertSelection();
+        }
       },
-      onPaste: () {
-        // TODO: Implement paste functionality
+      onGrowSelection: () {
+        if (state.selectionState != null) {
+          notifier.growSelection();
+        }
       },
-      onCut: () {
-        // TODO: Implement cut functionality
+      onShrinkSelection: () {
+        if (state.selectionState != null) {
+          notifier.shrinkSelection();
+        }
       },
+      onCopy: onCopySelection,
+      onPaste: onPasteSelection,
+      onCut: onCutSelection,
       onDuplicate: () {
-        // Duplicate current layer
-        final currentLayer = state.layers[state.currentLayerIndex];
-        notifier.addLayer('${currentLayer.name} Copy');
-        // TODO: Copy pixels from current layer to new layer
+        if (state.selectionState != null) {
+          // Duplicate the selection into a new layer (matches the
+          // "Copy to New Layer" menu action).
+          notifier.copyToNewLayer();
+        } else {
+          notifier.duplicateLayer(state.currentLayerIndex);
+        }
       },
       onCtrlEnter: () {
         if (currentTool.value == PixelTool.pen) {

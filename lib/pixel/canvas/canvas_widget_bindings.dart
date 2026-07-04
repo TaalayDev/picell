@@ -49,6 +49,7 @@ class PixelCanvasWidgetBindings {
     required MirrorAxis mirrorAxis,
     required SelectionState? selectionState,
     required Animation<double> selectionAnimation,
+    SelectionMode selectionMode = SelectionMode.replace,
     Function(SelectionRegion?)? onSelectionChanged,
     Function(Offset)? onMoveSelection,
     Function(SelectionRegion, SelectionRegion, Rect, Offset?)? onSelectionResize,
@@ -56,6 +57,7 @@ class PixelCanvasWidgetBindings {
     Function(SelectionRegion)? onTransformStart,
     VoidCallback? onTransformEnd,
     Function(Offset)? onAnchorChanged,
+    VoidCallback? onAnchorChangeEnd,
   }) {
     final isSelectionTool = _isSelectionInteractionTool(currentTool);
 
@@ -69,6 +71,7 @@ class PixelCanvasWidgetBindings {
       sprayIntensity: sprayIntensity,
       modifier: _resolveModifier(modifier, mirrorAxis),
       selectionState: selectionState,
+      selectionMode: selectionMode,
       onSelectionChanged: onSelectionChanged,
       onMoveSelection: onMoveSelection,
       onSelectionResize: onSelectionResize,
@@ -76,6 +79,7 @@ class PixelCanvasWidgetBindings {
       onTransformStart: onTransformStart,
       onTransformEnd: onTransformEnd,
       onAnchorChanged: onAnchorChanged,
+      onAnchorChangeEnd: onAnchorChangeEnd,
       showSelectionMoveHandle: !isSelectionTool,
       showSelectionTransformHandles: isSelectionTool,
       showSelectionAnchorHandle: isSelectionTool,

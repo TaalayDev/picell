@@ -68,6 +68,13 @@ class AnimatedBackground extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = appTheme ?? ref.watch(themeProvider).theme;
 
+    // Mute the background tickers when this screen isn't the active route
+    // (e.g. the editor is pushed on top) or the OS asks for reduced motion —
+    // otherwise up to 3 repeating controllers keep painting behind other
+    // screens.
+    final route = ModalRoute.of(context);
+    final animationsActive = enableAnimation && (route?.isCurrent ?? true) && !MediaQuery.disableAnimationsOf(context);
+
     return Stack(
       children: [
         RepaintBoundary(
@@ -78,8 +85,19 @@ class AnimatedBackground extends HookConsumerWidget {
           ),
         ),
         //if (isDesktopOrWeb)
-        RepaintBoundary(child: _buildAnimatedLayer(theme, enableAnimation)),
-        child,
+        RepaintBoundary(
+          child: TickerMode(
+            enabled: animationsActive,
+            child: _buildAnimatedLayer(theme, enableAnimation),
+          ),
+        ),
+        // Also mute foreground tickers (looping project cards, pro-button
+        // glow, ...) while this screen is covered by another route. Content
+        // resumes exactly where it paused when the route becomes current.
+        TickerMode(
+          enabled: (route?.isCurrent ?? true),
+          child: child,
+        ),
       ],
     );
   }

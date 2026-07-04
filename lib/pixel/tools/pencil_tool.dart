@@ -3,6 +3,10 @@ import '../tools.dart';
 
 class PencilTool extends Tool {
   List<PixelPoint<int>> _currentPixels = [];
+  // Cells already painted this stroke, keyed by y * width + x. A List
+  // .contains scan here is O(stroke length) per pixel and makes long
+  // strokes quadratic.
+  final Set<int> _occupiedCells = {};
   PixelPoint<int>? _previousPoint;
 
   PencilTool() : super(PixelTool.pencil);
@@ -10,6 +14,7 @@ class PencilTool extends Tool {
   @override
   void onStart(PixelDrawDetails details) {
     _currentPixels = [];
+    _occupiedCells.clear();
     _previousPoint = null;
 
     final point = details.pixelPosition;
@@ -51,6 +56,7 @@ class PencilTool extends Tool {
     }
 
     _currentPixels = [];
+    _occupiedCells.clear();
     _previousPoint = null;
   }
 
@@ -82,7 +88,7 @@ class PencilTool extends Tool {
   }
 
   void _addPoint(PixelPoint<int> point, PixelDrawDetails details) {
-    if (!_currentPixels.contains(point)) {
+    if (_occupiedCells.add(point.y * details.width + point.x)) {
       _currentPixels.add(point);
 
       // Handle modifier
@@ -94,7 +100,11 @@ class PencilTool extends Tool {
           details.height,
         );
 
-        _currentPixels.addAll(modPoints);
+        for (final p in modPoints) {
+          if (_occupiedCells.add(p.y * details.width + p.x)) {
+            _currentPixels.add(p);
+          }
+        }
       }
     }
   }

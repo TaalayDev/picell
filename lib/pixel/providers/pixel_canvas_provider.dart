@@ -117,8 +117,11 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
       _controller.pastePixels(pixels, region);
   void selectAll() => _controller.selectAll();
   void invertSelection() => _controller.invertSelectionRegion();
+  void growSelection() => _controller.growSelectionRegion();
+  void shrinkSelection() => _controller.shrinkSelectionRegion();
   void autoSelectLayer() => _controller.autoSelectLayer();
   void setAnchorPoint(Offset anchor) => _controller.setAnchorPoint(anchor);
+  void persistAnchorPoint() => _controller.persistAnchorPoint();
   void flipSelection({required bool horizontal}) => _controller.flipSelectionPixels(horizontal: horizontal);
 
   void addTemplate(Template template) => _controller.addTemplate(template);

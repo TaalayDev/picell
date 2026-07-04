@@ -34,10 +34,12 @@ import '../widgets/effects/effects_panel.dart';
 import '../widgets/dialogs/save_image_window.dart';
 import '../widgets/dialogs/templates_dialog.dart';
 import '../widgets/dialogs/undo_history_dialog.dart';
+import '../widgets/selection_mode_toggle.dart';
 import '../widgets/selection_options_button.dart';
 import '../widgets/tool_bar.dart';
 import '../widgets/tool_menu.dart';
 import '../widgets/tools_bottom_bar.dart';
+import '../widgets/wand_options_bar.dart';
 
 class PixelCanvasScreen extends StatefulHookConsumerWidget {
   const PixelCanvasScreen({super.key, required this.project, this.tilemapPixels});
@@ -245,6 +247,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     }, [viewportController]);
     final brushSize = useState(1);
     final sprayIntensity = useState(5);
+    final selectionMode = useState(SelectionMode.replace);
 
     final isPlaying = useState(false);
     final showPrevFrames = useState(false);
@@ -261,6 +264,39 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     final size = MediaQuery.sizeOf(context);
     final screenSize = ScreenSize.forWidth(size.width) ?? ScreenSize.xs;
 
+    // Shared clipboard handlers — used by both the toolbar buttons and the
+    // keyboard shortcuts (Ctrl+C/X/V).
+    void copySelectionToClipboard() {
+      final pixels = notifier.copySelectionPixels();
+      final region = state.selectionState?.region;
+      if (pixels != null && region != null) {
+        clipboardNotifier.state = PixelClipboardData(
+          pixels: pixels,
+          width: width,
+          height: height,
+          region: region,
+        );
+      }
+    }
+
+    void cutSelectionToClipboard() {
+      final region = state.selectionState?.region;
+      final pixels = notifier.cutSelectionPixels();
+      if (pixels != null && region != null) {
+        clipboardNotifier.state = PixelClipboardData(
+          pixels: pixels,
+          width: width,
+          height: height,
+          region: region,
+        );
+      }
+    }
+
+    void pasteFromClipboard() {
+      final clip = clipboard;
+      if (clip != null) notifier.pastePixels(clip.pixels, clip.region);
+    }
+
     return PixelCanvasShortcutsWrapper(
       shortcutsFocusNode: _shortcutsFocusNode,
       currentTool: currentTool,
@@ -274,6 +310,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       showImportDialog: showImportDialog,
       showColorPicker: showColorPicker,
       toggleUI: _toggleUI,
+      onCopySelection: copySelectionToClipboard,
+      onCutSelection: cutSelectionToClipboard,
+      onPasteSelection: pasteFromClipboard,
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         body: SafeArea(
@@ -286,6 +325,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   currentTool: currentTool,
                   brushSize: brushSize,
                   sprayIntensity: sprayIntensity,
+                  selectionMode: selectionMode,
                   subscription: subscription,
                   onSelectTool: (tool) => currentTool.value = tool,
                   onUndo: state.canUndo ? notifier.undo : null,
@@ -324,34 +364,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   tileModeEnabled: tileModeEnabled.value,
                   onToggleTileMode: () => tileModeEnabled.value = !tileModeEnabled.value,
                   canPaste: clipboard != null,
-                  onCopySelection: () {
-                    final pixels = notifier.copySelectionPixels();
-                    final region = state.selectionState?.region;
-                    if (pixels != null && region != null) {
-                      clipboardNotifier.state = PixelClipboardData(
-                        pixels: pixels,
-                        width: width,
-                        height: height,
-                        region: region,
-                      );
-                    }
-                  },
-                  onCutSelection: () {
-                    final region = state.selectionState?.region;
-                    final pixels = notifier.cutSelectionPixels();
-                    if (pixels != null && region != null) {
-                      clipboardNotifier.state = PixelClipboardData(
-                        pixels: pixels,
-                        width: width,
-                        height: height,
-                        region: region,
-                      );
-                    }
-                  },
-                  onPasteSelection: () {
-                    final clip = clipboard;
-                    if (clip != null) notifier.pastePixels(clip.pixels, clip.region);
-                  },
+                  onCopySelection: copySelectionToClipboard,
+                  onCutSelection: cutSelectionToClipboard,
+                  onPasteSelection: pasteFromClipboard,
                   onTemplates: () {
                     TemplatesDialog.show(context, (template) {
                       notifier.addTemplate(template);
@@ -451,6 +466,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                                       editorSettings: editorSettings,
                                                       enableMultiTouchViewportNavigation: false,
                                                       showPrevFrames: showPrevFrames.value,
+                                                      selectionMode: selectionMode.value,
                                                       onionSkinOpacity: onionSkinOpacity.value,
                                                       onToolAutoSwitch: (tool) {
                                                         currentTool.value = tool;
@@ -474,6 +490,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                         currentTool: currentTool,
                                         brushSize: brushSize,
                                         sprayIntensity: sprayIntensity,
+                                        selectionMode: selectionMode,
                                       ),
                                     ),
                                     if (screenSize.isMobile)
@@ -487,33 +504,12 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                           onDelete: () => notifier.clearSelectionArea(),
                                           onCutToNewLayer: () => notifier.cutToNewLayer(),
                                           onCopyToNewLayer: () => notifier.copyToNewLayer(),
-                                          onCopy: () {
-                                            final pixels = notifier.copySelectionPixels();
-                                            final region = state.selectionState?.region;
-                                            if (pixels != null && region != null) {
-                                              clipboardNotifier.state = PixelClipboardData(
-                                                pixels: pixels,
-                                                width: width,
-                                                height: height,
-                                                region: region,
-                                              );
-                                            }
-                                          },
-                                          onCut: () {
-                                            final region = state.selectionState?.region;
-                                            final pixels = notifier.cutSelectionPixels();
-                                            if (pixels != null && region != null) {
-                                              clipboardNotifier.state = PixelClipboardData(
-                                                pixels: pixels,
-                                                width: width,
-                                                height: height,
-                                                region: region,
-                                              );
-                                            }
-                                          },
-                                          onPaste: clipboard != null
-                                              ? () => notifier.pastePixels(clipboard.pixels, clipboard.region)
-                                              : null,
+                                          onCopy: copySelectionToClipboard,
+                                          onCut: cutSelectionToClipboard,
+                                          onPaste: clipboard != null ? pasteFromClipboard : null,
+                                          onInvert: () => notifier.invertSelection(),
+                                          onGrow: () => notifier.growSelection(),
+                                          onShrink: () => notifier.shrinkSelection(),
                                         ),
                                       ),
                                   ],
@@ -655,11 +651,24 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
 }
 
 class _ToolElements extends StatelessWidget {
-  const _ToolElements({required this.currentTool, required this.brushSize, required this.sprayIntensity});
+  const _ToolElements({
+    required this.currentTool,
+    required this.brushSize,
+    required this.sprayIntensity,
+    required this.selectionMode,
+  });
 
   final ValueNotifier<PixelTool> currentTool;
   final ValueNotifier<int> brushSize;
   final ValueNotifier<int> sprayIntensity;
+  final ValueNotifier<SelectionMode> selectionMode;
+
+  static bool _isSelectionTool(PixelTool tool) {
+    return tool == PixelTool.select ||
+        tool == PixelTool.ellipseSelect ||
+        tool == PixelTool.lasso ||
+        tool == PixelTool.smartSelect;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -670,6 +679,20 @@ class _ToolElements extends StatelessWidget {
         currentTool.value == PixelTool.eraser ||
         currentTool.value == PixelTool.sprayPaint;
     final isSpray = currentTool.value == PixelTool.sprayPaint;
+    final isWand = currentTool.value == PixelTool.smartSelect;
+
+    if (_isSelectionTool(currentTool.value)) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SelectionModeToggle(mode: selectionMode),
+          if (isWand) ...[
+            const SizedBox(width: 6),
+            const WandOptionsBar(),
+          ],
+        ],
+      );
+    }
 
     if (!isBrushTool) return const SizedBox.shrink();
 

@@ -14,6 +14,9 @@ class SelectionOptionsButton extends StatelessWidget {
   final VoidCallback? onDelete; // Usually "Clear Area"
   final VoidCallback? onCutToNewLayer;
   final VoidCallback? onCopyToNewLayer;
+  final VoidCallback? onInvert;
+  final VoidCallback? onGrow;
+  final VoidCallback? onShrink;
   final bool isFloating;
 
   const SelectionOptionsButton({
@@ -30,6 +33,9 @@ class SelectionOptionsButton extends StatelessWidget {
     this.onDelete,
     this.onCutToNewLayer,
     this.onCopyToNewLayer,
+    this.onInvert,
+    this.onGrow,
+    this.onShrink,
     this.isFloating = false,
   });
 
@@ -119,6 +125,39 @@ class SelectionOptionsButton extends StatelessWidget {
           ],
         ),
       ),
+      if (onInvert != null)
+        const PopupMenuItem<String>(
+          value: 'invert',
+          child: Row(
+            children: [
+              Icon(Icons.flip_to_back, size: 20),
+              SizedBox(width: 8),
+              Text('Invert Selection'),
+            ],
+          ),
+        ),
+      if (onGrow != null)
+        const PopupMenuItem<String>(
+          value: 'grow',
+          child: Row(
+            children: [
+              Icon(Icons.open_in_full, size: 20),
+              SizedBox(width: 8),
+              Text('Grow (+1px)'),
+            ],
+          ),
+        ),
+      if (onShrink != null)
+        const PopupMenuItem<String>(
+          value: 'shrink',
+          child: Row(
+            children: [
+              Icon(Icons.close_fullscreen, size: 20),
+              SizedBox(width: 8),
+              Text('Shrink (−1px)'),
+            ],
+          ),
+        ),
       if (onRotate90 != null) ...[
         const PopupMenuDivider(),
         const PopupMenuItem<String>(
@@ -236,6 +275,15 @@ class SelectionOptionsButton extends StatelessWidget {
     switch (value) {
       case 'clear':
         onClearSelection?.call();
+        break;
+      case 'invert':
+        onInvert?.call();
+        break;
+      case 'grow':
+        onGrow?.call();
+        break;
+      case 'shrink':
+        onShrink?.call();
         break;
       case 'rotate90':
         onRotate90?.call();

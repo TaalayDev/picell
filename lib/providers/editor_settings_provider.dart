@@ -33,6 +33,8 @@ class EditorSettings {
     this.showPixelGrid = true,
     this.pixelGridOpacity = 0.3,
     this.transformInterpolation = TransformInterpolation.bilinear,
+    this.wandTolerance = 0,
+    this.wandContiguous = true,
   });
 
   /// Current input mode (standard or stylus-only)
@@ -62,6 +64,14 @@ class EditorSettings {
   /// Sampling used for selection resize/rotate transforms
   final TransformInterpolation transformInterpolation;
 
+  /// Magic wand color tolerance as a percentage (0-100). Mapped onto the
+  /// service's Euclidean ARGB distance threshold (0-255).
+  final int wandTolerance;
+
+  /// Magic wand: flood-fill from the tapped pixel (true) or select every
+  /// matching color on the layer (false).
+  final bool wandContiguous;
+
   /// Whether stylus mode is active
   bool get isStylusMode => inputMode == InputMode.stylusOnly;
 
@@ -75,6 +85,8 @@ class EditorSettings {
     bool? showPixelGrid,
     double? pixelGridOpacity,
     TransformInterpolation? transformInterpolation,
+    int? wandTolerance,
+    bool? wandContiguous,
   }) {
     return EditorSettings(
       inputMode: inputMode ?? this.inputMode,
@@ -87,6 +99,8 @@ class EditorSettings {
       pixelGridOpacity: pixelGridOpacity ?? this.pixelGridOpacity,
       transformInterpolation:
           transformInterpolation ?? this.transformInterpolation,
+      wandTolerance: wandTolerance ?? this.wandTolerance,
+      wandContiguous: wandContiguous ?? this.wandContiguous,
     );
   }
 
@@ -102,7 +116,9 @@ class EditorSettings {
         other.twoFingerUndoEnabled == twoFingerUndoEnabled &&
         other.showPixelGrid == showPixelGrid &&
         other.pixelGridOpacity == pixelGridOpacity &&
-        other.transformInterpolation == transformInterpolation;
+        other.transformInterpolation == transformInterpolation &&
+        other.wandTolerance == wandTolerance &&
+        other.wandContiguous == wandContiguous;
   }
 
   @override
@@ -116,6 +132,8 @@ class EditorSettings {
         showPixelGrid,
         pixelGridOpacity,
         transformInterpolation,
+        wandTolerance,
+        wandContiguous,
       );
 }
 
@@ -129,6 +147,8 @@ const _kTwoFingerUndo = 'editor_two_finger_undo';
 const _kShowPixelGrid = 'editor_show_pixel_grid';
 const _kPixelGridOpacity = 'editor_pixel_grid_opacity';
 const _kTransformInterpolation = 'editor_transform_interpolation';
+const _kWandTolerance = 'editor_wand_tolerance';
+const _kWandContiguous = 'editor_wand_contiguous';
 
 @riverpod
 class EditorSettingsNotifier extends _$EditorSettingsNotifier {
@@ -152,6 +172,8 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
     final transformInterpolationIndex =
         _storage.getInt(_kTransformInterpolation) ??
             TransformInterpolation.bilinear.index;
+    final wandTolerance = _storage.getInt(_kWandTolerance) ?? 0;
+    final wandContiguous = _storage.getBool(_kWandContiguous) ?? true;
 
     return EditorSettings(
       inputMode: InputMode
@@ -168,6 +190,8 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
         0,
         TransformInterpolation.values.length - 1,
       )],
+      wandTolerance: wandTolerance.clamp(0, 100),
+      wandContiguous: wandContiguous,
     );
   }
 
@@ -184,6 +208,8 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
       _kTransformInterpolation,
       state.transformInterpolation.index,
     );
+    _storage.setInt(_kWandTolerance, state.wandTolerance);
+    _storage.setBool(_kWandContiguous, state.wandContiguous);
   }
 
   void setInputMode(InputMode mode) {
@@ -233,6 +259,16 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
 
   void setTransformInterpolation(TransformInterpolation interpolation) {
     state = state.copyWith(transformInterpolation: interpolation);
+    _saveSettings();
+  }
+
+  void setWandTolerance(int tolerance) {
+    state = state.copyWith(wandTolerance: tolerance.clamp(0, 100));
+    _saveSettings();
+  }
+
+  void setWandContiguous(bool contiguous) {
+    state = state.copyWith(wandContiguous: contiguous);
     _saveSettings();
   }
 

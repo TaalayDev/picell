@@ -57,8 +57,13 @@ class Layer with EquatableMixin {
     );
   }
 
-  // Get pixels with all effects applied
-  Uint32List get processedPixels {
+  // Get pixels with all effects applied. Computed once per Layer instance:
+  // Layer is immutable (copyWith creates a new instance whenever pixels or
+  // effects change), and effect application is a full-buffer pass that gets
+  // requested repeatedly by the cache manager, painter, and merge helpers.
+  late final Uint32List processedPixels = _computeProcessedPixels();
+
+  Uint32List _computeProcessedPixels() {
     if (effects.isEmpty) return pixels;
 
     // Calculate square root to get width/height (assuming square or known dimensions)

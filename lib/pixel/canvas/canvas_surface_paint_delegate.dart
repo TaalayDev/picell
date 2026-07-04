@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import 'canvas_surface_image_resolver.dart';
@@ -33,6 +35,19 @@ class PixelCanvasSurfacePaintDelegate {
     ..strokeWidth = 0.5;
   final Paint _backgroundPaint = Paint()..filterQuality = FilterQuality.none;
   final Paint _onionSkinPaint = Paint()..filterQuality = FilterQuality.none;
+
+  // Grid lines recorded once per (rect, grid dimensions) and replayed as a
+  // ui.Picture, instead of issuing O(gridWidth + gridHeight) drawLine calls
+  // every frame.
+  ui.Picture? _gridPicture;
+  Rect _gridPictureRect = Rect.zero;
+  int _gridPictureWidth = -1;
+  int _gridPictureHeight = -1;
+
+  void dispose() {
+    _gridPicture?.dispose();
+    _gridPicture = null;
+  }
 
   void update({
     int? gridWidth,
@@ -75,6 +90,24 @@ class PixelCanvasSurfacePaintDelegate {
       return;
     }
 
+    if (_gridPicture == null ||
+        _gridPictureRect != rect ||
+        _gridPictureWidth != _gridWidth ||
+        _gridPictureHeight != _gridHeight) {
+      _gridPicture?.dispose();
+      _gridPicture = _recordGridPicture(rect);
+      _gridPictureRect = rect;
+      _gridPictureWidth = _gridWidth;
+      _gridPictureHeight = _gridHeight;
+    }
+
+    canvas.drawPicture(_gridPicture!);
+  }
+
+  ui.Picture _recordGridPicture(Rect rect) {
+    final recorder = ui.PictureRecorder();
+    final gridCanvas = Canvas(recorder);
+
     _gridPaint.color = Colors.grey.withValues(alpha: 0.2);
 
     final cellWidth = rect.width / _gridWidth;
@@ -82,13 +115,15 @@ class PixelCanvasSurfacePaintDelegate {
 
     for (var column = 0; column <= _gridWidth; column++) {
       final x = rect.left + column * cellWidth;
-      canvas.drawLine(Offset(x, rect.top), Offset(x, rect.bottom), _gridPaint);
+      gridCanvas.drawLine(Offset(x, rect.top), Offset(x, rect.bottom), _gridPaint);
     }
 
     for (var row = 0; row <= _gridHeight; row++) {
       final y = rect.top + row * cellHeight;
-      canvas.drawLine(Offset(rect.left, y), Offset(rect.right, y), _gridPaint);
+      gridCanvas.drawLine(Offset(rect.left, y), Offset(rect.right, y), _gridPaint);
     }
+
+    return recorder.endRecording();
   }
 
   void _paintBackgroundImage(Canvas canvas, Rect rect) {

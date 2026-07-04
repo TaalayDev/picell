@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
@@ -754,6 +755,38 @@ class EffectsManager {
     }
 
     return result;
+  }
+
+  /// Canvases up to this many pixels apply effects synchronously; larger
+  /// ones are worth the isolate round-trip.
+  static const int _asyncEffectsPixelThreshold = 128 * 128;
+
+  /// Like [applyMultipleEffects], but runs in a background isolate for
+  /// large canvases so heavy effects (noise, oil paint, Voronoi, ...) don't
+  /// block the UI thread. On web `compute` runs on the main thread; callers
+  /// should keep their debounce in place.
+  static Future<Uint32List> applyMultipleEffectsAsync(
+    Uint32List pixels,
+    int width,
+    int height,
+    List<Effect> effects,
+  ) {
+    if (effects.isEmpty) return Future.value(pixels);
+    if (width * height <= _asyncEffectsPixelThreshold) {
+      return Future.value(applyMultipleEffects(pixels, width, height, effects));
+    }
+    return compute(_applyMultipleEffectsForCompute, (
+      pixels: pixels,
+      width: width,
+      height: height,
+      effects: effects,
+    ));
+  }
+
+  static Uint32List _applyMultipleEffectsForCompute(
+    ({Uint32List pixels, int width, int height, List<Effect> effects}) args,
+  ) {
+    return applyMultipleEffects(args.pixels, args.width, args.height, args.effects);
   }
 
   static Uint32List applyEffectToSelection(
