@@ -243,6 +243,34 @@ class CommunityProject extends _$CommunityProject {
   }
 }
 
+// Direct forks (remixes) of a project — other users' uploads created by
+// downloading and re-editing this one.
+@riverpod
+class ProjectForks extends _$ProjectForks {
+  @override
+  Future<List<ApiProject>> build(int projectId) async {
+    final response = await ref.read(projectAPIRepoProvider).getProjectForks(projectId);
+    if (response.success && response.data != null) {
+      return response.data!;
+    }
+    throw Exception(response.error ?? 'Failed to load forks');
+  }
+}
+
+// Other public projects by the same author — used for the "More by this
+// user" section on the project detail screen.
+@riverpod
+class UserProjects extends _$UserProjects {
+  @override
+  Future<List<ApiProject>> build(String username) async {
+    final response = await ref.read(projectAPIRepoProvider).getUserProjects(username);
+    if (response.success && response.data != null) {
+      return response.data!;
+    }
+    throw Exception(response.error ?? 'Failed to load user projects');
+  }
+}
+
 // Comments provider
 @riverpod
 class ProjectComments extends _$ProjectComments {

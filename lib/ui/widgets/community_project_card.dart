@@ -55,8 +55,7 @@ class CommunityProjectCard extends ConsumerWidget {
             AspectRatio(
               aspectRatio: project.width / project.height,
               child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -88,8 +87,7 @@ class CommunityProjectCard extends ConsumerWidget {
                         top: 8,
                         right: 8,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: theme.warning,
                             borderRadius: BorderRadius.circular(12),
@@ -145,8 +143,7 @@ class CommunityProjectCard extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.grid_3x3,
-                          size: 12, color: theme.textSecondary),
+                      Icon(Icons.grid_3x3, size: 12, color: theme.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         '${project.width}×${project.height}',
@@ -155,8 +152,7 @@ class CommunityProjectCard extends ConsumerWidget {
                             ),
                       ),
                       const Spacer(),
-                      Icon(Icons.visibility,
-                          size: 12, color: theme.textSecondary),
+                      Icon(Icons.visibility, size: 12, color: theme.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         _formatCount(project.viewCount),
@@ -179,12 +175,8 @@ class CommunityProjectCard extends ConsumerWidget {
                   // Like button
                   IconButton(
                     icon: Icon(
-                      project.isLiked == true
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: project.isLiked == true
-                          ? Colors.red
-                          : theme.activeIcon,
+                      project.isLiked == true ? Icons.favorite : Icons.favorite_border,
+                      color: project.isLiked == true ? Colors.red : theme.activeIcon,
                       size: 20,
                     ),
                     onPressed: () => onLike?.call(project),
@@ -200,8 +192,7 @@ class CommunityProjectCard extends ConsumerWidget {
                         size: 20,
                         color: theme.success,
                       ),
-                      onPressed: () =>
-                          _openLocalProject(context, ref, localProject),
+                      onPressed: () => _openLocalProject(context, ref, localProject),
                       tooltip: 'Open Local Project',
                     ),
                   ] else ...[
@@ -214,13 +205,10 @@ class CommunityProjectCard extends ConsumerWidget {
                         //     ? theme.activeIcon
                         //     : theme.textDisabled,
                       ),
-                      onPressed: subscription
-                              .hasFeatureAccess(SubscriptionFeature.cloudBackup)
+                      onPressed: subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup)
                           ? () => _downloadProject(context, ref, subscription)
-                          : () => _showSubscriptionRequired(
-                              context, project, isAdloaded),
-                      tooltip: subscription
-                              .hasFeatureAccess(SubscriptionFeature.cloudBackup)
+                          : () => _showSubscriptionRequired(context, project, isAdloaded),
+                      tooltip: subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup)
                           ? 'Download'
                           : 'Premium Required',
                     ),
@@ -241,14 +229,12 @@ class CommunityProjectCard extends ConsumerWidget {
     );
   }
 
-  void _downloadProject(
-      BuildContext context, WidgetRef ref, UserSubscription subscription) {
+  void _downloadProject(BuildContext context, WidgetRef ref, UserSubscription subscription) {
     // Check subscription access
     if (!subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup)) {
       showTopFlushbar(
         context,
-        message:
-            const Text('Premium subscription required to download projects'),
+        message: const Text('Premium subscription required to download projects'),
         color: Colors.orange,
         duration: const Duration(seconds: 3),
       );
@@ -279,11 +265,9 @@ class CommunityProjectCard extends ConsumerWidget {
     }
 
     Project? projectToOpen = localProject;
-    final hasCanvasData = localProject.frames.isNotEmpty &&
-        localProject.frames.first.layers.isNotEmpty;
+    final hasCanvasData = localProject.frames.isNotEmpty && localProject.frames.first.layers.isNotEmpty;
     if (!hasCanvasData) {
-      projectToOpen =
-          await ref.read(projectsProvider.notifier).getProject(localProject.id);
+      projectToOpen = await ref.read(projectsProvider.notifier).getProject(localProject.id);
     }
 
     if (!context.mounted || projectToOpen == null) {
@@ -297,15 +281,13 @@ class CommunityProjectCard extends ConsumerWidget {
     );
   }
 
-  void _showSubscriptionRequired(
-      BuildContext context, ApiProject project, bool isAdLoaded) {
+  void _showSubscriptionRequired(BuildContext context, ApiProject project, bool isAdLoaded) {
     if (isAdLoaded) {
       _showRewardDialog(context, project);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              const Text('Premium subscription required to download projects'),
+          content: const Text('Premium subscription required to download projects'),
           duration: const Duration(seconds: 3),
           action: SnackBarAction(
             label: 'Upgrade',
@@ -332,8 +314,7 @@ class CommunityProjectCard extends ConsumerWidget {
         // User successfully watched the video, allow download
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content:
-                Text('Thank you for watching! Your download is starting...'),
+            content: Text('Thank you for watching! Your download is starting...'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
           ),

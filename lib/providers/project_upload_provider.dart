@@ -93,6 +93,7 @@ class ProjectUpload extends _$ProjectUpload {
               isPublic: isPublic,
               tags: tags,
               thumbnailBytes: thumbnailBytes,
+              parentProjectId: localProject.forkedFromId,
             );
       }
 

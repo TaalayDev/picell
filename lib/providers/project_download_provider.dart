@@ -45,7 +45,7 @@ class ProjectDownloadNotifier extends StateNotifier<ProjectDownloadState> {
 
       // Step 1: Check if project already exists locally (10% progress)
       state = state.copyWith(downloadProgress: 0.1);
-      final existingProject = await _ref.read(projectRepo).fetchProjectByRemoteId(apiProject.id);
+      final existingProject = await _ref.read(projectRepo).fetchProjectByOrigin(apiProject.id);
 
       if (existingProject != null) {
         throw Exception('Project "${apiProject.title}" already exists locally');
@@ -79,12 +79,20 @@ class ProjectDownloadNotifier extends StateNotifier<ProjectDownloadState> {
 
       // Step 4: Create local project with cloud metadata (70% progress)
       final authState = _ref.read(authProvider);
+      final isOwner = authState.isSignedIn && authState.apiUser?.id == fullApiProject.userId;
       state = state.copyWith(downloadProgress: 0.7);
       final localProject = projectData.copyWith(
         id: 0, // Reset ID for local creation
         name: fullApiProject.title,
-        isCloudSynced: authState.isSignedIn && authState.apiUser?.id == fullApiProject.userId,
-        remoteId: authState.isSignedIn ? fullApiProject.id : null,
+        isCloudSynced: isOwner,
+        // Only an owner's download is "synced" to that server project —
+        // otherwise remoteId must be cleared so a later upload creates a new
+        // fork instead of attempting to overwrite a project we don't own.
+        remoteId: isOwner ? fullApiProject.id : null,
+        clearRemoteId: !isOwner,
+        // Recorded regardless of ownership so lineage/dedupe survive even
+        // after remoteId gets reassigned to a new fork on first upload.
+        forkedFromId: fullApiProject.id,
         createdAt: fullApiProject.createdAt ?? DateTime.now(),
         editedAt: fullApiProject.updatedAt ?? DateTime.now(),
       );

@@ -40,10 +40,11 @@ enum ThemeType {
   origami,
   pointillism,
   candyCarnival,
-  bioluminescentBrutalism;
+  bioluminescentBrutalism,
+  studioDark;
 
   // Flagship themes (retroWave, candyCarnival, cherryBlossom, steampunk,
-  // origami, crystalline, cosmic) are intentionally excluded — they are always free.
+  // origami, crystalline, cosmic, studioDark) are intentionally excluded — they are always free.
   static List<ThemeType> lockedThemeTypes = [
     ThemeType.ocean,
     ThemeType.monochrome,
@@ -91,6 +92,7 @@ enum ThemeType {
         ThemeType.enchantedForest,
         ThemeType.stainedGlass,
         ThemeType.bioluminescentBrutalism,
+        ThemeType.studioDark,
       ].contains(this);
 
   bool get isLocked => lockedThemeTypes.contains(this);
@@ -183,6 +185,8 @@ enum ThemeType {
         return 'Candy Carnival';
       case ThemeType.bioluminescentBrutalism:
         return 'Bioluminescent Brutalism';
+      case ThemeType.studioDark:
+        return 'Studio Dark';
     }
   }
 
@@ -245,6 +249,8 @@ enum ThemeType {
         return const Duration(seconds: 15);
       case ThemeType.candyCarnival:
         return const Duration(seconds: 16);
+      case ThemeType.studioDark:
+        return const Duration(seconds: 18);
       default:
         return const Duration(seconds: 10);
     }

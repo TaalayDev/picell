@@ -12,9 +12,16 @@ class ProjectThumbnailWidget extends StatefulWidget {
   const ProjectThumbnailWidget({
     super.key,
     required this.project,
+    this.fit = BoxFit.fill,
   });
 
   final Project project;
+
+  /// [BoxFit.fill] (default) stretches the pixel art to the box — correct
+  /// when the box already matches the project's aspect ratio. Pass
+  /// [BoxFit.contain] when the box's aspect ratio is clamped/fixed
+  /// independently of the project's, to avoid distorting the art.
+  final BoxFit fit;
 
   @override
   State<ProjectThumbnailWidget> createState() => _ProjectThumbnailWidgetState();
@@ -57,7 +64,7 @@ class _ProjectThumbnailWidgetState extends State<ProjectThumbnailWidget> {
               ),
             ),
             if (_image != null)
-              CustomPaint(painter: ImagePainter(_image!))
+              CustomPaint(painter: ImagePainter(_image!, fit: widget.fit))
             else
               const Center(
                 child: Icon(Feather.image, size: 48),

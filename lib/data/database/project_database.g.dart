@@ -108,6 +108,12 @@ class $ProjectsTableTable extends ProjectsTable
   late final GeneratedColumn<String> tilemapData = GeneratedColumn<String>(
       'tilemap_data', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _forkedFromIdMeta =
+      const VerificationMeta('forkedFromId');
+  @override
+  late final GeneratedColumn<int> forkedFromId = GeneratedColumn<int>(
+      'forked_from_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -124,7 +130,8 @@ class $ProjectsTableTable extends ProjectsTable
         tileHeight,
         gridColumns,
         gridRows,
-        tilemapData
+        tilemapData,
+        forkedFromId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -215,6 +222,12 @@ class $ProjectsTableTable extends ProjectsTable
           tilemapData.isAcceptableOrUnknown(
               data['tilemap_data']!, _tilemapDataMeta));
     }
+    if (data.containsKey('forked_from_id')) {
+      context.handle(
+          _forkedFromIdMeta,
+          forkedFromId.isAcceptableOrUnknown(
+              data['forked_from_id']!, _forkedFromIdMeta));
+    }
     return context;
   }
 
@@ -254,6 +267,8 @@ class $ProjectsTableTable extends ProjectsTable
           .read(DriftSqlType.int, data['${effectivePrefix}grid_rows']),
       tilemapData: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}tilemap_data']),
+      forkedFromId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}forked_from_id']),
     );
   }
 
@@ -280,6 +295,7 @@ class ProjectsTableData extends DataClass
   final int? gridColumns;
   final int? gridRows;
   final String? tilemapData;
+  final int? forkedFromId;
   const ProjectsTableData(
       {required this.id,
       required this.name,
@@ -295,7 +311,8 @@ class ProjectsTableData extends DataClass
       this.tileHeight,
       this.gridColumns,
       this.gridRows,
-      this.tilemapData});
+      this.tilemapData,
+      this.forkedFromId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -327,6 +344,9 @@ class ProjectsTableData extends DataClass
     }
     if (!nullToAbsent || tilemapData != null) {
       map['tilemap_data'] = Variable<String>(tilemapData);
+    }
+    if (!nullToAbsent || forkedFromId != null) {
+      map['forked_from_id'] = Variable<int>(forkedFromId);
     }
     return map;
   }
@@ -362,6 +382,9 @@ class ProjectsTableData extends DataClass
       tilemapData: tilemapData == null && nullToAbsent
           ? const Value.absent()
           : Value(tilemapData),
+      forkedFromId: forkedFromId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(forkedFromId),
     );
   }
 
@@ -384,6 +407,7 @@ class ProjectsTableData extends DataClass
       gridColumns: serializer.fromJson<int?>(json['gridColumns']),
       gridRows: serializer.fromJson<int?>(json['gridRows']),
       tilemapData: serializer.fromJson<String?>(json['tilemapData']),
+      forkedFromId: serializer.fromJson<int?>(json['forkedFromId']),
     );
   }
   @override
@@ -405,6 +429,7 @@ class ProjectsTableData extends DataClass
       'gridColumns': serializer.toJson<int?>(gridColumns),
       'gridRows': serializer.toJson<int?>(gridRows),
       'tilemapData': serializer.toJson<String?>(tilemapData),
+      'forkedFromId': serializer.toJson<int?>(forkedFromId),
     };
   }
 
@@ -423,7 +448,8 @@ class ProjectsTableData extends DataClass
           Value<int?> tileHeight = const Value.absent(),
           Value<int?> gridColumns = const Value.absent(),
           Value<int?> gridRows = const Value.absent(),
-          Value<String?> tilemapData = const Value.absent()}) =>
+          Value<String?> tilemapData = const Value.absent(),
+          Value<int?> forkedFromId = const Value.absent()}) =>
       ProjectsTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -440,6 +466,8 @@ class ProjectsTableData extends DataClass
         gridColumns: gridColumns.present ? gridColumns.value : this.gridColumns,
         gridRows: gridRows.present ? gridRows.value : this.gridRows,
         tilemapData: tilemapData.present ? tilemapData.value : this.tilemapData,
+        forkedFromId:
+            forkedFromId.present ? forkedFromId.value : this.forkedFromId,
       );
   ProjectsTableData copyWithCompanion(ProjectsTableCompanion data) {
     return ProjectsTableData(
@@ -464,6 +492,9 @@ class ProjectsTableData extends DataClass
       gridRows: data.gridRows.present ? data.gridRows.value : this.gridRows,
       tilemapData:
           data.tilemapData.present ? data.tilemapData.value : this.tilemapData,
+      forkedFromId: data.forkedFromId.present
+          ? data.forkedFromId.value
+          : this.forkedFromId,
     );
   }
 
@@ -484,7 +515,8 @@ class ProjectsTableData extends DataClass
           ..write('tileHeight: $tileHeight, ')
           ..write('gridColumns: $gridColumns, ')
           ..write('gridRows: $gridRows, ')
-          ..write('tilemapData: $tilemapData')
+          ..write('tilemapData: $tilemapData, ')
+          ..write('forkedFromId: $forkedFromId')
           ..write(')'))
         .toString();
   }
@@ -505,7 +537,8 @@ class ProjectsTableData extends DataClass
       tileHeight,
       gridColumns,
       gridRows,
-      tilemapData);
+      tilemapData,
+      forkedFromId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -524,7 +557,8 @@ class ProjectsTableData extends DataClass
           other.tileHeight == this.tileHeight &&
           other.gridColumns == this.gridColumns &&
           other.gridRows == this.gridRows &&
-          other.tilemapData == this.tilemapData);
+          other.tilemapData == this.tilemapData &&
+          other.forkedFromId == this.forkedFromId);
 }
 
 class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
@@ -543,6 +577,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
   final Value<int?> gridColumns;
   final Value<int?> gridRows;
   final Value<String?> tilemapData;
+  final Value<int?> forkedFromId;
   const ProjectsTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -559,6 +594,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.gridColumns = const Value.absent(),
     this.gridRows = const Value.absent(),
     this.tilemapData = const Value.absent(),
+    this.forkedFromId = const Value.absent(),
   });
   ProjectsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -576,6 +612,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.gridColumns = const Value.absent(),
     this.gridRows = const Value.absent(),
     this.tilemapData = const Value.absent(),
+    this.forkedFromId = const Value.absent(),
   })  : name = Value(name),
         width = Value(width),
         height = Value(height),
@@ -597,6 +634,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     Expression<int>? gridColumns,
     Expression<int>? gridRows,
     Expression<String>? tilemapData,
+    Expression<int>? forkedFromId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -614,6 +652,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       if (gridColumns != null) 'grid_columns': gridColumns,
       if (gridRows != null) 'grid_rows': gridRows,
       if (tilemapData != null) 'tilemap_data': tilemapData,
+      if (forkedFromId != null) 'forked_from_id': forkedFromId,
     });
   }
 
@@ -632,7 +671,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       Value<int?>? tileHeight,
       Value<int?>? gridColumns,
       Value<int?>? gridRows,
-      Value<String?>? tilemapData}) {
+      Value<String?>? tilemapData,
+      Value<int?>? forkedFromId}) {
     return ProjectsTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -649,6 +689,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       gridColumns: gridColumns ?? this.gridColumns,
       gridRows: gridRows ?? this.gridRows,
       tilemapData: tilemapData ?? this.tilemapData,
+      forkedFromId: forkedFromId ?? this.forkedFromId,
     );
   }
 
@@ -700,6 +741,9 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     if (tilemapData.present) {
       map['tilemap_data'] = Variable<String>(tilemapData.value);
     }
+    if (forkedFromId.present) {
+      map['forked_from_id'] = Variable<int>(forkedFromId.value);
+    }
     return map;
   }
 
@@ -720,7 +764,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
           ..write('tileHeight: $tileHeight, ')
           ..write('gridColumns: $gridColumns, ')
           ..write('gridRows: $gridRows, ')
-          ..write('tilemapData: $tilemapData')
+          ..write('tilemapData: $tilemapData, ')
+          ..write('forkedFromId: $forkedFromId')
           ..write(')'))
         .toString();
   }
@@ -2077,6 +2122,7 @@ typedef $$ProjectsTableTableCreateCompanionBuilder = ProjectsTableCompanion
   Value<int?> gridColumns,
   Value<int?> gridRows,
   Value<String?> tilemapData,
+  Value<int?> forkedFromId,
 });
 typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
     Function({
@@ -2095,6 +2141,7 @@ typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
   Value<int?> gridColumns,
   Value<int?> gridRows,
   Value<String?> tilemapData,
+  Value<int?> forkedFromId,
 });
 
 final class $$ProjectsTableTableReferences extends BaseReferences<_$AppDatabase,
@@ -2229,6 +2276,11 @@ class $$ProjectsTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<int> get forkedFromId => $state.composableBuilder(
+      column: $state.table.forkedFromId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ComposableFilter animationStateTableRefs(
       ComposableFilter Function($$AnimationStateTableTableFilterComposer f) f) {
     final $$AnimationStateTableTableFilterComposer composer =
@@ -2350,6 +2402,11 @@ class $$ProjectsTableTableOrderingComposer
       column: $state.table.tilemapData,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get forkedFromId => $state.composableBuilder(
+      column: $state.table.forkedFromId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
 class $$ProjectsTableTableTableManager extends RootTableManager<
@@ -2390,6 +2447,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> gridColumns = const Value.absent(),
             Value<int?> gridRows = const Value.absent(),
             Value<String?> tilemapData = const Value.absent(),
+            Value<int?> forkedFromId = const Value.absent(),
           }) =>
               ProjectsTableCompanion(
             id: id,
@@ -2407,6 +2465,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             gridColumns: gridColumns,
             gridRows: gridRows,
             tilemapData: tilemapData,
+            forkedFromId: forkedFromId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2424,6 +2483,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> gridColumns = const Value.absent(),
             Value<int?> gridRows = const Value.absent(),
             Value<String?> tilemapData = const Value.absent(),
+            Value<int?> forkedFromId = const Value.absent(),
           }) =>
               ProjectsTableCompanion.insert(
             id: id,
@@ -2441,6 +2501,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             gridColumns: gridColumns,
             gridRows: gridRows,
             tilemapData: tilemapData,
+            forkedFromId: forkedFromId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

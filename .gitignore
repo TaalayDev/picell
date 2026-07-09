@@ -70,3 +70,4 @@ ios/Runner.app.dSYM.zip
 lib/firebase_options.dart
 
 .env
+backend/

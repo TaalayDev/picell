@@ -22,7 +22,6 @@ import '../../providers/projects_provider.dart';
 import '../../providers/community_projects_providers.dart';
 import '../../providers/providers.dart';
 import '../../providers/subscription_provider.dart';
-import '../widgets/app_icon.dart';
 import '../widgets/dialogs/auth_dialog.dart';
 import '../widgets/animated_pro_button.dart';
 import '../widgets/animated_background.dart';
@@ -30,8 +29,9 @@ import '../widgets/community_project_card.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/delete_account_dialog.dart';
 import '../widgets/dialogs/project_upload_dialog.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/feedback_prompt_dialog.dart';
+import '../widgets/discovery/discovery_carousel.dart';
 import '../widgets/drop_target_overlay.dart';
-import '../widgets/project/adaptive_project_grid.dart';
+import '../widgets/project/sidebar_project_list_item.dart';
 import '../widgets/subscription/subscription_menu.dart';
 import '../widgets/theme_selector.dart';
 import '../widgets.dart';
@@ -58,12 +58,13 @@ class ProjectsScreen extends HookConsumerWidget {
     final reviewService = ref.watch(inAppReviewProvider);
 
     final authState = ref.watch(authProvider);
-    final showProfileIcon = useState(false);
+    // Was tab-gated (only shown on the Community tab) — now that both
+    // platforms are a single scrolling page there's no "which tab" signal,
+    // and there's no reason profile-menu vs. feedback-icon visibility should
+    // have been mutually exclusive by tab in the first place.
+    final showProfileIcon = authState.isSignedIn;
 
     final currentTheme = ref.watch(themeProvider).theme;
-
-    final tabController = useTabController(initialLength: 2);
-    useListenable(tabController); // reactive for desktop sidebar selection
 
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -76,22 +77,6 @@ class ProjectsScreen extends HookConsumerWidget {
         }
       };
     }, []);
-
-    final tabListener = useCallback(() {
-      if (authState.isSignedIn && tabController.index == 1) {
-        showProfileIcon.value = true;
-      } else {
-        showProfileIcon.value = false;
-      }
-    }, [authState, tabController]);
-
-    useEffect(() {
-      tabController.removeListener(tabListener);
-
-      // Listen for tab changes
-      tabController.addListener(tabListener);
-      return null;
-    }, [authState]);
 
     useEffect(() {
       if (ref.read(localStorageProvider).feedbackPromptNeverAskAgain) {
@@ -127,10 +112,17 @@ class ProjectsScreen extends HookConsumerWidget {
             body: Row(
               children: [
                 _DesktopSidebar(
-                  selectedIndex: tabController.index,
-                  onTabChanged: (i) => tabController.animateTo(i),
                   theme: currentTheme,
                   subscription: subscription,
+                  projects: projects,
+                  onTapProject: (project) => _openProject(context, ref, project, overlayLoader),
+                  onDeleteProject: (project) => ref.read(projectsProvider.notifier).deleteProject(project),
+                  onEditProject: (project) =>
+                      ref.read(projectsProvider.notifier).renameProject(project.id, project.name),
+                  onUploadProject: (project) => _onUploadProject(context, ref, project, authState),
+                  onUpdateProject: (project) => _onUpdateProject(context, ref, project, authState),
+                  onDeleteCloudProject: (project) => _onDeleteCloudProject(context, ref, project, authState),
+                  onRetryProjects: () => ref.refresh(projectsProvider),
                   onNewProject: () => _navigateToNewProject(context, ref, subscription),
                   onImport: () async {
                     final error = await ref.read(projectsProvider.notifier).importProject(context);
@@ -162,21 +154,20 @@ class ProjectsScreen extends HookConsumerWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      _DesktopContentHeader(
-                        tabIndex: tabController.index,
-                        theme: currentTheme,
-                        flagship: flagship,
-                        projects: projects,
-                        onNewProject: () => _navigateToNewProject(context, ref, subscription),
-                      ),
+                      _DesktopContentHeader(theme: currentTheme, flagship: flagship),
                       if (!subscription.isPro && showBadge.value)
                         SubscriptionPromoBanner(onDismiss: () => showBadge.value = false),
                       Expanded(
-                        child: TabBarView(
-                          controller: tabController,
-                          children: [
-                            _buildLocalProjectsTab(context, ref, projects, subscription, overlayLoader, authState),
-                            _buildCloudProjectsTab(context, ref, theme, subscription),
+                        child: CloudProjectsView(
+                          theme: theme,
+                          subscription: subscription,
+                          leadingSlivers: const [
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                child: DiscoveryCarousel(height: 220),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -279,7 +270,7 @@ class ProjectsScreen extends HookConsumerWidget {
               ),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
-                child: showProfileIcon.value && authState.isSignedIn
+                child: showProfileIcon
                     ? PopupMenuButton<String>(
                         icon: authState.apiUser?.avatarUrl != null
                             ? CircleAvatar(
@@ -371,56 +362,26 @@ class ProjectsScreen extends HookConsumerWidget {
                         ],
                       )
                     : IconButton(
-                        icon: const Icon(Feather.plus),
-                        onPressed: () => _navigateToNewProject(context, ref, subscription),
+                        tooltip: 'Feedback',
+                        icon: Icon(
+                          Icons.feedback_outlined,
+                          color: currentTheme.activeIcon,
+                        ),
+                        onPressed: () => _navigateToFeedback(context, ref),
                       ),
               ),
             ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(60),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                child: SizedBox(
-                  height: 58,
-                  child: TabBar(
-                    controller: tabController,
-                    tabs: const [
-                      Tab(
-                        icon: Icon(Feather.hard_drive),
-                        text: 'Local',
-                      ),
-                      Tab(
-                        icon: Icon(Feather.cloud),
-                        text: 'Cloud',
-                      ),
-                    ],
-                    indicatorColor: Theme.of(context).colorScheme.primary,
-                    labelColor: Theme.of(context).colorScheme.primary,
-                    unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                    indicatorWeight: 3,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ),
           floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _navigateToFeedback(context, ref),
+            onPressed: () => _navigateToNewProject(context, ref, subscription),
             backgroundColor: Theme.of(context).colorScheme.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
-            extendedPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
-            label: const Text('Feedback'),
-            icon: const AppIcon(AppIcons.user_voice),
-            tooltip: 'Leave Feedback',
+            extendedPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+            label: const Text('New Project'),
+            icon: const Icon(Feather.plus),
+            tooltip: 'Create New Project',
           ),
           body: Column(
             children: [
@@ -431,22 +392,40 @@ class ProjectsScreen extends HookConsumerWidget {
                   },
                 ),
               ],
+              // Single scrolling page: compact "My Projects" list, then the
+              // discovery carousel, then the community feed — no more
+              // Local/Community tabs.
               Expanded(
-                child: TabBarView(
-                  controller: tabController,
-                  children: [
-                    // Local Projects Tab
-                    _buildLocalProjectsTab(
-                      context,
-                      ref,
-                      projects,
-                      subscription,
-                      overlayLoader,
-                      authState,
+                child: CloudProjectsView(
+                  theme: theme,
+                  subscription: subscription,
+                  leadingSlivers: [
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 320,
+                        child: _CompactProjectsList(
+                          projects: projects,
+                          onCreateNew: () => _navigateToNewProject(context, ref, subscription),
+                          onTapProject: (project) => _openProject(context, ref, project, overlayLoader),
+                          onDeleteProject: (project) =>
+                              ref.read(projectsProvider.notifier).deleteProject(project),
+                          onEditProject: (project) =>
+                              ref.read(projectsProvider.notifier).renameProject(project.id, project.name),
+                          onUploadProject: (project) => _onUploadProject(context, ref, project, authState),
+                          onUpdateProject: (project) => _onUpdateProject(context, ref, project, authState),
+                          onDeleteCloudProject: (project) =>
+                              _onDeleteCloudProject(context, ref, project, authState),
+                          onRetry: () => ref.refresh(projectsProvider),
+                          showNewButton: true,
+                        ),
+                      ),
                     ),
-
-                    // Cloud Projects Tab
-                    _buildCloudProjectsTab(context, ref, theme, subscription),
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(12, 8, 12, 0),
+                        child: DiscoveryCarousel(height: 180, showArrows: false),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -540,77 +519,6 @@ class ProjectsScreen extends HookConsumerWidget {
           break;
       }
     }
-  }
-
-  Widget _buildLocalProjectsTab(
-    BuildContext context,
-    WidgetRef ref,
-    AsyncValue<List<Project>> projects,
-    UserSubscription subscription,
-    ValueNotifier<OverlayEntry?> overlayLoader,
-    AuthState authState,
-  ) {
-    return projects.when(
-      data: (projects) => AdaptiveProjectGrid(
-        projects: projects,
-        onCreateNew: () => _navigateToNewProject(context, ref, subscription),
-        onTapProject: (project) {
-          _openProject(context, ref, project, overlayLoader);
-        },
-        onDeleteProject: (project) {
-          ref.read(projectsProvider.notifier).deleteProject(project);
-        },
-        onEditProject: (project) {
-          ref.read(projectsProvider.notifier).renameProject(project.id, project.name);
-        },
-        onUploadProject: (project) {
-          _onUploadProject(context, ref, project, authState);
-        },
-        onUpdateProject: (project) {
-          _onUpdateProject(context, ref, project, authState);
-        },
-        onDeleteCloudProject: (project) {
-          _onDeleteCloudProject(context, ref, project, authState);
-        },
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Feather.alert_circle,
-              size: 64,
-              color: Colors.red,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              Strings.of(context).anErrorOccurred,
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              icon: Icon(Feather.refresh_cw, color: Theme.of(context).colorScheme.onPrimary),
-              label: Text(Strings.of(context).tryAgain),
-              onPressed: () => ref.refresh(projectsProvider),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCloudProjectsTab(
-    BuildContext context,
-    WidgetRef ref,
-    AppTheme theme,
-    UserSubscription subscription,
-  ) {
-    return CloudProjectsView(
-      theme: theme,
-      subscription: subscription,
-    );
   }
 
   void _showSubscriptionScreen(BuildContext context) {
@@ -871,10 +779,16 @@ class ProjectsScreen extends HookConsumerWidget {
 // ── Desktop widgets ────────────────────────────────────────────────────────
 
 class _DesktopSidebar extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTabChanged;
   final AppTheme theme;
   final UserSubscription subscription;
+  final AsyncValue<List<Project>> projects;
+  final void Function(Project) onTapProject;
+  final void Function(Project) onDeleteProject;
+  final void Function(Project) onEditProject;
+  final void Function(Project) onUploadProject;
+  final void Function(Project) onUpdateProject;
+  final void Function(Project) onDeleteCloudProject;
+  final VoidCallback onRetryProjects;
   final VoidCallback onNewProject;
   final VoidCallback onImport;
   final VoidCallback onFeedback;
@@ -883,10 +797,16 @@ class _DesktopSidebar extends StatelessWidget {
   final VoidCallback onPro;
 
   const _DesktopSidebar({
-    required this.selectedIndex,
-    required this.onTabChanged,
     required this.theme,
     required this.subscription,
+    required this.projects,
+    required this.onTapProject,
+    required this.onDeleteProject,
+    required this.onEditProject,
+    required this.onUploadProject,
+    required this.onUpdateProject,
+    required this.onDeleteCloudProject,
+    required this.onRetryProjects,
     required this.onNewProject,
     required this.onImport,
     required this.onFeedback,
@@ -900,7 +820,7 @@ class _DesktopSidebar extends StatelessWidget {
     final flagship = theme.flagship;
 
     return Container(
-      width: 232,
+      width: 272,
       decoration: BoxDecoration(
         color: theme.surface,
         border: Border(right: BorderSide(color: theme.divider, width: 1)),
@@ -910,44 +830,10 @@ class _DesktopSidebar extends StatelessWidget {
         children: [
           _buildHeader(flagship),
           Divider(color: theme.divider, height: 1),
-          const SizedBox(height: 8),
-
-          // ── Main nav ───────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              children: [
-                _NavItem(
-                  icon: Feather.hard_drive,
-                  label: 'Local',
-                  selected: selectedIndex == 0,
-                  theme: theme,
-                  flagship: flagship,
-                  onTap: () => onTabChanged(0),
-                ),
-                const SizedBox(height: 2),
-                _NavItem(
-                  icon: Feather.cloud,
-                  label: 'Community',
-                  selected: selectedIndex == 1,
-                  theme: theme,
-                  flagship: flagship,
-                  onTap: () => onTabChanged(1),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(color: theme.divider, height: 1),
-          ),
-          const SizedBox(height: 12),
 
           // ── New Project ────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
             child: FilledButton.icon(
               onPressed: onNewProject,
               icon: const Icon(Feather.plus, size: 15),
@@ -962,22 +848,21 @@ class _DesktopSidebar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 4),
 
-          // ── Import ─────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: _NavItem(
-              icon: Feather.file,
-              label: 'Import File',
-              selected: false,
-              theme: theme,
-              flagship: flagship,
-              onTap: onImport,
+          // ── My Projects (compact list) ─────────────────────────────
+          Expanded(
+            child: _CompactProjectsList(
+              projects: projects,
+              onCreateNew: onNewProject,
+              onTapProject: onTapProject,
+              onDeleteProject: onDeleteProject,
+              onEditProject: onEditProject,
+              onUploadProject: onUploadProject,
+              onUpdateProject: onUpdateProject,
+              onDeleteCloudProject: onDeleteCloudProject,
+              onRetry: onRetryProjects,
             ),
           ),
-
-          const Spacer(),
 
           // ── Bottom actions ─────────────────────────────────────────
           Padding(
@@ -989,6 +874,14 @@ class _DesktopSidebar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Column(
               children: [
+                _NavItem(
+                  icon: Feather.file,
+                  label: 'Import File',
+                  selected: false,
+                  theme: theme,
+                  flagship: flagship,
+                  onTap: onImport,
+                ),
                 _NavItem(
                   icon: Icons.palette_outlined,
                   label: 'Theme',
@@ -1141,24 +1034,21 @@ class _NavItem extends StatelessWidget {
   }
 }
 
+/// Static header above the discovery carousel + community feed. Used to
+/// branch between "My Projects"/"Community" per the active tab — now always
+/// just "Discover", since "My Projects" lives permanently in the sidebar and
+/// there's no tab to switch away from it.
 class _DesktopContentHeader extends StatelessWidget {
-  final int tabIndex;
   final AppTheme theme;
   final FlagshipConfig? flagship;
-  final AsyncValue<List<Project>> projects;
-  final VoidCallback onNewProject;
 
   const _DesktopContentHeader({
-    required this.tabIndex,
     required this.theme,
     required this.flagship,
-    required this.projects,
-    required this.onNewProject,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isLocal = tabIndex == 0;
     final hasFlagshipGradient = flagship != null && flagship!.appBarGradient != null;
     final titleColor = hasFlagshipGradient ? Colors.white : theme.textPrimary;
 
@@ -1177,48 +1067,237 @@ class _DesktopContentHeader extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            isLocal ? 'My Projects' : 'Community',
+            'Discover',
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
               color: titleColor,
             ),
           ),
-          if (isLocal)
-            projects.when(
-              data: (p) => Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Text(
-                  '(${p.length})',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: titleColor.withValues(alpha: 0.55),
-                    fontWeight: FontWeight.normal,
+        ],
+      ),
+    );
+  }
+}
+
+// ── Compact "My Projects" list — shared by the desktop sidebar and the ─────
+// ── mobile "My Projects" section. ───────────────────────────────────────────
+
+/// Name filter + recently-edited-first sort for the compact project list.
+/// (Full sort options existed here before the sidebar/mobile-list redesign;
+/// dropped to just "recent" since there's no room for a sort menu at this
+/// width — see [_CompactProjectsList].)
+List<Project> _filterRecentProjects(List<Project> source, String query) {
+  final trimmed = query.trim().toLowerCase();
+  final result = trimmed.isEmpty
+      ? List<Project>.of(source)
+      : source.where((p) => p.name.toLowerCase().contains(trimmed)).toList();
+
+  result.sort((a, b) => b.editedAt.compareTo(a.editedAt));
+  return result;
+}
+
+/// Compact "My Projects" list (search toggle + [SidebarProjectListItem]s).
+/// Used both in the desktop sidebar (wrapped in `Expanded`, fills the
+/// remaining sidebar height) and above the mobile community feed (wrapped
+/// in a fixed-height `SizedBox`, scrolls internally within that box).
+class _CompactProjectsList extends HookWidget {
+  final AsyncValue<List<Project>> projects;
+  final VoidCallback onCreateNew;
+  final void Function(Project) onTapProject;
+  final void Function(Project) onDeleteProject;
+  final void Function(Project) onEditProject;
+  final void Function(Project) onUploadProject;
+  final void Function(Project) onUpdateProject;
+  final void Function(Project) onDeleteCloudProject;
+  final VoidCallback onRetry;
+
+  /// Mobile shows a quick "+ New" text button next to the title (the FAB is
+  /// further away); the desktop sidebar already has a prominent "New
+  /// Project" button just below, so it skips this to avoid duplication.
+  final bool showNewButton;
+
+  const _CompactProjectsList({
+    required this.projects,
+    required this.onCreateNew,
+    required this.onTapProject,
+    required this.onDeleteProject,
+    required this.onEditProject,
+    required this.onUploadProject,
+    required this.onUpdateProject,
+    required this.onDeleteCloudProject,
+    required this.onRetry,
+    this.showNewButton = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final searchController = useTextEditingController();
+    final query = useState('');
+    final showSearch = useState(false);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    useEffect(() {
+      void listener() => query.value = searchController.text;
+      searchController.addListener(listener);
+      return () => searchController.removeListener(listener);
+    }, [searchController]);
+
+    return projects.when(
+      data: (allProjects) {
+        final filtered = _filterRecentProjects(allProjects, query.value);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 6, 6, 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: showSearch.value
+                        ? TextField(
+                            controller: searchController,
+                            autofocus: true,
+                            style: const TextStyle(fontSize: 13),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              hintText: 'Search...',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          )
+                        : Row(
+                            children: [
+                              Text(
+                                'My Projects',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '(${allProjects.length})',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                                    ),
+                              ),
+                            ],
+                          ),
                   ),
-                ),
-              ),
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
-            ),
-          const Spacer(),
-          if (isLocal)
-            FilledButton.icon(
-              onPressed: onNewProject,
-              icon: const Icon(Feather.plus, size: 14),
-              label: const Text('New Project'),
-              style: FilledButton.styleFrom(
-                backgroundColor: hasFlagshipGradient ? Colors.white.withValues(alpha: 0.22) : theme.primaryColor,
-                foregroundColor: hasFlagshipGradient ? Colors.white : theme.onPrimary,
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: hasFlagshipGradient
-                      ? BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 1)
-                      : BorderSide.none,
-                ),
+                  if (showNewButton && !showSearch.value)
+                    TextButton.icon(
+                      onPressed: onCreateNew,
+                      icon: const Icon(Feather.plus, size: 14),
+                      label: const Text('New'),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                      ),
+                    ),
+                  IconButton(
+                    icon: Icon(showSearch.value ? Feather.x : Feather.search, size: 16),
+                    onPressed: () {
+                      showSearch.value = !showSearch.value;
+                      if (!showSearch.value) searchController.clear();
+                    },
+                  ),
+                ],
               ),
             ),
+            if (allProjects.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                child: Column(
+                  children: [
+                    Icon(
+                      Feather.folder,
+                      size: 28,
+                      color: colorScheme.onSurface.withValues(alpha: 0.3),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('No projects yet', style: Theme.of(context).textTheme.bodySmall),
+                    const SizedBox(height: 8),
+                    TextButton(onPressed: onCreateNew, child: const Text('Create one')),
+                  ],
+                ),
+              )
+            else if (filtered.isEmpty)
+              Expanded(child: _NoSearchResults(query: query.value))
+            else
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final project = filtered[index];
+                    return SidebarProjectListItem(
+                      key: ValueKey(project.id),
+                      project: project,
+                      onTap: () => onTapProject(project),
+                      onDeleteProject: onDeleteProject,
+                      onEditProject: onEditProject,
+                      onUploadProject: onUploadProject,
+                      onUpdateProject: onUpdateProject,
+                      onDeleteCloudProject: onDeleteCloudProject,
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stackTrace) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              Strings.of(context).anErrorOccurred,
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            TextButton(onPressed: onRetry, child: Text(Strings.of(context).tryAgain)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NoSearchResults extends StatelessWidget {
+  final String query;
+
+  const _NoSearchResults({required this.query});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Feather.search,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No projects match "$query"',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -1231,10 +1310,18 @@ class CloudProjectsView extends HookConsumerWidget {
   final AppTheme theme;
   final UserSubscription subscription;
 
+  /// Extra slivers rendered above the search bar — the discovery carousel
+  /// on both platforms, plus (on mobile) the compact "My Projects" section.
+  /// Kept as a parameter rather than a separate "no chrome" widget variant
+  /// so this single scroll view can host everything above the community
+  /// feed without nesting one scrollable inside another.
+  final List<Widget> leadingSlivers;
+
   const CloudProjectsView({
     super.key,
     required this.theme,
     required this.subscription,
+    this.leadingSlivers = const [],
   });
 
   @override
@@ -1257,97 +1344,100 @@ class CloudProjectsView extends HookConsumerWidget {
       return () => scrollController.removeListener(onScroll);
     }, [scrollController]);
 
-    return Column(
-      children: [
+    return CustomScrollView(
+      controller: scrollController,
+      slivers: [
+        ...leadingSlivers,
+
         // Search and Sort Bar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: showSearch.value
-                    ? TextField(
-                        controller: searchController,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          hintText: 'Search projects...',
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(25),
-                            borderSide: BorderSide.none,
+        SliverToBoxAdapter(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: showSearch.value
+                      ? TextField(
+                          controller: searchController,
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            hintText: 'Search projects...',
+                            prefixIcon: const Icon(Icons.search),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(25),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           ),
-                          filled: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          onSubmitted: (value) {
+                            ref.read(communityProjectsProvider.notifier).searchProjects(value);
+                          },
+                        )
+                      : Text(
+                          'Discover amazing pixel art',
+                          style: TextStyle(
+                            color: theme.textSecondary,
+                            fontSize: 16,
+                          ),
                         ),
-                        onSubmitted: (value) {
-                          ref.read(communityProjectsProvider.notifier).searchProjects(value);
-                        },
-                      )
-                    : Text(
-                        'Discover amazing pixel art',
-                        style: TextStyle(
-                          color: theme.textSecondary,
-                          fontSize: 16,
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(
-                  showSearch.value ? Icons.close : Icons.search,
-                  color: theme.activeIcon,
                 ),
-                onPressed: () {
-                  showSearch.value = !showSearch.value;
-                  if (!showSearch.value) {
-                    searchController.clear();
-                    ref.read(communityProjectsProvider.notifier).searchProjects('');
-                  }
-                },
-              ),
-              PopupMenuButton<String>(
-                icon: Icon(Icons.sort, color: theme.activeIcon),
-                tooltip: 'Sort by',
-                onSelected: (value) {
-                  selectedSort.value = value;
-                  ref.read(communityProjectsProvider.notifier).setSortOrder(value);
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'recent', child: Text('Most Recent')),
-                  const PopupMenuItem(value: 'popular', child: Text('Most Popular')),
-                  const PopupMenuItem(value: 'views', child: Text('Most Viewed')),
-                  const PopupMenuItem(value: 'likes', child: Text('Most Liked')),
-                  const PopupMenuItem(value: 'title', child: Text('Title A-Z')),
-                ],
-              ),
-              IconButton(
-                icon: Icon(Icons.refresh, color: theme.activeIcon),
-                onPressed: () => ref.read(communityProjectsProvider.notifier).refresh(),
-              ),
-            ],
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(
+                    showSearch.value ? Icons.close : Icons.search,
+                    color: theme.activeIcon,
+                  ),
+                  onPressed: () {
+                    showSearch.value = !showSearch.value;
+                    if (!showSearch.value) {
+                      searchController.clear();
+                      ref.read(communityProjectsProvider.notifier).searchProjects('');
+                    }
+                  },
+                ),
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.sort, color: theme.activeIcon),
+                  tooltip: 'Sort by',
+                  onSelected: (value) {
+                    selectedSort.value = value;
+                    ref.read(communityProjectsProvider.notifier).setSortOrder(value);
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(value: 'recent', child: Text('Most Recent')),
+                    const PopupMenuItem(value: 'popular', child: Text('Most Popular')),
+                    const PopupMenuItem(value: 'views', child: Text('Most Viewed')),
+                    const PopupMenuItem(value: 'likes', child: Text('Most Liked')),
+                    const PopupMenuItem(value: 'title', child: Text('Title A-Z')),
+                  ],
+                ),
+                IconButton(
+                  icon: Icon(Icons.refresh, color: theme.activeIcon),
+                  onPressed: () => ref.read(communityProjectsProvider.notifier).refresh(),
+                ),
+              ],
+            ),
           ),
         ),
 
         // Filter chips
-        if (communityState.popularTags.isNotEmpty) _buildFilterChips(context, ref, communityState, theme),
+        if (communityState.popularTags.isNotEmpty)
+          SliverToBoxAdapter(child: _buildFilterChips(context, ref, communityState, theme)),
 
         // Featured projects section
-        _buildFeaturedSection(context, ref, theme),
+        SliverToBoxAdapter(child: _buildFeaturedSection(context, ref, theme)),
 
         // Main projects grid
-        Expanded(
-          child: _buildProjectsGrid(
-            context,
-            ref,
-            communityState,
-            scrollController,
-            theme,
-            subscription,
-          ),
+        ..._buildProjectsGridSlivers(
+          context,
+          ref,
+          communityState,
+          theme,
+          subscription,
         ),
       ],
     );
@@ -1483,119 +1573,148 @@ class CloudProjectsView extends HookConsumerWidget {
     );
   }
 
-  Widget _buildProjectsGrid(
+  /// Returns the sliver(s) for the main community grid — loading/error/empty
+  /// states each fill the remaining viewport, and the populated state is a
+  /// [SliverMasonryGrid] whose column count reacts to the sliver's own
+  /// cross-axis extent (via [SliverLayoutBuilder]) rather than the full
+  /// screen width, so it stays correct when this view sits beside a sidebar.
+  List<Widget> _buildProjectsGridSlivers(
     BuildContext context,
     WidgetRef ref,
     CommunityProjectsState state,
-    ScrollController scrollController,
     AppTheme theme,
     UserSubscription subscription,
   ) {
     if (state.isLoading && state.projects.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return [
+        const SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ];
     }
 
-    final adLoaded = ref.watch(interstitialAdProvider);
-
     if (state.error != null && state.projects.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Feather.alert_circle,
-              size: 64,
-              color: theme.error,
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Feather.alert_circle,
+                  size: 64,
+                  color: theme.error,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Error loading projects',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: theme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  state.error!,
+                  style: TextStyle(color: theme.textSecondary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                  onPressed: () => ref.read(communityProjectsProvider.notifier).refresh(),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Error loading projects',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: theme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              state.error!,
-              style: TextStyle(color: theme.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              onPressed: () => ref.read(communityProjectsProvider.notifier).refresh(),
-            ),
-          ],
+          ),
         ),
-      );
+      ];
     }
 
     if (state.projects.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Feather.search,
-              size: 64,
-              color: theme.textSecondary,
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Feather.search,
+                  size: 64,
+                  color: theme.textSecondary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No projects found',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: theme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Try adjusting your search or filters',
+                  style: TextStyle(color: theme.textSecondary),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'No projects found',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: theme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try adjusting your search or filters',
-              style: TextStyle(color: theme.textSecondary),
-            ),
-          ],
+          ),
         ),
-      );
+      ];
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final crossAxisCount = width < 600 ? 2 : (width < 1200 ? 3 : 5);
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.all(16),
+        sliver: SliverLayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.crossAxisExtent;
+            // More granular than before so typical desktop content widths
+            // (screen minus the ~272px sidebar) land on 5-6 smaller cards
+            // per row instead of maxing out at 3-5.
+            final crossAxisCount = switch (width) {
+              < 500 => 2,
+              < 800 => 3,
+              < 1000 => 4,
+              < 1300 => 5,
+              _ => 6,
+            };
 
-        return MasonryGridView.count(
-          controller: scrollController,
-          crossAxisCount: crossAxisCount,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          padding: const EdgeInsets.all(16),
-          itemCount: state.projects.length + (state.isLoadingMore ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index >= state.projects.length) {
-              return const SizedBox(
-                height: 100,
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
+            return SliverMasonryGrid.count(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childCount: state.projects.length + (state.isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= state.projects.length) {
+                  return const SizedBox(
+                    height: 100,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
 
-            final project = state.projects[index];
-            return CommunityProjectCard(
-              key: ValueKey(project.id),
-              project: project,
-              onTap: () => _openProjectDetail(context, ref, project, subscription),
-              onLike: (project) => ref.read(communityProjectsProvider.notifier).toggleLike(project),
-              onUserTap: (username) {
-                ref.read(communityProjectsProvider.notifier).filterByUser(username);
+                final project = state.projects[index];
+                return CommunityProjectCard(
+                  key: ValueKey(project.id),
+                  project: project,
+                  onTap: () => _openProjectDetail(context, ref, project, subscription),
+                  onLike: (project) => ref.read(communityProjectsProvider.notifier).toggleLike(project),
+                  onUserTap: (username) {
+                    ref.read(communityProjectsProvider.notifier).filterByUser(username);
+                  },
+                );
               },
             );
           },
-        );
-      },
-    );
+        ),
+      ),
+    ];
   }
 
   void _openProjectDetail(

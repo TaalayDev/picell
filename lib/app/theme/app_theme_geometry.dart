@@ -242,6 +242,31 @@ class AppThemeGeometry {
     hoverCurve: Curves.easeOutQuint,
   );
 
+  static const studioDark = AppThemeGeometry(
+    cardRadius: 8,
+    buttonRadius: 6,
+    dialogRadius: 10,
+    chipRadius: 6,
+    inputRadius: 6,
+    bottomSheetRadius: 12,
+    tooltipRadius: 4,
+    cardPadding: EdgeInsets.all(12),
+    buttonPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    contentPadding: EdgeInsets.all(16),
+    chipPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    cardElevation: 0,
+    dialogElevation: 6,
+    appBarElevation: 0,
+    shadowColor: Color(0x332F80ED),
+    cardBorderWidth: 1.0,
+    hasDividers: true,
+    titleLetterSpacing: -0.1,
+    bodyLetterSpacing: 0.1,
+    iconSize: 22,
+    hoverDuration: Duration(milliseconds: 120),
+    hoverCurve: Curves.easeOut,
+  );
+
   AppThemeGeometry copyWith({
     double? cardRadius,
     double? buttonRadius,

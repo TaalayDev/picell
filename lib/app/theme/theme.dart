@@ -35,6 +35,7 @@ import 'retro_wave.dart';
 import 'rose_quartz_garden.dart';
 import 'stained_glass.dart';
 import 'steampunk.dart';
+import 'studio_dark.dart';
 import 'sunset.dart';
 import 'theme_type.dart';
 
@@ -200,6 +201,8 @@ class AppTheme {
         return buildHalloweenTheme();
       case ThemeType.steampunk:
         return buildSteampunkTheme();
+      case ThemeType.studioDark:
+        return buildStudioDarkTheme();
       case ThemeType.gothic:
         return buildGothicTheme();
       case ThemeType.artDeco:

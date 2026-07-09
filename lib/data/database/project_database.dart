@@ -35,6 +35,9 @@ class ProjectsTable extends Table {
   IntColumn get gridRows => integer().nullable()();
   // version 7 - tilemap state data
   TextColumn get tilemapData => text().nullable()();
+  // version 8 - fork lineage: the community project id this project was
+  // downloaded/forked from, distinct from remoteId (see Project.forkedFromId).
+  IntColumn get forkedFromId => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -92,7 +95,7 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => instance;
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -140,6 +143,12 @@ class AppDatabase extends _$AppDatabase {
           await migrator.alterTable(TableMigration(
             projectsTable,
             newColumns: [projectsTable.tilemapData],
+          ));
+        }
+        if (from < 8) {
+          await migrator.alterTable(TableMigration(
+            projectsTable,
+            newColumns: [projectsTable.forkedFromId],
           ));
         }
       },
@@ -243,6 +252,7 @@ class AppDatabase extends _$AppDatabase {
             thumbnail: projectRow.thumbnail,
             isCloudSynced: projectRow.isCloudSynced,
             remoteId: projectRow.remoteId,
+            forkedFromId: projectRow.forkedFromId,
             createdAt: projectRow.createdAt,
             editedAt: projectRow.editedAt,
             type: _parseProjectType(projectRow.projectType),
@@ -331,6 +341,7 @@ class AppDatabase extends _$AppDatabase {
           editedAt: project.editedAt,
           isCloudSynced: project.isCloudSynced,
           remoteId: project.remoteId,
+          forkedFromId: project.forkedFromId,
           type: _parseProjectType(project.projectType),
           tileWidth: project.tileWidth,
           tileHeight: project.tileHeight,
@@ -406,6 +417,41 @@ class AppDatabase extends _$AppDatabase {
       editedAt: projectRow.editedAt,
       isCloudSynced: projectRow.isCloudSynced,
       remoteId: projectRow.remoteId,
+      forkedFromId: projectRow.forkedFromId,
+      type: _parseProjectType(projectRow.projectType),
+      tileWidth: projectRow.tileWidth,
+      tileHeight: projectRow.tileHeight,
+      gridColumns: projectRow.gridColumns,
+      gridRows: projectRow.gridRows,
+      tilemapData: projectRow.tilemapData,
+    );
+  }
+
+  /// Finds a local project that originated from the given community project
+  /// id — either because it's synced there ([remoteId]) or because it was
+  /// downloaded/forked from there ([forkedFromId]). Used to stop the same
+  /// community project from being downloaded twice, regardless of whether
+  /// the previous download resulted in an owned sync or an unowned fork.
+  Future<Project?> getProjectByOrigin(int communityProjectId) async {
+    final query = select(projectsTable)
+      ..where((tbl) =>
+          tbl.remoteId.equals(communityProjectId) |
+          tbl.forkedFromId.equals(communityProjectId));
+
+    final projectRow = await query.getSingleOrNull();
+    if (projectRow == null) return null;
+
+    return Project(
+      id: projectRow.id,
+      name: projectRow.name,
+      width: projectRow.width,
+      height: projectRow.height,
+      thumbnail: projectRow.thumbnail,
+      createdAt: projectRow.createdAt,
+      editedAt: projectRow.editedAt,
+      isCloudSynced: projectRow.isCloudSynced,
+      remoteId: projectRow.remoteId,
+      forkedFromId: projectRow.forkedFromId,
       type: _parseProjectType(projectRow.projectType),
       tileWidth: projectRow.tileWidth,
       tileHeight: projectRow.tileHeight,
@@ -425,6 +471,7 @@ class AppDatabase extends _$AppDatabase {
       editedAt: Value(project.editedAt),
       isCloudSynced: Value(project.isCloudSynced),
       remoteId: Value(project.remoteId),
+      forkedFromId: Value(project.forkedFromId),
       projectType: Value(_projectTypeToString(project.type)),
       tileWidth: Value(project.tileWidth),
       tileHeight: Value(project.tileHeight),
@@ -500,6 +547,7 @@ class AppDatabase extends _$AppDatabase {
       editedAt: Value(project.editedAt),
       isCloudSynced: Value(project.isCloudSynced),
       remoteId: Value(project.remoteId),
+      forkedFromId: Value(project.forkedFromId),
       projectType: Value(project.type == ProjectType.tilemap
           ? 'tileGenerator'
           : project.type.name),

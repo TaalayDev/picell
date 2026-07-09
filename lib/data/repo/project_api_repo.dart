@@ -23,6 +23,9 @@ class ProjectAPIRepo {
     bool isPublic = true,
     List<String> tags = const [],
     Uint8List? thumbnailBytes,
+    // Set when uploading a project downloaded from someone else — records
+    // fork lineage server-side instead of silently creating an orphan copy.
+    int? parentProjectId,
   }) async {
     try {
       final formData = FormData();
@@ -36,6 +39,10 @@ class ProjectAPIRepo {
         MapEntry('project_data', projectData),
         MapEntry('is_public', isPublic.toString()),
       ]);
+
+      if (parentProjectId != null) {
+        formData.fields.add(MapEntry('parent_project_id', parentProjectId.toString()));
+      }
 
       if (tags.isNotEmpty) {
         formData.fields.add(MapEntry('tags', tags.join(',')));
@@ -106,7 +113,7 @@ class ProjectAPIRepo {
         ));
       }
 
-      return _apiClient.post<ApiProject>(
+      return _apiClient.put<ApiProject>(
         '/api/v1/projects/$projectId',
         data: formData,
         converter: (data) => ProjectConverters.project(data['project']),
@@ -180,6 +187,21 @@ class ProjectAPIRepo {
       );
     } catch (e) {
       _logger.severe('Error getting featured projects: $e');
+      rethrow;
+    }
+  }
+
+  /// Get direct forks (remixes) of a project — other users' projects created
+  /// by downloading and re-uploading this one.
+  Future<ApiResponse<List<ApiProject>>> getProjectForks(int projectId, {int limit = 20}) async {
+    try {
+      return _apiClient.get<List<ApiProject>>(
+        '/api/v1/projects/$projectId/forks',
+        params: {'limit': limit},
+        converter: ProjectConverters.projects,
+      );
+    } catch (e) {
+      _logger.severe('Error getting forks for project $projectId: $e');
       rethrow;
     }
   }

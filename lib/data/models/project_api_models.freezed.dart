@@ -44,6 +44,12 @@ mixin _$ApiProject {
   int get downloadCount => throw _privateConstructorUsedError;
   @JsonKey(name: 'comment_count', fromJson: ProjectConverters.intFromJson)
   int get commentCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'fork_count', fromJson: ProjectConverters.intFromJson)
+  int get forkCount => throw _privateConstructorUsedError;
+  @JsonKey(
+      name: 'parent_project_id',
+      fromJson: ProjectConverters.nullableIntFromJson)
+  int? get parentProjectId => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
@@ -92,6 +98,12 @@ abstract class $ApiProjectCopyWith<$Res> {
       int downloadCount,
       @JsonKey(name: 'comment_count', fromJson: ProjectConverters.intFromJson)
       int commentCount,
+      @JsonKey(name: 'fork_count', fromJson: ProjectConverters.intFromJson)
+      int forkCount,
+      @JsonKey(
+          name: 'parent_project_id',
+          fromJson: ProjectConverters.nullableIntFromJson)
+      int? parentProjectId,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'published_at') DateTime? publishedAt,
@@ -129,6 +141,8 @@ class _$ApiProjectCopyWithImpl<$Res, $Val extends ApiProject>
     Object? likeCount = null,
     Object? downloadCount = null,
     Object? commentCount = null,
+    Object? forkCount = null,
+    Object? parentProjectId = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? publishedAt = freezed,
@@ -191,6 +205,14 @@ class _$ApiProjectCopyWithImpl<$Res, $Val extends ApiProject>
           ? _value.commentCount
           : commentCount // ignore: cast_nullable_to_non_nullable
               as int,
+      forkCount: null == forkCount
+          ? _value.forkCount
+          : forkCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      parentProjectId: freezed == parentProjectId
+          ? _value.parentProjectId
+          : parentProjectId // ignore: cast_nullable_to_non_nullable
+              as int?,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -256,6 +278,12 @@ abstract class _$$ApiProjectImplCopyWith<$Res>
       int downloadCount,
       @JsonKey(name: 'comment_count', fromJson: ProjectConverters.intFromJson)
       int commentCount,
+      @JsonKey(name: 'fork_count', fromJson: ProjectConverters.intFromJson)
+      int forkCount,
+      @JsonKey(
+          name: 'parent_project_id',
+          fromJson: ProjectConverters.nullableIntFromJson)
+      int? parentProjectId,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'published_at') DateTime? publishedAt,
@@ -291,6 +319,8 @@ class __$$ApiProjectImplCopyWithImpl<$Res>
     Object? likeCount = null,
     Object? downloadCount = null,
     Object? commentCount = null,
+    Object? forkCount = null,
+    Object? parentProjectId = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? publishedAt = freezed,
@@ -353,6 +383,14 @@ class __$$ApiProjectImplCopyWithImpl<$Res>
           ? _value.commentCount
           : commentCount // ignore: cast_nullable_to_non_nullable
               as int,
+      forkCount: null == forkCount
+          ? _value.forkCount
+          : forkCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      parentProjectId: freezed == parentProjectId
+          ? _value.parentProjectId
+          : parentProjectId // ignore: cast_nullable_to_non_nullable
+              as int?,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -413,6 +451,12 @@ class _$ApiProjectImpl extends _ApiProject {
       this.downloadCount = 0,
       @JsonKey(name: 'comment_count', fromJson: ProjectConverters.intFromJson)
       this.commentCount = 0,
+      @JsonKey(name: 'fork_count', fromJson: ProjectConverters.intFromJson)
+      this.forkCount = 0,
+      @JsonKey(
+          name: 'parent_project_id',
+          fromJson: ProjectConverters.nullableIntFromJson)
+      this.parentProjectId,
       @JsonKey(name: 'created_at') this.createdAt,
       @JsonKey(name: 'updated_at') this.updatedAt,
       @JsonKey(name: 'published_at') this.publishedAt,
@@ -466,6 +510,14 @@ class _$ApiProjectImpl extends _ApiProject {
   @JsonKey(name: 'comment_count', fromJson: ProjectConverters.intFromJson)
   final int commentCount;
   @override
+  @JsonKey(name: 'fork_count', fromJson: ProjectConverters.intFromJson)
+  final int forkCount;
+  @override
+  @JsonKey(
+      name: 'parent_project_id',
+      fromJson: ProjectConverters.nullableIntFromJson)
+  final int? parentProjectId;
+  @override
   @JsonKey(name: 'created_at')
   final DateTime? createdAt;
   @override
@@ -498,7 +550,7 @@ class _$ApiProjectImpl extends _ApiProject {
 
   @override
   String toString() {
-    return 'ApiProject(id: $id, userId: $userId, title: $title, description: $description, width: $width, height: $height, projectData: $projectData, isPublic: $isPublic, isFeatured: $isFeatured, viewCount: $viewCount, likeCount: $likeCount, downloadCount: $downloadCount, commentCount: $commentCount, createdAt: $createdAt, updatedAt: $updatedAt, publishedAt: $publishedAt, username: $username, displayName: $displayName, avatarUrl: $avatarUrl, isLiked: $isLiked, tags: $tags)';
+    return 'ApiProject(id: $id, userId: $userId, title: $title, description: $description, width: $width, height: $height, projectData: $projectData, isPublic: $isPublic, isFeatured: $isFeatured, viewCount: $viewCount, likeCount: $likeCount, downloadCount: $downloadCount, commentCount: $commentCount, forkCount: $forkCount, parentProjectId: $parentProjectId, createdAt: $createdAt, updatedAt: $updatedAt, publishedAt: $publishedAt, username: $username, displayName: $displayName, avatarUrl: $avatarUrl, isLiked: $isLiked, tags: $tags)';
   }
 
   @override
@@ -527,6 +579,10 @@ class _$ApiProjectImpl extends _ApiProject {
                 other.downloadCount == downloadCount) &&
             (identical(other.commentCount, commentCount) ||
                 other.commentCount == commentCount) &&
+            (identical(other.forkCount, forkCount) ||
+                other.forkCount == forkCount) &&
+            (identical(other.parentProjectId, parentProjectId) ||
+                other.parentProjectId == parentProjectId) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -560,6 +616,8 @@ class _$ApiProjectImpl extends _ApiProject {
         likeCount,
         downloadCount,
         commentCount,
+        forkCount,
+        parentProjectId,
         createdAt,
         updatedAt,
         publishedAt,
@@ -608,6 +666,12 @@ abstract class _ApiProject extends ApiProject {
       final int downloadCount,
       @JsonKey(name: 'comment_count', fromJson: ProjectConverters.intFromJson)
       final int commentCount,
+      @JsonKey(name: 'fork_count', fromJson: ProjectConverters.intFromJson)
+      final int forkCount,
+      @JsonKey(
+          name: 'parent_project_id',
+          fromJson: ProjectConverters.nullableIntFromJson)
+      final int? parentProjectId,
       @JsonKey(name: 'created_at') final DateTime? createdAt,
       @JsonKey(name: 'updated_at') final DateTime? updatedAt,
       @JsonKey(name: 'published_at') final DateTime? publishedAt,
@@ -659,6 +723,14 @@ abstract class _ApiProject extends ApiProject {
   @override
   @JsonKey(name: 'comment_count', fromJson: ProjectConverters.intFromJson)
   int get commentCount;
+  @override
+  @JsonKey(name: 'fork_count', fromJson: ProjectConverters.intFromJson)
+  int get forkCount;
+  @override
+  @JsonKey(
+      name: 'parent_project_id',
+      fromJson: ProjectConverters.nullableIntFromJson)
+  int? get parentProjectId;
   @override
   @JsonKey(name: 'created_at')
   DateTime? get createdAt;

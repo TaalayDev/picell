@@ -33,6 +33,11 @@ _$ApiProjectImpl _$$ApiProjectImplFromJson(Map<String, dynamic> json) =>
       commentCount: json['comment_count'] == null
           ? 0
           : ProjectConverters.intFromJson(json['comment_count']),
+      forkCount: json['fork_count'] == null
+          ? 0
+          : ProjectConverters.intFromJson(json['fork_count']),
+      parentProjectId:
+          ProjectConverters.nullableIntFromJson(json['parent_project_id']),
       createdAt: json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),
@@ -66,6 +71,8 @@ Map<String, dynamic> _$$ApiProjectImplToJson(_$ApiProjectImpl instance) =>
       'like_count': instance.likeCount,
       'download_count': instance.downloadCount,
       'comment_count': instance.commentCount,
+      'fork_count': instance.forkCount,
+      'parent_project_id': instance.parentProjectId,
       'created_at': instance.createdAt?.toIso8601String(),
       'updated_at': instance.updatedAt?.toIso8601String(),
       'published_at': instance.publishedAt?.toIso8601String(),

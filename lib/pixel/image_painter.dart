@@ -4,8 +4,9 @@ import 'package:flutter/widgets.dart';
 class ImagePainter extends CustomPainter {
   final ui.Image image;
   final double? opacity;
+  final BoxFit fit;
 
-  ImagePainter(this.image, {this.opacity});
+  ImagePainter(this.image, {this.opacity, this.fit = BoxFit.fill});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -15,12 +16,29 @@ class ImagePainter extends CustomPainter {
       image.width.toDouble(),
       image.height.toDouble(),
     );
-    final dst = Rect.fromLTWH(0, 0, size.width, size.height);
+    final dst = fit == BoxFit.contain ? _containedRect(size) : Rect.fromLTWH(0, 0, size.width, size.height);
     final paint = Paint();
     if (opacity != null) {
       paint.color = Color.fromRGBO(255, 255, 255, opacity!);
     }
     canvas.drawImageRect(image, src, dst, paint);
+  }
+
+  /// Largest centered rect that preserves the image's aspect ratio within
+  /// [size] — used so clamped-aspect card slots don't stretch pixel art.
+  Rect _containedRect(Size size) {
+    final imageWidth = image.width.toDouble();
+    final imageHeight = image.height.toDouble();
+    if (imageWidth <= 0 || imageHeight <= 0) {
+      return Rect.fromLTWH(0, 0, size.width, size.height);
+    }
+
+    final scale = (size.width / imageWidth < size.height / imageHeight)
+        ? size.width / imageWidth
+        : size.height / imageHeight;
+    final w = imageWidth * scale;
+    final h = imageHeight * scale;
+    return Rect.fromLTWH((size.width - w) / 2, (size.height - h) / 2, w, h);
   }
 
   @override

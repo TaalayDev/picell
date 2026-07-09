@@ -28,6 +28,12 @@ class Project with EquatableMixin {
   final Uint8List? thumbnail;
   final bool isCloudSynced;
   final int? remoteId;
+
+  /// The community project id this project was downloaded/forked from, if
+  /// any. Unlike [remoteId] (which means "the server project I own and sync
+  /// to"), this survives regardless of ownership so lineage isn't lost when
+  /// a downloaded-but-not-owned project is later uploaded as a new fork.
+  final int? forkedFromId;
   final DateTime createdAt;
   final DateTime editedAt;
 
@@ -59,6 +65,7 @@ class Project with EquatableMixin {
     this.thumbnail,
     this.isCloudSynced = false,
     this.remoteId,
+    this.forkedFromId,
     this.states = const [],
     this.frames = const [],
     this.type = ProjectType.pixelArt,
@@ -79,6 +86,9 @@ class Project with EquatableMixin {
     Uint8List? thumbnail,
     bool? isCloudSynced,
     int? remoteId,
+    bool clearRemoteId = false,
+    int? forkedFromId,
+    bool clearForkedFromId = false,
     DateTime? createdAt,
     DateTime? editedAt,
     ProjectType? type,
@@ -97,7 +107,8 @@ class Project with EquatableMixin {
       states: states ?? this.states,
       frames: frames ?? this.frames,
       isCloudSynced: isCloudSynced ?? this.isCloudSynced,
-      remoteId: remoteId ?? this.remoteId,
+      remoteId: clearRemoteId ? null : (remoteId ?? this.remoteId),
+      forkedFromId: clearForkedFromId ? null : (forkedFromId ?? this.forkedFromId),
       thumbnail: thumbnail ?? this.thumbnail,
       createdAt: createdAt ?? this.createdAt,
       editedAt: editedAt ?? this.editedAt,
@@ -127,6 +138,7 @@ class Project with EquatableMixin {
       'thumbnail': thumbnail?.toList(),
       'isCloudSynced': isCloudSynced,
       'remoteId': remoteId,
+      'forkedFromId': forkedFromId,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'editedAt': editedAt.millisecondsSinceEpoch,
     };
@@ -161,6 +173,7 @@ class Project with EquatableMixin {
           .toList(),
       isCloudSynced: json['isCloudSynced'] as bool? ?? false,
       remoteId: json['remoteId'] as int?,
+      forkedFromId: json['forkedFromId'] as int?,
       thumbnail: json['thumbnail'] != null ? Uint8List.fromList(json['thumbnail'].cast<int>()) : null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
       editedAt: DateTime.fromMillisecondsSinceEpoch(json['editedAt'] as int),

@@ -21,6 +21,8 @@ abstract class ApiProject with _$ApiProject {
     @JsonKey(name: 'like_count', fromJson: ProjectConverters.intFromJson) @Default(0) int likeCount,
     @JsonKey(name: 'download_count', fromJson: ProjectConverters.intFromJson) @Default(0) int downloadCount,
     @JsonKey(name: 'comment_count', fromJson: ProjectConverters.intFromJson) @Default(0) int commentCount,
+    @JsonKey(name: 'fork_count', fromJson: ProjectConverters.intFromJson) @Default(0) int forkCount,
+    @JsonKey(name: 'parent_project_id', fromJson: ProjectConverters.nullableIntFromJson) int? parentProjectId,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'updated_at') DateTime? updatedAt,
     @JsonKey(name: 'published_at') DateTime? publishedAt,
@@ -219,5 +221,12 @@ class ProjectConverters {
       return int.tryParse(data) ?? 0;
     }
     return 0;
+  }
+
+  static int? nullableIntFromJson(dynamic data) {
+    if (data == null) return null;
+    if (data is int) return data;
+    if (data is String) return int.tryParse(data);
+    return null;
   }
 }

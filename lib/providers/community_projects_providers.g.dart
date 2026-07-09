@@ -242,6 +242,294 @@ class _CommunityProjectProviderElement
   bool get includeData => (origin as CommunityProjectProvider).includeData;
 }
 
+String _$projectForksHash() => r'4140f5345f4a68cb7ac65c33b3df69144fd8072d';
+
+abstract class _$ProjectForks
+    extends BuildlessAutoDisposeAsyncNotifier<List<ApiProject>> {
+  late final int projectId;
+
+  FutureOr<List<ApiProject>> build(
+    int projectId,
+  );
+}
+
+/// See also [ProjectForks].
+@ProviderFor(ProjectForks)
+const projectForksProvider = ProjectForksFamily();
+
+/// See also [ProjectForks].
+class ProjectForksFamily extends Family<AsyncValue<List<ApiProject>>> {
+  /// See also [ProjectForks].
+  const ProjectForksFamily();
+
+  /// See also [ProjectForks].
+  ProjectForksProvider call(
+    int projectId,
+  ) {
+    return ProjectForksProvider(
+      projectId,
+    );
+  }
+
+  @override
+  ProjectForksProvider getProviderOverride(
+    covariant ProjectForksProvider provider,
+  ) {
+    return call(
+      provider.projectId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'projectForksProvider';
+}
+
+/// See also [ProjectForks].
+class ProjectForksProvider extends AutoDisposeAsyncNotifierProviderImpl<
+    ProjectForks, List<ApiProject>> {
+  /// See also [ProjectForks].
+  ProjectForksProvider(
+    int projectId,
+  ) : this._internal(
+          () => ProjectForks()..projectId = projectId,
+          from: projectForksProvider,
+          name: r'projectForksProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$projectForksHash,
+          dependencies: ProjectForksFamily._dependencies,
+          allTransitiveDependencies:
+              ProjectForksFamily._allTransitiveDependencies,
+          projectId: projectId,
+        );
+
+  ProjectForksProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.projectId,
+  }) : super.internal();
+
+  final int projectId;
+
+  @override
+  FutureOr<List<ApiProject>> runNotifierBuild(
+    covariant ProjectForks notifier,
+  ) {
+    return notifier.build(
+      projectId,
+    );
+  }
+
+  @override
+  Override overrideWith(ProjectForks Function() create) {
+    return ProviderOverride(
+      origin: this,
+      override: ProjectForksProvider._internal(
+        () => create()..projectId = projectId,
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        projectId: projectId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeAsyncNotifierProviderElement<ProjectForks, List<ApiProject>>
+      createElement() {
+    return _ProjectForksProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ProjectForksProvider && other.projectId == projectId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, projectId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+mixin ProjectForksRef on AutoDisposeAsyncNotifierProviderRef<List<ApiProject>> {
+  /// The parameter `projectId` of this provider.
+  int get projectId;
+}
+
+class _ProjectForksProviderElement
+    extends AutoDisposeAsyncNotifierProviderElement<ProjectForks,
+        List<ApiProject>> with ProjectForksRef {
+  _ProjectForksProviderElement(super.provider);
+
+  @override
+  int get projectId => (origin as ProjectForksProvider).projectId;
+}
+
+String _$userProjectsHash() => r'1cbccfe79c8085b6358cc7c849b30a712ca99658';
+
+abstract class _$UserProjects
+    extends BuildlessAutoDisposeAsyncNotifier<List<ApiProject>> {
+  late final String username;
+
+  FutureOr<List<ApiProject>> build(
+    String username,
+  );
+}
+
+/// See also [UserProjects].
+@ProviderFor(UserProjects)
+const userProjectsProvider = UserProjectsFamily();
+
+/// See also [UserProjects].
+class UserProjectsFamily extends Family<AsyncValue<List<ApiProject>>> {
+  /// See also [UserProjects].
+  const UserProjectsFamily();
+
+  /// See also [UserProjects].
+  UserProjectsProvider call(
+    String username,
+  ) {
+    return UserProjectsProvider(
+      username,
+    );
+  }
+
+  @override
+  UserProjectsProvider getProviderOverride(
+    covariant UserProjectsProvider provider,
+  ) {
+    return call(
+      provider.username,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'userProjectsProvider';
+}
+
+/// See also [UserProjects].
+class UserProjectsProvider extends AutoDisposeAsyncNotifierProviderImpl<
+    UserProjects, List<ApiProject>> {
+  /// See also [UserProjects].
+  UserProjectsProvider(
+    String username,
+  ) : this._internal(
+          () => UserProjects()..username = username,
+          from: userProjectsProvider,
+          name: r'userProjectsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$userProjectsHash,
+          dependencies: UserProjectsFamily._dependencies,
+          allTransitiveDependencies:
+              UserProjectsFamily._allTransitiveDependencies,
+          username: username,
+        );
+
+  UserProjectsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.username,
+  }) : super.internal();
+
+  final String username;
+
+  @override
+  FutureOr<List<ApiProject>> runNotifierBuild(
+    covariant UserProjects notifier,
+  ) {
+    return notifier.build(
+      username,
+    );
+  }
+
+  @override
+  Override overrideWith(UserProjects Function() create) {
+    return ProviderOverride(
+      origin: this,
+      override: UserProjectsProvider._internal(
+        () => create()..username = username,
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        username: username,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeAsyncNotifierProviderElement<UserProjects, List<ApiProject>>
+      createElement() {
+    return _UserProjectsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is UserProjectsProvider && other.username == username;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, username.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+mixin UserProjectsRef on AutoDisposeAsyncNotifierProviderRef<List<ApiProject>> {
+  /// The parameter `username` of this provider.
+  String get username;
+}
+
+class _UserProjectsProviderElement
+    extends AutoDisposeAsyncNotifierProviderElement<UserProjects,
+        List<ApiProject>> with UserProjectsRef {
+  _UserProjectsProviderElement(super.provider);
+
+  @override
+  String get username => (origin as UserProjectsProvider).username;
+}
+
 String _$projectCommentsHash() => r'fbdcc5d4879f6d194191128c92ca88aef9da9b3d';
 
 abstract class _$ProjectComments

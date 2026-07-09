@@ -20,6 +20,7 @@ import '../../app/theme/origami.dart';
 import '../../app/theme/pointillism.dart';
 import '../../app/theme/stained_glass.dart';
 import '../../app/theme/steampunk.dart';
+import '../../app/theme/studio_dark.dart';
 import '../../app/theme/arctic_aurora.dart';
 import '../../app/theme/autumn_harvest.dart';
 import '../../app/theme/cherry_blossom.dart';
@@ -420,6 +421,16 @@ class AnimatedBackground extends HookConsumerWidget {
           stops: const [0.0, 0.4, 0.8, 1.0],
         );
 
+      case ThemeType.studioDark:
+        return LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            theme.background,
+            Color.lerp(theme.background, theme.surface, 0.35)!,
+          ],
+        );
+
       default:
         return LinearGradient(
           begin: Alignment.topLeft,
@@ -629,6 +640,12 @@ class AnimatedBackground extends HookConsumerWidget {
           intensity: intensity,
           enableAnimation: enableAnimation,
         );
+      case ThemeType.studioDark:
+        return StudioDarkBackground(
+          theme: theme,
+          intensity: intensity,
+          enableAnimation: enableAnimation,
+        );
       case ThemeType.gothic:
         return GothicBackground(
           theme: theme,
@@ -781,6 +798,7 @@ _ShapeStyle _shapeStyleFor(ThemeType type) {
     case ThemeType.lofiNight:
     case ThemeType.prismatic:
     case ThemeType.bioluminescentBrutalism:
+    case ThemeType.studioDark:
       return _ShapeStyle.stars;
 
     case ThemeType.volcanic:

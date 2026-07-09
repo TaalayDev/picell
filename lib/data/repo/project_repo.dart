@@ -9,6 +9,7 @@ abstract class ProjectRepo {
   Stream<List<Project>> fetchProjects();
   Future<Project?> fetchProject(int projectId);
   Future<Project?> fetchProjectByRemoteId(int remoteId);
+  Future<Project?> fetchProjectByOrigin(int communityProjectId);
   Future<Project> createProject(Project project);
   Future<void> updateProject(Project project);
   Future<void> renameProject(int projectId, String name);
@@ -169,6 +170,20 @@ class ProjectLocalRepo extends ProjectRepo {
     queueManager.add(() async {
       try {
         final project = await db.getProjectByRemoteId(remoteId);
+        completer.complete(project);
+      } catch (e) {
+        completer.complete(null);
+      }
+    });
+    return completer.future;
+  }
+
+  @override
+  Future<Project?> fetchProjectByOrigin(int communityProjectId) {
+    final completer = Completer<Project?>();
+    queueManager.add(() async {
+      try {
+        final project = await db.getProjectByOrigin(communityProjectId);
         completer.complete(project);
       } catch (e) {
         completer.complete(null);

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "flutter-web",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "chrome", "--web-port=8765"],
+      "port": 8765
+    },
+    {
+      "name": "backend-php",
+      "runtimeExecutable": "php",
+      "runtimeArgs": ["-S", "localhost:8080", "-t", "backend", "backend/router.php"],
+      "port": 8080
+    }
+  ]
+}

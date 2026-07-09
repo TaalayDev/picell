@@ -128,10 +128,13 @@ class Projects extends _$Projects {
 
 final downloadedProjectsProvider = StreamProvider<Set<int>>((ref) {
   return ref.read(projectRepo).fetchProjects().map((projects) {
-    // Extract remote IDs of all locally synced projects
+    // Community project ids that already have a local copy — either an
+    // owned sync (remoteId) or a downloaded/forked copy (forkedFromId).
     return projects
-        .where((project) => project.isCloudSynced && project.remoteId != null)
-        .map((project) => project.remoteId!)
+        .expand((project) => [
+              if (project.isCloudSynced && project.remoteId != null) project.remoteId!,
+              if (project.forkedFromId != null) project.forkedFromId!,
+            ])
         .toSet();
   });
 });
@@ -148,8 +151,10 @@ final isProjectDownloadedProvider = Provider.family<bool, int>((ref, remoteId) {
 final localProjectByRemoteIdProvider = Provider.family<Project?, int>((ref, remoteId) {
   final projects = ref.read(projectsProvider);
   return projects.when(
-    data: (projectsList) =>
-        projectsList.where((project) => project.isCloudSynced && project.remoteId == remoteId).firstOrNull,
+    data: (projectsList) => projectsList
+        .where((project) =>
+            (project.isCloudSynced && project.remoteId == remoteId) || project.forkedFromId == remoteId)
+        .firstOrNull,
     loading: () => null,
     error: (_, __) => null,
   );

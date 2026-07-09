@@ -18,6 +18,7 @@ import '../../providers/subscription_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../screens.dart';
 import '../widgets/animated_background.dart';
+import '../widgets/community_project_card.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/project_donwload_dialog.dart';
 import '../widgets/theme_selector.dart';
 import '../widgets/dialogs/reward_dialog.dart';
@@ -147,6 +148,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     _buildTags(context, currentProject, theme, isDesktop: true),
                     const SizedBox(height: 32),
                   ],
+
+                  // Forked-from / forks / more by this author
+                  _buildRelatedProjects(context, ref, currentProject, theme, isDesktop: true),
                 ],
               ),
             ),
@@ -256,6 +260,10 @@ class ProjectDetailScreen extends HookConsumerWidget {
                           const SizedBox(height: 24),
                         ],
 
+                        // Forked-from / forks / more by this author
+                        _buildRelatedProjects(context, ref, currentProject, theme, isTablet: true),
+                        const SizedBox(height: 24),
+
                         // Comments on tablet (below main content)
                         _buildCommentsSection(
                             context, ref, comments, theme, currentProject,
@@ -353,6 +361,10 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     _buildTags(context, currentProject, theme),
                     const SizedBox(height: 20),
                   ],
+
+                  // Forked-from / forks / more by this author
+                  _buildRelatedProjects(context, ref, currentProject, theme),
+                  const SizedBox(height: 20),
 
                   // Comments section
                   _buildCommentsSection(
@@ -1516,6 +1528,146 @@ class ProjectDetailScreen extends HookConsumerWidget {
           }).toList(),
         ),
       ],
+    );
+  }
+
+  /// "Forked from" chip, "Forks" carousel, and "More by this author"
+  /// carousel — surfaces the fork lineage recorded when a downloaded
+  /// project is uploaded as a new project, and lets people discover other
+  /// work from the same tree/author without leaving the detail screen.
+  Widget _buildRelatedProjects(
+    BuildContext context,
+    WidgetRef ref,
+    ApiProject currentProject,
+    AppTheme theme, {
+    bool isDesktop = false,
+    bool isTablet = false,
+  }) {
+    final titleSize = isDesktop ? 20.0 : (isTablet ? 18.0 : 18.0);
+    final sectionGap = isDesktop ? 24.0 : 16.0;
+
+    Widget sectionTitle(String text, IconData icon) {
+      return Row(
+        children: [
+          Icon(icon, size: titleSize - 2, color: theme.textPrimary),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: titleSize,
+              fontWeight: FontWeight.bold,
+              color: theme.textPrimary,
+            ),
+          ),
+        ],
+      );
+    }
+
+    Widget projectCarousel(List<ApiProject> projects) {
+      return SizedBox(
+        height: 200,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: projects.length,
+          itemBuilder: (context, index) {
+            final p = projects[index];
+            return Container(
+              width: 160,
+              margin: const EdgeInsets.only(right: 12),
+              child: CommunityProjectCard(
+                project: p,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => ProjectDetailScreen(project: p)),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    final children = <Widget>[];
+
+    if (currentProject.parentProjectId != null) {
+      final parent = ref.watch(communityProjectProvider(currentProject.parentProjectId!)).valueOrNull;
+      if (parent != null) {
+        children.add(
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => ProjectDetailScreen(project: parent)),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: theme.surfaceVariant.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.divider),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Feather.git_branch, size: 16, color: theme.textSecondary),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text.rich(
+                      TextSpan(
+                        style: TextStyle(color: theme.textSecondary, fontSize: 13),
+                        children: [
+                          const TextSpan(text: 'Forked from '),
+                          TextSpan(
+                            text: parent.title,
+                            style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.w600),
+                          ),
+                          if ((parent.displayName ?? parent.username) != null)
+                            TextSpan(text: ' by ${parent.displayName ?? parent.username}'),
+                        ],
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        children.add(SizedBox(height: sectionGap));
+      }
+    }
+
+    if (currentProject.forkCount > 0) {
+      final forks = ref.watch(projectForksProvider(currentProject.id)).valueOrNull ?? [];
+      if (forks.isNotEmpty) {
+        children.addAll([
+          sectionTitle('Forks (${currentProject.forkCount})', Feather.git_branch),
+          SizedBox(height: isDesktop ? 16 : 12),
+          projectCarousel(forks),
+          SizedBox(height: sectionGap),
+        ]);
+      }
+    }
+
+    if (currentProject.username != null) {
+      final authorProjects = (ref.watch(userProjectsProvider(currentProject.username!)).valueOrNull ?? [])
+          .where((p) => p.id != currentProject.id)
+          .toList();
+      if (authorProjects.isNotEmpty) {
+        children.addAll([
+          sectionTitle(
+            'More by ${currentProject.displayName ?? currentProject.username}',
+            Feather.user,
+          ),
+          SizedBox(height: isDesktop ? 16 : 12),
+          projectCarousel(authorProjects),
+        ]);
+      }
+    }
+
+    if (children.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
 

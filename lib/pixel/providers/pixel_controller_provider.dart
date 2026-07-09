@@ -1139,12 +1139,12 @@ class PixelDrawController extends _$PixelDrawController {
       return;
     }
 
-    // Pixel math uses the UNCLAMPED rect: dragging a handle past the canvas
-    // edge clips the overhang (per pixel, in _placeTransformedPixels)
-    // instead of squashing the artwork into the remaining space. Only the
-    // displayed region rect is clamped.
-    final targetW = targetBounds.width.round().clamp(1, 4096);
-    final targetH = targetBounds.height.round().clamp(1, 4096);
+    // Target size is bounded by the canvas so a handle dragged far past the
+    // edge can't balloon the resize/placement cost into the millions of
+    // pixels per drag frame. (Overhang is squashed rather than clipped — an
+    // acceptable trade for keeping the transform interactive.)
+    final targetW = constrainedTargetBounds.width.round().clamp(1, state.width);
+    final targetH = constrainedTargetBounds.height.round().clamp(1, state.height);
 
     final transformedPixels = PixelUtils.resize(
       cached,
@@ -1154,15 +1154,6 @@ class PixelDrawController extends _$PixelDrawController {
       targetH,
       _selectionTransformInterpolation,
       0,
-    );
-
-    // Geometry of the transformed buffer in canvas space — this is what the
-    // next transform session must use as its source bounds.
-    final bufferBounds = Rect.fromLTWH(
-      targetBounds.left.roundToDouble(),
-      targetBounds.top.roundToDouble(),
-      targetW.toDouble(),
-      targetH.toDouble(),
     );
 
     final newRegion = region ??
@@ -1181,7 +1172,7 @@ class PixelDrawController extends _$PixelDrawController {
     final resultPixels = _placeTransformedPixels(
       cachedLayer,
       transformedPixels,
-      bufferBounds,
+      constrainedTargetBounds,
       targetW,
       targetH,
     );
@@ -1193,7 +1184,7 @@ class PixelDrawController extends _$PixelDrawController {
         scale: Size(targetW / srcW, targetH / srcH),
         anchorPoint: () => newAnchor,
         capturedPixels: () => Uint32List.fromList(transformedPixels),
-        capturedBounds: () => bufferBounds,
+        capturedBounds: () => newRegion.bounds,
       ),
     );
   }

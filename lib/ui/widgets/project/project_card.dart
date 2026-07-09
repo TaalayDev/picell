@@ -6,8 +6,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../../core.dart';
 import '../../../data.dart';
-import '../../../l10n/strings.dart';
-import '../dialogs/rename_project_dialog.dart';
+import 'project_menu_button.dart';
 import 'project_thumbnail.dart';
 
 class ProjectCard extends StatelessWidget {
@@ -102,19 +101,14 @@ class ProjectCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  PopupMenuButton(
-                    icon: const Icon(Feather.more_vertical),
-                    style: IconButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(25, 25),
-                      iconSize: 20,
-                    ),
-                    itemBuilder: (context) {
-                      return _buildMenuItems(context);
-                    },
-                    onSelected: (value) {
-                      _handleMenuAction(context, value);
-                    },
+                  ProjectMenuButton(
+                    project: project,
+                    onTapProject: onTapProject,
+                    onDeleteProject: onDeleteProject,
+                    onEditProject: onEditProject,
+                    onUploadProject: onUploadProject,
+                    onUpdateProject: onUpdateProject,
+                    onDeleteCloudProject: onDeleteCloudProject,
                   ),
                   if (kIsWeb || !Platform.isAndroid) const SizedBox(width: 8),
                 ],
@@ -126,8 +120,14 @@ class ProjectCard extends StatelessWidget {
                   children: [
                     const SizedBox(height: 12),
                     AspectRatio(
-                      aspectRatio: project.width / project.height,
-                      child: ProjectThumbnailWidget(project: project),
+                      // Clamped so a very tall or very wide canvas doesn't
+                      // blow out the grid's row heights; the thumbnail itself
+                      // is letterboxed (BoxFit.contain) so it never distorts.
+                      aspectRatio: (project.width / project.height).clamp(0.65, 1.6),
+                      child: ProjectThumbnailWidget(
+                        project: project,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Wrap(
@@ -143,7 +143,7 @@ class ProjectCard extends StatelessWidget {
                         _buildInfoChip(
                           context,
                           icon: Feather.clock,
-                          label: _formatLastEdited(context, project.editedAt),
+                          label: formatLastEdited(context, project.editedAt),
                           color: Theme.of(context).colorScheme.secondary,
                         ),
                       ],
@@ -155,219 +155,6 @@ class ProjectCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context) {
-    final items = <PopupMenuEntry<String>>[];
-
-    // Rename option (always available)
-    items.add(
-      PopupMenuItem(
-        value: 'rename',
-        child: Row(
-          children: [
-            const Icon(Feather.edit_2),
-            const SizedBox(width: 8),
-            Text(Strings.of(context).rename),
-          ],
-        ),
-      ),
-    );
-
-    // Edit option (always available)
-    items.add(
-      PopupMenuItem(
-        value: 'edit',
-        child: Row(
-          children: [
-            const Icon(Feather.edit),
-            const SizedBox(width: 8),
-            Text(Strings.of(context).edit),
-          ],
-        ),
-      ),
-    );
-
-    // Cloud-related options
-    if (project.isCloudSynced) {
-      items.add(
-        const PopupMenuItem(
-          value: 'update',
-          child: Row(
-            children: [
-              Icon(Feather.upload_cloud),
-              SizedBox(width: 8),
-              Text('Resync with cloud'),
-            ],
-          ),
-        ),
-      );
-    } else if (project.remoteId == null) {
-      // Local-only project — offer first-time upload
-      items.add(
-        const PopupMenuItem(
-          value: 'upload',
-          child: Row(
-            children: [
-              Icon(Feather.upload),
-              SizedBox(width: 8),
-              Text('Sync to cloud'),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Separator
-    items.add(const PopupMenuDivider());
-
-    // Delete local project
-    items.add(
-      PopupMenuItem(
-        value: 'delete',
-        child: Row(
-          children: [
-            const Icon(Feather.trash_2, color: Colors.red),
-            const SizedBox(width: 8),
-            Text(
-              Strings.of(context).delete,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    return items;
-  }
-
-  void _handleMenuAction(BuildContext context, String value) {
-    switch (value) {
-      case 'edit':
-        onTapProject?.call(project);
-        break;
-      case 'rename':
-        showDialog(
-          context: context,
-          builder: (context) => RenameProjectDialog(
-            onRename: (name) {
-              onEditProject?.call(
-                project.copyWith(name: name),
-              );
-            },
-          ),
-        );
-        break;
-      case 'delete':
-        _showDeleteConfirmation(context);
-        break;
-      case 'upload':
-        onUploadProject?.call(project);
-        break;
-      case 'update':
-        onUpdateProject?.call(project);
-        break;
-      case 'delete_cloud':
-        _showDeleteCloudConfirmation(context);
-        break;
-    }
-  }
-
-  void _showDeleteConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          Strings.of(context).deleteProject,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Theme.of(context).colorScheme.error,
-              ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              Strings.of(context).areYouSureWantToDeleteProject,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-            ),
-            if (project.isCloudSynced) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Feather.alert_triangle, color: Colors.orange, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'This project is synced to the cloud. Deleting locally will not affect the cloud version.',
-                        style: TextStyle(
-                          color: Colors.orange.shade700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(Strings.of(context).cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              onDeleteProject?.call(project);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(Strings.of(context).delete),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteCloudConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove from Cloud'),
-        content: const Text(
-          'This will remove the project from the cloud and make it local-only. '
-          'Your local copy will remain unchanged. Are you sure?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              onDeleteCloudProject?.call(project);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            child: const Text('Remove from Cloud'),
-          ),
-        ],
       ),
     );
   }
@@ -396,20 +183,5 @@ class ProjectCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatLastEdited(BuildContext context, DateTime lastEdited) {
-    final now = DateTime.now();
-    final difference = now.difference(lastEdited);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m';
-    } else {
-      return Strings.of(context).justNow;
-    }
   }
 }
