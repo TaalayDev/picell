@@ -61,10 +61,6 @@ class ProjectsScreen extends HookConsumerWidget {
     final reviewService = ref.watch(inAppReviewProvider);
 
     final authState = ref.watch(authProvider);
-    // Was tab-gated (only shown on the Community tab) — now that both
-    // platforms are a single scrolling page there's no "which tab" signal,
-    // and there's no reason profile-menu vs. feedback-icon visibility should
-    // have been mutually exclusive by tab in the first place.
     final showProfileIcon = authState.isSignedIn;
 
     final currentTheme = ref.watch(themeProvider).theme;
@@ -153,7 +149,6 @@ class ProjectsScreen extends HookConsumerWidget {
                   onTheme: () => ThemeSelectorBottomSheet.show(context),
                   onPro: () => _showSubscriptionScreen(context),
                 ),
-                // ── Content area ──────────────────────────────────────
                 Expanded(
                   child: Column(
                     children: [
@@ -412,14 +407,12 @@ class ProjectsScreen extends HookConsumerWidget {
                           projects: projects,
                           onCreateNew: () => _navigateToNewProject(context, ref, subscription),
                           onTapProject: (project) => _openProject(context, ref, project, overlayLoader),
-                          onDeleteProject: (project) =>
-                              ref.read(projectsProvider.notifier).deleteProject(project),
+                          onDeleteProject: (project) => ref.read(projectsProvider.notifier).deleteProject(project),
                           onEditProject: (project) =>
                               ref.read(projectsProvider.notifier).renameProject(project.id, project.name),
                           onUploadProject: (project) => _onUploadProject(context, ref, project, authState),
                           onUpdateProject: (project) => _onUpdateProject(context, ref, project, authState),
-                          onDeleteCloudProject: (project) =>
-                              _onDeleteCloudProject(context, ref, project, authState),
+                          onDeleteCloudProject: (project) => _onDeleteCloudProject(context, ref, project, authState),
                           onRetry: () => ref.refresh(projectsProvider),
                           showNewButton: true,
                         ),
@@ -1098,9 +1091,8 @@ class _DesktopContentHeader extends StatelessWidget {
 /// width — see [_CompactProjectsList].)
 List<Project> _filterRecentProjects(List<Project> source, String query) {
   final trimmed = query.trim().toLowerCase();
-  final result = trimmed.isEmpty
-      ? List<Project>.of(source)
-      : source.where((p) => p.name.toLowerCase().contains(trimmed)).toList();
+  final result =
+      trimmed.isEmpty ? List<Project>.of(source) : source.where((p) => p.name.toLowerCase().contains(trimmed)).toList();
 
   result.sort((a, b) => b.editedAt.compareTo(a.editedAt));
   return result;
@@ -1188,7 +1180,7 @@ class _CompactProjectsList extends HookWidget {
                                 style: Theme.of(context)
                                     .textTheme
                                     .labelLarge
-                                    ?.copyWith(fontWeight: FontWeight.w600),
+                                    ?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurface),
                               ),
                               const SizedBox(width: 6),
                               Text(
