@@ -16,6 +16,7 @@ class DiscoveryAPIRepo {
       return _apiClient.get<List<PromoAppItem>>(
         '/api/v1/promo/apps',
         params: {'limit': limit},
+        forceRefresh: true,
         converter: DiscoveryConverters.promoApps,
       );
     } catch (e) {
@@ -30,6 +31,7 @@ class DiscoveryAPIRepo {
       return _apiClient.get<List<NewsItemModel>>(
         '/api/v1/news',
         params: {'limit': limit},
+        forceRefresh: true,
         converter: DiscoveryConverters.newsItems,
       );
     } catch (e) {

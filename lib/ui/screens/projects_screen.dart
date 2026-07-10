@@ -8,6 +8,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+
+import '../../config/constants.dart';
 
 import '../../data/models/subscription_model.dart';
 import '../../data/models/project_api_models.dart';
@@ -260,6 +263,8 @@ class ProjectsScreen extends HookConsumerWidget {
                 ),
                 const SizedBox(width: 8),
               ],
+              const KofiSupportButton(compact: true),
+              const SizedBox(width: 4),
               IconButton(
                 tooltip: 'Choose Theme',
                 icon: Icon(
@@ -919,6 +924,10 @@ class _DesktopSidebar extends StatelessWidget {
               ],
             ),
           ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: KofiSupportButton(),
+          ),
           const SizedBox(height: 12),
         ],
       ),
@@ -1299,6 +1308,78 @@ class _NoSearchResults extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Support on Ko-fi" link. The full variant is a warm gradient pill used at
+/// the bottom of the desktop sidebar; [compact] renders just a tinted coffee
+/// icon for the crowded mobile app bar. Ko-fi's brand red is used for both so
+/// the button reads as external support, not another app action.
+class KofiSupportButton extends StatelessWidget {
+  final bool compact;
+
+  const KofiSupportButton({super.key, this.compact = false});
+
+  static const _kofiRed = Color(0xFFFF5E5B);
+
+  void _open() => launchUrlString(Constants.kofiUrl);
+
+  @override
+  Widget build(BuildContext context) {
+    if (compact) {
+      return IconButton(
+        tooltip: 'Support on Ko-fi',
+        icon: const Icon(MaterialCommunityIcons.coffee_outline, color: _kofiRed),
+        style: IconButton.styleFrom(
+          backgroundColor: _kofiRed.withValues(alpha: 0.12),
+        ),
+        onPressed: _open,
+      );
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _open,
+        borderRadius: BorderRadius.circular(12),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [_kofiRed, Color(0xFFFF8C69)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: _kofiRed.withValues(alpha: 0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(MaterialCommunityIcons.coffee, size: 17, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  'Support on Ko-fi',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

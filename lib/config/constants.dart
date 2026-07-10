@@ -6,10 +6,9 @@ class Constants {
     defaultValue: 'https://keremetapps.if.ua',
   );
   static const apiUrl = '$baseUrl/api/v1';
-  static const privacyPolicyUrl =
-      'https://taalaydev.github.io/files/pixelverse-privacy-policy.html';
-  static const termsOfServiceUrl =
-      'https://taalaydev.github.io/files/pixelverse-terms-of-service.html';
+  static const privacyPolicyUrl = 'https://taalaydev.github.io/files/pixelverse-privacy-policy.html';
+  static const termsOfServiceUrl = 'https://taalaydev.github.io/files/pixelverse-terms-of-service.html';
+  static const kofiUrl = 'https://ko-fi.com/akbulut';
 }
 
 const kIsDemo = bool.fromEnvironment('IS_DEMO', defaultValue: false);

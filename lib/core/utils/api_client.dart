@@ -34,6 +34,7 @@ class ApiClient {
     Map<String, dynamic>? params,
     Options? options,
     Duration? cacheMaxAge,
+    bool forceRefresh = false,
     required T Function(dynamic data) converter,
   }) {
     return request<T>(
@@ -44,6 +45,7 @@ class ApiClient {
       options: buildCacheOptions(
         cacheMaxAge ?? _cacheMaxAgeFor(url),
         options: options,
+        forceRefresh: forceRefresh,
       ),
     );
   }

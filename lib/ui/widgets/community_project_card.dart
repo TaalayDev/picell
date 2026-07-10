@@ -42,6 +42,8 @@ class CommunityProjectCard extends ConsumerWidget {
 
     final isAdloaded = ref.watch(rewardVideoAdProvider);
 
+    // print(project.thumbnailUrl);
+
     return Card(
       elevation: isFeatured ? 8 : 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -51,7 +53,6 @@ class CommunityProjectCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Project image
             AspectRatio(
               aspectRatio: project.width / project.height,
               child: ClipRRect(
@@ -59,7 +60,6 @@ class CommunityProjectCard extends ConsumerWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Checkerboard background
                     CustomPaint(
                       painter: CheckerboardPainter(
                         cellSize: 8,
@@ -67,7 +67,6 @@ class CommunityProjectCard extends ConsumerWidget {
                         color2: Colors.grey.shade50,
                       ),
                     ),
-                    // Project image
                     CachedNetworkImage(
                       imageUrl: project.thumbnailUrl,
                       fit: BoxFit.cover,
@@ -81,7 +80,6 @@ class CommunityProjectCard extends ConsumerWidget {
                         color: theme.error,
                       ),
                     ),
-                    // Featured badge
                     if (isFeatured)
                       Positioned(
                         top: 8,
