@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../data.dart';
 import '../../data/models/project_api_models.dart';
 import '../../data/models/subscription_model.dart';
+import '../../l10n/strings.dart';
 import '../../core.dart';
 import '../../providers/ad/reward_video_ad_controller.dart';
 import '../../providers/community_projects_providers.dart';
@@ -150,7 +151,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   ],
 
                   // Forked-from / forks / more by this author
-                  _buildRelatedProjects(context, ref, currentProject, theme, isDesktop: true),
+                  _buildRelatedProjects(context, ref, currentProject, theme,
+                      isDesktop: true),
                 ],
               ),
             ),
@@ -261,7 +263,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
                         ],
 
                         // Forked-from / forks / more by this author
-                        _buildRelatedProjects(context, ref, currentProject, theme, isTablet: true),
+                        _buildRelatedProjects(
+                            context, ref, currentProject, theme,
+                            isTablet: true),
                         const SizedBox(height: 24),
 
                         // Comments on tablet (below main content)
@@ -388,12 +392,12 @@ class ProjectDetailScreen extends HookConsumerWidget {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const AlertDialog(
+        builder: (context) => AlertDialog(
           content: Row(
             children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 16),
-              Text('Deleting project...'),
+              const CircularProgressIndicator(),
+              const SizedBox(width: 16),
+              Text(Strings.of(context).deletingProject),
             ],
           ),
         ),
@@ -408,15 +412,15 @@ class ProjectDetailScreen extends HookConsumerWidget {
         Navigator.of(context).pop();
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Project deleted successfully'),
+          SnackBar(
+            content: Text(Strings.of(context).projectDeletedSuccessfully),
           ),
         );
       } else {
         Navigator.of(context).pop(); // Hide loading
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to delete project'),
+          SnackBar(
+            content: Text(Strings.of(context).failedToDeleteProject),
             backgroundColor: Colors.red,
           ),
         );
@@ -427,7 +431,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to delete project: $e'),
+            content: Text(Strings.of(context)
+                .failedToDeleteProjectWithError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -467,7 +472,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   .read(communityProjectsProvider.notifier)
                   .toggleLike(currentProject);
             },
-            tooltip: currentProject.isLiked == true ? 'Unlike' : 'Like',
+            tooltip: currentProject.isLiked == true
+                ? Strings.of(context).unlike
+                : Strings.of(context).like,
           ),
         ],
 
@@ -475,14 +482,14 @@ class ProjectDetailScreen extends HookConsumerWidget {
         IconButton(
           icon: Icon(Icons.share, color: theme.activeIcon),
           onPressed: () => _shareProject(currentProject),
-          tooltip: 'Share',
+          tooltip: Strings.of(context).share,
         ),
 
         // Copy link button
         IconButton(
           icon: Icon(Icons.link, color: theme.activeIcon),
           onPressed: () => _copyProjectLink(context, currentProject),
-          tooltip: 'Copy Link',
+          tooltip: Strings.of(context).copyLink,
         ),
 
         // Author controls
@@ -494,7 +501,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
               color: currentProject.isPublic ? theme.success : theme.warning,
             ),
             onPressed: () => _toggleVisibility(context, ref, currentProject),
-            tooltip: currentProject.isPublic ? 'Make Private' : 'Make Public',
+            tooltip: currentProject.isPublic
+                ? Strings.of(context).makePrivate
+                : Strings.of(context).makePublic,
           ),
 
           // Delete button
@@ -507,7 +516,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 _deleteProject(context, ref, currentProject);
               }
             },
-            tooltip: 'Delete Project',
+            tooltip: Strings.of(context).deleteProject,
           ),
         ],
 
@@ -954,7 +963,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     _buildInfoCard(
                       context,
                       icon: Feather.grid,
-                      label: 'Size',
+                      label: Strings.of(context).size,
                       value:
                           '${currentProject.width} × ${currentProject.height}',
                       color: theme.primaryColor,
@@ -963,7 +972,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     _buildInfoCard(
                       context,
                       icon: Icons.visibility,
-                      label: 'Views',
+                      label: Strings.of(context).views,
                       value: _formatCount(currentProject.viewCount),
                       color: theme.accentColor,
                       isLarge: isDesktop,
@@ -980,7 +989,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     _buildInfoCard(
                       context,
                       icon: Icons.download,
-                      label: 'Downloads',
+                      label: Strings.of(context).downloads,
                       value: _formatCount(currentProject.downloadCount),
                       color: theme.success,
                       isLarge: isDesktop,
@@ -989,7 +998,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                       _buildInfoCard(
                         context,
                         icon: Feather.clock,
-                        label: 'Published',
+                        label: Strings.of(context).published,
                         value: _formatDate(currentProject.publishedAt!),
                         color: theme.textSecondary,
                         isLarge: isDesktop,
@@ -1007,21 +1016,21 @@ class ProjectDetailScreen extends HookConsumerWidget {
               _buildInfoCard(
                 context,
                 icon: Feather.grid,
-                label: 'Size',
+                label: Strings.of(context).size,
                 value: '${currentProject.width} × ${currentProject.height}',
                 color: theme.primaryColor,
               ),
               _buildInfoCard(
                 context,
                 icon: Icons.visibility,
-                label: 'Views',
+                label: Strings.of(context).views,
                 value: _formatCount(currentProject.viewCount),
                 color: theme.accentColor,
               ),
               _buildInfoCard(
                 context,
                 icon: Icons.download,
-                label: 'Downloads',
+                label: Strings.of(context).downloads,
                 value: _formatCount(currentProject.downloadCount),
                 color: theme.success,
               ),
@@ -1029,7 +1038,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 _buildInfoCard(
                   context,
                   icon: Feather.clock,
-                  label: 'Published',
+                  label: Strings.of(context).published,
                   value: _formatDate(currentProject.publishedAt!),
                   color: theme.textSecondary,
                 ),
@@ -1204,7 +1213,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
               child: ElevatedButton.icon(
                 onPressed: () => _editProject(context, ref, currentProject),
                 icon: const Icon(Icons.edit),
-                label: const Text('Edit Project'),
+                label: Text(Strings.of(context).editProject),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.primaryColor,
                   foregroundColor: theme.onPrimary,
@@ -1221,7 +1230,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
                         _toggleVisibility(context, ref, currentProject),
                     icon: Icon(
                         currentProject.isPublic ? Icons.public : Icons.lock),
-                    label: Text(currentProject.isPublic ? 'Public' : 'Private'),
+                    label: Text(currentProject.isPublic
+                        ? Strings.of(context).public
+                        : Strings.of(context).private),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       side: BorderSide(
@@ -1241,7 +1252,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     onPressed: () =>
                         _showAnalytics(context, ref, currentProject),
                     icon: const Icon(Icons.analytics),
-                    label: const Text('Analytics'),
+                    label: Text(Strings.of(context).analytics),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -1259,7 +1270,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
               child: ElevatedButton.icon(
                 onPressed: () => _editProject(context, ref, currentProject),
                 icon: const Icon(Icons.edit),
-                label: const Text('Edit Project'),
+                label: Text(Strings.of(context).editProject),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.primaryColor,
                   foregroundColor: theme.onPrimary,
@@ -1275,7 +1286,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
                         _toggleVisibility(context, ref, currentProject),
                     icon: Icon(
                         currentProject.isPublic ? Icons.public : Icons.lock),
-                    label: Text(currentProject.isPublic ? 'Public' : 'Private'),
+                    label: Text(currentProject.isPublic
+                        ? Strings.of(context).public
+                        : Strings.of(context).private),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
                         color: currentProject.isPublic
@@ -1294,7 +1307,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     onPressed: () =>
                         _showAnalytics(context, ref, currentProject),
                     icon: const Icon(Icons.analytics),
-                    label: const Text('Stats'),
+                    label: Text(Strings.of(context).stats),
                   ),
                 ),
               ],
@@ -1321,7 +1334,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                       : Icons.favorite_border,
                   color: currentProject.isLiked == true ? Colors.red : null,
                 ),
-                label: Text('${_formatCount(currentProject.likeCount)} Likes'),
+                label: Text(Strings.of(context)
+                    .likeCountLabel(_formatCount(currentProject.likeCount))),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: currentProject.isLiked == true
                       ? Colors.red.withValues(alpha: 0.1)
@@ -1346,8 +1360,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   // Scroll to comments
                 },
                 icon: const Icon(Icons.comment_outlined),
-                label: Text(
-                    '${_formatCount(currentProject.commentCount)} Comments'),
+                label: Text(Strings.of(context).commentCountLabel(
+                    _formatCount(currentProject.commentCount))),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -1360,7 +1374,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 onPressed: () => _downloadProject(context, ref, currentProject,
                     ref.read(subscriptionStateProvider)),
                 icon: const Icon(Icons.download),
-                label: const Text('Download'),
+                label: Text(Strings.of(context).download),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -1423,7 +1437,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     _openLocalProject(context, ref, localProject);
                   },
                   icon: const Icon(Icons.folder_open),
-                  label: const Text('Open Project'),
+                  label: Text(Strings.of(context).openProject),
                 ),
               ),
             ] else ...[
@@ -1433,7 +1447,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   onPressed: () => _downloadProject(context, ref,
                       currentProject, ref.read(subscriptionStateProvider)),
                   icon: const Icon(Icons.download),
-                  label: const Text('Download Project'),
+                  label: Text(Strings.of(context).downloadProject),
                 ),
               ),
             ],
@@ -1450,8 +1464,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
   ) async {
     if (localProject == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Local project not found'),
+        SnackBar(
+          content: Text(Strings.of(context).localProjectNotFound),
           backgroundColor: Colors.red,
         ),
       );
@@ -1577,7 +1591,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
               child: CommunityProjectCard(
                 project: p,
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => ProjectDetailScreen(project: p)),
+                  MaterialPageRoute(
+                      builder: (_) => ProjectDetailScreen(project: p)),
                 ),
               ),
             );
@@ -1589,13 +1604,16 @@ class ProjectDetailScreen extends HookConsumerWidget {
     final children = <Widget>[];
 
     if (currentProject.parentProjectId != null) {
-      final parent = ref.watch(communityProjectProvider(currentProject.parentProjectId!)).valueOrNull;
+      final parent = ref
+          .watch(communityProjectProvider(currentProject.parentProjectId!))
+          .valueOrNull;
       if (parent != null) {
         children.add(
           InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => ProjectDetailScreen(project: parent)),
+              MaterialPageRoute(
+                  builder: (_) => ProjectDetailScreen(project: parent)),
             ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1607,20 +1625,26 @@ class ProjectDetailScreen extends HookConsumerWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Feather.git_branch, size: 16, color: theme.textSecondary),
+                  Icon(Feather.git_branch,
+                      size: 16, color: theme.textSecondary),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text.rich(
                       TextSpan(
-                        style: TextStyle(color: theme.textSecondary, fontSize: 13),
+                        style:
+                            TextStyle(color: theme.textSecondary, fontSize: 13),
                         children: [
-                          const TextSpan(text: 'Forked from '),
+                          TextSpan(text: Strings.of(context).forkedFrom),
                           TextSpan(
                             text: parent.title,
-                            style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                color: theme.primaryColor,
+                                fontWeight: FontWeight.w600),
                           ),
                           if ((parent.displayName ?? parent.username) != null)
-                            TextSpan(text: ' by ${parent.displayName ?? parent.username}'),
+                            TextSpan(
+                                text: Strings.of(context).byUser(
+                                    (parent.displayName ?? parent.username)!)),
                         ],
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -1636,10 +1660,12 @@ class ProjectDetailScreen extends HookConsumerWidget {
     }
 
     if (currentProject.forkCount > 0) {
-      final forks = ref.watch(projectForksProvider(currentProject.id)).valueOrNull ?? [];
+      final forks =
+          ref.watch(projectForksProvider(currentProject.id)).valueOrNull ?? [];
       if (forks.isNotEmpty) {
         children.addAll([
-          sectionTitle('Forks (${currentProject.forkCount})', Feather.git_branch),
+          sectionTitle(
+              'Forks (${currentProject.forkCount})', Feather.git_branch),
           SizedBox(height: isDesktop ? 16 : 12),
           projectCarousel(forks),
           SizedBox(height: sectionGap),
@@ -1648,7 +1674,10 @@ class ProjectDetailScreen extends HookConsumerWidget {
     }
 
     if (currentProject.username != null) {
-      final authorProjects = (ref.watch(userProjectsProvider(currentProject.username!)).valueOrNull ?? [])
+      final authorProjects = (ref
+                  .watch(userProjectsProvider(currentProject.username!))
+                  .valueOrNull ??
+              [])
           .where((p) => p.id != currentProject.id)
           .toList();
       if (authorProjects.isNotEmpty) {
@@ -1690,7 +1719,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Comments',
+              Strings.of(context).comments,
               style: TextStyle(
                 fontSize: titleSize,
                 fontWeight: FontWeight.bold,
@@ -1702,14 +1731,14 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 onPressed: () =>
                     _showAddCommentDialog(context, ref, currentProject),
                 icon: const Icon(Icons.add_comment, color: Colors.white),
-                label: const Text('Add Comment'),
+                label: Text(Strings.of(context).addComment),
               ),
             ] else ...[
               TextButton.icon(
                 onPressed: () =>
                     _showAddCommentDialog(context, ref, currentProject),
                 icon: const Icon(Icons.add_comment),
-                label: const Text('Add Comment'),
+                label: Text(Strings.of(context).addComment),
               ),
             ],
           ],
@@ -1736,7 +1765,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                         ),
                         SizedBox(height: isDesktop ? 20 : 16),
                         Text(
-                          'No comments yet',
+                          Strings.of(context).noCommentsYet,
                           style: TextStyle(
                             color: theme.textSecondary,
                             fontSize: isDesktop ? 18 : 16,
@@ -1744,7 +1773,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                         ),
                         SizedBox(height: isDesktop ? 12 : 8),
                         Text(
-                          'Be the first to leave a comment!',
+                          Strings.of(context).beFirstToComment,
                           style: TextStyle(
                             color: theme.textSecondary,
                             fontSize: isDesktop ? 14 : 12,
@@ -1778,7 +1807,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) => Center(
               child: Text(
-                'Failed to load comments',
+                Strings.of(context).failedToLoadComments,
                 style: TextStyle(color: theme.error),
               ),
             ),
@@ -1875,7 +1904,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
           if (comment.isEdited) ...[
             SizedBox(height: isDesktop ? 12 : 8),
             Text(
-              'Edited',
+              Strings.of(context).edited,
               style: TextStyle(
                 color: theme.textSecondary,
                 fontSize: dateSize * 0.9,
@@ -1895,16 +1924,17 @@ class ProjectDetailScreen extends HookConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-            newVisibility ? 'Make Project Public' : 'Make Project Private'),
+        title: Text(newVisibility
+            ? Strings.of(context).makeProjectPublic
+            : Strings.of(context).makeProjectPrivate),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               newVisibility
-                  ? 'This will make your project visible to everyone in the community. Anyone will be able to view, like, and comment on it.'
-                  : 'This will hide your project from the public community. Only you will be able to see it.',
+                  ? Strings.of(context).makeProjectPublicMessage
+                  : Strings.of(context).makeProjectPrivateMessage,
             ),
             const SizedBox(height: 16),
             Container(
@@ -1931,8 +1961,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   Expanded(
                     child: Text(
                       newVisibility
-                          ? 'Project will be publicly visible'
-                          : 'Project will be private',
+                          ? Strings.of(context).projectWillBePublic
+                          : Strings.of(context).projectWillBePrivate,
                       style: TextStyle(
                         color: newVisibility
                             ? Colors.green.shade700
@@ -1950,7 +1980,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -1979,8 +2009,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     SnackBar(
                       content: Text(
                         newVisibility
-                            ? 'Project is now public'
-                            : 'Project is now private',
+                            ? Strings.of(context).projectIsNowPublic
+                            : Strings.of(context).projectIsNowPrivate,
                       ),
                     ),
                   );
@@ -1991,14 +2021,17 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Failed to update visibility: $e'),
+                      content: Text(Strings.of(context)
+                          .failedToUpdateVisibility(e.toString())),
                       backgroundColor: Colors.red,
                     ),
                   );
                 }
               }
             },
-            child: Text(newVisibility ? 'Make Public' : 'Make Private'),
+            child: Text(newVisibility
+                ? Strings.of(context).makePublic
+                : Strings.of(context).makePrivate),
           ),
         ],
       ),
@@ -2010,13 +2043,13 @@ class ProjectDetailScreen extends HookConsumerWidget {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Project'),
+        title: Text(Strings.of(context).deleteProject),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Are you sure you want to delete this project? This action cannot be undone.',
+            Text(
+              Strings.of(context).deleteProjectCannotBeUndone,
             ),
             const SizedBox(height: 16),
             Container(
@@ -2034,8 +2067,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'This will permanently delete:',
+                        Text(
+                          Strings.of(context).thisWillPermanentlyDelete,
                           style: TextStyle(
                             color: Colors.red,
                             fontSize: 12,
@@ -2044,7 +2077,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '• Project data and artwork\n• All comments and likes\n• Download statistics',
+                          Strings.of(context).deleteProjectConsequences,
                           style: TextStyle(
                             color: Colors.red.shade700,
                             fontSize: 11,
@@ -2058,7 +2091,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Type "${currentProject.title}" to confirm deletion:',
+              Strings.of(context)
+                  .typeProjectTitleToConfirmDeletion(currentProject.title),
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
@@ -2066,8 +2100,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
               onChanged: (value) {
                 // Store the value for confirmation
               },
-              decoration: const InputDecoration(
-                hintText: 'Enter project title...',
+              decoration: InputDecoration(
+                hintText: Strings.of(context).enterProjectTitle,
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
@@ -2077,14 +2111,14 @@ class ProjectDetailScreen extends HookConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop(true);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete Forever'),
+            child: Text(Strings.of(context).deleteForever),
           ),
         ],
       ),
@@ -2095,8 +2129,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
       BuildContext context, WidgetRef ref, ApiProject currentProject) {
     // Navigate to project editor or show edit dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Opening project editor...'),
+      SnackBar(
+        content: Text(Strings.of(context).openingProjectEditor),
       ),
     );
     // Implementation would navigate to the pixel art editor with this project
@@ -2117,8 +2151,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Project Analytics',
+                  Text(
+                    Strings.of(context).projectAnalytics,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
@@ -2137,7 +2171,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                         children: [
                           Expanded(
                             child: _buildAnalyticsCard(
-                              'Total Views',
+                              Strings.of(context).totalViews,
                               _formatCount(currentProject.viewCount),
                               Icons.visibility,
                               Colors.blue,
@@ -2146,7 +2180,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                           const SizedBox(width: 16),
                           Expanded(
                             child: _buildAnalyticsCard(
-                              'Total Likes',
+                              Strings.of(context).totalLikes,
                               _formatCount(currentProject.likeCount),
                               Icons.favorite,
                               Colors.red,
@@ -2159,7 +2193,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                         children: [
                           Expanded(
                             child: _buildAnalyticsCard(
-                              'Comments',
+                              Strings.of(context).comments,
                               _formatCount(currentProject.commentCount),
                               Icons.comment,
                               Colors.green,
@@ -2168,7 +2202,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                           const SizedBox(width: 16),
                           Expanded(
                             child: _buildAnalyticsCard(
-                              'Downloads',
+                              Strings.of(context).downloads,
                               _formatCount(currentProject.downloadCount),
                               Icons.download,
                               Colors.orange,
@@ -2178,22 +2212,22 @@ class ProjectDetailScreen extends HookConsumerWidget {
                       ),
                       const SizedBox(height: 24),
                       // Additional analytics would go here
-                      const Card(
+                      Card(
                         child: Padding(
-                          padding: EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              Icon(Icons.analytics,
+                              const Icon(Icons.analytics,
                                   size: 48, color: Colors.grey),
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
                               Text(
-                                'Detailed Analytics',
-                                style: TextStyle(
+                                Strings.of(context).detailedAnalytics,
+                                style: const TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Text(
-                                'Advanced analytics features will be available soon.',
+                                Strings.of(context).advancedAnalyticsSoon,
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -2254,8 +2288,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     final link = 'https://pixelverse.app/project/${currentProject.id}';
     Clipboard.setData(ClipboardData(text: link));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Project link copied to clipboard!'),
+      SnackBar(
+        content: Text(Strings.of(context).projectLinkCopied),
         duration: Duration(seconds: 2),
       ),
     );
@@ -2265,8 +2299,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
       BuildContext context, WidgetRef ref, ApiProject currentProject) {
     // Implement save to favorites functionality
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Added to favorites!'),
+      SnackBar(
+        content: Text(Strings.of(context).addedToFavorites),
         duration: Duration(seconds: 2),
       ),
     );
@@ -2277,8 +2311,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     // Implement follow artist functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-            'Now following ${currentProject.displayName ?? currentProject.username}!'),
+        content: Text(Strings.of(context).nowFollowingUser(
+            currentProject.displayName ?? currentProject.username ?? '')),
         duration: Duration(seconds: 2),
       ),
     );
@@ -2288,27 +2322,23 @@ class ProjectDetailScreen extends HookConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Report Project'),
-        content: const Text(
-          'Are you sure you want to report this project? '
-          'Please only report content that violates our community guidelines.',
-        ),
+        title: Text(Strings.of(context).reportProject),
+        content: Text(Strings.of(context).reportProjectMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                      'Thank you for your report. We will review it shortly.'),
+                SnackBar(
+                  content: Text(Strings.of(context).reportThanks),
                 ),
               );
             },
-            child: const Text('Report'),
+            child: Text(Strings.of(context).report),
           ),
         ],
       ),
@@ -2329,11 +2359,11 @@ class ProjectDetailScreen extends HookConsumerWidget {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
-                'Premium subscription required to download projects'),
+            content:
+                Text(Strings.of(context).premiumRequiredToDownloadProjects),
             duration: const Duration(seconds: 3),
             action: SnackBarAction(
-              label: 'Upgrade',
+              label: Strings.of(context).upgrade,
               onPressed: () {
                 // Navigate to subscription screen
                 Navigator.of(context).push(
@@ -2361,14 +2391,13 @@ class ProjectDetailScreen extends HookConsumerWidget {
       BuildContext context, WidgetRef ref, ApiProject currentProject) {
     RewardDialog.show(
       context,
-      title: 'Download Project',
-      subtitle: 'To download this project, you can either:',
+      title: Strings.of(context).downloadProject,
+      subtitle: Strings.of(context).downloadProjectRewardSubtitle,
       onRewardEarned: () async {
         // User successfully watched the video, allow download
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Thank you for watching! Your download is starting...'),
+          SnackBar(
+            content: Text(Strings.of(context).thankYouWatchingDownloadStarting),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
           ),
@@ -2389,8 +2418,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
     final authState = ref.read(authProvider);
     if (!authState.isSignedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please sign in to add comments'),
+        SnackBar(
+          content: Text(Strings.of(context).pleaseSignInToAddComments),
           duration: Duration(seconds: 2),
         ),
       );
@@ -2402,19 +2431,19 @@ class ProjectDetailScreen extends HookConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Comment'),
+        title: Text(Strings.of(context).addComment),
         content: TextField(
           controller: commentController,
           maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: 'Write your comment...',
+          decoration: InputDecoration(
+            hintText: Strings.of(context).writeYourComment,
             border: OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -2427,20 +2456,23 @@ class ProjectDetailScreen extends HookConsumerWidget {
                   if (context.mounted) {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Comment added successfully!')),
+                      SnackBar(
+                          content: Text(
+                              Strings.of(context).commentAddedSuccessfully)),
                     );
                   }
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to add comment: $e')),
+                      SnackBar(
+                          content: Text(Strings.of(context)
+                              .failedToAddComment(e.toString()))),
                     );
                   }
                 }
               }
             },
-            child: const Text('Post'),
+            child: Text(Strings.of(context).post),
           ),
         ],
       ),

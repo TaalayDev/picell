@@ -85,6 +85,7 @@
     "areYouSureWantToDeleteLayer": "Are you sure you want to delete this layer?",
     "newProject": "New Project",
     "template": "Template",
+    "category": "Category",
     "width": "Width",
     "height": "Height",
     "create": "Create",
@@ -100,7 +101,6 @@
     "signInWithGoogle": "Sign in with Google",
     "skipForNow": "Skip for now",
     "noEmail": "No email",
-
     "feedback_title": "Feedback",
     "feedback_thank_you": "Thank you for your feedback!",
     "feedback_thank_you_message": "Your opinion is very important to us and will help make the app better.",
@@ -127,7 +127,6 @@
     "feedback_yes": "Yes",
     "feedback_no": "No",
     "feedback_text_placeholder": "Enter your answer...",
-    
     "feedback_q_satisfaction": "How satisfied are you with the app?",
     "feedback_q_missing_features": "What features are you missing?",
     "feedback_q_missing_features_placeholder": "Describe the features you would like to see...",
@@ -172,7 +171,6 @@
     "play": "Play",
     "nextFrame": "Next Frame",
     "lastFrame": "Last Frame",
-
     "feedback_dialog_title": "We'd Love Your Feedback!",
     "feedback_dialog_description": "Your opinion matters! Help us make the app better by sharing your thoughts.",
     "feedback_dialog_benefit_1": "Share ideas for new features",
@@ -381,5 +379,910 @@
     "ellipseSelectionTooltip": "Select an elliptical area",
     "autoSelectLayer": "Auto-Select",
     "autoSelectLayerTooltip": "Select all non-empty pixels in the current layer",
-    "selectionAnchor": "Selection Anchor"
+    "selectionAnchor": "Selection Anchor",
+    "feedback": "Feedback",
+    "createNewProjectTooltip": "Create New Project",
+    "failedToProcessFile": "Failed to process {fileName}",
+    "@failedToProcessFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importingFile": "Importing {fileName}...",
+    "@importingFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedProjectSuccessfully": "Imported \"{projectName}\" successfully",
+    "@importedProjectSuccessfully": {
+        "placeholders": {
+            "projectName": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToImport": "Failed to import: {error}",
+    "@failedToImport": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unsupportedFileType": "Unsupported file type: {fileName}",
+    "@unsupportedFileType": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "pleaseSignInToUploadProjects": "Please sign in to upload projects",
+    "pleaseSignInToUpdateProjects": "Please sign in to update projects",
+    "projectNotSyncedToCloud": "Project is not synced to cloud",
+    "pleaseSignInToRemoveCloudProjects": "Please sign in to remove cloud projects",
+    "removingFromCloud": "Removing from cloud...",
+    "projectRemovedFromCloudSuccessfully": "Project removed from cloud successfully",
+    "failedToRemoveFromCloud": "Failed to remove from cloud: {error}",
+    "@failedToRemoveFromCloud": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "search": "Search...",
+    "myProjects": "My Projects",
+    "noProjectsYet": "No projects yet",
+    "createOne": "Create one",
+    "searchProjects": "Search projects...",
+    "discoverAmazingPixelArt": "Discover amazing pixel art",
+    "sortBy": "Sort by",
+    "mostRecent": "Most Recent",
+    "mostPopular": "Most Popular",
+    "mostViewed": "Most Viewed",
+    "mostLiked": "Most Liked",
+    "titleAZ": "Title A-Z",
+    "all": "All",
+    "featuredProjects": "Featured Projects",
+    "errorLoadingProjects": "Error loading projects",
+    "deletingProject": "Deleting project...",
+    "projectDeletedSuccessfully": "Project deleted successfully",
+    "failedToDeleteProject": "Failed to delete project",
+    "failedToDeleteProjectWithError": "Failed to delete project: {error}",
+    "@failedToDeleteProjectWithError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unlike": "Unlike",
+    "like": "Like",
+    "editProject": "Edit Project",
+    "public": "Public",
+    "private": "Private",
+    "analytics": "Analytics",
+    "stats": "Stats",
+    "likeCountLabel": "{count} Likes",
+    "@likeCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "commentCountLabel": "{count} Comments",
+    "@commentCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "download": "Download",
+    "openProject": "Open Project",
+    "downloadProject": "Download Project",
+    "localProjectNotFound": "Local project not found",
+    "comments": "Comments",
+    "addComment": "Add Comment",
+    "noCommentsYet": "No comments yet",
+    "beFirstToComment": "Be the first to leave a comment!",
+    "failedToLoadComments": "Failed to load comments",
+    "edited": "Edited",
+    "makeProjectPublic": "Make Project Public",
+    "makeProjectPrivate": "Make Project Private",
+    "makeProjectPublicMessage": "This will make your project visible to everyone in the community. Anyone will be able to view, like, and comment on it.",
+    "makeProjectPrivateMessage": "This will hide your project from the public community. Only you will be able to see it.",
+    "projectWillBePublic": "Project will be publicly visible",
+    "projectWillBePrivate": "Project will be private",
+    "projectIsNowPublic": "Project is now public",
+    "projectIsNowPrivate": "Project is now private",
+    "failedToUpdateVisibility": "Failed to update visibility: {error}",
+    "@failedToUpdateVisibility": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "makePublic": "Make Public",
+    "makePrivate": "Make Private",
+    "deleteProjectCannotBeUndone": "Are you sure you want to delete this project? This action cannot be undone.",
+    "thisWillPermanentlyDelete": "This will permanently delete:",
+    "deleteProjectConsequences": "• Project data and artwork\n• All comments and likes\n• Download statistics",
+    "typeProjectTitleToConfirmDeletion": "Type \"{title}\" to confirm deletion:",
+    "@typeProjectTitleToConfirmDeletion": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "enterProjectTitle": "Enter project title...",
+    "deleteForever": "Delete Forever",
+    "openingProjectEditor": "Opening project editor...",
+    "projectLinkCopied": "Project link copied to clipboard!",
+    "addedToFavorites": "Added to favorites!",
+    "nowFollowingUser": "Now following {username}!",
+    "@nowFollowingUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "reportProject": "Report Project",
+    "reportProjectMessage": "Are you sure you want to report this project? Please only report content that violates our community guidelines.",
+    "reportThanks": "Thank you for your report. We will review it shortly.",
+    "report": "Report",
+    "premiumRequiredToDownloadProjects": "Premium subscription required to download projects",
+    "upgrade": "Upgrade",
+    "downloadProjectRewardSubtitle": "To download this project, you can either:",
+    "thankYouWatchingDownloadStarting": "Thank you for watching! Your download is starting...",
+    "pleaseSignInToAddComments": "Please sign in to add comments",
+    "writeYourComment": "Write your comment...",
+    "commentAddedSuccessfully": "Comment added successfully!",
+    "failedToAddComment": "Failed to add comment: {error}",
+    "@failedToAddComment": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "post": "Post",
+    "chooseTheme": "Choose Theme",
+    "importFile": "Import File",
+    "theme": "Theme",
+    "getPro": "Get Pro",
+    "supportOnKofi": "Support on Ko-fi",
+    "copyLink": "Copy Link",
+    "size": "Size",
+    "views": "Views",
+    "downloads": "Downloads",
+    "published": "Published!",
+    "forkedFrom": "Forked from ",
+    "byUser": " by {username}",
+    "projectAnalytics": "Project Analytics",
+    "totalViews": "Total Views",
+    "totalLikes": "Total Likes",
+    "detailedAnalytics": "Detailed Analytics",
+    "advancedAnalyticsSoon": "Advanced analytics features will be available soon.",
+    "@byUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "details": "Details",
+    "title": "Title",
+    "projectTitleHint": "Give your project a name",
+    "description": "Description",
+    "projectDescriptionHint": "Tell the community about this project (optional)",
+    "visibility": "Visibility",
+    "tags": "Tags",
+    "searchTags": "Search tags…",
+    "failedToLoadTags": "Failed to load tags",
+    "pleaseEnterTitle": "Please enter a title",
+    "removeFromCloudQuestion": "Remove from Cloud?",
+    "removeFromCommunityMessage": "This will remove the project from the community. Your local copy will remain.",
+    "remove": "Remove",
+    "updateProject": "Update Project",
+    "publishToCommunity": "Publish to Community",
+    "synced": "Synced",
+    "visibleToEveryone": "Visible to everyone",
+    "onlyVisibleToYou": "Only visible to you",
+    "maximumTagsAllowed": "Maximum 5 tags allowed",
+    "frameCountSimple": "{count} {count, plural, one {frame} other {frames}}",
+    "@frameCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "layerCountSimple": "{count} {count, plural, one {layer} other {layers}}",
+    "@layerCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "cloudManagement": "Cloud Management",
+    "cloudId": "Cloud ID: {id}",
+    "@cloudId": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "preparingUpdate": "Preparing update…",
+    "preparingProject": "Preparing project…",
+    "generatingThumbnail": "Generating thumbnail…",
+    "updatingOnCloud": "Updating on cloud…",
+    "uploadingToCloud": "Uploading to cloud…",
+    "finalizing": "Finalizing…",
+    "updated": "Updated!",
+    "updating": "Updating…",
+    "publishing": "Publishing…",
+    "update": "Update",
+    "publish": "Publish",
+    "downloadingProject": "Downloading Project",
+    "downloadingProjectData": "Downloading project data...",
+    "downloadComplete": "Download Complete!",
+    "projectSavedLocal": "Project saved to your local projects",
+    "downloadFailed": "Download Failed",
+    "resyncWithCloud": "Resync with cloud",
+    "syncToCloud": "Sync to cloud",
+    "removeFromCloud": "Remove from Cloud",
+    "removeFromCloudMessage": "This will remove the project from the cloud and make it local-only. Your local copy will remain unchanged. Are you sure?",
+    "syncedCloudDeleteWarning": "This project is synced to the cloud. Deleting locally will not affect the cloud version.",
+    "openLocalProject": "Open Local Project",
+    "premiumRequired": "Premium Required",
+    "byUserInline": "by {username}",
+    "@byUserInline": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "createTemplate": "Create Template",
+    "layerNameLabel": "Name: {name}",
+    "@layerNameLabel": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "layerSizeLabel": "Size: {width}×{height}",
+    "@layerSizeLabel": {
+        "placeholders": {
+            "width": {
+                "type": "int"
+            },
+            "height": {
+                "type": "int"
+            }
+        }
+    },
+    "nonTransparentPixels": "Pixels: {count} non-transparent",
+    "@nonTransparentPixels": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "templateName": "Template Name",
+    "descriptionOptional": "Description (optional)",
+    "saveOptions": "Save Options",
+    "saveLocally": "Save Locally",
+    "storeOnDeviceOnly": "Store on this device only",
+    "uploadToCloud": "Upload to Cloud",
+    "shareWithCommunity": "Share with the community",
+    "privateCloudStorage": "Private cloud storage",
+    "otherUsersCanDiscoverTemplate": "Other users can discover and use this template",
+    "onlyYouCanAccessTemplate": "Only you can access this template",
+    "saveLocallyAndUpload": "Save Locally & Upload",
+    "bestOfBothWorlds": "Best of both worlds",
+    "signInToUploadTemplates": "Sign in to upload templates",
+    "shareTemplatesWithCommunity": "Share your templates with the community",
+    "failedToConvertLayerToTemplate": "Failed to convert layer to template",
+    "failedToSaveTemplateLocally": "Failed to save template locally",
+    "failedToUploadTemplateToServer": "Failed to upload template to server",
+    "errorCreatingTemplate": "Error creating template: {error}",
+    "@errorCreatingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "templateSavedLocally": "Template saved locally!",
+    "templateUploadedSuccessfully": "Template uploaded successfully!",
+    "templateSavedAndUploaded": "Template saved locally and uploaded!",
+    "templateSavedUploadFailed": "Template saved locally (upload failed)",
+    "templateUploadedLocalSaveFailed": "Template uploaded (local save failed)",
+    "templateCreationFailed": "Template creation failed",
+    "templateGallery": "Template Gallery",
+    "allTemplates": "All Templates",
+    "local": "Local",
+    "community": "Community",
+    "failedTemplateDetailsCached": "Failed to load template details. Using cached data.",
+    "errorLoadingTemplate": "Error loading template: {error}",
+    "@errorLoadingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "loadingTemplate": "Loading template...",
+    "deleteTemplate": "Delete Template",
+    "deleteTemplateQuestion": "Are you sure you want to delete \"{name}\"?",
+    "@deleteTemplateQuestion": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteLocalTemplateWarning": "This template will be permanently removed from your local storage.",
+    "deleteCloudTemplateWarning": "This template will be removed from the cloud and can't be recovered.",
+    "templateDeletedSuccessfully": "Template \"{name}\" deleted successfully",
+    "@templateDeletedSuccessfully": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToDeleteTemplate": "Failed to delete template \"{name}\"",
+    "@failedToDeleteTemplate": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "searchTemplates": "Search templates...",
+    "loadingTemplates": "Loading templates...",
+    "premiumTemplate": "Premium Template",
+    "templateAvailableInPro": "This template is available in the Pro version.",
+    "premiumTemplatesFeature": "• Premium templates",
+    "advancedEffectsToolsFeature": "• Advanced effects and tools",
+    "unlimitedProjectsFeature": "• Unlimited projects",
+    "cloudBackupFeature": "• Cloud backup",
+    "prioritySupportFeature": "• Priority support",
+    "noLocalTemplates": "No local templates found.\nCreate your first template from a layer!",
+    "noCommunityTemplates": "No community templates found.\nTry adjusting your search or filters.",
+    "noUploadedTemplates": "You haven't uploaded any templates yet.\nShare your creations with the community!",
+    "noTemplatesFoundAdjust": "No templates found.\nTry adjusting your search or filters.",
+    "showingTemplates": "Showing {displayed}{total, select, none {} other { of {total}}} templates",
+    "@showingTemplates": {
+        "placeholders": {
+            "displayed": {
+                "type": "int"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "clickTemplateToApply": "Click a template to apply it",
+    "pro": "PRO",
+    "pleaseEnterTemplateName": "Please enter a template name",
+    "signInToUploadTemplatesTitle": "Sign in to Upload Templates",
+    "signInToUploadTemplatesSubtitle": "Create an account to share your templates with the community.",
+    "myTemplates": "My Templates",
+    "cloud": "Cloud",
+    "tapToUnlock": "Tap to Unlock",
+    "layerTemplateDefaultName": "Layer Template",
+    "undoHistoryTitle": "History",
+    "undoHistoryStepCount": "({total} steps)",
+    "@undoHistoryStepCount": {
+        "placeholders": {
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "undoHistoryRevertAll": "Revert all",
+    "undoHistoryCurrentState": "Current state",
+    "undoHistoryFrameLayer": "Frame {frame}, Layer {layer}",
+    "@undoHistoryFrameLayer": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            },
+            "layer": {
+                "type": "int"
+            }
+        }
+    },
+    "keyboardShortcuts": "Keyboard Shortcuts",
+    "copySelection": "Copy selection",
+    "cutSelection": "Cut selection",
+    "paste": "Paste",
+    "duplicateLayer": "Duplicate layer",
+    "selection": "Selection",
+    "selectAll": "Select all",
+    "deselect": "Deselect",
+    "closePenPath": "Close pen path",
+    "tools": "Tools",
+    "pencil": "Pencil",
+    "eraser": "Eraser",
+    "eyedropper": "Eyedropper",
+    "fill": "Fill",
+    "selectMarquee": "Select / Marquee",
+    "moveDrag": "Move / Drag",
+    "pen": "Pen",
+    "sprayPaint": "Spray paint",
+    "panHold": "Pan (hold)",
+    "eyedropperHold": "Eyedropper (hold)",
+    "brush": "Brush",
+    "increaseSize": "Increase size",
+    "decreaseSize": "Decrease size",
+    "colors": "Colors",
+    "swapColors": "Swap colors",
+    "defaultColors": "Default colors",
+    "view": "View",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "zoomToFit": "Zoom to fit",
+    "zoomOneToOne": "Zoom 1:1",
+    "toggleUi": "Toggle UI",
+    "selectLayerOneToNine": "Select layer 1-9",
+    "newLayer": "New layer",
+    "deleteAccountCannotBeUndone": "This action cannot be undone",
+    "deleteAccountPermanentDataWarning": "Deleting your account will permanently remove all your data.",
+    "deleteAccountItemsIntro": "The following will be permanently deleted:",
+    "deleteAccountPreferencesTitle": "App Preferences",
+    "deleteAccountPreferencesSubtitle": "Settings and customizations",
+    "deleteAccountInfoTitle": "Account Information",
+    "deleteAccountInfoSubtitle": "Profile and authentication data",
+    "deleteAccountTypeConfirm": "Type \"DELETE\" to confirm:",
+    "deleteAccountTypeHint": "Type DELETE here...",
+    "deleteAccountIrreversibleImmediate": "This action is irreversible and will take effect immediately.",
+    "deleteAccountQuickConfirm": "Are you sure you want to permanently delete your account?",
+    "deleteAccountQuickWarningList": "• All your projects will be lost\n• Cloud backups will be deleted\n• This action cannot be undone",
+    "failedToDeleteAccount": "Failed to delete account: {error}",
+    "@failedToDeleteAccount": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "proAccessActive": "Pro Access Active",
+    "proAccessRemaining": "You have {time} of Pro access remaining.",
+    "@proAccessRemaining": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "buyPro": "Buy Pro",
+    "rewardUpgradeBullets": "• Unlimited access to all features\n• One-time purchase\n• No ads\n• Priority support",
+    "tryPro45Minutes": "Try Pro for 45 Minutes",
+    "rewardAdReadyBullets": "• Watch a short video ad\n• Get 45 minutes of Pro access\n• Support the app development",
+    "rewardAdLoadingBullets": "• Video ad is loading...\n• Please try again in a moment",
+    "watchAd": "Watch Ad",
+    "loadingEllipsis": "Loading...",
+    "loadingVideoAd": "Loading video ad...",
+    "proAccessGranted45": "Pro access granted for 45 minutes!",
+    "videoAdNotCompleted": "Video ad was not completed. Please try again or upgrade to Pro.",
+    "failedToLoadVideoAd": "Failed to load video ad: {error}",
+    "@failedToLoadVideoAd": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "rewardTimeZeroMinutes": "0 minutes",
+    "rewardTimeMinutesSeconds": "{minutes} min {seconds}s",
+    "@rewardTimeMinutesSeconds": {
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            },
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "rewardTimeSeconds": "{seconds}s",
+    "@rewardTimeSeconds": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "selectionOptions": "Selection Options",
+    "clearSelection": "Clear Selection",
+    "invertSelection": "Invert Selection",
+    "growSelectionOnePixel": "Grow (+1px)",
+    "shrinkSelectionOnePixel": "Shrink (-1px)",
+    "rotate90": "Rotate 90°",
+    "rotate180": "Rotate 180°",
+    "flipHorizontal": "Flip Horizontal",
+    "flipVertical": "Flip Vertical",
+    "cutToNewLayer": "Cut to New Layer",
+    "copyToNewLayer": "Copy to New Layer",
+    "cut": "Cut",
+    "copy": "Copy",
+    "clearArea": "Clear Area",
+    "replaceSelection": "Replace selection",
+    "addToSelectionShift": "Add to selection (Shift)",
+    "subtractFromSelectionAlt": "Subtract from selection (Alt)",
+    "textureBrush": "Texture Brush",
+    "triangle": "Triangle",
+    "diamond": "Diamond",
+    "hexagon": "Hexagon",
+    "heart": "Heart",
+    "arrow": "Arrow",
+    "lightning": "Lightning",
+    "cross": "Cross",
+    "spiral": "Spiral",
+    "cloudShape": "Cloud",
+    "rectangleSelect": "Rectangle Select",
+    "lasso": "Lasso",
+    "magicWand": "Magic Wand",
+    "effectsPanelAllAppliedMessage": "All effects applied to layer and removed from effects list",
+    "effectsForLayer": "Effects for {layerName}",
+    "@effectsForLayer": {
+        "placeholders": {
+            "layerName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelAddEffect": "Add Effect",
+    "appliedEffects": "Applied Effects",
+    "effectCount": "{count, plural, =0{0 effects} =1{1 effect} other{{count} effects}}",
+    "@effectCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsPreview": "Effects Preview",
+    "effectPreview": "Effect Preview",
+    "noEffectsApplied": "No effects applied",
+    "saveChanges": "Save Changes",
+    "finalResult": "Final Result",
+    "original": "Original",
+    "withEffect": "With Effect",
+    "withEffects": "With Effects",
+    "effectsAppliedCount": "{count, plural, =0{0 effects applied} =1{1 effect applied} other{{count} effects applied}}",
+    "@effectsAppliedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsAppliedInOrder": "Effects are applied in order",
+    "effectsReorderHint": "Effects are applied from top to bottom. Drag to reorder.",
+    "addYourFirstEffect": "Add your first effect",
+    "layerEffects": "Layer Effects",
+    "effectWatercolor": "Watercolor",
+    "effectHalftone": "Halftone",
+    "effectOilPaint": "Oil Paint",
+    "effectEmboss": "Emboss",
+    "ok": "OK",
+    "staticEffect": "Static Effect",
+    "effectNotAnimatedMessage": "The {effectName} effect is not an animated effect. Animation frame generation is only available for effects that support animation.",
+    "@effectNotAnimatedMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "generateAnimation": "Generate Animation",
+    "generateAnimationForEffect": "Generate animation frames for {effectName} effect?",
+    "@generateAnimationForEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetails": "Animation Details",
+    "animationDetailEffect": "• Effect: {effectName}",
+    "@animationDetailEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetailEstimatedFrames": "• Estimated frames: ~{count}",
+    "@animationDetailEstimatedFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "animationDetailProcessingTime": "• Processing time: ~{seconds} seconds",
+    "@animationDetailProcessingTime": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "generateAnimationTimelineNote": "This will create multiple animation frames that you can add to your timeline.",
+    "generateAnimationFrames": "Generate Animation Frames",
+    "effectNameLabel": "{effectName} Effect",
+    "@effectNameLabel": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "framesGeneratedCount": "{count, plural, =0{0 frames generated} =1{1 frame generated} other{{count} frames generated}}",
+    "@framesGeneratedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "generateFrames": "Generate Frames",
+    "stop": "Stop",
+    "frameLabel": "Frame:",
+    "generatingFrames": "Generating frames...",
+    "noFramesGenerated": "No frames generated",
+    "animationSettings": "Animation Settings",
+    "durationSeconds": "Duration (seconds)",
+    "fps": "FPS",
+    "totalFrames": "Total Frames:",
+    "pingPongAnimation": "Ping-Pong Animation",
+    "playForwardThenBackward": "Play forward then backward",
+    "frameGeneration": "Frame Generation",
+    "generateNewFrames": "Generate New Frames",
+    "createNewFramesForAnimation": "Create new frames for this animation",
+    "insertIntoTimeline": "Insert Into Timeline",
+    "addFramesToExistingTimeline": "Add frames to existing timeline",
+    "insertPosition": "Insert Position:",
+    "afterFrame": "After frame {frame}",
+    "@afterFrame": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            }
+        }
+    },
+    "effectParameters": "Effect Parameters",
+    "editParameters": "Edit Parameters",
+    "effectParametersBaseNote": "Current effect settings will be used as the base for animation",
+    "editBaseParameters": "Edit Base Parameters",
+    "applyAndRegenerate": "Apply & Regenerate",
+    "animationFrameGenerator": "Animation Frame Generator",
+    "animationGeneratorHelpIntro": "This tool generates multiple animation frames by applying the selected effect with different time parameters.\n",
+    "animationHelpDuration": "• Duration: Total length of the animation in seconds",
+    "animationHelpFps": "• FPS: Frames per second (higher = smoother but more frames)",
+    "animationHelpPingPong": "• Ping-Pong: Makes animation play forward then backward",
+    "animationHelpInterpolation": "• The effect parameters are interpolated over time to create smooth animations",
+    "tips": "Tips:",
+    "animationTipLowerFps": "• Start with lower FPS for testing",
+    "animationTipUsePreview": "• Use Preview to see the animation before generating",
+    "animationTipLongerDurations": "• Longer durations work better for slower effects",
+    "effectFrameName": "Effect Frame {index}",
+    "@effectFrameName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationName": "Effect Animation {index}",
+    "@effectAnimationName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationReturnName": "Effect Animation {index} (Return)",
+    "@effectAnimationReturnName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "generatedAnimationFrames": "Generated {count, plural, =0{0 animation frames} =1{1 animation frame} other{{count} animation frames}}!",
+    "@generatedAnimationFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "viewTimeline": "View Timeline",
+    "featureBullet": "• {feature}",
+    "@featureBullet": {
+        "placeholders": {
+            "feature": {
+                "type": "String"
+            }
+        }
+    },
+    "defaultLayerName": "Layer {index}",
+    "@defaultLayerName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "select": "Select",
+    "menu": "Menu",
+    "adjustOpacity": "Adjust Opacity",
+    "adjustLayerOpacity": "Adjust Layer Opacity",
+    "addToTemplate": "Add to Template",
+    "editLayer": "Edit Layer",
+    "layerName": "Layer Name",
+    "backgroundShort": "BG",
+    "reference": "Reference",
+    "reset": "Reset",
+    "fit": "Fit",
+    "removeBackgroundImage": "Remove background image",
+    "removeBackgroundImageMessage": "Are you sure you want to remove the background image?",
+    "themeSelector": "Theme Selector",
+    "unlockThemeTitle": "Unlock {themeName} Theme",
+    "@unlockThemeTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "watchAdToUnlockTheme": "Watch a video ad to unlock this theme.",
+    "themeUnlocked": "{themeName} theme unlocked!",
+    "@themeUnlocked": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "themeShowcaseTitle": "Theme: {themeName}",
+    "@themeShowcaseTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "primaryColors": "Primary Colors",
+    "primary": "Primary",
+    "primaryVariant": "Primary Variant",
+    "onPrimary": "On Primary",
+    "accent": "Accent",
+    "onAccent": "On Accent",
+    "backgroundColors": "Background Colors",
+    "background": "Background",
+    "surface": "Surface",
+    "surfaceVariant": "Surface Variant",
+    "textColors": "Text Colors",
+    "textPrimary": "Text Primary",
+    "textSecondary": "Text Secondary",
+    "textDisabled": "Text Disabled",
+    "utilityColors": "Utility Colors",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "uiElements": "UI Elements",
+    "elevated": "Elevated",
+    "filled": "Filled",
+    "outlined": "Outlined",
+    "text": "Text",
+    "inputField": "Input field",
+    "enterText": "Enter text",
+    "previewingTheme": "Previewing {themeName}",
+    "@previewingTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "currentTheme": "Current: {themeName}",
+    "@currentTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "unlockPremiumThemes": "Unlock Premium Themes",
+    "getAccessToAllThemesWithPro": "Get access to all themes with Pro",
+    "flagship": "Flagship",
+    "free": "Free",
+    "freeThemes": "Free Themes",
+    "premiumThemes": "Premium Themes",
+    "apply": "Apply",
+    "importedFileAsNewLayer": "Imported \"{fileName}\" as new layer",
+    "@importedFileAsNewLayer": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsepriteFile": "Import Aseprite File",
+    "howImportAsepriteFile": "How would you like to import \"{fileName}\"?",
+    "@howImportAsepriteFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedFirstLayerFromFile": "Imported first layer from \"{fileName}\"",
+    "@importedFirstLayerFromFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsLayer": "Import as Layer",
+    "openAsProject": "Open as Project",
+    "copyFrame": "Copy Frame",
+    "addFrame": "Add Frame",
+    "deleteFrame": "Delete Frame",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "addState": "Add State",
+    "copyState": "Copy State",
+    "addAnimationState": "Add Animation State",
+    "stateName": "State Name",
+    "columns": "Columns",
+    "tileModeTooltip": "Tile Mode - preview seamless tiling",
+    "settingsStylusMode": "Settings (Stylus Mode)",
+    "onionSkinTooltip": "Onion Skin (long-press to set opacity)",
+    "sprayPaintToolDescription": "Creates a spray effect with particles",
+    "lineToolDescription": "Draw straight lines between two points",
+    "circleToolDescription": "Draw perfect circles and ellipses",
+    "rectangleToolDescription": "Draw rectangles and squares",
+    "triangleToolDescription": "Draw triangular shapes",
+    "diamondToolDescription": "Draw diamond shapes",
+    "hexagonToolDescription": "Draw hexagonal shapes",
+    "heartToolDescription": "Draw heart shapes",
+    "arrowToolDescription": "Draw arrow shapes",
+    "lightningToolDescription": "Draw lightning bolt shapes",
+    "crossToolDescription": "Draw cross or plus shapes",
+    "spiralToolDescription": "Draw spiral shapes",
+    "cloudToolDescription": "Draw cloud shapes",
+    "penToolDescription": "Advanced freehand drawing tool",
+    "rectangleSelectToolDescription": "Select a rectangular area",
+    "ellipseSelectToolDescription": "Select an elliptical area",
+    "lassoToolDescription": "Freehand selection tool",
+    "magicWandToolDescription": "Select contiguous pixels by color",
+    "curve": "Curve",
+    "curveToolDescription": "Draw smooth curved lines",
+    "move": "Move",
+    "moveToolDescription": "Move and drag elements"
 }

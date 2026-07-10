@@ -180,14 +180,25 @@ class AnimationController extends _$AnimationController {
   // Private methods
   void _startAnimation() {
     _timer?.cancel();
+    _scheduleNextFrame();
+  }
 
-    final frameDelay = 1000 ~/ state.settings.fps;
-    _timer = Timer.periodic(Duration(milliseconds: frameDelay), (timer) {
+  // One-shot timer per frame (rather than Timer.periodic) so each frame is
+  // held for its own `duration`, matching AnimationPreview. settings.fps is
+  // only the fallback for frames without a usable duration.
+  void _scheduleNextFrame() {
+    if (state.frames.isEmpty) return;
+
+    final index = state.currentFrameIndex.clamp(0, state.frames.length - 1);
+    final duration = state.frames[index].duration;
+    final delay = duration > 0 ? duration : 1000 ~/ state.settings.fps;
+
+    _timer = Timer(Duration(milliseconds: delay), () {
       final nextIndex = _getNextFrameIndex();
       if (nextIndex != null) {
         state = state.copyWith(currentFrameIndex: nextIndex);
+        _scheduleNextFrame();
       } else {
-        timer.cancel();
         state = state.copyWith(isPlaying: false);
       }
     });

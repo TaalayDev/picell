@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/extensions/primitive_extensions.dart';
@@ -53,7 +52,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     });
 
     await Future.microtask(() {
-      final effect = EffectsManager.createEffect(widget.effect.type, _parameters);
+      final effect =
+          EffectsManager.createEffect(widget.effect.type, _parameters);
       _previewPixels = effect.apply(
         widget.layerPixels,
         widget.layerWidth,
@@ -83,7 +83,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+              color:
+                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -98,7 +99,10 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                     Expanded(
                       child: Text(
                         Strings.of(context).editEffect(effectName),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                         textAlign: TextAlign.center,
@@ -114,7 +118,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(widget.effect.getDescription(context)),
+                            content:
+                                Text(widget.effect.getDescription(context)),
                           ),
                         );
                       },
@@ -126,7 +131,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
 
                 // Content - Different layouts for mobile and desktop
                 Expanded(
-                  child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+                  child:
+                      isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
                 ),
 
                 // Action buttons
@@ -306,7 +312,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     return widgets;
   }
 
-  Widget _buildParameterFromMetadata(String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildParameterFromMetadata(
+      String key, dynamic value, Map<String, dynamic> metadata) {
     final label = metadata['label'] as String? ?? key.capitalize();
     final description = metadata['description'] as String? ?? '';
     final type = metadata['type'] as String? ?? 'slider';
@@ -327,7 +334,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
         parameterControl = _buildBooleanControl(key, value, metadata);
         break;
       default:
-        parameterControl = const SizedBox(); // _buildSliderControl(key, value, metadata);
+        parameterControl =
+            const SizedBox(); // _buildSliderControl(key, value, metadata);
     }
 
     return Card(
@@ -343,14 +351,19 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
               if (type != 'bool') // Boolean already shows its value
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -370,7 +383,10 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
               description,
               style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -381,7 +397,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     );
   }
 
-  Widget _buildSliderControl(String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildSliderControl(
+      String key, dynamic value, Map<String, dynamic> metadata) {
     final min = (metadata['min'] as num?)?.toDouble() ?? 0.0;
     final max = (metadata['max'] as num?)?.toDouble() ?? 1.0;
     final divisions = metadata['divisions'] as int?;
@@ -425,7 +442,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     );
   }
 
-  Widget _buildColorControl(String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildColorControl(
+      String key, dynamic value, Map<String, dynamic> metadata) {
     final color = Color(value as int);
 
     return Row(
@@ -455,7 +473,9 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                 child: Text(
                   Strings.of(context).tapToChange,
                   style: TextStyle(
-                    color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                    color: color.computeLuminance() > 0.5
+                        ? Colors.black
+                        : Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -479,7 +499,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     );
   }
 
-  Widget _buildSelectControl(String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildSelectControl(
+      String key, dynamic value, Map<String, dynamic> metadata) {
     final options = () {
       if (metadata['options'] is List) {
         final list = metadata['options'] as List;
@@ -497,7 +518,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
       items: options.entries.map((entry) {
         return DropdownMenuItem<dynamic>(
           value: entry.key,
-          child: Text(entry.value, style: Theme.of(context).textTheme.bodyMedium),
+          child:
+              Text(entry.value, style: Theme.of(context).textTheme.bodyMedium),
         );
       }).toList(),
       onChanged: (newValue) {
@@ -511,7 +533,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     );
   }
 
-  Widget _buildBooleanControl(String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildBooleanControl(
+      String key, dynamic value, Map<String, dynamic> metadata) {
     return SwitchListTile(
       title: Text(Strings.of(context).enable),
       value: value as bool,
@@ -609,7 +632,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     return const SizedBox.shrink();
   }
 
-  Widget _buildLegacySelector(String paramName, EffectType type, dynamic value) {
+  Widget _buildLegacySelector(
+      String paramName, EffectType type, dynamic value) {
     return switch (paramName) {
       'startColor' || 'endColor' => InkWell(
           onTap: () {
@@ -754,7 +778,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
 
   // Legacy fallback methods
   double _getMinValue(String paramName, EffectType type) {
-    if (paramName == 'value' && (type == EffectType.brightness || type == EffectType.contrast)) {
+    if (paramName == 'value' &&
+        (type == EffectType.brightness || type == EffectType.contrast)) {
       return -1.0;
     } else if (paramName == 'colors' && type == EffectType.paletteReduction) {
       return 2.0;
@@ -801,7 +826,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
 
   void _applyChanges() {
     // Create a new effect with updated parameters
-    final updatedEffect = EffectsManager.createEffect(widget.effect.type, _parameters);
+    final updatedEffect =
+        EffectsManager.createEffect(widget.effect.type, _parameters);
 
     widget.onEffectUpdated(updatedEffect);
     Navigator.of(context).pop();

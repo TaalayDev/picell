@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../../data/models/project_api_models.dart';
+import '../../../l10n/strings.dart';
 import '../../../providers/project_download_provider.dart';
 import '../../screens/pixel_canvas_screen.dart';
 
@@ -35,7 +36,7 @@ class ProjectDownloadDialog extends HookConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Downloading Project',
+              Strings.of(context).downloadingProject,
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
@@ -100,7 +101,7 @@ class ProjectDownloadDialog extends HookConsumerWidget {
             // Progress or result
             if (downloadState.isDownloading) ...[
               Text(
-                'Downloading project data...',
+                Strings.of(context).downloadingProjectData,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),
@@ -134,16 +135,16 @@ class ProjectDownloadDialog extends HookConsumerWidget {
                       size: 32,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Download Complete!',
-                      style: TextStyle(
+                    Text(
+                      Strings.of(context).downloadComplete,
+                      style: const TextStyle(
                         color: Colors.green,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Project saved to your local projects',
+                      Strings.of(context).projectSavedLocal,
                       style: TextStyle(
                         color: Colors.green.shade700,
                         fontSize: 12,
@@ -164,13 +165,13 @@ class ProjectDownloadDialog extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Feather.alert_circle, color: Colors.red, size: 20),
-                        SizedBox(width: 8),
+                        const Icon(Feather.alert_circle, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
                         Text(
-                          'Download Failed',
-                          style: TextStyle(
+                          Strings.of(context).downloadFailed,
+                          style: const TextStyle(
                             color: Colors.red,
                             fontWeight: FontWeight.bold,
                           ),
@@ -198,14 +199,14 @@ class ProjectDownloadDialog extends HookConsumerWidget {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
         ] else if (downloadState.isSuccess) ...[
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: const Text('Close'),
+            child: Text(Strings.of(context).close),
           ),
           ElevatedButton.icon(
             onPressed: () {
@@ -222,21 +223,21 @@ class ProjectDownloadDialog extends HookConsumerWidget {
               }
             },
             icon: const Icon(Feather.edit),
-            label: const Text('Open Project'),
+            label: Text(Strings.of(context).openProject),
           ),
         ] else if (downloadState.error != null) ...[
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: const Text('Close'),
+            child: Text(Strings.of(context).close),
           ),
           ElevatedButton.icon(
             onPressed: () {
               ref.read(projectDownloadProvider.notifier).downloadProject(project);
             },
             icon: const Icon(Feather.refresh_cw),
-            label: const Text('Retry'),
+            label: Text(Strings.of(context).tryAgain),
           ),
         ],
       ],

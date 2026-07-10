@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data.dart';
 import '../../data/models/project_api_models.dart';
 import '../../data/models/subscription_model.dart';
+import '../../l10n/strings.dart';
 import '../../providers/ad/reward_video_ad_controller.dart';
 import '../../providers/projects_provider.dart';
 import '../../providers/subscription_provider.dart';
@@ -42,181 +43,195 @@ class CommunityProjectCard extends ConsumerWidget {
 
     final isAdloaded = ref.watch(rewardVideoAdProvider);
 
-    // print(project.thumbnailUrl);
+    final g = theme.geometry;
+    final canDownload =
+        subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup);
 
     return Card(
-      elevation: isFeatured ? 8 : 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: isFeatured ? g.cardElevation + 2 : g.cardElevation,
+      shadowColor: g.shadowColor,
+      color: theme.surface,
+      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(g.cardRadius),
+        side: g.cardBorderWidth > 0
+            ? BorderSide(
+                color: isFeatured
+                    ? theme.warning.withValues(alpha: 0.6)
+                    : theme.divider,
+                width: g.cardBorderWidth,
+              )
+            : BorderSide.none,
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Thumbnail ──────────────────────────────────────────────
             AspectRatio(
               aspectRatio: project.width / project.height,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CustomPaint(
-                      painter: CheckerboardPainter(
-                        cellSize: 8,
-                        color1: Colors.grey.shade100,
-                        color2: Colors.grey.shade50,
-                      ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CustomPaint(
+                    painter: CheckerboardPainter(
+                      cellSize: 8,
+                      color1: theme.surfaceVariant.withValues(alpha: 0.6),
+                      color2: theme.surfaceVariant.withValues(alpha: 0.25),
                     ),
-                    CachedNetworkImage(
-                      imageUrl: project.thumbnailUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Center(
+                  ),
+                  CachedNetworkImage(
+                    imageUrl: project.thumbnailUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
                         child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
                           color: theme.primaryColor,
                         ),
                       ),
-                      errorWidget: (context, url, error) => Icon(
-                        Icons.error,
-                        color: theme.error,
-                      ),
                     ),
-                    if (isFeatured)
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: theme.warning,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.star, size: 12, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text(
-                                'Featured',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Project info
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    errorWidget: (context, url, error) => Icon(
+                      Icons.broken_image_outlined,
+                      color: theme.textSecondary,
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  if (project.username != null)
-                    InkWell(
-                      onTap: () => onUserTap?.call(project.username!),
-                      child: Text(
-                        'by ${project.displayName ?? project.username}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: theme.primaryColor,
-                              fontWeight: FontWeight.w500,
+                  if (isFeatured)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: _ImageChip(
+                        color: theme.warning,
+                        radius: g.chipRadius,
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.star, size: 11, color: Colors.white),
+                            SizedBox(width: 3),
+                            Text(
+                              'Featured',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
+                          ],
+                        ),
                       ),
                     ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.grid_3x3, size: 12, color: theme.textSecondary),
-                      const SizedBox(width: 4),
-                      Text(
+                  Positioned(
+                    bottom: 8,
+                    left: 8,
+                    child: _ImageChip(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      radius: g.chipRadius,
+                      child: Text(
                         '${project.width}×${project.height}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: theme.textSecondary,
-                            ),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      const Spacer(),
-                      Icon(Icons.visibility, size: 12, color: theme.textSecondary),
-                      const SizedBox(width: 4),
-                      Text(
-                        _formatCount(project.viewCount),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: theme.textSecondary,
-                            ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
 
-            // Action buttons
+            // ── Info ───────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              padding: g.cardPadding.copyWith(bottom: 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Like button
-                  IconButton(
-                    icon: Icon(
-                      project.isLiked == true ? Icons.favorite : Icons.favorite_border,
-                      color: project.isLiked == true ? Colors.red : theme.activeIcon,
-                      size: 20,
-                    ),
-                    onPressed: () => onLike?.call(project),
-                    tooltip: 'Like',
+                  Text(
+                    project.title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.textPrimary,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-
-                  // Download button
-                  if (isDownloaded) ...[
-                    // Show "Open Local" button for downloaded projects
-                    IconButton(
-                      icon: Icon(
-                        Feather.folder,
-                        size: 20,
-                        color: theme.success,
+                  if (project.username != null) ...[
+                    const SizedBox(height: 2),
+                    InkWell(
+                      onTap: () => onUserTap?.call(project.username!),
+                      borderRadius: BorderRadius.circular(4),
+                      child: Text(
+                        Strings.of(context).byUserInline(
+                            project.displayName ?? project.username ?? ''),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: theme.primaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      onPressed: () => _openLocalProject(context, ref, localProject),
-                      tooltip: 'Open Local Project',
-                    ),
-                  ] else ...[
-                    // Show download button for non-downloaded projects
-                    IconButton(
-                      icon: const Icon(
-                        Icons.download,
-                        size: 20,
-                        // color: subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup)
-                        //     ? theme.activeIcon
-                        //     : theme.textDisabled,
-                      ),
-                      onPressed: subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup)
-                          ? () => _downloadProject(context, ref, subscription)
-                          : () => _showSubscriptionRequired(context, project, isAdloaded),
-                      tooltip: subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup)
-                          ? 'Download'
-                          : 'Premium Required',
                     ),
                   ],
+                ],
+              ),
+            ),
 
-                  // Share button
-                  IconButton(
-                    icon: Icon(Icons.share, size: 20, color: theme.activeIcon),
-                    onPressed: () => _shareProject(),
-                    tooltip: 'Share',
+            // ── Stats + actions ────────────────────────────────────────
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                  g.cardPadding.left, 6, g.cardPadding.right - 4, 4),
+              child: Row(
+                children: [
+                  _StatAction(
+                    icon: project.isLiked == true
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                    color: project.isLiked == true
+                        ? theme.error
+                        : theme.textSecondary,
+                    label: _formatCount(project.likeCount),
+                    labelColor: theme.textSecondary,
+                    tooltip: Strings.of(context).like,
+                    onTap: () => onLike?.call(project),
+                  ),
+                  const SizedBox(width: 10),
+                  _StatAction(
+                    icon: Icons.visibility_outlined,
+                    color: theme.textSecondary,
+                    label: _formatCount(project.viewCount),
+                    labelColor: theme.textSecondary,
+                  ),
+                  const Spacer(),
+                  if (isDownloaded)
+                    _StatAction(
+                      icon: Feather.folder,
+                      color: theme.success,
+                      tooltip: Strings.of(context).openLocalProject,
+                      onTap: () =>
+                          _openLocalProject(context, ref, localProject),
+                    )
+                  else
+                    _StatAction(
+                      icon: Icons.download_outlined,
+                      color: theme.activeIcon,
+                      tooltip: canDownload
+                          ? Strings.of(context).download
+                          : Strings.of(context).premiumRequired,
+                      onTap: canDownload
+                          ? () => _downloadProject(context, ref, subscription)
+                          : () => _showSubscriptionRequired(
+                              context, project, isAdloaded),
+                    ),
+                  const SizedBox(width: 4),
+                  _StatAction(
+                    icon: Icons.share_outlined,
+                    color: theme.activeIcon,
+                    tooltip: Strings.of(context).share,
+                    onTap: _shareProject,
                   ),
                 ],
               ),
@@ -227,12 +242,13 @@ class CommunityProjectCard extends ConsumerWidget {
     );
   }
 
-  void _downloadProject(BuildContext context, WidgetRef ref, UserSubscription subscription) {
+  void _downloadProject(
+      BuildContext context, WidgetRef ref, UserSubscription subscription) {
     // Check subscription access
     if (!subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup)) {
       showTopFlushbar(
         context,
-        message: const Text('Premium subscription required to download projects'),
+        message: Text(Strings.of(context).premiumRequiredToDownloadProjects),
         color: Colors.orange,
         duration: const Duration(seconds: 3),
       );
@@ -254,8 +270,8 @@ class CommunityProjectCard extends ConsumerWidget {
   ) async {
     if (localProject == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Local project not found'),
+        SnackBar(
+          content: Text(Strings.of(context).localProjectNotFound),
           backgroundColor: Colors.red,
         ),
       );
@@ -263,9 +279,11 @@ class CommunityProjectCard extends ConsumerWidget {
     }
 
     Project? projectToOpen = localProject;
-    final hasCanvasData = localProject.frames.isNotEmpty && localProject.frames.first.layers.isNotEmpty;
+    final hasCanvasData = localProject.frames.isNotEmpty &&
+        localProject.frames.first.layers.isNotEmpty;
     if (!hasCanvasData) {
-      projectToOpen = await ref.read(projectsProvider.notifier).getProject(localProject.id);
+      projectToOpen =
+          await ref.read(projectsProvider.notifier).getProject(localProject.id);
     }
 
     if (!context.mounted || projectToOpen == null) {
@@ -279,16 +297,17 @@ class CommunityProjectCard extends ConsumerWidget {
     );
   }
 
-  void _showSubscriptionRequired(BuildContext context, ApiProject project, bool isAdLoaded) {
+  void _showSubscriptionRequired(
+      BuildContext context, ApiProject project, bool isAdLoaded) {
     if (isAdLoaded) {
       _showRewardDialog(context, project);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Premium subscription required to download projects'),
+          content: Text(Strings.of(context).premiumRequiredToDownloadProjects),
           duration: const Duration(seconds: 3),
           action: SnackBarAction(
-            label: 'Upgrade',
+            label: Strings.of(context).upgrade,
             onPressed: () {
               // Navigate to subscription screen
               Navigator.of(context).push(
@@ -306,13 +325,13 @@ class CommunityProjectCard extends ConsumerWidget {
   void _showRewardDialog(BuildContext context, ApiProject currentProject) {
     RewardDialog.show(
       context,
-      title: 'Download Project',
-      subtitle: 'To download this project, you can either:',
+      title: Strings.of(context).downloadProject,
+      subtitle: Strings.of(context).downloadProjectRewardSubtitle,
       onRewardEarned: () async {
         // User successfully watched the video, allow download
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Thank you for watching! Your download is starting...'),
+          SnackBar(
+            content: Text(Strings.of(context).thankYouWatchingDownloadStarting),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
           ),
@@ -343,6 +362,91 @@ class CommunityProjectCard extends ConsumerWidget {
       return '${(count / 1000).toStringAsFixed(1)}K';
     }
     return count.toString();
+  }
+}
+
+/// Small translucent pill overlaid on the thumbnail (featured badge,
+/// canvas-size tag). Radius follows the theme's chip radius.
+class _ImageChip extends StatelessWidget {
+  const _ImageChip({
+    required this.color,
+    required this.radius,
+    required this.child,
+  });
+
+  final Color color;
+  final double radius;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Compact icon (+ optional count label) used in the card footer. Much
+/// tighter than a stock IconButton so likes/views/download/share fit on
+/// one row even at narrow card widths.
+class _StatAction extends StatelessWidget {
+  const _StatAction({
+    required this.icon,
+    required this.color,
+    this.label,
+    this.labelColor,
+    this.tooltip,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String? label;
+  final Color? labelColor;
+  final String? tooltip;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 17, color: color),
+          if (label != null) ...[
+            const SizedBox(width: 3),
+            Text(
+              label!,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: labelColor ?? color,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (onTap != null) {
+      content = InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: content,
+      );
+    }
+
+    if (tooltip != null) {
+      content = Tooltip(message: tooltip!, child: content);
+    }
+
+    return content;
   }
 }
 

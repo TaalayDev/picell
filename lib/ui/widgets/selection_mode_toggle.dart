@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/selection_region.dart';
+import '../../l10n/strings.dart';
 
 /// Segmented replace / add / subtract toggle for selection tools. The
 /// active-mode highlight doubles as the mode indicator; Shift/Alt override
@@ -12,6 +13,7 @@ class SelectionModeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final accentColor = colorScheme.primary;
 
@@ -24,7 +26,8 @@ class SelectionModeToggle extends StatelessWidget {
           decoration: BoxDecoration(
             color: accentColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: accentColor.withValues(alpha: 0.25), width: 1),
+            border: Border.all(
+                color: accentColor.withValues(alpha: 0.25), width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -33,21 +36,21 @@ class SelectionModeToggle extends StatelessWidget {
                 context,
                 selected: current == SelectionMode.replace,
                 icon: Icons.crop_square,
-                tooltip: 'Replace selection',
+                tooltip: s.replaceSelection,
                 onTap: () => mode.value = SelectionMode.replace,
               ),
               _segment(
                 context,
                 selected: current == SelectionMode.add,
                 icon: Icons.add_box_outlined,
-                tooltip: 'Add to selection (Shift)',
+                tooltip: s.addToSelectionShift,
                 onTap: () => mode.value = SelectionMode.add,
               ),
               _segment(
                 context,
                 selected: current == SelectionMode.subtract,
                 icon: Icons.indeterminate_check_box_outlined,
-                tooltip: 'Subtract from selection (Alt)',
+                tooltip: s.subtractFromSelectionAlt,
                 onTap: () => mode.value = SelectionMode.subtract,
               ),
             ],
@@ -68,7 +71,8 @@ class SelectionModeToggle extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: selected ? accentColor.withValues(alpha: 0.35) : Colors.transparent,
+        color:
+            selected ? accentColor.withValues(alpha: 0.35) : Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),

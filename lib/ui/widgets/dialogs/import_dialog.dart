@@ -91,12 +91,9 @@ class _ImportDialogState extends State<ImportDialog> {
                         dithering: _dithering,
                         alphaThreshold: _alphaThreshold,
                         paletteSizes: _paletteSizes,
-                        onPaletteChanged: (v) =>
-                            setState(() => _paletteSize = v),
-                        onDitheringChanged: (v) =>
-                            setState(() => _dithering = v),
-                        onAlphaChanged: (v) =>
-                            setState(() => _alphaThreshold = v),
+                        onPaletteChanged: (v) => setState(() => _paletteSize = v),
+                        onDitheringChanged: (v) => setState(() => _dithering = v),
+                        onAlphaChanged: (v) => setState(() => _alphaThreshold = v),
                       ),
               ),
             ],
@@ -187,26 +184,20 @@ class _ModeCard extends StatelessWidget {
             width: selected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(10),
-          color: selected
-              ? colorScheme.primaryContainer.withValues(alpha: 0.25)
-              : colorScheme.surface,
+          color: selected ? colorScheme.primaryContainer.withValues(alpha: 0.25) : colorScheme.surface,
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: selected
-                    ? colorScheme.primaryContainer
-                    : colorScheme.surfaceContainerHighest,
+                color: selected ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
                 size: 24,
-                color: selected
-                    ? colorScheme.onPrimaryContainer
-                    : colorScheme.onSurfaceVariant,
+                color: selected ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(width: 14),
@@ -218,9 +209,7 @@ class _ModeCard extends StatelessWidget {
                     title,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: selected
-                          ? colorScheme.primary
-                          : colorScheme.onSurface,
+                      color: selected ? colorScheme.primary : colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -233,8 +222,7 @@ class _ModeCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (selected)
-              Icon(Icons.check_circle, color: colorScheme.primary, size: 20),
+            if (selected) Icon(Icons.check_circle, color: colorScheme.primary, size: 20),
           ],
         ),
       ),
@@ -360,11 +348,8 @@ class _PalettePicker extends StatelessWidget {
             onSelected: (_) => onChanged(size),
             selectedColor: colorScheme.primaryContainer,
             labelStyle: TextStyle(
-              color: selected == size
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onSurface,
-              fontWeight:
-                  selected == size ? FontWeight.bold : FontWeight.normal,
+              color: selected == size ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+              fontWeight: selected == size ? FontWeight.bold : FontWeight.normal,
             ),
           ),
       ],
@@ -406,12 +391,8 @@ class _DitheringPicker extends StatelessWidget {
             onSelected: (_) => onChanged(entry.key),
             selectedColor: colorScheme.primaryContainer,
             labelStyle: TextStyle(
-              color: selected == entry.key
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onSurface,
-              fontWeight: selected == entry.key
-                  ? FontWeight.bold
-                  : FontWeight.normal,
+              color: selected == entry.key ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+              fontWeight: selected == entry.key ? FontWeight.bold : FontWeight.normal,
             ),
           ),
       ],

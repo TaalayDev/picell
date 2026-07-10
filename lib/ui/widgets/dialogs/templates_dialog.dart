@@ -7,6 +7,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import '../../../core.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../data/models/template.dart';
+import '../../../l10n/strings.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../../providers/template_provider.dart';
@@ -154,8 +155,8 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
         // If fetch failed, show error and use existing template data as fallback
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to load template details. Using cached data.'),
+            SnackBar(
+              content: Text(Strings.of(context).failedTemplateDetailsCached),
               backgroundColor: Colors.orange,
             ),
           );
@@ -168,7 +169,7 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error loading template: $e'),
+            content: Text(Strings.of(context).errorLoadingTemplate(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -259,18 +260,18 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
 
         // Loading overlay for template fetching
         if (_isLoadingTemplate)
-          Container(
+          ColoredBox(
             color: Colors.black54,
-            child: const Center(
+            child: Center(
               child: Card(
                 child: Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading template...'),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(Strings.of(context).loadingTemplate),
                     ],
                   ),
                 ),
@@ -285,34 +286,34 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Template'),
+        title: Text(Strings.of(context).deleteTemplate),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Are you sure you want to delete "${template.name}"?'),
+            Text(Strings.of(context).deleteTemplateQuestion(template.name)),
             const SizedBox(height: 8),
             if (template.isLocal)
-              const Text(
-                'This template will be permanently removed from your local storage.',
-                style: TextStyle(fontSize: 12, color: Colors.orange),
+              Text(
+                Strings.of(context).deleteLocalTemplateWarning,
+                style: const TextStyle(fontSize: 12, color: Colors.orange),
               )
             else
-              const Text(
-                'This template will be removed from the cloud and can\'t be recovered.',
-                style: TextStyle(fontSize: 12, color: Colors.red),
+              Text(
+                Strings.of(context).deleteCloudTemplateWarning,
+                style: const TextStyle(fontSize: 12, color: Colors.red),
               ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(Strings.of(context).delete),
           ),
         ],
       ),
@@ -337,8 +338,8 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(success
-              ? 'Template "${template.name}" deleted successfully'
-              : 'Failed to delete template "${template.name}"'),
+              ? Strings.of(context).templateDeletedSuccessfully(template.name)
+              : Strings.of(context).failedToDeleteTemplate(template.name)),
           backgroundColor: success ? Colors.green : Colors.red,
         ),
       );
@@ -372,7 +373,7 @@ class _HeaderWidget extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            'Template Gallery',
+            Strings.of(context).templateGallery,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
@@ -410,7 +411,7 @@ class _TabBarWidget extends StatelessWidget {
       child: Row(
         children: [
           _TabButton(
-            title: 'All Templates',
+            title: Strings.of(context).allTemplates,
             tab: TemplateTab.all,
             currentTab: currentTab,
             icon: Feather.grid,
@@ -418,7 +419,7 @@ class _TabBarWidget extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           _TabButton(
-            title: 'Local',
+            title: Strings.of(context).local,
             tab: TemplateTab.local,
             currentTab: currentTab,
             icon: Feather.hard_drive,
@@ -426,7 +427,7 @@ class _TabBarWidget extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           _TabButton(
-            title: 'Community',
+            title: Strings.of(context).community,
             tab: TemplateTab.community,
             currentTab: currentTab,
             icon: Feather.cloud,
@@ -435,7 +436,7 @@ class _TabBarWidget extends StatelessWidget {
           if (isSignedIn) ...[
             const SizedBox(width: 12),
             _TabButton(
-              title: 'My Templates',
+              title: Strings.of(context).myTemplates,
               tab: TemplateTab.mine,
               currentTab: currentTab,
               icon: Feather.user,
@@ -538,7 +539,7 @@ class _SearchAndFiltersWidget extends StatelessWidget {
             controller: searchController,
             onChanged: (_) => onChanged(),
             decoration: InputDecoration(
-              hintText: 'Search templates...',
+              hintText: Strings.of(context).searchTemplates,
               prefixIcon: const Icon(Icons.search),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(
@@ -566,7 +567,7 @@ class _SearchAndFiltersWidget extends StatelessWidget {
               child: Row(
                 children: [
                   _CategoryChip(
-                    label: 'All',
+                    label: Strings.of(context).all,
                     isSelected: selectedCategory == 'All',
                     onTap: () {
                       onCategoryChanged('All');
@@ -661,13 +662,13 @@ class _ContentWidget extends StatelessWidget {
     final isSmallScreen = MediaQuery.sizeOf(context).width < 600;
 
     if (isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Loading templates...'),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(Strings.of(context).loadingTemplates),
           ],
         ),
       );
@@ -694,7 +695,7 @@ class _ContentWidget extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: onRetry,
-              child: const Text('Retry'),
+              child: Text(Strings.of(context).tryAgain),
             ),
           ],
         ),
@@ -713,7 +714,7 @@ class _ContentWidget extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              _getEmptyStateMessage(currentTab),
+              _getEmptyStateMessage(context, currentTab),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -774,38 +775,39 @@ class _ContentWidget extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.star, color: Colors.amber),
-            SizedBox(width: 8),
-            Text('Premium Template', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber)),
+            const Icon(Icons.star, color: Colors.amber),
+            const SizedBox(width: 8),
+            Text(Strings.of(context).premiumTemplate,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber)),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'This template is available in the Pro version.',
-              style: TextStyle(fontSize: 16),
+              Strings.of(context).templateAvailableInPro,
+              style: const TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'Pro features include:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              Strings.of(context).proFeaturesInclude,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
-            Text('• Premium templates'),
-            Text('• Advanced effects and tools'),
-            Text('• Unlimited projects'),
-            Text('• Cloud backup'),
-            Text('• Priority support'),
+            const SizedBox(height: 8),
+            Text(Strings.of(context).premiumTemplatesFeature),
+            Text(Strings.of(context).advancedEffectsToolsFeature),
+            Text(Strings.of(context).unlimitedProjectsFeature),
+            Text(Strings.of(context).cloudBackupFeature),
+            Text(Strings.of(context).prioritySupportFeature),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Maybe Later'),
+            child: Text(Strings.of(context).maybeLater),
           ),
           FilledButton.icon(
             onPressed: () {
@@ -817,7 +819,7 @@ class _ContentWidget extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.upgrade),
-            label: const Text('Upgrade to Pro'),
+            label: Text(Strings.of(context).upgradeToPro),
           ),
         ],
       ),
@@ -837,16 +839,17 @@ class _ContentWidget extends StatelessWidget {
     }
   }
 
-  String _getEmptyStateMessage(TemplateTab tab) {
+  String _getEmptyStateMessage(BuildContext context, TemplateTab tab) {
+    final s = Strings.of(context);
     switch (tab) {
       case TemplateTab.local:
-        return 'No local templates found.\nCreate your first template from a layer!';
+        return s.noLocalTemplates;
       case TemplateTab.community:
-        return 'No community templates found.\nTry adjusting your search or filters.';
+        return s.noCommunityTemplates;
       case TemplateTab.mine:
-        return 'You haven\'t uploaded any templates yet.\nShare your creations with the community!';
+        return s.noUploadedTemplates;
       case TemplateTab.all:
-        return 'No templates found.\nTry adjusting your search or filters.';
+        return s.noTemplatesFoundAdjust;
     }
   }
 
@@ -911,7 +914,7 @@ class _FooterWidget extends StatelessWidget {
         children: [
           if (!isSmallScreen)
             Text(
-              'Showing $displayedCount${totalCount > 0 ? ' of $totalCount' : ''} templates',
+              Strings.of(context).showingTemplates(displayedCount, totalCount > 0 ? '$totalCount' : 'none'),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
@@ -925,7 +928,7 @@ class _FooterWidget extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                'Click a template to apply it',
+                Strings.of(context).clickTemplateToApply,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
@@ -1040,14 +1043,14 @@ class _TemplateCardState extends State<_TemplateCard> {
                               color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.lock, size: 12, color: Colors.white),
-                                SizedBox(width: 4),
+                                const Icon(Icons.lock, size: 12, color: Colors.white),
+                                const SizedBox(width: 4),
                                 Text(
-                                  'PRO',
-                                  style: TextStyle(
+                                  Strings.of(context).pro,
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
@@ -1071,14 +1074,14 @@ class _TemplateCardState extends State<_TemplateCard> {
                                 color: Colors.green.withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Feather.hard_drive, size: 10, color: Colors.white),
-                                  SizedBox(width: 2),
+                                  const Icon(Feather.hard_drive, size: 10, color: Colors.white),
+                                  const SizedBox(width: 2),
                                   Text(
-                                    'Local',
-                                    style: TextStyle(
+                                    Strings.of(context).local,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 8,
                                       fontWeight: FontWeight.w500,
@@ -1098,14 +1101,14 @@ class _TemplateCardState extends State<_TemplateCard> {
                                 color: Colors.blue.withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Feather.cloud, size: 10, color: Colors.white),
-                                  SizedBox(width: 2),
+                                  const Icon(Feather.cloud, size: 10, color: Colors.white),
+                                  const SizedBox(width: 2),
                                   Text(
-                                    'Cloud',
-                                    style: TextStyle(
+                                    Strings.of(context).cloud,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 8,
                                       fontWeight: FontWeight.w500,
@@ -1130,14 +1133,14 @@ class _TemplateCardState extends State<_TemplateCard> {
                               ),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.star, size: 10, color: Colors.white),
-                                SizedBox(width: 2),
+                                const Icon(Icons.star, size: 10, color: Colors.white),
+                                const SizedBox(width: 2),
                                 Text(
-                                  'PRO',
-                                  style: TextStyle(
+                                  Strings.of(context).pro,
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 8,
                                     fontWeight: FontWeight.bold,
@@ -1251,7 +1254,7 @@ class _TemplateCardState extends State<_TemplateCard> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Tap to Unlock',
+                      Strings.of(context).tapToUnlock,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.primary,
                             fontSize: 10,

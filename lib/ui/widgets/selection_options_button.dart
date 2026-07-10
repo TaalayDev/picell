@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/strings.dart';
+
 /// A button that shows selection options when a selection is active
 class SelectionOptionsButton extends StatelessWidget {
   final bool hasSelection;
@@ -71,13 +73,13 @@ class SelectionOptionsButton extends StatelessWidget {
           // Simple deselect button
           IconButton(
             icon: const Icon(Icons.close, color: Colors.red),
-            tooltip: 'Deselect',
+            tooltip: Strings.of(context).deselect,
             onPressed: onClearSelection,
           ),
           // Options menu
           PopupMenuButton<String>(
             icon: const Icon(Icons.select_all, color: Colors.blue),
-            tooltip: 'Selection Options',
+            tooltip: Strings.of(context).selectionOptions,
             onSelected: (value) => _handleMenuSelection(value),
             itemBuilder: (BuildContext context) => _buildMenuItems(context),
           ),
@@ -96,7 +98,7 @@ class SelectionOptionsButton extends StatelessWidget {
             Icons.close,
             color: Theme.of(context).colorScheme.error,
           ),
-          tooltip: 'Deselect',
+          tooltip: Strings.of(context).deselect,
           onPressed: onClearSelection,
         ),
         // Options menu
@@ -105,7 +107,7 @@ class SelectionOptionsButton extends StatelessWidget {
             Icons.select_all,
             color: Theme.of(context).colorScheme.primary,
           ),
-          tooltip: 'Selection Options',
+          tooltip: Strings.of(context).selectionOptions,
           onSelected: (value) => _handleMenuSelection(value),
           itemBuilder: (BuildContext context) => _buildMenuItems(context),
         ),
@@ -114,157 +116,159 @@ class SelectionOptionsButton extends StatelessWidget {
   }
 
   List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context) {
+    final s = Strings.of(context);
+
     return [
-      const PopupMenuItem<String>(
+      PopupMenuItem<String>(
         value: 'clear',
         child: Row(
           children: [
-            Icon(Icons.clear, size: 20),
-            SizedBox(width: 8),
-            Text('Clear Selection'),
+            const Icon(Icons.clear, size: 20),
+            const SizedBox(width: 8),
+            Text(s.clearSelection),
           ],
         ),
       ),
       if (onInvert != null)
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'invert',
           child: Row(
             children: [
-              Icon(Icons.flip_to_back, size: 20),
-              SizedBox(width: 8),
-              Text('Invert Selection'),
+              const Icon(Icons.flip_to_back, size: 20),
+              const SizedBox(width: 8),
+              Text(s.invertSelection),
             ],
           ),
         ),
       if (onGrow != null)
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'grow',
           child: Row(
             children: [
-              Icon(Icons.open_in_full, size: 20),
-              SizedBox(width: 8),
-              Text('Grow (+1px)'),
+              const Icon(Icons.open_in_full, size: 20),
+              const SizedBox(width: 8),
+              Text(s.growSelectionOnePixel),
             ],
           ),
         ),
       if (onShrink != null)
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'shrink',
           child: Row(
             children: [
-              Icon(Icons.close_fullscreen, size: 20),
-              SizedBox(width: 8),
-              Text('Shrink (−1px)'),
+              const Icon(Icons.close_fullscreen, size: 20),
+              const SizedBox(width: 8),
+              Text(s.shrinkSelectionOnePixel),
             ],
           ),
         ),
       if (onRotate90 != null) ...[
         const PopupMenuDivider(),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'rotate90',
           child: Row(
             children: [
-              Icon(Icons.rotate_90_degrees_ccw, size: 20),
-              SizedBox(width: 8),
-              Text('Rotate 90°'),
+              const Icon(Icons.rotate_90_degrees_ccw, size: 20),
+              const SizedBox(width: 8),
+              Text(s.rotate90),
             ],
           ),
         ),
       ],
       if (onRotate180 != null) ...[
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'rotate180',
           child: Row(
             children: [
-              Icon(Icons.rotate_left, size: 20),
-              SizedBox(width: 8),
-              Text('Rotate 180°'),
+              const Icon(Icons.rotate_left, size: 20),
+              const SizedBox(width: 8),
+              Text(s.rotate180),
             ],
           ),
         ),
         const PopupMenuDivider(),
       ],
       if (onFlipHorizontal != null)
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'flipH',
           child: Row(
             children: [
-              Icon(Icons.flip, size: 20),
-              SizedBox(width: 8),
-              Text('Flip Horizontal'),
+              const Icon(Icons.flip, size: 20),
+              const SizedBox(width: 8),
+              Text(s.flipHorizontal),
             ],
           ),
         ),
       if (onFlipVertical != null) ...[
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'flipV',
           child: Row(
             children: [
-              RotatedBox(
+              const RotatedBox(
                 quarterTurns: 1,
                 child: Icon(Icons.flip, size: 20),
               ),
-              SizedBox(width: 8),
-              Text('Flip Vertical'),
+              const SizedBox(width: 8),
+              Text(s.flipVertical),
             ],
           ),
         ),
         const PopupMenuDivider(),
       ],
       if (onCutToNewLayer != null)
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'cutNewLayer',
           child: Row(
             children: [
-              Icon(Icons.cut, size: 20),
-              SizedBox(width: 8),
-              Text('Cut to New Layer'),
+              const Icon(Icons.cut, size: 20),
+              const SizedBox(width: 8),
+              Text(s.cutToNewLayer),
             ],
           ),
         ),
       if (onCopyToNewLayer != null) ...[
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'copyNewLayer',
           child: Row(
             children: [
-              Icon(Icons.copy, size: 20),
-              SizedBox(width: 8),
-              Text('Copy to New Layer'),
+              const Icon(Icons.copy, size: 20),
+              const SizedBox(width: 8),
+              Text(s.copyToNewLayer),
             ],
           ),
         ),
         const PopupMenuDivider(),
       ],
       if (onCut != null)
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'cut',
           child: Row(
             children: [
-              Icon(Icons.content_cut, size: 20),
-              SizedBox(width: 8),
-              Text('Cut'),
+              const Icon(Icons.content_cut, size: 20),
+              const SizedBox(width: 8),
+              Text(s.cut),
             ],
           ),
         ),
       if (onCopy != null)
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'copy',
           child: Row(
             children: [
-              Icon(Icons.content_copy, size: 20),
-              SizedBox(width: 8),
-              Text('Copy'),
+              const Icon(Icons.content_copy, size: 20),
+              const SizedBox(width: 8),
+              Text(s.copy),
             ],
           ),
         ),
       if (onDelete != null)
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete, size: 20, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Clear Area', style: TextStyle(color: Colors.red)),
+              const Icon(Icons.delete, size: 20, color: Colors.red),
+              const SizedBox(width: 8),
+              Text(s.clearArea, style: const TextStyle(color: Colors.red)),
             ],
           ),
         ),

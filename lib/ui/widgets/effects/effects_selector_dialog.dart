@@ -18,7 +18,8 @@ class EffectSelectorDialog extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<EffectSelectorDialog> createState() => _EffectSelectorDialogState();
+  ConsumerState<EffectSelectorDialog> createState() =>
+      _EffectSelectorDialogState();
 }
 
 class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
@@ -181,7 +182,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                     Expanded(
                       child: Text(
                         Strings.of(context).selectEffect,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                         textAlign: TextAlign.center,
@@ -260,7 +264,8 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                           ),
                         )
                       : GridView.builder(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: isMobile ? 2 : 3,
                             childAspectRatio: 1.2,
                             crossAxisSpacing: 12,
@@ -270,11 +275,15 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                           itemCount: _filteredEffects.length,
                           itemBuilder: (context, index) {
                             final effectType = _filteredEffects[index];
-                            final effect = EffectsManager.createEffect(effectType);
+                            final effect =
+                                EffectsManager.createEffect(effectType);
                             final name = effect.getName(context);
-                            final hasProAccess = subscriptionState.hasFeatureAccess(SubscriptionFeature.advancedTools);
+                            final hasProAccess =
+                                subscriptionState.hasFeatureAccess(
+                                    SubscriptionFeature.advancedTools);
 
-                            return _buildEffectCard(context, name, effectType, effect, hasProAccess);
+                            return _buildEffectCard(context, name, effectType,
+                                effect, hasProAccess);
                           },
                         ),
                 ),
@@ -340,7 +349,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
               Text(
                 effect.getDescription(context),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
                     ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -387,10 +399,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
               ),
             ),
             const SizedBox(height: 8),
-            Text('• ${s.featureAdvancedEffects}'),
-            Text('• ${s.featureUnlimitedProjects}'),
-            Text('• ${s.featureCloudBackup}'),
-            Text('• ${s.featurePrioritySupport}'),
+            Text(s.featureBullet(s.featureAdvancedEffects)),
+            Text(s.featureBullet(s.featureUnlimitedProjects)),
+            Text(s.featureBullet(s.featureCloudBackup)),
+            Text(s.featureBullet(s.featurePrioritySupport)),
           ],
         ),
         actions: [

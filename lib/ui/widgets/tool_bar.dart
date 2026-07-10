@@ -185,7 +185,10 @@ class ToolBar extends ConsumerWidget {
                       ),
                       VerticalDivider(
                         width: 0,
-                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withValues(alpha: 0.1),
                       ),
                       const SizedBox(width: 8),
                       ValueListenableBuilder(
@@ -194,13 +197,17 @@ class ToolBar extends ConsumerWidget {
                           return IconButton(
                             icon: SvgPicture.asset(
                               Assets.vectors.reflectSymmetry,
-                              color: modifier == PixelModifier.mirror ? Colors.blue : IconTheme.of(context).color,
+                              color: modifier == PixelModifier.mirror
+                                  ? Colors.blue
+                                  : IconTheme.of(context).color,
                               width: 24,
                               height: 24,
                             ),
                             onPressed: () {
                               onSelectModifier(
-                                modifier == PixelModifier.mirror ? PixelModifier.none : PixelModifier.mirror,
+                                modifier == PixelModifier.mirror
+                                    ? PixelModifier.none
+                                    : PixelModifier.mirror,
                               );
                             },
                           );
@@ -220,24 +227,26 @@ class ToolBar extends ConsumerWidget {
                                   width: 8,
                                   height: 8,
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
                               ),
                           ],
                         ),
-                        tooltip: 'Layer Effects',
+                        tooltip: Strings.of(context).layerEffects,
                         onPressed: onEffects,
                       ),
                       const SizedBox(width: 8),
                       // tile mode toggle
                       IconButton.filledTonal(
                         icon: const Icon(Icons.grid_view_rounded, size: 18),
-                        tooltip: 'Tile Mode — preview seamless tiling',
+                        tooltip: Strings.of(context).tileModeTooltip,
                         splashColor: Colors.transparent,
                         style: IconButton.styleFrom(
-                          backgroundColor: tileModeEnabled ? null : Colors.transparent,
+                          backgroundColor:
+                              tileModeEnabled ? null : Colors.transparent,
                         ),
                         onPressed: onToggleTileMode,
                       ),
@@ -261,7 +270,10 @@ class ToolBar extends ConsumerWidget {
                         height: 30,
                         child: VerticalDivider(
                           width: 0,
-                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withValues(alpha: 0.3),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -339,14 +351,14 @@ class ToolBar extends ConsumerWidget {
           IconButton(
             onPressed: onTemplates,
             icon: const AppIcon(AppIcons.gallery_wide, size: 20),
-            tooltip: 'Templates',
+            tooltip: Strings.of(context).templateGallery,
           ),
           const SizedBox(width: 4),
           if (!screenSize.isMobile) ...[
             IconButton(
               onPressed: () => KeyboardShortcutsDialog.show(context),
               icon: const Icon(Icons.keyboard_rounded, size: 20),
-              tooltip: 'Keyboard shortcuts',
+              tooltip: Strings.of(context).keyboardShortcuts,
             ),
             const SizedBox(width: 4),
           ],
@@ -355,12 +367,14 @@ class ToolBar extends ConsumerWidget {
           Row(
             children: [
               IconButton(
-                icon: Icon(Icons.undo, color: onUndo != null ? null : Colors.grey),
+                icon: Icon(Icons.undo,
+                    color: onUndo != null ? null : Colors.grey),
                 onPressed: onUndo,
                 tooltip: Strings.of(context).undo,
               ),
               IconButton(
-                icon: Icon(Icons.redo, color: onRedo != null ? null : Colors.grey),
+                icon: Icon(Icons.redo,
+                    color: onRedo != null ? null : Colors.grey),
                 onPressed: onRedo,
                 tooltip: Strings.of(context).redo,
               ),
@@ -368,7 +382,7 @@ class ToolBar extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.history_rounded, size: 20),
                   onPressed: onShowHistory,
-                  tooltip: 'Undo history',
+                  tooltip: Strings.of(context).undoHistoryTitle,
                 ),
               ]
             ],
@@ -409,7 +423,9 @@ class _EditorSettingsButton extends ConsumerWidget {
             ),
         ],
       ),
-      tooltip: isStylusMode ? 'Settings (Stylus Mode)' : 'Editor Settings',
+      tooltip: isStylusMode
+          ? Strings.of(context).settingsStylusMode
+          : Strings.of(context).editorSettings,
     );
   }
 }
@@ -434,7 +450,7 @@ class _OnionSkinButton extends StatelessWidget {
       onLongPress: () => _showOpacityPopup(context),
       child: IconButton.filledTonal(
         icon: const Icon(Icons.animation_rounded),
-        tooltip: 'Onion Skin (long-press to set opacity)',
+        tooltip: Strings.of(context).onionSkinTooltip,
         onPressed: onToggle,
         splashColor: Colors.transparent,
         style: IconButton.styleFrom(
@@ -446,11 +462,13 @@ class _OnionSkinButton extends StatelessWidget {
 
   void _showOpacityPopup(BuildContext context) {
     final RenderBox button = context.findRenderObject()! as RenderBox;
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject()! as RenderBox;
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero),
+            ancestor: overlay),
       ),
       Offset.zero & overlay.size,
     );
@@ -564,7 +582,9 @@ class _GridToggleButton extends ConsumerWidget {
         backgroundColor: active ? null : Colors.transparent,
       ),
       onPressed: () {
-        ref.read(editorSettingsNotifierProvider.notifier).setShowPixelGrid(!active);
+        ref
+            .read(editorSettingsNotifierProvider.notifier)
+            .setShowPixelGrid(!active);
       },
     );
   }

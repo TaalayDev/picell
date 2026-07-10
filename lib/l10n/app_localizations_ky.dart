@@ -186,6 +186,9 @@ class StringsKy extends Strings {
   String get template => 'Шаблон';
 
   @override
+  String get category => 'Категория';
+
+  @override
   String get width => 'Туурасы';
 
   @override
@@ -417,7 +420,7 @@ class StringsKy extends Strings {
   String get previousFrame => 'Мурунку кадр';
 
   @override
-  String get pause => 'Тындыруу';
+  String get pause => 'Пауза';
 
   @override
   String get play => 'Ойнотуу';
@@ -494,7 +497,7 @@ class StringsKy extends Strings {
   String get effects => 'Эффекттер';
 
   @override
-  String get editorSettings => 'Редактордун орнотуулары';
+  String get editorSettings => 'Редактор жөндөөлөрү';
 
   @override
   String get resetToDefaults => 'Баштапкыга кайтаруу';
@@ -860,7 +863,7 @@ class StringsKy extends Strings {
   String get proVersionStatus => 'Бул эффект Pro версиясында жеткиликтүү.';
 
   @override
-  String get proFeaturesInclude => 'Pro мүмкүнчүлүктөрү төмөнкүлөрдү камтыйт:';
+  String get proFeaturesInclude => 'Pro мүмкүнчүлүктөрү:';
 
   @override
   String get featureAdvancedEffects => 'Өркүндөтүлгө эффекттер жана куралдар';
@@ -933,4 +936,1662 @@ class StringsKy extends Strings {
 
   @override
   String get selectionAnchor => 'Тандоо якору';
+
+  @override
+  String get feedback => 'Пикир';
+
+  @override
+  String get createNewProjectTooltip => 'Жаңы долбоор түзүү';
+
+  @override
+  String failedToProcessFile(String fileName) {
+    return '$fileName файлын иштетүү мүмкүн болбоду';
+  }
+
+  @override
+  String importingFile(String fileName) {
+    return '$fileName импорттолууда...';
+  }
+
+  @override
+  String importedProjectSuccessfully(String projectName) {
+    return '«$projectName» ийгиликтүү импорттолду';
+  }
+
+  @override
+  String failedToImport(String error) {
+    return 'Импорттоо ишке ашкан жок: $error';
+  }
+
+  @override
+  String unsupportedFileType(String fileName) {
+    return 'Колдоого алынбаган файл түрү: $fileName';
+  }
+
+  @override
+  String get pleaseSignInToUploadProjects => 'Долбоор жүктөө үчүн кириңиз';
+
+  @override
+  String get pleaseSignInToUpdateProjects => 'Долбоор жаңыртуу үчүн кириңиз';
+
+  @override
+  String get projectNotSyncedToCloud => 'Долбоор булут менен шайкештешкен эмес';
+
+  @override
+  String get pleaseSignInToRemoveCloudProjects =>
+      'Булуттагы долбоорду өчүрүү үчүн кириңиз';
+
+  @override
+  String get removingFromCloud => 'Булуттан өчүрүлүүдө...';
+
+  @override
+  String get projectRemovedFromCloudSuccessfully =>
+      'Долбоор булуттан ийгиликтүү өчүрүлдү';
+
+  @override
+  String failedToRemoveFromCloud(String error) {
+    return 'Булуттан өчүрүү ишке ашкан жок: $error';
+  }
+
+  @override
+  String get search => 'Издөө...';
+
+  @override
+  String get myProjects => 'Менин долбоорлорум';
+
+  @override
+  String get noProjectsYet => 'Азырынча долбоор жок';
+
+  @override
+  String get createOne => 'Түзүү';
+
+  @override
+  String get searchProjects => 'Долбоорлорду издөө...';
+
+  @override
+  String get discoverAmazingPixelArt => 'Керемет пиксель-арттарды табыңыз';
+
+  @override
+  String get sortBy => 'Иреттөө';
+
+  @override
+  String get mostRecent => 'Эң жаңылары';
+
+  @override
+  String get mostPopular => 'Популярдуу';
+
+  @override
+  String get mostViewed => 'Көп көрүлгөн';
+
+  @override
+  String get mostLiked => 'Көп жактырылган';
+
+  @override
+  String get titleAZ => 'Аталышы А-Я';
+
+  @override
+  String get all => 'Баары';
+
+  @override
+  String get featuredProjects => 'Тандалган долбоорлор';
+
+  @override
+  String get errorLoadingProjects => 'Долбоорлор жүктөлгөн жок';
+
+  @override
+  String get deletingProject => 'Долбоор өчүрүлүүдө...';
+
+  @override
+  String get projectDeletedSuccessfully => 'Долбоор ийгиликтүү өчүрүлдү';
+
+  @override
+  String get failedToDeleteProject => 'Долбоорду өчүрүү ишке ашкан жок';
+
+  @override
+  String failedToDeleteProjectWithError(String error) {
+    return 'Долбоорду өчүрүү ишке ашкан жок: $error';
+  }
+
+  @override
+  String get unlike => 'Жактырууну алып салуу';
+
+  @override
+  String get like => 'Жактыруу';
+
+  @override
+  String get editProject => 'Долбоорду түзөтүү';
+
+  @override
+  String get public => 'Ачык';
+
+  @override
+  String get private => 'Жеке';
+
+  @override
+  String get analytics => 'Аналитика';
+
+  @override
+  String get stats => 'Статистика';
+
+  @override
+  String likeCountLabel(String count) {
+    return '$count жактыруу';
+  }
+
+  @override
+  String commentCountLabel(String count) {
+    return '$count комментарий';
+  }
+
+  @override
+  String get download => 'Жүктөп алуу';
+
+  @override
+  String get openProject => 'Долбоорду ачуу';
+
+  @override
+  String get downloadProject => 'Долбоорду жүктөп алуу';
+
+  @override
+  String get localProjectNotFound => 'Жергиликтүү долбоор табылган жок';
+
+  @override
+  String get comments => 'Комментарийлер';
+
+  @override
+  String get addComment => 'Комментарий кошуу';
+
+  @override
+  String get noCommentsYet => 'Комментарий жок';
+
+  @override
+  String get beFirstToComment => 'Биринчи комментарий калтырыңыз!';
+
+  @override
+  String get failedToLoadComments => 'Комментарийлер жүктөлгөн жок';
+
+  @override
+  String get edited => 'Түзөтүлгөн';
+
+  @override
+  String get makeProjectPublic => 'Долбоорду ачык кылуу';
+
+  @override
+  String get makeProjectPrivate => 'Долбоорду жеке кылуу';
+
+  @override
+  String get makeProjectPublicMessage =>
+      'Долбооруңуз коомчулукка көрүнөт. Баары көрүп, жактырып жана комментарий бере алат.';
+
+  @override
+  String get makeProjectPrivateMessage =>
+      'Долбоор коомчулуктан жашырылат. Аны сиз гана көрө аласыз.';
+
+  @override
+  String get projectWillBePublic => 'Долбоор ачык көрүнөт';
+
+  @override
+  String get projectWillBePrivate => 'Долбоор жеке болот';
+
+  @override
+  String get projectIsNowPublic => 'Долбоор эми ачык';
+
+  @override
+  String get projectIsNowPrivate => 'Долбоор эми жеке';
+
+  @override
+  String failedToUpdateVisibility(String error) {
+    return 'Көрүнүмдүүлүктү жаңыртуу ишке ашкан жок: $error';
+  }
+
+  @override
+  String get makePublic => 'Ачык кылуу';
+
+  @override
+  String get makePrivate => 'Жеке кылуу';
+
+  @override
+  String get deleteProjectCannotBeUndone =>
+      'Бул долбоорду өчүрүүнү каалайсызбы? Бул аракетти артка кайтаруу мүмкүн эмес.';
+
+  @override
+  String get thisWillPermanentlyDelete => 'Түбөлүк өчүрүлөт:';
+
+  @override
+  String get deleteProjectConsequences =>
+      '• Долбоордун маалыматтары жана сүрөтү\n• Бардык комментарийлер жана жактыруулар\n• Жүктөп алуу статистикасы';
+
+  @override
+  String typeProjectTitleToConfirmDeletion(String title) {
+    return 'Өчүрүүнү ырастоо үчүн «$title» деп жазыңыз:';
+  }
+
+  @override
+  String get enterProjectTitle => 'Долбоор аталышын киргизиңиз...';
+
+  @override
+  String get deleteForever => 'Түбөлүк өчүрүү';
+
+  @override
+  String get openingProjectEditor => 'Долбоор редактору ачылууда...';
+
+  @override
+  String get projectLinkCopied => 'Долбоор шилтемеси көчүрүлдү!';
+
+  @override
+  String get addedToFavorites => 'Тандалмаларга кошулду!';
+
+  @override
+  String nowFollowingUser(String username) {
+    return '$username колдонуучусуна жазылдыңыз!';
+  }
+
+  @override
+  String get reportProject => 'Долбоор боюнча арыздануу';
+
+  @override
+  String get reportProjectMessage =>
+      'Бул долбоор боюнча арыздангыңыз келеби? Коомчулук эрежелерин бузган контентти гана билдириңиз.';
+
+  @override
+  String get reportThanks => 'Арызыңыз үчүн рахмат. Жакында карап чыгабыз.';
+
+  @override
+  String get report => 'Арыздануу';
+
+  @override
+  String get premiumRequiredToDownloadProjects =>
+      'Долбоорлорду жүктөө үчүн Premium жазылуу керек';
+
+  @override
+  String get upgrade => 'Жаңыртуу';
+
+  @override
+  String get downloadProjectRewardSubtitle => 'Бул долбоорду жүктөө үчүн сиз:';
+
+  @override
+  String get thankYouWatchingDownloadStarting =>
+      'Көргөнүңүз үчүн рахмат! Жүктөө башталууда...';
+
+  @override
+  String get pleaseSignInToAddComments => 'Комментарий кошуу үчүн кириңиз';
+
+  @override
+  String get writeYourComment => 'Комментарийиңизди жазыңыз...';
+
+  @override
+  String get commentAddedSuccessfully => 'Комментарий кошулду!';
+
+  @override
+  String failedToAddComment(String error) {
+    return 'Комментарий кошуу ишке ашкан жок: $error';
+  }
+
+  @override
+  String get post => 'Жарыялоо';
+
+  @override
+  String get chooseTheme => 'Тема тандаңыз';
+
+  @override
+  String get importFile => 'Файл импорттоо';
+
+  @override
+  String get theme => 'Тема';
+
+  @override
+  String get getPro => 'Pro алуу';
+
+  @override
+  String get supportOnKofi => 'Ko-fi аркылуу колдоо';
+
+  @override
+  String get copyLink => 'Шилтемени көчүрүү';
+
+  @override
+  String get size => 'Өлчөм';
+
+  @override
+  String get views => 'Көрүүлөр';
+
+  @override
+  String get downloads => 'Жүктөөлөр';
+
+  @override
+  String get published => 'Жарыяланды!';
+
+  @override
+  String get forkedFrom => 'Форк булагы: ';
+
+  @override
+  String byUser(String username) {
+    return ' автору $username';
+  }
+
+  @override
+  String get projectAnalytics => 'Долбоор аналитикасы';
+
+  @override
+  String get totalViews => 'Жалпы көрүүлөр';
+
+  @override
+  String get totalLikes => 'Жалпы жактыруулар';
+
+  @override
+  String get detailedAnalytics => 'Толук аналитика';
+
+  @override
+  String get advancedAnalyticsSoon =>
+      'Кеңейтилген аналитика жакында жеткиликтүү болот.';
+
+  @override
+  String get details => 'Маалыматтар';
+
+  @override
+  String get title => 'Аталышы';
+
+  @override
+  String get projectTitleHint => 'Долбооруңузга ат бериңиз';
+
+  @override
+  String get description => 'Сүрөттөмө';
+
+  @override
+  String get projectDescriptionHint =>
+      'Бул долбоор тууралуу коомчулукка айтып бериңиз (милдеттүү эмес)';
+
+  @override
+  String get visibility => 'Көрүнүмдүүлүк';
+
+  @override
+  String get tags => 'Тегдер';
+
+  @override
+  String get searchTags => 'Тегдерди издөө…';
+
+  @override
+  String get failedToLoadTags => 'Тегдер жүктөлгөн жок';
+
+  @override
+  String get pleaseEnterTitle => 'Аталышын киргизиңиз';
+
+  @override
+  String get removeFromCloudQuestion => 'Булуттан өчүрүлсүнбү?';
+
+  @override
+  String get removeFromCommunityMessage =>
+      'Бул долбоор коомчулуктан өчүрүлөт. Жергиликтүү көчүрмө калат.';
+
+  @override
+  String get remove => 'Өчүрүү';
+
+  @override
+  String get updateProject => 'Долбоорду жаңыртуу';
+
+  @override
+  String get publishToCommunity => 'Коомчулукка жарыялоо';
+
+  @override
+  String get synced => 'Шайкештешкен';
+
+  @override
+  String get visibleToEveryone => 'Баарына көрүнөт';
+
+  @override
+  String get onlyVisibleToYou => 'Сизге гана көрүнөт';
+
+  @override
+  String get maximumTagsAllowed => 'Эң көп 5 тег тандаса болот';
+
+  @override
+  String frameCountSimple(int count) {
+    return '$count кадр';
+  }
+
+  @override
+  String layerCountSimple(int count) {
+    return '$count катмар';
+  }
+
+  @override
+  String get cloudManagement => 'Булутту башкаруу';
+
+  @override
+  String cloudId(String id) {
+    return 'Cloud ID: $id';
+  }
+
+  @override
+  String get preparingUpdate => 'Жаңыртуу даярдалууда…';
+
+  @override
+  String get preparingProject => 'Долбоор даярдалууда…';
+
+  @override
+  String get generatingThumbnail => 'Миниатюра түзүлүүдө…';
+
+  @override
+  String get updatingOnCloud => 'Булутта жаңыртылууда…';
+
+  @override
+  String get uploadingToCloud => 'Булутка жүктөлүүдө…';
+
+  @override
+  String get finalizing => 'Аяктоо…';
+
+  @override
+  String get updated => 'Жаңыртылды!';
+
+  @override
+  String get updating => 'Жаңыртылууда…';
+
+  @override
+  String get publishing => 'Жарыяланууда…';
+
+  @override
+  String get update => 'Жаңыртуу';
+
+  @override
+  String get publish => 'Жарыялоо';
+
+  @override
+  String get downloadingProject => 'Долбоор жүктөлүүдө';
+
+  @override
+  String get downloadingProjectData => 'Долбоор маалыматы жүктөлүүдө...';
+
+  @override
+  String get downloadComplete => 'Жүктөө аяктады!';
+
+  @override
+  String get projectSavedLocal => 'Долбоор жергиликтүү долбоорлорго сакталды';
+
+  @override
+  String get downloadFailed => 'Жүктөө ишке ашкан жок';
+
+  @override
+  String get resyncWithCloud => 'Булут менен кайра шайкештөө';
+
+  @override
+  String get syncToCloud => 'Булутка шайкештөө';
+
+  @override
+  String get removeFromCloud => 'Булуттан өчүрүү';
+
+  @override
+  String get removeFromCloudMessage =>
+      'Долбоор булуттан өчүрүлүп, жергиликтүү гана болот. Жергиликтүү көчүрмө өзгөрбөйт. Ишенесизби?';
+
+  @override
+  String get syncedCloudDeleteWarning =>
+      'Бул долбоор булут менен шайкештешкен. Жергиликтүү өчүрүү булуттагы версияга таасир этпейт.';
+
+  @override
+  String get openLocalProject => 'Жергиликтүү долбоорду ачуу';
+
+  @override
+  String get premiumRequired => 'Premium керек';
+
+  @override
+  String byUserInline(String username) {
+    return 'автору $username';
+  }
+
+  @override
+  String get createTemplate => 'Шаблон түзүү';
+
+  @override
+  String layerNameLabel(String name) {
+    return 'Аты: $name';
+  }
+
+  @override
+  String layerSizeLabel(int width, int height) {
+    return 'Өлчөмү: $width×$height';
+  }
+
+  @override
+  String nonTransparentPixels(int count) {
+    return 'Пикселдер: $count тунук эмес';
+  }
+
+  @override
+  String get templateName => 'Шаблон аты';
+
+  @override
+  String get descriptionOptional => 'Сүрөттөмө (милдеттүү эмес)';
+
+  @override
+  String get saveOptions => 'Сактоо параметрлери';
+
+  @override
+  String get saveLocally => 'Жергиликтүү сактоо';
+
+  @override
+  String get storeOnDeviceOnly => 'Ушул түзмөктө гана сактоо';
+
+  @override
+  String get uploadToCloud => 'Булутка жүктөө';
+
+  @override
+  String get shareWithCommunity => 'Коомчулук менен бөлүшүү';
+
+  @override
+  String get privateCloudStorage => 'Жеке булут сактагычы';
+
+  @override
+  String get otherUsersCanDiscoverTemplate =>
+      'Башка колдонуучулар бул шаблонду таап колдоно алышат';
+
+  @override
+  String get onlyYouCanAccessTemplate => 'Бул шаблон сизге гана жеткиликтүү';
+
+  @override
+  String get saveLocallyAndUpload => 'Жергиликтүү сактоо жана жүктөө';
+
+  @override
+  String get bestOfBothWorlds => 'Эки варианттын тең жакшысы';
+
+  @override
+  String get signInToUploadTemplates => 'Шаблон жүктөө үчүн кириңиз';
+
+  @override
+  String get shareTemplatesWithCommunity =>
+      'Шаблондоруңузду коомчулук менен бөлүшүңүз';
+
+  @override
+  String get failedToConvertLayerToTemplate =>
+      'Катмарды шаблонго айлантуу ишке ашкан жок';
+
+  @override
+  String get failedToSaveTemplateLocally =>
+      'Шаблонду жергиликтүү сактоо ишке ашкан жок';
+
+  @override
+  String get failedToUploadTemplateToServer =>
+      'Шаблонду серверге жүктөө ишке ашкан жок';
+
+  @override
+  String errorCreatingTemplate(String error) {
+    return 'Шаблон түзүү катасы: $error';
+  }
+
+  @override
+  String get templateSavedLocally => 'Шаблон жергиликтүү сакталды!';
+
+  @override
+  String get templateUploadedSuccessfully => 'Шаблон ийгиликтүү жүктөлдү!';
+
+  @override
+  String get templateSavedAndUploaded =>
+      'Шаблон жергиликтүү сакталып, жүктөлдү!';
+
+  @override
+  String get templateSavedUploadFailed =>
+      'Шаблон жергиликтүү сакталды (жүктөө ишке ашкан жок)';
+
+  @override
+  String get templateUploadedLocalSaveFailed =>
+      'Шаблон жүктөлдү (жергиликтүү сактоо ишке ашкан жок)';
+
+  @override
+  String get templateCreationFailed => 'Шаблон түзүү ишке ашкан жок';
+
+  @override
+  String get templateGallery => 'Шаблондор галереясы';
+
+  @override
+  String get allTemplates => 'Бардык шаблондор';
+
+  @override
+  String get local => 'Жергиликтүү';
+
+  @override
+  String get community => 'Коомчулук';
+
+  @override
+  String get failedTemplateDetailsCached =>
+      'Шаблон маалыматын жүктөө ишке ашкан жок. Кэштеги маалымат колдонулат.';
+
+  @override
+  String errorLoadingTemplate(String error) {
+    return 'Шаблон жүктөө катасы: $error';
+  }
+
+  @override
+  String get loadingTemplate => 'Шаблон жүктөлүүдө...';
+
+  @override
+  String get deleteTemplate => 'Шаблонду өчүрүү';
+
+  @override
+  String deleteTemplateQuestion(String name) {
+    return '«$name» шаблону өчүрүлсүнбү?';
+  }
+
+  @override
+  String get deleteLocalTemplateWarning =>
+      'Бул шаблон жергиликтүү сактагычтан түбөлүк өчүрүлөт.';
+
+  @override
+  String get deleteCloudTemplateWarning =>
+      'Бул шаблон булуттан өчүрүлүп, калыбына келтирилбейт.';
+
+  @override
+  String templateDeletedSuccessfully(String name) {
+    return '«$name» шаблону өчүрүлдү';
+  }
+
+  @override
+  String failedToDeleteTemplate(String name) {
+    return '«$name» шаблонун өчүрүү ишке ашкан жок';
+  }
+
+  @override
+  String get searchTemplates => 'Шаблондорду издөө...';
+
+  @override
+  String get loadingTemplates => 'Шаблондор жүктөлүүдө...';
+
+  @override
+  String get premiumTemplate => 'Premium шаблон';
+
+  @override
+  String get templateAvailableInPro =>
+      'Бул шаблон Pro версиясында жеткиликтүү.';
+
+  @override
+  String get premiumTemplatesFeature => '• Premium шаблондор';
+
+  @override
+  String get advancedEffectsToolsFeature =>
+      '• Кеңейтилген эффекттер жана куралдар';
+
+  @override
+  String get unlimitedProjectsFeature => '• Чексиз долбоорлор';
+
+  @override
+  String get cloudBackupFeature => '• Булуттагы камдык көчүрмө';
+
+  @override
+  String get prioritySupportFeature => '• Артыкчылыктуу колдоо';
+
+  @override
+  String get noLocalTemplates =>
+      'Жергиликтүү шаблондор табылган жок.\nБиринчи шаблонуңузду катмардан түзүңүз!';
+
+  @override
+  String get noCommunityTemplates =>
+      'Коомчулук шаблондору табылган жок.\nИздөөнү же фильтрлерди өзгөртүп көрүңүз.';
+
+  @override
+  String get noUploadedTemplates =>
+      'Сиз азырынча шаблон жүктөгөн жоксуз.\nЖаратмаларыңызды коомчулук менен бөлүшүңүз!';
+
+  @override
+  String get noTemplatesFoundAdjust =>
+      'Шаблондор табылган жок.\nИздөөнү же фильтрлерди өзгөртүп көрүңүз.';
+
+  @override
+  String showingTemplates(int displayed, String total) {
+    String _temp0 = intl.Intl.selectLogic(
+      total,
+      {
+        'none': '',
+        'other': ' / $total',
+      },
+    );
+    return 'Көрсөтүлдү: $displayed$_temp0 шаблон';
+  }
+
+  @override
+  String get clickTemplateToApply => 'Колдонуу үчүн шаблонду басыңыз';
+
+  @override
+  String get pro => 'PRO';
+
+  @override
+  String get pleaseEnterTemplateName => 'Шаблон атын киргизиңиз';
+
+  @override
+  String get signInToUploadTemplatesTitle => 'Шаблон жүктөө үчүн кириңиз';
+
+  @override
+  String get signInToUploadTemplatesSubtitle =>
+      'Шаблондоруңузду коомчулук менен бөлүшүү үчүн аккаунт түзүңүз.';
+
+  @override
+  String get myTemplates => 'Менин шаблондорум';
+
+  @override
+  String get cloud => 'Булут';
+
+  @override
+  String get tapToUnlock => 'Ачуу үчүн басыңыз';
+
+  @override
+  String get layerTemplateDefaultName => 'Катмар шаблону';
+
+  @override
+  String get undoHistoryTitle => 'Тарых';
+
+  @override
+  String undoHistoryStepCount(int total) {
+    return '($total кадам)';
+  }
+
+  @override
+  String get undoHistoryRevertAll => 'Баарын артка кайтаруу';
+
+  @override
+  String get undoHistoryCurrentState => 'Учурдагы абал';
+
+  @override
+  String undoHistoryFrameLayer(int frame, int layer) {
+    return 'Кадр $frame, катмар $layer';
+  }
+
+  @override
+  String get keyboardShortcuts => 'Клавиатура жарлыктары';
+
+  @override
+  String get copySelection => 'Тандалганды көчүрүү';
+
+  @override
+  String get cutSelection => 'Тандалганды кесүү';
+
+  @override
+  String get paste => 'Коюу';
+
+  @override
+  String get duplicateLayer => 'Катмарды көчүрмөлөө';
+
+  @override
+  String get selection => 'Тандоо';
+
+  @override
+  String get selectAll => 'Баарын тандоо';
+
+  @override
+  String get deselect => 'Тандоону алып салуу';
+
+  @override
+  String get closePenPath => 'Калем жолун жабуу';
+
+  @override
+  String get tools => 'Куралдар';
+
+  @override
+  String get pencil => 'Карандаш';
+
+  @override
+  String get eraser => 'Өчүргүч';
+
+  @override
+  String get eyedropper => 'Пипетка';
+
+  @override
+  String get fill => 'Толтуруу';
+
+  @override
+  String get selectMarquee => 'Тандоо / рамка';
+
+  @override
+  String get moveDrag => 'Жылдыруу / сүйрөө';
+
+  @override
+  String get pen => 'Калем';
+
+  @override
+  String get sprayPaint => 'Спрей боёк';
+
+  @override
+  String get panHold => 'Жылдыруу (кармоо)';
+
+  @override
+  String get eyedropperHold => 'Пипетка (кармоо)';
+
+  @override
+  String get brush => 'Кисть';
+
+  @override
+  String get increaseSize => 'Өлчөмүн чоңойтуу';
+
+  @override
+  String get decreaseSize => 'Өлчөмүн кичирейтүү';
+
+  @override
+  String get colors => 'Түстөр';
+
+  @override
+  String get swapColors => 'Түстөрдү алмаштыруу';
+
+  @override
+  String get defaultColors => 'Баштапкы түстөр';
+
+  @override
+  String get view => 'Көрүнүш';
+
+  @override
+  String get zoomIn => 'Жакындатуу';
+
+  @override
+  String get zoomOut => 'Алыстатуу';
+
+  @override
+  String get zoomToFit => 'Терезеге баткыруу';
+
+  @override
+  String get zoomOneToOne => 'Масштаб 1:1';
+
+  @override
+  String get toggleUi => 'UI көрсөтүү/жашыруу';
+
+  @override
+  String get selectLayerOneToNine => '1-9 катмарды тандоо';
+
+  @override
+  String get newLayer => 'Жаңы катмар';
+
+  @override
+  String get deleteAccountCannotBeUndone =>
+      'Бул аракетти артка кайтарууга болбойт';
+
+  @override
+  String get deleteAccountPermanentDataWarning =>
+      'Аккаунтту өчүрүү бардык маалыматыңызды биротоло жок кылат.';
+
+  @override
+  String get deleteAccountItemsIntro => 'Төмөнкүлөр биротоло өчүрүлөт:';
+
+  @override
+  String get deleteAccountPreferencesTitle => 'Колдонмо жөндөөлөрү';
+
+  @override
+  String get deleteAccountPreferencesSubtitle =>
+      'Жөндөөлөр жана ыңгайлаштыруулар';
+
+  @override
+  String get deleteAccountInfoTitle => 'Аккаунт маалыматы';
+
+  @override
+  String get deleteAccountInfoSubtitle => 'Профиль жана кирүү маалыматтары';
+
+  @override
+  String get deleteAccountTypeConfirm => 'Ырастоо үчүн \"DELETE\" деп жазыңыз:';
+
+  @override
+  String get deleteAccountTypeHint => 'DELETE бул жерге жазыңыз...';
+
+  @override
+  String get deleteAccountIrreversibleImmediate =>
+      'Бул аракет кайтарылгыс жана дароо күчүнө кирет.';
+
+  @override
+  String get deleteAccountQuickConfirm =>
+      'Аккаунтуңузду биротоло өчүргүңүз келеби?';
+
+  @override
+  String get deleteAccountQuickWarningList =>
+      '• Бардык долбоорлоруңуз жоголот\n• Булуттагы камдык көчүрмөлөр өчүрүлөт\n• Бул аракетти артка кайтарууга болбойт';
+
+  @override
+  String failedToDeleteAccount(String error) {
+    return 'Аккаунтту өчүрүү ишке ашкан жок: $error';
+  }
+
+  @override
+  String get proAccessActive => 'Pro жеткиликтүүлүгү активдүү';
+
+  @override
+  String proAccessRemaining(String time) {
+    return 'Pro жеткиликтүүлүгүнөн $time калды.';
+  }
+
+  @override
+  String get buyPro => 'Pro сатып алуу';
+
+  @override
+  String get rewardUpgradeBullets =>
+      '• Бардык функцияларга чексиз жеткиликтүүлүк\n• Бир жолку сатып алуу\n• Жарнамасыз\n• Артыкчылыктуу колдоо';
+
+  @override
+  String get tryPro45Minutes => 'Proну 45 мүнөткө сынап көрүү';
+
+  @override
+  String get rewardAdReadyBullets =>
+      '• Кыска видео жарнаманы көрүңүз\n• 45 мүнөт Pro жеткиликтүүлүгүн алыңыз\n• Колдонмонун өнүгүшүн колдоңуз';
+
+  @override
+  String get rewardAdLoadingBullets =>
+      '• Видео жарнама жүктөлүүдө...\n• Бир аздан кийин кайра аракет кылыңыз';
+
+  @override
+  String get watchAd => 'Жарнаманы көрүү';
+
+  @override
+  String get loadingEllipsis => 'Жүктөлүүдө...';
+
+  @override
+  String get loadingVideoAd => 'Видео жарнама жүктөлүүдө...';
+
+  @override
+  String get proAccessGranted45 => 'Pro жеткиликтүүлүгү 45 мүнөткө берилди!';
+
+  @override
+  String get videoAdNotCompleted =>
+      'Видео жарнама аягына чейин көрүлгөн жок. Кайра аракет кылыңыз же Proго өтүңүз.';
+
+  @override
+  String failedToLoadVideoAd(String error) {
+    return 'Видео жарнаманы жүктөө ишке ашкан жок: $error';
+  }
+
+  @override
+  String get rewardTimeZeroMinutes => '0 мүнөт';
+
+  @override
+  String rewardTimeMinutesSeconds(int minutes, int seconds) {
+    return '$minutes мүн $seconds с';
+  }
+
+  @override
+  String rewardTimeSeconds(int seconds) {
+    return '$seconds с';
+  }
+
+  @override
+  String get selectionOptions => 'Тандоо параметрлери';
+
+  @override
+  String get clearSelection => 'Тандоону тазалоо';
+
+  @override
+  String get invertSelection => 'Тандоону тескерилетүү';
+
+  @override
+  String get growSelectionOnePixel => 'Чоңойтуу (+1 px)';
+
+  @override
+  String get shrinkSelectionOnePixel => 'Кичирейтүү (-1 px)';
+
+  @override
+  String get rotate90 => '90° айлантуу';
+
+  @override
+  String get rotate180 => '180° айлантуу';
+
+  @override
+  String get flipHorizontal => 'Горизонталдуу оодаруу';
+
+  @override
+  String get flipVertical => 'Вертикалдуу оодаруу';
+
+  @override
+  String get cutToNewLayer => 'Жаңы катмарга кесүү';
+
+  @override
+  String get copyToNewLayer => 'Жаңы катмарга көчүрүү';
+
+  @override
+  String get cut => 'Кесүү';
+
+  @override
+  String get copy => 'Көчүрүү';
+
+  @override
+  String get clearArea => 'Аймакты тазалоо';
+
+  @override
+  String get replaceSelection => 'Тандоону алмаштыруу';
+
+  @override
+  String get addToSelectionShift => 'Тандоого кошуу (Shift)';
+
+  @override
+  String get subtractFromSelectionAlt => 'Тандоодон алып салуу (Alt)';
+
+  @override
+  String get textureBrush => 'Текстура кисти';
+
+  @override
+  String get triangle => 'Үч бурчтук';
+
+  @override
+  String get diamond => 'Ромб';
+
+  @override
+  String get hexagon => 'Алты бурчтук';
+
+  @override
+  String get heart => 'Жүрөк';
+
+  @override
+  String get arrow => 'Жебе';
+
+  @override
+  String get lightning => 'Чагылган';
+
+  @override
+  String get cross => 'Крест';
+
+  @override
+  String get spiral => 'Спираль';
+
+  @override
+  String get cloudShape => 'Булут';
+
+  @override
+  String get rectangleSelect => 'Тик бурчтуу тандоо';
+
+  @override
+  String get lasso => 'Лассо';
+
+  @override
+  String get magicWand => 'Сыйкырдуу таякча';
+
+  @override
+  String get effectsPanelAllAppliedMessage =>
+      'Бардык эффекттер катмарга колдонулуп, эффекттер тизмесинен өчүрүлдү';
+
+  @override
+  String effectsForLayer(String layerName) {
+    return '$layerName үчүн эффекттер';
+  }
+
+  @override
+  String get effectsPanelAddEffect => 'Эффект кошуу';
+
+  @override
+  String get appliedEffects => 'Колдонулган эффекттер';
+
+  @override
+  String effectCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count эффект',
+      one: '1 эффект',
+      zero: '0 эффект',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get effectsPreview => 'Эффекттерди алдын ала көрүү';
+
+  @override
+  String get effectPreview => 'Эффекти алдын ала көрүү';
+
+  @override
+  String get noEffectsApplied => 'Эффекттер колдонулган жок';
+
+  @override
+  String get saveChanges => 'Өзгөртүүлөрдү сактоо';
+
+  @override
+  String get finalResult => 'Акыркы жыйынтык';
+
+  @override
+  String get original => 'Түп нуска';
+
+  @override
+  String get withEffect => 'Эффект менен';
+
+  @override
+  String get withEffects => 'Эффекттер менен';
+
+  @override
+  String effectsAppliedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count эффект колдонулду',
+      one: '1 эффект колдонулду',
+      zero: '0 эффект колдонулду',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get effectsAppliedInOrder => 'Эффекттер ирети менен колдонулат';
+
+  @override
+  String get effectsReorderHint =>
+      'Эффекттер жогору жактан ылдый карай колдонулат. Иретин өзгөртүү үчүн сүйрөңүз.';
+
+  @override
+  String get addYourFirstEffect => 'Биринчи эффекти кошуу';
+
+  @override
+  String get layerEffects => 'Катмар эффекттери';
+
+  @override
+  String get effectWatercolor => 'Акварель';
+
+  @override
+  String get effectHalftone => 'Жарым тон';
+
+  @override
+  String get effectOilPaint => 'Май боёк';
+
+  @override
+  String get effectEmboss => 'Рельеф';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get staticEffect => 'Статикалык эффект';
+
+  @override
+  String effectNotAnimatedMessage(String effectName) {
+    return '$effectName эффекти анимацияланган эффект эмес. Анимация кадрларын түзүү анимацияны колдогон эффекттер үчүн гана жеткиликтүү.';
+  }
+
+  @override
+  String get generateAnimation => 'Анимация түзүү';
+
+  @override
+  String generateAnimationForEffect(String effectName) {
+    return '$effectName эффекти үчүн анимация кадрларын түзөсүзбү?';
+  }
+
+  @override
+  String get animationDetails => 'Анимация маалыматтары';
+
+  @override
+  String animationDetailEffect(String effectName) {
+    return '• Эффект: $effectName';
+  }
+
+  @override
+  String animationDetailEstimatedFrames(int count) {
+    return '• Болжолдуу кадрлар: ~$count';
+  }
+
+  @override
+  String animationDetailProcessingTime(int seconds) {
+    return '• Иштетүү убактысы: ~$seconds секунд';
+  }
+
+  @override
+  String get generateAnimationTimelineNote =>
+      'Бул таймлайнга кошо турган бир нече анимация кадрын түзөт.';
+
+  @override
+  String get generateAnimationFrames => 'Анимация кадрларын түзүү';
+
+  @override
+  String effectNameLabel(String effectName) {
+    return '$effectName эффекти';
+  }
+
+  @override
+  String framesGeneratedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count кадр түзүлдү',
+      one: '1 кадр түзүлдү',
+      zero: '0 кадр түзүлдү',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get generateFrames => 'Кадрларды түзүү';
+
+  @override
+  String get stop => 'Токтотуу';
+
+  @override
+  String get frameLabel => 'Кадр:';
+
+  @override
+  String get generatingFrames => 'Кадрлар түзүлүүдө...';
+
+  @override
+  String get noFramesGenerated => 'Кадрлар түзүлгөн жок';
+
+  @override
+  String get animationSettings => 'Анимация жөндөөлөрү';
+
+  @override
+  String get durationSeconds => 'Узактыгы (секунд)';
+
+  @override
+  String get fps => 'FPS';
+
+  @override
+  String get totalFrames => 'Жалпы кадрлар:';
+
+  @override
+  String get pingPongAnimation => 'Пинг-понг анимация';
+
+  @override
+  String get playForwardThenBackward => 'Адегенде алдыга, анан артка ойнотуу';
+
+  @override
+  String get frameGeneration => 'Кадр түзүү';
+
+  @override
+  String get generateNewFrames => 'Жаңы кадрларды түзүү';
+
+  @override
+  String get createNewFramesForAnimation =>
+      'Бул анимация үчүн жаңы кадрларды түзүү';
+
+  @override
+  String get insertIntoTimeline => 'Таймлайнга киргизүү';
+
+  @override
+  String get addFramesToExistingTimeline =>
+      'Кадрларды учурдагы таймлайнга кошуу';
+
+  @override
+  String get insertPosition => 'Киргизүү орду:';
+
+  @override
+  String afterFrame(int frame) {
+    return '$frame-кадрдан кийин';
+  }
+
+  @override
+  String get effectParameters => 'Эффект параметрлери';
+
+  @override
+  String get editParameters => 'Параметрлерди түзөтүү';
+
+  @override
+  String get effectParametersBaseNote =>
+      'Учурдагы эффект жөндөөлөрү анимация үчүн негиз катары колдонулат';
+
+  @override
+  String get editBaseParameters => 'Негизги параметрлерди түзөтүү';
+
+  @override
+  String get applyAndRegenerate => 'Колдонуу жана кайра түзүү';
+
+  @override
+  String get animationFrameGenerator => 'Анимация кадр генератору';
+
+  @override
+  String get animationGeneratorHelpIntro =>
+      'Бул курал тандалган эффектти ар башка убакыт параметрлери менен колдонуп, бир нече анимация кадрын түзөт.\n';
+
+  @override
+  String get animationHelpDuration =>
+      '• Узактык: анимациянын жалпы узактыгы секунд менен';
+
+  @override
+  String get animationHelpFps =>
+      '• FPS: секундасына кадрлар (жогору болсо жылмакай, бирок кадр көп)';
+
+  @override
+  String get animationHelpPingPong =>
+      '• Пинг-понг: алдыга, андан кийин артка ойнойт';
+
+  @override
+  String get animationHelpInterpolation =>
+      '• Жылмакай анимация үчүн эффект параметрлери убакыт боюнча интерполяцияланат';
+
+  @override
+  String get tips => 'Кеңештер:';
+
+  @override
+  String get animationTipLowerFps => '• Сыноо үчүн төмөн FPS менен баштаңыз';
+
+  @override
+  String get animationTipUsePreview =>
+      '• Түзүүдөн мурун алдын ала көрүүнү колдонуңуз';
+
+  @override
+  String get animationTipLongerDurations =>
+      '• Жай эффекттер үчүн узагыраак убакыт жакшы иштейт';
+
+  @override
+  String effectFrameName(int index) {
+    return 'Эффект кадры $index';
+  }
+
+  @override
+  String effectAnimationName(int index) {
+    return 'Эффект анимациясы $index';
+  }
+
+  @override
+  String effectAnimationReturnName(int index) {
+    return 'Эффект анимациясы $index (кайтуу)';
+  }
+
+  @override
+  String generatedAnimationFrames(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count анимация кадры түзүлдү',
+      one: '1 анимация кадры түзүлдү',
+      zero: '0 анимация кадры түзүлдү',
+    );
+    return '$_temp0!';
+  }
+
+  @override
+  String get viewTimeline => 'Таймлайнды көрүү';
+
+  @override
+  String featureBullet(String feature) {
+    return '• $feature';
+  }
+
+  @override
+  String defaultLayerName(int index) {
+    return 'Катмар $index';
+  }
+
+  @override
+  String get select => 'Тандоо';
+
+  @override
+  String get menu => 'Меню';
+
+  @override
+  String get adjustOpacity => 'Тунуктукту жөндөө';
+
+  @override
+  String get adjustLayerOpacity => 'Катмардын тунуктугун жөндөө';
+
+  @override
+  String get addToTemplate => 'Шаблонго кошуу';
+
+  @override
+  String get editLayer => 'Катмарды түзөтүү';
+
+  @override
+  String get layerName => 'Катмар аты';
+
+  @override
+  String get backgroundShort => 'ФОН';
+
+  @override
+  String get reference => 'Шилтеме';
+
+  @override
+  String get reset => 'Баштапкы абалга келтирүү';
+
+  @override
+  String get fit => 'Баткыруу';
+
+  @override
+  String get removeBackgroundImage => 'Фон сүрөтүн алып салуу';
+
+  @override
+  String get removeBackgroundImageMessage =>
+      'Фон сүрөтүн алып салгыңыз келеби?';
+
+  @override
+  String get themeSelector => 'Тема тандоо';
+
+  @override
+  String unlockThemeTitle(String themeName) {
+    return '$themeName темасын ачуу';
+  }
+
+  @override
+  String get watchAdToUnlockTheme =>
+      'Бул теманы ачуу үчүн видео жарнаманы көрүңүз.';
+
+  @override
+  String themeUnlocked(String themeName) {
+    return '$themeName темасы ачылды!';
+  }
+
+  @override
+  String themeShowcaseTitle(String themeName) {
+    return 'Тема: $themeName';
+  }
+
+  @override
+  String get primaryColors => 'Негизги түстөр';
+
+  @override
+  String get primary => 'Негизги';
+
+  @override
+  String get primaryVariant => 'Негизги варианты';
+
+  @override
+  String get onPrimary => 'Негизгинин үстүндө';
+
+  @override
+  String get accent => 'Акцент';
+
+  @override
+  String get onAccent => 'Акценттин үстүндө';
+
+  @override
+  String get backgroundColors => 'Фон түстөрү';
+
+  @override
+  String get background => 'Фон';
+
+  @override
+  String get surface => 'Бет';
+
+  @override
+  String get surfaceVariant => 'Бет варианты';
+
+  @override
+  String get textColors => 'Текст түстөрү';
+
+  @override
+  String get textPrimary => 'Негизги текст';
+
+  @override
+  String get textSecondary => 'Кошумча текст';
+
+  @override
+  String get textDisabled => 'Өчүрүлгөн текст';
+
+  @override
+  String get utilityColors => 'Кызматтык түстөр';
+
+  @override
+  String get error => 'Ката';
+
+  @override
+  String get success => 'Ийгилик';
+
+  @override
+  String get warning => 'Эскертүү';
+
+  @override
+  String get uiElements => 'UI элементтери';
+
+  @override
+  String get elevated => 'Көтөрүлгөн';
+
+  @override
+  String get filled => 'Толтурулган';
+
+  @override
+  String get outlined => 'Контурлуу';
+
+  @override
+  String get text => 'Текст';
+
+  @override
+  String get inputField => 'Киргизүү талаасы';
+
+  @override
+  String get enterText => 'Текст киргизиңиз';
+
+  @override
+  String previewingTheme(String themeName) {
+    return 'Алдын ала көрүү: $themeName';
+  }
+
+  @override
+  String currentTheme(String themeName) {
+    return 'Учурдагы: $themeName';
+  }
+
+  @override
+  String get unlockPremiumThemes => 'Премиум темаларды ачуу';
+
+  @override
+  String get getAccessToAllThemesWithPro =>
+      'Pro менен бардык темаларга жеткиликтүүлүк алыңыз';
+
+  @override
+  String get flagship => 'Флагман';
+
+  @override
+  String get free => 'Акысыз';
+
+  @override
+  String get freeThemes => 'Акысыз темалар';
+
+  @override
+  String get premiumThemes => 'Премиум темалар';
+
+  @override
+  String get apply => 'Колдонуу';
+
+  @override
+  String importedFileAsNewLayer(String fileName) {
+    return '\"$fileName\" жаңы катмар катары импорттолду';
+  }
+
+  @override
+  String get importAsepriteFile => 'Aseprite файлын импорттоо';
+
+  @override
+  String howImportAsepriteFile(String fileName) {
+    return '\"$fileName\" файлын кантип импорттойсуз?';
+  }
+
+  @override
+  String importedFirstLayerFromFile(String fileName) {
+    return '\"$fileName\" файлынан биринчи катмар импорттолду';
+  }
+
+  @override
+  String get importAsLayer => 'Катмар катары импорттоо';
+
+  @override
+  String get openAsProject => 'Долбоор катары ачуу';
+
+  @override
+  String get copyFrame => 'Кадрды көчүрүү';
+
+  @override
+  String get addFrame => 'Кадр кошуу';
+
+  @override
+  String get deleteFrame => 'Кадрды өчүрүү';
+
+  @override
+  String get collapse => 'Жыйноо';
+
+  @override
+  String get expand => 'Жайуу';
+
+  @override
+  String get addState => 'Абал кошуу';
+
+  @override
+  String get copyState => 'Абал көчүрүү';
+
+  @override
+  String get addAnimationState => 'Анимация абалын кошуу';
+
+  @override
+  String get stateName => 'Абал аты';
+
+  @override
+  String get columns => 'Мамычалар';
+
+  @override
+  String get tileModeTooltip =>
+      'Плитка режими - үзгүлтүксүз кайталоону алдын ала көрүү';
+
+  @override
+  String get settingsStylusMode => 'Жөндөөлөр (стилус режими)';
+
+  @override
+  String get onionSkinTooltip =>
+      'Onion Skin (тунуктукту коюу үчүн узак басыңыз)';
+
+  @override
+  String get sprayPaintToolDescription =>
+      'Бөлүкчөлөр менен спрей эффектин түзөт';
+
+  @override
+  String get lineToolDescription =>
+      'Эки чекиттин ортосунда түз сызыктарды тартат';
+
+  @override
+  String get circleToolDescription =>
+      'Так тегеректерди жана эллипстерди тартат';
+
+  @override
+  String get rectangleToolDescription =>
+      'Тик бурчтуктарды жана квадраттарды тартат';
+
+  @override
+  String get triangleToolDescription => 'Үч бурчтуу формаларды тартат';
+
+  @override
+  String get diamondToolDescription => 'Ромб формаларын тартат';
+
+  @override
+  String get hexagonToolDescription => 'Алты бурчтуу формаларды тартат';
+
+  @override
+  String get heartToolDescription => 'Жүрөк формаларын тартат';
+
+  @override
+  String get arrowToolDescription => 'Жебе формаларын тартат';
+
+  @override
+  String get lightningToolDescription => 'Чагылган формаларын тартат';
+
+  @override
+  String get crossToolDescription => 'Крест же плюс формаларын тартат';
+
+  @override
+  String get spiralToolDescription => 'Спираль формаларын тартат';
+
+  @override
+  String get cloudToolDescription => 'Булут формаларын тартат';
+
+  @override
+  String get penToolDescription => 'Эркин тартуу үчүн өркүндөтүлгөн курал';
+
+  @override
+  String get rectangleSelectToolDescription => 'Тик бурчтуу аймакты тандайт';
+
+  @override
+  String get ellipseSelectToolDescription => 'Эллипс аймагын тандайт';
+
+  @override
+  String get lassoToolDescription => 'Эркин тандоо куралы';
+
+  @override
+  String get magicWandToolDescription =>
+      'Түстү боюнча чектеш пикселдерди тандайт';
+
+  @override
+  String get curve => 'Ийри сызык';
+
+  @override
+  String get curveToolDescription => 'Жылмакай ийри сызыктарды тартат';
+
+  @override
+  String get move => 'Жылдыруу';
+
+  @override
+  String get moveToolDescription => 'Элементтерди жылдырат жана сүйрөйт';
 }

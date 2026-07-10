@@ -68,6 +68,7 @@
     "areYouSureWantToDeleteLayer": "Вы уверены, что хотите удалить этот слой?",
     "newProject": "Новый проект",
     "template": "Шаблон",
+    "category": "Категория",
     "width": "Ширина",
     "height": "Высота",
     "create": "Создать",
@@ -88,7 +89,7 @@
     "background": "Фон",
     "backgroundColor": "Цвет фона",
     "spriteSheetOptions": "Настройки спрайтового листа",
-    "columns": "Колонки",
+    "columns": "Столбцы",
     "spacing": "Отступ",
     "includeAllFrames": "Включить все кадры",
     "spriteSheet": "Спрайтовый лист",
@@ -139,7 +140,7 @@
     "layerOpacity": "Прозрачность слоя",
     "renameLayer": "Переименовать слой",
     "createNewLayer": "Создать новый слой",
-    "layerName": "Имя слоя",
+    "layerName": "Название слоя",
     "addFrame": "Добавить кадр",
     "duplicateFrame": "Дублировать кадр",
     "lastFrame": "Последний кадр",
@@ -148,7 +149,7 @@
     "playAnimation": "Воспроизвести анимацию",
     "stopAnimation": "Остановить анимацию",
     "loopAnimation": "Зациклить анимацию",
-    "fps": "Кадров в секунду",
+    "fps": "FPS",
     "exportAsImage": "Экспортировать как изображение",
     "saveProject": "Сохранить проект",
     "openProject": "Открыть проект",
@@ -156,10 +157,8 @@
     "fileNotSupported": "Формат файла не поддерживается",
     "successfullySaved": "Успешно сохранено",
     "successfullyExported": "Успешно экспортировано",
-
     "upgradeToPro": "Обновить до Pro",
     "restore": "Восстановить",
-
     "feedback_title": "Обратная связь",
     "feedback_thank_you": "Спасибо за ваш отзыв!",
     "feedback_thank_you_message": "Ваше мнение очень важно для нас и поможет сделать приложение лучше.",
@@ -176,7 +175,6 @@
     "feedback_yes": "Да",
     "feedback_no": "Нет",
     "feedback_text_placeholder": "Введите ваш ответ...",
-    
     "feedback_q_satisfaction": "Насколько вы довольны приложением?",
     "feedback_q_missing_features": "Какие функциональности вам не хватают?",
     "feedback_q_missing_features_placeholder": "Опишите функции, которые вы хотели бы видеть...",
@@ -287,7 +285,7 @@
     },
     "heightRangeError": "Высота: 1-{max}",
     "png": "PNG",
-    "proPlanRequired": "Требуется тариф Pro",
+    "proPlanRequired": "Требуется план Pro",
     "transparentBackground": "Прозрачный фон",
     "transparent": "Прозрачный",
     "columnsLabel": "Колонки",
@@ -370,7 +368,7 @@
     "noEffectsMatch": "Нет эффектов, соответствующих поиску",
     "premiumEffect": "Премиум эффект",
     "proVersionStatus": "Этот эффект доступен в Pro версии.",
-    "proFeaturesInclude": "Возможности Pro версии:",
+    "proFeaturesInclude": "Функции Pro включают:",
     "featureAdvancedEffects": "Продвинутые эффекты и инструменты",
     "featureUnlimitedProjects": "Неограниченное количество проектов",
     "featureCloudBackup": "Облачное резервное копирование",
@@ -416,5 +414,903 @@
     "ellipseSelectionTooltip": "Выделить овальную область",
     "autoSelectLayer": "Авто-выделение",
     "autoSelectLayerTooltip": "Выделить все непустые пиксели текущего слоя",
-    "selectionAnchor": "Якорь выделения"
+    "selectionAnchor": "Якорь выделения",
+    "feedback": "Обратная связь",
+    "createNewProjectTooltip": "Создать новый проект",
+    "failedToProcessFile": "Не удалось обработать {fileName}",
+    "@failedToProcessFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importingFile": "Импорт {fileName}...",
+    "@importingFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedProjectSuccessfully": "«{projectName}» успешно импортирован",
+    "@importedProjectSuccessfully": {
+        "placeholders": {
+            "projectName": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToImport": "Не удалось импортировать: {error}",
+    "@failedToImport": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unsupportedFileType": "Неподдерживаемый тип файла: {fileName}",
+    "@unsupportedFileType": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "pleaseSignInToUploadProjects": "Войдите, чтобы загружать проекты",
+    "pleaseSignInToUpdateProjects": "Войдите, чтобы обновлять проекты",
+    "projectNotSyncedToCloud": "Проект не синхронизирован с облаком",
+    "pleaseSignInToRemoveCloudProjects": "Войдите, чтобы удалять проекты из облака",
+    "removingFromCloud": "Удаление из облака...",
+    "projectRemovedFromCloudSuccessfully": "Проект успешно удалён из облака",
+    "failedToRemoveFromCloud": "Не удалось удалить из облака: {error}",
+    "@failedToRemoveFromCloud": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "search": "Поиск...",
+    "myProjects": "Мои проекты",
+    "noProjectsYet": "Пока нет проектов",
+    "createOne": "Создать",
+    "searchProjects": "Искать проекты...",
+    "discoverAmazingPixelArt": "Откройте для себя пиксель-арт",
+    "sortBy": "Сортировать",
+    "mostRecent": "Сначала новые",
+    "mostPopular": "Популярные",
+    "mostViewed": "Самые просматриваемые",
+    "mostLiked": "Больше лайков",
+    "titleAZ": "Название А-Я",
+    "all": "Все",
+    "featuredProjects": "Избранные проекты",
+    "errorLoadingProjects": "Ошибка загрузки проектов",
+    "deletingProject": "Удаление проекта...",
+    "projectDeletedSuccessfully": "Проект успешно удалён",
+    "failedToDeleteProject": "Не удалось удалить проект",
+    "failedToDeleteProjectWithError": "Не удалось удалить проект: {error}",
+    "@failedToDeleteProjectWithError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unlike": "Убрать лайк",
+    "like": "Лайк",
+    "editProject": "Редактировать проект",
+    "public": "Публичный",
+    "private": "Приватный",
+    "analytics": "Аналитика",
+    "stats": "Статистика",
+    "likeCountLabel": "{count} лайков",
+    "@likeCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "commentCountLabel": "{count} комментариев",
+    "@commentCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "download": "Скачать",
+    "downloadProject": "Скачать проект",
+    "localProjectNotFound": "Локальный проект не найден",
+    "comments": "Комментарии",
+    "addComment": "Добавить комментарий",
+    "noCommentsYet": "Комментариев пока нет",
+    "beFirstToComment": "Оставьте первый комментарий!",
+    "failedToLoadComments": "Не удалось загрузить комментарии",
+    "edited": "Изменено",
+    "makeProjectPublic": "Сделать проект публичным",
+    "makeProjectPrivate": "Сделать проект приватным",
+    "makeProjectPublicMessage": "Проект станет видимым для всего сообщества. Все смогут просматривать, лайкать и комментировать его.",
+    "makeProjectPrivateMessage": "Проект будет скрыт от сообщества. Видеть его сможете только вы.",
+    "projectWillBePublic": "Проект будет виден публично",
+    "projectWillBePrivate": "Проект будет приватным",
+    "projectIsNowPublic": "Проект теперь публичный",
+    "projectIsNowPrivate": "Проект теперь приватный",
+    "failedToUpdateVisibility": "Не удалось изменить видимость: {error}",
+    "@failedToUpdateVisibility": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "makePublic": "Сделать публичным",
+    "makePrivate": "Сделать приватным",
+    "deleteProjectCannotBeUndone": "Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.",
+    "thisWillPermanentlyDelete": "Будет удалено навсегда:",
+    "deleteProjectConsequences": "• Данные и арт проекта\n• Все комментарии и лайки\n• Статистика скачиваний",
+    "typeProjectTitleToConfirmDeletion": "Введите «{title}» для подтверждения удаления:",
+    "@typeProjectTitleToConfirmDeletion": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "enterProjectTitle": "Введите название проекта...",
+    "deleteForever": "Удалить навсегда",
+    "openingProjectEditor": "Открытие редактора проекта...",
+    "projectLinkCopied": "Ссылка на проект скопирована!",
+    "addedToFavorites": "Добавлено в избранное!",
+    "nowFollowingUser": "Вы подписались на {username}!",
+    "@nowFollowingUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "reportProject": "Пожаловаться на проект",
+    "reportProjectMessage": "Вы уверены, что хотите пожаловаться на этот проект? Пожалуйста, сообщайте только о контенте, нарушающем правила сообщества.",
+    "reportThanks": "Спасибо за жалобу. Мы скоро её рассмотрим.",
+    "report": "Пожаловаться",
+    "premiumRequiredToDownloadProjects": "Для скачивания проектов нужна Premium-подписка",
+    "upgrade": "Улучшить",
+    "downloadProjectRewardSubtitle": "Чтобы скачать проект, вы можете:",
+    "thankYouWatchingDownloadStarting": "Спасибо за просмотр! Скачивание начинается...",
+    "pleaseSignInToAddComments": "Войдите, чтобы добавлять комментарии",
+    "writeYourComment": "Напишите комментарий...",
+    "commentAddedSuccessfully": "Комментарий добавлен!",
+    "failedToAddComment": "Не удалось добавить комментарий: {error}",
+    "@failedToAddComment": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "post": "Опубликовать",
+    "chooseTheme": "Выберите тему",
+    "importFile": "Импорт файла",
+    "theme": "Тема",
+    "getPro": "Получить Pro",
+    "supportOnKofi": "Поддержать на Ko-fi",
+    "copyLink": "Копировать ссылку",
+    "size": "Размер",
+    "views": "Просмотры",
+    "downloads": "Скачивания",
+    "published": "Опубликовано!",
+    "forkedFrom": "Форк от ",
+    "byUser": " от {username}",
+    "projectAnalytics": "Аналитика проекта",
+    "totalViews": "Всего просмотров",
+    "totalLikes": "Всего лайков",
+    "detailedAnalytics": "Подробная аналитика",
+    "advancedAnalyticsSoon": "Расширенная аналитика скоро будет доступна.",
+    "@byUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "details": "Детали",
+    "title": "Название",
+    "projectTitleHint": "Дайте проекту название",
+    "description": "Описание",
+    "projectDescriptionHint": "Расскажите сообществу об этом проекте (необязательно)",
+    "visibility": "Видимость",
+    "tags": "Теги",
+    "searchTags": "Искать теги…",
+    "failedToLoadTags": "Не удалось загрузить теги",
+    "pleaseEnterTitle": "Введите название",
+    "removeFromCloudQuestion": "Удалить из облака?",
+    "removeFromCommunityMessage": "Проект будет удалён из сообщества. Локальная копия останется.",
+    "remove": "Удалить",
+    "updateProject": "Обновить проект",
+    "publishToCommunity": "Опубликовать в сообществе",
+    "synced": "Синхронизировано",
+    "visibleToEveryone": "Видно всем",
+    "onlyVisibleToYou": "Видно только вам",
+    "maximumTagsAllowed": "Можно выбрать не более 5 тегов",
+    "frameCountSimple": "{count} кадр.",
+    "@frameCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "layerCountSimple": "{count} слоёв",
+    "@layerCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "cloudManagement": "Управление облаком",
+    "cloudId": "Cloud ID: {id}",
+    "@cloudId": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "preparingUpdate": "Подготовка обновления…",
+    "preparingProject": "Подготовка проекта…",
+    "generatingThumbnail": "Создание миниатюры…",
+    "updatingOnCloud": "Обновление в облаке…",
+    "uploadingToCloud": "Загрузка в облако…",
+    "finalizing": "Завершение…",
+    "updated": "Обновлено!",
+    "updating": "Обновление…",
+    "publishing": "Публикация…",
+    "update": "Обновить",
+    "publish": "Опубликовать",
+    "downloadingProject": "Скачивание проекта",
+    "downloadingProjectData": "Скачивание данных проекта...",
+    "downloadComplete": "Скачивание завершено!",
+    "projectSavedLocal": "Проект сохранён в локальные проекты",
+    "downloadFailed": "Скачивание не удалось",
+    "resyncWithCloud": "Синхронизировать заново",
+    "syncToCloud": "Синхронизировать с облаком",
+    "removeFromCloud": "Удалить из облака",
+    "removeFromCloudMessage": "Проект будет удалён из облака и станет только локальным. Локальная копия останется без изменений. Вы уверены?",
+    "syncedCloudDeleteWarning": "Этот проект синхронизирован с облаком. Локальное удаление не повлияет на облачную версию.",
+    "openLocalProject": "Открыть локальный проект",
+    "premiumRequired": "Нужен Premium",
+    "byUserInline": "от {username}",
+    "@byUserInline": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "createTemplate": "Создать шаблон",
+    "layerNameLabel": "Имя: {name}",
+    "@layerNameLabel": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "layerSizeLabel": "Размер: {width}×{height}",
+    "@layerSizeLabel": {
+        "placeholders": {
+            "width": {
+                "type": "int"
+            },
+            "height": {
+                "type": "int"
+            }
+        }
+    },
+    "nonTransparentPixels": "Пикселей: {count} непрозрачных",
+    "@nonTransparentPixels": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "templateName": "Название шаблона",
+    "descriptionOptional": "Описание (необязательно)",
+    "saveOptions": "Параметры сохранения",
+    "saveLocally": "Сохранить локально",
+    "storeOnDeviceOnly": "Только на этом устройстве",
+    "uploadToCloud": "Загрузить в облако",
+    "shareWithCommunity": "Поделиться с сообществом",
+    "privateCloudStorage": "Приватное облачное хранилище",
+    "otherUsersCanDiscoverTemplate": "Другие пользователи смогут найти и использовать этот шаблон",
+    "onlyYouCanAccessTemplate": "Только вы сможете открыть этот шаблон",
+    "saveLocallyAndUpload": "Сохранить локально и загрузить",
+    "bestOfBothWorlds": "Лучшее из двух вариантов",
+    "signInToUploadTemplates": "Войдите, чтобы загружать шаблоны",
+    "shareTemplatesWithCommunity": "Делитесь шаблонами с сообществом",
+    "failedToConvertLayerToTemplate": "Не удалось преобразовать слой в шаблон",
+    "failedToSaveTemplateLocally": "Не удалось сохранить шаблон локально",
+    "failedToUploadTemplateToServer": "Не удалось загрузить шаблон на сервер",
+    "errorCreatingTemplate": "Ошибка создания шаблона: {error}",
+    "@errorCreatingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "templateSavedLocally": "Шаблон сохранён локально!",
+    "templateUploadedSuccessfully": "Шаблон успешно загружен!",
+    "templateSavedAndUploaded": "Шаблон сохранён локально и загружен!",
+    "templateSavedUploadFailed": "Шаблон сохранён локально (загрузка не удалась)",
+    "templateUploadedLocalSaveFailed": "Шаблон загружен (локальное сохранение не удалось)",
+    "templateCreationFailed": "Не удалось создать шаблон",
+    "templateGallery": "Галерея шаблонов",
+    "allTemplates": "Все шаблоны",
+    "local": "Локальные",
+    "community": "Сообщество",
+    "failedTemplateDetailsCached": "Не удалось загрузить детали шаблона. Используются кэшированные данные.",
+    "errorLoadingTemplate": "Ошибка загрузки шаблона: {error}",
+    "@errorLoadingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "loadingTemplate": "Загрузка шаблона...",
+    "deleteTemplate": "Удалить шаблон",
+    "deleteTemplateQuestion": "Удалить шаблон «{name}»?",
+    "@deleteTemplateQuestion": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteLocalTemplateWarning": "Этот шаблон будет навсегда удалён из локального хранилища.",
+    "deleteCloudTemplateWarning": "Этот шаблон будет удалён из облака без возможности восстановления.",
+    "templateDeletedSuccessfully": "Шаблон «{name}» удалён",
+    "@templateDeletedSuccessfully": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToDeleteTemplate": "Не удалось удалить шаблон «{name}»",
+    "@failedToDeleteTemplate": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "searchTemplates": "Искать шаблоны...",
+    "loadingTemplates": "Загрузка шаблонов...",
+    "premiumTemplate": "Premium-шаблон",
+    "templateAvailableInPro": "Этот шаблон доступен в версии Pro.",
+    "premiumTemplatesFeature": "• Premium-шаблоны",
+    "advancedEffectsToolsFeature": "• Продвинутые эффекты и инструменты",
+    "unlimitedProjectsFeature": "• Неограниченные проекты",
+    "cloudBackupFeature": "• Облачное резервное копирование",
+    "prioritySupportFeature": "• Приоритетная поддержка",
+    "noLocalTemplates": "Локальные шаблоны не найдены.\nСоздайте первый шаблон из слоя!",
+    "noCommunityTemplates": "Шаблоны сообщества не найдены.\nПопробуйте изменить поиск или фильтры.",
+    "noUploadedTemplates": "Вы ещё не загрузили шаблоны.\nПоделитесь своими работами с сообществом!",
+    "noTemplatesFoundAdjust": "Шаблоны не найдены.\nПопробуйте изменить поиск или фильтры.",
+    "showingTemplates": "Показано {displayed}{total, select, none {} other { из {total}}} шаблонов",
+    "@showingTemplates": {
+        "placeholders": {
+            "displayed": {
+                "type": "int"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "clickTemplateToApply": "Нажмите шаблон, чтобы применить",
+    "pro": "PRO",
+    "pleaseEnterTemplateName": "Введите название шаблона",
+    "signInToUploadTemplatesTitle": "Войдите, чтобы загружать шаблоны",
+    "signInToUploadTemplatesSubtitle": "Создайте аккаунт, чтобы делиться шаблонами с сообществом.",
+    "myTemplates": "Мои шаблоны",
+    "cloud": "Облако",
+    "tapToUnlock": "Нажмите, чтобы открыть",
+    "layerTemplateDefaultName": "Шаблон слоя",
+    "undoHistoryTitle": "История",
+    "undoHistoryStepCount": "({total} шагов)",
+    "@undoHistoryStepCount": {
+        "placeholders": {
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "undoHistoryRevertAll": "Откатить всё",
+    "undoHistoryCurrentState": "Текущее состояние",
+    "undoHistoryFrameLayer": "Кадр {frame}, слой {layer}",
+    "@undoHistoryFrameLayer": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            },
+            "layer": {
+                "type": "int"
+            }
+        }
+    },
+    "keyboardShortcuts": "Горячие клавиши",
+    "copySelection": "Копировать выделение",
+    "cutSelection": "Вырезать выделение",
+    "paste": "Вставить",
+    "selection": "Выделение",
+    "selectAll": "Выделить всё",
+    "deselect": "Снять выделение",
+    "closePenPath": "Закрыть контур пера",
+    "tools": "Инструменты",
+    "pencil": "Карандаш",
+    "eraser": "Ластик",
+    "eyedropper": "Пипетка",
+    "fill": "Заливка",
+    "selectMarquee": "Выделение / рамка",
+    "moveDrag": "Перемещение / перетаскивание",
+    "pen": "Перо",
+    "sprayPaint": "Аэрозоль",
+    "panHold": "Панорама (удерживать)",
+    "eyedropperHold": "Пипетка (удерживать)",
+    "brush": "Кисть",
+    "increaseSize": "Увеличить размер",
+    "decreaseSize": "Уменьшить размер",
+    "colors": "Цвета",
+    "swapColors": "Поменять цвета",
+    "defaultColors": "Цвета по умолчанию",
+    "view": "Вид",
+    "zoomIn": "Приблизить",
+    "zoomOut": "Отдалить",
+    "zoomToFit": "По размеру окна",
+    "zoomOneToOne": "Масштаб 1:1",
+    "toggleUi": "Показать/скрыть UI",
+    "selectLayerOneToNine": "Выбрать слой 1-9",
+    "newLayer": "Новый слой",
+    "deleteAccountCannotBeUndone": "Это действие нельзя отменить",
+    "deleteAccountPermanentDataWarning": "Удаление аккаунта навсегда удалит все ваши данные.",
+    "deleteAccountItemsIntro": "Будет навсегда удалено:",
+    "deleteAccountPreferencesTitle": "Настройки приложения",
+    "deleteAccountPreferencesSubtitle": "Параметры и персонализация",
+    "deleteAccountInfoTitle": "Информация аккаунта",
+    "deleteAccountInfoSubtitle": "Профиль и данные входа",
+    "deleteAccountTypeConfirm": "Введите \"DELETE\" для подтверждения:",
+    "deleteAccountTypeHint": "Введите DELETE здесь...",
+    "deleteAccountIrreversibleImmediate": "Это действие необратимо и вступит в силу сразу.",
+    "deleteAccountQuickConfirm": "Вы уверены, что хотите навсегда удалить аккаунт?",
+    "deleteAccountQuickWarningList": "• Все ваши проекты будут потеряны\n• Облачные резервные копии будут удалены\n• Это действие нельзя отменить",
+    "failedToDeleteAccount": "Не удалось удалить аккаунт: {error}",
+    "@failedToDeleteAccount": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "proAccessActive": "Pro-доступ активен",
+    "proAccessRemaining": "У вас осталось {time} Pro-доступа.",
+    "@proAccessRemaining": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "buyPro": "Купить Pro",
+    "rewardUpgradeBullets": "• Неограниченный доступ ко всем функциям\n• Разовая покупка\n• Без рекламы\n• Приоритетная поддержка",
+    "tryPro45Minutes": "Попробовать Pro на 45 минут",
+    "rewardAdReadyBullets": "• Посмотрите короткую видеорекламу\n• Получите 45 минут Pro-доступа\n• Поддержите развитие приложения",
+    "rewardAdLoadingBullets": "• Видеореклама загружается...\n• Попробуйте ещё раз через минуту",
+    "watchAd": "Смотреть рекламу",
+    "loadingEllipsis": "Загрузка...",
+    "loadingVideoAd": "Загрузка видеорекламы...",
+    "proAccessGranted45": "Pro-доступ выдан на 45 минут!",
+    "videoAdNotCompleted": "Видеореклама не была досмотрена. Попробуйте ещё раз или перейдите на Pro.",
+    "failedToLoadVideoAd": "Не удалось загрузить видеорекламу: {error}",
+    "@failedToLoadVideoAd": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "rewardTimeZeroMinutes": "0 минут",
+    "rewardTimeMinutesSeconds": "{minutes} мин {seconds} с",
+    "@rewardTimeMinutesSeconds": {
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            },
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "rewardTimeSeconds": "{seconds} с",
+    "@rewardTimeSeconds": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "selectionOptions": "Параметры выделения",
+    "clearSelection": "Очистить выделение",
+    "invertSelection": "Инвертировать выделение",
+    "growSelectionOnePixel": "Расширить (+1 px)",
+    "shrinkSelectionOnePixel": "Сжать (-1 px)",
+    "rotate90": "Повернуть на 90°",
+    "rotate180": "Повернуть на 180°",
+    "flipHorizontal": "Отразить по горизонтали",
+    "flipVertical": "Отразить по вертикали",
+    "cutToNewLayer": "Вырезать на новый слой",
+    "copyToNewLayer": "Копировать на новый слой",
+    "cut": "Вырезать",
+    "copy": "Копировать",
+    "clearArea": "Очистить область",
+    "replaceSelection": "Заменить выделение",
+    "addToSelectionShift": "Добавить к выделению (Shift)",
+    "subtractFromSelectionAlt": "Вычесть из выделения (Alt)",
+    "textureBrush": "Текстурная кисть",
+    "triangle": "Треугольник",
+    "diamond": "Ромб",
+    "hexagon": "Шестиугольник",
+    "heart": "Сердце",
+    "arrow": "Стрелка",
+    "lightning": "Молния",
+    "cross": "Крест",
+    "spiral": "Спираль",
+    "cloudShape": "Облако",
+    "rectangleSelect": "Прямоугольное выделение",
+    "lasso": "Лассо",
+    "magicWand": "Волшебная палочка",
+    "effectsPanelAllAppliedMessage": "Все эффекты применены к слою и удалены из списка эффектов",
+    "effectsForLayer": "Эффекты для {layerName}",
+    "@effectsForLayer": {
+        "placeholders": {
+            "layerName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelAddEffect": "Добавить эффект",
+    "appliedEffects": "Применённые эффекты",
+    "effectCount": "{count, plural, =0{0 эффектов} =1{1 эффект} few{{count} эффекта} many{{count} эффектов} other{{count} эффекта}}",
+    "@effectCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsPreview": "Предпросмотр эффектов",
+    "effectPreview": "Предпросмотр эффекта",
+    "noEffectsApplied": "Эффекты не применены",
+    "saveChanges": "Сохранить изменения",
+    "finalResult": "Итоговый результат",
+    "original": "Оригинал",
+    "withEffect": "С эффектом",
+    "withEffects": "С эффектами",
+    "effectsAppliedCount": "{count, plural, =0{0 эффектов применено} =1{1 эффект применён} few{{count} эффекта применено} many{{count} эффектов применено} other{{count} эффекта применено}}",
+    "@effectsAppliedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsAppliedInOrder": "Эффекты применяются по порядку",
+    "effectsReorderHint": "Эффекты применяются сверху вниз. Перетащите, чтобы изменить порядок.",
+    "addYourFirstEffect": "Добавьте первый эффект",
+    "layerEffects": "Эффекты слоя",
+    "effectWatercolor": "Акварель",
+    "effectHalftone": "Полутон",
+    "effectOilPaint": "Масляная краска",
+    "effectEmboss": "Тиснение",
+    "ok": "OK",
+    "staticEffect": "Статический эффект",
+    "effectNotAnimatedMessage": "Эффект {effectName} не является анимированным. Генерация кадров доступна только для эффектов с поддержкой анимации.",
+    "@effectNotAnimatedMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "generateAnimation": "Создать анимацию",
+    "generateAnimationForEffect": "Создать кадры анимации для эффекта {effectName}?",
+    "@generateAnimationForEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetails": "Детали анимации",
+    "animationDetailEffect": "• Эффект: {effectName}",
+    "@animationDetailEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetailEstimatedFrames": "• Примерно кадров: ~{count}",
+    "@animationDetailEstimatedFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "animationDetailProcessingTime": "• Время обработки: ~{seconds} сек.",
+    "@animationDetailProcessingTime": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "generateAnimationTimelineNote": "Будет создано несколько кадров анимации, которые можно добавить на таймлайн.",
+    "generateAnimationFrames": "Создать кадры анимации",
+    "effectNameLabel": "Эффект {effectName}",
+    "@effectNameLabel": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "framesGeneratedCount": "{count, plural, =0{0 кадров создано} =1{1 кадр создан} few{{count} кадра создано} many{{count} кадров создано} other{{count} кадра создано}}",
+    "@framesGeneratedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "generateFrames": "Создать кадры",
+    "stop": "Стоп",
+    "frameLabel": "Кадр:",
+    "generatingFrames": "Создание кадров...",
+    "noFramesGenerated": "Кадры не созданы",
+    "animationSettings": "Настройки анимации",
+    "durationSeconds": "Длительность (секунды)",
+    "totalFrames": "Всего кадров:",
+    "pingPongAnimation": "Пинг-понг анимация",
+    "playForwardThenBackward": "Проигрывать вперёд, затем назад",
+    "frameGeneration": "Генерация кадров",
+    "generateNewFrames": "Создать новые кадры",
+    "createNewFramesForAnimation": "Создать новые кадры для этой анимации",
+    "insertIntoTimeline": "Вставить в таймлайн",
+    "addFramesToExistingTimeline": "Добавить кадры в существующий таймлайн",
+    "insertPosition": "Позиция вставки:",
+    "afterFrame": "После кадра {frame}",
+    "@afterFrame": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            }
+        }
+    },
+    "effectParameters": "Параметры эффекта",
+    "editParameters": "Редактировать параметры",
+    "effectParametersBaseNote": "Текущие настройки эффекта будут использованы как основа анимации",
+    "editBaseParameters": "Редактировать базовые параметры",
+    "applyAndRegenerate": "Применить и пересоздать",
+    "animationFrameGenerator": "Генератор кадров анимации",
+    "animationGeneratorHelpIntro": "Этот инструмент создаёт несколько кадров анимации, применяя выбранный эффект с разными временными параметрами.\n",
+    "animationHelpDuration": "• Длительность: общая длина анимации в секундах",
+    "animationHelpFps": "• FPS: кадров в секунду (выше = плавнее, но больше кадров)",
+    "animationHelpPingPong": "• Пинг-понг: воспроизводит вперёд, затем назад",
+    "animationHelpInterpolation": "• Параметры эффекта интерполируются во времени для плавной анимации",
+    "tips": "Советы:",
+    "animationTipLowerFps": "• Для тестов начинайте с меньшего FPS",
+    "animationTipUsePreview": "• Используйте предпросмотр перед генерацией",
+    "animationTipLongerDurations": "• Большая длительность лучше подходит для медленных эффектов",
+    "effectFrameName": "Кадр эффекта {index}",
+    "@effectFrameName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationName": "Анимация эффекта {index}",
+    "@effectAnimationName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationReturnName": "Анимация эффекта {index} (возврат)",
+    "@effectAnimationReturnName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "generatedAnimationFrames": "{count, plural, =0{Создано 0 кадров анимации} =1{Создан 1 кадр анимации} few{Создано {count} кадра анимации} many{Создано {count} кадров анимации} other{Создано {count} кадра анимации}}!",
+    "@generatedAnimationFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "viewTimeline": "Открыть таймлайн",
+    "featureBullet": "• {feature}",
+    "@featureBullet": {
+        "placeholders": {
+            "feature": {
+                "type": "String"
+            }
+        }
+    },
+    "defaultLayerName": "Слой {index}",
+    "@defaultLayerName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "select": "Выбрать",
+    "menu": "Меню",
+    "adjustOpacity": "Настроить прозрачность",
+    "adjustLayerOpacity": "Настроить прозрачность слоя",
+    "addToTemplate": "Добавить в шаблон",
+    "editLayer": "Редактировать слой",
+    "backgroundShort": "ФОН",
+    "reference": "Референс",
+    "reset": "Сброс",
+    "fit": "Вписать",
+    "removeBackgroundImage": "Удалить фоновое изображение",
+    "removeBackgroundImageMessage": "Вы уверены, что хотите удалить фоновое изображение?",
+    "themeSelector": "Выбор темы",
+    "unlockThemeTitle": "Разблокировать тему {themeName}",
+    "@unlockThemeTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "watchAdToUnlockTheme": "Посмотрите видеорекламу, чтобы разблокировать эту тему.",
+    "themeUnlocked": "Тема {themeName} разблокирована!",
+    "@themeUnlocked": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "themeShowcaseTitle": "Тема: {themeName}",
+    "@themeShowcaseTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "primaryColors": "Основные цвета",
+    "primary": "Основной",
+    "primaryVariant": "Вариант основного",
+    "onPrimary": "На основном",
+    "accent": "Акцент",
+    "onAccent": "На акценте",
+    "backgroundColors": "Цвета фона",
+    "surface": "Поверхность",
+    "surfaceVariant": "Вариант поверхности",
+    "textColors": "Цвета текста",
+    "textPrimary": "Основной текст",
+    "textSecondary": "Вторичный текст",
+    "textDisabled": "Отключённый текст",
+    "utilityColors": "Служебные цвета",
+    "error": "Ошибка",
+    "success": "Успех",
+    "warning": "Предупреждение",
+    "uiElements": "Элементы UI",
+    "elevated": "Elevated",
+    "filled": "Filled",
+    "outlined": "Outlined",
+    "text": "Text",
+    "inputField": "Поле ввода",
+    "enterText": "Введите текст",
+    "previewingTheme": "Предпросмотр: {themeName}",
+    "@previewingTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "currentTheme": "Текущая: {themeName}",
+    "@currentTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "unlockPremiumThemes": "Разблокируйте премиум-темы",
+    "getAccessToAllThemesWithPro": "Получите доступ ко всем темам с Pro",
+    "flagship": "Флагманские",
+    "free": "Бесплатно",
+    "freeThemes": "Бесплатные темы",
+    "premiumThemes": "Премиум-темы",
+    "apply": "Применить",
+    "importedFileAsNewLayer": "Файл \"{fileName}\" импортирован как новый слой",
+    "@importedFileAsNewLayer": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsepriteFile": "Импорт файла Aseprite",
+    "howImportAsepriteFile": "Как импортировать \"{fileName}\"?",
+    "@howImportAsepriteFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedFirstLayerFromFile": "Первый слой из \"{fileName}\" импортирован",
+    "@importedFirstLayerFromFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsLayer": "Импортировать как слой",
+    "openAsProject": "Открыть как проект",
+    "copyFrame": "Копировать кадр",
+    "deleteFrame": "Удалить кадр",
+    "collapse": "Свернуть",
+    "expand": "Развернуть",
+    "addState": "Добавить состояние",
+    "copyState": "Копировать состояние",
+    "addAnimationState": "Добавить состояние анимации",
+    "stateName": "Название состояния",
+    "tileModeTooltip": "Режим плитки - предпросмотр бесшовного повтора",
+    "settingsStylusMode": "Настройки (режим стилуса)",
+    "onionSkinTooltip": "Onion Skin (долгое нажатие для прозрачности)",
+    "sprayPaintToolDescription": "Создаёт эффект аэрозоля с частицами",
+    "lineToolDescription": "Рисует прямые линии между двумя точками",
+    "circleToolDescription": "Рисует идеальные круги и эллипсы",
+    "rectangleToolDescription": "Рисует прямоугольники и квадраты",
+    "triangleToolDescription": "Рисует треугольники",
+    "diamondToolDescription": "Рисует ромбы",
+    "hexagonToolDescription": "Рисует шестиугольники",
+    "heartToolDescription": "Рисует сердца",
+    "arrowToolDescription": "Рисует стрелки",
+    "lightningToolDescription": "Рисует молнии",
+    "crossToolDescription": "Рисует кресты или плюсы",
+    "spiralToolDescription": "Рисует спирали",
+    "cloudToolDescription": "Рисует облака",
+    "penToolDescription": "Продвинутый инструмент свободного рисования",
+    "rectangleSelectToolDescription": "Выделяет прямоугольную область",
+    "ellipseSelectToolDescription": "Выделяет эллиптическую область",
+    "lassoToolDescription": "Свободное выделение",
+    "magicWandToolDescription": "Выделяет смежные пиксели по цвету",
+    "curve": "Кривая",
+    "curveToolDescription": "Рисует плавные кривые линии",
+    "move": "Перемещение",
+    "moveToolDescription": "Перемещает и перетаскивает элементы"
 }

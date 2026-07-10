@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/strings.dart';
+
 class KeyboardShortcutsDialog extends StatelessWidget {
   const KeyboardShortcutsDialog({super.key});
 
@@ -12,6 +14,8 @@ class KeyboardShortcutsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
@@ -26,7 +30,7 @@ class KeyboardShortcutsDialog extends StatelessWidget {
                   const Icon(Icons.keyboard_rounded, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Keyboard Shortcuts',
+                    s.keyboardShortcuts,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -46,59 +50,59 @@ class KeyboardShortcutsDialog extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _section(context, 'File', [
-                      _ShortcutRow('Save', 'Ctrl + S'),
-                      _ShortcutRow('Export', 'Ctrl + E'),
-                      _ShortcutRow('Import', 'Ctrl + O'),
+                    _section(context, s.fileMenu, [
+                      _ShortcutRow(s.save, 'Ctrl + S'),
+                      _ShortcutRow(s.export, 'Ctrl + E'),
+                      _ShortcutRow(s.import, 'Ctrl + O'),
                     ]),
-                    _section(context, 'Edit', [
-                      _ShortcutRow('Undo', 'Ctrl + Z'),
-                      _ShortcutRow('Redo', 'Ctrl + Y  /  Ctrl + Shift + Z'),
-                      _ShortcutRow('Copy selection', 'Ctrl + C'),
-                      _ShortcutRow('Cut selection', 'Ctrl + X'),
-                      _ShortcutRow('Paste', 'Ctrl + V'),
-                      _ShortcutRow('Duplicate layer', 'Ctrl + J'),
+                    _section(context, s.edit, [
+                      _ShortcutRow(s.undo, 'Ctrl + Z'),
+                      _ShortcutRow(s.redo, 'Ctrl + Y  /  Ctrl + Shift + Z'),
+                      _ShortcutRow(s.copySelection, 'Ctrl + C'),
+                      _ShortcutRow(s.cutSelection, 'Ctrl + X'),
+                      _ShortcutRow(s.paste, 'Ctrl + V'),
+                      _ShortcutRow(s.duplicateLayer, 'Ctrl + J'),
                     ]),
-                    _section(context, 'Selection', [
-                      _ShortcutRow('Select all', 'Ctrl + A'),
-                      _ShortcutRow('Deselect', 'Ctrl + D  /  Escape'),
-                      _ShortcutRow('Close pen path', 'Ctrl + Enter'),
+                    _section(context, s.selection, [
+                      _ShortcutRow(s.selectAll, 'Ctrl + A'),
+                      _ShortcutRow(s.deselect, 'Ctrl + D  /  Escape'),
+                      _ShortcutRow(s.closePenPath, 'Ctrl + Enter'),
                     ]),
-                    _section(context, 'Tools', [
-                      _ShortcutRow('Pencil', 'B'),
-                      _ShortcutRow('Eraser', 'E'),
-                      _ShortcutRow('Eyedropper', 'I'),
-                      _ShortcutRow('Fill', 'G'),
-                      _ShortcutRow('Select / Marquee', 'M'),
-                      _ShortcutRow('Line', 'L'),
-                      _ShortcutRow('Rectangle', 'U'),
-                      _ShortcutRow('Circle', 'O'),
-                      _ShortcutRow('Move / Drag', 'H'),
-                      _ShortcutRow('Pen', 'P'),
-                      _ShortcutRow('Spray paint', 'S'),
-                      _ShortcutRow('Pan (hold)', 'Space'),
-                      _ShortcutRow('Eyedropper (hold)', 'Alt'),
-                      _ShortcutRow('Color picker', 'C'),
+                    _section(context, s.tools, [
+                      _ShortcutRow(s.pencil, 'B'),
+                      _ShortcutRow(s.eraser, 'E'),
+                      _ShortcutRow(s.eyedropper, 'I'),
+                      _ShortcutRow(s.fill, 'G'),
+                      _ShortcutRow(s.selectMarquee, 'M'),
+                      _ShortcutRow(s.lineTool, 'L'),
+                      _ShortcutRow(s.rectangleTool, 'U'),
+                      _ShortcutRow(s.circleTool, 'O'),
+                      _ShortcutRow(s.moveDrag, 'H'),
+                      _ShortcutRow(s.pen, 'P'),
+                      _ShortcutRow(s.sprayPaint, 'S'),
+                      _ShortcutRow(s.panHold, 'Space'),
+                      _ShortcutRow(s.eyedropperHold, 'Alt'),
+                      _ShortcutRow(s.colorPicker, 'C'),
                     ]),
-                    _section(context, 'Brush', [
-                      _ShortcutRow('Increase size', ']'),
-                      _ShortcutRow('Decrease size', '['),
+                    _section(context, s.brush, [
+                      _ShortcutRow(s.increaseSize, ']'),
+                      _ShortcutRow(s.decreaseSize, '['),
                     ]),
-                    _section(context, 'Colors', [
-                      _ShortcutRow('Swap colors', 'X'),
-                      _ShortcutRow('Default colors', 'D'),
+                    _section(context, s.colors, [
+                      _ShortcutRow(s.swapColors, 'X'),
+                      _ShortcutRow(s.defaultColors, 'D'),
                     ]),
-                    _section(context, 'View', [
-                      _ShortcutRow('Zoom in', '='),
-                      _ShortcutRow('Zoom out', '-'),
-                      _ShortcutRow('Zoom to fit', '0'),
-                      _ShortcutRow('Zoom 1:1', '1'),
-                      _ShortcutRow('Toggle UI', 'Tab'),
+                    _section(context, s.view, [
+                      _ShortcutRow(s.zoomIn, '='),
+                      _ShortcutRow(s.zoomOut, '-'),
+                      _ShortcutRow(s.zoomToFit, '0'),
+                      _ShortcutRow(s.zoomOneToOne, '1'),
+                      _ShortcutRow(s.toggleUi, 'Tab'),
                     ]),
-                    _section(context, 'Layers', [
-                      _ShortcutRow('Select layer 1–9', '1 – 9'),
-                      _ShortcutRow('New layer', 'Ctrl + N'),
-                      _ShortcutRow('Delete layer', 'Delete'),
+                    _section(context, s.layers, [
+                      _ShortcutRow(s.selectLayerOneToNine, '1 – 9'),
+                      _ShortcutRow(s.newLayer, 'Ctrl + N'),
+                      _ShortcutRow(s.deleteLayer, 'Delete'),
                     ]),
                   ],
                 ),

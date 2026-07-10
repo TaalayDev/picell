@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data.dart';
+import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
 import 'effects_panel.dart';
 
@@ -13,6 +14,8 @@ class QuickEffectsToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Container(
       height: 50,
       decoration: BoxDecoration(
@@ -25,97 +28,97 @@ class QuickEffectsToolbar extends StatelessWidget {
         children: [
           _buildEffectButton(
             context,
-            'Invert',
+            s.effectInvert,
             Icons.invert_colors,
             () => onApplyEffect(InvertEffect()),
           ),
           _buildEffectButton(
             context,
-            'Grayscale',
+            s.effectGrayscale,
             Icons.monochrome_photos,
             () => onApplyEffect(GrayscaleEffect()),
           ),
           _buildEffectButton(
             context,
-            'Sepia',
+            s.effectSepia,
             Icons.filter_vintage,
             () => onApplyEffect(SepiaEffect()),
           ),
           _buildEffectButton(
             context,
-            'Watercolor', // New watercolor effect button
+            s.effectWatercolor,
             Icons.water_drop, // Using water_drop icon for watercolor
             () => onApplyEffect(WatercolorEffect()),
           ),
           _buildEffectButton(
             context,
-            'Halftone', // New halftone effect button
+            s.effectHalftone,
             Icons.grid_3x3, // Using grid_3x3 icon for halftone
             () => onApplyEffect(HalftoneEffect()),
           ),
           _buildEffectButton(
             context,
-            'Glow', // New glow effect button
+            s.effectGlow,
             Icons.light_mode, // Using light_mode icon for glow
             () => onApplyEffect(GlowEffect()),
           ),
           _buildEffectButton(
             context,
-            'Oil Paint', // New glow effect button
+            s.effectOilPaint,
             Icons.brush, // Using brush icon for oil paint
             () => onApplyEffect(OilPaintEffect()),
           ),
           _buildEffectButton(
             context,
-            'Blur',
+            s.effectBlur,
             Icons.blur_on,
             () => onApplyEffect(BlurEffect()),
           ),
           _buildEffectButton(
             context,
-            'Sharpen',
+            s.effectSharpen,
             Icons.blur_linear,
             () => onApplyEffect(SharpenEffect()),
           ),
           _buildEffectButton(
             context,
-            'Pixelate',
+            s.effectPixelate,
             Icons.grid_on,
             () => onApplyEffect(PixelateEffect()),
           ),
           _buildEffectButton(
             context,
-            'Emboss',
+            s.effectEmboss,
             Icons.layers,
             () => onApplyEffect(EmbossEffect()),
           ),
           _buildEffectButton(
             context,
-            'Noise',
+            s.effectNoise,
             Icons.grain,
             () => onApplyEffect(NoiseEffect()),
           ),
           _buildEffectButton(
             context,
-            'Brightness',
+            s.effectBrightness,
             Icons.brightness_6,
             () => onApplyEffect(BrightnessEffect({'value': 0.2})),
           ),
           _buildEffectButton(
             context,
-            'Contrast',
+            s.effectContrast,
             Icons.contrast,
             () => onApplyEffect(ContrastEffect({'value': 0.2})),
           ),
           _buildEffectButton(
             context,
-            'Threshold',
+            s.effectThreshold,
             Icons.tonality,
             () => onApplyEffect(ThresholdEffect()),
           ),
           _buildEffectButton(
             context,
-            'Vignette',
+            s.effectVignette,
             Icons.vignette,
             () => onApplyEffect(VignetteEffect()),
           ),
@@ -174,8 +177,10 @@ class EnhancedEffectsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return AlertDialog(
-      title: const Text('Layer Effects'),
+      title: Text(s.layerEffects),
       content: SizedBox(
         width: 600,
         height: 500,
@@ -184,7 +189,8 @@ class EnhancedEffectsDialog extends StatelessWidget {
             // Quick effects toolbar
             QuickEffectsToolbar(
               onApplyEffect: (effect) {
-                final updatedEffects = List<Effect>.from(layer.effects)..add(effect);
+                final updatedEffects = List<Effect>.from(layer.effects)
+                  ..add(effect);
                 final updatedLayer = layer.copyWith(effects: updatedEffects);
                 onLayerUpdated(updatedLayer);
                 Navigator.of(context).pop();
@@ -207,7 +213,7 @@ class EnhancedEffectsDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(s.cancel),
         ),
       ],
     );

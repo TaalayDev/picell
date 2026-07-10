@@ -5,13 +5,16 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../app/theme/theme.dart';
 import '../../data/models/subscription_model.dart';
+import '../../l10n/strings.dart';
 import '../../providers/subscription_provider.dart';
 import '../screens/subscription_screen.dart';
 import 'animated_background.dart';
 import 'theme_selector.dart';
 
 // Flagship theme types — lazily computed once.
-final _flagshipTypes = ThemeType.values.where((t) => AppTheme.fromType(t).flagship != null).toList();
+final _flagshipTypes = ThemeType.values
+    .where((t) => AppTheme.fromType(t).flagship != null)
+    .toList();
 
 class ThemeSelectorBottomSheet extends HookConsumerWidget {
   const ThemeSelectorBottomSheet({super.key});
@@ -85,16 +88,21 @@ class _ThemeSelectorContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = Strings.of(context);
     final themeManager = ref.watch(themeProvider);
     final currentTheme = themeManager.theme;
     final subscription = ref.watch(subscriptionStateProvider);
 
     final unlockedThemeTypes = useState(
-      ThemeType.values.where((type) => !type.isLocked || subscription.isPro).toList(),
+      ThemeType.values
+          .where((type) => !type.isLocked || subscription.isPro)
+          .toList(),
     );
 
     final selectedTheme = useState<ThemeType?>(null);
-    final previewTheme = selectedTheme.value != null ? AppTheme.fromType(selectedTheme.value!) : currentTheme;
+    final previewTheme = selectedTheme.value != null
+        ? AppTheme.fromType(selectedTheme.value!)
+        : currentTheme;
 
     final isSmallScreen = MediaQuery.sizeOf(context).width < 600;
 
@@ -110,7 +118,9 @@ class _ThemeSelectorContent extends HookConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           color: previewTheme.surface.withValues(alpha: 0.95),
-          borderRadius: showHandle ? const BorderRadius.vertical(top: Radius.circular(20)) : BorderRadius.circular(20),
+          borderRadius: showHandle
+              ? const BorderRadius.vertical(top: Radius.circular(20))
+              : BorderRadius.circular(20),
           border: Border.all(
             color: previewTheme.divider.withValues(alpha: 0.3),
             width: 1,
@@ -135,14 +145,15 @@ class _ThemeSelectorContent extends HookConsumerWidget {
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  Icon(Icons.palette_outlined, color: previewTheme.primaryColor, size: 28),
+                  Icon(Icons.palette_outlined,
+                      color: previewTheme.primaryColor, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Choose Theme',
+                          s.chooseTheme,
                           style: TextStyle(
                             fontSize: isSmallScreen ? 20 : 24,
                             fontWeight: FontWeight.bold,
@@ -151,8 +162,9 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                         ),
                         Text(
                           selectedTheme.value != null
-                              ? 'Previewing ${selectedTheme.value!.displayName}'
-                              : 'Current: ${currentTheme.type.displayName}',
+                              ? s.previewingTheme(
+                                  selectedTheme.value!.displayName)
+                              : s.currentTheme(currentTheme.type.displayName),
                           style: TextStyle(
                             fontSize: isSmallScreen ? 12 : 14,
                             color: previewTheme.textSecondary,
@@ -165,7 +177,9 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                     if (!isSmallScreen) ...[
                       TextButton(
                         onPressed: () => selectedTheme.value = null,
-                        child: Text('Cancel', style: TextStyle(color: previewTheme.textSecondary)),
+                        child: Text(s.cancel,
+                            style:
+                                TextStyle(color: previewTheme.textSecondary)),
                       ),
                       const SizedBox(width: 8),
                     ],
@@ -178,7 +192,7 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                         side: BorderSide(color: previewTheme.primaryColor),
                         foregroundColor: previewTheme.primaryColor,
                       ),
-                      child: const Text('Preview'),
+                      child: Text(s.preview),
                     ),
                     const SizedBox(width: 8),
                     FilledButton(
@@ -198,12 +212,13 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                         backgroundColor: previewTheme.primaryColor,
                         foregroundColor: previewTheme.onPrimary,
                       ),
-                      child: const Text('Apply'),
+                      child: Text(s.apply),
                     ),
                   ] else
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.close, color: previewTheme.textSecondary),
+                      icon:
+                          Icon(Icons.close, color: previewTheme.textSecondary),
                     ),
                 ],
               ),
@@ -222,20 +237,26 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: previewTheme.primaryColor.withValues(alpha: 0.2)),
+                  border: Border.all(
+                      color: previewTheme.primaryColor.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   children: [
-                    Icon(MaterialCommunityIcons.crown, color: previewTheme.primaryColor, size: 20),
+                    Icon(MaterialCommunityIcons.crown,
+                        color: previewTheme.primaryColor, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Unlock Premium Themes',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: previewTheme.textPrimary)),
-                          Text('Get access to all themes with Pro',
-                              style: TextStyle(fontSize: 12, color: previewTheme.textSecondary)),
+                          Text(s.unlockPremiumThemes,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: previewTheme.textPrimary)),
+                          Text(s.getAccessToAllThemesWithPro,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: previewTheme.textSecondary)),
                         ],
                       ),
                     ),
@@ -244,8 +265,10 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                         Navigator.of(context).pop();
                         SubscriptionOfferScreen.show(context);
                       },
-                      child: Text('Get Pro',
-                          style: TextStyle(color: previewTheme.primaryColor, fontWeight: FontWeight.bold)),
+                      child: Text(s.getPro,
+                          style: TextStyle(
+                              color: previewTheme.primaryColor,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -266,7 +289,7 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                       title: Row(
                         children: [
                           Text(
-                            '✦ Flagship',
+                            s.flagship,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -275,14 +298,18 @@ class _ThemeSelectorContent extends HookConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: previewTheme.primaryColor.withValues(alpha: 0.15),
+                              color: previewTheme.primaryColor
+                                  .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: previewTheme.primaryColor.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                  color: previewTheme.primaryColor
+                                      .withValues(alpha: 0.3)),
                             ),
                             child: Text(
-                              'FREE',
+                              s.free.toUpperCase(),
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
@@ -305,9 +332,15 @@ class _ThemeSelectorContent extends HookConsumerWidget {
 
                     // Free themes (non-flagship)
                     _ThemeList(
-                      title: Text('Free Themes',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: previewTheme.textPrimary)),
-                      themes: ThemeType.values.where((t) => !t.isLocked && !_flagshipTypes.contains(t)).toList(),
+                      title: Text(s.freeThemes,
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: previewTheme.textPrimary)),
+                      themes: ThemeType.values
+                          .where(
+                              (t) => !t.isLocked && !_flagshipTypes.contains(t))
+                          .toList(),
                       currentTheme: currentTheme,
                       selectedTheme: selectedTheme,
                       unlockedThemes: unlockedThemeTypes.value,
@@ -317,9 +350,15 @@ class _ThemeSelectorContent extends HookConsumerWidget {
 
                     // Premium themes (non-flagship)
                     _ThemeList(
-                      title: Text('Premium Themes',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: previewTheme.textPrimary)),
-                      themes: ThemeType.values.where((t) => t.isLocked && !_flagshipTypes.contains(t)).toList(),
+                      title: Text(s.premiumThemes,
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: previewTheme.textPrimary)),
+                      themes: ThemeType.values
+                          .where(
+                              (t) => t.isLocked && !_flagshipTypes.contains(t))
+                          .toList(),
                       currentTheme: currentTheme,
                       selectedTheme: selectedTheme,
                       unlockedThemes: unlockedThemeTypes.value,
@@ -349,7 +388,6 @@ class _ThemeList extends ConsumerWidget {
   final AppTheme previewTheme;
 
   const _ThemeList({
-    super.key,
     required this.title,
     required this.themes,
     required this.currentTheme,
@@ -383,9 +421,11 @@ class _ThemeList extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final themeType = themes[index];
                 final theme = AppTheme.fromType(themeType);
-                final isLocked = !unlockedThemes.contains(themeType) && !subscription.isPro;
+                final isLocked =
+                    !unlockedThemes.contains(themeType) && !subscription.isPro;
                 final isSelected = selectedTheme.value == themeType;
-                final isCurrent = currentTheme.type == themeType && selectedTheme.value == null;
+                final isCurrent = currentTheme.type == themeType &&
+                    selectedTheme.value == null;
 
                 return ThemePreviewCard(
                   themeType: themeType,
@@ -444,7 +484,8 @@ class ThemePreviewCard extends HookWidget {
           boxShadow: [
             if (isSelected || isCurrent)
               BoxShadow(
-                color: (isSelected ? theme.primaryColor : theme.accentColor).withValues(alpha: 0.3),
+                color: (isSelected ? theme.primaryColor : theme.accentColor)
+                    .withValues(alpha: 0.3),
                 blurRadius: 8,
                 spreadRadius: 0,
                 offset: const Offset(0, 2),
@@ -526,9 +567,11 @@ class ThemePreviewCard extends HookWidget {
                           }
                           return Container(
                             margin: EdgeInsets.only(left: isLocked ? 4 : 0),
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 2),
                             decoration: BoxDecoration(
-                              color: flagship.badgeColor.withValues(alpha: 0.85),
+                              color:
+                                  flagship.badgeColor.withValues(alpha: 0.85),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -545,7 +588,8 @@ class ThemePreviewCard extends HookWidget {
                         const Spacer(),
                         if (isCurrent)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: theme.accentColor,
                               borderRadius: BorderRadius.circular(8),
@@ -669,7 +713,8 @@ class ThemeShowcase extends StatelessWidget {
             Container(
               height: 120,
               decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -683,7 +728,8 @@ class ThemeShowcase extends StatelessWidget {
                 children: [
                   // Mini animated background
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(20)),
                     child: AnimatedBackground(
                       appTheme: theme,
                       intensity: 0.8,
@@ -843,7 +889,8 @@ class _ColorBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    final textColor =
+        color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 
     return Column(
       children: [
@@ -890,6 +937,8 @@ class _ButtonsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -901,7 +950,7 @@ class _ButtonsRow extends StatelessWidget {
             backgroundColor: theme.primaryColor,
             foregroundColor: theme.onPrimary,
           ),
-          child: const Text('Elevated'),
+          child: Text(s.elevated),
         ),
         FilledButton(
           onPressed: () {},
@@ -909,7 +958,7 @@ class _ButtonsRow extends StatelessWidget {
             backgroundColor: theme.primaryColor,
             foregroundColor: theme.onPrimary,
           ),
-          child: const Text('Filled'),
+          child: Text(s.filled),
         ),
         OutlinedButton(
           onPressed: () {},
@@ -917,14 +966,14 @@ class _ButtonsRow extends StatelessWidget {
             side: BorderSide(color: theme.primaryColor),
             foregroundColor: theme.primaryColor,
           ),
-          child: const Text('Outlined'),
+          child: Text(s.outlined),
         ),
         TextButton(
           onPressed: () {},
           style: TextButton.styleFrom(
             foregroundColor: theme.primaryColor,
           ),
-          child: const Text('Text'),
+          child: Text(s.text),
         ),
       ],
     );
@@ -938,6 +987,8 @@ class _InputsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Wrap(
       spacing: 16,
       runSpacing: 16,
@@ -947,8 +998,8 @@ class _InputsRow extends StatelessWidget {
           width: 200,
           child: TextFormField(
             decoration: InputDecoration(
-              labelText: 'Input field',
-              hintText: 'Enter text',
+              labelText: s.inputField,
+              hintText: s.enterText,
               labelStyle: TextStyle(color: theme.textSecondary),
               hintStyle: TextStyle(color: theme.textDisabled),
               enabledBorder: OutlineInputBorder(

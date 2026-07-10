@@ -5,8 +5,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../../core/extensions/primitive_extensions.dart';
-import '../../../pixel/effects/effects.dart';
 import '../../../data.dart';
+import '../../../l10n/strings.dart';
+import '../../../pixel/effects/effects.dart';
 import '../animated_background.dart';
 import 'pixlel_preview_painter.dart';
 
@@ -30,21 +31,22 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
       return showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.warning, color: Colors.orange),
-              SizedBox(width: 8),
-              Text('Static Effect'),
+              const Icon(Icons.warning, color: Colors.orange),
+              const SizedBox(width: 8),
+              Text(Strings.of(context).staticEffect),
             ],
           ),
           content: Text(
-            'The ${effect.getName(context)} effect is not an animated effect. '
-            'Animation frame generation is only available for effects that support animation.',
+            Strings.of(context).effectNotAnimatedMessage(
+              effect.getName(context),
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text(Strings.of(context).ok),
             ),
           ],
         ),
@@ -79,7 +81,7 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 8),
-            const Text('Generate Animation'),
+            Text(Strings.of(context).generateAnimation),
           ],
         ),
         content: Column(
@@ -87,7 +89,9 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Generate animation frames for ${effect.getName(context)} effect?',
+              Strings.of(context).generateAnimationForEffect(
+                effect.getName(context),
+              ),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
@@ -105,23 +109,32 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
                       const Icon(Icons.info_outline, size: 16),
                       const SizedBox(width: 8),
                       Text(
-                        'Animation Details',
+                        Strings.of(context).animationDetails,
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text('• Effect: ${effect.getName(context)}'),
-                  Text('• Estimated frames: ~$estimatedFrames'),
-                  Text('• Processing time: ~${(estimatedFrames * 0.1).round()} seconds'),
+                  Text(Strings.of(context)
+                      .animationDetailEffect(effect.getName(context))),
+                  Text(Strings.of(context)
+                      .animationDetailEstimatedFrames(estimatedFrames)),
+                  Text(
+                    Strings.of(context).animationDetailProcessingTime(
+                      (estimatedFrames * 0.1).round(),
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 12),
             Text(
-              'This will create multiple animation frames that you can add to your timeline.',
+              Strings.of(context).generateAnimationTimelineNote,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
                   ),
             ),
           ],
@@ -129,12 +142,12 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.of(context).pop(true),
             icon: const Icon(Icons.play_arrow),
-            label: const Text('Generate Animation'),
+            label: Text(Strings.of(context).generateAnimation),
           ),
         ],
       ),
@@ -153,10 +166,13 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
   });
 
   @override
-  State<EffectAnimationGeneratorDialog> createState() => _EffectAnimationGeneratorDialogState();
+  State<EffectAnimationGeneratorDialog> createState() =>
+      _EffectAnimationGeneratorDialogState();
 }
 
-class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGeneratorDialog> with TickerProviderStateMixin {
+class _EffectAnimationGeneratorDialogState
+    extends State<EffectAnimationGeneratorDialog>
+    with TickerProviderStateMixin {
   late Map<String, dynamic> _parameters;
   late AnimationController _previewController;
   Timer? _previewTimer;
@@ -165,7 +181,6 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
   int _frameCount = 30;
   int _fps = 12;
   double _duration = 2.5; // seconds
-  int _loops = 1;
   bool _pingPong = false;
   bool _generateNewFrames = true;
   int _insertPosition = 0;
@@ -206,7 +221,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
       _generatedFrames.clear();
     });
 
-    await Future.delayed(const Duration(milliseconds: 50)); // Allow UI to update
+    await Future.delayed(
+        const Duration(milliseconds: 50)); // Allow UI to update
 
     final frames = <Uint32List>[];
 
@@ -223,7 +239,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
       // Apply specific time-based modifications for different effects
       _applyTimeBasedParameters(timeParameters, t, i);
 
-      final effect = EffectsManager.createEffect(widget.effect.type, timeParameters);
+      final effect =
+          EffectsManager.createEffect(widget.effect.type, timeParameters);
       final framePixels = effect.apply(
         widget.layerPixels,
         widget.layerWidth,
@@ -241,7 +258,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     }
   }
 
-  void _applyTimeBasedParameters(Map<String, dynamic> params, double t, int frame) {
+  void _applyTimeBasedParameters(
+      Map<String, dynamic> params, double t, int frame) {
     switch (widget.effect.type) {
       case EffectType.pulse:
         params['phase'] = t * 2 * pi;
@@ -325,7 +343,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
       }
 
       setState(() {
-        _currentPreviewFrame = (_currentPreviewFrame + 1) % _generatedFrames.length;
+        _currentPreviewFrame =
+            (_currentPreviewFrame + 1) % _generatedFrames.length;
       });
     });
   }
@@ -347,6 +366,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
     final isMobile = MediaQuery.of(context).size.width < 800;
     final effectName = widget.effect.getName(context);
 
@@ -360,7 +380,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+              color:
+                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -377,15 +398,21 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            'Generate Animation Frames',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            s.generateAnimationFrames,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                             textAlign: TextAlign.center,
                           ),
                           Text(
-                            '$effectName Effect',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            s.effectNameLabel(effectName),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
                             textAlign: TextAlign.center,
@@ -404,7 +431,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
 
                 // Content
                 Expanded(
-                  child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+                  child:
+                      isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
                 ),
 
                 // Action buttons
@@ -415,19 +443,20 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
                       // Frame info
                       Expanded(
                         child: Text(
-                          '${_generatedFrames.length} frames generated',
+                          s.framesGeneratedCount(_generatedFrames.length),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
+                        child: Text(s.cancel),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton.icon(
-                        onPressed: _generatedFrames.isEmpty ? null : _applyFrames,
+                        onPressed:
+                            _generatedFrames.isEmpty ? null : _applyFrames,
                         icon: const Icon(Icons.check),
-                        label: const Text('Generate Frames'),
+                        label: Text(s.generateFrames),
                       ),
                     ],
                   ),
@@ -488,6 +517,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
   }
 
   Widget _buildPreviewSection() {
+    final s = Strings.of(context);
+
     return Column(
       children: [
         // Preview title and controls
@@ -495,7 +526,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Preview',
+              s.preview,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             Row(
@@ -503,12 +534,12 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
                 IconButton(
                   onPressed: _generatedFrames.isEmpty ? null : _togglePreview,
                   icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-                  tooltip: _isPlaying ? 'Pause' : 'Play',
+                  tooltip: _isPlaying ? s.pause : s.play,
                 ),
                 IconButton(
                   onPressed: _generatedFrames.isEmpty ? null : _stopPreview,
                   icon: const Icon(Icons.stop),
-                  tooltip: 'Stop',
+                  tooltip: s.stop,
                 ),
               ],
             ),
@@ -535,7 +566,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
         if (_generatedFrames.isNotEmpty) ...[
           Row(
             children: [
-              Text('Frame:'),
+              Text(s.frameLabel),
               const SizedBox(width: 8),
               Expanded(
                 child: Slider(
@@ -561,21 +592,21 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
 
   Widget _buildPreview() {
     if (_isGenerating) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Generating frames...'),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(Strings.of(context).generatingFrames),
           ],
         ),
       );
     }
 
     if (_generatedFrames.isEmpty) {
-      return const Center(
-        child: Text('No frames generated'),
+      return Center(
+        child: Text(Strings.of(context).noFramesGenerated),
       );
     }
 
@@ -591,6 +622,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
   }
 
   Widget _buildAnimationSettings() {
+    final s = Strings.of(context);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -598,7 +631,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Animation Settings',
+              s.animationSettings,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
@@ -610,7 +643,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Duration (seconds)'),
+                      Text(s.durationSeconds),
                       Slider(
                         value: _duration,
                         min: 0.5,
@@ -633,7 +666,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('FPS'),
+                      Text(s.fps),
                       Slider(
                         value: _fps.toDouble(),
                         min: 6,
@@ -665,7 +698,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Total Frames:',
+                    s.totalFrames,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
@@ -685,8 +718,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
 
             // Additional options
             SwitchListTile(
-              title: const Text('Ping-Pong Animation'),
-              subtitle: const Text('Play forward then backward'),
+              title: Text(s.pingPongAnimation),
+              subtitle: Text(s.playForwardThenBackward),
               value: _pingPong,
               onChanged: (value) {
                 setState(() {
@@ -701,6 +734,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
   }
 
   Widget _buildFrameGenerationSettings() {
+    final s = Strings.of(context);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -708,13 +743,13 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Frame Generation',
+              s.frameGeneration,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
             RadioListTile<bool>(
-              title: const Text('Generate New Frames'),
-              subtitle: const Text('Create new frames for this animation'),
+              title: Text(s.generateNewFrames),
+              subtitle: Text(s.createNewFramesForAnimation),
               value: true,
               groupValue: _generateNewFrames,
               onChanged: (value) {
@@ -724,8 +759,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
               },
             ),
             RadioListTile<bool>(
-              title: const Text('Insert Into Timeline'),
-              subtitle: const Text('Add frames to existing timeline'),
+              title: Text(s.insertIntoTimeline),
+              subtitle: Text(s.addFramesToExistingTimeline),
               value: false,
               groupValue: _generateNewFrames,
               onChanged: (value) {
@@ -738,7 +773,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Text('Insert Position:'),
+                  Text(s.insertPosition),
                   const SizedBox(width: 8),
                   Expanded(
                     child: DropdownButton<int>(
@@ -747,7 +782,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
                       items: List.generate(10, (index) {
                         return DropdownMenuItem<int>(
                           value: index,
-                          child: Text('After frame ${index + 1}'),
+                          child: Text(s.afterFrame(index + 1)),
                         );
                       }),
                       onChanged: (value) {
@@ -767,6 +802,8 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
   }
 
   Widget _buildEffectParameters() {
+    final s = Strings.of(context);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -777,21 +814,24 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Effect Parameters',
+                  s.effectParameters,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 TextButton(
                   onPressed: () => _editParameters(),
-                  child: const Text('Edit Parameters'),
+                  child: Text(s.editParameters),
                 ),
               ],
             ),
             const SizedBox(height: 8),
 
             Text(
-              'Current effect settings will be used as the base for animation',
+              s.effectParametersBaseNote,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
                   ),
             ),
 
@@ -830,7 +870,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Base Parameters'),
+        title: Text(Strings.of(context).editBaseParameters),
         content: SizedBox(
           width: 400,
           child: Column(
@@ -861,14 +901,14 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
               _generateFrames();
             },
-            child: const Text('Apply & Regenerate'),
+            child: Text(Strings.of(context).applyAndRegenerate),
           ),
         ],
       ),
@@ -879,35 +919,35 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Animation Frame Generator'),
-        content: const SingleChildScrollView(
+        title: Text(Strings.of(context).animationFrameGenerator),
+        content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'This tool generates multiple animation frames by applying the selected effect with different time parameters.\n',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                Strings.of(context).animationGeneratorHelpIntro,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              Text('• Duration: Total length of the animation in seconds'),
-              Text('• FPS: Frames per second (higher = smoother but more frames)'),
-              Text('• Ping-Pong: Makes animation play forward then backward'),
-              Text('• The effect parameters are interpolated over time to create smooth animations'),
-              SizedBox(height: 16),
+              Text(Strings.of(context).animationHelpDuration),
+              Text(Strings.of(context).animationHelpFps),
+              Text(Strings.of(context).animationHelpPingPong),
+              Text(Strings.of(context).animationHelpInterpolation),
+              const SizedBox(height: 16),
               Text(
-                'Tips:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                Strings.of(context).tips,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              Text('• Start with lower FPS for testing'),
-              Text('• Use Preview to see the animation before generating'),
-              Text('• Longer durations work better for slower effects'),
+              Text(Strings.of(context).animationTipLowerFps),
+              Text(Strings.of(context).animationTipUsePreview),
+              Text(Strings.of(context).animationTipLongerDurations),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Got it'),
+            child: Text(Strings.of(context).gotIt),
           ),
         ],
       ),
@@ -925,7 +965,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
       final layer = Layer(
         layerId: i,
         id: 'animated_effect_$i',
-        name: 'Effect Frame ${i + 1}',
+        name: Strings.of(context).effectFrameName(i + 1),
         pixels: _generatedFrames[i],
         order: 0,
       );
@@ -933,7 +973,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
       final frame = AnimationFrame(
         id: i,
         stateId: 0,
-        name: 'Effect Animation ${i + 1}',
+        name: Strings.of(context).effectAnimationName(i + 1),
         duration: frameDuration,
         layers: [layer],
         order: i,
@@ -944,12 +984,15 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
 
     // If ping-pong, add reversed frames
     if (_pingPong && frames.length > 1) {
-      final reversedFrames = frames.reversed.skip(1).take(frames.length - 1).toList();
+      final reversedFrames =
+          frames.reversed.skip(1).take(frames.length - 1).toList();
       for (int i = 0; i < reversedFrames.length; i++) {
         final frame = reversedFrames[i];
         final newFrame = frame.copyWith(
           id: frames.length + i,
-          name: 'Effect Animation ${frames.length + i + 1} (Return)',
+          name: Strings.of(context).effectAnimationReturnName(
+            frames.length + i + 1,
+          ),
           order: frames.length + i,
         );
         frames.add(newFrame);
@@ -962,9 +1005,10 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Generated ${frames.length} animation frames!'),
+        content:
+            Text(Strings.of(context).generatedAnimationFrames(frames.length)),
         action: SnackBarAction(
-          label: 'View Timeline',
+          label: Strings.of(context).viewTimeline,
           onPressed: () {
             // Could trigger timeline expansion or navigation
           },

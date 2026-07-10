@@ -80,13 +80,13 @@ class ProjectMenuButton extends StatelessWidget {
     // Cloud-related options
     if (project.isCloudSynced) {
       items.add(
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'update',
           child: Row(
             children: [
-              Icon(Feather.upload_cloud),
-              SizedBox(width: 8),
-              Text('Resync with cloud'),
+              const Icon(Feather.upload_cloud),
+              const SizedBox(width: 8),
+              Text(Strings.of(context).resyncWithCloud),
             ],
           ),
         ),
@@ -94,13 +94,13 @@ class ProjectMenuButton extends StatelessWidget {
     } else if (project.remoteId == null) {
       // Local-only project — offer first-time upload
       items.add(
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'upload',
           child: Row(
             children: [
-              Icon(Feather.upload),
-              SizedBox(width: 8),
-              Text('Sync to cloud'),
+              const Icon(Feather.upload),
+              const SizedBox(width: 8),
+              Text(Strings.of(context).syncToCloud),
             ],
           ),
         ),
@@ -189,15 +189,17 @@ class ProjectMenuButton extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  border:
+                      Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Feather.alert_triangle, color: Colors.orange, size: 20),
+                    const Icon(Feather.alert_triangle,
+                        color: Colors.orange, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'This project is synced to the cloud. Deleting locally will not affect the cloud version.',
+                        Strings.of(context).syncedCloudDeleteWarning,
                         style: TextStyle(
                           color: Colors.orange.shade700,
                           fontSize: 12,
@@ -234,17 +236,14 @@ class ProjectMenuButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove from Cloud'),
-        content: const Text(
-          'This will remove the project from the cloud and make it local-only. '
-          'Your local copy will remain unchanged. Are you sure?',
-        ),
+        title: Text(Strings.of(context).removeFromCloud),
+        content: Text(Strings.of(context).removeFromCloudMessage),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -252,7 +251,7 @@ class ProjectMenuButton extends StatelessWidget {
               onDeleteCloudProject?.call(project);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            child: const Text('Remove from Cloud'),
+            child: Text(Strings.of(context).removeFromCloud),
           ),
         ],
       ),

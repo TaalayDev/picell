@@ -261,7 +261,7 @@ class ProjectsScreen extends HookConsumerWidget {
               const KofiSupportButton(compact: true),
               const SizedBox(width: 4),
               IconButton(
-                tooltip: 'Choose Theme',
+                tooltip: Strings.of(context).chooseTheme,
                 icon: Icon(
                   Icons.palette_outlined,
                   color: currentTheme.activeIcon,
@@ -362,7 +362,7 @@ class ProjectsScreen extends HookConsumerWidget {
                         ],
                       )
                     : IconButton(
-                        tooltip: 'Feedback',
+                        tooltip: Strings.of(context).feedback,
                         icon: Icon(
                           Icons.feedback_outlined,
                           color: currentTheme.activeIcon,
@@ -379,9 +379,9 @@ class ProjectsScreen extends HookConsumerWidget {
               borderRadius: BorderRadius.circular(24),
             ),
             extendedPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-            label: const Text('New Project'),
+            label: Text(Strings.of(context).newProject),
             icon: const Icon(Feather.plus),
-            tooltip: 'Create New Project',
+            tooltip: Strings.of(context).createNewProjectTooltip,
           ),
           body: Column(
             children: [
@@ -445,7 +445,7 @@ class ProjectsScreen extends HookConsumerWidget {
       if (!result.isSuccess) {
         showTopFlushbar(
           context,
-          message: Text(result.errorMessage ?? 'Failed to process ${result.fileName}'),
+          message: Text(result.errorMessage ?? Strings.of(context).failedToProcessFile(result.fileName)),
         );
         continue;
       }
@@ -456,7 +456,7 @@ class ProjectsScreen extends HookConsumerWidget {
           if (result.project != null) {
             final loader = showLoader(
               context,
-              loadingText: 'Importing ${result.fileName}...',
+              loadingText: Strings.of(context).importingFile(result.fileName),
             );
 
             try {
@@ -465,7 +465,7 @@ class ProjectsScreen extends HookConsumerWidget {
                 loader.remove();
                 showTopFlushbar(
                   context,
-                  message: Text('Imported "${result.project!.name}" successfully'),
+                  message: Text(Strings.of(context).importedProjectSuccessfully(result.project!.name)),
                 );
               }
             } catch (e) {
@@ -473,7 +473,7 @@ class ProjectsScreen extends HookConsumerWidget {
                 loader.remove();
                 showTopFlushbar(
                   context,
-                  message: Text('Failed to import: $e'),
+                  message: Text(Strings.of(context).failedToImport(e.toString())),
                 );
               }
             }
@@ -485,7 +485,7 @@ class ProjectsScreen extends HookConsumerWidget {
             final project = dropHandler.imageToProject(result.image!, result.fileName);
             final loader = showLoader(
               context,
-              loadingText: 'Importing ${result.fileName}...',
+              loadingText: Strings.of(context).importingFile(result.fileName),
             );
 
             try {
@@ -494,7 +494,7 @@ class ProjectsScreen extends HookConsumerWidget {
                 loader.remove();
                 showTopFlushbar(
                   context,
-                  message: Text('Imported "${project.name}" successfully'),
+                  message: Text(Strings.of(context).importedProjectSuccessfully(project.name)),
                 );
               }
             } catch (e) {
@@ -502,7 +502,7 @@ class ProjectsScreen extends HookConsumerWidget {
                 loader.remove();
                 showTopFlushbar(
                   context,
-                  message: Text('Failed to import: $e'),
+                  message: Text(Strings.of(context).failedToImport(e.toString())),
                 );
               }
             }
@@ -512,7 +512,7 @@ class ProjectsScreen extends HookConsumerWidget {
         case DroppedFileType.unknown:
           showTopFlushbar(
             context,
-            message: Text('Unsupported file type: ${result.fileName}'),
+            message: Text(Strings.of(context).unsupportedFileType(result.fileName)),
           );
           break;
       }
@@ -686,7 +686,7 @@ class ProjectsScreen extends HookConsumerWidget {
       } else {
         showTopFlushbar(
           context,
-          message: const Text('Please sign in to upload projects'),
+          message: Text(Strings.of(context).pleaseSignInToUploadProjects),
         );
       }
     }
@@ -706,7 +706,7 @@ class ProjectsScreen extends HookConsumerWidget {
     if (!authState.isSignedIn) {
       showTopFlushbar(
         context,
-        message: const Text('Please sign in to update projects'),
+        message: Text(Strings.of(context).pleaseSignInToUpdateProjects),
       );
       return;
     }
@@ -714,7 +714,7 @@ class ProjectsScreen extends HookConsumerWidget {
     if (!fullProject.isCloudSynced || fullProject.remoteId == null) {
       showTopFlushbar(
         context,
-        message: const Text('Project is not synced to cloud'),
+        message: Text(Strings.of(context).projectNotSyncedToCloud),
       );
       return;
     }
@@ -733,7 +733,7 @@ class ProjectsScreen extends HookConsumerWidget {
     if (!authState.isSignedIn) {
       showTopFlushbar(
         context,
-        message: const Text('Please sign in to remove cloud projects'),
+        message: Text(Strings.of(context).pleaseSignInToRemoveCloudProjects),
       );
       return;
     }
@@ -741,7 +741,7 @@ class ProjectsScreen extends HookConsumerWidget {
     if (!project.isCloudSynced || project.remoteId == null) {
       showTopFlushbar(
         context,
-        message: const Text('Project is not synced to cloud'),
+        message: Text(Strings.of(context).projectNotSyncedToCloud),
       );
       return;
     }
@@ -749,7 +749,7 @@ class ProjectsScreen extends HookConsumerWidget {
     try {
       final loader = showLoader(
         context,
-        loadingText: 'Removing from cloud...',
+        loadingText: Strings.of(context).removingFromCloud,
       );
 
       await ref.read(projectUploadProvider.notifier).deleteCloudProject(
@@ -760,14 +760,14 @@ class ProjectsScreen extends HookConsumerWidget {
         loader.remove();
         showTopFlushbar(
           context,
-          message: const Text('Project removed from cloud successfully'),
+          message: Text(Strings.of(context).projectRemovedFromCloudSuccessfully),
         );
       }
     } catch (e) {
       if (context.mounted) {
         showTopFlushbar(
           context,
-          message: Text('Failed to remove from cloud: $e'),
+          message: Text(Strings.of(context).failedToRemoveFromCloud(e.toString())),
         );
       }
     }
@@ -835,7 +835,7 @@ class _DesktopSidebar extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: onNewProject,
               icon: const Icon(Feather.plus, size: 15),
-              label: const Text('New Project'),
+              label: Text(Strings.of(context).newProject),
               style: FilledButton.styleFrom(
                 backgroundColor: theme.primaryColor,
                 foregroundColor: theme.onPrimary,
@@ -874,7 +874,7 @@ class _DesktopSidebar extends StatelessWidget {
               children: [
                 _NavItem(
                   icon: Feather.file,
-                  label: 'Import File',
+                  label: Strings.of(context).importFile,
                   selected: false,
                   theme: theme,
                   flagship: flagship,
@@ -882,7 +882,7 @@ class _DesktopSidebar extends StatelessWidget {
                 ),
                 _NavItem(
                   icon: Icons.palette_outlined,
-                  label: 'Theme',
+                  label: Strings.of(context).theme,
                   selected: false,
                   theme: theme,
                   flagship: flagship,
@@ -890,7 +890,7 @@ class _DesktopSidebar extends StatelessWidget {
                 ),
                 _NavItem(
                   icon: Feather.info,
-                  label: 'About',
+                  label: Strings.of(context).about,
                   selected: false,
                   theme: theme,
                   flagship: flagship,
@@ -899,7 +899,7 @@ class _DesktopSidebar extends StatelessWidget {
                 if (!subscription.isPro)
                   _NavItem(
                     icon: MaterialCommunityIcons.crown,
-                    label: 'Get Pro',
+                    label: Strings.of(context).getPro,
                     selected: false,
                     theme: theme,
                     flagship: flagship,
@@ -908,7 +908,7 @@ class _DesktopSidebar extends StatelessWidget {
                   ),
                 _NavItem(
                   icon: Icons.feedback_outlined,
-                  label: 'Feedback',
+                  label: Strings.of(context).feedback,
                   selected: false,
                   theme: theme,
                   flagship: flagship,
@@ -1163,7 +1163,7 @@ class _CompactProjectsList extends HookWidget {
                             style: const TextStyle(fontSize: 13),
                             decoration: InputDecoration(
                               isDense: true,
-                              hintText: 'Search...',
+                              hintText: Strings.of(context).search,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                               filled: true,
                               fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
@@ -1176,7 +1176,7 @@ class _CompactProjectsList extends HookWidget {
                         : Row(
                             children: [
                               Text(
-                                'My Projects',
+                                Strings.of(context).myProjects,
                                 style: Theme.of(context)
                                     .textTheme
                                     .labelLarge
@@ -1196,7 +1196,7 @@ class _CompactProjectsList extends HookWidget {
                     TextButton.icon(
                       onPressed: onCreateNew,
                       icon: const Icon(Feather.plus, size: 14),
-                      label: const Text('New'),
+                      label: Text(Strings.of(context).create),
                       style: TextButton.styleFrom(
                         visualDensity: VisualDensity.compact,
                         padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -1223,9 +1223,9 @@ class _CompactProjectsList extends HookWidget {
                       color: colorScheme.onSurface.withValues(alpha: 0.3),
                     ),
                     const SizedBox(height: 8),
-                    Text('No projects yet', style: Theme.of(context).textTheme.bodySmall),
+                    Text(Strings.of(context).noProjectsYet, style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 8),
-                    TextButton(onPressed: onCreateNew, child: const Text('Create one')),
+                    TextButton(onPressed: onCreateNew, child: Text(Strings.of(context).createOne)),
                   ],
                 ),
               )
@@ -1322,7 +1322,7 @@ class KofiSupportButton extends StatelessWidget {
   Widget build(BuildContext context) {
     if (compact) {
       return IconButton(
-        tooltip: 'Support on Ko-fi',
+        tooltip: Strings.of(context).supportOnKofi,
         icon: const Icon(MaterialCommunityIcons.coffee_outline, color: _kofiRed),
         style: IconButton.styleFrom(
           backgroundColor: _kofiRed.withValues(alpha: 0.12),
@@ -1438,7 +1438,7 @@ class CloudProjectsView extends HookConsumerWidget {
                           controller: searchController,
                           autofocus: true,
                           decoration: InputDecoration(
-                            hintText: 'Search projects...',
+                            hintText: Strings.of(context).searchProjects,
                             prefixIcon: const Icon(Icons.search),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
@@ -1452,7 +1452,7 @@ class CloudProjectsView extends HookConsumerWidget {
                           },
                         )
                       : Text(
-                          'Discover amazing pixel art',
+                          Strings.of(context).discoverAmazingPixelArt,
                           style: TextStyle(
                             color: theme.textSecondary,
                             fontSize: 16,
@@ -1475,17 +1475,17 @@ class CloudProjectsView extends HookConsumerWidget {
                 ),
                 PopupMenuButton<String>(
                   icon: Icon(Icons.sort, color: theme.activeIcon),
-                  tooltip: 'Sort by',
+                  tooltip: Strings.of(context).sortBy,
                   onSelected: (value) {
                     selectedSort.value = value;
                     ref.read(communityProjectsProvider.notifier).setSortOrder(value);
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'recent', child: Text('Most Recent')),
-                    const PopupMenuItem(value: 'popular', child: Text('Most Popular')),
-                    const PopupMenuItem(value: 'views', child: Text('Most Viewed')),
-                    const PopupMenuItem(value: 'likes', child: Text('Most Liked')),
-                    const PopupMenuItem(value: 'title', child: Text('Title A-Z')),
+                    PopupMenuItem(value: 'recent', child: Text(Strings.of(context).mostRecent)),
+                    PopupMenuItem(value: 'popular', child: Text(Strings.of(context).mostPopular)),
+                    PopupMenuItem(value: 'views', child: Text(Strings.of(context).mostViewed)),
+                    PopupMenuItem(value: 'likes', child: Text(Strings.of(context).mostLiked)),
+                    PopupMenuItem(value: 'title', child: Text(Strings.of(context).titleAZ)),
                   ],
                 ),
                 IconButton(
@@ -1534,7 +1534,7 @@ class CloudProjectsView extends HookConsumerWidget {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
-                label: const Text('All'),
+                label: Text(Strings.of(context).all),
                 selected: state.filters.tags.isEmpty,
                 selectedColor: theme.primaryColor.withValues(alpha: 0.2),
                 labelStyle: TextStyle(
@@ -1604,7 +1604,7 @@ class CloudProjectsView extends HookConsumerWidget {
                   Icon(Icons.star, color: theme.warning, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Featured Projects',
+                    Strings.of(context).featuredProjects,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -1682,7 +1682,7 @@ class CloudProjectsView extends HookConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Error loading projects',
+                  Strings.of(context).errorLoadingProjects,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -1698,7 +1698,7 @@ class CloudProjectsView extends HookConsumerWidget {
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Try Again'),
+                  label: Text(Strings.of(context).tryAgain),
                   onPressed: () => ref.read(communityProjectsProvider.notifier).refresh(),
                 ),
               ],

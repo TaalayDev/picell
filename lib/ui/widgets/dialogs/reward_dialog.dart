@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../l10n/strings.dart';
 import '../../../providers/ad/reward_video_ad_controller.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../screens/subscription_screen.dart';
@@ -39,6 +40,7 @@ class RewardDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = Strings.of(context);
     final rewardAdState = ref.watch(rewardVideoAdProvider);
     final subscription = ref.watch(subscriptionStateProvider);
 
@@ -73,13 +75,13 @@ class RewardDialog extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.star, color: Colors.green, size: 20),
-                      SizedBox(width: 8),
+                      const Icon(Icons.star, color: Colors.green, size: 20),
+                      const SizedBox(width: 8),
                       Text(
-                        'Pro Access Active',
-                        style: TextStyle(
+                        s.proAccessActive,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: Colors.green,
@@ -89,7 +91,10 @@ class RewardDialog extends HookConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'You have ${_formatRemainingTime(subscription.temporaryProAccess?.remainingTime)} of Pro access remaining.',
+                    s.proAccessRemaining(_formatRemainingTime(
+                      context,
+                      subscription.temporaryProAccess?.remainingTime,
+                    )),
                     style: const TextStyle(fontSize: 14),
                   ),
                 ],
@@ -106,26 +111,26 @@ class RewardDialog extends HookConsumerWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(Icons.diamond, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.diamond, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
                     Text(
-                      'Upgrade to Pro',
-                      style: TextStyle(
+                      s.upgradeToPro,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
-                  '• Unlimited access to all features\n• One-time purchase\n• No ads\n• Priority support',
-                  style: TextStyle(fontSize: 14),
+                  s.rewardUpgradeBullets,
+                  style: const TextStyle(fontSize: 14),
                 ),
               ],
             ),
@@ -144,13 +149,17 @@ class RewardDialog extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.play_circle_fill, color: Colors.orange, size: 20),
-                      SizedBox(width: 8),
+                      const Icon(
+                        Icons.play_circle_fill,
+                        color: Colors.orange,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
                       Text(
-                        'Try Pro for 45 Minutes',
-                        style: TextStyle(
+                        s.tryPro45Minutes,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -160,8 +169,8 @@ class RewardDialog extends HookConsumerWidget {
                   const SizedBox(height: 8),
                   Text(
                     rewardAdState
-                        ? '• Watch a short video ad\n• Get 45 minutes of Pro access\n• Support the app development'
-                        : '• Video ad is loading...\n• Please try again in a moment',
+                        ? s.rewardAdReadyBullets
+                        : s.rewardAdLoadingBullets,
                     style: const TextStyle(fontSize: 14),
                   ),
                 ],
@@ -189,43 +198,47 @@ class RewardDialog extends HookConsumerWidget {
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
             ),
-            child: Text(rewardAdState ? 'Watch Ad' : 'Loading...'),
+            child: Text(rewardAdState ? s.watchAd : s.loadingEllipsis),
           ),
         FilledButton(
           onPressed: () {
             Navigator.of(context).pop();
             SubscriptionOfferScreen.show(context);
           },
-          child: const Text('Buy Pro'),
+          child: Text(s.buyPro),
         ),
       ],
     );
   }
 
-  String _formatRemainingTime(Duration? duration) {
-    if (duration == null || duration <= Duration.zero) return '0 minutes';
+  String _formatRemainingTime(BuildContext context, Duration? duration) {
+    final s = Strings.of(context);
+    if (duration == null || duration <= Duration.zero) {
+      return s.rewardTimeZeroMinutes;
+    }
 
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
 
     if (minutes > 0) {
-      return '$minutes min ${seconds}s';
+      return s.rewardTimeMinutesSeconds(minutes, seconds);
     } else {
-      return '${seconds}s';
+      return s.rewardTimeSeconds(seconds);
     }
   }
 
-  Future<void> _watchVideoForTemporaryPro(BuildContext context, WidgetRef ref) async {
+  Future<void> _watchVideoForTemporaryPro(
+      BuildContext context, WidgetRef ref) async {
     try {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const AlertDialog(
+        builder: (context) => AlertDialog(
           content: Row(
             children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 16),
-              Text('Loading video ad...'),
+              const CircularProgressIndicator(),
+              const SizedBox(width: 16),
+              Text(Strings.of(context).loadingVideoAd),
             ],
           ),
         ),
@@ -245,19 +258,19 @@ class RewardDialog extends HookConsumerWidget {
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('🎉 Pro access granted for 45 minutes!'),
+            SnackBar(
+              content: Text(Strings.of(context).proAccessGranted45),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
+              duration: const Duration(seconds: 3),
             ),
           );
         }
       } else if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Video ad was not completed. Please try again or upgrade to Pro.'),
+          SnackBar(
+            content: Text(Strings.of(context).videoAdNotCompleted),
             backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -267,9 +280,9 @@ class RewardDialog extends HookConsumerWidget {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to load video ad: $e'),
+            content: Text(Strings.of(context).failedToLoadVideoAd('$e')),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }

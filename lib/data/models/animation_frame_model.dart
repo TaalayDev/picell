@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
+import '../../pixel/pixel_utils.dart';
 import 'layer.dart';
 
 class AnimationFrame extends Equatable {
@@ -14,19 +15,25 @@ class AnimationFrame extends Equatable {
   final DateTime createdAt;
   final DateTime editedAt;
 
+  /// Composite of all visible layers, using the same convention as
+  /// [PixelUtils.mergeLayersPixels]: the last layer in the list is on top
+  /// and per-layer opacity is applied.
   Uint32List get pixels {
-    return Uint32List.fromList(
-      layers.where((l) => l.isVisible).fold<List<int>>(
-        List.filled(layers.first.processedPixels.length, 0),
-        (pixels, layer) {
-          final processedPixels = layer.processedPixels;
-          for (int i = 0; i < pixels.length; i++) {
-            pixels[i] = pixels[i] == 0 ? processedPixels[i] : pixels[i];
-          }
-          return pixels;
-        },
-      ),
-    );
+    final visible = layers.where((l) => l.isVisible && l.opacity > 0).toList();
+    if (visible.isEmpty) {
+      return Uint32List(layers.isEmpty ? 0 : layers.first.pixels.length);
+    }
+
+    final merged = Uint32List(visible.first.processedPixels.length);
+    for (final layer in visible.reversed) {
+      final src = layer.processedPixels;
+      for (int i = 0; i < merged.length; i++) {
+        if (merged[i] == 0) {
+          merged[i] = PixelUtils.applyAlpha(src[i], layer.opacity);
+        }
+      }
+    }
+    return merged;
   }
 
   AnimationFrame({

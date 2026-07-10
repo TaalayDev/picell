@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../../data/models/layer.dart';
+import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
 
 class EffectPreviewWidget extends StatefulWidget {
@@ -208,6 +209,8 @@ class BeforeAfterEffectPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -225,7 +228,7 @@ class BeforeAfterEffectPreview extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Effect Preview',
+            s.effectPreview,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
@@ -241,7 +244,7 @@ class BeforeAfterEffectPreview extends StatelessWidget {
                     previewSize: 120,
                   ),
                   const SizedBox(height: 8),
-                  const Text('Original'),
+                  Text(s.original),
                 ],
               ),
               const SizedBox(width: 16),
@@ -257,7 +260,7 @@ class BeforeAfterEffectPreview extends StatelessWidget {
                     previewSize: 120,
                   ),
                   const SizedBox(height: 8),
-                  const Text('With Effect'),
+                  Text(s.withEffect),
                 ],
               ),
             ],

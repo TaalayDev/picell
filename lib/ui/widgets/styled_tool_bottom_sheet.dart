@@ -4,6 +4,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../app/theme/theme.dart';
+import '../../l10n/strings.dart';
 import '../../pixel/tools.dart';
 import '../../data/models/subscription_model.dart';
 import '../../providers/subscription_provider.dart';
@@ -26,146 +27,147 @@ class StyledToolBottomSheet extends HookConsumerWidget {
     final hasProFeature = subscription.hasFeatureAccess(
       SubscriptionFeature.advancedTools,
     );
+    final s = Strings.of(context);
 
     final extraTools = [
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.sprayPaint,
         icon: AppIcons.spray,
-        label: 'Spray Paint',
-        tooltip: 'Creates a spray effect with particles',
+        label: s.sprayPaint,
+        tooltip: s.sprayPaintToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.line,
         icon: AppIcons.line,
-        label: 'Line',
-        tooltip: 'Draw straight lines between two points',
+        label: s.lineTool,
+        tooltip: s.lineToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.circle,
         icon: AppIcons.circle,
-        label: 'Circle',
-        tooltip: 'Draw perfect circles and ellipses',
+        label: s.circleTool,
+        tooltip: s.circleToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.rectangle,
         icon: AppIcons.rectangle,
-        label: 'Rectangle',
-        tooltip: 'Draw rectangles and squares',
+        label: s.rectangleTool,
+        tooltip: s.rectangleToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.triangle,
         icon: Icons.change_history,
-        label: 'Triangle',
-        tooltip: 'Draw triangular shapes',
+        label: s.triangle,
+        tooltip: s.triangleToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.diamond,
         icon: Icons.diamond_outlined,
-        label: 'Diamond',
-        tooltip: 'Draw diamond shapes',
+        label: s.diamond,
+        tooltip: s.diamondToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.hexagon,
         icon: Icons.hexagon_outlined,
-        label: 'Hexagon',
-        tooltip: 'Draw hexagonal shapes',
+        label: s.hexagon,
+        tooltip: s.hexagonToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.heart,
         icon: Icons.favorite_border,
-        label: 'Heart',
-        tooltip: 'Draw heart shapes',
+        label: s.heart,
+        tooltip: s.heartToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.arrow,
         icon: Icons.arrow_forward,
-        label: 'Arrow',
-        tooltip: 'Draw arrow shapes',
+        label: s.arrow,
+        tooltip: s.arrowToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.lightning,
         icon: Icons.flash_on,
-        label: 'Lightning',
-        tooltip: 'Draw lightning bolt shapes',
+        label: s.lightning,
+        tooltip: s.lightningToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.cross,
         icon: Icons.add,
-        label: 'Cross',
-        tooltip: 'Draw cross or plus shapes',
+        label: s.cross,
+        tooltip: s.crossToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.spiral,
         icon: Icons.sync,
-        label: 'Spiral',
-        tooltip: 'Draw spiral shapes',
+        label: s.spiral,
+        tooltip: s.spiralToolDescription,
         isPro: false,
       ),
-      const ToolItem(
+      ToolItem(
         tool: PixelTool.cloud,
         icon: Icons.cloud_outlined,
-        label: 'Cloud',
-        tooltip: 'Draw cloud shapes',
+        label: s.cloudShape,
+        tooltip: s.cloudToolDescription,
         isPro: false,
       ),
       ToolItem(
         tool: PixelTool.pen,
         icon: AppIcons.pen,
-        label: 'Pen',
-        tooltip: 'Advanced freehand drawing tool',
+        label: s.pen,
+        tooltip: s.penToolDescription,
         isPro: !hasProFeature,
       ),
       ToolItem(
         tool: PixelTool.select,
         icon: AppIcons.select,
-        label: 'Rect Select',
-        tooltip: 'Select a rectangular area',
+        label: s.rectangleSelect,
+        tooltip: s.rectangleSelectToolDescription,
         isPro: !hasProFeature,
       ),
       ToolItem(
         tool: PixelTool.ellipseSelect,
         icon: AppIcons.circle,
-        label: 'Ellipse',
-        tooltip: 'Select an elliptical area',
+        label: s.ellipseSelection,
+        tooltip: s.ellipseSelectToolDescription,
         isPro: !hasProFeature,
       ),
       ToolItem(
         tool: PixelTool.lasso,
         icon: AppIcons.lasso,
-        label: 'Lasso',
-        tooltip: 'Freehand selection tool',
+        label: s.lasso,
+        tooltip: s.lassoToolDescription,
         isPro: !hasProFeature,
       ),
       ToolItem(
         tool: PixelTool.smartSelect,
         icon: AppIcons.magic_stick,
-        label: 'Magic Wand',
-        tooltip: 'Select contiguous pixels by color',
+        label: s.magicWand,
+        tooltip: s.magicWandToolDescription,
         isPro: !hasProFeature,
       ),
       ToolItem(
         tool: PixelTool.curve,
         icon: AppIcons.curved_connector,
-        label: 'Curve',
-        tooltip: 'Draw smooth curved lines',
+        label: s.curve,
+        tooltip: s.curveToolDescription,
         isPro: !hasProFeature,
       ),
       ToolItem(
         tool: PixelTool.drag,
         icon: Feather.move,
-        label: 'Move',
-        tooltip: 'Move and drag elements',
+        label: s.move,
+        tooltip: s.moveToolDescription,
         isPro: !hasProFeature,
       ),
     ];
@@ -245,7 +247,9 @@ class BottomSheetHandle extends StatelessWidget {
       width: 40,
       height: 4,
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300],
+        color: theme.brightness == Brightness.dark
+            ? Colors.grey[700]
+            : Colors.grey[300],
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -349,7 +353,9 @@ class ToolGridItem extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isSelected ? theme.primaryColor.withValues(alpha: 0.2) : theme.surfaceVariant,
+              color: isSelected
+                  ? theme.primaryColor.withValues(alpha: 0.2)
+                  : theme.surfaceVariant,
               borderRadius: BorderRadius.circular(12),
               border: isSelected
                   ? Border.all(color: theme.primaryColor, width: 2)

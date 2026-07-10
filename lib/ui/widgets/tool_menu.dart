@@ -88,7 +88,9 @@ class ToolMenu extends StatelessWidget {
                     AppIcons.pen,
                     color: tool == PixelTool.pen ? Colors.blue : null,
                   ),
-                  onPressed: !subscription.isPro ? null : () => onSelectTool(PixelTool.pen),
+                  onPressed: !subscription.isPro
+                      ? null
+                      : () => onSelectTool(PixelTool.pen),
                 ),
               ),
               ProBadge(
@@ -98,7 +100,9 @@ class ToolMenu extends StatelessWidget {
                     AppIcons.curved_connector,
                     color: tool == PixelTool.curve ? Colors.blue : null,
                   ),
-                  onPressed: !subscription.isPro ? null : () => onSelectTool(PixelTool.curve),
+                  onPressed: !subscription.isPro
+                      ? null
+                      : () => onSelectTool(PixelTool.curve),
                 ),
               ),
               ProBadge(
@@ -108,7 +112,9 @@ class ToolMenu extends StatelessWidget {
                     Feather.move,
                     color: tool == PixelTool.drag ? Colors.blue : null,
                   ),
-                  onPressed: !subscription.isPro ? null : () => onSelectTool(PixelTool.drag),
+                  onPressed: !subscription.isPro
+                      ? null
+                      : () => onSelectTool(PixelTool.drag),
                 ),
               ),
               IconButton(
@@ -125,7 +131,10 @@ class ToolMenu extends StatelessWidget {
                   IconButton(
                     icon: Icon(
                       Icons.texture,
-                      color: tool == PixelTool.textureBrush || tool == PixelTool.textureFill ? Colors.blue : null,
+                      color: tool == PixelTool.textureBrush ||
+                              tool == PixelTool.textureFill
+                          ? Colors.blue
+                          : null,
                     ),
                     onPressed: () {
                       showDialog(
@@ -141,7 +150,8 @@ class ToolMenu extends StatelessWidget {
                               onTextureSelected: (texture, blendMode, isFill) {
                                 Navigator.of(context).pop();
                                 if (texture != null) {
-                                  onTextureSelected?.call(texture, blendMode, isFill);
+                                  onTextureSelected?.call(
+                                      texture, blendMode, isFill);
                                 }
                               },
                             ),
@@ -149,7 +159,7 @@ class ToolMenu extends StatelessWidget {
                         ),
                       );
                     },
-                    tooltip: 'Texture Brush',
+                    tooltip: Strings.of(context).textureBrush,
                   ),
                   Positioned(
                     right: 0,
@@ -237,69 +247,69 @@ class ShapesMenuButton extends StatelessWidget {
           ),
         ),
         const PopupMenuDivider(),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.triangle,
           child: ListTile(
-            leading: Icon(Icons.change_history),
-            title: Text('Triangle'),
+            leading: const Icon(Icons.change_history),
+            title: Text(Strings.of(context).triangle),
           ),
         ),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.diamond,
           child: ListTile(
-            leading: Icon(Icons.diamond_outlined),
-            title: Text('Diamond'),
+            leading: const Icon(Icons.diamond_outlined),
+            title: Text(Strings.of(context).diamond),
           ),
         ),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.hexagon,
           child: ListTile(
-            leading: Icon(Icons.hexagon_outlined),
-            title: Text('Hexagon'),
+            leading: const Icon(Icons.hexagon_outlined),
+            title: Text(Strings.of(context).hexagon),
           ),
         ),
         const PopupMenuDivider(),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.heart,
           child: ListTile(
-            leading: Icon(Icons.favorite_border),
-            title: Text('Heart'),
+            leading: const Icon(Icons.favorite_border),
+            title: Text(Strings.of(context).heart),
           ),
         ),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.arrow,
           child: ListTile(
-            leading: Icon(Icons.arrow_forward),
-            title: Text('Arrow'),
+            leading: const Icon(Icons.arrow_forward),
+            title: Text(Strings.of(context).arrow),
           ),
         ),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.lightning,
           child: ListTile(
-            leading: Icon(Icons.flash_on),
-            title: Text('Lightning'),
+            leading: const Icon(Icons.flash_on),
+            title: Text(Strings.of(context).lightning),
           ),
         ),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.cross,
           child: ListTile(
-            leading: Icon(Icons.add),
-            title: Text('Cross'),
+            leading: const Icon(Icons.add),
+            title: Text(Strings.of(context).cross),
           ),
         ),
         const PopupMenuDivider(),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.spiral,
           child: ListTile(
-            leading: Icon(Icons.sync),
-            title: Text('Spiral'),
+            leading: const Icon(Icons.sync),
+            title: Text(Strings.of(context).spiral),
           ),
         ),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.cloud,
           child: ListTile(
-            leading: Icon(Icons.cloud_outlined),
-            title: Text('Cloud'),
+            leading: const Icon(Icons.cloud_outlined),
+            title: Text(Strings.of(context).cloudShape),
           ),
         ),
       ],
@@ -307,7 +317,9 @@ class ShapesMenuButton extends StatelessWidget {
   }
 
   bool _isShapeTool(PixelTool tool) {
-    return tool == PixelTool.line || tool == PixelTool.rectangle || tool == PixelTool.circle;
+    return tool == PixelTool.line ||
+        tool == PixelTool.rectangle ||
+        tool == PixelTool.circle;
   }
 }
 
@@ -344,7 +356,8 @@ class SelectionToolsMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = _isSelectionTool(currentTool.value) ? Colors.blue : null;
+    final activeColor =
+        _isSelectionTool(currentTool.value) ? Colors.blue : null;
 
     return PopupMenuButton<PixelTool>(
       icon: Stack(
@@ -367,11 +380,11 @@ class SelectionToolsMenuButton extends StatelessWidget {
       ),
       onSelected: onSelectTool,
       itemBuilder: (context) => [
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.select,
           child: ListTile(
-            leading: AppIcon(AppIcons.select),
-            title: Text('Rectangle Select'),
+            leading: const AppIcon(AppIcons.select),
+            title: Text(Strings.of(context).rectangleSelect),
           ),
         ),
         PopupMenuItem<PixelTool>(
@@ -381,18 +394,18 @@ class SelectionToolsMenuButton extends StatelessWidget {
             title: Text(Strings.of(context).ellipseSelection),
           ),
         ),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.lasso,
           child: ListTile(
-            leading: AppIcon(AppIcons.lasso),
-            title: Text('Lasso'),
+            leading: const AppIcon(AppIcons.lasso),
+            title: Text(Strings.of(context).lasso),
           ),
         ),
-        const PopupMenuItem<PixelTool>(
+        PopupMenuItem<PixelTool>(
           value: PixelTool.smartSelect,
           child: ListTile(
-            leading: AppIcon(AppIcons.magic_stick),
-            title: Text('Magic Wand'),
+            leading: const AppIcon(AppIcons.magic_stick),
+            title: Text(Strings.of(context).magicWand),
           ),
         ),
       ],

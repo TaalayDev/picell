@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/strings.dart';
 import '../../../pixel/providers/pixel_canvas_provider.dart';
 
 /// Shows a bottom sheet with the undo/redo history for [notifier].
@@ -73,6 +74,7 @@ class _UndoHistorySheetState extends State<UndoHistorySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
     final undoCount = _undoSummary.length;
     final redoCount = _redoSummary.length;
     final total = undoCount + redoCount + 1; // +1 for current state
@@ -96,14 +98,14 @@ class _UndoHistorySheetState extends State<UndoHistorySheet> {
               const Icon(Icons.history_rounded, size: 18),
               const SizedBox(width: 8),
               Text(
-                'History',
+                s.undoHistoryTitle,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
               ),
               const SizedBox(width: 6),
               Text(
-                '($total steps)',
+                s.undoHistoryStepCount(total),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context)
                           .colorScheme
@@ -115,7 +117,7 @@ class _UndoHistorySheetState extends State<UndoHistorySheet> {
               TextButton.icon(
                 onPressed: undoCount > 0 ? () => _applyUndo(undoCount) : null,
                 icon: const Icon(Icons.skip_previous_rounded, size: 16),
-                label: const Text('Revert all'),
+                label: Text(s.undoHistoryRevertAll),
                 style: TextButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.error,
                 ),
@@ -137,7 +139,7 @@ class _UndoHistorySheetState extends State<UndoHistorySheet> {
                 // undo entries — shown newest first so reverse
                 final undoIndex = undoCount - 1 - index;
                 final stepsToUndo = undoIndex + 1;
-                final label = _parseLabel(_undoSummary[undoIndex]);
+                final label = _parseLabel(context, _undoSummary[undoIndex]);
                 return _HistoryTile(
                   label: label,
                   stepNumber: index + 1,
@@ -146,7 +148,7 @@ class _UndoHistorySheetState extends State<UndoHistorySheet> {
                 );
               } else if (index == undoCount) {
                 return _HistoryTile(
-                  label: 'Current state',
+                  label: s.undoHistoryCurrentState,
                   stepNumber: undoCount + 1,
                   type: _TileType.current,
                   onTap: null,
@@ -155,7 +157,7 @@ class _UndoHistorySheetState extends State<UndoHistorySheet> {
                 // redo entries
                 final redoIndex = index - undoCount - 1;
                 final stepsToRedo = redoIndex + 1;
-                final label = _parseLabel(_redoSummary[redoIndex]);
+                final label = _parseLabel(context, _redoSummary[redoIndex]);
                 return _HistoryTile(
                   label: label,
                   stepNumber: undoCount + 2 + redoIndex,
@@ -172,13 +174,13 @@ class _UndoHistorySheetState extends State<UndoHistorySheet> {
   }
 
   /// Converts "Frame: 0, Layer: 1" → "Frame 1, Layer 2" (1-indexed, readable).
-  String _parseLabel(String raw) {
+  String _parseLabel(BuildContext context, String raw) {
     try {
       final frameMatch = RegExp(r'Frame: (\d+)').firstMatch(raw);
       final layerMatch = RegExp(r'Layer: (\d+)').firstMatch(raw);
       final frame = int.tryParse(frameMatch?.group(1) ?? '') ?? 0;
       final layer = int.tryParse(layerMatch?.group(1) ?? '') ?? 0;
-      return 'Frame ${frame + 1}, Layer ${layer + 1}';
+      return Strings.of(context).undoHistoryFrameLayer(frame + 1, layer + 1);
     } catch (_) {
       return raw;
     }

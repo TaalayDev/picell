@@ -68,6 +68,7 @@
     "areYouSureWantToDeleteLayer": "このレイヤーを削除してもよろしいですか？",
     "newProject": "新規プロジェクト",
     "template": "テンプレート",
+    "category": "カテゴリ",
     "width": "幅",
     "height": "高さ",
     "create": "作成",
@@ -88,7 +89,7 @@
     "background": "背景",
     "backgroundColor": "背景色",
     "spriteSheetOptions": "スプライトシート設定",
-    "columns": "列数",
+    "columns": "列",
     "spacing": "間隔",
     "includeAllFrames": "全フレームを含める",
     "spriteSheet": "スプライトシート",
@@ -171,8 +172,8 @@
     "options": "オプション",
     "preview": "プレビュー",
     "zoom": "ズーム",
-    "zoomIn": "拡大",
-    "zoomOut": "縮小",
+    "zoomIn": "ズームイン",
+    "zoomOut": "ズームアウト",
     "resetZoom": "ズームをリセット",
     "grid": "グリッド",
     "showGrid": "グリッドを表示",
@@ -214,7 +215,7 @@
     "ellipseSelect": "楕円選択",
     "lassoSelect": "なげなわ選択",
     "magicWandSelect": "マジックワンド",
-    "invertSelection": "選択範囲を反転",
+    "invertSelection": "選択を反転",
     "deselectAll": "選択を解除",
     "cropToSelection": "選択範囲でトリミング",
     "effects": "エフェクト",
@@ -259,7 +260,6 @@
     "colorSwatches": "カラースウォッチ",
     "colorSchemes": "配色",
     "colorHarmony": "カラーハーモニー",
-
     "feedback_title": "フィードバック",
     "feedback_thank_you": "フィードバックありがとうございます！",
     "feedback_thank_you_message": "あなたのご意見は私たちにとって非常に重要であり、アプリの改善に役立ちます。",
@@ -276,7 +276,6 @@
     "feedback_yes": "はい",
     "feedback_no": "いいえ",
     "feedback_text_placeholder": "回答を入力してください...",
-    
     "feedback_q_satisfaction": "アプリに満足していますか？",
     "feedback_q_missing_features": "どのような機能が不足していますか？",
     "feedback_q_missing_features_placeholder": "見たい機能を説明してください...",
@@ -326,15 +325,13 @@
     "paletteImportedCount": "色",
     "addToCustomPalette": "カスタムパレットに追加",
     "noCustomColors": "カスタムカラーはまだ追加されていません。\n上の+ボタンを使用して色を追加してください。",
-    "editorSettings": "エディタ設定",
+    "editorSettings": "エディター設定",
     "resetToDefaults": "デフォルトにリセット",
     "input": "入力",
     "display": "表示",
-    "showGrid": "グリッドを表示",
     "showGridSubtitle": "キャンバスにグリッド線を表示します",
     "pixelGridOverlay": "ピクセルグリッドオーバーレイ",
     "pixelGridSubtitle": "ズーム時にピクセルの境界を表示します",
-    "gridOpacity": "グリッドの不透明度",
     "selectionTransforms": "選択変形",
     "transformInterpolation": "補間",
     "transformInterpolationSubtitle": "選択範囲のサイズ変更と回転に使用します",
@@ -348,7 +345,6 @@
     "gestures": "ジェスチャー",
     "twoFingerUndo": "2本指タップで元に戻す",
     "twoFingerUndoSubtitle": "2本指でクイックタップして操作を元に戻します",
-    "done": "完了",
     "stylusMode": "スタイラスモード",
     "stylusModeSubtitleOn": "スタイラスのみで描画 ・ タッチで移動",
     "stylusModeSubtitleOff": "タッチとスタイラスの両方で描画",
@@ -360,7 +356,6 @@
     "conversionSettings": "変換設定",
     "paletteColors": "パレット色数",
     "fullColor": "フルカラー",
-    "dithering": "ディザリング",
     "noDithering": "なし",
     "alphaThreshold": "アルファ閾値",
     "chooseImage": "画像を選択",
@@ -385,14 +380,10 @@
         }
     },
     "heightRangeError": "高さ: 1-{max}",
-    "saveImage": "画像を保存",
     "png": "PNG",
-    "animatedGif": "アニメーションGIF",
-    "proPlanRequired": "Proプランが必要",
-    "spriteSheet": "スプライトシート",
+    "proPlanRequired": "Proプランが必要です",
     "transparentBackground": "背景を透明にする",
     "transparent": "透明",
-    "spriteSheetOptions": "スプライトシート設定",
     "columnsLabel": "列数",
     "spacingPx": "間隔 (px)",
     "exportSize": "エクスポートサイズ",
@@ -405,7 +396,6 @@
         }
     },
     "format": "形式",
-    "options": "オプション",
     "editEffect": "効果を編集: {name}",
     "@editEffect": {
         "placeholders": {
@@ -415,7 +405,6 @@
         }
     },
     "applyChanges": "変更を適用",
-    "preview": "プレビュー",
     "quickPresets": "クイックプリセット",
     "parameters": "パラメータ",
     "previewNotAvailable": "プレビューを利用できません",
@@ -466,7 +455,7 @@
     "noEffectsMatch": "検索に一致する効果はありません",
     "premiumEffect": "プレミアム効果",
     "proVersionStatus": "この効果はProバージョンで利用可能です。",
-    "proFeaturesInclude": "Proバージョンの機能:",
+    "proFeaturesInclude": "Pro機能:",
     "featureAdvancedEffects": "高度な効果とツール",
     "featureUnlimitedProjects": "無制限のプロジェクト",
     "featureCloudBackup": "クラウドバックアップ",
@@ -512,5 +501,889 @@
     "ellipseSelectionTooltip": "楕円形の領域を選択",
     "autoSelectLayer": "自動選択",
     "autoSelectLayerTooltip": "現在のレイヤーの空でないピクセルをすべて選択",
-    "selectionAnchor": "選択アンカー"
+    "selectionAnchor": "選択アンカー",
+    "feedback": "フィードバック",
+    "createNewProjectTooltip": "新規プロジェクトを作成",
+    "failedToProcessFile": "{fileName} を処理できませんでした",
+    "@failedToProcessFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importingFile": "{fileName} をインポート中...",
+    "@importingFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedProjectSuccessfully": "「{projectName}」をインポートしました",
+    "@importedProjectSuccessfully": {
+        "placeholders": {
+            "projectName": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToImport": "インポートに失敗しました: {error}",
+    "@failedToImport": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unsupportedFileType": "未対応のファイル形式: {fileName}",
+    "@unsupportedFileType": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "pleaseSignInToUploadProjects": "プロジェクトをアップロードするにはサインインしてください",
+    "pleaseSignInToUpdateProjects": "プロジェクトを更新するにはサインインしてください",
+    "projectNotSyncedToCloud": "プロジェクトはクラウドと同期されていません",
+    "pleaseSignInToRemoveCloudProjects": "クラウドプロジェクトを削除するにはサインインしてください",
+    "removingFromCloud": "クラウドから削除中...",
+    "projectRemovedFromCloudSuccessfully": "プロジェクトをクラウドから削除しました",
+    "failedToRemoveFromCloud": "クラウドから削除できませんでした: {error}",
+    "@failedToRemoveFromCloud": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "search": "検索...",
+    "myProjects": "マイプロジェクト",
+    "noProjectsYet": "まだプロジェクトがありません",
+    "createOne": "作成する",
+    "searchProjects": "プロジェクトを検索...",
+    "discoverAmazingPixelArt": "素敵なピクセルアートを見つけよう",
+    "sortBy": "並べ替え",
+    "mostRecent": "新しい順",
+    "mostPopular": "人気順",
+    "mostViewed": "閲覧数順",
+    "mostLiked": "いいね順",
+    "titleAZ": "タイトル A-Z",
+    "all": "すべて",
+    "featuredProjects": "注目プロジェクト",
+    "errorLoadingProjects": "プロジェクトの読み込みエラー",
+    "deletingProject": "プロジェクトを削除中...",
+    "projectDeletedSuccessfully": "プロジェクトを削除しました",
+    "failedToDeleteProject": "プロジェクトを削除できませんでした",
+    "failedToDeleteProjectWithError": "プロジェクトを削除できませんでした: {error}",
+    "@failedToDeleteProjectWithError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unlike": "いいねを解除",
+    "like": "いいね",
+    "editProject": "プロジェクトを編集",
+    "public": "公開",
+    "private": "非公開",
+    "analytics": "分析",
+    "stats": "統計",
+    "likeCountLabel": "{count} 件のいいね",
+    "@likeCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "commentCountLabel": "{count} 件のコメント",
+    "@commentCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "download": "ダウンロード",
+    "downloadProject": "プロジェクトをダウンロード",
+    "localProjectNotFound": "ローカルプロジェクトが見つかりません",
+    "comments": "コメント",
+    "addComment": "コメントを追加",
+    "noCommentsYet": "まだコメントはありません",
+    "beFirstToComment": "最初のコメントを投稿しましょう！",
+    "failedToLoadComments": "コメントを読み込めませんでした",
+    "edited": "編集済み",
+    "makeProjectPublic": "プロジェクトを公開",
+    "makeProjectPrivate": "プロジェクトを非公開",
+    "makeProjectPublicMessage": "プロジェクトがコミュニティ全体に表示されます。誰でも閲覧、いいね、コメントができます。",
+    "makeProjectPrivateMessage": "プロジェクトは公開コミュニティから非表示になります。表示できるのはあなただけです。",
+    "projectWillBePublic": "プロジェクトは公開されます",
+    "projectWillBePrivate": "プロジェクトは非公開になります",
+    "projectIsNowPublic": "プロジェクトを公開しました",
+    "projectIsNowPrivate": "プロジェクトを非公開にしました",
+    "failedToUpdateVisibility": "公開設定を更新できませんでした: {error}",
+    "@failedToUpdateVisibility": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "makePublic": "公開する",
+    "makePrivate": "非公開にする",
+    "deleteProjectCannotBeUndone": "このプロジェクトを削除しますか？この操作は元に戻せません。",
+    "thisWillPermanentlyDelete": "完全に削除されるもの:",
+    "deleteProjectConsequences": "• プロジェクトデータとアートワーク\n• すべてのコメントといいね\n• ダウンロード統計",
+    "typeProjectTitleToConfirmDeletion": "削除を確認するには「{title}」と入力してください:",
+    "@typeProjectTitleToConfirmDeletion": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "enterProjectTitle": "プロジェクトタイトルを入力...",
+    "deleteForever": "完全に削除",
+    "openingProjectEditor": "プロジェクトエディタを開いています...",
+    "projectLinkCopied": "プロジェクトリンクをコピーしました！",
+    "addedToFavorites": "お気に入りに追加しました！",
+    "nowFollowingUser": "{username} をフォローしました！",
+    "@nowFollowingUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "reportProject": "プロジェクトを報告",
+    "reportProjectMessage": "このプロジェクトを報告しますか？コミュニティガイドラインに違反する内容のみ報告してください。",
+    "reportThanks": "報告ありがとうございます。確認します。",
+    "report": "報告",
+    "premiumRequiredToDownloadProjects": "プロジェクトのダウンロードにはPremium登録が必要です",
+    "upgrade": "アップグレード",
+    "downloadProjectRewardSubtitle": "このプロジェクトをダウンロードするには:",
+    "thankYouWatchingDownloadStarting": "視聴ありがとうございます！ダウンロードを開始します...",
+    "pleaseSignInToAddComments": "コメントするにはサインインしてください",
+    "writeYourComment": "コメントを書く...",
+    "commentAddedSuccessfully": "コメントを追加しました！",
+    "failedToAddComment": "コメントを追加できませんでした: {error}",
+    "@failedToAddComment": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "post": "投稿",
+    "chooseTheme": "テーマを選択",
+    "importFile": "ファイルをインポート",
+    "theme": "テーマ",
+    "getPro": "Proを入手",
+    "supportOnKofi": "Ko-fiで支援",
+    "copyLink": "リンクをコピー",
+    "size": "サイズ",
+    "views": "閲覧数",
+    "downloads": "ダウンロード",
+    "published": "公開しました！",
+    "forkedFrom": "フォーク元: ",
+    "byUser": " 作成者: {username}",
+    "projectAnalytics": "プロジェクト分析",
+    "totalViews": "総閲覧数",
+    "totalLikes": "総いいね数",
+    "detailedAnalytics": "詳細分析",
+    "advancedAnalyticsSoon": "高度な分析機能は近日公開予定です。",
+    "@byUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "details": "詳細",
+    "title": "タイトル",
+    "projectTitleHint": "プロジェクト名を入力",
+    "description": "説明",
+    "projectDescriptionHint": "このプロジェクトについてコミュニティに伝えましょう（任意）",
+    "visibility": "公開設定",
+    "tags": "タグ",
+    "searchTags": "タグを検索…",
+    "failedToLoadTags": "タグを読み込めませんでした",
+    "pleaseEnterTitle": "タイトルを入力してください",
+    "removeFromCloudQuestion": "クラウドから削除しますか？",
+    "removeFromCommunityMessage": "プロジェクトはコミュニティから削除されます。ローカルコピーは残ります。",
+    "remove": "削除",
+    "updateProject": "プロジェクトを更新",
+    "publishToCommunity": "コミュニティに公開",
+    "synced": "同期済み",
+    "visibleToEveryone": "全員に表示",
+    "onlyVisibleToYou": "自分だけに表示",
+    "maximumTagsAllowed": "タグは最大5個までです",
+    "frameCountSimple": "{count} フレーム",
+    "@frameCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "layerCountSimple": "{count} レイヤー",
+    "@layerCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "cloudManagement": "クラウド管理",
+    "cloudId": "Cloud ID: {id}",
+    "@cloudId": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "preparingUpdate": "更新を準備中…",
+    "preparingProject": "プロジェクトを準備中…",
+    "generatingThumbnail": "サムネイルを生成中…",
+    "updatingOnCloud": "クラウドで更新中…",
+    "uploadingToCloud": "クラウドへアップロード中…",
+    "finalizing": "最終処理中…",
+    "updated": "更新しました！",
+    "updating": "更新中…",
+    "publishing": "公開中…",
+    "update": "更新",
+    "publish": "公開",
+    "downloadingProject": "プロジェクトをダウンロード中",
+    "downloadingProjectData": "プロジェクトデータをダウンロード中...",
+    "downloadComplete": "ダウンロード完了！",
+    "projectSavedLocal": "プロジェクトをローカルプロジェクトに保存しました",
+    "downloadFailed": "ダウンロード失敗",
+    "resyncWithCloud": "クラウドと再同期",
+    "syncToCloud": "クラウドに同期",
+    "removeFromCloud": "クラウドから削除",
+    "removeFromCloudMessage": "プロジェクトはクラウドから削除され、ローカルのみになります。ローカルコピーは変更されません。よろしいですか？",
+    "syncedCloudDeleteWarning": "このプロジェクトはクラウドと同期されています。ローカルで削除してもクラウド版には影響しません。",
+    "openLocalProject": "ローカルプロジェクトを開く",
+    "premiumRequired": "Premium が必要",
+    "byUserInline": "{username} 作",
+    "@byUserInline": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "createTemplate": "テンプレートを作成",
+    "layerNameLabel": "名前: {name}",
+    "@layerNameLabel": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "layerSizeLabel": "サイズ: {width}×{height}",
+    "@layerSizeLabel": {
+        "placeholders": {
+            "width": {
+                "type": "int"
+            },
+            "height": {
+                "type": "int"
+            }
+        }
+    },
+    "nonTransparentPixels": "ピクセル: {count} 個の不透明",
+    "@nonTransparentPixels": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "templateName": "テンプレート名",
+    "descriptionOptional": "説明（任意）",
+    "saveOptions": "保存オプション",
+    "saveLocally": "ローカルに保存",
+    "storeOnDeviceOnly": "このデバイスのみに保存",
+    "uploadToCloud": "クラウドにアップロード",
+    "shareWithCommunity": "コミュニティに共有",
+    "privateCloudStorage": "非公開クラウド保存",
+    "otherUsersCanDiscoverTemplate": "他のユーザーがこのテンプレートを見つけて使用できます",
+    "onlyYouCanAccessTemplate": "このテンプレートにアクセスできるのはあなただけです",
+    "saveLocallyAndUpload": "ローカル保存とアップロード",
+    "bestOfBothWorlds": "両方のいいとこ取り",
+    "signInToUploadTemplates": "テンプレートをアップロードするにはサインイン",
+    "shareTemplatesWithCommunity": "テンプレートをコミュニティと共有",
+    "failedToConvertLayerToTemplate": "レイヤーをテンプレートに変換できませんでした",
+    "failedToSaveTemplateLocally": "テンプレートをローカルに保存できませんでした",
+    "failedToUploadTemplateToServer": "テンプレートをサーバーにアップロードできませんでした",
+    "errorCreatingTemplate": "テンプレート作成エラー: {error}",
+    "@errorCreatingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "templateSavedLocally": "テンプレートをローカルに保存しました！",
+    "templateUploadedSuccessfully": "テンプレートをアップロードしました！",
+    "templateSavedAndUploaded": "テンプレートをローカル保存してアップロードしました！",
+    "templateSavedUploadFailed": "テンプレートをローカル保存しました（アップロード失敗）",
+    "templateUploadedLocalSaveFailed": "テンプレートをアップロードしました（ローカル保存失敗）",
+    "templateCreationFailed": "テンプレート作成に失敗しました",
+    "templateGallery": "テンプレートギャラリー",
+    "allTemplates": "すべてのテンプレート",
+    "local": "ローカル",
+    "community": "コミュニティ",
+    "failedTemplateDetailsCached": "テンプレート詳細を読み込めませんでした。キャッシュデータを使用します。",
+    "errorLoadingTemplate": "テンプレート読み込みエラー: {error}",
+    "@errorLoadingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "loadingTemplate": "テンプレートを読み込み中...",
+    "deleteTemplate": "テンプレートを削除",
+    "deleteTemplateQuestion": "「{name}」を削除しますか？",
+    "@deleteTemplateQuestion": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteLocalTemplateWarning": "このテンプレートはローカル保存から完全に削除されます。",
+    "deleteCloudTemplateWarning": "このテンプレートはクラウドから削除され、復元できません。",
+    "templateDeletedSuccessfully": "「{name}」を削除しました",
+    "@templateDeletedSuccessfully": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToDeleteTemplate": "「{name}」を削除できませんでした",
+    "@failedToDeleteTemplate": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "searchTemplates": "テンプレートを検索...",
+    "loadingTemplates": "テンプレートを読み込み中...",
+    "premiumTemplate": "Premium テンプレート",
+    "templateAvailableInPro": "このテンプレートはPro版で利用できます。",
+    "premiumTemplatesFeature": "• Premiumテンプレート",
+    "advancedEffectsToolsFeature": "• 高度なエフェクトとツール",
+    "unlimitedProjectsFeature": "• 無制限のプロジェクト",
+    "cloudBackupFeature": "• クラウドバックアップ",
+    "prioritySupportFeature": "• 優先サポート",
+    "noLocalTemplates": "ローカルテンプレートがありません。\nレイヤーから最初のテンプレートを作成しましょう！",
+    "noCommunityTemplates": "コミュニティテンプレートがありません。\n検索やフィルターを調整してください。",
+    "noUploadedTemplates": "まだテンプレートをアップロードしていません。\n作品をコミュニティに共有しましょう！",
+    "noTemplatesFoundAdjust": "テンプレートが見つかりません。\n検索やフィルターを調整してください。",
+    "showingTemplates": "{displayed}{total, select, none {} other { / {total}}} 件のテンプレートを表示",
+    "@showingTemplates": {
+        "placeholders": {
+            "displayed": {
+                "type": "int"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "clickTemplateToApply": "テンプレートをクリックして適用",
+    "pro": "PRO",
+    "pleaseEnterTemplateName": "テンプレート名を入力してください",
+    "signInToUploadTemplatesTitle": "テンプレートをアップロードするにはサインイン",
+    "signInToUploadTemplatesSubtitle": "テンプレートをコミュニティに共有するにはアカウントを作成してください。",
+    "myTemplates": "マイテンプレート",
+    "cloud": "クラウド",
+    "tapToUnlock": "タップして解除",
+    "layerTemplateDefaultName": "レイヤーテンプレート",
+    "undoHistoryTitle": "履歴",
+    "undoHistoryStepCount": "（{total}ステップ）",
+    "@undoHistoryStepCount": {
+        "placeholders": {
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "undoHistoryRevertAll": "すべて戻す",
+    "undoHistoryCurrentState": "現在の状態",
+    "undoHistoryFrameLayer": "フレーム{frame}、レイヤー{layer}",
+    "@undoHistoryFrameLayer": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            },
+            "layer": {
+                "type": "int"
+            }
+        }
+    },
+    "keyboardShortcuts": "キーボードショートカット",
+    "copySelection": "選択範囲をコピー",
+    "cutSelection": "選択範囲を切り取り",
+    "paste": "貼り付け",
+    "selection": "選択",
+    "selectAll": "すべて選択",
+    "deselect": "選択解除",
+    "closePenPath": "ペンパスを閉じる",
+    "pencil": "鉛筆",
+    "eraser": "消しゴム",
+    "eyedropper": "スポイト",
+    "fill": "塗りつぶし",
+    "selectMarquee": "選択 / 矩形選択",
+    "moveDrag": "移動 / ドラッグ",
+    "pen": "ペン",
+    "sprayPaint": "スプレー",
+    "panHold": "パン（長押し）",
+    "eyedropperHold": "スポイト（長押し）",
+    "brush": "ブラシ",
+    "increaseSize": "サイズを大きく",
+    "decreaseSize": "サイズを小さく",
+    "colors": "色",
+    "defaultColors": "デフォルト色",
+    "view": "表示",
+    "zoomToFit": "全体表示",
+    "zoomOneToOne": "1:1表示",
+    "toggleUi": "UIを切り替え",
+    "selectLayerOneToNine": "レイヤー1-9を選択",
+    "newLayer": "新規レイヤー",
+    "deleteAccountCannotBeUndone": "この操作は元に戻せません",
+    "deleteAccountPermanentDataWarning": "アカウントを削除すると、すべてのデータが完全に削除されます。",
+    "deleteAccountItemsIntro": "以下が完全に削除されます:",
+    "deleteAccountPreferencesTitle": "アプリ設定",
+    "deleteAccountPreferencesSubtitle": "設定とカスタマイズ",
+    "deleteAccountInfoTitle": "アカウント情報",
+    "deleteAccountInfoSubtitle": "プロフィールと認証データ",
+    "deleteAccountTypeConfirm": "確認するには「DELETE」と入力してください:",
+    "deleteAccountTypeHint": "ここにDELETEと入力...",
+    "deleteAccountIrreversibleImmediate": "この操作は取り消せず、すぐに反映されます。",
+    "deleteAccountQuickConfirm": "アカウントを完全に削除してもよろしいですか？",
+    "deleteAccountQuickWarningList": "• すべてのプロジェクトが失われます\n• クラウドバックアップが削除されます\n• この操作は元に戻せません",
+    "failedToDeleteAccount": "アカウントの削除に失敗しました: {error}",
+    "@failedToDeleteAccount": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "proAccessActive": "Proアクセス有効",
+    "proAccessRemaining": "Proアクセスの残り時間は{time}です。",
+    "@proAccessRemaining": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "buyPro": "Proを購入",
+    "rewardUpgradeBullets": "• すべての機能に無制限アクセス\n• 一度きりの購入\n• 広告なし\n• 優先サポート",
+    "tryPro45Minutes": "Proを45分試す",
+    "rewardAdReadyBullets": "• 短い動画広告を見る\n• 45分間のProアクセスを取得\n• アプリ開発を応援",
+    "rewardAdLoadingBullets": "• 動画広告を読み込み中...\n• しばらくしてからもう一度お試しください",
+    "watchAd": "広告を見る",
+    "loadingEllipsis": "読み込み中...",
+    "loadingVideoAd": "動画広告を読み込み中...",
+    "proAccessGranted45": "Proアクセスが45分間付与されました！",
+    "videoAdNotCompleted": "動画広告が完了しませんでした。もう一度試すか、Proにアップグレードしてください。",
+    "failedToLoadVideoAd": "動画広告の読み込みに失敗しました: {error}",
+    "@failedToLoadVideoAd": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "rewardTimeZeroMinutes": "0分",
+    "rewardTimeMinutesSeconds": "{minutes}分{seconds}秒",
+    "@rewardTimeMinutesSeconds": {
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            },
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "rewardTimeSeconds": "{seconds}秒",
+    "@rewardTimeSeconds": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "selectionOptions": "選択オプション",
+    "clearSelection": "選択をクリア",
+    "growSelectionOnePixel": "拡張（+1px）",
+    "shrinkSelectionOnePixel": "縮小（-1px）",
+    "rotate90": "90°回転",
+    "rotate180": "180°回転",
+    "cutToNewLayer": "新規レイヤーへ切り取り",
+    "copyToNewLayer": "新規レイヤーへコピー",
+    "cut": "切り取り",
+    "copy": "コピー",
+    "clearArea": "範囲をクリア",
+    "replaceSelection": "選択を置き換え",
+    "addToSelectionShift": "選択に追加（Shift）",
+    "subtractFromSelectionAlt": "選択から減算（Alt）",
+    "textureBrush": "テクスチャブラシ",
+    "triangle": "三角形",
+    "diamond": "ひし形",
+    "hexagon": "六角形",
+    "heart": "ハート",
+    "arrow": "矢印",
+    "lightning": "稲妻",
+    "cross": "十字",
+    "spiral": "渦巻き",
+    "cloudShape": "雲",
+    "lasso": "投げ縄",
+    "magicWand": "自動選択",
+    "effectsPanelAllAppliedMessage": "すべてのエフェクトをレイヤーに適用し、エフェクト一覧から削除しました",
+    "effectsForLayer": "{layerName}のエフェクト",
+    "@effectsForLayer": {
+        "placeholders": {
+            "layerName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelAddEffect": "エフェクトを追加",
+    "appliedEffects": "適用済みエフェクト",
+    "effectCount": "{count, plural, =0{0個のエフェクト} =1{1個のエフェクト} other{{count}個のエフェクト}}",
+    "@effectCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsPreview": "エフェクトプレビュー",
+    "effectPreview": "エフェクトプレビュー",
+    "noEffectsApplied": "エフェクトは適用されていません",
+    "saveChanges": "変更を保存",
+    "finalResult": "最終結果",
+    "original": "元画像",
+    "withEffect": "エフェクトあり",
+    "withEffects": "エフェクトあり",
+    "effectsAppliedCount": "{count, plural, =0{0個のエフェクトを適用} =1{1個のエフェクトを適用} other{{count}個のエフェクトを適用}}",
+    "@effectsAppliedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsAppliedInOrder": "エフェクトは順番に適用されます",
+    "effectsReorderHint": "エフェクトは上から下へ適用されます。ドラッグして並べ替えできます。",
+    "addYourFirstEffect": "最初のエフェクトを追加",
+    "layerEffects": "レイヤーエフェクト",
+    "effectWatercolor": "水彩",
+    "effectHalftone": "ハーフトーン",
+    "effectOilPaint": "油絵",
+    "effectEmboss": "エンボス",
+    "staticEffect": "静的エフェクト",
+    "effectNotAnimatedMessage": "{effectName}エフェクトはアニメーションエフェクトではありません。アニメーションフレーム生成は、アニメーション対応エフェクトでのみ利用できます。",
+    "@effectNotAnimatedMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "generateAnimation": "アニメーションを生成",
+    "generateAnimationForEffect": "{effectName}エフェクトのアニメーションフレームを生成しますか？",
+    "@generateAnimationForEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetails": "アニメーション詳細",
+    "animationDetailEffect": "• エフェクト: {effectName}",
+    "@animationDetailEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetailEstimatedFrames": "• 推定フレーム数: ~{count}",
+    "@animationDetailEstimatedFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "animationDetailProcessingTime": "• 処理時間: ~{seconds}秒",
+    "@animationDetailProcessingTime": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "generateAnimationTimelineNote": "タイムラインに追加できる複数のアニメーションフレームを作成します。",
+    "generateAnimationFrames": "アニメーションフレームを生成",
+    "effectNameLabel": "{effectName}エフェクト",
+    "@effectNameLabel": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "framesGeneratedCount": "{count, plural, =0{0フレーム生成済み} =1{1フレーム生成済み} other{{count}フレーム生成済み}}",
+    "@framesGeneratedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "generateFrames": "フレームを生成",
+    "stop": "停止",
+    "frameLabel": "フレーム:",
+    "generatingFrames": "フレームを生成中...",
+    "noFramesGenerated": "生成されたフレームはありません",
+    "animationSettings": "アニメーション設定",
+    "durationSeconds": "長さ（秒）",
+    "totalFrames": "総フレーム数:",
+    "pingPongAnimation": "ピンポンアニメーション",
+    "playForwardThenBackward": "順方向のあと逆方向に再生",
+    "frameGeneration": "フレーム生成",
+    "generateNewFrames": "新規フレームを生成",
+    "createNewFramesForAnimation": "このアニメーション用の新規フレームを作成",
+    "insertIntoTimeline": "タイムラインに挿入",
+    "addFramesToExistingTimeline": "既存のタイムラインにフレームを追加",
+    "insertPosition": "挿入位置:",
+    "afterFrame": "フレーム{frame}の後",
+    "@afterFrame": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            }
+        }
+    },
+    "effectParameters": "エフェクトパラメータ",
+    "editParameters": "パラメータを編集",
+    "effectParametersBaseNote": "現在のエフェクト設定をアニメーションのベースとして使用します",
+    "editBaseParameters": "基本パラメータを編集",
+    "applyAndRegenerate": "適用して再生成",
+    "animationFrameGenerator": "アニメーションフレーム生成",
+    "animationGeneratorHelpIntro": "このツールは、選択したエフェクトを異なる時間パラメータで適用して複数のアニメーションフレームを生成します。\n",
+    "animationHelpDuration": "• 長さ: アニメーション全体の秒数",
+    "animationHelpFps": "• FPS: 1秒あたりのフレーム数（高いほど滑らかですがフレーム数が増えます）",
+    "animationHelpPingPong": "• ピンポン: 順方向のあと逆方向に再生します",
+    "animationHelpInterpolation": "• 滑らかなアニメーションのため、エフェクトパラメータは時間に沿って補間されます",
+    "tips": "ヒント:",
+    "animationTipLowerFps": "• テスト時は低めのFPSから始めましょう",
+    "animationTipUsePreview": "• 生成前にプレビューで確認しましょう",
+    "animationTipLongerDurations": "• ゆっくりしたエフェクトには長めの時間が向いています",
+    "effectFrameName": "エフェクトフレーム {index}",
+    "@effectFrameName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationName": "エフェクトアニメーション {index}",
+    "@effectAnimationName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationReturnName": "エフェクトアニメーション {index}（戻り）",
+    "@effectAnimationReturnName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "generatedAnimationFrames": "{count, plural, =0{0個のアニメーションフレームを生成しました} =1{1個のアニメーションフレームを生成しました} other{{count}個のアニメーションフレームを生成しました}}！",
+    "@generatedAnimationFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "viewTimeline": "タイムラインを表示",
+    "featureBullet": "• {feature}",
+    "@featureBullet": {
+        "placeholders": {
+            "feature": {
+                "type": "String"
+            }
+        }
+    },
+    "defaultLayerName": "レイヤー {index}",
+    "@defaultLayerName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "select": "選択",
+    "menu": "メニュー",
+    "adjustOpacity": "不透明度を調整",
+    "adjustLayerOpacity": "レイヤーの不透明度を調整",
+    "addToTemplate": "テンプレートに追加",
+    "editLayer": "レイヤーを編集",
+    "backgroundShort": "BG",
+    "reference": "参照",
+    "reset": "リセット",
+    "fit": "合わせる",
+    "removeBackgroundImage": "背景画像を削除",
+    "removeBackgroundImageMessage": "背景画像を削除してもよろしいですか？",
+    "themeSelector": "テーマセレクター",
+    "unlockThemeTitle": "{themeName}テーマを解除",
+    "@unlockThemeTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "watchAdToUnlockTheme": "動画広告を見るとこのテーマを解除できます。",
+    "themeUnlocked": "{themeName}テーマを解除しました！",
+    "@themeUnlocked": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "themeShowcaseTitle": "テーマ: {themeName}",
+    "@themeShowcaseTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "primaryColors": "プライマリカラー",
+    "primary": "プライマリ",
+    "primaryVariant": "プライマリバリアント",
+    "onPrimary": "オンプライマリ",
+    "accent": "アクセント",
+    "onAccent": "オンアクセント",
+    "backgroundColors": "背景色",
+    "surface": "サーフェス",
+    "surfaceVariant": "サーフェスバリアント",
+    "textColors": "テキスト色",
+    "textPrimary": "プライマリテキスト",
+    "textSecondary": "セカンダリテキスト",
+    "textDisabled": "無効テキスト",
+    "utilityColors": "ユーティリティ色",
+    "uiElements": "UI要素",
+    "elevated": "Elevated",
+    "filled": "Filled",
+    "outlined": "Outlined",
+    "text": "Text",
+    "inputField": "入力欄",
+    "enterText": "テキストを入力",
+    "previewingTheme": "{themeName}をプレビュー中",
+    "@previewingTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "currentTheme": "現在: {themeName}",
+    "@currentTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "unlockPremiumThemes": "プレミアムテーマを解除",
+    "getAccessToAllThemesWithPro": "Proですべてのテーマにアクセス",
+    "flagship": "フラッグシップ",
+    "free": "無料",
+    "freeThemes": "無料テーマ",
+    "premiumThemes": "プレミアムテーマ",
+    "importedFileAsNewLayer": "\"{fileName}\"を新規レイヤーとしてインポートしました",
+    "@importedFileAsNewLayer": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsepriteFile": "Asepriteファイルをインポート",
+    "howImportAsepriteFile": "\"{fileName}\"をどのようにインポートしますか？",
+    "@howImportAsepriteFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedFirstLayerFromFile": "\"{fileName}\"から最初のレイヤーをインポートしました",
+    "@importedFirstLayerFromFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsLayer": "レイヤーとしてインポート",
+    "openAsProject": "プロジェクトとして開く",
+    "copyFrame": "フレームをコピー",
+    "collapse": "折りたたむ",
+    "expand": "展開",
+    "addState": "状態を追加",
+    "copyState": "状態をコピー",
+    "addAnimationState": "アニメーション状態を追加",
+    "stateName": "状態名",
+    "tileModeTooltip": "タイルモード - シームレスな並びをプレビュー",
+    "settingsStylusMode": "設定（スタイラスモード）",
+    "onionSkinTooltip": "オニオンスキン（長押しで不透明度を設定）",
+    "sprayPaintToolDescription": "粒子でスプレー効果を作成します",
+    "lineToolDescription": "2点間に直線を描きます",
+    "circleToolDescription": "正円と楕円を描きます",
+    "rectangleToolDescription": "長方形と正方形を描きます",
+    "triangleToolDescription": "三角形を描きます",
+    "diamondToolDescription": "ひし形を描きます",
+    "hexagonToolDescription": "六角形を描きます",
+    "heartToolDescription": "ハート形を描きます",
+    "arrowToolDescription": "矢印形を描きます",
+    "lightningToolDescription": "稲妻形を描きます",
+    "crossToolDescription": "十字またはプラス形を描きます",
+    "spiralToolDescription": "渦巻き形を描きます",
+    "cloudToolDescription": "雲形を描きます",
+    "penToolDescription": "高度なフリーハンド描画ツール",
+    "rectangleSelectToolDescription": "矩形範囲を選択します",
+    "ellipseSelectToolDescription": "楕円範囲を選択します",
+    "lassoToolDescription": "フリーハンド選択ツール",
+    "magicWandToolDescription": "色でつながったピクセルを選択します",
+    "curve": "曲線",
+    "curveToolDescription": "滑らかな曲線を描きます",
+    "move": "移動",
+    "moveToolDescription": "要素を移動・ドラッグします"
 }

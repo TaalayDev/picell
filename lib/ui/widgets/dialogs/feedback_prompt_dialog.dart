@@ -209,7 +209,7 @@ class _DialogContentState extends State<_DialogContent> with SingleTickerProvide
                             color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.feedback_outlined,
                             size: 48,
                             color: Colors.white,

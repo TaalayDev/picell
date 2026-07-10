@@ -9,9 +9,8 @@ class EditorSettingsDialog extends ConsumerWidget {
   const EditorSettingsDialog({super.key});
 
   static Future<void> show(BuildContext context) {
-    final isMobile = !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.android);
+    final isMobile =
+        !kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android);
 
     if (isMobile) {
       return showModalBottomSheet<void>(
@@ -36,9 +35,8 @@ class EditorSettingsDialog extends ConsumerWidget {
     final theme = Theme.of(context);
     final s = Strings.of(context);
 
-    final showStylusOption = !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.android);
+    final showStylusOption =
+        !kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android);
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -52,13 +50,10 @@ class EditorSettingsDialog extends ConsumerWidget {
               color: theme.colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(Icons.tune_rounded,
-                size: 18, color: theme.colorScheme.onPrimaryContainer),
+            child: Icon(Icons.tune_rounded, size: 18, color: theme.colorScheme.onPrimaryContainer),
           ),
           const SizedBox(width: 12),
-          Text(s.editorSettings,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(s.editorSettings, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.restore_rounded, size: 20),
@@ -99,11 +94,10 @@ class _EditorSettingsSheet extends ConsumerWidget {
     final theme = Theme.of(context);
     final s = Strings.of(context);
 
-    final showStylusOption = !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.android);
+    final showStylusOption =
+        !kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android);
 
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -132,13 +126,10 @@ class _EditorSettingsSheet extends ConsumerWidget {
                     color: theme.colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(Icons.tune_rounded,
-                      size: 18, color: theme.colorScheme.onPrimaryContainer),
+                  child: Icon(Icons.tune_rounded, size: 18, color: theme.colorScheme.onPrimaryContainer),
                 ),
                 const SizedBox(width: 12),
-                Text(s.editorSettings,
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(s.editorSettings, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.restore_rounded, size: 20),
@@ -203,8 +194,7 @@ class _SettingsBody extends StatelessWidget {
           if (showStylusOption) ...[
             _SectionChip(icon: Icons.touch_app_rounded, label: s.input),
             SizedBox(height: compact ? 6 : 8),
-            _StylusTile(
-                settings: settings, notifier: notifier, compact: compact),
+            _StylusTile(settings: settings, notifier: notifier, compact: compact),
             SizedBox(height: gap),
             const _ThinDivider(),
             SizedBox(height: divGap),
@@ -346,10 +336,8 @@ class _ThinDivider extends StatelessWidget {
   const _ThinDivider();
 
   @override
-  Widget build(BuildContext context) => Divider(
-      height: 1,
-      color:
-          Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5));
+  Widget build(BuildContext context) =>
+      Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5));
 }
 
 class _CompactSwitchTile extends StatelessWidget {
@@ -381,17 +369,13 @@ class _CompactSwitchTile extends StatelessWidget {
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: value
-                    ? theme.colorScheme.primaryContainer
-                    : theme.colorScheme.surfaceContainerHighest,
+                color: value ? theme.colorScheme.primaryContainer : theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
                 size: 16,
-                color: value
-                    ? theme.colorScheme.onPrimaryContainer
-                    : theme.colorScheme.onSurfaceVariant,
+                color: value ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(width: 12),
@@ -400,9 +384,7 @@ class _CompactSwitchTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(title,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w500)),
+                  Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
                   if (subtitle != null)
                     Text(subtitle!,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -451,14 +433,11 @@ class _InlineSliderTile extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(fontWeight: FontWeight.w500)),
+              Text(label, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color:
-                      theme.colorScheme.primaryContainer.withValues(alpha: 0.6),
+                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -518,8 +497,7 @@ class _MiniSlider extends StatelessWidget {
             Text(label, style: theme.textTheme.labelSmall),
             Text(
               value.toStringAsFixed(1),
-              style: theme.textTheme.labelSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -628,15 +606,11 @@ class _StylusTile extends StatelessWidget {
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isStylusMode
-              ? theme.colorScheme.primary
-              : theme.colorScheme.outlineVariant,
+          color: isStylusMode ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
           width: isStylusMode ? 1.5 : 1,
         ),
         borderRadius: BorderRadius.circular(12),
-        color: isStylusMode
-            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-            : null,
+        color: isStylusMode ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
       ),
       child: InkWell(
         onTap: notifier.toggleStylusMode,
@@ -648,17 +622,13 @@ class _StylusTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isStylusMode
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.surfaceContainerHighest,
+                  color: isStylusMode ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.draw_outlined,
                   size: 18,
-                  color: isStylusMode
-                      ? theme.colorScheme.onPrimary
-                      : theme.colorScheme.onSurfaceVariant,
+                  color: isStylusMode ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: 12),
@@ -667,17 +637,11 @@ class _StylusTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(s.stylusMode,
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w500)),
+                    Text(s.stylusMode, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
                     Text(
-                      isStylusMode
-                          ? s.stylusModeSubtitleOn
-                          : s.stylusModeSubtitleOff,
+                      isStylusMode ? s.stylusModeSubtitleOn : s.stylusModeSubtitleOff,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: isStylusMode
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
+                        color: isStylusMode ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

@@ -51,13 +51,13 @@ class CustomRangeSlider extends StatelessWidget {
   final Function(double, double) onChanged;
 
   const CustomRangeSlider({
-    Key? key,
+    super.key,
     required this.start,
     required this.end,
     required this.min,
     required this.max,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -71,8 +71,8 @@ class CustomRangeSlider extends StatelessWidget {
         overlayColor: const Color(0xFF48BB78).withValues(alpha: 0.2),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
         rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 14),
-        rangeTrackShape: GradientRectRangeSliderTrackShape(
-          gradient: const LinearGradient(
+        rangeTrackShape: const GradientRectRangeSliderTrackShape(
+          gradient: LinearGradient(
             colors: [Color(0xFF48BB78), Color(0xFF38B2AC)],
           ),
         ),

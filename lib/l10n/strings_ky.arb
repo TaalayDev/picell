@@ -68,6 +68,7 @@
     "areYouSureWantToDeleteLayer": "Бул катмарды өчүрүүнү каалайсызбы?",
     "newProject": "Жаңы проект",
     "template": "Шаблон",
+    "category": "Категория",
     "width": "Туурасы",
     "height": "Бийиктиги",
     "create": "Түзүү",
@@ -133,28 +134,28 @@
     "mirrorTool": "Күзгү",
     "moveTool": "Жылдыруу",
     "addLayer": "Катмар кошуу",
-    "duplicateLayer": "Катмарды көчүрүү",
+    "duplicateLayer": "Катмарды көчүрмөлөө",
     "mergeLayer": "Катмарларды бириктирүү",
     "layerVisibility": "Катмардын көрүнүшү",
     "layerOpacity": "Катмардын тунуктугу",
     "renameLayer": "Катмардын атын өзгөртүү",
     "createNewLayer": "Жаңы катмар түзүү",
-    "layerName": "Катмардын аты",
+    "layerName": "Катмар аты",
     "addFrame": "Кадр кошуу",
     "duplicateFrame": "Кадрды көчүрүү",
     "deleteFrame": "Кадрды өчүрүү",
     "frameDuration": "Кадрдын узактыгы",
     "firstFrame": "Биринчи кадр",
     "lastFrame": "Акыркы кадр",
-    "pause": "Тындыруу",
+    "pause": "Пауза",
     "play": "Ойнотуу",
     "playAnimation": "Анимацияны ойнотуу",
     "stopAnimation": "Анимацияны токтотуу",
     "loopAnimation": "Анимацияны кайталоо",
-    "fps": "Секундуна кадрлар",
+    "fps": "FPS",
     "exportAsImage": "Сүрөт катары экспорттоо",
     "saveProject": "Проектти сактоо",
-    "openProject": "Проектти ачуу",
+    "openProject": "Долбоорду ачуу",
     "importImage": "Сүрөттү импорттоо",
     "fileNotSupported": "Файл форматы колдоого алынбайт",
     "successfullySaved": "Ийгиликтүү сакталды",
@@ -165,7 +166,7 @@
     "warning": "Эскертүү",
     "yes": "Ооба",
     "no": "Жок",
-    "ok": "Макул",
+    "ok": "OK",
     "done": "Даяр",
     "apply": "Колдонуу",
     "settings": "Орнотуулар",
@@ -173,8 +174,8 @@
     "options": "Параметрлер",
     "preview": "Алдын ала көрүү",
     "zoom": "Масштаб",
-    "zoomIn": "Чоңойтуу",
-    "zoomOut": "Кирейтүү",
+    "zoomIn": "Жакындатуу",
+    "zoomOut": "Алыстатуу",
     "resetZoom": "Масштабды баштапкы абалга келтирүү",
     "grid": "Тор",
     "showGrid": "Торду көрсөтүү",
@@ -186,13 +187,12 @@
     "canvasSize": "Канвастын өлчөмү",
     "resize": "Өлчөмүн өзгөртүү",
     "resizeCanvas": "Канвастын өлчөмүн өзгөртүү",
-    "flipHorizontal": "Горизонталдуу түрдө айландыруу",
-    "flipVertical": "Вертикалдуу түрдө айландыруу",
+    "flipHorizontal": "Горизонталдуу оодаруу",
+    "flipVertical": "Вертикалдуу оодаруу",
     "rotate": "Айландыруу",
     "rotateLeft": "Солго айландыруу",
     "rotateRight": "Оңго айландыруу",
     "opacity": "Тунуктук",
-
     "feedback_title": "Пикир",
     "feedback_thank_you": "Пикириңиз үчүн рахмат!",
     "feedback_thank_you_message": "Сиздин пикириңиз биз үчүн абдан маанилүү жана тиркемени жакшыртууга жардам берет.",
@@ -209,7 +209,6 @@
     "feedback_yes": "Ооба",
     "feedback_no": "Жок",
     "feedback_text_placeholder": "Жообуңузду жазыңыз...",
-    
     "feedback_q_satisfaction": "Тиркемеден канчалык канааттанасыз?",
     "feedback_q_missing_features": "Кандай функциялар жетишпейт?",
     "feedback_q_missing_features_placeholder": "Көргүңүз келген функцияларды сүрөттөп бериңиз...",
@@ -260,15 +259,13 @@
     "addToCustomPalette": "Өзгөчө палитрага кошуу",
     "noCustomColors": "Өзгөчө түстөр али кошула элек.\nЖогорудагы + баскычын колдонуп түстөрдү кошуңуз.",
     "effects": "Эффекттер",
-    "editorSettings": "Редактордун орнотуулары",
+    "editorSettings": "Редактор жөндөөлөрү",
     "resetToDefaults": "Баштапкыга кайтаруу",
     "input": "Киргизүү",
     "display": "Көрсөтүү",
-    "showGrid": "Торду көрсөтүү",
     "showGridSubtitle": "Канваста тор сызыктарын көрсөтүү",
     "pixelGridOverlay": "Пиксель торчосунун катмары",
     "pixelGridSubtitle": "Чоңойткондо пикселдин чектерин көрсөтүү",
-    "gridOpacity": "Тордун тунуктугу",
     "selectionTransforms": "Тандоону трансформациялоо",
     "transformInterpolation": "Интерполяция",
     "transformInterpolationSubtitle": "Тандоонун өлчөмүн өзгөртүүдө жана айлантууда колдонулат",
@@ -282,7 +279,6 @@
     "gestures": "Жаңсоо",
     "twoFingerUndo": "Эки манжа менен артка кайтаруу",
     "twoFingerUndoSubtitle": "Артка кайтаруу үчүн эки манжа менен тез тийүү",
-    "done": "Даяр",
     "stylusMode": "Стилус режими",
     "stylusModeSubtitleOn": "Стилус менен гана тартуу • Жылдыруу үчүн тийүү",
     "stylusModeSubtitleOff": "Тийүү жана стилус менен тартуу",
@@ -319,14 +315,10 @@
         }
     },
     "heightRangeError": "Бийиктиги: 1-{max}",
-    "saveImage": "Сүрөттү сактоо",
     "png": "PNG",
-    "animatedGif": "Анимацияланган GIF",
     "proPlanRequired": "Pro планы талап кылынат",
-    "spriteSheet": "Спрайт барагы",
     "transparentBackground": "Тунук фон",
     "transparent": "Тунук",
-    "spriteSheetOptions": "Спрайт барагынын параметрлери",
     "columnsLabel": "Мамычалар",
     "spacingPx": "Аралык (px)",
     "exportSize": "Экспорттолуучу өлчөм",
@@ -339,7 +331,6 @@
         }
     },
     "format": "Формат",
-    "options": "Параметрлер",
     "editEffect": "{name} эффектин түзөтүү",
     "@editEffect": {
         "placeholders": {
@@ -349,7 +340,6 @@
         }
     },
     "applyChanges": "Өзгөртүүлөрдү колдонуу",
-    "preview": "Алдын ала көрүү",
     "quickPresets": "Тез пресеттер",
     "parameters": "Параметрлер",
     "previewNotAvailable": "Алдын ала көрүү мүмкүн эмес",
@@ -400,7 +390,7 @@
     "noEffectsMatch": "Сиздин издөөңүзгө эч кандай эффект дал келбейт",
     "premiumEffect": "Премиум эффект",
     "proVersionStatus": "Бул эффект Pro версиясында жеткиликтүү.",
-    "proFeaturesInclude": "Pro мүмкүнчүлүктөрү төмөнкүлөрдү камтыйт:",
+    "proFeaturesInclude": "Pro мүмкүнчүлүктөрү:",
     "featureAdvancedEffects": "Өркүндөтүлгө эффекттер жана куралдар",
     "featureUnlimitedProjects": "Чексиз долбоорлор",
     "featureCloudBackup": "Булуттук камдык көчүрмө",
@@ -446,5 +436,892 @@
     "ellipseSelectionTooltip": "Овал аймакты тандоо",
     "autoSelectLayer": "Авто-тандоо",
     "autoSelectLayerTooltip": "Учурдагы катмардын бардык бош эмес пикселдерин тандоо",
-    "selectionAnchor": "Тандоо якору"
+    "selectionAnchor": "Тандоо якору",
+    "feedback": "Пикир",
+    "createNewProjectTooltip": "Жаңы долбоор түзүү",
+    "failedToProcessFile": "{fileName} файлын иштетүү мүмкүн болбоду",
+    "@failedToProcessFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importingFile": "{fileName} импорттолууда...",
+    "@importingFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedProjectSuccessfully": "«{projectName}» ийгиликтүү импорттолду",
+    "@importedProjectSuccessfully": {
+        "placeholders": {
+            "projectName": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToImport": "Импорттоо ишке ашкан жок: {error}",
+    "@failedToImport": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unsupportedFileType": "Колдоого алынбаган файл түрү: {fileName}",
+    "@unsupportedFileType": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "pleaseSignInToUploadProjects": "Долбоор жүктөө үчүн кириңиз",
+    "pleaseSignInToUpdateProjects": "Долбоор жаңыртуу үчүн кириңиз",
+    "projectNotSyncedToCloud": "Долбоор булут менен шайкештешкен эмес",
+    "pleaseSignInToRemoveCloudProjects": "Булуттагы долбоорду өчүрүү үчүн кириңиз",
+    "removingFromCloud": "Булуттан өчүрүлүүдө...",
+    "projectRemovedFromCloudSuccessfully": "Долбоор булуттан ийгиликтүү өчүрүлдү",
+    "failedToRemoveFromCloud": "Булуттан өчүрүү ишке ашкан жок: {error}",
+    "@failedToRemoveFromCloud": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "search": "Издөө...",
+    "myProjects": "Менин долбоорлорум",
+    "noProjectsYet": "Азырынча долбоор жок",
+    "createOne": "Түзүү",
+    "searchProjects": "Долбоорлорду издөө...",
+    "discoverAmazingPixelArt": "Керемет пиксель-арттарды табыңыз",
+    "sortBy": "Иреттөө",
+    "mostRecent": "Эң жаңылары",
+    "mostPopular": "Популярдуу",
+    "mostViewed": "Көп көрүлгөн",
+    "mostLiked": "Көп жактырылган",
+    "titleAZ": "Аталышы А-Я",
+    "all": "Баары",
+    "featuredProjects": "Тандалган долбоорлор",
+    "errorLoadingProjects": "Долбоорлор жүктөлгөн жок",
+    "deletingProject": "Долбоор өчүрүлүүдө...",
+    "projectDeletedSuccessfully": "Долбоор ийгиликтүү өчүрүлдү",
+    "failedToDeleteProject": "Долбоорду өчүрүү ишке ашкан жок",
+    "failedToDeleteProjectWithError": "Долбоорду өчүрүү ишке ашкан жок: {error}",
+    "@failedToDeleteProjectWithError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unlike": "Жактырууну алып салуу",
+    "like": "Жактыруу",
+    "editProject": "Долбоорду түзөтүү",
+    "public": "Ачык",
+    "private": "Жеке",
+    "analytics": "Аналитика",
+    "stats": "Статистика",
+    "likeCountLabel": "{count} жактыруу",
+    "@likeCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "commentCountLabel": "{count} комментарий",
+    "@commentCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "download": "Жүктөп алуу",
+    "downloadProject": "Долбоорду жүктөп алуу",
+    "localProjectNotFound": "Жергиликтүү долбоор табылган жок",
+    "comments": "Комментарийлер",
+    "addComment": "Комментарий кошуу",
+    "noCommentsYet": "Комментарий жок",
+    "beFirstToComment": "Биринчи комментарий калтырыңыз!",
+    "failedToLoadComments": "Комментарийлер жүктөлгөн жок",
+    "edited": "Түзөтүлгөн",
+    "makeProjectPublic": "Долбоорду ачык кылуу",
+    "makeProjectPrivate": "Долбоорду жеке кылуу",
+    "makeProjectPublicMessage": "Долбооруңуз коомчулукка көрүнөт. Баары көрүп, жактырып жана комментарий бере алат.",
+    "makeProjectPrivateMessage": "Долбоор коомчулуктан жашырылат. Аны сиз гана көрө аласыз.",
+    "projectWillBePublic": "Долбоор ачык көрүнөт",
+    "projectWillBePrivate": "Долбоор жеке болот",
+    "projectIsNowPublic": "Долбоор эми ачык",
+    "projectIsNowPrivate": "Долбоор эми жеке",
+    "failedToUpdateVisibility": "Көрүнүмдүүлүктү жаңыртуу ишке ашкан жок: {error}",
+    "@failedToUpdateVisibility": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "makePublic": "Ачык кылуу",
+    "makePrivate": "Жеке кылуу",
+    "deleteProjectCannotBeUndone": "Бул долбоорду өчүрүүнү каалайсызбы? Бул аракетти артка кайтаруу мүмкүн эмес.",
+    "thisWillPermanentlyDelete": "Түбөлүк өчүрүлөт:",
+    "deleteProjectConsequences": "• Долбоордун маалыматтары жана сүрөтү\n• Бардык комментарийлер жана жактыруулар\n• Жүктөп алуу статистикасы",
+    "typeProjectTitleToConfirmDeletion": "Өчүрүүнү ырастоо үчүн «{title}» деп жазыңыз:",
+    "@typeProjectTitleToConfirmDeletion": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "enterProjectTitle": "Долбоор аталышын киргизиңиз...",
+    "deleteForever": "Түбөлүк өчүрүү",
+    "openingProjectEditor": "Долбоор редактору ачылууда...",
+    "projectLinkCopied": "Долбоор шилтемеси көчүрүлдү!",
+    "addedToFavorites": "Тандалмаларга кошулду!",
+    "nowFollowingUser": "{username} колдонуучусуна жазылдыңыз!",
+    "@nowFollowingUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "reportProject": "Долбоор боюнча арыздануу",
+    "reportProjectMessage": "Бул долбоор боюнча арыздангыңыз келеби? Коомчулук эрежелерин бузган контентти гана билдириңиз.",
+    "reportThanks": "Арызыңыз үчүн рахмат. Жакында карап чыгабыз.",
+    "report": "Арыздануу",
+    "premiumRequiredToDownloadProjects": "Долбоорлорду жүктөө үчүн Premium жазылуу керек",
+    "upgrade": "Жаңыртуу",
+    "downloadProjectRewardSubtitle": "Бул долбоорду жүктөө үчүн сиз:",
+    "thankYouWatchingDownloadStarting": "Көргөнүңүз үчүн рахмат! Жүктөө башталууда...",
+    "pleaseSignInToAddComments": "Комментарий кошуу үчүн кириңиз",
+    "writeYourComment": "Комментарийиңизди жазыңыз...",
+    "commentAddedSuccessfully": "Комментарий кошулду!",
+    "failedToAddComment": "Комментарий кошуу ишке ашкан жок: {error}",
+    "@failedToAddComment": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "post": "Жарыялоо",
+    "chooseTheme": "Тема тандаңыз",
+    "importFile": "Файл импорттоо",
+    "theme": "Тема",
+    "getPro": "Pro алуу",
+    "supportOnKofi": "Ko-fi аркылуу колдоо",
+    "copyLink": "Шилтемени көчүрүү",
+    "size": "Өлчөм",
+    "views": "Көрүүлөр",
+    "downloads": "Жүктөөлөр",
+    "published": "Жарыяланды!",
+    "forkedFrom": "Форк булагы: ",
+    "byUser": " автору {username}",
+    "projectAnalytics": "Долбоор аналитикасы",
+    "totalViews": "Жалпы көрүүлөр",
+    "totalLikes": "Жалпы жактыруулар",
+    "detailedAnalytics": "Толук аналитика",
+    "advancedAnalyticsSoon": "Кеңейтилген аналитика жакында жеткиликтүү болот.",
+    "@byUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "details": "Маалыматтар",
+    "title": "Аталышы",
+    "projectTitleHint": "Долбооруңузга ат бериңиз",
+    "description": "Сүрөттөмө",
+    "projectDescriptionHint": "Бул долбоор тууралуу коомчулукка айтып бериңиз (милдеттүү эмес)",
+    "visibility": "Көрүнүмдүүлүк",
+    "tags": "Тегдер",
+    "searchTags": "Тегдерди издөө…",
+    "failedToLoadTags": "Тегдер жүктөлгөн жок",
+    "pleaseEnterTitle": "Аталышын киргизиңиз",
+    "removeFromCloudQuestion": "Булуттан өчүрүлсүнбү?",
+    "removeFromCommunityMessage": "Бул долбоор коомчулуктан өчүрүлөт. Жергиликтүү көчүрмө калат.",
+    "remove": "Өчүрүү",
+    "updateProject": "Долбоорду жаңыртуу",
+    "publishToCommunity": "Коомчулукка жарыялоо",
+    "synced": "Шайкештешкен",
+    "visibleToEveryone": "Баарына көрүнөт",
+    "onlyVisibleToYou": "Сизге гана көрүнөт",
+    "maximumTagsAllowed": "Эң көп 5 тег тандаса болот",
+    "frameCountSimple": "{count} кадр",
+    "@frameCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "layerCountSimple": "{count} катмар",
+    "@layerCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "cloudManagement": "Булутту башкаруу",
+    "cloudId": "Cloud ID: {id}",
+    "@cloudId": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "preparingUpdate": "Жаңыртуу даярдалууда…",
+    "preparingProject": "Долбоор даярдалууда…",
+    "generatingThumbnail": "Миниатюра түзүлүүдө…",
+    "updatingOnCloud": "Булутта жаңыртылууда…",
+    "uploadingToCloud": "Булутка жүктөлүүдө…",
+    "finalizing": "Аяктоо…",
+    "updated": "Жаңыртылды!",
+    "updating": "Жаңыртылууда…",
+    "publishing": "Жарыяланууда…",
+    "update": "Жаңыртуу",
+    "publish": "Жарыялоо",
+    "downloadingProject": "Долбоор жүктөлүүдө",
+    "downloadingProjectData": "Долбоор маалыматы жүктөлүүдө...",
+    "downloadComplete": "Жүктөө аяктады!",
+    "projectSavedLocal": "Долбоор жергиликтүү долбоорлорго сакталды",
+    "downloadFailed": "Жүктөө ишке ашкан жок",
+    "resyncWithCloud": "Булут менен кайра шайкештөө",
+    "syncToCloud": "Булутка шайкештөө",
+    "removeFromCloud": "Булуттан өчүрүү",
+    "removeFromCloudMessage": "Долбоор булуттан өчүрүлүп, жергиликтүү гана болот. Жергиликтүү көчүрмө өзгөрбөйт. Ишенесизби?",
+    "syncedCloudDeleteWarning": "Бул долбоор булут менен шайкештешкен. Жергиликтүү өчүрүү булуттагы версияга таасир этпейт.",
+    "openLocalProject": "Жергиликтүү долбоорду ачуу",
+    "premiumRequired": "Premium керек",
+    "byUserInline": "автору {username}",
+    "@byUserInline": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "createTemplate": "Шаблон түзүү",
+    "layerNameLabel": "Аты: {name}",
+    "@layerNameLabel": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "layerSizeLabel": "Өлчөмү: {width}×{height}",
+    "@layerSizeLabel": {
+        "placeholders": {
+            "width": {
+                "type": "int"
+            },
+            "height": {
+                "type": "int"
+            }
+        }
+    },
+    "nonTransparentPixels": "Пикселдер: {count} тунук эмес",
+    "@nonTransparentPixels": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "templateName": "Шаблон аты",
+    "descriptionOptional": "Сүрөттөмө (милдеттүү эмес)",
+    "saveOptions": "Сактоо параметрлери",
+    "saveLocally": "Жергиликтүү сактоо",
+    "storeOnDeviceOnly": "Ушул түзмөктө гана сактоо",
+    "uploadToCloud": "Булутка жүктөө",
+    "shareWithCommunity": "Коомчулук менен бөлүшүү",
+    "privateCloudStorage": "Жеке булут сактагычы",
+    "otherUsersCanDiscoverTemplate": "Башка колдонуучулар бул шаблонду таап колдоно алышат",
+    "onlyYouCanAccessTemplate": "Бул шаблон сизге гана жеткиликтүү",
+    "saveLocallyAndUpload": "Жергиликтүү сактоо жана жүктөө",
+    "bestOfBothWorlds": "Эки варианттын тең жакшысы",
+    "signInToUploadTemplates": "Шаблон жүктөө үчүн кириңиз",
+    "shareTemplatesWithCommunity": "Шаблондоруңузду коомчулук менен бөлүшүңүз",
+    "failedToConvertLayerToTemplate": "Катмарды шаблонго айлантуу ишке ашкан жок",
+    "failedToSaveTemplateLocally": "Шаблонду жергиликтүү сактоо ишке ашкан жок",
+    "failedToUploadTemplateToServer": "Шаблонду серверге жүктөө ишке ашкан жок",
+    "errorCreatingTemplate": "Шаблон түзүү катасы: {error}",
+    "@errorCreatingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "templateSavedLocally": "Шаблон жергиликтүү сакталды!",
+    "templateUploadedSuccessfully": "Шаблон ийгиликтүү жүктөлдү!",
+    "templateSavedAndUploaded": "Шаблон жергиликтүү сакталып, жүктөлдү!",
+    "templateSavedUploadFailed": "Шаблон жергиликтүү сакталды (жүктөө ишке ашкан жок)",
+    "templateUploadedLocalSaveFailed": "Шаблон жүктөлдү (жергиликтүү сактоо ишке ашкан жок)",
+    "templateCreationFailed": "Шаблон түзүү ишке ашкан жок",
+    "templateGallery": "Шаблондор галереясы",
+    "allTemplates": "Бардык шаблондор",
+    "local": "Жергиликтүү",
+    "community": "Коомчулук",
+    "failedTemplateDetailsCached": "Шаблон маалыматын жүктөө ишке ашкан жок. Кэштеги маалымат колдонулат.",
+    "errorLoadingTemplate": "Шаблон жүктөө катасы: {error}",
+    "@errorLoadingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "loadingTemplate": "Шаблон жүктөлүүдө...",
+    "deleteTemplate": "Шаблонду өчүрүү",
+    "deleteTemplateQuestion": "«{name}» шаблону өчүрүлсүнбү?",
+    "@deleteTemplateQuestion": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteLocalTemplateWarning": "Бул шаблон жергиликтүү сактагычтан түбөлүк өчүрүлөт.",
+    "deleteCloudTemplateWarning": "Бул шаблон булуттан өчүрүлүп, калыбына келтирилбейт.",
+    "templateDeletedSuccessfully": "«{name}» шаблону өчүрүлдү",
+    "@templateDeletedSuccessfully": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToDeleteTemplate": "«{name}» шаблонун өчүрүү ишке ашкан жок",
+    "@failedToDeleteTemplate": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "searchTemplates": "Шаблондорду издөө...",
+    "loadingTemplates": "Шаблондор жүктөлүүдө...",
+    "premiumTemplate": "Premium шаблон",
+    "templateAvailableInPro": "Бул шаблон Pro версиясында жеткиликтүү.",
+    "premiumTemplatesFeature": "• Premium шаблондор",
+    "advancedEffectsToolsFeature": "• Кеңейтилген эффекттер жана куралдар",
+    "unlimitedProjectsFeature": "• Чексиз долбоорлор",
+    "cloudBackupFeature": "• Булуттагы камдык көчүрмө",
+    "prioritySupportFeature": "• Артыкчылыктуу колдоо",
+    "noLocalTemplates": "Жергиликтүү шаблондор табылган жок.\nБиринчи шаблонуңузду катмардан түзүңүз!",
+    "noCommunityTemplates": "Коомчулук шаблондору табылган жок.\nИздөөнү же фильтрлерди өзгөртүп көрүңүз.",
+    "noUploadedTemplates": "Сиз азырынча шаблон жүктөгөн жоксуз.\nЖаратмаларыңызды коомчулук менен бөлүшүңүз!",
+    "noTemplatesFoundAdjust": "Шаблондор табылган жок.\nИздөөнү же фильтрлерди өзгөртүп көрүңүз.",
+    "showingTemplates": "Көрсөтүлдү: {displayed}{total, select, none {} other { / {total}}} шаблон",
+    "@showingTemplates": {
+        "placeholders": {
+            "displayed": {
+                "type": "int"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "clickTemplateToApply": "Колдонуу үчүн шаблонду басыңыз",
+    "pro": "PRO",
+    "pleaseEnterTemplateName": "Шаблон атын киргизиңиз",
+    "signInToUploadTemplatesTitle": "Шаблон жүктөө үчүн кириңиз",
+    "signInToUploadTemplatesSubtitle": "Шаблондоруңузду коомчулук менен бөлүшүү үчүн аккаунт түзүңүз.",
+    "myTemplates": "Менин шаблондорум",
+    "cloud": "Булут",
+    "tapToUnlock": "Ачуу үчүн басыңыз",
+    "layerTemplateDefaultName": "Катмар шаблону",
+    "undoHistoryTitle": "Тарых",
+    "undoHistoryStepCount": "({total} кадам)",
+    "@undoHistoryStepCount": {
+        "placeholders": {
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "undoHistoryRevertAll": "Баарын артка кайтаруу",
+    "undoHistoryCurrentState": "Учурдагы абал",
+    "undoHistoryFrameLayer": "Кадр {frame}, катмар {layer}",
+    "@undoHistoryFrameLayer": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            },
+            "layer": {
+                "type": "int"
+            }
+        }
+    },
+    "keyboardShortcuts": "Клавиатура жарлыктары",
+    "copySelection": "Тандалганды көчүрүү",
+    "cutSelection": "Тандалганды кесүү",
+    "paste": "Коюу",
+    "selection": "Тандоо",
+    "selectAll": "Баарын тандоо",
+    "deselect": "Тандоону алып салуу",
+    "closePenPath": "Калем жолун жабуу",
+    "pencil": "Карандаш",
+    "eraser": "Өчүргүч",
+    "eyedropper": "Пипетка",
+    "fill": "Толтуруу",
+    "selectMarquee": "Тандоо / рамка",
+    "moveDrag": "Жылдыруу / сүйрөө",
+    "pen": "Калем",
+    "sprayPaint": "Спрей боёк",
+    "panHold": "Жылдыруу (кармоо)",
+    "eyedropperHold": "Пипетка (кармоо)",
+    "brush": "Кисть",
+    "increaseSize": "Өлчөмүн чоңойтуу",
+    "decreaseSize": "Өлчөмүн кичирейтүү",
+    "colors": "Түстөр",
+    "swapColors": "Түстөрдү алмаштыруу",
+    "defaultColors": "Баштапкы түстөр",
+    "view": "Көрүнүш",
+    "zoomToFit": "Терезеге баткыруу",
+    "zoomOneToOne": "Масштаб 1:1",
+    "toggleUi": "UI көрсөтүү/жашыруу",
+    "selectLayerOneToNine": "1-9 катмарды тандоо",
+    "newLayer": "Жаңы катмар",
+    "deleteAccountCannotBeUndone": "Бул аракетти артка кайтарууга болбойт",
+    "deleteAccountPermanentDataWarning": "Аккаунтту өчүрүү бардык маалыматыңызды биротоло жок кылат.",
+    "deleteAccountItemsIntro": "Төмөнкүлөр биротоло өчүрүлөт:",
+    "deleteAccountPreferencesTitle": "Колдонмо жөндөөлөрү",
+    "deleteAccountPreferencesSubtitle": "Жөндөөлөр жана ыңгайлаштыруулар",
+    "deleteAccountInfoTitle": "Аккаунт маалыматы",
+    "deleteAccountInfoSubtitle": "Профиль жана кирүү маалыматтары",
+    "deleteAccountTypeConfirm": "Ырастоо үчүн \"DELETE\" деп жазыңыз:",
+    "deleteAccountTypeHint": "DELETE бул жерге жазыңыз...",
+    "deleteAccountIrreversibleImmediate": "Бул аракет кайтарылгыс жана дароо күчүнө кирет.",
+    "deleteAccountQuickConfirm": "Аккаунтуңузду биротоло өчүргүңүз келеби?",
+    "deleteAccountQuickWarningList": "• Бардык долбоорлоруңуз жоголот\n• Булуттагы камдык көчүрмөлөр өчүрүлөт\n• Бул аракетти артка кайтарууга болбойт",
+    "failedToDeleteAccount": "Аккаунтту өчүрүү ишке ашкан жок: {error}",
+    "@failedToDeleteAccount": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "proAccessActive": "Pro жеткиликтүүлүгү активдүү",
+    "proAccessRemaining": "Pro жеткиликтүүлүгүнөн {time} калды.",
+    "@proAccessRemaining": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "buyPro": "Pro сатып алуу",
+    "rewardUpgradeBullets": "• Бардык функцияларга чексиз жеткиликтүүлүк\n• Бир жолку сатып алуу\n• Жарнамасыз\n• Артыкчылыктуу колдоо",
+    "tryPro45Minutes": "Proну 45 мүнөткө сынап көрүү",
+    "rewardAdReadyBullets": "• Кыска видео жарнаманы көрүңүз\n• 45 мүнөт Pro жеткиликтүүлүгүн алыңыз\n• Колдонмонун өнүгүшүн колдоңуз",
+    "rewardAdLoadingBullets": "• Видео жарнама жүктөлүүдө...\n• Бир аздан кийин кайра аракет кылыңыз",
+    "watchAd": "Жарнаманы көрүү",
+    "loadingEllipsis": "Жүктөлүүдө...",
+    "loadingVideoAd": "Видео жарнама жүктөлүүдө...",
+    "proAccessGranted45": "Pro жеткиликтүүлүгү 45 мүнөткө берилди!",
+    "videoAdNotCompleted": "Видео жарнама аягына чейин көрүлгөн жок. Кайра аракет кылыңыз же Proго өтүңүз.",
+    "failedToLoadVideoAd": "Видео жарнаманы жүктөө ишке ашкан жок: {error}",
+    "@failedToLoadVideoAd": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "rewardTimeZeroMinutes": "0 мүнөт",
+    "rewardTimeMinutesSeconds": "{minutes} мүн {seconds} с",
+    "@rewardTimeMinutesSeconds": {
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            },
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "rewardTimeSeconds": "{seconds} с",
+    "@rewardTimeSeconds": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "selectionOptions": "Тандоо параметрлери",
+    "clearSelection": "Тандоону тазалоо",
+    "invertSelection": "Тандоону тескерилетүү",
+    "growSelectionOnePixel": "Чоңойтуу (+1 px)",
+    "shrinkSelectionOnePixel": "Кичирейтүү (-1 px)",
+    "rotate90": "90° айлантуу",
+    "rotate180": "180° айлантуу",
+    "cutToNewLayer": "Жаңы катмарга кесүү",
+    "copyToNewLayer": "Жаңы катмарга көчүрүү",
+    "cut": "Кесүү",
+    "copy": "Көчүрүү",
+    "clearArea": "Аймакты тазалоо",
+    "replaceSelection": "Тандоону алмаштыруу",
+    "addToSelectionShift": "Тандоого кошуу (Shift)",
+    "subtractFromSelectionAlt": "Тандоодон алып салуу (Alt)",
+    "textureBrush": "Текстура кисти",
+    "triangle": "Үч бурчтук",
+    "diamond": "Ромб",
+    "hexagon": "Алты бурчтук",
+    "heart": "Жүрөк",
+    "arrow": "Жебе",
+    "lightning": "Чагылган",
+    "cross": "Крест",
+    "spiral": "Спираль",
+    "cloudShape": "Булут",
+    "rectangleSelect": "Тик бурчтуу тандоо",
+    "lasso": "Лассо",
+    "magicWand": "Сыйкырдуу таякча",
+    "effectsPanelAllAppliedMessage": "Бардык эффекттер катмарга колдонулуп, эффекттер тизмесинен өчүрүлдү",
+    "effectsForLayer": "{layerName} үчүн эффекттер",
+    "@effectsForLayer": {
+        "placeholders": {
+            "layerName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelAddEffect": "Эффект кошуу",
+    "appliedEffects": "Колдонулган эффекттер",
+    "effectCount": "{count, plural, =0{0 эффект} =1{1 эффект} other{{count} эффект}}",
+    "@effectCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsPreview": "Эффекттерди алдын ала көрүү",
+    "effectPreview": "Эффекти алдын ала көрүү",
+    "noEffectsApplied": "Эффекттер колдонулган жок",
+    "saveChanges": "Өзгөртүүлөрдү сактоо",
+    "finalResult": "Акыркы жыйынтык",
+    "original": "Түп нуска",
+    "withEffect": "Эффект менен",
+    "withEffects": "Эффекттер менен",
+    "effectsAppliedCount": "{count, plural, =0{0 эффект колдонулду} =1{1 эффект колдонулду} other{{count} эффект колдонулду}}",
+    "@effectsAppliedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsAppliedInOrder": "Эффекттер ирети менен колдонулат",
+    "effectsReorderHint": "Эффекттер жогору жактан ылдый карай колдонулат. Иретин өзгөртүү үчүн сүйрөңүз.",
+    "addYourFirstEffect": "Биринчи эффекти кошуу",
+    "layerEffects": "Катмар эффекттери",
+    "effectWatercolor": "Акварель",
+    "effectHalftone": "Жарым тон",
+    "effectOilPaint": "Май боёк",
+    "effectEmboss": "Рельеф",
+    "staticEffect": "Статикалык эффект",
+    "effectNotAnimatedMessage": "{effectName} эффекти анимацияланган эффект эмес. Анимация кадрларын түзүү анимацияны колдогон эффекттер үчүн гана жеткиликтүү.",
+    "@effectNotAnimatedMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "generateAnimation": "Анимация түзүү",
+    "generateAnimationForEffect": "{effectName} эффекти үчүн анимация кадрларын түзөсүзбү?",
+    "@generateAnimationForEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetails": "Анимация маалыматтары",
+    "animationDetailEffect": "• Эффект: {effectName}",
+    "@animationDetailEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetailEstimatedFrames": "• Болжолдуу кадрлар: ~{count}",
+    "@animationDetailEstimatedFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "animationDetailProcessingTime": "• Иштетүү убактысы: ~{seconds} секунд",
+    "@animationDetailProcessingTime": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "generateAnimationTimelineNote": "Бул таймлайнга кошо турган бир нече анимация кадрын түзөт.",
+    "generateAnimationFrames": "Анимация кадрларын түзүү",
+    "effectNameLabel": "{effectName} эффекти",
+    "@effectNameLabel": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "framesGeneratedCount": "{count, plural, =0{0 кадр түзүлдү} =1{1 кадр түзүлдү} other{{count} кадр түзүлдү}}",
+    "@framesGeneratedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "generateFrames": "Кадрларды түзүү",
+    "stop": "Токтотуу",
+    "frameLabel": "Кадр:",
+    "generatingFrames": "Кадрлар түзүлүүдө...",
+    "noFramesGenerated": "Кадрлар түзүлгөн жок",
+    "animationSettings": "Анимация жөндөөлөрү",
+    "durationSeconds": "Узактыгы (секунд)",
+    "totalFrames": "Жалпы кадрлар:",
+    "pingPongAnimation": "Пинг-понг анимация",
+    "playForwardThenBackward": "Адегенде алдыга, анан артка ойнотуу",
+    "frameGeneration": "Кадр түзүү",
+    "generateNewFrames": "Жаңы кадрларды түзүү",
+    "createNewFramesForAnimation": "Бул анимация үчүн жаңы кадрларды түзүү",
+    "insertIntoTimeline": "Таймлайнга киргизүү",
+    "addFramesToExistingTimeline": "Кадрларды учурдагы таймлайнга кошуу",
+    "insertPosition": "Киргизүү орду:",
+    "afterFrame": "{frame}-кадрдан кийин",
+    "@afterFrame": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            }
+        }
+    },
+    "effectParameters": "Эффект параметрлери",
+    "editParameters": "Параметрлерди түзөтүү",
+    "effectParametersBaseNote": "Учурдагы эффект жөндөөлөрү анимация үчүн негиз катары колдонулат",
+    "editBaseParameters": "Негизги параметрлерди түзөтүү",
+    "applyAndRegenerate": "Колдонуу жана кайра түзүү",
+    "animationFrameGenerator": "Анимация кадр генератору",
+    "animationGeneratorHelpIntro": "Бул курал тандалган эффектти ар башка убакыт параметрлери менен колдонуп, бир нече анимация кадрын түзөт.\n",
+    "animationHelpDuration": "• Узактык: анимациянын жалпы узактыгы секунд менен",
+    "animationHelpFps": "• FPS: секундасына кадрлар (жогору болсо жылмакай, бирок кадр көп)",
+    "animationHelpPingPong": "• Пинг-понг: алдыга, андан кийин артка ойнойт",
+    "animationHelpInterpolation": "• Жылмакай анимация үчүн эффект параметрлери убакыт боюнча интерполяцияланат",
+    "tips": "Кеңештер:",
+    "animationTipLowerFps": "• Сыноо үчүн төмөн FPS менен баштаңыз",
+    "animationTipUsePreview": "• Түзүүдөн мурун алдын ала көрүүнү колдонуңуз",
+    "animationTipLongerDurations": "• Жай эффекттер үчүн узагыраак убакыт жакшы иштейт",
+    "effectFrameName": "Эффект кадры {index}",
+    "@effectFrameName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationName": "Эффект анимациясы {index}",
+    "@effectAnimationName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationReturnName": "Эффект анимациясы {index} (кайтуу)",
+    "@effectAnimationReturnName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "generatedAnimationFrames": "{count, plural, =0{0 анимация кадры түзүлдү} =1{1 анимация кадры түзүлдү} other{{count} анимация кадры түзүлдү}}!",
+    "@generatedAnimationFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "viewTimeline": "Таймлайнды көрүү",
+    "featureBullet": "• {feature}",
+    "@featureBullet": {
+        "placeholders": {
+            "feature": {
+                "type": "String"
+            }
+        }
+    },
+    "defaultLayerName": "Катмар {index}",
+    "@defaultLayerName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "select": "Тандоо",
+    "menu": "Меню",
+    "adjustOpacity": "Тунуктукту жөндөө",
+    "adjustLayerOpacity": "Катмардын тунуктугун жөндөө",
+    "addToTemplate": "Шаблонго кошуу",
+    "editLayer": "Катмарды түзөтүү",
+    "backgroundShort": "ФОН",
+    "reference": "Шилтеме",
+    "reset": "Баштапкы абалга келтирүү",
+    "fit": "Баткыруу",
+    "removeBackgroundImage": "Фон сүрөтүн алып салуу",
+    "removeBackgroundImageMessage": "Фон сүрөтүн алып салгыңыз келеби?",
+    "themeSelector": "Тема тандоо",
+    "unlockThemeTitle": "{themeName} темасын ачуу",
+    "@unlockThemeTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "watchAdToUnlockTheme": "Бул теманы ачуу үчүн видео жарнаманы көрүңүз.",
+    "themeUnlocked": "{themeName} темасы ачылды!",
+    "@themeUnlocked": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "themeShowcaseTitle": "Тема: {themeName}",
+    "@themeShowcaseTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "primaryColors": "Негизги түстөр",
+    "primary": "Негизги",
+    "primaryVariant": "Негизги варианты",
+    "onPrimary": "Негизгинин үстүндө",
+    "accent": "Акцент",
+    "onAccent": "Акценттин үстүндө",
+    "backgroundColors": "Фон түстөрү",
+    "surface": "Бет",
+    "surfaceVariant": "Бет варианты",
+    "textColors": "Текст түстөрү",
+    "textPrimary": "Негизги текст",
+    "textSecondary": "Кошумча текст",
+    "textDisabled": "Өчүрүлгөн текст",
+    "utilityColors": "Кызматтык түстөр",
+    "uiElements": "UI элементтери",
+    "elevated": "Көтөрүлгөн",
+    "filled": "Толтурулган",
+    "outlined": "Контурлуу",
+    "text": "Текст",
+    "inputField": "Киргизүү талаасы",
+    "enterText": "Текст киргизиңиз",
+    "previewingTheme": "Алдын ала көрүү: {themeName}",
+    "@previewingTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "currentTheme": "Учурдагы: {themeName}",
+    "@currentTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "unlockPremiumThemes": "Премиум темаларды ачуу",
+    "getAccessToAllThemesWithPro": "Pro менен бардык темаларга жеткиликтүүлүк алыңыз",
+    "flagship": "Флагман",
+    "free": "Акысыз",
+    "freeThemes": "Акысыз темалар",
+    "premiumThemes": "Премиум темалар",
+    "importedFileAsNewLayer": "\"{fileName}\" жаңы катмар катары импорттолду",
+    "@importedFileAsNewLayer": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsepriteFile": "Aseprite файлын импорттоо",
+    "howImportAsepriteFile": "\"{fileName}\" файлын кантип импорттойсуз?",
+    "@howImportAsepriteFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedFirstLayerFromFile": "\"{fileName}\" файлынан биринчи катмар импорттолду",
+    "@importedFirstLayerFromFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsLayer": "Катмар катары импорттоо",
+    "openAsProject": "Долбоор катары ачуу",
+    "copyFrame": "Кадрды көчүрүү",
+    "collapse": "Жыйноо",
+    "expand": "Жайуу",
+    "addState": "Абал кошуу",
+    "copyState": "Абал көчүрүү",
+    "addAnimationState": "Анимация абалын кошуу",
+    "stateName": "Абал аты",
+    "tileModeTooltip": "Плитка режими - үзгүлтүксүз кайталоону алдын ала көрүү",
+    "settingsStylusMode": "Жөндөөлөр (стилус режими)",
+    "onionSkinTooltip": "Onion Skin (тунуктукту коюу үчүн узак басыңыз)",
+    "sprayPaintToolDescription": "Бөлүкчөлөр менен спрей эффектин түзөт",
+    "lineToolDescription": "Эки чекиттин ортосунда түз сызыктарды тартат",
+    "circleToolDescription": "Так тегеректерди жана эллипстерди тартат",
+    "rectangleToolDescription": "Тик бурчтуктарды жана квадраттарды тартат",
+    "triangleToolDescription": "Үч бурчтуу формаларды тартат",
+    "diamondToolDescription": "Ромб формаларын тартат",
+    "hexagonToolDescription": "Алты бурчтуу формаларды тартат",
+    "heartToolDescription": "Жүрөк формаларын тартат",
+    "arrowToolDescription": "Жебе формаларын тартат",
+    "lightningToolDescription": "Чагылган формаларын тартат",
+    "crossToolDescription": "Крест же плюс формаларын тартат",
+    "spiralToolDescription": "Спираль формаларын тартат",
+    "cloudToolDescription": "Булут формаларын тартат",
+    "penToolDescription": "Эркин тартуу үчүн өркүндөтүлгөн курал",
+    "rectangleSelectToolDescription": "Тик бурчтуу аймакты тандайт",
+    "ellipseSelectToolDescription": "Эллипс аймагын тандайт",
+    "lassoToolDescription": "Эркин тандоо куралы",
+    "magicWandToolDescription": "Түстү боюнча чектеш пикселдерди тандайт",
+    "curve": "Ийри сызык",
+    "curveToolDescription": "Жылмакай ийри сызыктарды тартат",
+    "move": "Жылдыруу",
+    "moveToolDescription": "Элементтерди жылдырат жана сүйрөйт"
 }

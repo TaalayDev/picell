@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../../data.dart';
+import '../../../l10n/strings.dart';
 import '../../../providers/project_upload_provider.dart';
 import '../project/project_thumbnail.dart';
 
@@ -67,18 +68,15 @@ class ProjectUploadDialog extends HookConsumerWidget {
     }, [uploadState.error]);
 
     final allTags = popularTags.valueOrNull ?? [];
-    final List<dynamic> displayTags = tagSearchResults.value.isNotEmpty
-        ? tagSearchResults.value
-        : allTags;
+    final List<dynamic> displayTags = tagSearchResults.value.isNotEmpty ? tagSearchResults.value : allTags;
 
     void onTagSearch(String query) {
       if (query.isEmpty) {
         tagSearchResults.value = [];
         return;
       }
-      tagSearchResults.value = allTags
-          .where((t) => t.name.toString().toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      tagSearchResults.value =
+          allTags.where((t) => t.name.toString().toLowerCase().contains(query.toLowerCase())).toList();
     }
 
     return Dialog(
@@ -112,13 +110,13 @@ class ProjectUploadDialog extends HookConsumerWidget {
                       ),
 
                     // Title
-                    _SectionLabel('Details', theme: theme),
+                    _SectionLabel(Strings.of(context).details, theme: theme),
                     const SizedBox(height: 8),
                     TextField(
                       controller: titleController,
                       decoration: InputDecoration(
-                        labelText: 'Title',
-                        hintText: 'Give your project a name',
+                        labelText: Strings.of(context).title,
+                        hintText: Strings.of(context).projectTitleHint,
                         prefixIcon: const Icon(Feather.type, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -131,8 +129,8 @@ class ProjectUploadDialog extends HookConsumerWidget {
                     TextField(
                       controller: descriptionController,
                       decoration: InputDecoration(
-                        labelText: 'Description',
-                        hintText: 'Tell the community about this project (optional)',
+                        labelText: Strings.of(context).description,
+                        hintText: Strings.of(context).projectDescriptionHint,
                         prefixIcon: const Padding(
                           padding: EdgeInsets.only(bottom: 48),
                           child: Icon(Feather.align_left, size: 18),
@@ -150,7 +148,7 @@ class ProjectUploadDialog extends HookConsumerWidget {
                     const SizedBox(height: 4),
 
                     // Visibility
-                    _SectionLabel('Visibility', theme: theme),
+                    _SectionLabel(Strings.of(context).visibility, theme: theme),
                     const SizedBox(height: 8),
                     _VisibilityToggle(
                       isPublic: isPublic.value,
@@ -164,7 +162,7 @@ class ProjectUploadDialog extends HookConsumerWidget {
                     // Tags
                     Row(
                       children: [
-                        _SectionLabel('Tags', theme: theme),
+                        _SectionLabel(Strings.of(context).tags, theme: theme),
                         const SizedBox(width: 6),
                         Text(
                           '(${selectedTags.value.length}/5)',
@@ -178,7 +176,7 @@ class ProjectUploadDialog extends HookConsumerWidget {
                     TextField(
                       controller: tagSearchController,
                       decoration: InputDecoration(
-                        hintText: 'Search tags…',
+                        hintText: Strings.of(context).searchTags,
                         prefixIcon: const Icon(Icons.search, size: 18),
                         isDense: true,
                         border: OutlineInputBorder(
@@ -201,7 +199,7 @@ class ProjectUploadDialog extends HookConsumerWidget {
                         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
                       ),
                       error: (_, __) => Text(
-                        'Failed to load tags',
+                        Strings.of(context).failedToLoadTags,
                         style: TextStyle(color: cs.error, fontSize: 12),
                       ),
                     ),
@@ -275,19 +273,19 @@ class ProjectUploadDialog extends HookConsumerWidget {
   ) async {
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title')),
+        SnackBar(content: Text(Strings.of(context).pleaseEnterTitle)),
       );
       return;
     }
 
     isUploading.value = true;
     await ref.read(projectUploadProvider.notifier).uploadProject(
-      localProject: project,
-      title: title,
-      description: description.isEmpty ? null : description,
-      isPublic: isPublic,
-      tags: tags,
-    );
+          localProject: project,
+          title: title,
+          description: description.isEmpty ? null : description,
+          isPublic: isPublic,
+          tags: tags,
+        );
     isUploading.value = false;
   }
 
@@ -296,21 +294,19 @@ class ProjectUploadDialog extends HookConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Remove from Cloud?'),
-        content: const Text(
-          'This will remove the project from the community. Your local copy will remain.',
-        ),
+        title: Text(Strings.of(context).removeFromCloudQuestion),
+        content: Text(Strings.of(context).removeFromCommunityMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Remove'),
+            child: Text(Strings.of(context).remove),
           ),
         ],
       ),
@@ -320,8 +316,8 @@ class ProjectUploadDialog extends HookConsumerWidget {
 
     try {
       await ref.read(projectUploadProvider.notifier).deleteCloudProject(
-        localProject: project,
-      );
+            localProject: project,
+          );
       if (context.mounted) Navigator.of(context).pop(true);
     } catch (_) {}
   }
@@ -426,7 +422,7 @@ class _DialogHeader extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                isUpdate ? 'Update Project' : 'Publish to Community',
+                isUpdate ? Strings.of(context).updateProject : Strings.of(context).publishToCommunity,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: cs.onSurface,
@@ -459,12 +455,13 @@ class _SyncedBadge extends StatelessWidget {
           ),
         ],
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Feather.cloud, size: 11, color: Colors.white),
-          SizedBox(width: 4),
-          Text('Synced', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+          const Icon(Feather.cloud, size: 11, color: Colors.white),
+          const SizedBox(width: 4),
+          Text(Strings.of(context).synced,
+              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -519,20 +516,22 @@ class _VisibilityToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _VisibilityOption(
+          Expanded(
+              child: _VisibilityOption(
             icon: Feather.globe,
-            label: 'Public',
-            subtitle: 'Visible to everyone',
+            label: Strings.of(context).public,
+            subtitle: Strings.of(context).visibleToEveryone,
             selected: isPublic,
             onTap: () => onChanged(true),
             cs: cs,
             theme: theme,
           )),
           Container(width: 1, height: 60, color: cs.outlineVariant.withValues(alpha: 0.4)),
-          Expanded(child: _VisibilityOption(
+          Expanded(
+              child: _VisibilityOption(
             icon: Feather.lock,
-            label: 'Private',
-            subtitle: 'Only visible to you',
+            label: Strings.of(context).private,
+            subtitle: Strings.of(context).onlyVisibleToYou,
             selected: !isPublic,
             onTap: () => onChanged(false),
             cs: cs,
@@ -604,8 +603,7 @@ class _VisibilityOption extends StatelessWidget {
                 ],
               ),
             ),
-            if (selected)
-              Icon(Icons.check_circle_rounded, size: 14, color: cs.primary),
+            if (selected) Icon(Icons.check_circle_rounded, size: 14, color: cs.primary),
           ],
         ),
       ),
@@ -645,8 +643,8 @@ class _TagsGrid extends StatelessWidget {
             } else {
               if (selectedTags.value.length >= 5) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Maximum 5 tags allowed'),
+                  SnackBar(
+                    content: Text(Strings.of(context).maximumTagsAllowed),
                     duration: Duration(seconds: 2),
                   ),
                 );
@@ -725,11 +723,15 @@ class _ProjectInfoRow extends StatelessWidget {
         children: [
           _InfoChip(icon: Feather.grid, label: '${project.width}×${project.height}', theme: theme, cs: cs),
           _InfoDot(cs: cs),
-          _InfoChip(icon: Feather.film, label: '${project.frames.length} frame${project.frames.length == 1 ? '' : 's'}', theme: theme, cs: cs),
+          _InfoChip(
+              icon: Feather.film,
+              label: Strings.of(context).frameCountSimple(project.frames.length),
+              theme: theme,
+              cs: cs),
           _InfoDot(cs: cs),
           _InfoChip(
             icon: Feather.layers,
-            label: '${project.frames.first.layers.length} layer${project.frames.first.layers.length == 1 ? '' : 's'}',
+            label: Strings.of(context).layerCountSimple(project.frames.first.layers.length),
             theme: theme,
             cs: cs,
           ),
@@ -802,7 +804,7 @@ class _CloudManagementSection extends StatelessWidget {
             Icon(Feather.cloud, size: 13, color: cs.onSurface.withValues(alpha: 0.55)),
             const SizedBox(width: 6),
             Text(
-              'CLOUD MANAGEMENT',
+              Strings.of(context).cloudManagement.toUpperCase(),
               style: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.8,
@@ -827,7 +829,7 @@ class _CloudManagementSection extends StatelessWidget {
                   color: cs.onSurface.withValues(alpha: 0.7),
                 ),
                 label: Text(
-                  isPublic.value ? 'Make Private' : 'Make Public',
+                  isPublic.value ? Strings.of(context).makePrivate : Strings.of(context).makePublic,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: cs.onSurface.withValues(alpha: 0.7),
                   ),
@@ -846,7 +848,7 @@ class _CloudManagementSection extends StatelessWidget {
                 ),
                 icon: Icon(Feather.cloud_off, size: 15, color: cs.error),
                 label: Text(
-                  'Remove',
+                  Strings.of(context).remove,
                   style: theme.textTheme.labelMedium?.copyWith(color: cs.error),
                 ),
                 onPressed: onTakeDown,
@@ -857,7 +859,7 @@ class _CloudManagementSection extends StatelessWidget {
         if (project.remoteId != null) ...[
           const SizedBox(height: 6),
           Text(
-            'Cloud ID: ${project.remoteId}',
+            Strings.of(context).cloudId(project.remoteId.toString()),
             style: theme.textTheme.labelSmall?.copyWith(
               color: cs.onSurface.withValues(alpha: 0.3),
             ),
@@ -881,12 +883,13 @@ class _UploadProgress extends StatelessWidget {
     required this.cs,
   });
 
-  String get _label {
-    if (progress < 0.15) return isUpdating ? 'Preparing update…' : 'Preparing project…';
-    if (progress < 0.4) return 'Generating thumbnail…';
-    if (progress < 0.85) return isUpdating ? 'Updating on cloud…' : 'Uploading to cloud…';
-    if (progress < 1.0) return 'Finalizing…';
-    return isUpdating ? 'Updated!' : 'Published!';
+  String _label(BuildContext context) {
+    final s = Strings.of(context);
+    if (progress < 0.15) return isUpdating ? s.preparingUpdate : s.preparingProject;
+    if (progress < 0.4) return s.generatingThumbnail;
+    if (progress < 0.85) return isUpdating ? s.updatingOnCloud : s.uploadingToCloud;
+    if (progress < 1.0) return s.finalizing;
+    return isUpdating ? s.updated : s.published;
   }
 
   @override
@@ -913,7 +916,7 @@ class _UploadProgress extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                _label,
+                _label(context),
                 style: theme.textTheme.labelMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.75)),
               ),
               const Spacer(),
@@ -1013,7 +1016,7 @@ class _DialogActions extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           const Spacer(),
           FilledButton.icon(
@@ -1037,8 +1040,8 @@ class _DialogActions extends StatelessWidget {
                   ),
             label: Text(
               isUploading
-                  ? (isUpdate ? 'Updating…' : 'Publishing…')
-                  : (isUpdate ? 'Update' : 'Publish'),
+                  ? (isUpdate ? Strings.of(context).updating : Strings.of(context).publishing)
+                  : (isUpdate ? Strings.of(context).update : Strings.of(context).publish),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),

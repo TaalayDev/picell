@@ -7,6 +7,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import '../../pixel/animation_frame_controller.dart';
 import '../../pixel/image_painter.dart';
 import '../../data.dart';
+import '../../l10n/strings.dart';
 import '../widgets.dart';
 import 'app_expandable.dart';
 
@@ -149,7 +150,8 @@ class AnimationTimeline extends HookWidget {
                 onChanged: (value) {
                   final duration = int.tryParse(value);
                   if (duration != null) {
-                    final index = frames.indexWhere((e) => e.id == selectedFrameId);
+                    final index =
+                        frames.indexWhere((e) => e.id == selectedFrameId);
                     onDurationChanged(index, duration);
                   }
                 },
@@ -162,13 +164,14 @@ class AnimationTimeline extends HookWidget {
               children: [
                 IconButton(
                   icon: const Icon(Feather.copy, size: 16),
-                  onPressed: isExpanded ? () => copyFrame(selectedFrameId) : null,
-                  tooltip: 'Copy Frame',
+                  onPressed:
+                      isExpanded ? () => copyFrame(selectedFrameId) : null,
+                  tooltip: Strings.of(context).copyFrame,
                 ),
                 IconButton(
                   icon: const Icon(Feather.plus, size: 16),
                   onPressed: isExpanded ? onAddFrame : null,
-                  tooltip: 'Add Frame',
+                  tooltip: Strings.of(context).addFrame,
                 ),
                 IconButton(
                   icon: const Icon(
@@ -178,11 +181,12 @@ class AnimationTimeline extends HookWidget {
                   ),
                   onPressed: isExpanded
                       ? () {
-                          final index = frames.indexWhere((e) => e.id == selectedFrameId);
+                          final index =
+                              frames.indexWhere((e) => e.id == selectedFrameId);
                           onDeleteFrame(index);
                         }
                       : null,
-                  tooltip: 'Delete Frame',
+                  tooltip: Strings.of(context).deleteFrame,
                 ),
               ],
             ),
@@ -190,11 +194,15 @@ class AnimationTimeline extends HookWidget {
             // Expand/collapse button
             IconButton(
               icon: Icon(
-                isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+                isExpanded
+                    ? Icons.keyboard_arrow_down
+                    : Icons.keyboard_arrow_up,
                 size: 16,
               ),
               onPressed: onExpandChanged,
-              tooltip: isExpanded ? 'Collapse' : 'Expand',
+              tooltip: isExpanded
+                  ? Strings.of(context).collapse
+                  : Strings.of(context).expand,
             ),
           ],
         ),
@@ -229,6 +237,13 @@ class AnimationTimeline extends HookWidget {
           controller.text = frames[index].duration.toString();
         },
         copyFrame: copyFrame,
+        onReorderFrame: (draggedId, targetId) {
+          final oldIndex = frames.indexWhere((f) => f.id == draggedId);
+          final newIndex = frames.indexWhere((f) => f.id == targetId);
+          if (oldIndex != -1 && newIndex != -1 && oldIndex != newIndex) {
+            onFrameReordered(oldIndex, newIndex);
+          }
+        },
       ),
     );
   }
@@ -257,7 +272,7 @@ class _PlaybackControls extends StatelessWidget {
           IconButton(
             icon: const Icon(Feather.skip_back, size: 16),
             onPressed: onPreviousFrame,
-            tooltip: 'Previous Frame',
+            tooltip: Strings.of(context).previousFrame,
           ),
         IconButton(
           icon: Icon(
@@ -265,18 +280,19 @@ class _PlaybackControls extends StatelessWidget {
             size: 16,
           ),
           onPressed: onPlayPause,
-          tooltip: isPlaying ? 'Pause' : 'Play',
+          tooltip:
+              isPlaying ? Strings.of(context).pause : Strings.of(context).play,
         ),
         IconButton(
           icon: const Icon(Feather.square, size: 16),
           onPressed: onStop,
-          tooltip: 'Stop',
+          tooltip: Strings.of(context).stop,
         ),
         if (MediaQuery.sizeOf(context).width > 600)
           IconButton(
             icon: const Icon(Feather.skip_forward, size: 16),
             onPressed: onNextFrame,
-            tooltip: 'Next Frame',
+            tooltip: Strings.of(context).nextFrame,
           ),
       ],
     );
@@ -298,6 +314,7 @@ class _StatesPanel extends StatelessWidget {
     required this.height,
     required this.onSelectFrame,
     required this.copyFrame,
+    required this.onReorderFrame,
   });
 
   final List<AnimationStateModel> states;
@@ -313,6 +330,7 @@ class _StatesPanel extends StatelessWidget {
   final Function(int) onSelectedStateChanged;
   final Function(int) onSelectFrame;
   final Function(int) copyFrame;
+  final void Function(int draggedId, int targetId) onReorderFrame;
 
   @override
   Widget build(BuildContext context) {
@@ -329,7 +347,9 @@ class _StatesPanel extends StatelessWidget {
               return Container(
                 key: ValueKey(state.id),
                 height: 40,
-                color: state.id == selectedStateId ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : null,
+                color: state.id == selectedStateId
+                    ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+                    : null,
                 child: Row(
                   children: [
                     SizedBox(
@@ -344,9 +364,9 @@ class _StatesPanel extends StatelessWidget {
                         trailing: PopupMenuButton(
                           child: const Icon(Feather.more_vertical, size: 16),
                           itemBuilder: (context) => [
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'delete',
-                              child: Text('delete'),
+                              child: Text(Strings.of(context).delete),
                             ),
                           ],
                           onSelected: (value) {
@@ -356,11 +376,13 @@ class _StatesPanel extends StatelessWidget {
                           },
                         ),
                         onTap: () => onSelectedStateChanged(state.id),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 5),
                       ),
                     ),
                     VerticalDivider(
-                      color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                      color:
+                          Theme.of(context).dividerColor.withValues(alpha: 0.5),
                       width: 1,
                       thickness: 1,
                     ),
@@ -379,6 +401,7 @@ class _StatesPanel extends StatelessWidget {
 
                           onSelectFrame(index);
                         },
+                        onReorderFrame: onReorderFrame,
                         width: width,
                         height: height,
                       ),
@@ -399,13 +422,15 @@ class _StatesPanel extends StatelessWidget {
             children: [
               TextButton.icon(
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text('Add State', style: TextStyle(fontSize: 12)),
+                label: Text(Strings.of(context).addState,
+                    style: const TextStyle(fontSize: 12)),
                 onPressed: () => _showAddStateDialog(context),
               ),
               const SizedBox(width: 8),
               TextButton.icon(
                 icon: const Icon(Feather.copy, size: 16),
-                label: const Text('Copy State', style: TextStyle(fontSize: 12)),
+                label: Text(Strings.of(context).copyState,
+                    style: const TextStyle(fontSize: 12)),
                 onPressed: () => onCopyState(selectedStateId),
               ),
             ],
@@ -420,17 +445,17 @@ class _StatesPanel extends StatelessWidget {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Animation State'),
+        title: Text(Strings.of(context).addAnimationState),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'State Name',
+          decoration: InputDecoration(
+            labelText: Strings.of(context).stateName,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -439,7 +464,7 @@ class _StatesPanel extends StatelessWidget {
                 Navigator.of(context).pop();
               }
             },
-            child: const Text('Add'),
+            child: Text(Strings.of(context).add),
           ),
         ],
       ),
@@ -452,6 +477,7 @@ class _FramesGrid extends StatelessWidget {
     required this.frames,
     required this.selectedFrameId,
     required this.onSelectFrame,
+    required this.onReorderFrame,
     required this.width,
     required this.height,
   });
@@ -459,6 +485,7 @@ class _FramesGrid extends StatelessWidget {
   final List<AnimationFrame> frames;
   final int selectedFrameId;
   final Function(int) onSelectFrame;
+  final void Function(int draggedId, int targetId) onReorderFrame;
   final int width;
   final int height;
 
@@ -477,38 +504,98 @@ class _FramesGrid extends StatelessWidget {
         itemCount: frames.length,
         itemBuilder: (context, index) {
           final frame = frames[index];
-          final isSelected = frame.id == selectedFrameId;
 
-          return InkWell(
+          final thumbnail = _FrameThumbnail(
+            frame: frame,
+            isSelected: frame.id == selectedFrameId,
+            width: width,
+            height: height,
+          );
+
+          return DragTarget<int>(
             key: ValueKey(frame.id),
-            onTap: () => onSelectFrame(frame.id),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).dividerColor.withValues(alpha: 0.2),
-                  width: isSelected ? 1.5 : 1,
+            onWillAcceptWithDetails: (details) => details.data != frame.id,
+            onAcceptWithDetails: (details) =>
+                onReorderFrame(details.data, frame.id),
+            builder: (context, candidates, _) {
+              return LongPressDraggable<int>(
+                data: frame.id,
+                feedback: SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: _FrameThumbnail(
+                      frame: frame,
+                      isSelected: true,
+                      width: width,
+                      height: height,
+                    ),
+                  ),
                 ),
-                color: Colors.white.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LayersPreview(
-                  width: width,
-                  height: height,
-                  layers: frame.layers,
-                  builder: (context, image) {
-                    return image != null
-                        ? CustomPaint(painter: ImagePainter(image))
-                        : const ColoredBox(color: Colors.white);
-                  },
+                childWhenDragging: Opacity(opacity: 0.3, child: thumbnail),
+                child: InkWell(
+                  onTap: () => onSelectFrame(frame.id),
+                  child: candidates.isNotEmpty
+                      ? DecoratedBox(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: thumbnail,
+                        )
+                      : thumbnail,
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
+      ),
+    );
+  }
+}
+
+class _FrameThumbnail extends StatelessWidget {
+  const _FrameThumbnail({
+    required this.frame,
+    required this.isSelected,
+    required this.width,
+    required this.height,
+  });
+
+  final AnimationFrame frame;
+  final bool isSelected;
+  final int width;
+  final int height;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).dividerColor.withValues(alpha: 0.2),
+          width: isSelected ? 1.5 : 1,
+        ),
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: LayersPreview(
+          width: width,
+          height: height,
+          layers: frame.layers,
+          builder: (context, image) {
+            return image != null
+                ? CustomPaint(painter: ImagePainter(image))
+                : const ColoredBox(color: Colors.white);
+          },
+        ),
       ),
     );
   }

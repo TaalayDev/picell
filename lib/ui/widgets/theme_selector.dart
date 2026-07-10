@@ -4,6 +4,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../app/theme/theme.dart';
+import '../../l10n/strings.dart';
 import '../../providers/ad/reward_video_ad_controller.dart';
 import '../../providers/subscription_provider.dart';
 import '../screens/subscription_screen.dart';
@@ -22,11 +23,13 @@ class ThemeSelector extends HookConsumerWidget {
     final isAdLoaded = ref.watch(rewardVideoAdProvider);
 
     final unlockedThemeTypes = useState(
-      ThemeType.values.where((type) => !type.isLocked || subscription.isPro).toList(),
+      ThemeType.values
+          .where((type) => !type.isLocked || subscription.isPro)
+          .toList(),
     );
 
     return PopupMenuButton<ThemeType>(
-      tooltip: 'Theme Selector',
+      tooltip: Strings.of(context).themeSelector,
       icon: Icon(
         Icons.palette_outlined,
         color: currentTheme.activeIcon,
@@ -58,8 +61,8 @@ class ThemeSelector extends HookConsumerWidget {
           }
           RewardDialog.show(
             context,
-            title: 'Unlock ${type.displayName} Theme',
-            subtitle: 'Watch a video ad to unlock this theme.',
+            title: Strings.of(context).unlockThemeTitle(type.displayName),
+            subtitle: Strings.of(context).watchAdToUnlockTheme,
             onRewardEarned: () {
               ref.read(themeProvider).setTheme(type);
 
@@ -70,7 +73,9 @@ class ThemeSelector extends HookConsumerWidget {
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${type.displayName} theme unlocked!'),
+                  content: Text(
+                    Strings.of(context).themeUnlocked(type.displayName),
+                  ),
                   backgroundColor: Colors.green,
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -133,10 +138,11 @@ class _ThemeMenuItem extends StatelessWidget {
 }
 
 class ThemeShowcase extends ConsumerWidget {
-  const ThemeShowcase({Key? key}) : super(key: key);
+  const ThemeShowcase({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = Strings.of(context);
     final themeManager = ref.watch(themeProvider);
     final currentTheme = themeManager.theme;
 
@@ -155,7 +161,7 @@ class ThemeShowcase extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Theme: ${currentTheme.type.displayName}',
+                    s.themeShowcaseTitle(currentTheme.type.displayName),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   IconButton(
@@ -172,41 +178,45 @@ class ThemeShowcase extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _ThemeSection(
-                          title: 'Primary Colors',
+                          title: s.primaryColors,
                           children: [
-                            _ColorBox('Primary', currentTheme.primaryColor),
-                            _ColorBox('Primary Variant', currentTheme.primaryVariant),
-                            _ColorBox('On Primary', currentTheme.onPrimary),
-                            _ColorBox('Accent', currentTheme.accentColor),
-                            _ColorBox('On Accent', currentTheme.onAccent),
+                            _ColorBox(s.primary, currentTheme.primaryColor),
+                            _ColorBox(
+                                s.primaryVariant, currentTheme.primaryVariant),
+                            _ColorBox(s.onPrimary, currentTheme.onPrimary),
+                            _ColorBox(s.accent, currentTheme.accentColor),
+                            _ColorBox(s.onAccent, currentTheme.onAccent),
                           ],
                         ),
                         _ThemeSection(
-                          title: 'Background Colors',
+                          title: s.backgroundColors,
                           children: [
-                            _ColorBox('Background', currentTheme.background),
-                            _ColorBox('Surface', currentTheme.surface),
-                            _ColorBox('Surface Variant', currentTheme.surfaceVariant),
+                            _ColorBox(s.background, currentTheme.background),
+                            _ColorBox(s.surface, currentTheme.surface),
+                            _ColorBox(
+                                s.surfaceVariant, currentTheme.surfaceVariant),
                           ],
                         ),
                         _ThemeSection(
-                          title: 'Text Colors',
+                          title: s.textColors,
                           children: [
-                            _ColorBox('Text Primary', currentTheme.textPrimary),
-                            _ColorBox('Text Secondary', currentTheme.textSecondary),
-                            _ColorBox('Text Disabled', currentTheme.textDisabled),
+                            _ColorBox(s.textPrimary, currentTheme.textPrimary),
+                            _ColorBox(
+                                s.textSecondary, currentTheme.textSecondary),
+                            _ColorBox(
+                                s.textDisabled, currentTheme.textDisabled),
                           ],
                         ),
                         _ThemeSection(
-                          title: 'Utility Colors',
+                          title: s.utilityColors,
                           children: [
-                            _ColorBox('Error', currentTheme.error),
-                            _ColorBox('Success', currentTheme.success),
-                            _ColorBox('Warning', currentTheme.warning),
+                            _ColorBox(s.error, currentTheme.error),
+                            _ColorBox(s.success, currentTheme.success),
+                            _ColorBox(s.warning, currentTheme.warning),
                           ],
                         ),
                         _ThemeSection(
-                          title: 'UI Elements',
+                          title: s.uiElements,
                           children: [
                             _ButtonsRow(currentTheme),
                             const SizedBox(height: 16),
@@ -223,7 +233,7 @@ class ThemeShowcase extends ConsumerWidget {
                 alignment: Alignment.centerRight,
                 child: FilledButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Close'),
+                  child: Text(s.close),
                 ),
               ),
             ],
@@ -274,7 +284,8 @@ class _ColorBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    final textColor =
+        color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 
     return Column(
       children: [
@@ -321,6 +332,8 @@ class _ButtonsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -328,19 +341,19 @@ class _ButtonsRow extends StatelessWidget {
       children: [
         ElevatedButton(
           onPressed: () {},
-          child: const Text('Elevated'),
+          child: Text(s.elevated),
         ),
         FilledButton(
           onPressed: () {},
-          child: const Text('Filled'),
+          child: Text(s.filled),
         ),
         OutlinedButton(
           onPressed: () {},
-          child: const Text('Outlined'),
+          child: Text(s.outlined),
         ),
         TextButton(
           onPressed: () {},
-          child: const Text('Text'),
+          child: Text(s.text),
         ),
       ],
     );
@@ -354,6 +367,8 @@ class _InputsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Wrap(
       spacing: 16,
       runSpacing: 16,
@@ -362,9 +377,9 @@ class _InputsRow extends StatelessWidget {
         SizedBox(
           width: 200,
           child: TextFormField(
-            decoration: const InputDecoration(
-              labelText: 'Input field',
-              hintText: 'Enter text',
+            decoration: InputDecoration(
+              labelText: s.inputField,
+              hintText: s.enterText,
             ),
           ),
         ),

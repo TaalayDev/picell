@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -11,13 +10,21 @@ import '../../../l10n/strings.dart';
 const kMaxPixelWidth = 5024;
 const kMaxPixelHeight = 5024;
 
+enum ProjectTemplatePreset {
+  tinyIcon,
+  smallSprite,
+  mediumCharacter,
+  largeScene,
+  custom,
+}
+
 class ProjectTemplate {
-  final String name;
+  final ProjectTemplatePreset preset;
   final int width;
   final int height;
 
   ProjectTemplate({
-    required this.name,
+    required this.preset,
     required this.width,
     required this.height,
   });
@@ -48,11 +55,31 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
   int _gridRows = 16;
 
   final List<ProjectTemplate> _templates = [
-    ProjectTemplate(name: 'Tiny Icon', width: 16, height: 16),
-    ProjectTemplate(name: 'Small Sprite', width: 32, height: 32),
-    ProjectTemplate(name: 'Medium Character', width: 64, height: 64),
-    ProjectTemplate(name: 'Large Scene', width: 128, height: 128),
-    ProjectTemplate(name: 'Custom', width: 32, height: 32),
+    ProjectTemplate(
+      preset: ProjectTemplatePreset.tinyIcon,
+      width: 16,
+      height: 16,
+    ),
+    ProjectTemplate(
+      preset: ProjectTemplatePreset.smallSprite,
+      width: 32,
+      height: 32,
+    ),
+    ProjectTemplate(
+      preset: ProjectTemplatePreset.mediumCharacter,
+      width: 64,
+      height: 64,
+    ),
+    ProjectTemplate(
+      preset: ProjectTemplatePreset.largeScene,
+      width: 128,
+      height: 128,
+    ),
+    ProjectTemplate(
+      preset: ProjectTemplatePreset.custom,
+      width: 32,
+      height: 32,
+    ),
   ];
 
   int _selectedTemplateIndex = 0;
@@ -60,28 +87,25 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
   String _getTemplateName(BuildContext context, ProjectTemplate template) {
     final s = Strings.of(context);
     final String localizedName;
-    switch (template.name) {
-      case 'Tiny Icon':
+    switch (template.preset) {
+      case ProjectTemplatePreset.tinyIcon:
         localizedName = s.tinyIcon;
         break;
-      case 'Small Sprite':
+      case ProjectTemplatePreset.smallSprite:
         localizedName = s.smallSprite;
         break;
-      case 'Medium Character':
+      case ProjectTemplatePreset.mediumCharacter:
         localizedName = s.mediumCharacter;
         break;
-      case 'Large Scene':
+      case ProjectTemplatePreset.largeScene:
         localizedName = s.largeScene;
         break;
-      case 'Custom':
-        localizedName =
-            s.paletteCustom; // Using paletteCustom as it's already "Custom"
+      case ProjectTemplatePreset.custom:
+        localizedName = s.paletteCustom;
         break;
-      default:
-        localizedName = template.name;
     }
 
-    if (template.name == 'Custom') {
+    if (template.preset == ProjectTemplatePreset.custom) {
       return localizedName;
     }
     return '$localizedName (${template.width}x${template.height})';

@@ -7,6 +7,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../../data/models/layer.dart';
 import '../../../data/models/template.dart';
+import '../../../l10n/strings.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/template_provider.dart';
@@ -103,7 +104,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
 
     // Auto-generate unique name
     useEffect(() {
-      _generateUniqueName(templateNotifier, nameController);
+      _generateUniqueName(context, templateNotifier, nameController);
       return null;
     }, []);
 
@@ -137,7 +138,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Create Template',
+                      Strings.of(context).createTemplate,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             color: Theme.of(context).colorScheme.onPrimaryContainer,
                             fontWeight: FontWeight.bold,
@@ -195,12 +196,12 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Name: ${layer.name}'),
-                                Text('Size: ${width}×${height}'),
+                                Text(Strings.of(context).layerNameLabel(layer.name)),
+                                Text(Strings.of(context).layerSizeLabel(width, height)),
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text('Pixels: ${layer.pixels.where((p) => p != 0).length} non-transparent'),
+                            Text(Strings.of(context).nonTransparentPixels(layer.pixels.where((p) => p != 0).length)),
                           ],
                         ),
                       ),
@@ -210,10 +211,10 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                       // Template Name
                       TextField(
                         controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Template Name',
+                        decoration: InputDecoration(
+                          labelText: Strings.of(context).templateName,
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.edit),
+                          prefixIcon: const Icon(Icons.edit),
                         ),
                         enabled: !isProcessing.value,
                       ),
@@ -223,10 +224,10 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                       // Description
                       TextField(
                         controller: descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Description (optional)',
+                        decoration: InputDecoration(
+                          labelText: Strings.of(context).descriptionOptional,
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.description),
+                          prefixIcon: const Icon(Icons.description),
                         ),
                         maxLines: 3,
                         enabled: !isProcessing.value,
@@ -237,10 +238,10 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                       // Category Selection
                       DropdownButtonFormField<String>(
                         value: selectedCategory.value,
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
+                        decoration: InputDecoration(
+                          labelText: Strings.of(context).category,
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.category),
+                          prefixIcon: const Icon(Icons.category),
                         ),
                         items: categories.map((category) {
                           return DropdownMenuItem(
@@ -255,7 +256,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
 
                       // Tags Selection
                       Text(
-                        'Tags',
+                        Strings.of(context).tags,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -286,7 +287,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
 
                       // Save Options
                       Text(
-                        'Save Options',
+                        Strings.of(context).saveOptions,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -295,8 +296,8 @@ class LayerToTemplateDialog extends HookConsumerWidget {
 
                       // Local Save Option
                       RadioListTile<SaveOption>(
-                        title: const Text('Save Locally'),
-                        subtitle: const Text('Store on this device only'),
+                        title: Text(Strings.of(context).saveLocally),
+                        subtitle: Text(Strings.of(context).storeOnDeviceOnly),
                         value: SaveOption.local,
                         groupValue: saveOption.value,
                         onChanged: isProcessing.value ? null : (value) => saveOption.value = value!,
@@ -305,8 +306,10 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                       // Upload Option (if signed in)
                       if (authState.isSignedIn) ...[
                         RadioListTile<SaveOption>(
-                          title: const Text('Upload to Cloud'),
-                          subtitle: Text(isPublic.value ? 'Share with the community' : 'Private cloud storage'),
+                          title: Text(Strings.of(context).uploadToCloud),
+                          subtitle: Text(isPublic.value
+                              ? Strings.of(context).shareWithCommunity
+                              : Strings.of(context).privateCloudStorage),
                           value: SaveOption.upload,
                           groupValue: saveOption.value,
                           onChanged: isProcessing.value ? null : (value) => saveOption.value = value!,
@@ -316,10 +319,10 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                         if (saveOption.value == SaveOption.upload) ...[
                           const SizedBox(height: 8),
                           SwitchListTile(
-                            title: const Text('Make Public'),
+                            title: Text(Strings.of(context).makePublic),
                             subtitle: Text(isPublic.value
-                                ? 'Other users can discover and use this template'
-                                : 'Only you can access this template'),
+                                ? Strings.of(context).otherUsersCanDiscoverTemplate
+                                : Strings.of(context).onlyYouCanAccessTemplate),
                             value: isPublic.value,
                             onChanged: isProcessing.value ? null : (value) => isPublic.value = value,
                           ),
@@ -327,8 +330,8 @@ class LayerToTemplateDialog extends HookConsumerWidget {
 
                         // Both Option
                         RadioListTile<SaveOption>(
-                          title: const Text('Save Locally & Upload'),
-                          subtitle: const Text('Best of both worlds'),
+                          title: Text(Strings.of(context).saveLocallyAndUpload),
+                          subtitle: Text(Strings.of(context).bestOfBothWorlds),
                           value: SaveOption.both,
                           groupValue: saveOption.value,
                           onChanged: isProcessing.value ? null : (value) => saveOption.value = value!,
@@ -357,12 +360,12 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text(
-                                          'Sign in to upload templates',
+                                        Text(
+                                          Strings.of(context).signInToUploadTemplates,
                                           style: TextStyle(fontWeight: FontWeight.bold),
                                         ),
                                         Text(
-                                          'Share your templates with the community',
+                                          Strings.of(context).shareTemplatesWithCommunity,
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: Colors.blue.shade700,
@@ -379,7 +382,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                                 child: ElevatedButton.icon(
                                   onPressed: () => _showAuthDialog(context),
                                   icon: const Icon(Feather.user),
-                                  label: const Text('Sign In'),
+                                  label: Text(Strings.of(context).signInWithGoogle),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue,
                                     foregroundColor: Colors.white,
@@ -439,7 +442,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: isProcessing.value ? null : () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
+                        child: Text(Strings.of(context).cancel),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -469,7 +472,8 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.save),
-                        label: Text(isProcessing.value ? 'Processing...' : 'Create'),
+                        label: Text(
+                            isProcessing.value ? Strings.of(context).feedback_sending : Strings.of(context).create),
                       ),
                     ),
                   ],
@@ -522,11 +526,14 @@ class LayerToTemplateDialog extends HookConsumerWidget {
   }
 
   Future<void> _generateUniqueName(
+    BuildContext context,
     TemplateNotifier templateNotifier,
     TextEditingController nameController,
   ) async {
     try {
-      final uniqueName = await templateNotifier.generateUniqueTemplateName('Layer Template');
+      final uniqueName = await templateNotifier.generateUniqueTemplateName(
+        Strings.of(context).layerTemplateDefaultName,
+      );
       nameController.text = uniqueName;
     } catch (e) {
       debugPrint('Error generating unique name: $e');
@@ -536,8 +543,8 @@ class LayerToTemplateDialog extends HookConsumerWidget {
   Future<void> _showAuthDialog(BuildContext context) async {
     await AuthDialog.show(
       context,
-      title: 'Sign in to Upload Templates',
-      subtitle: 'Create an account to share your templates with the community.',
+      title: Strings.of(context).signInToUploadTemplatesTitle,
+      subtitle: Strings.of(context).signInToUploadTemplatesSubtitle,
       showSkipOption: true,
     );
   }
@@ -558,7 +565,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
     int height,
   ) async {
     if (name.isEmpty) {
-      errorMessage.value = 'Please enter a template name';
+      errorMessage.value = Strings.of(context).pleaseEnterTemplateName;
       return;
     }
 
@@ -571,7 +578,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
       // Convert layer to template
       final template = await templateNotifier.convertLayerToTemplate(layer, width, height, name: name);
       if (template == null) {
-        errorMessage.value = 'Failed to convert layer to template';
+        errorMessage.value = Strings.of(context).failedToConvertLayerToTemplate;
         isProcessing.value = false;
         return;
       }
@@ -590,7 +597,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
       if (saveOption == SaveOption.local || saveOption == SaveOption.both) {
         localSaveSuccess = await templateNotifier.saveTemplateLocally(enhancedTemplate);
         if (!localSaveSuccess) {
-          errorMessage.value = 'Failed to save template locally';
+          errorMessage.value = Strings.of(context).failedToSaveTemplateLocally;
           isProcessing.value = false;
           return;
         }
@@ -608,7 +615,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
         uploadSuccess = uploadedTemplate != null;
 
         if (!uploadSuccess) {
-          errorMessage.value = 'Failed to upload template to server';
+          errorMessage.value = Strings.of(context).failedToUploadTemplateToServer;
           isProcessing.value = false;
           return;
         }
@@ -620,33 +627,34 @@ class LayerToTemplateDialog extends HookConsumerWidget {
         Navigator.of(context).pop(enhancedTemplate);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_getSuccessMessage(saveOption, localSaveSuccess, uploadSuccess)),
+            content: Text(_getSuccessMessage(context, saveOption, localSaveSuccess, uploadSuccess)),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
-      errorMessage.value = 'Error creating template: $e';
+      errorMessage.value = Strings.of(context).errorCreatingTemplate(e.toString());
     } finally {
       isProcessing.value = false;
     }
   }
 
-  String _getSuccessMessage(SaveOption saveOption, bool localSaved, bool uploaded) {
+  String _getSuccessMessage(BuildContext context, SaveOption saveOption, bool localSaved, bool uploaded) {
+    final s = Strings.of(context);
     switch (saveOption) {
       case SaveOption.local:
-        return 'Template saved locally!';
+        return s.templateSavedLocally;
       case SaveOption.upload:
-        return 'Template uploaded successfully!';
+        return s.templateUploadedSuccessfully;
       case SaveOption.both:
         if (localSaved && uploaded) {
-          return 'Template saved locally and uploaded!';
+          return s.templateSavedAndUploaded;
         } else if (localSaved) {
-          return 'Template saved locally (upload failed)';
+          return s.templateSavedUploadFailed;
         } else if (uploaded) {
-          return 'Template uploaded (local save failed)';
+          return s.templateUploadedLocalSaveFailed;
         } else {
-          return 'Template creation failed';
+          return s.templateCreationFailed;
         }
     }
   }

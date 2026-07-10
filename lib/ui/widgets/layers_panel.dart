@@ -143,6 +143,7 @@ class _ActionButtonsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
     final hasSelectedLayer = activeLayerIndex >= 0 && activeLayerIndex < layers.length;
     final selectedLayer = hasSelectedLayer ? layers[activeLayerIndex] : null;
 
@@ -158,28 +159,28 @@ class _ActionButtonsBar extends StatelessWidget {
         children: [
           _ActionButton(
             icon: Icons.add,
-            label: 'Add',
+            label: s.add,
             color: Colors.green,
-            onPressed: () => onLayerAdded('Layer ${layers.length + 1}'),
+            onPressed: () => onLayerAdded(s.defaultLayerName(layers.length + 1)),
           ),
           const SizedBox(width: 8),
           _ActionButton(
             icon: Icons.copy,
-            label: 'Copy',
+            label: s.copy,
             color: Colors.blue,
             onPressed: hasSelectedLayer ? () => onLayerDuplicated(activeLayerIndex) : null,
           ),
           const SizedBox(width: 8),
           _ActionButton(
             icon: Icons.edit,
-            label: 'Edit',
+            label: s.edit,
             color: Colors.orange,
             onPressed: hasSelectedLayer ? () => _showEditLayerDialog(context, selectedLayer!) : null,
           ),
           const SizedBox(width: 8),
           _ActionButton(
             icon: Icons.delete_outline,
-            label: 'Remove',
+            label: s.remove,
             color: Colors.red,
             onPressed:
                 hasSelectedLayer && layers.length > 1 ? () => _showDeleteConfirmation(context, activeLayerIndex) : null,
@@ -187,14 +188,14 @@ class _ActionButtonsBar extends StatelessWidget {
           const SizedBox(width: 8),
           _ActionButton(
             icon: Icons.select_all,
-            label: 'Select',
+            label: s.select,
             color: Colors.purple,
             onPressed: hasSelectedLayer ? onAutoSelect : null,
           ),
           const SizedBox(width: 8),
           _ActionButton(
             icon: Icons.more_vert,
-            label: 'Menu',
+            label: s.menu,
             color: Colors.blue,
             onPressed: hasSelectedLayer
                 ? () {
@@ -205,15 +206,15 @@ class _ActionButtonsBar extends StatelessWidget {
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
-                              'More Actions',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                            Text(
+                              s.effectsPanelMoreActionsTitle,
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
                             ),
                             const Divider(),
                             ListTile(
                               leading: const Icon(Icons.opacity, color: Colors.blue, size: 18),
                               contentPadding: EdgeInsets.zero,
-                              title: const Text('Adjust Opacity', style: TextStyle(fontSize: 14)),
+                              title: Text(s.adjustOpacity, style: const TextStyle(fontSize: 14)),
                               onTap: () {
                                 Navigator.of(context).pop();
                                 showDialog(
@@ -222,7 +223,7 @@ class _ActionButtonsBar extends StatelessWidget {
                                     double opacity = selectedLayer!.opacity;
                                     return AlertDialog(
                                       title: Text(
-                                        'Adjust Layer Opacity',
+                                        s.adjustLayerOpacity,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Theme.of(context).colorScheme.onSurface,
@@ -251,14 +252,14 @@ class _ActionButtonsBar extends StatelessWidget {
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.of(context).pop(),
-                                          child: const Text('Cancel'),
+                                          child: Text(s.cancel),
                                         ),
                                         ElevatedButton(
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                             onLayerUpdated(selectedLayer.copyWith(opacity: opacity));
                                           },
-                                          child: const Text('Apply'),
+                                          child: Text(s.apply),
                                         ),
                                       ],
                                     );
@@ -268,7 +269,7 @@ class _ActionButtonsBar extends StatelessWidget {
                             ),
                             ListTile(
                               leading: const Icon(Icons.checklist_outlined, color: Colors.green, size: 18),
-                              title: const Text('Add to Template', style: TextStyle(fontSize: 14)),
+                              title: Text(s.addToTemplate, style: const TextStyle(fontSize: 14)),
                               contentPadding: EdgeInsets.zero,
                               onTap: () {
                                 Navigator.of(context).pop();
@@ -468,23 +469,26 @@ class _EditLayerDialogState extends State<_EditLayerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Edit Layer', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+      title: Text(
+        Strings.of(context).editLayer,
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+      ),
       content: TextField(
         controller: _nameController,
-        decoration: const InputDecoration(
-          labelText: 'Layer Name',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: Strings.of(context).layerName,
+          border: const OutlineInputBorder(),
         ),
         focusNode: _nameFocusNode,
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(Strings.of(context).cancel),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(_nameController.text),
-          child: const Text('Save'),
+          child: Text(Strings.of(context).save),
         ),
       ],
     );
@@ -542,7 +546,10 @@ class _BackgroundImageTile extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          const Text('BG', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                          Text(
+                            Strings.of(context).backgroundShort,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -550,7 +557,10 @@ class _BackgroundImageTile extends ConsumerWidget {
                               color: Colors.amber.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text('Reference', style: TextStyle(fontSize: 10, color: Colors.amber.shade800)),
+                            child: Text(
+                              Strings.of(context).reference,
+                              style: TextStyle(fontSize: 10, color: Colors.amber.shade800),
+                            ),
                           ),
                         ],
                       ),
@@ -565,7 +575,10 @@ class _BackgroundImageTile extends ConsumerWidget {
                                 color: Colors.grey.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Text('Reset', style: TextStyle(fontSize: 9, color: Colors.grey.shade700)),
+                              child: Text(
+                                Strings.of(context).reset,
+                                style: TextStyle(fontSize: 9, color: Colors.grey.shade700),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -579,7 +592,10 @@ class _BackgroundImageTile extends ConsumerWidget {
                                 color: Colors.grey.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Text('Fit', style: TextStyle(fontSize: 9, color: Colors.grey.shade700)),
+                              child: Text(
+                                Strings.of(context).fit,
+                                style: TextStyle(fontSize: 9, color: Colors.grey.shade700),
+                              ),
                             ),
                           ),
                         ],
@@ -592,7 +608,7 @@ class _BackgroundImageTile extends ConsumerWidget {
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   onPressed: () => _showBackgroundDeleteConfirmation(context, ref),
-                  tooltip: 'Remove background image',
+                  tooltip: Strings.of(context).removeBackgroundImage,
                 ),
               ],
             ),
@@ -667,8 +683,8 @@ class _BackgroundImageTile extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Remove Background Image'),
-          content: const Text('Are you sure you want to remove the background image?'),
+          title: Text(Strings.of(context).removeBackgroundImage),
+          content: Text(Strings.of(context).removeBackgroundImageMessage),
           actions: <Widget>[
             TextButton(
               child: Text(Strings.of(context).cancel),
@@ -680,7 +696,7 @@ class _BackgroundImageTile extends ConsumerWidget {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
-              child: const Text('Remove'),
+              child: Text(Strings.of(context).remove),
               onPressed: () {
                 Navigator.of(context).pop();
                 ref.read(backgroundImageProvider.notifier).update((state) => state.copyWith(image: null));

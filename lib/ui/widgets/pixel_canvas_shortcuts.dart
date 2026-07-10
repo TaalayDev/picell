@@ -36,14 +36,11 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
   final PixelViewportController viewportController;
   final PixelCanvasState state;
   final PixelCanvasNotifier notifier;
-  final Function(BuildContext context, PixelCanvasNotifier notifier,
-      PixelCanvasState state) handleExport;
+  final Function(BuildContext context, PixelCanvasNotifier notifier, PixelCanvasState state) handleExport;
   final Function(PixelViewportController controller) setZoomFit;
   final Function(PixelViewportController controller) setZoom100;
-  final Future<ImportDialogResult?> Function(BuildContext context)
-      showImportDialog;
-  final Function(BuildContext context, PixelCanvasNotifier notifier)
-      showColorPicker;
+  final Future<ImportDialogResult?> Function(BuildContext context) showImportDialog;
+  final Function(BuildContext context, PixelCanvasNotifier notifier) showColorPicker;
   final VoidCallback toggleUI;
   final VoidCallback onCopySelection;
   final VoidCallback onCutSelection;

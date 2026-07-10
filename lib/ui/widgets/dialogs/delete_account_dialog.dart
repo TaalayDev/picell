@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
+import '../../../l10n/strings.dart';
 import '../../../providers/auth_provider.dart';
 
 class DeleteAccountDialog extends HookConsumerWidget {
@@ -33,13 +34,12 @@ class DeleteAccountDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
+    final s = Strings.of(context);
     final authNotifier = ref.read(authProvider.notifier);
 
     final confirmationController = useTextEditingController();
     final isConfirmed = useState(false);
     final isDeleting = useState(false);
-    final currentStep = useState(0);
     final errorMessage = useState<String?>(null);
 
     // Listen for text changes
@@ -143,17 +143,18 @@ class DeleteAccountDialog extends HookConsumerWidget {
                     const SizedBox(height: 16),
 
                     Text(
-                      'Delete Account',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red.shade700,
-                          ),
+                      s.deleteAccount,
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red.shade700,
+                              ),
                     ),
 
                     const SizedBox(height: 8),
 
                     Text(
-                      'This action cannot be undone',
+                      s.deleteAccountCannotBeUndone,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.red.shade600,
                             fontWeight: FontWeight.w500,
@@ -191,8 +192,11 @@ class DeleteAccountDialog extends HookConsumerWidget {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Deleting your account will permanently remove all your data.',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              s.deleteAccountPermanentDataWarning,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
                                     color: Colors.orange.shade800,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -206,7 +210,7 @@ class DeleteAccountDialog extends HookConsumerWidget {
 
                     // What will be deleted
                     Text(
-                      'The following will be permanently deleted:',
+                      s.deleteAccountItemsIntro,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: Theme.of(context).colorScheme.onSurface,
@@ -221,14 +225,14 @@ class DeleteAccountDialog extends HookConsumerWidget {
                         _buildDeleteItem(
                           context,
                           icon: Feather.settings,
-                          title: 'App Preferences',
-                          subtitle: 'Settings and customizations',
+                          title: s.deleteAccountPreferencesTitle,
+                          subtitle: s.deleteAccountPreferencesSubtitle,
                         ),
                         _buildDeleteItem(
                           context,
                           icon: Feather.user,
-                          title: 'Account Information',
-                          subtitle: 'Profile and authentication data',
+                          title: s.deleteAccountInfoTitle,
+                          subtitle: s.deleteAccountInfoSubtitle,
                         ),
                       ],
                     ),
@@ -237,7 +241,7 @@ class DeleteAccountDialog extends HookConsumerWidget {
 
                     // Confirmation input
                     Text(
-                      'Type "DELETE" to confirm:',
+                      s.deleteAccountTypeConfirm,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: Theme.of(context).colorScheme.onSurface,
@@ -251,18 +255,22 @@ class DeleteAccountDialog extends HookConsumerWidget {
                       enabled: !isDeleting.value,
                       textCapitalization: TextCapitalization.characters,
                       decoration: InputDecoration(
-                        hintText: 'Type DELETE here...',
+                        hintText: s.deleteAccountTypeHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: isConfirmed.value ? Colors.red.shade400 : Colors.grey.shade300,
+                            color: isConfirmed.value
+                                ? Colors.red.shade400
+                                : Colors.grey.shade300,
                             width: 2,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: isConfirmed.value ? Colors.red.shade400 : Colors.grey.shade300,
+                            color: isConfirmed.value
+                                ? Colors.red.shade400
+                                : Colors.grey.shade300,
                             width: 2,
                           ),
                         ),
@@ -275,14 +283,20 @@ class DeleteAccountDialog extends HookConsumerWidget {
                         ),
                         prefixIcon: Icon(
                           isConfirmed.value ? Feather.check : Feather.type,
-                          color: isConfirmed.value ? Colors.red.shade500 : Colors.grey.shade500,
+                          color: isConfirmed.value
+                              ? Colors.red.shade500
+                              : Colors.grey.shade500,
                         ),
-                        fillColor: isConfirmed.value ? Colors.red.shade50 : Colors.grey.shade50,
+                        fillColor: isConfirmed.value
+                            ? Colors.red.shade50
+                            : Colors.grey.shade50,
                         filled: true,
                       ),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: isConfirmed.value ? Colors.red.shade700 : Theme.of(context).colorScheme.onSurface,
+                        color: isConfirmed.value
+                            ? Colors.red.shade700
+                            : Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
 
@@ -308,7 +322,10 @@ class DeleteAccountDialog extends HookConsumerWidget {
                             Expanded(
                               child: Text(
                                 errorMessage.value!,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
                                       color: Colors.red.shade700,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -327,7 +344,9 @@ class DeleteAccountDialog extends HookConsumerWidget {
                         // Cancel button
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: isDeleting.value ? null : () => Navigator.of(context).pop(false),
+                            onPressed: isDeleting.value
+                                ? null
+                                : () => Navigator.of(context).pop(false),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -339,7 +358,7 @@ class DeleteAccountDialog extends HookConsumerWidget {
                               ),
                             ),
                             child: Text(
-                              'Cancel',
+                              s.cancel,
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
@@ -354,7 +373,9 @@ class DeleteAccountDialog extends HookConsumerWidget {
                         // Delete button
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: isConfirmed.value && !isDeleting.value ? handleDeleteAccount : null,
+                            onPressed: isConfirmed.value && !isDeleting.value
+                                ? handleDeleteAccount
+                                : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red.shade600,
                               foregroundColor: Colors.white,
@@ -375,17 +396,17 @@ class DeleteAccountDialog extends HookConsumerWidget {
                                       ),
                                     ),
                                   )
-                                : const Row(
+                                : Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Feather.trash_2,
                                         size: 18,
                                       ),
-                                      SizedBox(width: 8),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        'Delete Account',
-                                        style: TextStyle(
+                                        s.deleteAccount,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.w600,
                                           fontSize: 16,
                                         ),
@@ -402,9 +423,12 @@ class DeleteAccountDialog extends HookConsumerWidget {
                     // Footer note
                     Center(
                       child: Text(
-                        'This action is irreversible and will take effect immediately.',
+                        s.deleteAccountIrreversibleImmediate,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.6),
                               fontStyle: FontStyle.italic,
                             ),
                         textAlign: TextAlign.center,
@@ -462,7 +486,10 @@ class DeleteAccountDialog extends HookConsumerWidget {
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.7),
                       ),
                 ),
               ],
@@ -492,6 +519,7 @@ class QuickDeleteAccountDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = Strings.of(context);
     final isDeleting = useState(false);
 
     return AlertDialog(
@@ -514,7 +542,7 @@ class QuickDeleteAccountDialog extends HookConsumerWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            'Delete Account',
+            s.deleteAccount,
             style: TextStyle(
               color: Colors.red.shade700,
               fontWeight: FontWeight.bold,
@@ -527,24 +555,26 @@ class QuickDeleteAccountDialog extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Are you sure you want to permanently delete your account?',
+            s.deleteAccountQuickConfirm,
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 12),
           Text(
-            '• All your projects will be lost\n'
-            '• Cloud backups will be deleted\n'
-            '• This action cannot be undone',
+            s.deleteAccountQuickWarningList,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.8),
                 ),
           ),
         ],
       ),
       actions: [
         TextButton(
-          onPressed: isDeleting.value ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          onPressed:
+              isDeleting.value ? null : () => Navigator.of(context).pop(false),
+          child: Text(s.cancel),
         ),
         ElevatedButton(
           onPressed: isDeleting.value
@@ -561,7 +591,7 @@ class QuickDeleteAccountDialog extends HookConsumerWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Failed to delete account: $e'),
+                          content: Text(s.failedToDeleteAccount('$e')),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -581,7 +611,7 @@ class QuickDeleteAccountDialog extends HookConsumerWidget {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
-              : const Text('Delete Account'),
+              : Text(s.deleteAccount),
         ),
       ],
     );

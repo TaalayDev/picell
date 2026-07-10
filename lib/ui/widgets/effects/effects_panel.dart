@@ -2,9 +2,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
-import '../../../pixel/effects/effects.dart';
 import '../../../data/models/layer.dart';
 import '../../../data/models/selection_region.dart';
+import '../../../l10n/strings.dart';
+import '../../../pixel/effects/effects.dart';
 import '../animated_background.dart';
 import 'effect_list_item.dart';
 import 'effects_editor_dialog.dart';
@@ -109,7 +110,8 @@ class _EffectsPanelState extends State<EffectsPanel> {
       _effects.removeAt(index);
       if (_selectedEffectIndex == index) {
         _selectedEffectIndex = null;
-      } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
+      } else if (_selectedEffectIndex != null &&
+          _selectedEffectIndex! > index) {
         _selectedEffectIndex = _selectedEffectIndex! - 1;
       }
       _updatePreview();
@@ -120,12 +122,12 @@ class _EffectsPanelState extends State<EffectsPanel> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear All Effects'),
-        content: const Text('Are you sure you want to remove all effects from this layer?'),
+        title: Text(Strings.of(context).effectsPanelClearAllEffectsTitle),
+        content: Text(Strings.of(context).effectsPanelClearAllEffectsMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(Strings.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -136,7 +138,7 @@ class _EffectsPanelState extends State<EffectsPanel> {
                 _updatePreview();
               });
             },
-            child: const Text('Clear All'),
+            child: Text(Strings.of(context).effectsPanelClearAll),
           ),
         ],
       ),
@@ -202,7 +204,8 @@ class _EffectsPanelState extends State<EffectsPanel> {
       _effects.removeAt(index);
       if (_selectedEffectIndex == index) {
         _selectedEffectIndex = null;
-      } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
+      } else if (_selectedEffectIndex != null &&
+          _selectedEffectIndex! > index) {
         _selectedEffectIndex = _selectedEffectIndex! - 1;
       }
     });
@@ -219,7 +222,11 @@ class _EffectsPanelState extends State<EffectsPanel> {
     // Show confirmation
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Effect "${effectsToApply[index].getName(context)}" applied to layer'),
+        content: Text(
+          Strings.of(context).effectsPanelAppliedToLayerMessage(
+            effectsToApply.first.getName(context),
+          ),
+        ),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
       ),
@@ -263,10 +270,10 @@ class _EffectsPanelState extends State<EffectsPanel> {
 
     // Show confirmation
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('All effects applied to layer and removed from effects list'),
+      SnackBar(
+        content: Text(Strings.of(context).effectsPanelAllAppliedMessage),
         backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -274,7 +281,8 @@ class _EffectsPanelState extends State<EffectsPanel> {
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
-    final isTablet = MediaQuery.of(context).size.width >= 600 && MediaQuery.of(context).size.width < 1024;
+    final isTablet = MediaQuery.of(context).size.width >= 600 &&
+        MediaQuery.of(context).size.width < 1024;
 
     return LayoutBuilder(builder: (context, constraints) {
       if (isMobile) {
@@ -371,12 +379,14 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppBar(
           title: Text(
-            'Effects for ${layer.name}',
+            s.effectsForLayer(layer.name),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           leading: isDialog
@@ -389,7 +399,7 @@ class _MobileLayout extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               onPressed: onAddEffect,
-              tooltip: 'Add effect',
+              tooltip: s.effectsPanelAddEffect,
             ),
           ],
         ),
@@ -425,15 +435,18 @@ class _MobileLayout extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Applied Effects',
+                s.appliedEffects,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
               ),
               Text(
-                '${effects.length} effect${effects.length != 1 ? 's' : ''}',
+                s.effectCount(effects.length),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
                     ),
               ),
             ],
@@ -448,19 +461,25 @@ class _MobileLayout extends StatelessWidget {
                       Icon(
                         Feather.droplet,
                         size: 48,
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No effects applied',
+                        s.noEffectsApplied,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 8),
                       TextButton.icon(
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Effect'),
+                        label: Text(s.effectsPanelAddEffect),
                         onPressed: onAddEffect,
                       ),
                     ],
@@ -495,7 +514,10 @@ class _MobileLayout extends StatelessWidget {
                 ),
               ),
               onPressed: onApplyChanges,
-              child: const Text('Save Changes', style: TextStyle(fontSize: 16)),
+              child: Text(
+                s.saveChanges,
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
           ),
         ),
@@ -539,6 +561,8 @@ class _TabletLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Row(
       children: [
         Expanded(
@@ -548,7 +572,7 @@ class _TabletLayout extends StatelessWidget {
             children: [
               AppBar(
                 title: Text(
-                  'Effects Preview',
+                  s.effectsPreview,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 leading: isDialog
@@ -582,7 +606,7 @@ class _TabletLayout extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Effect'),
+                        label: Text(s.effectsPanelAddEffect),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -594,11 +618,13 @@ class _TabletLayout extends StatelessWidget {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
                         ),
                         onPressed: onApplyChanges,
-                        child: const Text('Apply'),
+                        child: Text(s.effectsPanelActionApply),
                       ),
                     ),
                   ],
@@ -619,13 +645,13 @@ class _TabletLayout extends StatelessWidget {
             children: [
               AppBar(
                 title: Text(
-                  'Effects for ${layer.name}',
+                  s.effectsForLayer(layer.name),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 automaticallyImplyLeading: false,
                 actions: [
                   Text(
-                    '${effects.length} effect${effects.length != 1 ? 's' : ''}',
+                    s.effectCount(effects.length),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(width: 16),
@@ -640,13 +666,19 @@ class _TabletLayout extends StatelessWidget {
                             Icon(
                               Feather.droplet,
                               size: 64,
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.3),
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No effects applied',
+                              s.noEffectsApplied,
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6),
                                 fontSize: 16,
                               ),
                             ),
@@ -719,6 +751,8 @@ class _DesktopLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
+
     return Row(
       children: [
         Expanded(
@@ -728,7 +762,7 @@ class _DesktopLayout extends StatelessWidget {
             children: [
               AppBar(
                 title: Text(
-                  'Effect Preview',
+                  s.effectPreview,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 leading: isDialog
@@ -750,9 +784,14 @@ class _DesktopLayout extends StatelessWidget {
                           child: Column(
                             children: [
                               Text(
-                                'Final Result',
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
+                                s.finalResult,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
                                     ),
                               ),
                               const SizedBox(height: 16),
@@ -787,7 +826,8 @@ class _DesktopLayout extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
                                     Column(
                                       children: [
@@ -795,8 +835,10 @@ class _DesktopLayout extends StatelessWidget {
                                           width: 120,
                                           height: 120,
                                           decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.grey.shade300),
-                                            color: Theme.of(context).canvasColor,
+                                            border: Border.all(
+                                                color: Colors.grey.shade300),
+                                            color:
+                                                Theme.of(context).canvasColor,
                                           ),
                                           child: CustomPaint(
                                             painter: PixelPreviewPainter(
@@ -807,12 +849,13 @@ class _DesktopLayout extends StatelessWidget {
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        const Text('Original'),
+                                        Text(s.original),
                                       ],
                                     ),
                                     Icon(
                                       Icons.arrow_forward,
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                     ),
                                     Column(
                                       children: [
@@ -820,8 +863,10 @@ class _DesktopLayout extends StatelessWidget {
                                           width: 120,
                                           height: 120,
                                           decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.grey.shade300),
-                                            color: Theme.of(context).canvasColor,
+                                            border: Border.all(
+                                                color: Colors.grey.shade300),
+                                            color:
+                                                Theme.of(context).canvasColor,
                                           ),
                                           child: _PreviewWidget(
                                             pixels: previewPixels,
@@ -830,7 +875,7 @@ class _DesktopLayout extends StatelessWidget {
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        const Text('With Effects'),
+                                        Text(s.withEffects),
                                       ],
                                     ),
                                   ],
@@ -850,7 +895,7 @@ class _DesktopLayout extends StatelessWidget {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Effect'),
+                        label: Text(s.effectsPanelAddEffect),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -862,11 +907,13 @@ class _DesktopLayout extends StatelessWidget {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
                         ),
                         onPressed: onApplyChanges,
-                        child: const Text('Save Changes'),
+                        child: Text(s.saveChanges),
                       ),
                     ),
                   ],
@@ -896,13 +943,13 @@ class _DesktopLayout extends StatelessWidget {
                   if (effects.isNotEmpty) ...[
                     OutlinedButton.icon(
                       icon: const Icon(Icons.clear_all),
-                      label: const Text('Clear All'),
+                      label: Text(s.effectsPanelClearAll),
                       onPressed: onClearAllEffects,
                     ),
                     const SizedBox(width: 4),
                     OutlinedButton.icon(
                       icon: const Icon(Feather.check_circle),
-                      label: const Text('Apply All'),
+                      label: Text(s.effectsPanelApplyAll),
                       onPressed: onApplyAllEffects,
                     ),
                   ] else ...[
@@ -913,23 +960,27 @@ class _DesktopLayout extends StatelessWidget {
               ),
               if (effects.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${effects.length} effect${effects.length != 1 ? 's' : ''} applied',
+                        s.effectsAppliedCount(effects.length),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.6),
                             ),
                       ),
                       TextButton.icon(
                         icon: const Icon(Icons.help_outline, size: 16),
-                        label: const Text('Effects are applied in order'),
+                        label: Text(s.effectsAppliedInOrder),
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Effects are applied from top to bottom. Drag to reorder.'),
+                            SnackBar(
+                              content: Text(s.effectsReorderHint),
                             ),
                           );
                         },
@@ -946,20 +997,26 @@ class _DesktopLayout extends StatelessWidget {
                             Icon(
                               Feather.droplet,
                               size: 64,
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.3),
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No effects applied',
+                              s.noEffectsApplied,
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6),
                                 fontSize: 18,
                               ),
                             ),
                             const SizedBox(height: 12),
                             ElevatedButton.icon(
                               icon: const Icon(Icons.add),
-                              label: const Text('Add your first effect'),
+                              label: Text(s.addYourFirstEffect),
                               onPressed: onAddEffect,
                             ),
                           ],
@@ -972,7 +1029,8 @@ class _DesktopLayout extends StatelessWidget {
                           final isSelected = selectedEffectIndex == index;
                           final effect = effects[index];
                           return EffectListItem(
-                            key: ValueKey(effect.type.toString() + index.toString()),
+                            key: ValueKey(
+                                effect.type.toString() + index.toString()),
                             effect: effect,
                             isSelected: isSelected,
                             onSelect: () => onSelectEffect(index),

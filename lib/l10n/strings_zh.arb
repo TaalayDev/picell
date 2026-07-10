@@ -68,6 +68,7 @@
     "areYouSureWantToDeleteLayer": "确定要删除此图层吗？",
     "newProject": "新建项目",
     "template": "模板",
+    "category": "类别",
     "width": "宽度",
     "height": "高度",
     "create": "创建",
@@ -87,12 +88,12 @@
     "exportFormat": "导出格式",
     "background": "背景",
     "backgroundColor": "背景颜色",
-    "spriteSheetOptions": "精灵表设置",
-    "columns": "列数",
+    "spriteSheetOptions": "精灵表选项",
+    "columns": "列",
     "spacing": "间距",
     "includeAllFrames": "包含所有帧",
     "spriteSheet": "精灵表",
-    "animatedGif": "动态GIF",
+    "animatedGif": "动态 GIF",
     "includeBackground": "包含背景",
     "daysAgo": "{count}天",
     "@daysAgo": {
@@ -151,7 +152,7 @@
     "playAnimation": "播放动画",
     "stopAnimation": "停止动画",
     "loopAnimation": "循环动画",
-    "fps": "帧率",
+    "fps": "FPS",
     "exportAsImage": "导出为图像",
     "saveProject": "保存项目",
     "openProject": "打开项目",
@@ -165,7 +166,7 @@
     "warning": "警告",
     "yes": "是",
     "no": "否",
-    "ok": "确定",
+    "ok": "OK",
     "done": "完成",
     "apply": "应用",
     "settings": "设置",
@@ -216,7 +217,7 @@
     "ellipseSelect": "椭圆选择",
     "lassoSelect": "套索选择",
     "magicWandSelect": "魔棒选择",
-    "invertSelection": "反转选择",
+    "invertSelection": "反选",
     "deselectAll": "取消全选",
     "cropToSelection": "裁剪到选区",
     "effects": "特效",
@@ -235,7 +236,6 @@
     "noise": "噪点",
     "pixelate": "像素化",
     "dithering": "抖动",
-
     "feedback_title": "反馈",
     "feedback_thank_you": "感谢您的反馈！",
     "feedback_thank_you_message": "您的意见对我们非常重要，将帮助我们改进应用。",
@@ -252,7 +252,6 @@
     "feedback_yes": "是",
     "feedback_no": "否",
     "feedback_text_placeholder": "输入您的答案...",
-    
     "feedback_q_satisfaction": "您对应用的满意度如何？",
     "feedback_q_missing_features": "您觉得缺少哪些功能？",
     "feedback_q_missing_features_placeholder": "描述您希望看到的功能...",
@@ -306,11 +305,9 @@
     "resetToDefaults": "重置为默认值",
     "input": "输入",
     "display": "显示",
-    "showGrid": "显示网格",
     "showGridSubtitle": "在画布上显示网格线",
     "pixelGridOverlay": "像素网格叠加",
     "pixelGridSubtitle": "放大时显示像素边界",
-    "gridOpacity": "网格不透明度",
     "selectionTransforms": "选区变换",
     "transformInterpolation": "插值",
     "transformInterpolationSubtitle": "用于选区缩放和旋转",
@@ -324,7 +321,6 @@
     "gestures": "手势",
     "twoFingerUndo": "双指点击撤销",
     "twoFingerUndoSubtitle": "双指快速点击以撤销",
-    "done": "完成",
     "stylusMode": "手写笔模式",
     "stylusModeSubtitleOn": "仅使用手写笔绘图 • 触控用于导航",
     "stylusModeSubtitleOff": "同时使用触控和手写笔绘图",
@@ -336,7 +332,6 @@
     "conversionSettings": "转换设置",
     "paletteColors": "调色板颜色",
     "fullColor": "全彩",
-    "dithering": "抖动",
     "noDithering": "无",
     "alphaThreshold": "透明度阈值",
     "chooseImage": "选择图像",
@@ -368,14 +363,10 @@
             }
         }
     },
-    "saveImage": "保存图像",
     "png": "PNG",
-    "animatedGif": "动态 GIF",
     "proPlanRequired": "需要 Pro 计划",
-    "spriteSheet": "精灵表",
     "transparentBackground": "透明背景",
     "transparent": "透明",
-    "spriteSheetOptions": "精灵表选项",
     "columnsLabel": "列数",
     "spacingPx": "间距 (px)",
     "exportSize": "导出尺寸",
@@ -388,7 +379,6 @@
         }
     },
     "format": "格式",
-    "options": "选项",
     "editEffect": "编辑效果 {name}",
     "@editEffect": {
         "placeholders": {
@@ -398,7 +388,6 @@
         }
     },
     "applyChanges": "应用更改",
-    "preview": "预览",
     "quickPresets": "快速预设",
     "parameters": "参数",
     "previewNotAvailable": "预览不可用",
@@ -449,7 +438,7 @@
     "noEffectsMatch": "没有符合搜索条件的效果",
     "premiumEffect": "高级效果",
     "proVersionStatus": "此效果在Pro版本中可用。",
-    "proFeaturesInclude": "Pro版本功能包括:",
+    "proFeaturesInclude": "Pro 功能包括：",
     "featureAdvancedEffects": "高级效果和工具",
     "featureUnlimitedProjects": "无限项目",
     "featureCloudBackup": "云备份",
@@ -495,5 +484,889 @@
     "ellipseSelectionTooltip": "选择椭圆区域",
     "autoSelectLayer": "自动选择",
     "autoSelectLayerTooltip": "选择当前图层中所有非空像素",
-    "selectionAnchor": "选区锚点"
+    "selectionAnchor": "选区锚点",
+    "feedback": "反馈",
+    "createNewProjectTooltip": "创建新项目",
+    "failedToProcessFile": "无法处理 {fileName}",
+    "@failedToProcessFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importingFile": "正在导入 {fileName}...",
+    "@importingFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedProjectSuccessfully": "已成功导入“{projectName}”",
+    "@importedProjectSuccessfully": {
+        "placeholders": {
+            "projectName": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToImport": "导入失败：{error}",
+    "@failedToImport": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unsupportedFileType": "不支持的文件类型：{fileName}",
+    "@unsupportedFileType": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "pleaseSignInToUploadProjects": "请登录以上传项目",
+    "pleaseSignInToUpdateProjects": "请登录以更新项目",
+    "projectNotSyncedToCloud": "项目尚未同步到云端",
+    "pleaseSignInToRemoveCloudProjects": "请登录以移除云端项目",
+    "removingFromCloud": "正在从云端移除...",
+    "projectRemovedFromCloudSuccessfully": "项目已成功从云端移除",
+    "failedToRemoveFromCloud": "从云端移除失败：{error}",
+    "@failedToRemoveFromCloud": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "search": "搜索...",
+    "myProjects": "我的项目",
+    "noProjectsYet": "还没有项目",
+    "createOne": "创建一个",
+    "searchProjects": "搜索项目...",
+    "discoverAmazingPixelArt": "发现精彩像素艺术",
+    "sortBy": "排序方式",
+    "mostRecent": "最新",
+    "mostPopular": "最受欢迎",
+    "mostViewed": "浏览最多",
+    "mostLiked": "点赞最多",
+    "titleAZ": "标题 A-Z",
+    "all": "全部",
+    "featuredProjects": "精选项目",
+    "errorLoadingProjects": "加载项目出错",
+    "deletingProject": "正在删除项目...",
+    "projectDeletedSuccessfully": "项目已删除",
+    "failedToDeleteProject": "删除项目失败",
+    "failedToDeleteProjectWithError": "删除项目失败：{error}",
+    "@failedToDeleteProjectWithError": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "unlike": "取消点赞",
+    "like": "点赞",
+    "editProject": "编辑项目",
+    "public": "公开",
+    "private": "私密",
+    "analytics": "分析",
+    "stats": "统计",
+    "likeCountLabel": "{count} 个赞",
+    "@likeCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "commentCountLabel": "{count} 条评论",
+    "@commentCountLabel": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "download": "下载",
+    "downloadProject": "下载项目",
+    "localProjectNotFound": "未找到本地项目",
+    "comments": "评论",
+    "addComment": "添加评论",
+    "noCommentsYet": "还没有评论",
+    "beFirstToComment": "来发表第一条评论吧！",
+    "failedToLoadComments": "加载评论失败",
+    "edited": "已编辑",
+    "makeProjectPublic": "设为公开项目",
+    "makeProjectPrivate": "设为私密项目",
+    "makeProjectPublicMessage": "你的项目将对社区所有人可见。其他人可以查看、点赞和评论。",
+    "makeProjectPrivateMessage": "你的项目将从公开社区隐藏。只有你可以看到它。",
+    "projectWillBePublic": "项目将公开可见",
+    "projectWillBePrivate": "项目将设为私密",
+    "projectIsNowPublic": "项目现在是公开的",
+    "projectIsNowPrivate": "项目现在是私密的",
+    "failedToUpdateVisibility": "更新可见性失败：{error}",
+    "@failedToUpdateVisibility": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "makePublic": "设为公开",
+    "makePrivate": "设为私密",
+    "deleteProjectCannotBeUndone": "确定要删除此项目吗？此操作无法撤销。",
+    "thisWillPermanentlyDelete": "这将永久删除：",
+    "deleteProjectConsequences": "• 项目数据和作品\n• 所有评论和点赞\n• 下载统计",
+    "typeProjectTitleToConfirmDeletion": "输入“{title}”以确认删除：",
+    "@typeProjectTitleToConfirmDeletion": {
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "enterProjectTitle": "输入项目标题...",
+    "deleteForever": "永久删除",
+    "openingProjectEditor": "正在打开项目编辑器...",
+    "projectLinkCopied": "项目链接已复制！",
+    "addedToFavorites": "已加入收藏！",
+    "nowFollowingUser": "已关注 {username}！",
+    "@nowFollowingUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "reportProject": "举报项目",
+    "reportProjectMessage": "确定要举报此项目吗？请只举报违反社区准则的内容。",
+    "reportThanks": "感谢你的举报。我们会尽快审核。",
+    "report": "举报",
+    "premiumRequiredToDownloadProjects": "下载项目需要 Premium 订阅",
+    "upgrade": "升级",
+    "downloadProjectRewardSubtitle": "要下载此项目，你可以：",
+    "thankYouWatchingDownloadStarting": "感谢观看！下载即将开始...",
+    "pleaseSignInToAddComments": "请登录以添加评论",
+    "writeYourComment": "写下你的评论...",
+    "commentAddedSuccessfully": "评论已添加！",
+    "failedToAddComment": "添加评论失败：{error}",
+    "@failedToAddComment": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "post": "发布",
+    "chooseTheme": "选择主题",
+    "importFile": "导入文件",
+    "theme": "主题",
+    "getPro": "获取 Pro",
+    "supportOnKofi": "在 Ko-fi 支持",
+    "copyLink": "复制链接",
+    "size": "尺寸",
+    "views": "浏览",
+    "downloads": "下载",
+    "published": "已发布！",
+    "forkedFrom": "派生自 ",
+    "byUser": " 作者 {username}",
+    "projectAnalytics": "项目分析",
+    "totalViews": "总浏览量",
+    "totalLikes": "总点赞数",
+    "detailedAnalytics": "详细分析",
+    "advancedAnalyticsSoon": "高级分析功能即将推出。",
+    "@byUser": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "details": "详情",
+    "title": "标题",
+    "projectTitleHint": "给你的项目起个名字",
+    "description": "描述",
+    "projectDescriptionHint": "向社区介绍这个项目（可选）",
+    "visibility": "可见性",
+    "tags": "标签",
+    "searchTags": "搜索标签…",
+    "failedToLoadTags": "加载标签失败",
+    "pleaseEnterTitle": "请输入标题",
+    "removeFromCloudQuestion": "从云端移除？",
+    "removeFromCommunityMessage": "这会将项目从社区移除。你的本地副本会保留。",
+    "remove": "移除",
+    "updateProject": "更新项目",
+    "publishToCommunity": "发布到社区",
+    "synced": "已同步",
+    "visibleToEveryone": "所有人可见",
+    "onlyVisibleToYou": "仅你可见",
+    "maximumTagsAllowed": "最多允许 5 个标签",
+    "frameCountSimple": "{count} 帧",
+    "@frameCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "layerCountSimple": "{count} 图层",
+    "@layerCountSimple": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "cloudManagement": "云端管理",
+    "cloudId": "Cloud ID: {id}",
+    "@cloudId": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "preparingUpdate": "正在准备更新…",
+    "preparingProject": "正在准备项目…",
+    "generatingThumbnail": "正在生成缩略图…",
+    "updatingOnCloud": "正在更新云端…",
+    "uploadingToCloud": "正在上传到云端…",
+    "finalizing": "正在完成…",
+    "updated": "已更新！",
+    "updating": "正在更新…",
+    "publishing": "正在发布…",
+    "update": "更新",
+    "publish": "发布",
+    "downloadingProject": "正在下载项目",
+    "downloadingProjectData": "正在下载项目数据...",
+    "downloadComplete": "下载完成！",
+    "projectSavedLocal": "项目已保存到本地项目",
+    "downloadFailed": "下载失败",
+    "resyncWithCloud": "重新同步云端",
+    "syncToCloud": "同步到云端",
+    "removeFromCloud": "从云端移除",
+    "removeFromCloudMessage": "这会将项目从云端移除并变为仅本地项目。本地副本不会更改。确定吗？",
+    "syncedCloudDeleteWarning": "此项目已同步到云端。仅删除本地副本不会影响云端版本。",
+    "openLocalProject": "打开本地项目",
+    "premiumRequired": "需要 Premium",
+    "byUserInline": "作者 {username}",
+    "@byUserInline": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "createTemplate": "创建模板",
+    "layerNameLabel": "名称：{name}",
+    "@layerNameLabel": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "layerSizeLabel": "尺寸：{width}×{height}",
+    "@layerSizeLabel": {
+        "placeholders": {
+            "width": {
+                "type": "int"
+            },
+            "height": {
+                "type": "int"
+            }
+        }
+    },
+    "nonTransparentPixels": "像素：{count} 个非透明",
+    "@nonTransparentPixels": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "templateName": "模板名称",
+    "descriptionOptional": "描述（可选）",
+    "saveOptions": "保存选项",
+    "saveLocally": "保存到本地",
+    "storeOnDeviceOnly": "仅存储在此设备",
+    "uploadToCloud": "上传到云端",
+    "shareWithCommunity": "与社区分享",
+    "privateCloudStorage": "私密云端存储",
+    "otherUsersCanDiscoverTemplate": "其他用户可以发现并使用此模板",
+    "onlyYouCanAccessTemplate": "只有你可以访问此模板",
+    "saveLocallyAndUpload": "保存到本地并上传",
+    "bestOfBothWorlds": "两全其美",
+    "signInToUploadTemplates": "登录以上传模板",
+    "shareTemplatesWithCommunity": "与社区分享你的模板",
+    "failedToConvertLayerToTemplate": "无法将图层转换为模板",
+    "failedToSaveTemplateLocally": "本地保存模板失败",
+    "failedToUploadTemplateToServer": "上传模板到服务器失败",
+    "errorCreatingTemplate": "创建模板出错：{error}",
+    "@errorCreatingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "templateSavedLocally": "模板已保存到本地！",
+    "templateUploadedSuccessfully": "模板上传成功！",
+    "templateSavedAndUploaded": "模板已保存到本地并上传！",
+    "templateSavedUploadFailed": "模板已保存到本地（上传失败）",
+    "templateUploadedLocalSaveFailed": "模板已上传（本地保存失败）",
+    "templateCreationFailed": "模板创建失败",
+    "templateGallery": "模板库",
+    "allTemplates": "全部模板",
+    "local": "本地",
+    "community": "社区",
+    "failedTemplateDetailsCached": "加载模板详情失败。正在使用缓存数据。",
+    "errorLoadingTemplate": "加载模板出错：{error}",
+    "@errorLoadingTemplate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "loadingTemplate": "正在加载模板...",
+    "deleteTemplate": "删除模板",
+    "deleteTemplateQuestion": "确定要删除“{name}”吗？",
+    "@deleteTemplateQuestion": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteLocalTemplateWarning": "此模板将从本地存储中永久移除。",
+    "deleteCloudTemplateWarning": "此模板将从云端移除且无法恢复。",
+    "templateDeletedSuccessfully": "模板“{name}”已删除",
+    "@templateDeletedSuccessfully": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToDeleteTemplate": "删除模板“{name}”失败",
+    "@failedToDeleteTemplate": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "searchTemplates": "搜索模板...",
+    "loadingTemplates": "正在加载模板...",
+    "premiumTemplate": "Premium 模板",
+    "templateAvailableInPro": "此模板在 Pro 版本中可用。",
+    "premiumTemplatesFeature": "• Premium 模板",
+    "advancedEffectsToolsFeature": "• 高级效果和工具",
+    "unlimitedProjectsFeature": "• 无限项目",
+    "cloudBackupFeature": "• 云端备份",
+    "prioritySupportFeature": "• 优先支持",
+    "noLocalTemplates": "未找到本地模板。\n从图层创建你的第一个模板吧！",
+    "noCommunityTemplates": "未找到社区模板。\n请尝试调整搜索或筛选条件。",
+    "noUploadedTemplates": "你还没有上传任何模板。\n与社区分享你的创作吧！",
+    "noTemplatesFoundAdjust": "未找到模板。\n请尝试调整搜索或筛选条件。",
+    "showingTemplates": "显示 {displayed}{total, select, none {} other { / {total}}} 个模板",
+    "@showingTemplates": {
+        "placeholders": {
+            "displayed": {
+                "type": "int"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "clickTemplateToApply": "点击模板以应用",
+    "pro": "PRO",
+    "pleaseEnterTemplateName": "请输入模板名称",
+    "signInToUploadTemplatesTitle": "登录以上传模板",
+    "signInToUploadTemplatesSubtitle": "创建账号，与社区分享你的模板。",
+    "myTemplates": "我的模板",
+    "cloud": "云端",
+    "tapToUnlock": "点击解锁",
+    "layerTemplateDefaultName": "图层模板",
+    "undoHistoryTitle": "历史记录",
+    "undoHistoryStepCount": "（{total}步）",
+    "@undoHistoryStepCount": {
+        "placeholders": {
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "undoHistoryRevertAll": "全部还原",
+    "undoHistoryCurrentState": "当前状态",
+    "undoHistoryFrameLayer": "帧 {frame}，图层 {layer}",
+    "@undoHistoryFrameLayer": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            },
+            "layer": {
+                "type": "int"
+            }
+        }
+    },
+    "keyboardShortcuts": "键盘快捷键",
+    "copySelection": "复制选区",
+    "cutSelection": "剪切选区",
+    "paste": "粘贴",
+    "selection": "选择",
+    "selectAll": "全选",
+    "deselect": "取消选择",
+    "closePenPath": "闭合钢笔路径",
+    "pencil": "铅笔",
+    "eraser": "橡皮擦",
+    "eyedropper": "吸管",
+    "fill": "填充",
+    "selectMarquee": "选择 / 选框",
+    "moveDrag": "移动 / 拖拽",
+    "pen": "钢笔",
+    "sprayPaint": "喷漆",
+    "panHold": "平移（按住）",
+    "eyedropperHold": "吸管（按住）",
+    "brush": "画笔",
+    "increaseSize": "增大尺寸",
+    "decreaseSize": "减小尺寸",
+    "colors": "颜色",
+    "defaultColors": "默认颜色",
+    "view": "视图",
+    "zoomToFit": "适应窗口",
+    "zoomOneToOne": "1:1 缩放",
+    "toggleUi": "切换界面",
+    "selectLayerOneToNine": "选择图层 1-9",
+    "newLayer": "新建图层",
+    "deleteAccountCannotBeUndone": "此操作无法撤销",
+    "deleteAccountPermanentDataWarning": "删除账号会永久移除你的所有数据。",
+    "deleteAccountItemsIntro": "以下内容将被永久删除：",
+    "deleteAccountPreferencesTitle": "应用偏好设置",
+    "deleteAccountPreferencesSubtitle": "设置和自定义内容",
+    "deleteAccountInfoTitle": "账号信息",
+    "deleteAccountInfoSubtitle": "个人资料和认证数据",
+    "deleteAccountTypeConfirm": "输入“DELETE”以确认：",
+    "deleteAccountTypeHint": "在此输入 DELETE...",
+    "deleteAccountIrreversibleImmediate": "此操作不可逆，并会立即生效。",
+    "deleteAccountQuickConfirm": "确定要永久删除你的账号吗？",
+    "deleteAccountQuickWarningList": "• 你的所有项目都会丢失\n• 云备份将被删除\n• 此操作无法撤销",
+    "failedToDeleteAccount": "删除账号失败：{error}",
+    "@failedToDeleteAccount": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "proAccessActive": "Pro 权限已启用",
+    "proAccessRemaining": "你的 Pro 权限还剩 {time}。",
+    "@proAccessRemaining": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "buyPro": "购买 Pro",
+    "rewardUpgradeBullets": "• 无限使用所有功能\n• 一次性购买\n• 无广告\n• 优先支持",
+    "tryPro45Minutes": "试用 Pro 45 分钟",
+    "rewardAdReadyBullets": "• 观看一段短视频广告\n• 获得 45 分钟 Pro 权限\n• 支持应用开发",
+    "rewardAdLoadingBullets": "• 视频广告正在加载...\n• 请稍后再试",
+    "watchAd": "观看广告",
+    "loadingEllipsis": "加载中...",
+    "loadingVideoAd": "正在加载视频广告...",
+    "proAccessGranted45": "已授予 45 分钟 Pro 权限！",
+    "videoAdNotCompleted": "视频广告未播放完成。请重试或升级到 Pro。",
+    "failedToLoadVideoAd": "加载视频广告失败：{error}",
+    "@failedToLoadVideoAd": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "rewardTimeZeroMinutes": "0 分钟",
+    "rewardTimeMinutesSeconds": "{minutes} 分 {seconds} 秒",
+    "@rewardTimeMinutesSeconds": {
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            },
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "rewardTimeSeconds": "{seconds} 秒",
+    "@rewardTimeSeconds": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "selectionOptions": "选择选项",
+    "clearSelection": "清除选择",
+    "growSelectionOnePixel": "扩大（+1px）",
+    "shrinkSelectionOnePixel": "缩小（-1px）",
+    "rotate90": "旋转 90°",
+    "rotate180": "旋转 180°",
+    "cutToNewLayer": "剪切到新图层",
+    "copyToNewLayer": "复制到新图层",
+    "cut": "剪切",
+    "copy": "复制",
+    "clearArea": "清除区域",
+    "replaceSelection": "替换选择",
+    "addToSelectionShift": "添加到选择（Shift）",
+    "subtractFromSelectionAlt": "从选择中减去（Alt）",
+    "textureBrush": "纹理画笔",
+    "triangle": "三角形",
+    "diamond": "菱形",
+    "hexagon": "六边形",
+    "heart": "心形",
+    "arrow": "箭头",
+    "lightning": "闪电",
+    "cross": "十字",
+    "spiral": "螺旋",
+    "cloudShape": "云朵",
+    "lasso": "套索",
+    "magicWand": "魔棒",
+    "effectsPanelAllAppliedMessage": "所有效果已应用到图层，并从效果列表中移除",
+    "effectsForLayer": "{layerName} 的效果",
+    "@effectsForLayer": {
+        "placeholders": {
+            "layerName": {
+                "type": "String"
+            }
+        }
+    },
+    "effectsPanelAddEffect": "添加效果",
+    "appliedEffects": "已应用效果",
+    "effectCount": "{count, plural, =0{0 个效果} =1{1 个效果} other{{count} 个效果}}",
+    "@effectCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsPreview": "效果预览",
+    "effectPreview": "效果预览",
+    "noEffectsApplied": "未应用效果",
+    "saveChanges": "保存更改",
+    "finalResult": "最终结果",
+    "original": "原始",
+    "withEffect": "带效果",
+    "withEffects": "带效果",
+    "effectsAppliedCount": "{count, plural, =0{已应用 0 个效果} =1{已应用 1 个效果} other{已应用 {count} 个效果}}",
+    "@effectsAppliedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "effectsAppliedInOrder": "效果按顺序应用",
+    "effectsReorderHint": "效果会从上到下应用。拖动可重新排序。",
+    "addYourFirstEffect": "添加第一个效果",
+    "layerEffects": "图层效果",
+    "effectWatercolor": "水彩",
+    "effectHalftone": "半色调",
+    "effectOilPaint": "油画",
+    "effectEmboss": "浮雕",
+    "staticEffect": "静态效果",
+    "effectNotAnimatedMessage": "{effectName} 效果不是动画效果。动画帧生成仅适用于支持动画的效果。",
+    "@effectNotAnimatedMessage": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "generateAnimation": "生成动画",
+    "generateAnimationForEffect": "为 {effectName} 效果生成动画帧？",
+    "@generateAnimationForEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetails": "动画详情",
+    "animationDetailEffect": "• 效果：{effectName}",
+    "@animationDetailEffect": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "animationDetailEstimatedFrames": "• 预计帧数：~{count}",
+    "@animationDetailEstimatedFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "animationDetailProcessingTime": "• 处理时间：约 {seconds} 秒",
+    "@animationDetailProcessingTime": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "generateAnimationTimelineNote": "这会创建多个动画帧，你可以将它们添加到时间线。",
+    "generateAnimationFrames": "生成动画帧",
+    "effectNameLabel": "{effectName} 效果",
+    "@effectNameLabel": {
+        "placeholders": {
+            "effectName": {
+                "type": "String"
+            }
+        }
+    },
+    "framesGeneratedCount": "{count, plural, =0{已生成 0 帧} =1{已生成 1 帧} other{已生成 {count} 帧}}",
+    "@framesGeneratedCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "generateFrames": "生成帧",
+    "stop": "停止",
+    "frameLabel": "帧：",
+    "generatingFrames": "正在生成帧...",
+    "noFramesGenerated": "未生成帧",
+    "animationSettings": "动画设置",
+    "durationSeconds": "时长（秒）",
+    "totalFrames": "总帧数：",
+    "pingPongAnimation": "往返动画",
+    "playForwardThenBackward": "先正向播放再反向播放",
+    "frameGeneration": "帧生成",
+    "generateNewFrames": "生成新帧",
+    "createNewFramesForAnimation": "为此动画创建新帧",
+    "insertIntoTimeline": "插入到时间线",
+    "addFramesToExistingTimeline": "将帧添加到现有时间线",
+    "insertPosition": "插入位置：",
+    "afterFrame": "第 {frame} 帧之后",
+    "@afterFrame": {
+        "placeholders": {
+            "frame": {
+                "type": "int"
+            }
+        }
+    },
+    "effectParameters": "效果参数",
+    "editParameters": "编辑参数",
+    "effectParametersBaseNote": "当前效果设置将作为动画的基础",
+    "editBaseParameters": "编辑基础参数",
+    "applyAndRegenerate": "应用并重新生成",
+    "animationFrameGenerator": "动画帧生成器",
+    "animationGeneratorHelpIntro": "此工具会使用不同时间参数应用所选效果，从而生成多个动画帧。\n",
+    "animationHelpDuration": "• 时长：动画总长度（秒）",
+    "animationHelpFps": "• FPS：每秒帧数（越高越流畅，但帧数更多）",
+    "animationHelpPingPong": "• 往返：先向前播放，再向后播放",
+    "animationHelpInterpolation": "• 效果参数会随时间插值，以创建平滑动画",
+    "tips": "提示：",
+    "animationTipLowerFps": "• 测试时先使用较低 FPS",
+    "animationTipUsePreview": "• 生成前使用预览查看动画",
+    "animationTipLongerDurations": "• 较长时长更适合慢速效果",
+    "effectFrameName": "效果帧 {index}",
+    "@effectFrameName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationName": "效果动画 {index}",
+    "@effectAnimationName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "effectAnimationReturnName": "效果动画 {index}（返回）",
+    "@effectAnimationReturnName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "generatedAnimationFrames": "{count, plural, =0{已生成 0 个动画帧} =1{已生成 1 个动画帧} other{已生成 {count} 个动画帧}}！",
+    "@generatedAnimationFrames": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "viewTimeline": "查看时间线",
+    "featureBullet": "• {feature}",
+    "@featureBullet": {
+        "placeholders": {
+            "feature": {
+                "type": "String"
+            }
+        }
+    },
+    "defaultLayerName": "图层 {index}",
+    "@defaultLayerName": {
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "select": "选择",
+    "menu": "菜单",
+    "adjustOpacity": "调整不透明度",
+    "adjustLayerOpacity": "调整图层不透明度",
+    "addToTemplate": "添加到模板",
+    "editLayer": "编辑图层",
+    "backgroundShort": "背景",
+    "reference": "参考",
+    "reset": "重置",
+    "fit": "适应",
+    "removeBackgroundImage": "移除背景图像",
+    "removeBackgroundImageMessage": "确定要移除背景图像吗？",
+    "themeSelector": "主题选择器",
+    "unlockThemeTitle": "解锁 {themeName} 主题",
+    "@unlockThemeTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "watchAdToUnlockTheme": "观看视频广告即可解锁此主题。",
+    "themeUnlocked": "{themeName} 主题已解锁！",
+    "@themeUnlocked": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "themeShowcaseTitle": "主题：{themeName}",
+    "@themeShowcaseTitle": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "primaryColors": "主色",
+    "primary": "主色",
+    "primaryVariant": "主色变体",
+    "onPrimary": "主色上的颜色",
+    "accent": "强调色",
+    "onAccent": "强调色上的颜色",
+    "backgroundColors": "背景颜色",
+    "surface": "表面",
+    "surfaceVariant": "表面变体",
+    "textColors": "文本颜色",
+    "textPrimary": "主文本",
+    "textSecondary": "次级文本",
+    "textDisabled": "禁用文本",
+    "utilityColors": "辅助颜色",
+    "uiElements": "界面元素",
+    "elevated": "凸起",
+    "filled": "填充",
+    "outlined": "描边",
+    "text": "文本",
+    "inputField": "输入字段",
+    "enterText": "输入文本",
+    "previewingTheme": "正在预览 {themeName}",
+    "@previewingTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "currentTheme": "当前：{themeName}",
+    "@currentTheme": {
+        "placeholders": {
+            "themeName": {
+                "type": "String"
+            }
+        }
+    },
+    "unlockPremiumThemes": "解锁高级主题",
+    "getAccessToAllThemesWithPro": "使用 Pro 获取所有主题",
+    "flagship": "旗舰",
+    "free": "免费",
+    "freeThemes": "免费主题",
+    "premiumThemes": "高级主题",
+    "importedFileAsNewLayer": "已将“{fileName}”导入为新图层",
+    "@importedFileAsNewLayer": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsepriteFile": "导入 Aseprite 文件",
+    "howImportAsepriteFile": "你想如何导入“{fileName}”？",
+    "@howImportAsepriteFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importedFirstLayerFromFile": "已从“{fileName}”导入第一层",
+    "@importedFirstLayerFromFile": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "importAsLayer": "作为图层导入",
+    "openAsProject": "作为项目打开",
+    "copyFrame": "复制帧",
+    "collapse": "收起",
+    "expand": "展开",
+    "addState": "添加状态",
+    "copyState": "复制状态",
+    "addAnimationState": "添加动画状态",
+    "stateName": "状态名称",
+    "tileModeTooltip": "平铺模式 - 预览无缝平铺",
+    "settingsStylusMode": "设置（触控笔模式）",
+    "onionSkinTooltip": "洋葱皮（长按设置不透明度）",
+    "sprayPaintToolDescription": "使用粒子创建喷涂效果",
+    "lineToolDescription": "在两点之间绘制直线",
+    "circleToolDescription": "绘制完美圆形和椭圆",
+    "rectangleToolDescription": "绘制矩形和正方形",
+    "triangleToolDescription": "绘制三角形",
+    "diamondToolDescription": "绘制菱形",
+    "hexagonToolDescription": "绘制六边形",
+    "heartToolDescription": "绘制心形",
+    "arrowToolDescription": "绘制箭头",
+    "lightningToolDescription": "绘制闪电形状",
+    "crossToolDescription": "绘制十字或加号形状",
+    "spiralToolDescription": "绘制螺旋形状",
+    "cloudToolDescription": "绘制云朵形状",
+    "penToolDescription": "高级手绘工具",
+    "rectangleSelectToolDescription": "选择矩形区域",
+    "ellipseSelectToolDescription": "选择椭圆区域",
+    "lassoToolDescription": "手绘选择工具",
+    "magicWandToolDescription": "按颜色选择连续像素",
+    "curve": "曲线",
+    "curveToolDescription": "绘制平滑曲线",
+    "move": "移动",
+    "moveToolDescription": "移动和拖拽元素"
 }
