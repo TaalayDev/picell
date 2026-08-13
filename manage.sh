@@ -131,8 +131,43 @@ build() {
       open "/Applications/Transporter.app"
       open_folder "build/ios/ipa"
     elif [ "$buildType" == "macos" ]; then
+      # Package the .app into a signed .pkg for App Store upload
+      releaseDir="build/macos/Build/Products/Release"
+      appPath=$(find "$releaseDir" -maxdepth 1 -name "*.app" | head -n 1)
+
+      if [ -z "$appPath" ]; then
+        echo "❌ No .app found in $releaseDir"
+        exit 1
+      fi
+
+      appName=$(basename "$appPath" .app)
+      pkgPath="$releaseDir/$appName-$versionName.pkg"
+
+      # Use the Mac App Store installer identity if available, otherwise
+      # produce an unsigned pkg (still useful for local testing).
+      installerIdentity=$(security find-identity -v -p basic 2>/dev/null \
+        | grep "3rd Party Mac Developer Installer" \
+        | head -n 1 \
+        | sed 's/.*"\(.*\)"/\1/')
+
+      echo "Packaging $appName.app -> $pkgPath"
+      if [ -n "$installerIdentity" ]; then
+        echo "Signing with: $installerIdentity"
+        productbuild --component "$appPath" /Applications \
+          --sign "$installerIdentity" "$pkgPath"
+      else
+        echo "⚠️  No '3rd Party Mac Developer Installer' identity found — building unsigned pkg"
+        productbuild --component "$appPath" /Applications "$pkgPath"
+      fi
+
+      if [ $? -ne 0 ]; then
+        echo "❌ pkg packaging failed"
+        exit 1
+      fi
+      echo "✅ Package created: $pkgPath"
+
       open "/Applications/Transporter.app"
-      open_folder "build/macos/Build/Products/Release"
+      open_folder "$releaseDir"
     elif [ "$buildType" == "appbundle" ]; then
       open_folder "build/app/outputs/bundle/release"
       open "https://play.google.com/console"
