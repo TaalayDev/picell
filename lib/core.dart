@@ -5,3 +5,4 @@ export 'app/theme/theme.dart';
 export 'core/utils.dart';
 export 'core/services/aseprite_parser.dart';
 export 'core/services/drop_handler_service.dart';
+export 'core/services/analytics_service.dart';

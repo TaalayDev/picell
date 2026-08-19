@@ -13,7 +13,8 @@ import '../data/repo/project_api_repo.dart';
 import '../data/repo/template_api_repo.dart';
 import '../pixel/services/template_service.dart';
 
-final analyticsProvider = Provider((ref) => FirebaseAnalytics.instance);
+final analyticsProvider =
+    Provider((ref) => AnalyticsService(FirebaseAnalytics.instance));
 final databaseProvider = Provider((ref) => AppDatabase());
 final queueManagerProvider = Provider((ref) => QueueManager());
 final projectRepo = Provider<ProjectRepo>((ref) => ProjectLocalRepo(

@@ -44,8 +44,7 @@ class CommunityProjectCard extends ConsumerWidget {
     final isAdloaded = ref.watch(rewardVideoAdProvider);
 
     final g = theme.geometry;
-    final canDownload =
-        subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup);
+    final canDownload = subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup);
 
     return Card(
       elevation: isFeatured ? g.cardElevation + 2 : g.cardElevation,
@@ -57,9 +56,7 @@ class CommunityProjectCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(g.cardRadius),
         side: g.cardBorderWidth > 0
             ? BorderSide(
-                color: isFeatured
-                    ? theme.warning.withValues(alpha: 0.6)
-                    : theme.divider,
+                color: isFeatured ? theme.warning.withValues(alpha: 0.6) : theme.divider,
                 width: g.cardBorderWidth,
               )
             : BorderSide.none,
@@ -165,8 +162,7 @@ class CommunityProjectCard extends ConsumerWidget {
                       onTap: () => onUserTap?.call(project.username!),
                       borderRadius: BorderRadius.circular(4),
                       child: Text(
-                        Strings.of(context).byUserInline(
-                            project.displayName ?? project.username ?? ''),
+                        Strings.of(context).byUserInline(project.displayName ?? project.username ?? ''),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: theme.primaryColor,
                               fontWeight: FontWeight.w500,
@@ -182,17 +178,12 @@ class CommunityProjectCard extends ConsumerWidget {
 
             // ── Stats + actions ────────────────────────────────────────
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                  g.cardPadding.left, 6, g.cardPadding.right - 4, 4),
+              padding: EdgeInsets.fromLTRB(g.cardPadding.left, 6, g.cardPadding.right - 4, 4),
               child: Row(
                 children: [
                   _StatAction(
-                    icon: project.isLiked == true
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                    color: project.isLiked == true
-                        ? theme.error
-                        : theme.textSecondary,
+                    icon: project.isLiked == true ? Icons.favorite : Icons.favorite_border,
+                    color: project.isLiked == true ? theme.error : theme.textSecondary,
                     label: _formatCount(project.likeCount),
                     labelColor: theme.textSecondary,
                     tooltip: Strings.of(context).like,
@@ -211,20 +202,16 @@ class CommunityProjectCard extends ConsumerWidget {
                       icon: Feather.folder,
                       color: theme.success,
                       tooltip: Strings.of(context).openLocalProject,
-                      onTap: () =>
-                          _openLocalProject(context, ref, localProject),
+                      onTap: () => _openLocalProject(context, ref, localProject),
                     )
                   else
                     _StatAction(
                       icon: Icons.download_outlined,
                       color: theme.activeIcon,
-                      tooltip: canDownload
-                          ? Strings.of(context).download
-                          : Strings.of(context).premiumRequired,
+                      tooltip: canDownload ? Strings.of(context).download : Strings.of(context).premiumRequired,
                       onTap: canDownload
                           ? () => _downloadProject(context, ref, subscription)
-                          : () => _showSubscriptionRequired(
-                              context, project, isAdloaded),
+                          : () => _showSubscriptionRequired(context, project, isAdloaded),
                     ),
                   const SizedBox(width: 4),
                   _StatAction(
@@ -242,8 +229,7 @@ class CommunityProjectCard extends ConsumerWidget {
     );
   }
 
-  void _downloadProject(
-      BuildContext context, WidgetRef ref, UserSubscription subscription) {
+  void _downloadProject(BuildContext context, WidgetRef ref, UserSubscription subscription) {
     // Check subscription access
     if (!subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup)) {
       showTopFlushbar(
@@ -279,11 +265,9 @@ class CommunityProjectCard extends ConsumerWidget {
     }
 
     Project? projectToOpen = localProject;
-    final hasCanvasData = localProject.frames.isNotEmpty &&
-        localProject.frames.first.layers.isNotEmpty;
+    final hasCanvasData = localProject.frames.isNotEmpty && localProject.frames.first.layers.isNotEmpty;
     if (!hasCanvasData) {
-      projectToOpen =
-          await ref.read(projectsProvider.notifier).getProject(localProject.id);
+      projectToOpen = await ref.read(projectsProvider.notifier).getProject(localProject.id);
     }
 
     if (!context.mounted || projectToOpen == null) {
@@ -297,8 +281,7 @@ class CommunityProjectCard extends ConsumerWidget {
     );
   }
 
-  void _showSubscriptionRequired(
-      BuildContext context, ApiProject project, bool isAdLoaded) {
+  void _showSubscriptionRequired(BuildContext context, ApiProject project, bool isAdLoaded) {
     if (isAdLoaded) {
       _showRewardDialog(context, project);
     } else {

@@ -77,12 +77,13 @@ dependencies:
   animated_reorderable_list: ^1.1.1
   firebase_core: ^3.13.1
   firebase_analytics: ^11.4.6
+  amplitude_flutter: ^4.6.2
   firebase_auth: ^5.5.4
   google_sign_in: ^6.3.0
   sign_in_with_apple: ^7.0.1
 
   # subscription
-  in_app_purchase: ^3.2.0
+  in_app_purchase: ^3.3.0
   # purchase_validator: ^1.0.1
 
   flutter_markdown: ^0.6.18

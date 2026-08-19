@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:window_manager/window_manager.dart';
 import 'app/app.dart';
 import 'core.dart';
 import 'data.dart';
+import 'providers/providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,10 +30,14 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  final analytics = AnalyticsService(FirebaseAnalytics.instance);
+  await analytics.initializeAmplitude(dotenv.env['AMPLITUDE_API_KEY']);
+
   setupLogger();
 
-  runApp(const ProviderScope(
-    child: PixelVerseApp(),
+  runApp(ProviderScope(
+    overrides: [analyticsProvider.overrideWithValue(analytics)],
+    child: const PixelVerseApp(),
   ));
 }
 

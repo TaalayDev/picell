@@ -1,4 +1,13 @@
 PODS:
+  - amplitude_flutter (4.4.0):
+    - AmplitudeSwift (~> 1.17.5)
+    - Flutter
+    - FlutterMacOS
+  - AmplitudeCore (1.4.10)
+  - AmplitudeSwift (1.17.5):
+    - AmplitudeCore (< 2.0.0, >= 1.4.1)
+    - AnalyticsConnector (~> 1.3.0)
+  - AnalyticsConnector (1.3.2)
   - AppAuth (1.7.6):
     - AppAuth/Core (= 1.7.6)
     - AppAuth/ExternalUserAgent (= 1.7.6)
@@ -208,6 +217,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - amplitude_flutter (from `Flutter/ephemeral/.symlinks/plugins/amplitude_flutter/darwin`)
   - custom_mouse_cursor (from `Flutter/ephemeral/.symlinks/plugins/custom_mouse_cursor/macos`)
   - desktop_drop (from `Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
@@ -232,6 +242,9 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - AmplitudeCore
+    - AmplitudeSwift
+    - AnalyticsConnector
     - AppAuth
     - AppCheckCore
     - Firebase
@@ -253,6 +266,8 @@ SPEC REPOS:
     - sqlite3
 
 EXTERNAL SOURCES:
+  amplitude_flutter:
+    :path: Flutter/ephemeral/.symlinks/plugins/amplitude_flutter/darwin
   custom_mouse_cursor:
     :path: Flutter/ephemeral/.symlinks/plugins/custom_mouse_cursor/macos
   desktop_drop:
@@ -297,6 +312,10 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
+  amplitude_flutter: a430a891abbd9e486f53d2ab499af9ead0bb8047
+  AmplitudeCore: 61766a21268f619e193ac817c61c1005bc376f76
+  AmplitudeSwift: 89f675b8b81a2710ef244324d2083641ffb702b6
+  AnalyticsConnector: b6961a64f7a15207d7cc8a8529e64cccc482c066
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   custom_mouse_cursor: 5228910e366264d13615a102b1900946df2ab181

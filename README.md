@@ -37,6 +37,12 @@ Picell is a powerful and intuitive pixel art creation tool designed for both beg
 ### Credentials Setup
 This project requires a google-services.json file for Firebase configuration. For security reasons, this file is not included in the repository.
 
+To enable Amplitude, add your project's client API key to the ignored `.env` file:
+
+```env
+AMPLITUDE_API_KEY=your-amplitude-api-key
+```
+
 ### Setup Instructions
 Create a Firebase project at Firebase Console
 Add an Android app to your Firebase project
