@@ -42,6 +42,7 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
           FIREBASE_OPTIONS_DART_BASE64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+          ENV_FILE_BASE64: ${{ secrets.ENV_FILE_BASE64 }}
         run: |
           test -n "$GOOGLE_SERVICES_JSON_BASE64"
           test -n "$FIREBASE_OPTIONS_DART_BASE64"
@@ -50,6 +51,8 @@ jobs:
           printf '%s' "$FIREBASE_OPTIONS_DART_BASE64" | base64 --decode > lib/firebase_options.dart
           test -s android/app/google-services.json
           test -s lib/firebase_options.dart
+          printf '%s' "$ENV_FILE_BASE64" | base64 --decode > .env
+          test -s .env
 
       - name: Install dependencies
         run: flutter pub get

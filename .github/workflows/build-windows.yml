@@ -15,6 +15,8 @@ jobs:
   build:
     name: Build Windows Release
     runs-on: windows-2019
+    env:
+      ARCHIVE_NAME: Picell-Windows-${{ startsWith(github.ref_name, 'v') && github.ref_name || 'dev' }}
 
     steps:
       - name: Checkout code
@@ -31,10 +33,11 @@ jobs:
         run: flutter pub get
 
       - name: Create .env file
+        env:
+          ENV_FILE_BASE64: ${{ secrets.ENV_FILE_BASE64 }}
         run: |
-          echo "IOS_INTERSTITIAL_ID=${{ secrets.IOS_INTERSTITIAL_ID }}" > .env
-          echo "IOS_BANNER_ID=${{ secrets.IOS_BANNER_ID }}" >> .env
-          echo "IOS_REWARDED_ID=${{ secrets.IOS_REWARDED_ID }}" >> .env
+          printf '%s' "$ENV_FILE_BASE64" | base64 --decode > .env
+          test -s .env
         shell: bash
 
       - name: Build Windows release
@@ -42,13 +45,9 @@ jobs:
 
       - name: Create release archive
         run: |
-          $version = "${{ github.ref_name }}"
-          if (-not $version.StartsWith("v")) { $version = "dev" }
-          $archiveName = "PixelVerse-Windows-$version"
           Compress-Archive `
             -Path "build\windows\x64\runner\Release\*" `
-            -DestinationPath "$archiveName.zip"
-          echo "ARCHIVE_NAME=$archiveName" >> $env:GITHUB_ENV
+            -DestinationPath "$env:ARCHIVE_NAME.zip"
         shell: pwsh
 
       - name: Upload build artifact
@@ -89,10 +88,11 @@ jobs:
         run: flutter pub get
 
       - name: Create .env file
+        env:
+          ENV_FILE_BASE64: ${{ secrets.ENV_FILE_BASE64 }}
         run: |
-          echo "IOS_INTERSTITIAL_ID=${{ secrets.IOS_INTERSTITIAL_ID }}" > .env
-          echo "IOS_BANNER_ID=${{ secrets.IOS_BANNER_ID }}" >> .env
-          echo "IOS_REWARDED_ID=${{ secrets.IOS_REWARDED_ID }}" >> .env
+          printf '%s' "$ENV_FILE_BASE64" | base64 --decode > .env
+          test -s .env
         shell: bash
 
       - name: Build Windows release
