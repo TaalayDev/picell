@@ -35,9 +35,12 @@ jobs:
       - name: Create .env file
         env:
           ENV_FILE_BASE64: ${{ secrets.ENV_FILE_BASE64 }}
+          FIREBASE_OPTIONS_DART_BASE64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
         run: |
           printf '%s' "$ENV_FILE_BASE64" | base64 --decode > .env
           test -s .env
+          printf '%s' "$FIREBASE_OPTIONS_DART_BASE64" | base64 --decode > lib/firebase_options.dart
+          test -s lib/firebase_options.dart
         shell: bash
 
       - name: Build Windows release
