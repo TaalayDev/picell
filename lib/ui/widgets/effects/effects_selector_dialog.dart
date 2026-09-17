@@ -60,6 +60,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           EffectType.threshold,
           EffectType.gradient,
           EffectType.paletteReduction,
+          EffectType.colorCycling,
         ];
         break;
       case 2: // Blur & Sharpen
@@ -79,6 +80,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           EffectType.halftone,
           EffectType.oilPaint,
           EffectType.stainedGlass,
+          EffectType.crt,
+          EffectType.lcdMatrix,
+          EffectType.dropShadow,
+          EffectType.rimLight,
         ];
         break;
       case 4: // Animation
@@ -93,6 +98,24 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           EffectType.quickShake,
           EffectType.cameraShake,
           EffectType.jello,
+          EffectType.colorCycling,
+          EffectType.squashStretch,
+          EffectType.windSway,
+          EffectType.hitFlash,
+          EffectType.ghostTrail,
+          EffectType.starfield,
+          EffectType.electricArc,
+          EffectType.blizzard,
+          EffectType.portalVortex,
+          EffectType.energyShield,
+          EffectType.radiantRays,
+          EffectType.burningEmbers,
+          EffectType.underwaterCaustics,
+          EffectType.risingBubbles,
+          EffectType.slimeDrip,
+          EffectType.radialShockwave,
+          EffectType.slashArc,
+          EffectType.hologramGlitch,
         ];
         break;
       case 5: // Nature
@@ -108,6 +131,12 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           EffectType.treeBark,
           EffectType.leafVenation,
           EffectType.fog,
+          EffectType.starfield,
+          EffectType.electricArc,
+          EffectType.blizzard,
+          EffectType.underwaterCaustics,
+          EffectType.risingBubbles,
+          EffectType.slimeDrip,
         ];
         break;
       case 6: // Particles
@@ -116,6 +145,16 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           EffectType.particle,
           EffectType.explosion,
           EffectType.glow,
+          EffectType.starfield,
+          EffectType.electricArc,
+          EffectType.blizzard,
+          EffectType.portalVortex,
+          EffectType.radiantRays,
+          EffectType.burningEmbers,
+          EffectType.risingBubbles,
+          EffectType.slimeDrip,
+          EffectType.radialShockwave,
+          EffectType.slashArc,
         ];
         break;
       case 7: // Distortion
@@ -125,6 +164,15 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           EffectType.fadeDissolve,
           EffectType.melt,
           EffectType.wipe,
+          EffectType.crt,
+          EffectType.chromaticAberration,
+          EffectType.squashStretch,
+          EffectType.windSway,
+          EffectType.portalVortex,
+          EffectType.burningEmbers,
+          EffectType.underwaterCaustics,
+          EffectType.radialShockwave,
+          EffectType.hologramGlitch,
         ];
         break;
       case 8: // Textures
@@ -132,11 +180,29 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           EffectType.crystal,
           EffectType.metal,
           EffectType.noise,
+          EffectType.lcdMatrix,
+          EffectType.normalMap,
         ];
         break;
       case 9: // Special FX
         categoryFiltered = [
           EffectType.city,
+          EffectType.dropShadow,
+          EffectType.normalMap,
+          EffectType.hitFlash,
+          EffectType.ghostTrail,
+          EffectType.starfield,
+          EffectType.electricArc,
+          EffectType.portalVortex,
+          EffectType.energyShield,
+          EffectType.radiantRays,
+          EffectType.burningEmbers,
+          EffectType.underwaterCaustics,
+          EffectType.risingBubbles,
+          EffectType.slimeDrip,
+          EffectType.radialShockwave,
+          EffectType.slashArc,
+          EffectType.hologramGlitch,
         ];
         break;
       default: // All

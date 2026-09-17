@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -70,6 +71,30 @@ part 'opacity_effect.dart';
 part 'platformer_effect.dart';
 part 'perlin_worms_effect.dart';
 part 'voronoi_effect.dart';
+part 'crt_effect.dart';
+part 'lcd_matrix_effect.dart';
+part 'chromatic_aberration_effect.dart';
+part 'drop_shadow_effect.dart';
+part 'normal_map_effect.dart';
+part 'color_cycling_effect.dart';
+part 'rim_light_effect.dart';
+part 'squash_stretch_effect.dart';
+part 'wind_sway_effect.dart';
+part 'hit_flash_effect.dart';
+part 'ghost_trail_effect.dart';
+part 'starfield_effect.dart';
+part 'electric_arc_effect.dart';
+part 'blizzard_effect.dart';
+part 'portal_vortex_effect.dart';
+part 'energy_shield_effect.dart';
+part 'radiant_rays_effect.dart';
+part 'burning_embers_effect.dart';
+part 'underwater_caustics_effect.dart';
+part 'rising_bubbles_effect.dart';
+part 'slime_drip_effect.dart';
+part 'radial_shockwave_effect.dart';
+part 'slash_arc_effect.dart';
+part 'hologram_glitch_effect.dart';
 
 enum EffectType {
   brightness,
@@ -135,7 +160,31 @@ enum EffectType {
   opacity,
   platformer,
   perlinWorms,
-  voronoi
+  voronoi,
+  crt,
+  lcdMatrix,
+  chromaticAberration,
+  dropShadow,
+  normalMap,
+  colorCycling,
+  rimLight,
+  squashStretch,
+  windSway,
+  hitFlash,
+  ghostTrail,
+  starfield,
+  electricArc,
+  blizzard,
+  portalVortex,
+  energyShield,
+  radiantRays,
+  burningEmbers,
+  underwaterCaustics,
+  risingBubbles,
+  slimeDrip,
+  radialShockwave,
+  slashArc,
+  hologramGlitch,
 }
 
 /// Base abstract class for all effects
@@ -222,6 +271,30 @@ abstract class Effect {
         EffectType.platformer => 'Platformer',
         EffectType.perlinWorms => 'Perlin Worms',
         EffectType.voronoi => 'Voronoi',
+        EffectType.crt => 'CRT & Scanlines',
+        EffectType.lcdMatrix => 'Handheld LCD & Game Boy',
+        EffectType.chromaticAberration => 'Chromatic Aberration',
+        EffectType.dropShadow => 'Isometric & 2D Drop Shadow',
+        EffectType.normalMap => '2D Normal Map Generator',
+        EffectType.colorCycling => 'Color Cycling (Palette Shift)',
+        EffectType.rimLight => 'Edge Highlight & Rim Light',
+        EffectType.squashStretch => 'Squash & Stretch',
+        EffectType.windSway => 'Wind Sway & Foliage',
+        EffectType.hitFlash => 'Hit Flash & Damage Blink',
+        EffectType.ghostTrail => 'Ghost Trail & After-Image',
+        EffectType.starfield => 'Twinkling Starfield & Space',
+        EffectType.electricArc => 'Electric Arc & Lightning',
+        EffectType.blizzard => 'Pixel Blizzard & Snowfall',
+        EffectType.portalVortex => 'Portal Vortex & Rift',
+        EffectType.energyShield => 'Energy Shield & Forcefield',
+        EffectType.radiantRays => 'Radiant Ascension & God Rays',
+        EffectType.burningEmbers => 'Burning Embers & Soul Dissolve',
+        EffectType.underwaterCaustics => 'Underwater Caustics & Wobble',
+        EffectType.risingBubbles => 'Rising Bubbles & Potion Fizz',
+        EffectType.slimeDrip => 'Slime Drip & Toxic Splatter',
+        EffectType.radialShockwave => 'Radial Shockwave & Blast',
+        EffectType.slashArc => 'Melee Slash Wave & Arc',
+        EffectType.hologramGlitch => 'Hologram Glitch & Flicker',
       };
 
   String getDescription(BuildContext context) => switch (type) {
@@ -229,10 +302,10 @@ abstract class Effect {
         EffectType.brightness => 'Adjust image brightness levels',
         EffectType.contrast => 'Enhance or reduce image contrast',
         EffectType.invert => 'Invert all colors in the image',
-        EffectType.grayscale => 'Convert to black and white',
+        EffectType.grayscale => 'Convert image to black and white',
         EffectType.sepia => 'Apply vintage sepia tone',
-        EffectType.threshold => 'Create high-contrast black/white',
-        EffectType.colorBalance => 'Adjust RGB color channels',
+        EffectType.threshold => 'Convert to high-contrast binary',
+        EffectType.colorBalance => 'Adjust color channel balance',
         EffectType.gradient => 'Apply gradient color overlay',
         EffectType.paletteReduction => 'Reduce to limited color palette',
 
@@ -308,6 +381,54 @@ abstract class Effect {
           'Generate organic worm-like patterns with Perlin noise',
         EffectType.voronoi =>
           'Create cellular Voronoi diagram patterns with multiple modes',
+        EffectType.crt =>
+          'Simulate retro CRT display with scanlines, curvature, and phosphor mask',
+        EffectType.lcdMatrix =>
+          'Simulate retro Game Boy & handheld dot-matrix LCD displays with dithering',
+        EffectType.chromaticAberration =>
+          'Prismatic lens RGB split and color fringing distortion',
+        EffectType.dropShadow =>
+          'Cast 2D drop shadows and isometric ground-plane projections',
+        EffectType.normalMap =>
+          'Generate tangent-space normal maps for 2D dynamic lighting',
+        EffectType.colorCycling =>
+          'Classic 8-bit/16-bit retro animated palette cycling',
+        EffectType.rimLight =>
+          'Directional 2D rim lighting and silhouette edge highlights',
+        EffectType.squashStretch =>
+          'Volume-preserving elastic squash and stretch character animation',
+        EffectType.windSway =>
+          'Organic wind swaying and bending for plants, grass, and cloth',
+        EffectType.hitFlash =>
+          'Retro video game impact damage flashes and invulnerability blinks',
+        EffectType.ghostTrail =>
+          'High-speed dash and teleport after-image speed trails',
+        EffectType.starfield =>
+          'Procedural twinkling starfield, cosmic nebula dust, and meteor streaks',
+        EffectType.electricArc =>
+          'Fractal lightning bolts, electric arcs, and ionized plasma discharge',
+        EffectType.blizzard =>
+          'Swirling snowfall, howling blizzard winds, and frost accumulation',
+        EffectType.portalVortex =>
+          'Swirling dimensional vortex, event horizon void, and accretion disk',
+        EffectType.energyShield =>
+          'Pulsing hexagonal forcefield, spherical bubble, and kinetic ripples',
+        EffectType.radiantRays =>
+          'Volumetric vertical god ray light pillars and ascending stardust motes',
+        EffectType.burningEmbers =>
+          'Progressive scorch dissolution, crumbling ash, and floating embers',
+        EffectType.underwaterCaustics =>
+          'Shimmering refractive sunlight caustics, aquatic tint, and fluid sway',
+        EffectType.risingBubbles =>
+          'Buoyant circular air bubbles, lateral wobble flutter, and surface pops',
+        EffectType.slimeDrip =>
+          'Viscous fluid droplet swelling, stretching necks, and ground splatters',
+        EffectType.radialShockwave =>
+          'Expanding supersonic pressure ring, ground-impact shockwave, and debris',
+        EffectType.slashArc =>
+          'Curved crescent katana slash wave, cutting edge glint, and sparks',
+        EffectType.hologramGlitch =>
+          'Holographic scanline raster, beam flutter, and slice tear jitter',
       };
 
   bool get isAnimation {
@@ -335,6 +456,24 @@ abstract class Effect {
       case EffectType.oceanWaves:
       case EffectType.clouds:
       case EffectType.sky:
+      case EffectType.colorCycling:
+      case EffectType.squashStretch:
+      case EffectType.windSway:
+      case EffectType.hitFlash:
+      case EffectType.ghostTrail:
+      case EffectType.starfield:
+      case EffectType.electricArc:
+      case EffectType.blizzard:
+      case EffectType.portalVortex:
+      case EffectType.energyShield:
+      case EffectType.radiantRays:
+      case EffectType.burningEmbers:
+      case EffectType.underwaterCaustics:
+      case EffectType.risingBubbles:
+      case EffectType.slimeDrip:
+      case EffectType.radialShockwave:
+      case EffectType.slashArc:
+      case EffectType.hologramGlitch:
         return true;
 
       // Static effects that don't animate
@@ -380,6 +519,12 @@ abstract class Effect {
       case EffectType.platformer:
       case EffectType.perlinWorms:
       case EffectType.voronoi:
+      case EffectType.crt:
+      case EffectType.lcdMatrix:
+      case EffectType.chromaticAberration:
+      case EffectType.dropShadow:
+      case EffectType.normalMap:
+      case EffectType.rimLight:
         return false;
     }
   }
@@ -453,6 +598,30 @@ abstract class Effect {
       case EffectType.platformer:
       case EffectType.perlinWorms:
       case EffectType.voronoi:
+      case EffectType.crt:
+      case EffectType.lcdMatrix:
+      case EffectType.chromaticAberration:
+      case EffectType.dropShadow:
+      case EffectType.normalMap:
+      case EffectType.colorCycling:
+      case EffectType.rimLight:
+      case EffectType.squashStretch:
+      case EffectType.windSway:
+      case EffectType.hitFlash:
+      case EffectType.ghostTrail:
+      case EffectType.starfield:
+      case EffectType.electricArc:
+      case EffectType.blizzard:
+      case EffectType.portalVortex:
+      case EffectType.energyShield:
+      case EffectType.radiantRays:
+      case EffectType.burningEmbers:
+      case EffectType.underwaterCaustics:
+      case EffectType.risingBubbles:
+      case EffectType.slimeDrip:
+      case EffectType.radialShockwave:
+      case EffectType.slashArc:
+      case EffectType.hologramGlitch:
         return false;
     }
   }
@@ -566,6 +735,54 @@ abstract class Effect {
         Icon(MaterialCommunityIcons.creation, size: size, color: color),
       EffectType.voronoi =>
         Icon(MaterialCommunityIcons.hexagon_multiple, size: size, color: color),
+      EffectType.crt =>
+        Icon(Icons.tv, size: size, color: color),
+      EffectType.lcdMatrix =>
+        Icon(Icons.videogame_asset, size: size, color: color),
+      EffectType.chromaticAberration =>
+        Icon(Icons.filter_tilt_shift, size: size, color: color),
+      EffectType.dropShadow =>
+        Icon(Icons.layers, size: size, color: color),
+      EffectType.normalMap =>
+        Icon(Icons.explore, size: size, color: color),
+      EffectType.colorCycling =>
+        Icon(Icons.sync, size: size, color: color),
+      EffectType.rimLight =>
+        Icon(Icons.wb_sunny, size: size, color: color),
+      EffectType.squashStretch =>
+        Icon(Icons.swap_vert, size: size, color: color),
+      EffectType.windSway =>
+        Icon(Icons.air, size: size, color: color),
+      EffectType.hitFlash =>
+        Icon(Icons.flash_on, size: size, color: color),
+      EffectType.ghostTrail =>
+        Icon(Icons.fast_forward, size: size, color: color),
+      EffectType.starfield =>
+        Icon(Icons.auto_awesome, size: size, color: color),
+      EffectType.electricArc =>
+        Icon(Icons.bolt, size: size, color: color),
+      EffectType.blizzard =>
+        Icon(Icons.ac_unit, size: size, color: color),
+      EffectType.portalVortex =>
+        Icon(Icons.cyclone, size: size, color: color),
+      EffectType.energyShield =>
+        Icon(Icons.shield, size: size, color: color),
+      EffectType.radiantRays =>
+        Icon(Icons.wb_twilight, size: size, color: color),
+      EffectType.burningEmbers =>
+        Icon(Icons.local_fire_department, size: size, color: color),
+      EffectType.underwaterCaustics =>
+        Icon(Icons.waves, size: size, color: color),
+      EffectType.risingBubbles =>
+        Icon(Icons.bubble_chart, size: size, color: color),
+      EffectType.slimeDrip =>
+        Icon(Icons.water_drop, size: size, color: color),
+      EffectType.radialShockwave =>
+        Icon(Icons.adjust, size: size, color: color),
+      EffectType.slashArc =>
+        Icon(Icons.flash_on, size: size, color: color),
+      EffectType.hologramGlitch =>
+        Icon(Icons.cast, size: size, color: color),
     };
   }
 
@@ -657,6 +874,30 @@ abstract class Effect {
       EffectType.platformer => const Color(0xFF00BCD4), // Cyan
       EffectType.perlinWorms => const Color(0xFF9C27B0), // Purple
       EffectType.voronoi => const Color(0xFF00BCD4), // Cyan
+      EffectType.crt => const Color(0xFF00E5FF), // Retro phosphor cyan
+      EffectType.lcdMatrix => const Color(0xFF8BAC0F), // DMG Game Boy Green
+      EffectType.chromaticAberration => const Color(0xFFFF2A6D), // Synthwave Neon Pink
+      EffectType.dropShadow => const Color(0xFF546E7A), // Slate shadow grey
+      EffectType.normalMap => const Color(0xFF8080FF), // Tangent normal blue-violet
+      EffectType.colorCycling => const Color(0xFF00E676), // Vibrant cycling green
+      EffectType.rimLight => const Color(0xFFFFD54F), // Warm sunlight gold
+      EffectType.squashStretch => const Color(0xFFFF7043), // Elastic coral orange
+      EffectType.windSway => const Color(0xFF66BB6A), // Foliage wind green
+      EffectType.hitFlash => const Color(0xFFFF1744), // Damage flash crimson
+      EffectType.ghostTrail => const Color(0xFF29B6F6), // Speed phantom light blue
+      EffectType.starfield => const Color(0xFF7C4DFF), // Deep cosmic starlight purple
+      EffectType.electricArc => const Color(0xFF00E5FF), // Ionized electric cyan
+      EffectType.blizzard => const Color(0xFF80D8FF), // Frosted ice blue
+      EffectType.portalVortex => const Color(0xFFD500F9), // Electric violet portal
+      EffectType.energyShield => const Color(0xFF00B0FF), // Forcefield electric blue
+      EffectType.radiantRays => const Color(0xFFFFD700), // Holy ascension gold
+      EffectType.burningEmbers => const Color(0xFFFF6D00), // Incandescent flame orange
+      EffectType.underwaterCaustics => const Color(0xFF00E5FF), // Tropical cyan caustics
+      EffectType.risingBubbles => const Color(0xFF80DEEA), // Effervescent aqua
+      EffectType.slimeDrip => const Color(0xFF76FF03), // Toxic acid lime green
+      EffectType.radialShockwave => const Color(0xFFFF9100), // Impact blast amber orange
+      EffectType.slashArc => const Color(0xFFFF1744), // Crimson blade strike red
+      EffectType.hologramGlitch => const Color(0xFF00E5FF), // Hologram laser cyan
     };
   }
 
@@ -987,6 +1228,54 @@ class EffectsManager {
         return PerlinWormsEffect(params);
       case EffectType.voronoi:
         return VoronoiEffect(params);
+      case EffectType.crt:
+        return CrtEffect(params);
+      case EffectType.lcdMatrix:
+        return LcdMatrixEffect(params);
+      case EffectType.chromaticAberration:
+        return ChromaticAberrationEffect(params);
+      case EffectType.dropShadow:
+        return DropShadowEffect(params);
+      case EffectType.normalMap:
+        return NormalMapEffect(params);
+      case EffectType.colorCycling:
+        return ColorCyclingEffect(params);
+      case EffectType.rimLight:
+        return RimLightEffect(params);
+      case EffectType.squashStretch:
+        return SquashStretchEffect(params);
+      case EffectType.windSway:
+        return WindSwayEffect(params);
+      case EffectType.hitFlash:
+        return HitFlashEffect(params);
+      case EffectType.ghostTrail:
+        return GhostTrailEffect(params);
+      case EffectType.starfield:
+        return StarfieldEffect(params);
+      case EffectType.electricArc:
+        return ElectricArcEffect(params);
+      case EffectType.blizzard:
+        return BlizzardEffect(params);
+      case EffectType.portalVortex:
+        return PortalVortexEffect(params);
+      case EffectType.energyShield:
+        return EnergyShieldEffect(params);
+      case EffectType.radiantRays:
+        return RadiantRaysEffect(params);
+      case EffectType.burningEmbers:
+        return BurningEmbersEffect(params);
+      case EffectType.underwaterCaustics:
+        return UnderwaterCausticsEffect(params);
+      case EffectType.risingBubbles:
+        return RisingBubblesEffect(params);
+      case EffectType.slimeDrip:
+        return SlimeDripEffect(params);
+      case EffectType.radialShockwave:
+        return RadialShockwaveEffect(params);
+      case EffectType.slashArc:
+        return SlashArcEffect(params);
+      case EffectType.hologramGlitch:
+        return HologramGlitchEffect(params);
     }
   }
 

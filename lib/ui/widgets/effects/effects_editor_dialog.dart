@@ -693,7 +693,31 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     return widget.effect.type == EffectType.brightness ||
         widget.effect.type == EffectType.contrast ||
         widget.effect.type == EffectType.blur ||
-        widget.effect.type == EffectType.vignette;
+        widget.effect.type == EffectType.vignette ||
+        widget.effect.type == EffectType.crt ||
+        widget.effect.type == EffectType.lcdMatrix ||
+        widget.effect.type == EffectType.chromaticAberration ||
+        widget.effect.type == EffectType.dropShadow ||
+        widget.effect.type == EffectType.normalMap ||
+        widget.effect.type == EffectType.colorCycling ||
+        widget.effect.type == EffectType.rimLight ||
+        widget.effect.type == EffectType.squashStretch ||
+        widget.effect.type == EffectType.windSway ||
+        widget.effect.type == EffectType.hitFlash ||
+        widget.effect.type == EffectType.ghostTrail ||
+        widget.effect.type == EffectType.starfield ||
+        widget.effect.type == EffectType.electricArc ||
+        widget.effect.type == EffectType.blizzard ||
+        widget.effect.type == EffectType.portalVortex ||
+        widget.effect.type == EffectType.energyShield ||
+        widget.effect.type == EffectType.radiantRays ||
+        widget.effect.type == EffectType.burningEmbers ||
+        widget.effect.type == EffectType.underwaterCaustics ||
+        widget.effect.type == EffectType.risingBubbles ||
+        widget.effect.type == EffectType.slimeDrip ||
+        widget.effect.type == EffectType.radialShockwave ||
+        widget.effect.type == EffectType.slashArc ||
+        widget.effect.type == EffectType.hologramGlitch;
   }
 
   List<Widget> _buildPresetButtons() {
@@ -763,6 +787,873 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
           'Subtle': {'intensity': 0.3, 'size': 0.7},
           'Medium': {'intensity': 0.5, 'size': 0.5},
           'Strong': {'intensity': 0.7, 'size': 0.3},
+        };
+      case EffectType.crt:
+        return {
+          'Arcade CRT': {
+            'scanlineIntensity': 0.45,
+            'scanlineSpacing': 2,
+            'rgbSubpixel': 0.35,
+            'curvature': 0.15,
+            'vignette': 0.35,
+            'brightnessBoost': 0.2,
+            'preserveAlpha': true,
+          },
+          'Subtle TV': {
+            'scanlineIntensity': 0.2,
+            'scanlineSpacing': 2,
+            'rgbSubpixel': 0.15,
+            'curvature': 0.05,
+            'vignette': 0.15,
+            'brightnessBoost': 0.1,
+            'preserveAlpha': true,
+          },
+          'Curved Monitor': {
+            'scanlineIntensity': 0.3,
+            'scanlineSpacing': 2,
+            'rgbSubpixel': 0.25,
+            'curvature': 0.28,
+            'vignette': 0.4,
+            'brightnessBoost': 0.15,
+            'preserveAlpha': true,
+          },
+          'Scanlines Only': {
+            'scanlineIntensity': 0.5,
+            'scanlineSpacing': 2,
+            'rgbSubpixel': 0.0,
+            'curvature': 0.0,
+            'vignette': 0.0,
+            'brightnessBoost': 0.0,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.lcdMatrix:
+        return {
+          'DMG Game Boy': {
+            'palette': 'dmg_green',
+            'ditherMode': 'bayer2x2',
+            'pixelGrid': 0.35,
+            'pixelSize': 2,
+            'contrast': 0.1,
+            'brightness': 0.0,
+            'preserveAlpha': true,
+          },
+          'Pocket Mono': {
+            'palette': 'pocket_gray',
+            'ditherMode': 'bayer2x2',
+            'pixelGrid': 0.25,
+            'pixelSize': 2,
+            'contrast': 0.15,
+            'brightness': 0.05,
+            'preserveAlpha': true,
+          },
+          'GB Light': {
+            'palette': 'gb_light',
+            'ditherMode': 'bayer4x4',
+            'pixelGrid': 0.3,
+            'pixelSize': 2,
+            'contrast': 0.1,
+            'brightness': 0.05,
+            'preserveAlpha': true,
+          },
+          'Virtual Boy': {
+            'palette': 'virtual_boy',
+            'ditherMode': 'bayer2x2',
+            'pixelGrid': 0.4,
+            'pixelSize': 2,
+            'contrast': 0.2,
+            'brightness': 0.0,
+            'preserveAlpha': true,
+          },
+          'Amber LCD': {
+            'palette': 'amber',
+            'ditherMode': 'bayer4x4',
+            'pixelGrid': 0.35,
+            'pixelSize': 2,
+            'contrast': 0.1,
+            'brightness': 0.0,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.chromaticAberration:
+        return {
+          'Classic RGB Split': {
+            'mode': 'linear',
+            'distance': 3.0,
+            'angle': 0.0,
+            'blueFactor': 1.0,
+            'preserveAlpha': true,
+          },
+          'Diagonal Shift': {
+            'mode': 'linear',
+            'distance': 4.0,
+            'angle': 45.0,
+            'blueFactor': 1.0,
+            'preserveAlpha': true,
+          },
+          'Radial Lens Edge': {
+            'mode': 'radial',
+            'distance': 5.0,
+            'angle': 0.0,
+            'blueFactor': 1.0,
+            'preserveAlpha': true,
+          },
+          'Glitch Dispersion': {
+            'mode': 'linear',
+            'distance': 8.0,
+            'angle': 0.0,
+            'blueFactor': 1.2,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.dropShadow:
+        return {
+          'Soft 2D Shadow': {
+            'mode': 'drop',
+            'shadowColor': 0x99000000,
+            'offsetX': 2,
+            'offsetY': 3,
+            'softness': 1,
+            'shadowOnly': false,
+          },
+          'Isometric Ground': {
+            'mode': 'isometric',
+            'shadowColor': 0x88000000,
+            'offsetX': 2,
+            'offsetY': 2,
+            'isometricAngle': 30.0,
+            'isometricScale': 0.5,
+            'softness': 0,
+            'shadowOnly': false,
+          },
+          'Crisp Retro': {
+            'mode': 'drop',
+            'shadowColor': 0xFF000000,
+            'offsetX': 1,
+            'offsetY': 1,
+            'softness': 0,
+            'shadowOnly': false,
+          },
+          'Deep Cast': {
+            'mode': 'drop',
+            'shadowColor': 0x80000000,
+            'offsetX': 4,
+            'offsetY': 6,
+            'softness': 2,
+            'shadowOnly': false,
+          },
+        };
+      case EffectType.normalMap:
+        return {
+          'Standard 2D Bump': {
+            'strength': 2.5,
+            'bevelEdges': true,
+            'bevelRadius': 2,
+            'invertY': false,
+            'smoothness': 0,
+            'preserveAlpha': true,
+          },
+          'Hard Beveled Volume': {
+            'strength': 4.5,
+            'bevelEdges': true,
+            'bevelRadius': 3,
+            'invertY': false,
+            'smoothness': 0,
+            'preserveAlpha': true,
+          },
+          'Soft Pillow': {
+            'strength': 1.8,
+            'bevelEdges': true,
+            'bevelRadius': 3,
+            'invertY': false,
+            'smoothness': 1,
+            'preserveAlpha': true,
+          },
+          'DirectX Inverted': {
+            'strength': 2.5,
+            'bevelEdges': true,
+            'bevelRadius': 2,
+            'invertY': true,
+            'smoothness': 0,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.colorCycling:
+        return {
+          'Rainbow Flow': {
+            'mode': 'hueCycle',
+            'speed': 1.0,
+            'phase': 0.0,
+            'preserveAlpha': true,
+          },
+          'Retro Waterfall': {
+            'mode': 'waterfall',
+            'speed': 1.5,
+            'phase': 0.0,
+            'preserveAlpha': true,
+          },
+          'Lava Glow': {
+            'mode': 'fireLava',
+            'speed': 1.2,
+            'phase': 0.0,
+            'preserveAlpha': true,
+          },
+          'Neon Pulse': {
+            'mode': 'neonPulse',
+            'speed': 1.0,
+            'phase': 0.0,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.rimLight:
+        return {
+          'Sunlit Rim (Top-Right)': {
+            'lightColor': 0xFFFFE082,
+            'lightAngle': 45.0,
+            'brightness': 1.0,
+            'thickness': 1,
+            'wrap': 0.2,
+            'preserveAlpha': true,
+          },
+          'Moonlit Rim (Top-Left)': {
+            'lightColor': 0xFF80DEEA,
+            'lightAngle': 135.0,
+            'brightness': 1.2,
+            'thickness': 1,
+            'wrap': 0.2,
+            'preserveAlpha': true,
+          },
+          'Dramatic Silhouette': {
+            'lightColor': 0xFFFFFFFF,
+            'lightAngle': 90.0,
+            'brightness': 1.5,
+            'thickness': 1,
+            'wrap': 0.0,
+            'preserveAlpha': true,
+          },
+          'All-Round Neon Glow': {
+            'lightColor': 0xFFFF4081,
+            'lightAngle': 45.0,
+            'brightness': 0.8,
+            'thickness': 2,
+            'wrap': 0.8,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.squashStretch:
+        return {
+          'Ground Impact': {
+            'amount': 0.35,
+            'frequency': 1.0,
+            'phase': 0.75,
+            'anchor': 'bottom',
+            'preserveAlpha': true,
+          },
+          'Jump Takeoff': {
+            'amount': 0.25,
+            'frequency': 1.0,
+            'phase': 0.25,
+            'anchor': 'bottom',
+            'preserveAlpha': true,
+          },
+          'Breathing Idle': {
+            'amount': 0.08,
+            'frequency': 0.8,
+            'phase': 0.0,
+            'anchor': 'center',
+            'preserveAlpha': true,
+          },
+          'Bouncing Ball': {
+            'amount': 0.3,
+            'frequency': 2.0,
+            'phase': 0.0,
+            'anchor': 'bottom',
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.windSway:
+        return {
+          'Gentle Breeze': {
+            'amplitude': 4.0,
+            'speed': 0.8,
+            'frequency': 0.5,
+            'stiffness': 1.5,
+            'anchor': 'bottom',
+            'preserveAlpha': true,
+          },
+          'Storm Gust': {
+            'amplitude': 12.0,
+            'speed': 2.0,
+            'frequency': 1.2,
+            'stiffness': 1.3,
+            'anchor': 'bottom',
+            'preserveAlpha': true,
+          },
+          'Hanging Vine': {
+            'amplitude': 8.0,
+            'speed': 1.0,
+            'frequency': 0.8,
+            'stiffness': 1.8,
+            'anchor': 'top',
+            'preserveAlpha': true,
+          },
+          'Flag Flutter': {
+            'amplitude': 6.0,
+            'speed': 2.5,
+            'frequency': 1.8,
+            'stiffness': 1.2,
+            'anchor': 'left',
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.hitFlash:
+        return {
+          'Classic White Flash': {
+            'mode': 'flashDecay',
+            'flashColor': 0xFFFFFFFF,
+            'intensity': 1.0,
+            'blinkCount': 4,
+            'preserveAlpha': true,
+          },
+          'Red Injury Pulse': {
+            'mode': 'flashDecay',
+            'flashColor': 0xFFFF1744,
+            'intensity': 0.9,
+            'blinkCount': 4,
+            'preserveAlpha': true,
+          },
+          'Invulnerability Blink': {
+            'mode': 'blink',
+            'flashColor': 0xFFFFFFFF,
+            'intensity': 1.0,
+            'blinkCount': 5,
+            'preserveAlpha': true,
+          },
+          'Boss Critical Hit': {
+            'mode': 'flashAndBlink',
+            'flashColor': 0xFFFFD700,
+            'intensity': 1.0,
+            'blinkCount': 6,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.ghostTrail:
+        return {
+          'Horizontal Dash': {
+            'ghostCount': 3,
+            'spacing': 8.0,
+            'direction': 0.0,
+            'tintColor': 0xFF00E5FF,
+            'tintStrength': 0.7,
+            'fade': 0.6,
+            'preserveAlpha': true,
+          },
+          'Super Sonic Echo': {
+            'ghostCount': 4,
+            'spacing': 6.0,
+            'direction': 0.0,
+            'tintColor': 0xFFFFD700,
+            'tintStrength': 0.8,
+            'fade': 0.5,
+            'preserveAlpha': true,
+          },
+          'Shadow Teleport': {
+            'ghostCount': 3,
+            'spacing': 12.0,
+            'direction': 180.0,
+            'tintColor': 0xFF7C4DFF,
+            'tintStrength': 0.85,
+            'fade': 0.7,
+            'preserveAlpha': true,
+          },
+          'Upward Launch': {
+            'ghostCount': 3,
+            'spacing': 10.0,
+            'direction': 90.0,
+            'tintColor': 0xFF69F0AE,
+            'tintStrength': 0.6,
+            'fade': 0.6,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.starfield:
+        return {
+          'Deep Cosmos & Nebula': {
+            'starDensity': 0.6,
+            'twinkleSpeed': 1.5,
+            'nebulaIntensity': 0.6,
+            'nebulaTheme': 'violet',
+            'shootingStars': true,
+            'preserveAlpha': false,
+          },
+          'Twinkling Night Sky': {
+            'starDensity': 0.5,
+            'twinkleSpeed': 2.0,
+            'nebulaIntensity': 0.0,
+            'nebulaTheme': 'cyanBlue',
+            'shootingStars': false,
+            'preserveAlpha': true,
+          },
+          'Synthwave Orbit': {
+            'starDensity': 0.7,
+            'twinkleSpeed': 2.2,
+            'nebulaIntensity': 0.8,
+            'nebulaTheme': 'synthwave',
+            'shootingStars': true,
+            'preserveAlpha': false,
+          },
+          'Solar Gold Dust': {
+            'starDensity': 0.4,
+            'twinkleSpeed': 1.2,
+            'nebulaIntensity': 0.5,
+            'nebulaTheme': 'golden',
+            'shootingStars': true,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.electricArc:
+        return {
+          'Tesla Coil Discharge': {
+            'strikeMode': 'radial',
+            'arcColor': 0xFF00E5FF,
+            'branching': 0.7,
+            'jaggedness': 1.0,
+            'glowRadius': 2,
+            'flashIntensity': 0.3,
+            'preserveAlpha': true,
+          },
+          'Thunderbolt Strike': {
+            'strikeMode': 'vertical',
+            'arcColor': 0xFF80D8FF,
+            'branching': 0.8,
+            'jaggedness': 1.2,
+            'glowRadius': 2,
+            'flashIntensity': 0.5,
+            'preserveAlpha': true,
+          },
+          'Contour Plasma Aura': {
+            'strikeMode': 'contourAura',
+            'arcColor': 0xFFE040FB,
+            'branching': 0.4,
+            'jaggedness': 0.6,
+            'glowRadius': 1,
+            'flashIntensity': 0.2,
+            'preserveAlpha': true,
+          },
+          'Golden Spark Shock': {
+            'strikeMode': 'horizontal',
+            'arcColor': 0xFFFFD700,
+            'branching': 0.5,
+            'jaggedness': 0.9,
+            'glowRadius': 2,
+            'flashIntensity': 0.4,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.blizzard:
+        return {
+          'Gentle Winter Flurry': {
+            'intensity': 0.4,
+            'windAngle': 10.0,
+            'swirlTurbulence': 0.3,
+            'blizzardHaze': 0.1,
+            'frostSurfaces': true,
+            'preserveAlpha': true,
+          },
+          'Howling Whiteout': {
+            'intensity': 0.9,
+            'windAngle': 35.0,
+            'swirlTurbulence': 0.8,
+            'blizzardHaze': 0.6,
+            'frostSurfaces': true,
+            'preserveAlpha': false,
+          },
+          'Side Wind Gale': {
+            'intensity': 0.7,
+            'windAngle': -40.0,
+            'swirlTurbulence': 0.5,
+            'blizzardHaze': 0.3,
+            'frostSurfaces': true,
+            'preserveAlpha': true,
+          },
+          'Frosty Midnight': {
+            'intensity': 0.5,
+            'windAngle': 15.0,
+            'swirlTurbulence': 0.4,
+            'blizzardHaze': 0.2,
+            'frostSurfaces': true,
+            'preserveAlpha': false,
+          },
+        };
+      case EffectType.portalVortex:
+        return {
+          'Cosmic Wormhole': {
+            'spinSpeed': 1.8,
+            'swirlTwist': 2.0,
+            'coreRadius': 0.25,
+            'glowColor': 0xFFD500F9,
+            'particlePull': 0.8,
+            'portalMode': 'warpSprite',
+            'preserveAlpha': true,
+          },
+          'Nether Void Gate': {
+            'spinSpeed': 1.2,
+            'swirlTwist': 1.5,
+            'coreRadius': 0.35,
+            'glowColor': 0xFF00E676,
+            'particlePull': 0.6,
+            'portalMode': 'portalOverlay',
+            'preserveAlpha': true,
+          },
+          'Cyber Warp Ring': {
+            'spinSpeed': 2.5,
+            'swirlTwist': 2.5,
+            'coreRadius': 0.2,
+            'glowColor': 0xFF00E5FF,
+            'particlePull': 0.9,
+            'portalMode': 'warpSprite',
+            'preserveAlpha': false,
+          },
+          'Solar Singularity': {
+            'spinSpeed': 1.0,
+            'swirlTwist': 1.0,
+            'coreRadius': 0.15,
+            'glowColor': 0xFFFFD600,
+            'particlePull': 0.5,
+            'portalMode': 'warpSprite',
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.energyShield:
+        return {
+          'Hex Deflector Matrix': {
+            'shieldShape': 'hexMatrix',
+            'barrierColor': 0xFF00B0FF,
+            'pulseRate': 1.5,
+            'impactRipple': 0.7,
+            'shieldThickness': 2,
+            'preserveAlpha': true,
+          },
+          'Plasma Bubble Shield': {
+            'shieldShape': 'spherical',
+            'barrierColor': 0xFF7C4DFF,
+            'pulseRate': 1.8,
+            'impactRipple': 0.5,
+            'shieldThickness': 3,
+            'preserveAlpha': true,
+          },
+          'Overcharged Contour': {
+            'shieldShape': 'contourAura',
+            'barrierColor': 0xFF00E676,
+            'pulseRate': 2.2,
+            'impactRipple': 0.8,
+            'shieldThickness': 2,
+            'preserveAlpha': true,
+          },
+          'Golden Aegis Barrier': {
+            'shieldShape': 'spherical',
+            'barrierColor': 0xFFFFD700,
+            'pulseRate': 1.0,
+            'impactRipple': 0.6,
+            'shieldThickness': 2,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.radiantRays:
+        return {
+          'Holy Level-Up': {
+            'beamCount': 4,
+            'rayIntensity': 0.8,
+            'dustDensity': 0.7,
+            'ascendSpeed': 1.5,
+            'auraColor': 0xFFFFD700,
+            'preserveAlpha': true,
+          },
+          'Celestial Blessing': {
+            'beamCount': 5,
+            'rayIntensity': 0.6,
+            'dustDensity': 0.5,
+            'ascendSpeed': 1.0,
+            'auraColor': 0xFF18FFFF,
+            'preserveAlpha': true,
+          },
+          'Dark Mana Ascension': {
+            'beamCount': 3,
+            'rayIntensity': 0.7,
+            'dustDensity': 0.6,
+            'ascendSpeed': 1.2,
+            'auraColor': 0xFFE040FB,
+            'preserveAlpha': true,
+          },
+          'Sunbeam Sanctuary': {
+            'beamCount': 6,
+            'rayIntensity': 0.5,
+            'dustDensity': 0.3,
+            'ascendSpeed': 0.8,
+            'auraColor': 0xFFFFF176,
+            'preserveAlpha': false,
+          },
+        };
+      case EffectType.burningEmbers:
+        return {
+          'Infernal Boss Death': {
+            'emberColor': 0xFFFF6D00,
+            'decayDirection': 'bottomToTop',
+            'wispSpread': 0.6,
+            'sparkCount': 60,
+            'burnProgress': 0.5,
+            'preserveAlpha': true,
+          },
+          'Phantom Soul Wisps': {
+            'emberColor': 0xFF9C27B0,
+            'decayDirection': 'bottomToTop',
+            'wispSpread': 0.8,
+            'sparkCount': 50,
+            'burnProgress': 0.5,
+            'preserveAlpha': true,
+          },
+          'Necrotic Decay': {
+            'emberColor': 0xFF00E676,
+            'decayDirection': 'radialOutward',
+            'wispSpread': 0.5,
+            'sparkCount': 40,
+            'burnProgress': 0.5,
+            'preserveAlpha': true,
+          },
+          'Phoenix Rebirth': {
+            'emberColor': 0xFFFFD600,
+            'decayDirection': 'topToBottom',
+            'wispSpread': 0.7,
+            'sparkCount': 70,
+            'burnProgress': 0.5,
+            'preserveAlpha': false,
+          },
+        };
+      case EffectType.underwaterCaustics:
+        return {
+          'Shallow Coral Reef': {
+            'causticScale': 1.8,
+            'rippleSpeed': 1.6,
+            'waterTint': 0xFF00E5FF,
+            'tintStrength': 0.35,
+            'buoyancySway': 2.0,
+            'preserveAlpha': true,
+          },
+          'Deep Abyssal Blue': {
+            'causticScale': 1.2,
+            'rippleSpeed': 0.8,
+            'waterTint': 0xFF0D47A1,
+            'tintStrength': 0.55,
+            'buoyancySway': 1.0,
+            'preserveAlpha': true,
+          },
+          'Emerald Swamp Waters': {
+            'causticScale': 1.5,
+            'rippleSpeed': 1.0,
+            'waterTint': 0xFF00BFA5,
+            'tintStrength': 0.45,
+            'buoyancySway': 1.5,
+            'preserveAlpha': true,
+          },
+          'Sunlit Pool': {
+            'causticScale': 2.2,
+            'rippleSpeed': 2.0,
+            'waterTint': 0xFF40C4FF,
+            'tintStrength': 0.25,
+            'buoyancySway': 2.5,
+            'preserveAlpha': false,
+          },
+        };
+      case EffectType.risingBubbles:
+        return {
+          'Magic Mana Potion': {
+            'bubbleCount': 28,
+            'bubbleSize': 'mixed',
+            'riseSpeed': 1.2,
+            'wobbleSpeed': 2.0,
+            'bubbleColor': 0xFF00E5FF,
+            'popSplashes': true,
+            'preserveAlpha': true,
+          },
+          'Toxic Cauldron Fizz': {
+            'bubbleCount': 36,
+            'bubbleSize': 'large',
+            'riseSpeed': 1.6,
+            'wobbleSpeed': 2.5,
+            'bubbleColor': 0xFF76FF03,
+            'popSplashes': true,
+            'preserveAlpha': true,
+          },
+          'Champagne Soda': {
+            'bubbleCount': 45,
+            'bubbleSize': 'small',
+            'riseSpeed': 2.2,
+            'wobbleSpeed': 1.2,
+            'bubbleColor': 0xFFFFF9C4,
+            'popSplashes': true,
+            'preserveAlpha': false,
+          },
+          'Deep Sea Diver': {
+            'bubbleCount': 18,
+            'bubbleSize': 'mixed',
+            'riseSpeed': 0.9,
+            'wobbleSpeed': 1.0,
+            'bubbleColor': 0xFFE0F7FA,
+            'popSplashes': true,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.slimeDrip:
+        return {
+          'Alien Acid Ooze': {
+            'dripFrequency': 2,
+            'viscosity': 0.7,
+            'liquidColor': 0xFF76FF03,
+            'splashSize': 3,
+            'gravity': 1.4,
+            'preserveAlpha': true,
+          },
+          'Vampiric Blood Drip': {
+            'dripFrequency': 2,
+            'viscosity': 0.5,
+            'liquidColor': 0xFFD50000,
+            'splashSize': 2,
+            'gravity': 1.8,
+            'preserveAlpha': true,
+          },
+          'Shadow Tar': {
+            'dripFrequency': 1,
+            'viscosity': 0.9,
+            'liquidColor': 0xFF212121,
+            'splashSize': 3,
+            'gravity': 0.9,
+            'preserveAlpha': true,
+          },
+          'Toxic Sludge': {
+            'dripFrequency': 3,
+            'viscosity': 0.6,
+            'liquidColor': 0xFFAA00FF,
+            'splashSize': 4,
+            'gravity': 1.6,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.radialShockwave:
+        return {
+          'Seismic Ground Pound': {
+            'waveThickness': 3,
+            'expansionSpeed': 1.2,
+            'ringShape': 'isometricDisc',
+            'shockwaveColor': 0xFFFFB300,
+            'dustDebris': true,
+            'debrisCount': 40,
+            'preserveAlpha': true,
+          },
+          'Parry Deflection Flash': {
+            'waveThickness': 2,
+            'expansionSpeed': 2.2,
+            'ringShape': 'circular',
+            'shockwaveColor': 0xFFFFD700,
+            'dustDebris': true,
+            'debrisCount': 20,
+            'preserveAlpha': true,
+          },
+          'Sonic Boom Ring': {
+            'waveThickness': 4,
+            'expansionSpeed': 1.8,
+            'ringShape': 'circular',
+            'shockwaveColor': 0xFF00E5FF,
+            'dustDebris': false,
+            'debrisCount': 10,
+            'preserveAlpha': false,
+          },
+          'Supernova Burst': {
+            'waveThickness': 3,
+            'expansionSpeed': 1.5,
+            'ringShape': 'circular',
+            'shockwaveColor': 0xFFFF1744,
+            'dustDebris': true,
+            'debrisCount': 50,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.slashArc:
+        return {
+          'Muramasa Crimson Slash': {
+            'slashAngle': -35.0,
+            'arcCurvature': 0.45,
+            'slashWidth': 4,
+            'bladeColor': 0xFFFF1744,
+            'sparkSpray': true,
+            'sparkCount': 35,
+            'preserveAlpha': true,
+          },
+          'Cyber Katana Beam': {
+            'slashAngle': 0.0,
+            'arcCurvature': 0.2,
+            'slashWidth': 3,
+            'bladeColor': 0xFF00E5FF,
+            'sparkSpray': true,
+            'sparkCount': 25,
+            'preserveAlpha': true,
+          },
+          'Anime Critical Cleave': {
+            'slashAngle': 45.0,
+            'arcCurvature': 0.6,
+            'slashWidth': 5,
+            'bladeColor': 0xFFFFD700,
+            'sparkSpray': true,
+            'sparkCount': 45,
+            'preserveAlpha': true,
+          },
+          'Void Crescent Scythe': {
+            'slashAngle': -60.0,
+            'arcCurvature': 0.5,
+            'slashWidth': 3,
+            'bladeColor': 0xFFB388FF,
+            'sparkSpray': true,
+            'sparkCount': 20,
+            'preserveAlpha': false,
+          },
+        };
+      case EffectType.hologramGlitch:
+        return {
+          'Cyberpunk Sci-Fi Holo': {
+            'holoColor': 0xFF00E5FF,
+            'colorIntensity': 0.85,
+            'scanlineDensity': 2,
+            'flickerInterval': 1.5,
+            'glitchDropout': 0.25,
+            'jitterSpread': 2,
+            'preserveAlpha': true,
+          },
+          'Vintage Amber Terminal': {
+            'holoColor': 0xFFFFB300,
+            'colorIntensity': 0.8,
+            'scanlineDensity': 3,
+            'flickerInterval': 1.2,
+            'glitchDropout': 0.35,
+            'jitterSpread': 3,
+            'preserveAlpha': true,
+          },
+          'Corrupted Malfunction': {
+            'holoColor': 0xFF00E676,
+            'colorIntensity': 0.9,
+            'scanlineDensity': 2,
+            'flickerInterval': 2.2,
+            'glitchDropout': 0.6,
+            'jitterSpread': 5,
+            'preserveAlpha': true,
+          },
+          'Ghostly Spirit Projection': {
+            'holoColor': 0xFFB388FF,
+            'colorIntensity': 0.6,
+            'scanlineDensity': 4,
+            'flickerInterval': 0.8,
+            'glitchDropout': 0.1,
+            'jitterSpread': 1,
+            'preserveAlpha': false,
+          },
         };
       default:
         return {};
