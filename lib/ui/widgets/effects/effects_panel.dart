@@ -15,6 +15,7 @@ import 'pixlel_preview_painter.dart';
 class EffectsPanel extends StatefulWidget {
   final Layer layer;
   final Function(Layer) onLayerUpdated;
+  final void Function(Effect, List<Effect>, int)? onAnimate;
   final int width;
   final int height;
   final SelectionRegion? selectionRegion;
@@ -25,6 +26,7 @@ class EffectsPanel extends StatefulWidget {
     super.key,
     required this.layer,
     required this.onLayerUpdated,
+    this.onAnimate,
     required this.width,
     required this.height,
     this.selectionRegion,
@@ -110,8 +112,7 @@ class _EffectsPanelState extends State<EffectsPanel> {
       _effects.removeAt(index);
       if (_selectedEffectIndex == index) {
         _selectedEffectIndex = null;
-      } else if (_selectedEffectIndex != null &&
-          _selectedEffectIndex! > index) {
+      } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
         _selectedEffectIndex = _selectedEffectIndex! - 1;
       }
       _updatePreview();
@@ -181,6 +182,13 @@ class _EffectsPanelState extends State<EffectsPanel> {
     });
   }
 
+  void _animateEffect(Effect effect) {
+    final index = _effects.indexOf(effect);
+    if (index >= 0) {
+      widget.onAnimate?.call(effect, List<Effect>.from(_effects), index);
+    }
+  }
+
   void _performApplyEffect(Effect effect) {
     final effectsToApply = [effect];
     final index = _effects.indexOf(effect);
@@ -204,8 +212,7 @@ class _EffectsPanelState extends State<EffectsPanel> {
       _effects.removeAt(index);
       if (_selectedEffectIndex == index) {
         _selectedEffectIndex = null;
-      } else if (_selectedEffectIndex != null &&
-          _selectedEffectIndex! > index) {
+      } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
         _selectedEffectIndex = _selectedEffectIndex! - 1;
       }
     });
@@ -281,8 +288,7 @@ class _EffectsPanelState extends State<EffectsPanel> {
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
-    final isTablet = MediaQuery.of(context).size.width >= 600 &&
-        MediaQuery.of(context).size.width < 1024;
+    final isTablet = MediaQuery.of(context).size.width >= 600 && MediaQuery.of(context).size.width < 1024;
 
     return LayoutBuilder(builder: (context, constraints) {
       if (isMobile) {
@@ -301,6 +307,7 @@ class _EffectsPanelState extends State<EffectsPanel> {
           onRemoveEffect: _removeEffect,
           onSelectEffect: _handleSelect,
           onApplyEffect: _performApplyEffect,
+          onAnimate: widget.onAnimate == null ? null : _animateEffect,
         );
       } else if (isTablet) {
         return _TabletLayout(
@@ -318,6 +325,7 @@ class _EffectsPanelState extends State<EffectsPanel> {
           onRemoveEffect: _removeEffect,
           onSelectEffect: _handleSelect,
           onApplyEffect: _performApplyEffect,
+          onAnimate: widget.onAnimate == null ? null : _animateEffect,
         );
       } else {
         return _DesktopLayout(
@@ -337,6 +345,7 @@ class _EffectsPanelState extends State<EffectsPanel> {
           onClearAllEffects: _clearAllEffects,
           onReorder: _handleReorder,
           onApplyEffect: _performApplyEffect,
+          onAnimate: widget.onAnimate == null ? null : _animateEffect,
           onApplyAllEffects: _performApplyAllEffects,
         );
       }
@@ -359,6 +368,7 @@ class _MobileLayout extends StatelessWidget {
   final ValueChanged<int> onRemoveEffect;
   final ValueChanged<int> onSelectEffect;
   final ValueChanged<Effect> onApplyEffect;
+  final ValueChanged<Effect>? onAnimate;
 
   const _MobileLayout({
     required this.layer,
@@ -375,6 +385,7 @@ class _MobileLayout extends StatelessWidget {
     required this.onRemoveEffect,
     required this.onSelectEffect,
     required this.onApplyEffect,
+    this.onAnimate,
   });
 
   @override
@@ -443,10 +454,7 @@ class _MobileLayout extends StatelessWidget {
               Text(
                 s.effectCount(effects.length),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
               ),
             ],
@@ -461,19 +469,13 @@ class _MobileLayout extends StatelessWidget {
                       Icon(
                         Feather.droplet,
                         size: 48,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.3),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         s.noEffectsApplied,
                         style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.6),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -497,6 +499,7 @@ class _MobileLayout extends StatelessWidget {
                       onEdit: () => onEditEffect(index),
                       onRemove: () => onRemoveEffect(index),
                       onApply: () => onApplyEffect(effect),
+                      onAnimate: onAnimate == null ? null : () => onAnimate!(effect),
                       showApplyButton: true,
                     );
                   },
@@ -541,6 +544,7 @@ class _TabletLayout extends StatelessWidget {
   final ValueChanged<int> onRemoveEffect;
   final ValueChanged<int> onSelectEffect;
   final ValueChanged<Effect> onApplyEffect;
+  final ValueChanged<Effect>? onAnimate;
 
   const _TabletLayout({
     required this.layer,
@@ -557,6 +561,7 @@ class _TabletLayout extends StatelessWidget {
     required this.onRemoveEffect,
     required this.onSelectEffect,
     required this.onApplyEffect,
+    this.onAnimate,
   });
 
   @override
@@ -618,10 +623,8 @@ class _TabletLayout extends StatelessWidget {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimary,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
                         ),
                         onPressed: onApplyChanges,
                         child: Text(s.effectsPanelActionApply),
@@ -666,19 +669,13 @@ class _TabletLayout extends StatelessWidget {
                             Icon(
                               Feather.droplet,
                               size: 64,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withValues(alpha: 0.3),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               s.noEffectsApplied,
                               style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.6),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                 fontSize: 16,
                               ),
                             ),
@@ -697,6 +694,7 @@ class _TabletLayout extends StatelessWidget {
                             onEdit: () => onEditEffect(index),
                             onRemove: () => onRemoveEffect(index),
                             onApply: () => onApplyEffect(effect),
+                            onAnimate: onAnimate == null ? null : () => onAnimate!(effect),
                             showApplyButton: true,
                           );
                         },
@@ -726,6 +724,7 @@ class _DesktopLayout extends StatelessWidget {
   final ValueChanged<int> onSelectEffect;
   final VoidCallback onClearAllEffects;
   final ValueChanged<Effect> onApplyEffect;
+  final ValueChanged<Effect>? onAnimate;
   final VoidCallback onApplyAllEffects;
   final ReorderCallback onReorder;
 
@@ -746,6 +745,7 @@ class _DesktopLayout extends StatelessWidget {
     required this.onClearAllEffects,
     required this.onReorder,
     required this.onApplyEffect,
+    this.onAnimate,
     required this.onApplyAllEffects,
   });
 
@@ -785,13 +785,8 @@ class _DesktopLayout extends StatelessWidget {
                             children: [
                               Text(
                                 s.finalResult,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface,
                                     ),
                               ),
                               const SizedBox(height: 16),
@@ -826,8 +821,7 @@ class _DesktopLayout extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     Column(
                                       children: [
@@ -835,10 +829,8 @@ class _DesktopLayout extends StatelessWidget {
                                           width: 120,
                                           height: 120,
                                           decoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: Colors.grey.shade300),
-                                            color:
-                                                Theme.of(context).canvasColor,
+                                            border: Border.all(color: Colors.grey.shade300),
+                                            color: Theme.of(context).canvasColor,
                                           ),
                                           child: CustomPaint(
                                             painter: PixelPreviewPainter(
@@ -854,8 +846,7 @@ class _DesktopLayout extends StatelessWidget {
                                     ),
                                     Icon(
                                       Icons.arrow_forward,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
+                                      color: Theme.of(context).colorScheme.primary,
                                     ),
                                     Column(
                                       children: [
@@ -863,10 +854,8 @@ class _DesktopLayout extends StatelessWidget {
                                           width: 120,
                                           height: 120,
                                           decoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: Colors.grey.shade300),
-                                            color:
-                                                Theme.of(context).canvasColor,
+                                            border: Border.all(color: Colors.grey.shade300),
+                                            color: Theme.of(context).canvasColor,
                                           ),
                                           child: _PreviewWidget(
                                             pixels: previewPixels,
@@ -907,10 +896,8 @@ class _DesktopLayout extends StatelessWidget {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimary,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
                         ),
                         onPressed: onApplyChanges,
                         child: Text(s.saveChanges),
@@ -960,18 +947,14 @@ class _DesktopLayout extends StatelessWidget {
               ),
               if (effects.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         s.effectsAppliedCount(effects.length),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                       ),
                       TextButton.icon(
@@ -997,19 +980,13 @@ class _DesktopLayout extends StatelessWidget {
                             Icon(
                               Feather.droplet,
                               size: 64,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withValues(alpha: 0.3),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               s.noEffectsApplied,
                               style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.6),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                 fontSize: 18,
                               ),
                             ),
@@ -1029,14 +1006,14 @@ class _DesktopLayout extends StatelessWidget {
                           final isSelected = selectedEffectIndex == index;
                           final effect = effects[index];
                           return EffectListItem(
-                            key: ValueKey(
-                                effect.type.toString() + index.toString()),
+                            key: ValueKey(effect.type.toString() + index.toString()),
                             effect: effect,
                             isSelected: isSelected,
                             onSelect: () => onSelectEffect(index),
                             onEdit: () => onEditEffect(index),
                             onRemove: () => onRemoveEffect(index),
                             onApply: () => onApplyEffect(effect),
+                            onAnimate: onAnimate == null ? null : () => onAnimate!(effect),
                             showDragHandle: true,
                             showApplyButton: true,
                           );
@@ -1084,6 +1061,7 @@ extension EffectPanelDialogExtension on BuildContext {
     required int width,
     required int height,
     required Function(Layer) onLayerUpdated,
+    void Function(Effect, List<Effect>, int)? onAnimate,
     SelectionRegion? selectionRegion,
   }) {
     final size = MediaQuery.sizeOf(this);
@@ -1102,6 +1080,7 @@ extension EffectPanelDialogExtension on BuildContext {
             width: width,
             height: height,
             onLayerUpdated: onLayerUpdated,
+            onAnimate: onAnimate,
             selectionRegion: selectionRegion,
             isDialog: true,
           ),
@@ -1126,6 +1105,7 @@ extension EffectPanelDialogExtension on BuildContext {
                 width: width,
                 height: height,
                 onLayerUpdated: onLayerUpdated,
+                onAnimate: onAnimate,
                 selectionRegion: selectionRegion,
                 isDialog: true,
               ),

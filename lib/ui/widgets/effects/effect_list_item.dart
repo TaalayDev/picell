@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../../pixel/effects/effects.dart';
+import '../../../l10n/strings.dart';
 import '../app_icon.dart';
 import '../fields/ui_field_builder.dart';
 
@@ -89,21 +90,20 @@ class _EffectListItemState extends State<EffectListItem> {
       ),
       child: Column(
         children: [
+          const SizedBox(height: 8),
           InkWell(
             onTap: widget.onSelect,
             borderRadius: BorderRadius.circular(8),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Row(
                 children: [
-                  // Icon
                   CircleAvatar(
                     backgroundColor: effectColor.withValues(alpha: 0.2),
                     radius: 10,
                     child: effectIcon,
                   ),
                   const SizedBox(width: 12),
-                  // Title
                   Expanded(
                     child: Text(
                       widget.effect.getName(context),
@@ -116,13 +116,12 @@ class _EffectListItemState extends State<EffectListItem> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  // Expand button
                   if (fields.isNotEmpty)
                     InkWell(
                       onTap: () => setState(() => _isExpanded = !_isExpanded),
                       borderRadius: BorderRadius.circular(4),
                       child: Padding(
-                        padding: EdgeInsets.all(4.0),
+                        padding: const EdgeInsets.all(4.0),
                         child: Icon(
                           _isExpanded ? Icons.expand_less : Icons.expand_more,
                           size: 16,
@@ -130,7 +129,6 @@ class _EffectListItemState extends State<EffectListItem> {
                       ),
                     ),
 
-                  // Edit button
                   InkWell(
                     onTap: widget.onEdit,
                     borderRadius: BorderRadius.circular(4),
@@ -140,7 +138,13 @@ class _EffectListItemState extends State<EffectListItem> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Apply button
+                  if (widget.effect.isAnimation && widget.onAnimate != null)
+                    IconButton(
+                      onPressed: widget.onAnimate,
+                      tooltip: Strings.of(context).generateAnimation,
+                      icon: const Icon(Icons.movie_creation_outlined, size: 18),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   if (widget.showApplyButton && widget.onApply != null)
                     InkWell(
                       onTap: widget.onApply,
@@ -172,11 +176,10 @@ class _EffectListItemState extends State<EffectListItem> {
               ),
             ),
           ),
-          // Expanded parameters section
           if (_isExpanded && fields.isNotEmpty)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
                 borderRadius: const BorderRadius.only(
@@ -193,7 +196,9 @@ class _EffectListItemState extends State<EffectListItem> {
                   onChanged: _updateParameter,
                 ),
               ),
-            ),
+            )
+          else
+            const SizedBox(height: 8),
         ],
       ),
     );

@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Локальный инструмент для подготовки локализованных скриншотов App Store.">
+  <title>App Store Screenshot Localizer</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171917;
+      --muted: #6f756f;
+      --line: #dfe3dc;
+      --panel: rgba(255, 255, 255, 0.88);
+      --green: #dfff3e;
+      --green-dark: #263100;
+      --purple: #8c72ff;
+      --surface: #f3f4ef;
+      --shadow: 0 16px 45px rgba(24, 28, 18, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% -5%, rgba(223, 255, 62, 0.45), transparent 28rem),
+        radial-gradient(circle at 95% 18%, rgba(140, 114, 255, 0.18), transparent 32rem),
+        var(--surface);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, select, input { font: inherit; }
+    button { color: inherit; }
+
+    .app {
+      width: min(1440px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 34px 0 56px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: #5c6545;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(223, 255, 62, .28);
+      content: "";
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(36px, 5vw, 72px);
+      font-weight: 650;
+      letter-spacing: -.055em;
+      line-height: .95;
+    }
+
+    .subtitle {
+      max-width: 680px;
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .privacy {
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      color: #4d534c;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .privacy svg { width: 15px; }
+
+    .toolbar {
+      position: sticky;
+      z-index: 10;
+      top: 12px;
+      display: grid;
+      grid-template-columns: minmax(150px, .65fr) minmax(210px, 1fr) minmax(220px, .8fr) auto auto;
+      gap: 14px;
+      align-items: end;
+      padding: 16px;
+      border: 1px solid rgba(215, 219, 210, .9);
+      border-radius: 20px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .field { display: grid; gap: 7px; }
+    .field label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .range-control {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      height: 46px;
+      padding: 0 9px 0 13px;
+      border: 1px solid #d8ddd3;
+      border-radius: 13px;
+      background: #fff;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--purple);
+      cursor: ew-resize;
+    }
+
+    .range-value {
+      min-width: 67px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: #f0edff;
+      color: #4d38aa;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    select, .button {
+      height: 46px;
+      border: 1px solid #d8ddd3;
+      border-radius: 13px;
+      background: #fff;
+      outline: none;
+    }
+
+    select {
+      width: 100%;
+      padding: 0 42px 0 14px;
+      cursor: pointer;
+    }
+
+    select:focus-visible, .button:focus-visible, .slot:focus-within {
+      box-shadow: 0 0 0 4px rgba(140, 114, 255, .2);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 0 17px;
+      cursor: pointer;
+      font-weight: 750;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .button:hover:not(:disabled) { transform: translateY(-1px); }
+    .button svg { width: 18px; height: 18px; }
+    .button.primary {
+      border-color: var(--green);
+      background: var(--green);
+      color: var(--green-dark);
+      box-shadow: 0 7px 18px rgba(104, 128, 0, .16);
+    }
+    .button:disabled { cursor: not-allowed; opacity: .42; }
+
+    .batch-input { display: none; }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 24px 2px 13px;
+    }
+
+    .status-row h2 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: -.02em;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .grid.tablet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tablet-grid canvas {
+      width: 100%;
+      height: auto;
+      max-height: 520px;
+      object-fit: contain;
+    }
+
+    .slot {
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,.78);
+      box-shadow: 0 8px 24px rgba(24, 28, 18, .045);
+      transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+
+    .slot.dragging {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 4px rgba(140, 114, 255, .16), var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .slot-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 104px;
+      padding: 17px;
+    }
+
+    .slot-number {
+      display: inline-grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      background: #191b19;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .slot-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 720;
+      letter-spacing: -.015em;
+      line-height: 1.25;
+    }
+
+    .filename {
+      overflow: hidden;
+      max-width: 170px;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .remove {
+      display: none;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 0;
+      border-radius: 9px;
+      background: #f0f1ed;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .slot.loaded .remove { display: grid; }
+
+    .preview {
+      position: relative;
+      display: grid;
+      min-height: 420px;
+      place-items: center;
+      padding: 18px;
+      border-top: 1px solid var(--line);
+      background:
+        linear-gradient(45deg, #eef0ea 25%, transparent 25%),
+        linear-gradient(-45deg, #eef0ea 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #eef0ea 75%),
+        linear-gradient(-45deg, transparent 75%, #eef0ea 75%), #f8f9f6;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      background-size: 16px 16px;
+    }
+
+    canvas {
+      display: none;
+      width: auto;
+      max-width: 100%;
+      height: 384px;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 13px 34px rgba(19, 22, 18, .18);
+    }
+    .slot.loaded canvas { display: block; }
+
+    .empty {
+      display: grid;
+      max-width: 240px;
+      justify-items: center;
+      gap: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .slot.loaded .empty { display: none; }
+
+    .upload-mark {
+      display: grid;
+      width: 58px;
+      height: 58px;
+      place-items: center;
+      border: 1px dashed #abb0a7;
+      border-radius: 17px;
+      background: rgba(255,255,255,.86);
+    }
+    .upload-mark svg { width: 24px; }
+    .empty strong { color: var(--ink); font-size: 14px; }
+    .empty span { font-size: 12px; line-height: 1.45; }
+    .file-input { display: none; }
+
+    .preview > label {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+    }
+
+    .specs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .specs span {
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.62);
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 30;
+      right: 22px;
+      bottom: 22px;
+      max-width: min(390px, calc(100% - 44px));
+      padding: 13px 16px;
+      border-radius: 13px;
+      background: #191b19;
+      color: #fff;
+      box-shadow: 0 18px 50px rgba(0,0,0,.24);
+      font-size: 13px;
+      font-weight: 650;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition: .22s ease;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      .app { width: min(100% - 24px, 1440px); padding-top: 22px; }
+      .grid { grid-template-columns: 1fr; }
+      .toolbar { position: static; grid-template-columns: 1fr; }
+      .field { grid-column: auto; }
+      .button { width: 100%; }
+      .privacy { display: none; }
+      .preview { min-height: 390px; }
+      canvas { height: 350px; }
+      .tablet-grid canvas { height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">PixelVerse toolkit</div>
+        <h1>Screenshot<br>Localizer</h1>
+        <p class="subtitle">Выберите формат устройства, загрузите готовые скриншоты и скачайте ZIP. Высоту белой области можно настроить, а заголовки уже переведены.</p>
+      </div>
+      <div class="privacy" title="Файлы обрабатываются только в браузере">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+        Только локальная обработка
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="Настройки экспорта">
+      <div class="field">
+        <label for="deviceMode">Формат</label>
+        <select id="deviceMode">
+          <option value="phone" selected>Phone · 6 кадров</option>
+          <option value="tablet">Tablet · 3 кадра</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="locale">Локаль экспорта</label>
+        <select id="locale">
+          <option value="ja">日本語 · Japanese (JP)</option>
+          <option value="ko">한국어 · Korean (KO)</option>
+          <option value="zh">简体中文 · Chinese (ZH)</option>
+          <option value="pt">Português · Portuguese (PT)</option>
+          <option value="es">Español · Spanish (ES)</option>
+          <option value="de">Deutsch · German (DE)</option>
+          <option value="fr">Français · French (FR)</option>
+          <option value="ar">العربية · Arabic (AR)</option>
+          <option value="it">Italiano · Italian (IT)</option>
+          <option value="ru" selected>Русский · Russian (RU)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="coverHeight">Высота белой области</label>
+        <div class="range-control">
+          <input id="coverHeight" type="range" min="300" max="900" step="10" value="590" aria-describedby="coverHeightValue">
+          <output class="range-value" id="coverHeightValue" for="coverHeight">590 px</output>
+        </div>
+      </div>
+
+      <button class="button" id="loadAll" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m0-12-4 4m4-4 4 4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>
+        Загрузить 6 файлов
+      </button>
+      <input class="batch-input" id="batchInput" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+
+      <button class="button primary" id="export" type="button" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Экспортировать ZIP
+      </button>
+    </section>
+
+    <div class="status-row">
+      <h2>Скриншоты</h2>
+      <div class="status" id="status">Загружено 0 из 6</div>
+    </div>
+
+    <section class="grid" id="grid" aria-label="Шесть скриншотов"></section>
+
+    <div class="specs" aria-label="Параметры результата">
+      <span id="sizeSpec">PNG · 1242 × 2688 px</span>
+      <span id="coverSpec">Белая область · 590 px</span>
+      <span>10 локалей</span>
+      <span>ZIP без загрузки в интернет</span>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const profiles = {
+      phone: {
+        label: 'Phone', width: 1242, height: 2688, slotCount: 6,
+        coverHeight: 590, coverMin: 300, coverMax: 900,
+        titleIndexes: [0, 1, 2, 3, 4, 5]
+      },
+      tablet: {
+        label: 'Tablet', width: 2732, height: 2048, slotCount: 3,
+        coverHeight: 390, coverMin: 220, coverMax: 700,
+        titleIndexes: [1, 0, 4]
+      }
+    };
+    const modeState = {
+      phone: { files: Array(6).fill(null), images: Array(6).fill(null) },
+      tablet: { files: Array(3).fill(null), images: Array(3).fill(null) }
+    };
+    let activeMode = 'phone';
+
+    function currentProfile() { return profiles[activeMode]; }
+    function currentFiles() { return modeState[activeMode].files; }
+    function currentImages() { return modeState[activeMode].images; }
+
+    const translations = {
+      ja: [
+        '息をのむピクセルワールドをデザイン',
+        'ピクセルアートに命を吹き込もう！',
+        'フレーム単位で精密にアニメーション',
+        'ゲーム向けスプライトシートを柔軟に書き出し',
+        'レイヤーにプロ仕様のエフェクト',
+        'すべてのピクセルを極める高度な描画ツール'
+      ],
+      ko: [
+        '숨 막히는 픽셀 세계를 디자인하세요',
+        '픽셀 아트에 생명을 불어넣으세요!',
+        '프레임 단위로 정교하게 애니메이션하세요',
+        '게임용 스프라이트 시트를 자유롭게 내보내세요',
+        '레이어를 위한 프로급 효과',
+        '모든 픽셀을 완성하는 고급 드로잉 도구'
+      ],
+      zh: [
+        '打造令人惊叹的像素世界',
+        '让像素艺术鲜活起来！',
+        '逐帧精准制作动画',
+        '灵活导出游戏级精灵图',
+        '为图层解锁专业特效',
+        '掌控每个像素：高级绘图工具'
+      ],
+      pt: [
+        'Crie mundos de pixels incríveis',
+        'Dê vida à sua pixel art!',
+        'Anime com precisão quadro a quadro',
+        'Sprite sheets prontas para jogos com exportação flexível',
+        'Efeitos profissionais para as suas camadas',
+        'Domine cada pixel com ferramentas de desenho avançadas'
+      ],
+      es: [
+        'Diseña mundos de píxeles increíbles',
+        '¡Da vida a tu pixel art!',
+        'Anima con precisión fotograma a fotograma',
+        'Sprite sheets listas para juegos con exportación flexible',
+        'Efectos profesionales para tus capas',
+        'Domina cada píxel con herramientas de dibujo avanzadas'
+      ],
+      de: [
+        'Erschaffe atemberaubende Pixelwelten',
+        'Erwecke deine Pixelkunst zum Leben!',
+        'Animiere präzise Bild für Bild',
+        'Spielfertige Sprite-Sheets flexibel exportieren',
+        'Professionelle Effekte für deine Ebenen',
+        'Beherrsche jedes Pixel mit fortschrittlichen Zeichenwerkzeugen'
+      ],
+      fr: [
+        'Créez des mondes pixelisés à couper le souffle',
+        'Donnez vie à votre pixel art !',
+        'Animez avec précision image par image',
+        'Des sprites prêts pour le jeu et un export flexible',
+        'Des effets professionnels pour vos calques',
+        'Maîtrisez chaque pixel avec des outils de dessin avancés'
+      ],
+      ar: [
+        'صمّم عوالم بكسل مذهلة',
+        'امنح فن البكسل الحياة!',
+        'حرّك بدقة إطارًا تلو الآخر',
+        'صدّر لوحات شخصيات جاهزة للألعاب بمرونة',
+        'تأثيرات احترافية للطبقات',
+        'أتقن كل بكسل بأدوات رسم متقدمة'
+      ],
+      it: [
+        'Crea mondi pixel mozzafiato',
+        'Dai vita alla tua pixel art!',
+        'Anima con precisione fotogramma per fotogramma',
+        'Sprite sheet pronte per i giochi con esportazione flessibile',
+        'Effetti professionali per i tuoi livelli',
+        'Padroneggia ogni pixel con strumenti di disegno avanzati'
+      ],
+      ru: [
+        'Создавайте захватывающие пиксельные миры',
+        'Оживите свой пиксель-арт!',
+        'Точная покадровая анимация',
+        'Готовые игровые спрайты и гибкий экспорт',
+        'Профессиональные эффекты для слоёв',
+        'Продвинутые инструменты рисования'
+      ]
+    };
+
+    const localeNames = { ja: 'jp', ko: 'ko', zh: 'zh', pt: 'pt', es: 'es', de: 'de', fr: 'fr', ar: 'ar', it: 'it', ru: 'ru' };
+    const localeFonts = {
+      ja: '-apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif',
+      ko: '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
+      zh: '-apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif',
+      ar: '-apple-system, BlinkMacSystemFont, "Geeza Pro", "Noto Sans Arabic", sans-serif',
+      default: '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+    };
+
+    const grid = document.querySelector('#grid');
+    const deviceModeSelect = document.querySelector('#deviceMode');
+    const localeSelect = document.querySelector('#locale');
+    const coverHeightInput = document.querySelector('#coverHeight');
+    const coverHeightValue = document.querySelector('#coverHeightValue');
+    const coverSpec = document.querySelector('#coverSpec');
+    const sizeSpec = document.querySelector('#sizeSpec');
+    const status = document.querySelector('#status');
+    const exportButton = document.querySelector('#export');
+    const loadAllButton = document.querySelector('#loadAll');
+    const batchInput = document.querySelector('#batchInput');
+    const toast = document.querySelector('#toast');
+
+    let toastTimer;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('visible'), 2600);
+    }
+
+    function createSlots() {
+      const profile = currentProfile();
+      grid.innerHTML = '';
+      for (let index = 0; index < profile.slotCount; index += 1) {
+        const article = document.createElement('article');
+        article.className = 'slot';
+        article.dataset.index = index;
+        article.innerHTML = `
+          <div class="slot-header">
+            <div>
+              <span class="slot-number">${index + 1}</span>
+              <p class="slot-title"></p>
+              <div class="filename">PNG, JPG или WebP</div>
+            </div>
+            <button class="remove" type="button" aria-label="Удалить изображение">×</button>
+          </div>
+          <div class="preview">
+            <canvas width="${profile.width}" height="${profile.height}" aria-label="Предпросмотр скриншота ${index + 1}"></canvas>
+            <div class="empty">
+              <span class="upload-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              </span>
+              <strong>Перетащите скриншот</strong>
+              <span>или нажмите, чтобы выбрать файл</span>
+            </div>
+            <label for="file-${index}" aria-label="Загрузить скриншот ${index + 1}"></label>
+            <input class="file-input" id="file-${index}" type="file" accept="image/png,image/jpeg,image/webp">
+          </div>`;
+
+        const input = article.querySelector('.file-input');
+        const remove = article.querySelector('.remove');
+        input.addEventListener('change', () => input.files[0] && loadFile(index, input.files[0]));
+        remove.addEventListener('click', () => clearSlot(index));
+        article.addEventListener('dragover', event => {
+          event.preventDefault();
+          article.classList.add('dragging');
+        });
+        article.addEventListener('dragleave', () => article.classList.remove('dragging'));
+        article.addEventListener('drop', event => {
+          event.preventDefault();
+          article.classList.remove('dragging');
+          const file = [...event.dataTransfer.files].find(item => item.type.startsWith('image/'));
+          if (file) loadFile(index, file);
+        });
+        grid.appendChild(article);
+
+        if (currentImages()[index]) {
+          article.classList.add('loaded');
+          article.querySelector('.filename').textContent = currentFiles()[index].name;
+        }
+      }
+      updateLocalizedTitles();
+      updateStatus();
+    }
+
+    function updateLocalizedTitles() {
+      const locale = localeSelect.value;
+      const profile = currentProfile();
+      document.querySelectorAll('.slot').forEach((slot, index) => {
+        const title = slot.querySelector('.slot-title');
+        title.textContent = translations[locale][profile.titleIndexes[index]];
+        title.dir = locale === 'ar' ? 'rtl' : 'ltr';
+        title.lang = locale;
+        if (currentImages()[index]) render(index);
+      });
+    }
+
+    function loadFile(index, file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Выберите изображение PNG, JPG или WebP');
+        return;
+      }
+      const loadMode = activeMode;
+      const targetState = modeState[loadMode];
+      const reader = new FileReader();
+      reader.onload = () => {
+        const image = new Image();
+        image.onload = () => {
+          targetState.files[index] = file;
+          targetState.images[index] = image;
+          if (activeMode !== loadMode) return;
+          const slot = grid.children[index];
+          slot.classList.add('loaded');
+          slot.querySelector('.filename').textContent = file.name;
+          render(index);
+          updateStatus();
+        };
+        image.onerror = () => showToast(`Не удалось открыть ${file.name}`);
+        image.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearSlot(index) {
+      currentFiles()[index] = null;
+      currentImages()[index] = null;
+      const slot = grid.children[index];
+      slot.classList.remove('loaded');
+      slot.querySelector('.filename').textContent = 'PNG, JPG или WebP';
+      slot.querySelector('.file-input').value = '';
+      const canvas = slot.querySelector('canvas');
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      updateStatus();
+    }
+
+    function updateStatus() {
+      const profile = currentProfile();
+      const count = currentFiles().filter(Boolean).length;
+      status.textContent = `Загружено ${count} из ${profile.slotCount}`;
+      exportButton.disabled = count !== profile.slotCount;
+    }
+
+    function fitText(ctx, text, maxWidth, maxHeight, locale) {
+      const isCjk = ['ja', 'ko', 'zh'].includes(locale);
+      const fontFamily = localeFonts[locale] || localeFonts.default;
+      const tabletSize = isCjk ? 118 : locale === 'ar' ? 116 : 124;
+      const phoneSize = isCjk ? 94 : locale === 'ar' ? 91 : 96;
+      const startSize = activeMode === 'tablet' ? tabletSize : phoneSize;
+      const minSize = 32;
+
+      for (let fontSize = startSize; fontSize >= minSize; fontSize -= 2) {
+        const lineHeight = Math.round(fontSize * (locale === 'ar' ? 1.42 : 1.17));
+        ctx.font = `500 ${fontSize}px ${fontFamily}`;
+        const lines = wrapText(ctx, text, maxWidth, isCjk);
+        if (lines.length * lineHeight <= maxHeight && lines.length <= 4) {
+          return { fontSize, lineHeight, lines, fontFamily };
+        }
+      }
+      ctx.font = `500 ${minSize}px ${fontFamily}`;
+      return { fontSize: minSize, lineHeight: Math.round(minSize * 1.2), lines: wrapText(ctx, text, maxWidth, isCjk), fontFamily };
+    }
+
+    function wrapText(ctx, text, maxWidth, characterWrap) {
+      const units = characterWrap ? [...text] : text.split(/\s+/);
+      const joiner = characterWrap ? '' : ' ';
+      const lines = [];
+      let line = '';
+      for (const unit of units) {
+        const candidate = line ? `${line}${joiner}${unit}` : unit;
+        if (ctx.measureText(candidate).width <= maxWidth || !line) {
+          line = candidate;
+        } else {
+          lines.push(line);
+          line = unit;
+        }
+      }
+      if (line) lines.push(line);
+      return lines;
+    }
+
+    function render(index) {
+      const profile = currentProfile();
+      const image = currentImages()[index];
+      if (!image) return;
+      const locale = localeSelect.value;
+      const canvas = grid.children[index].querySelector('canvas');
+      const ctx = canvas.getContext('2d', { alpha: false });
+
+      ctx.save();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, profile.width, profile.height);
+      ctx.drawImage(image, 0, 0, profile.width, profile.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, profile.width, profile.coverHeight);
+
+      const horizontalPadding = activeMode === 'tablet' ? 260 : 106;
+      const maxWidth = profile.width - horizontalPadding * 2;
+      const maxHeight = Math.max(120, profile.coverHeight - (activeMode === 'tablet' ? 110 : 150));
+      const titleIndex = profile.titleIndexes[index];
+      const fitted = fitText(ctx, translations[locale][titleIndex], maxWidth, maxHeight, locale);
+      ctx.font = `500 ${fitted.fontSize}px ${fitted.fontFamily}`;
+      ctx.fillStyle = '#050505';
+      ctx.textBaseline = 'top';
+      ctx.textAlign = activeMode === 'tablet' ? 'center' : locale === 'ar' ? 'right' : 'left';
+      ctx.direction = locale === 'ar' ? 'rtl' : 'ltr';
+
+      const totalHeight = fitted.lines.length * fitted.lineHeight;
+      const startY = Math.max(30, Math.round((profile.coverHeight - totalHeight) / 2) - 5);
+      const x = activeMode === 'tablet'
+        ? profile.width / 2
+        : locale === 'ar' ? profile.width - horizontalPadding : horizontalPadding;
+      fitted.lines.forEach((line, lineIndex) => {
+        ctx.fillText(line, x, startY + lineIndex * fitted.lineHeight);
+      });
+      ctx.restore();
+    }
+
+    function canvasToBytes(canvas) {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(async blob => {
+          if (!blob) return reject(new Error('Не удалось создать PNG'));
+          resolve(new Uint8Array(await blob.arrayBuffer()));
+        }, 'image/png');
+      });
+    }
+
+    const crcTable = (() => {
+      const table = new Uint32Array(256);
+      for (let n = 0; n < 256; n += 1) {
+        let c = n;
+        for (let k = 0; k < 8; k += 1) c = (c & 1) ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+        table[n] = c >>> 0;
+      }
+      return table;
+    })();
+
+    function crc32(bytes) {
+      let crc = 0xffffffff;
+      for (const byte of bytes) crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function u16(value) {
+      return new Uint8Array([value & 255, (value >>> 8) & 255]);
+    }
+
+    function u32(value) {
+      return new Uint8Array([value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255]);
+    }
+
+    function concat(parts) {
+      const size = parts.reduce((sum, part) => sum + part.length, 0);
+      const result = new Uint8Array(size);
+      let offset = 0;
+      for (const part of parts) {
+        result.set(part, offset);
+        offset += part.length;
+      }
+      return result;
+    }
+
+    function createZip(entries) {
+      const encoder = new TextEncoder();
+      const localParts = [];
+      const centralParts = [];
+      let offset = 0;
+
+      for (const entry of entries) {
+        const name = encoder.encode(entry.name);
+        const crc = crc32(entry.data);
+        const local = concat([
+          u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(0), u16(0),
+          u32(crc), u32(entry.data.length), u32(entry.data.length), u16(name.length), u16(0), name, entry.data
+        ]);
+        localParts.push(local);
+        centralParts.push(concat([
+          u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0),
+          u32(crc), u32(entry.data.length), u32(entry.data.length), u16(name.length), u16(0),
+          u16(0), u16(0), u16(0), u32(0), u32(offset), name
+        ]));
+        offset += local.length;
+      }
+
+      const central = concat(centralParts);
+      const end = concat([
+        u32(0x06054b50), u16(0), u16(0), u16(entries.length), u16(entries.length),
+        u32(central.length), u32(offset), u16(0)
+      ]);
+      return new Blob([...localParts, central, end], { type: 'application/zip' });
+    }
+
+    async function exportZip() {
+      const profile = currentProfile();
+      if (currentFiles().some(file => !file)) return;
+      const locale = localeSelect.value;
+      exportButton.disabled = true;
+      deviceModeSelect.disabled = true;
+      localeSelect.disabled = true;
+      coverHeightInput.disabled = true;
+      loadAllButton.disabled = true;
+      exportButton.textContent = 'Подготовка…';
+      try {
+        const entries = [];
+        for (let index = 0; index < profile.slotCount; index += 1) {
+          render(index);
+          const canvas = grid.children[index].querySelector('canvas');
+          entries.push({
+            name: `${localeNames[locale]}-${String(index + 1).padStart(2, '0')}.png`,
+            data: await canvasToBytes(canvas)
+          });
+        }
+        const zip = createZip(entries);
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(zip);
+        link.download = `pixelverse-appstore-${activeMode}-${localeNames[locale]}.zip`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        showToast(`ZIP: ${profile.slotCount} ${profile.label}-скриншота готовы`);
+      } catch (error) {
+        console.error(error);
+        showToast('Не удалось создать ZIP');
+      } finally {
+        exportButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Экспортировать ZIP';
+        deviceModeSelect.disabled = false;
+        localeSelect.disabled = false;
+        coverHeightInput.disabled = false;
+        loadAllButton.disabled = false;
+        updateStatus();
+      }
+    }
+
+    function applyMode(mode) {
+      activeMode = mode;
+      const profile = currentProfile();
+      coverHeightInput.min = profile.coverMin;
+      coverHeightInput.max = profile.coverMax;
+      coverHeightInput.value = profile.coverHeight;
+      coverHeightValue.textContent = `${profile.coverHeight} px`;
+      coverSpec.textContent = `Белая область · ${profile.coverHeight} px`;
+      sizeSpec.textContent = `PNG · ${profile.width} × ${profile.height} px`;
+      loadAllButton.lastChild.textContent = profile.slotCount === 3 ? ' Загрузить 3 файла' : ' Загрузить 6 файлов';
+      grid.classList.toggle('tablet-grid', mode === 'tablet');
+      grid.setAttribute('aria-label', `${profile.slotCount} ${profile.label}-скриншота`);
+      createSlots();
+    }
+
+    loadAllButton.addEventListener('click', () => batchInput.click());
+    batchInput.addEventListener('change', () => {
+      const profile = currentProfile();
+      const selected = [...batchInput.files].filter(file => file.type.startsWith('image/'));
+      if (selected.length !== profile.slotCount) {
+        showToast(`Выберите ровно ${profile.slotCount} изображения`);
+        batchInput.value = '';
+        return;
+      }
+      selected.forEach((file, index) => loadFile(index, file));
+      batchInput.value = '';
+    });
+    deviceModeSelect.addEventListener('change', () => applyMode(deviceModeSelect.value));
+    localeSelect.addEventListener('change', updateLocalizedTitles);
+    coverHeightInput.addEventListener('input', () => {
+      const profile = currentProfile();
+      profile.coverHeight = Number(coverHeightInput.value);
+      coverHeightValue.textContent = `${profile.coverHeight} px`;
+      coverSpec.textContent = `Белая область · ${profile.coverHeight} px`;
+      currentImages().forEach((image, index) => image && render(index));
+    });
+    exportButton.addEventListener('click', exportZip);
+
+    applyMode('phone');
+  </script>
+</body>
+</html>

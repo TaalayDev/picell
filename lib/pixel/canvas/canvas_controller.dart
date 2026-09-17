@@ -29,6 +29,7 @@ class PixelCanvasController extends ChangeNotifier {
 
   ui.Image? _livePreviewImage;
   Timer? _previewImageUpdateTimer;
+  bool _previewImageBuildRunning = false;
   int _previewRevision = 0;
   int _livePreviewRevision = -1;
 
@@ -41,7 +42,6 @@ class PixelCanvasController extends ChangeNotifier {
   bool _isDrawingPenPath = false;
   Offset? _gradientStart;
   Offset? _gradientEnd;
-  Uint32List _processedPreviewPixels = Uint32List(0);
   bool _previewEffectsEnabled = true;
 
   // Curve state
@@ -63,9 +63,9 @@ class PixelCanvasController extends ChangeNotifier {
     required List<Layer> layers,
     required int currentLayerIndex,
     required this.cacheManager,
-  }) : _layers = List.from(layers),
-       _currentLayerIndex = currentLayerIndex,
-       _cachedPixels = Uint32List(width * height);
+  })  : _layers = List.from(layers),
+        _currentLayerIndex = currentLayerIndex,
+        _cachedPixels = Uint32List(width * height);
 
   // Getters
   List<Layer> get layers => _layers;
@@ -76,7 +76,21 @@ class PixelCanvasController extends ChangeNotifier {
 
   ui.Image? get livePreviewImage => _livePreviewImage;
   bool get hasFreshLivePreviewImage =>
-      _livePreviewImage != null && _previewPixels.isNotEmpty && _livePreviewRevision == _previewRevision;
+      _livePreviewImage != null &&
+      _previewPixels.isNotEmpty &&
+      _livePreviewRevision == _previewRevision;
+
+  // Keep the last complete effects frame on screen while the next one is
+  // rendered. Switching to raw preview pixels in between changes the whole
+  // layer's appearance and makes the canvas flash during a stroke.
+  bool get hasEffectPreview =>
+      _previewEffectsEnabled &&
+      _previewPixels.isNotEmpty &&
+      currentLayer.effects.isNotEmpty;
+  bool get hasLivePreviewImage =>
+      _livePreviewImage != null &&
+      _previewPixels.isNotEmpty &&
+      (hasEffectPreview || hasFreshLivePreviewImage);
 
   List<PixelPoint<int>> get previewPixels => _previewPixels;
   Uint32List get cachedPixels => _cachedPixels;
@@ -93,7 +107,6 @@ class PixelCanvasController extends ChangeNotifier {
   Offset? get gradientStart => _gradientStart;
   Offset? get gradientEnd => _gradientEnd;
 
-  Uint32List get processedPreviewPixels => _processedPreviewPixels;
   bool get previewEffectsEnabled => _previewEffectsEnabled;
 
   Offset? get hoverPosition => _hoverPosition;
@@ -169,9 +182,10 @@ class PixelCanvasController extends ChangeNotifier {
   void setPreviewEffectsEnabled(bool enabled) {
     if (_previewEffectsEnabled != enabled) {
       _previewEffectsEnabled = enabled;
-      _updatePreviewPixelsWithEffects();
+      _previewRevision++;
+      _clearLivePreviewImage();
       if (_previewPixels.isNotEmpty) {
-        _schedulePreviewImageRebuild(_previewRevision);
+        _schedulePreviewImageRebuild();
       }
       notifyListeners();
     }
@@ -188,46 +202,67 @@ class PixelCanvasController extends ChangeNotifier {
     return (_previewPixels.last.color >>> 24) != 0xFF;
   }
 
-  void _schedulePreviewImageRebuild(int revision) {
-    _previewImageUpdateTimer?.cancel();
+  void _schedulePreviewImageRebuild() {
     if (!_needsLivePreviewImage) {
       _clearLivePreviewImage();
       return;
     }
+    if (_previewImageUpdateTimer?.isActive == true ||
+        _previewImageBuildRunning) {
+      return;
+    }
 
-    // Effects need a full-buffer pass (possibly in an isolate) — give them a
-    // longer debounce so mid-stroke updates don't queue up.
-    final hasEffects = _previewEffectsEnabled && currentLayer.effects.isNotEmpty;
+    // Build at a bounded rate during continuous strokes. Resetting this timer
+    // for every point would starve the preview until the pen stops moving.
+    final hasEffects =
+        _previewEffectsEnabled && currentLayer.effects.isNotEmpty;
     final debounce = Duration(milliseconds: hasEffects ? 33 : 10);
 
     _previewImageUpdateTimer = Timer(debounce, () async {
-      final pixelsForPreview = await _buildPreviewLayerPixels();
-      if (revision != _previewRevision || _previewPixels.isEmpty) {
-        return;
+      _previewImageUpdateTimer = null;
+      if (!_needsLivePreviewImage) return;
+      final revision = _previewRevision;
+      _previewImageBuildRunning = true;
+      try {
+        final pixelsForPreview = await _buildPreviewLayerPixels();
+        if (revision != _previewRevision || _previewPixels.isEmpty) return;
+
+        final image = await ImageHelper.createImageFromPixels(
+            pixelsForPreview, width, height);
+        if (revision != _previewRevision || _previewPixels.isEmpty) {
+          image.dispose();
+          return;
+        }
+
+        _livePreviewImage?.dispose();
+        _livePreviewImage = image;
+        _livePreviewRevision = revision;
+        notifyListeners();
+      } catch (e) {
+        debugPrint('Preview image failed: $e');
+      } finally {
+        _previewImageBuildRunning = false;
+        if (_needsLivePreviewImage && revision != _previewRevision) {
+          _schedulePreviewImageRebuild();
+        }
       }
-
-      final image = await ImageHelper.createImageFromPixels(pixelsForPreview, width, height);
-
-      if (revision != _previewRevision || _previewPixels.isEmpty) {
-        image.dispose();
-        return;
-      }
-
-      _livePreviewImage?.dispose();
-      _livePreviewImage = image;
-      _livePreviewRevision = revision;
-      notifyListeners();
     });
   }
 
   Future<Uint32List> _buildPreviewLayerPixels() async {
-    final mergedPixels = _mergePixelsWithPoints(currentLayer.processedPixels, _previewPixels);
+    // Strokes are stored in the raw layer. Apply effects once to the merged
+    // raw pixels, just as Layer.processedPixels does after the stroke commits.
+    final basePixels = _previewEffectsEnabled
+        ? currentLayer.pixels
+        : currentLayer.processedPixels;
+    final mergedPixels = _mergePixelsWithPoints(basePixels, _previewPixels);
 
     if (!_previewEffectsEnabled || currentLayer.effects.isEmpty) {
       return mergedPixels;
     }
 
-    return EffectsManager.applyMultipleEffectsAsync(mergedPixels, width, height, currentLayer.effects);
+    return EffectsManager.applyMultipleEffectsAsync(
+        mergedPixels, width, height, currentLayer.effects);
   }
 
   void _clearLivePreviewImage() {
@@ -244,11 +279,10 @@ class PixelCanvasController extends ChangeNotifier {
 
     // Clean up new system
     _clearLivePreviewImage();
-    _previewRevision = 0;
+    _previewRevision++;
 
     // Keep old clear for now
     _previewPixels = [];
-    _processedPreviewPixels = Uint32List(0);
 
     _updateCurrentLayerCache();
     notifyListeners();
@@ -286,10 +320,10 @@ class PixelCanvasController extends ChangeNotifier {
   }
 
   void setPreviewPixels(List<PixelPoint<int>> pixels) {
-    _previewPixels = List<PixelPoint<int>>.from(filterPixelsInSelection(pixels));
+    _previewPixels =
+        List<PixelPoint<int>>.from(filterPixelsInSelection(pixels));
     _previewRevision++;
-    _updatePreviewPixelsWithEffects();
-    _schedulePreviewImageRebuild(_previewRevision);
+    _schedulePreviewImageRebuild();
     notifyListeners();
   }
 
@@ -325,54 +359,6 @@ class PixelCanvasController extends ChangeNotifier {
     return pixels.where((point) => sel.contains(point.x, point.y)).toList();
   }
 
-  // Latest-wins guard for the async effects pass: at most one isolate job in
-  // flight; a request arriving mid-job re-runs once at the end.
-  bool _previewEffectsJobRunning = false;
-  bool _previewEffectsJobPending = false;
-
-  void _updatePreviewPixelsWithEffects() {
-    final currentLayer = _layers[_currentLayerIndex];
-
-    if (!_previewEffectsEnabled || _previewPixels.isEmpty || currentLayer.effects.isEmpty) {
-      if (_processedPreviewPixels.isNotEmpty) {
-        _processedPreviewPixels = Uint32List(0);
-      }
-      return;
-    }
-
-    if (_previewEffectsJobRunning) {
-      _previewEffectsJobPending = true;
-      return;
-    }
-
-    final tempPixels = Uint32List(width * height);
-
-    for (final point in _previewPixels) {
-      final index = point.y * width + point.x;
-      if (index >= 0 && index < tempPixels.length) {
-        tempPixels[index] = point.color;
-      }
-    }
-
-    final revision = _previewRevision;
-    _previewEffectsJobRunning = true;
-    EffectsManager.applyMultipleEffectsAsync(tempPixels, width, height, currentLayer.effects).then((result) {
-      _previewEffectsJobRunning = false;
-      if (revision == _previewRevision && _previewPixels.isNotEmpty) {
-        _processedPreviewPixels = result;
-        notifyListeners();
-      }
-      if (_previewEffectsJobPending) {
-        _previewEffectsJobPending = false;
-        _updatePreviewPixelsWithEffects();
-      }
-    }).catchError((Object e) {
-      _previewEffectsJobRunning = false;
-      _previewEffectsJobPending = false;
-      debugPrint('Preview effects failed: $e');
-    });
-  }
-
   void setSelection(SelectionRegion? region) {
     _currentSelectionRegion = region;
     notifyListeners();
@@ -405,8 +391,11 @@ class PixelCanvasController extends ChangeNotifier {
     }
   }
 
-  void setHoverPosition(Offset? position, {List<PixelPoint<int>>? previewPixels}) {
-    if (position == null && _hoverPosition == null && _hoverPreviewPixels.isEmpty) {
+  void setHoverPosition(Offset? position,
+      {List<PixelPoint<int>>? previewPixels}) {
+    if (position == null &&
+        _hoverPosition == null &&
+        _hoverPreviewPixels.isEmpty) {
       return;
     }
     _hoverPosition = position;
@@ -450,7 +439,8 @@ class PixelCanvasController extends ChangeNotifier {
     final pixelWidth = canvasSize.width / width;
     final pixelHeight = canvasSize.height / height;
 
-    return Point<int>((position.dx / pixelWidth).floor(), (position.dy / pixelHeight).floor());
+    return Point<int>((position.dx / pixelWidth).floor(),
+        (position.dy / pixelHeight).floor());
   }
 
   // void _updateCachedPixels({bool cacheAll = false}) {
@@ -486,9 +476,8 @@ class PixelCanvasController extends ChangeNotifier {
 
   void _clearPreviewPixels() {
     _clearLivePreviewImage();
-    _previewRevision = 0;
+    _previewRevision++;
     _previewPixels = [];
-    _processedPreviewPixels = Uint32List(0);
     _gradientStart = null;
   }
 
@@ -515,12 +504,15 @@ class PixelCanvasController extends ChangeNotifier {
     return merged;
   }
 
-  Uint32List _mergePixelsWithPoints(Uint32List base, List<PixelPoint<int>> points) {
+  Uint32List _mergePixelsWithPoints(
+      Uint32List base, List<PixelPoint<int>> points) {
     final merged = Uint32List.fromList(base);
     for (final point in points) {
       final index = point.y * width + point.x;
       if (index >= 0 && index < merged.length) {
-        merged[index] = _currentTool == PixelTool.eraser ? Colors.transparent.toARGB32() : point.color;
+        merged[index] = _currentTool == PixelTool.eraser
+            ? Colors.transparent.toARGB32()
+            : point.color;
       }
     }
     return merged;

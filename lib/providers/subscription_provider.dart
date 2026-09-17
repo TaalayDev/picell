@@ -11,6 +11,8 @@ import '../core/services/subscription_service.dart';
 
 part 'subscription_provider.g.dart';
 
+const kIsTestingDefault = kDebugMode;
+
 final subscriptionServiceProvider = Provider<SubscriptionService>((ref) {
   final service = SubscriptionService();
   ref.onDispose(() {
@@ -31,7 +33,7 @@ class SubscriptionState extends _$SubscriptionState {
       );
     }
 
-    const testing = bool.fromEnvironment('TESTING');
+    const testing = bool.fromEnvironment('TESTING', defaultValue: kIsTestingDefault);
 
     if (kIsWeb || Platform.isWindows || testing) {
       return UserSubscription(
@@ -117,8 +119,7 @@ Stream<List<ProductDetails>> productsStream(ProductsStreamRef ref) {
 }
 
 @riverpod
-Stream<List<PurchaseDetails>> purchaseUpdatesStream(
-    PurchaseUpdatesStreamRef ref) {
+Stream<List<PurchaseDetails>> purchaseUpdatesStream(PurchaseUpdatesStreamRef ref) {
   final service = ref.watch(subscriptionServiceProvider);
   return service.purchaseUpdatedStream;
 }
@@ -138,9 +139,7 @@ bool isFeatureLocked(IsFeatureLockedRef ref, SubscriptionFeature feature) {
     case SubscriptionFeature.cloudBackup:
     case SubscriptionFeature.noWatermark:
     case SubscriptionFeature.prioritySupport:
-      return !ref
-          .read(subscriptionStateProvider.notifier)
-          .hasFeatureAccess(feature);
+      return !ref.read(subscriptionStateProvider.notifier).hasFeatureAccess(feature);
     case SubscriptionFeature.maxProjects:
     case SubscriptionFeature.maxCanvasSize:
     case SubscriptionFeature.exportFormats:
@@ -148,9 +147,7 @@ bool isFeatureLocked(IsFeatureLockedRef ref, SubscriptionFeature feature) {
     case SubscriptionFeature.effects:
     case SubscriptionFeature.templates:
     case SubscriptionFeature.proTheme:
-      return !ref
-          .read(subscriptionStateProvider.notifier)
-          .hasFeatureAccess(feature);
+      return !ref.read(subscriptionStateProvider.notifier).hasFeatureAccess(feature);
   }
 }
 
@@ -175,8 +172,7 @@ List<PurchaseOffer> purchaseOffers(PurchaseOffersRef ref) {
     ),
   ];
 
-  final proProduct = products.firstWhereOrNull(
-      (product) => product.id == SubscriptionProductIds.proPurchase);
+  final proProduct = products.firstWhereOrNull((product) => product.id == SubscriptionProductIds.proPurchase);
 
   if (proProduct != null) {
     offers.add(

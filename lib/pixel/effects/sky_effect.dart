@@ -140,6 +140,21 @@ class SkyEffect extends Effect {
       _addWeatherEffects(result, width, height, skyType, weatherIntensity, animated, time, random);
     }
 
+    // Clear skies also need a visible animation. Shift ambient light through
+    // a small cycle even when there are no weather particles to move.
+    if (animated) {
+      final lightShift = (sin(time * 2 * pi) * 12).round();
+      for (var i = 0; i < result.length; i++) {
+        final pixel = result[i];
+        final alpha = (pixel >> 24) & 0xff;
+        if (alpha == 0) continue;
+        final red = (((pixel >> 16) & 0xff) + lightShift).clamp(0, 255);
+        final green = (((pixel >> 8) & 0xff) + lightShift).clamp(0, 255);
+        final blue = ((pixel & 0xff) + lightShift).clamp(0, 255);
+        result[i] = (alpha << 24) | (red << 16) | (green << 8) | blue;
+      }
+    }
+
     return result;
   }
 

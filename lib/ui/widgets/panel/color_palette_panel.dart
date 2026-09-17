@@ -192,8 +192,7 @@ class ColorPalettePanel extends HookConsumerWidget {
       _PaletteTab(icon: Icons.change_history, label: Strings.of(context).paletteTriadic),
       _PaletteTab(icon: Icons.gradient, label: Strings.of(context).paletteMonochromatic),
       _PaletteTab(icon: Icons.bookmark, label: Strings.of(context).paletteCustom),
-      if (hasImported)
-        _PaletteTab(icon: Icons.image_outlined, label: Strings.of(context).paletteImported),
+      if (hasImported) _PaletteTab(icon: Icons.image_outlined, label: Strings.of(context).paletteImported),
     ];
 
     List<Color> getTabColors() {
@@ -318,11 +317,10 @@ class ColorPalettePanel extends HookConsumerWidget {
             ],
           ),
 
-          // Recent colors row
           if (recentColors.value.isNotEmpty) ...[
             const SizedBox(height: 6),
             SizedBox(
-              height: 22,
+              height: 18,
               child: Row(
                 children: [
                   Icon(
@@ -345,14 +343,12 @@ class ColorPalettePanel extends HookConsumerWidget {
                               onTap: () => trackRecentColor(c),
                               child: Container(
                                 width: 18,
-                                height: 18,
+                                height: 14,
                                 decoration: BoxDecoration(
                                   color: c,
                                   borderRadius: BorderRadius.circular(3),
                                   border: Border.all(
-                                    color: c == currentColor
-                                        ? Colors.blue
-                                        : Colors.grey.withValues(alpha: 0.4),
+                                    color: c == currentColor ? Colors.blue : Colors.grey.withValues(alpha: 0.4),
                                     width: c == currentColor ? 2 : 1,
                                   ),
                                 ),

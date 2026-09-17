@@ -18,7 +18,8 @@ class PixelCanvasPaintDelegate {
   static final Paint _srcOverVerticesPaint = Paint();
   static final Paint _clearVerticesPaint = Paint()..blendMode = BlendMode.clear;
   static const int _opaqueHoverAlpha = 0x99;
-  static final int _eraserHoverColorValue = Colors.red.withValues(alpha: 0.4).toARGB32();
+  static final int _eraserHoverColorValue =
+      Colors.red.withValues(alpha: 0.4).toARGB32();
 
   PixelCanvasController _controller;
   LayerCacheManager _cacheManager;
@@ -91,20 +92,22 @@ class PixelCanvasPaintDelegate {
   PixelTool get currentTool => _config.currentTool;
   Color get currentColor => _config.currentColor;
   bool get showSelectionMoveHandle => _config.showSelectionMoveHandle;
-  bool get showSelectionTransformHandles => _config.showSelectionTransformHandles;
+  bool get showSelectionTransformHandles =>
+      _config.showSelectionTransformHandles;
   bool get showSelectionAnchorHandle => _config.showSelectionAnchorHandle;
   Offset? get selectionAnchorPoint => _config.selectionAnchorPoint;
-  double get selectionAnimationValue => _config.selectionAnimation?.value ?? 0.0;
+  double get selectionAnimationValue =>
+      _config.selectionAnimation?.value ?? 0.0;
 
   PixelCanvasPaintDelegate({
     required PixelCanvasController controller,
     required LayerCacheManager cacheManager,
     required PixelCanvasRuntimeConfig config,
     required PixelCanvasQuadVerticesBuffer quadVerticesBuffer,
-  }) : _controller = controller,
-       _cacheManager = cacheManager,
-       _config = config,
-       _quadVerticesBuffer = quadVerticesBuffer;
+  })  : _controller = controller,
+        _cacheManager = cacheManager,
+        _config = config,
+        _quadVerticesBuffer = quadVerticesBuffer;
 
   void update({
     PixelCanvasController? controller,
@@ -132,7 +135,8 @@ class PixelCanvasPaintDelegate {
     _drawCurveGuides(canvas, size);
     _drawLassoPath(canvas, size);
 
-    if (controller.previewPixels.isEmpty && controller.livePreviewImage == null) {
+    if (controller.previewPixels.isEmpty &&
+        controller.livePreviewImage == null) {
       _drawHoverPreview(canvas, size, pixelWidth, pixelHeight);
     }
 
@@ -140,7 +144,8 @@ class PixelCanvasPaintDelegate {
     _drawSelectionHandles(canvas, pixelWidth, pixelHeight);
   }
 
-  void _drawLayers(Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
+  void _drawLayers(
+      Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
     final canvasRect = Offset.zero & size;
 
     for (int i = 0; i < controller.layers.length; i++) {
@@ -149,13 +154,14 @@ class PixelCanvasPaintDelegate {
       if (!layer.isVisible || layer.opacity == 0) continue;
       final isCurrentLayer = i == controller.currentLayerIndex;
 
-      final bool needsSaveLayer = _needsLayerSaveLayer(layerIndex: i, layer: layer);
+      final bool needsSaveLayer =
+          _needsLayerSaveLayer(layerIndex: i, layer: layer);
       if (needsSaveLayer) {
         _layerSavePaint.color = Colors.white.withValues(alpha: layer.opacity);
         canvas.saveLayer(canvasRect, _layerSavePaint);
       }
 
-      if (isCurrentLayer && controller.hasFreshLivePreviewImage) {
+      if (isCurrentLayer && controller.hasLivePreviewImage) {
         _drawCachedLayer(canvas, controller.livePreviewImage!, canvasRect);
       } else {
         final cachedImage = cacheManager.getLayerImage(layer.layerId);
@@ -167,7 +173,9 @@ class PixelCanvasPaintDelegate {
         }
       }
 
-      if (isCurrentLayer && !controller.hasFreshLivePreviewImage) {
+      if (isCurrentLayer &&
+          !controller.hasLivePreviewImage &&
+          !controller.hasEffectPreview) {
         _drawPreviewPixels(canvas, size, pixelWidth, pixelHeight);
       }
 
@@ -189,16 +197,19 @@ class PixelCanvasPaintDelegate {
 
     // Eraser preview uses BlendMode.clear. Isolate only the current layer so
     // clearing reveals lower layers instead of punching through the whole scene.
-    return currentTool == PixelTool.eraser && controller.previewPixels.isNotEmpty;
+    return currentTool == PixelTool.eraser &&
+        controller.previewPixels.isNotEmpty;
   }
 
   void _drawCachedLayer(Canvas canvas, ui.Image image, Rect canvasRect) {
-    final imageRect = Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
+    final imageRect =
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
 
     canvas.drawImageRect(image, imageRect, canvasRect, _imagePaint);
   }
 
-  void _drawLayerPixels(Canvas canvas, Layer layer, double pixelWidth, double pixelHeight) {
+  void _drawLayerPixels(
+      Canvas canvas, Layer layer, double pixelWidth, double pixelHeight) {
     final processedPixels = layer.processedPixels;
     quadVerticesBuffer.reset();
 
@@ -220,55 +231,28 @@ class PixelCanvasPaintDelegate {
         if (quadVerticesBuffer.isFull) {
           _drawBufferedVertices(canvas, BlendMode.srcOver);
         }
-        quadVerticesBuffer.addQuad(left: left, top: top, right: right, bottom: bottom, colorValue: colorValue);
+        quadVerticesBuffer.addQuad(
+            left: left,
+            top: top,
+            right: right,
+            bottom: bottom,
+            colorValue: colorValue);
       }
     }
 
     _drawBufferedVertices(canvas, BlendMode.srcOver);
   }
 
-  void _drawPreviewPixels(Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
-    if (controller.processedPreviewPixels.isNotEmpty && currentTool != PixelTool.eraser) {
-      return _drawProcessedPreviewPixels(canvas, size, pixelWidth, pixelHeight);
-    }
-
+  void _drawPreviewPixels(
+      Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
     final previewPixels = controller.previewPixels;
     if (previewPixels.isEmpty) return;
 
     _drawPixelsAsVertices(canvas, previewPixels, pixelWidth, pixelHeight);
   }
 
-  void _drawProcessedPreviewPixels(Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
-    final processedPixels = controller.processedPreviewPixels;
-    if (processedPixels.isEmpty) return;
-
-    final isErasing = controller.currentTool == PixelTool.eraser;
-    quadVerticesBuffer.reset();
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final index = y * width + x;
-        if (index >= processedPixels.length) continue;
-
-        final colorValue = processedPixels[index];
-        if (!isErasing && (colorValue & 0xFF000000) == 0) continue;
-
-        final left = x * pixelWidth;
-        final top = y * pixelHeight;
-        final right = left + pixelWidth;
-        final bottom = top + pixelHeight;
-
-        if (quadVerticesBuffer.isFull) {
-          _drawBufferedVertices(canvas, isErasing ? BlendMode.clear : BlendMode.srcOver);
-        }
-        quadVerticesBuffer.addQuad(left: left, top: top, right: right, bottom: bottom, colorValue: colorValue);
-      }
-    }
-
-    _drawBufferedVertices(canvas, isErasing ? BlendMode.clear : BlendMode.srcOver);
-  }
-
-  void _drawPixelsAsVertices(Canvas canvas, List<PixelPoint<int>> pixels, double pixelWidth, double pixelHeight) {
+  void _drawPixelsAsVertices(Canvas canvas, List<PixelPoint<int>> pixels,
+      double pixelWidth, double pixelHeight) {
     final isErasing = controller.currentTool == PixelTool.eraser;
     quadVerticesBuffer.reset();
 
@@ -284,15 +268,23 @@ class PixelCanvasPaintDelegate {
       final bottom = top + pixelHeight;
 
       if (quadVerticesBuffer.isFull) {
-        _drawBufferedVertices(canvas, isErasing ? BlendMode.clear : BlendMode.srcOver);
+        _drawBufferedVertices(
+            canvas, isErasing ? BlendMode.clear : BlendMode.srcOver);
       }
-      quadVerticesBuffer.addQuad(left: left, top: top, right: right, bottom: bottom, colorValue: colorValue);
+      quadVerticesBuffer.addQuad(
+          left: left,
+          top: top,
+          right: right,
+          bottom: bottom,
+          colorValue: colorValue);
     }
 
-    _drawBufferedVertices(canvas, isErasing ? BlendMode.clear : BlendMode.srcOver);
+    _drawBufferedVertices(
+        canvas, isErasing ? BlendMode.clear : BlendMode.srcOver);
   }
 
-  void _drawHoverPreview(Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
+  void _drawHoverPreview(
+      Canvas canvas, Size size, double pixelWidth, double pixelHeight) {
     final hoverPixels = controller.hoverPreviewPixels;
     if (hoverPixels.isEmpty) return;
 
@@ -312,7 +304,12 @@ class PixelCanvasPaintDelegate {
       if (quadVerticesBuffer.isFull) {
         _drawBufferedVertices(canvas, BlendMode.srcOver);
       }
-      quadVerticesBuffer.addQuad(left: left, top: top, right: right, bottom: bottom, colorValue: hoverColorValue);
+      quadVerticesBuffer.addQuad(
+          left: left,
+          top: top,
+          right: right,
+          bottom: bottom,
+          colorValue: hoverColorValue);
     }
 
     if (!quadVerticesBuffer.isEmpty) {
@@ -336,7 +333,8 @@ class PixelCanvasPaintDelegate {
     quadVerticesBuffer.reset();
   }
 
-  void _drawHoverBorder(Canvas canvas, List<PixelPoint<int>> hoverPixels, double pixelWidth, double pixelHeight) {
+  void _drawHoverBorder(Canvas canvas, List<PixelPoint<int>> hoverPixels,
+      double pixelWidth, double pixelHeight) {
     if (hoverPixels.isEmpty) return;
 
     _hoverBorderPaint
@@ -371,14 +369,18 @@ class PixelCanvasPaintDelegate {
 
     if (gradientStart == null || gradientEnd == null) return;
 
-    if (_cachedGradientSize != size || _cachedGradientStart != gradientStart || _cachedGradientEnd != gradientEnd) {
+    if (_cachedGradientSize != size ||
+        _cachedGradientStart != gradientStart ||
+        _cachedGradientEnd != gradientEnd) {
       _cachedGradientSize = size;
       _cachedGradientStart = gradientStart;
       _cachedGradientEnd = gradientEnd;
       _cachedGradientRect = Rect.fromLTWH(0, 0, size.width, size.height);
       _cachedGradientShader = LinearGradient(
-        begin: Alignment(gradientStart.dx / size.width, gradientStart.dy / size.height),
-        end: Alignment(gradientEnd.dx / size.width, gradientEnd.dy / size.height),
+        begin: Alignment(
+            gradientStart.dx / size.width, gradientStart.dy / size.height),
+        end: Alignment(
+            gradientEnd.dx / size.width, gradientEnd.dy / size.height),
         colors: const [Colors.black, Colors.transparent],
       ).createShader(_cachedGradientRect);
     }
@@ -388,7 +390,8 @@ class PixelCanvasPaintDelegate {
     _gradientPaint.shader = null;
   }
 
-  void _drawSelectionOutline(Canvas canvas, double pixelWidth, double pixelHeight) {
+  void _drawSelectionOutline(
+      Canvas canvas, double pixelWidth, double pixelHeight) {
     final SelectionRegion? selectionRegion = controller.currentSelectionRegion;
     if (selectionRegion == null || selectionRegion.bounds == Rect.zero) {
       return;
@@ -396,13 +399,16 @@ class PixelCanvasPaintDelegate {
 
     _ensureSelectionDashCache(selectionRegion, pixelWidth, pixelHeight);
 
-    canvas.drawPath(_cachedScaledSelectionPath!, _selectionOutlineBackgroundPaint);
+    canvas.drawPath(
+        _cachedScaledSelectionPath!, _selectionOutlineBackgroundPaint);
 
-    final phase = (selectionAnimationValue * _dashPhaseSteps).floor() % _dashPhaseSteps;
+    final phase =
+        (selectionAnimationValue * _dashPhaseSteps).floor() % _dashPhaseSteps;
     canvas.drawPath(_cachedDashPhases![phase], _selectionOutlineDashPaint);
   }
 
-  void _ensureSelectionDashCache(SelectionRegion region, double pixelWidth, double pixelHeight) {
+  void _ensureSelectionDashCache(
+      SelectionRegion region, double pixelWidth, double pixelHeight) {
     if (identical(region, _cachedDashRegion) &&
         _cachedDashPixelWidth == pixelWidth &&
         _cachedDashPixelHeight == pixelHeight &&
@@ -444,7 +450,8 @@ class PixelCanvasPaintDelegate {
     _cachedDashPhases = phases;
   }
 
-  void _drawSelectionHandles(Canvas canvas, double pixelWidth, double pixelHeight) {
+  void _drawSelectionHandles(
+      Canvas canvas, double pixelWidth, double pixelHeight) {
     final SelectionRegion? selectionRegion = controller.currentSelectionRegion;
     if (selectionRegion == null || selectionRegion.bounds == Rect.zero) {
       return;
@@ -517,7 +524,8 @@ class PixelCanvasPaintDelegate {
     canvas.drawRRect(rrect, _handleBorderPaint);
   }
 
-  void _drawCircleHandle(Canvas canvas, Offset center, double radius, Color fillColor) {
+  void _drawCircleHandle(
+      Canvas canvas, Offset center, double radius, Color fillColor) {
     canvas.drawCircle(center + const Offset(0, 1), radius, _handleShadowPaint);
 
     _handleFillPaint.color = fillColor;
@@ -539,7 +547,8 @@ class PixelCanvasPaintDelegate {
 
     if (penPoints.length == 1) {
       // Single point - draw a circle
-      canvas.drawCircle(penPoints.first, 2.0 / controller.zoomLevel, _penPointPaint);
+      canvas.drawCircle(
+          penPoints.first, 2.0 / controller.zoomLevel, _penPointPaint);
     } else {
       // Multiple points - draw connected lines
       _penPath.moveTo(penPoints.first.dx, penPoints.first.dy);
@@ -550,9 +559,11 @@ class PixelCanvasPaintDelegate {
       canvas.drawPath(_penPath, _penStrokePaint);
 
       // Show closing indicator if near start point
-      if (penPoints.length > 2 && (penPoints.last - penPoints.first).distance <= 15) {
+      if (penPoints.length > 2 &&
+          (penPoints.last - penPoints.first).distance <= 15) {
         _penCloseIndicatorPaint.strokeWidth = 1.5 / controller.zoomLevel;
-        canvas.drawLine(penPoints.last, penPoints.first, _penCloseIndicatorPaint);
+        canvas.drawLine(
+            penPoints.last, penPoints.first, _penCloseIndicatorPaint);
       }
     }
   }
@@ -574,7 +585,8 @@ class PixelCanvasPaintDelegate {
     _lassoCloseFillPaint.color = Colors.green.withValues(alpha: 0.6);
 
     if (points.length == 1) {
-      canvas.drawCircle(points.first, 3.0 / controller.zoomLevel, _lassoPointPaint..color = Colors.blue);
+      canvas.drawCircle(points.first, 3.0 / controller.zoomLevel,
+          _lassoPointPaint..color = Colors.blue);
     } else {
       _lassoPath
         ..reset()
@@ -587,7 +599,8 @@ class PixelCanvasPaintDelegate {
       // Closing indicator when near start
       if (points.length > 2 && (points.last - points.first).distance <= 15) {
         canvas.drawLine(points.last, points.first, _lassoCloseLinePaint);
-        canvas.drawCircle(points.first, 4.0 / controller.zoomLevel, _lassoCloseFillPaint);
+        canvas.drawCircle(
+            points.first, 4.0 / controller.zoomLevel, _lassoCloseFillPaint);
       }
 
       // Dot at each vertex for visibility
@@ -626,7 +639,8 @@ class PixelCanvasPaintDelegate {
       // Draw control point and guides if it exists
       if (curveControl != null) {
         // Draw control point
-        canvas.drawCircle(curveControl, 4.0 / controller.zoomLevel, _curveControlPaint);
+        canvas.drawCircle(
+            curveControl, 4.0 / controller.zoomLevel, _curveControlPaint);
 
         // Draw control lines
         canvas.drawLine(curveStart, curveControl, _curveControlLinePaint);
@@ -638,7 +652,8 @@ class PixelCanvasPaintDelegate {
     }
   }
 
-  void _drawCurvePreview(Canvas canvas, Offset start, Offset control, Offset end) {
+  void _drawCurvePreview(
+      Canvas canvas, Offset start, Offset control, Offset end) {
     _curvePreviewPaint
       ..color = currentColor.withValues(alpha: 0.8)
       ..strokeWidth = 2.0 / controller.zoomLevel;

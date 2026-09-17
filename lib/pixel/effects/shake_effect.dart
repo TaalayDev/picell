@@ -476,7 +476,8 @@ class CameraShakeEffect extends Effect {
 
     // Calculate shake components
     final shakeTime = elapsed * 25; // High frequency for camera shake
-    final maxOffset = intensity * min(width, height) * 0.15;
+    // Preserve at least a pixel of motion on small pixel-art canvases.
+    final maxOffset = max(1.25, intensity * min(width, height) * 0.15);
 
     // Positional shake
     final offsetX = sin(shakeTime * 8.5) * cos(shakeTime * 3.7) * maxOffset;

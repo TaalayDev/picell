@@ -756,6 +756,63 @@ class PixelDrawController extends _$PixelDrawController {
     );
   }
 
+  /// Append generated animation frames to the source frame's animation state.
+  /// Generated frames contain the rendered target layer; the remaining layers
+  /// are copied from the source frame so the timeline keeps its composition.
+  Future<void> addGeneratedEffectFrames(
+    List<AnimationFrame> generatedFrames, {
+    required int sourceFrameId,
+    required int sourceLayerId,
+  }) async {
+    if (generatedFrames.isEmpty) return;
+    final sourceIndex = state.frames.indexWhere((frame) => frame.id == sourceFrameId);
+    if (sourceIndex < 0) throw StateError('Source frame no longer exists');
+    final source = state.frames[sourceIndex];
+    final layerIndex = source.layers.indexWhere((layer) => layer.layerId == sourceLayerId);
+    if (layerIndex < 0) throw StateError('Source layer no longer exists');
+    final stateIndex = state.animationStates.indexWhere((item) => item.id == source.stateId);
+    if (stateIndex < 0) throw StateError('Animation state no longer exists');
+    for (final generated in generatedFrames) {
+      if (generated.layers.length != 1 ||
+          generated.layers.single.pixels.length != state.width * state.height) {
+        throw ArgumentError('Generated frame has invalid pixels');
+      }
+    }
+
+    final firstGeneratedIndex = state.frames.where((frame) => frame.stateId == source.stateId).length;
+    var nextOrder = _frameService.calculateNextFrameOrder(state.frames);
+    for (final generated in generatedFrames) {
+      final renderedPixels = generated.layers.single.pixels;
+      final layers = <Layer>[
+        for (final (index, layer) in source.layers.indexed)
+          layer.copyWith(
+            id: const Uuid().v4(),
+            layerId: 0,
+            pixels: index == layerIndex
+                ? Uint32List.fromList(renderedPixels)
+                : Uint32List.fromList(layer.pixels),
+            effects: index == layerIndex ? const [] : layer.effects,
+          ),
+      ];
+      final frame = AnimationFrame(
+        id: 0,
+        stateId: source.stateId,
+        name: generated.name,
+        duration: generated.duration,
+        order: nextOrder++,
+        layers: layers,
+      );
+      final created = await _projectRepo.createFrame(project.id, frame);
+      state = state.copyWith(frames: [...state.frames, created]);
+    }
+    state = state.copyWith(
+      currentAnimationStateIndex: stateIndex,
+      currentFrameIndex: firstGeneratedIndex,
+      currentLayerIndex: layerIndex,
+    );
+    _updateProject();
+  }
+
   Future<void> removeFrame(int index) async {
     if (state.frames.length <= 1) return;
 

@@ -87,6 +87,16 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
 
   Future<void> updateFrame(int index, AnimationFrame frame) => _controller.updateFrame(index, frame);
   Future<void> reorderFrames(int oldIndex, int newIndex) => _controller.reorderFrames(oldIndex, newIndex);
+  Future<void> addGeneratedEffectFrames(
+    List<AnimationFrame> frames, {
+    required int sourceFrameId,
+    required int sourceLayerId,
+  }) =>
+      _controller.addGeneratedEffectFrames(
+        frames,
+        sourceFrameId: sourceFrameId,
+        sourceLayerId: sourceLayerId,
+      );
 
   // Animation state operations
   Future<void> addAnimationState(String name, int frameRate) => _controller.addAnimationState(name, frameRate);

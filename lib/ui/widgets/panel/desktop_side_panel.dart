@@ -7,6 +7,7 @@ import '../../../pixel/tools.dart';
 import 'color_palette_panel.dart';
 import '../dialogs/layer_template_dialog.dart';
 import '../effects/effects_side_panel.dart';
+import '../effects/effect_animation_generator_dialog.dart';
 import '../layers_panel.dart';
 import '../../../l10n/strings.dart';
 
@@ -50,7 +51,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
+    return ColoredBox(
       color: colorScheme.surface,
       child: SizedBox(
         width: 250,
@@ -157,6 +158,24 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Single
                           selectionRegion: widget.state.selectionState?.region,
                           onLayerUpdated: (updatedLayer) {
                             widget.notifier.updateLayer(updatedLayer);
+                          },
+                          onAnimate: (effect, effects, effectIndex) {
+                            final sourceFrame = widget.notifier.currentFrame;
+                            final sourceLayer = widget.notifier.currentLayer;
+                            EffectAnimationGeneratorDialog.showEffectAnimationGenerator(
+                              context,
+                              effect: effect,
+                              effects: effects,
+                              effectIndex: effectIndex,
+                              layerWidth: widget.width,
+                              layerHeight: widget.height,
+                              layerPixels: sourceLayer.pixels,
+                              onFramesGenerated: (frames) => widget.notifier.addGeneratedEffectFrames(
+                                frames,
+                                sourceFrameId: sourceFrame.id,
+                                sourceLayerId: sourceLayer.layerId,
+                              ),
+                            );
                           },
                         ),
                       ],

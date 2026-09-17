@@ -258,8 +258,6 @@ class ProjectsScreen extends HookConsumerWidget {
                 ),
                 const SizedBox(width: 8),
               ],
-              const KofiSupportButton(compact: true),
-              const SizedBox(width: 4),
               IconButton(
                 tooltip: Strings.of(context).chooseTheme,
                 icon: Icon(
@@ -916,10 +914,6 @@ class _DesktopSidebar extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(12, 8, 12, 0),
-            child: KofiSupportButton(),
           ),
           const SizedBox(height: 12),
         ],

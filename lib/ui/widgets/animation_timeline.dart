@@ -150,8 +150,7 @@ class AnimationTimeline extends HookWidget {
                 onChanged: (value) {
                   final duration = int.tryParse(value);
                   if (duration != null) {
-                    final index =
-                        frames.indexWhere((e) => e.id == selectedFrameId);
+                    final index = frames.indexWhere((e) => e.id == selectedFrameId);
                     onDurationChanged(index, duration);
                   }
                 },
@@ -164,8 +163,7 @@ class AnimationTimeline extends HookWidget {
               children: [
                 IconButton(
                   icon: const Icon(Feather.copy, size: 16),
-                  onPressed:
-                      isExpanded ? () => copyFrame(selectedFrameId) : null,
+                  onPressed: isExpanded ? () => copyFrame(selectedFrameId) : null,
                   tooltip: Strings.of(context).copyFrame,
                 ),
                 IconButton(
@@ -181,8 +179,7 @@ class AnimationTimeline extends HookWidget {
                   ),
                   onPressed: isExpanded
                       ? () {
-                          final index =
-                              frames.indexWhere((e) => e.id == selectedFrameId);
+                          final index = frames.indexWhere((e) => e.id == selectedFrameId);
                           onDeleteFrame(index);
                         }
                       : null,
@@ -194,15 +191,11 @@ class AnimationTimeline extends HookWidget {
             // Expand/collapse button
             IconButton(
               icon: Icon(
-                isExpanded
-                    ? Icons.keyboard_arrow_down
-                    : Icons.keyboard_arrow_up,
+                isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
                 size: 16,
               ),
               onPressed: onExpandChanged,
-              tooltip: isExpanded
-                  ? Strings.of(context).collapse
-                  : Strings.of(context).expand,
+              tooltip: isExpanded ? Strings.of(context).collapse : Strings.of(context).expand,
             ),
           ],
         ),
@@ -214,7 +207,7 @@ class AnimationTimeline extends HookWidget {
     BuildContext context,
     TextEditingController controller,
   ) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
       ),
@@ -280,13 +273,7 @@ class _PlaybackControls extends StatelessWidget {
             size: 16,
           ),
           onPressed: onPlayPause,
-          tooltip:
-              isPlaying ? Strings.of(context).pause : Strings.of(context).play,
-        ),
-        IconButton(
-          icon: const Icon(Feather.square, size: 16),
-          onPressed: onStop,
-          tooltip: Strings.of(context).stop,
+          tooltip: isPlaying ? Strings.of(context).pause : Strings.of(context).play,
         ),
         if (MediaQuery.sizeOf(context).width > 600)
           IconButton(
@@ -346,14 +333,13 @@ class _StatesPanel extends StatelessWidget {
 
               return Container(
                 key: ValueKey(state.id),
-                height: 40,
-                color: state.id == selectedStateId
-                    ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
-                    : null,
+                height: 30,
+                color: state.id == selectedStateId ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : null,
                 child: Row(
                   children: [
                     SizedBox(
-                      width: 150,
+                      width: 120,
+                      height: 30,
                       child: ListTile(
                         dense: true,
                         selected: state.id == selectedStateId,
@@ -361,6 +347,7 @@ class _StatesPanel extends StatelessWidget {
                           state.name,
                           style: const TextStyle(fontSize: 12),
                         ),
+                        minTileHeight: 30,
                         trailing: PopupMenuButton(
                           child: const Icon(Feather.more_vertical, size: 16),
                           itemBuilder: (context) => [
@@ -376,13 +363,11 @@ class _StatesPanel extends StatelessWidget {
                           },
                         ),
                         onTap: () => onSelectedStateChanged(state.id),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 5),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                       ),
                     ),
                     VerticalDivider(
-                      color:
-                          Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                       width: 1,
                       thickness: 1,
                     ),
@@ -422,15 +407,13 @@ class _StatesPanel extends StatelessWidget {
             children: [
               TextButton.icon(
                 icon: const Icon(Icons.add, size: 16),
-                label: Text(Strings.of(context).addState,
-                    style: const TextStyle(fontSize: 12)),
+                label: Text(Strings.of(context).addState, style: const TextStyle(fontSize: 12)),
                 onPressed: () => _showAddStateDialog(context),
               ),
               const SizedBox(width: 8),
               TextButton.icon(
                 icon: const Icon(Feather.copy, size: 16),
-                label: Text(Strings.of(context).copyState,
-                    style: const TextStyle(fontSize: 12)),
+                label: Text(Strings.of(context).copyState, style: const TextStyle(fontSize: 12)),
                 onPressed: () => onCopyState(selectedStateId),
               ),
             ],
@@ -491,37 +474,40 @@ class _FramesGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: GridView.builder(
-        shrinkWrap: true,
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 18,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          mainAxisExtent: 18,
-        ),
-        itemCount: frames.length,
-        itemBuilder: (context, index) {
-          final frame = frames[index];
+    if (frames.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-          final thumbnail = _FrameThumbnail(
-            frame: frame,
-            isSelected: frame.id == selectedFrameId,
-            width: width,
-            height: height,
-          );
+    final aspectRatio = (width > 0 && height > 0) ? (width / height).clamp(0.5, 2.0) : 1.0;
 
-          return DragTarget<int>(
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      itemCount: frames.length,
+      separatorBuilder: (context, index) => const SizedBox(width: 6),
+      itemBuilder: (context, index) {
+        final frame = frames[index];
+        final isSelected = frame.id == selectedFrameId;
+
+        final thumbnail = _FrameThumbnail(
+          frame: frame,
+          isSelected: isSelected,
+          width: width,
+          height: height,
+          index: index,
+        );
+
+        return AspectRatio(
+          aspectRatio: aspectRatio,
+          child: DragTarget<int>(
             key: ValueKey(frame.id),
             onWillAcceptWithDetails: (details) => details.data != frame.id,
-            onAcceptWithDetails: (details) =>
-                onReorderFrame(details.data, frame.id),
+            onAcceptWithDetails: (details) => onReorderFrame(details.data, frame.id),
             builder: (context, candidates, _) {
               return LongPressDraggable<int>(
                 data: frame.id,
                 feedback: SizedBox(
-                  width: 36,
+                  width: (36 * aspectRatio).clamp(24.0, 72.0),
                   height: 36,
                   child: Material(
                     color: Colors.transparent,
@@ -530,30 +516,36 @@ class _FramesGrid extends StatelessWidget {
                       isSelected: true,
                       width: width,
                       height: height,
+                      index: index,
                     ),
                   ),
                 ),
                 childWhenDragging: Opacity(opacity: 0.3, child: thumbnail),
-                child: InkWell(
-                  onTap: () => onSelectFrame(frame.id),
-                  child: candidates.isNotEmpty
-                      ? DecoratedBox(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2,
+                child: Tooltip(
+                  message: '${frame.name.isNotEmpty ? frame.name : 'Frame ${index + 1}'} (${frame.duration}ms)',
+                  waitDuration: const Duration(milliseconds: 600),
+                  child: InkWell(
+                    onTap: () => onSelectFrame(frame.id),
+                    borderRadius: BorderRadius.circular(4),
+                    child: candidates.isNotEmpty
+                        ? DecoratedBox(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
                             ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: thumbnail,
-                        )
-                      : thumbnail,
+                            child: thumbnail,
+                          )
+                        : thumbnail,
+                  ),
                 ),
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -564,38 +556,76 @@ class _FrameThumbnail extends StatelessWidget {
     required this.isSelected,
     required this.width,
     required this.height,
+    this.index,
   });
 
   final AnimationFrame frame;
   final bool isSelected;
   final int width;
   final int height;
+  final int? index;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return DecoratedBox(
       decoration: BoxDecoration(
         border: Border.all(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).dividerColor.withValues(alpha: 0.2),
-          width: isSelected ? 1.5 : 1,
+          color: isSelected ? primaryColor : theme.dividerColor.withValues(alpha: 0.25),
+          width: isSelected ? 2 : 1,
         ),
-        color: Colors.white.withValues(alpha: 0.8),
+        color: Colors.white.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(4),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: LayersPreview(
-          width: width,
-          height: height,
-          layers: frame.layers,
-          builder: (context, image) {
-            return image != null
-                ? CustomPaint(painter: ImagePainter(image))
-                : const ColoredBox(color: Colors.white);
-          },
-        ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LayersPreview(
+              width: width,
+              height: height,
+              layers: frame.layers,
+              builder: (context, image) {
+                return image != null
+                    ? CustomPaint(painter: ImagePainter(image))
+                    : const ColoredBox(color: Colors.white);
+              },
+            ),
+          ),
+          if (index != null)
+            Positioned(
+              left: 2,
+              bottom: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 2.5, vertical: 0.5),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: Text(
+                  '${index! + 1}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 7.5,
+                    fontWeight: FontWeight.bold,
+                    height: 1.1,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

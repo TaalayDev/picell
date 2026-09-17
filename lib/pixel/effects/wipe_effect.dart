@@ -406,6 +406,10 @@ class WipeEffect extends Effect {
   double _applySoftness(double maskValue, double softness) {
     if (softness <= 0) return maskValue;
 
+    // The geometric masks are currently binary. Keep fully revealed pixels
+    // visible; the previous formula mapped both 0 and 1 to zero.
+    if (maskValue <= 0.0 || maskValue >= 1.0) return maskValue;
+
     // Create smooth transition around the edge
     final softRange = softness * 0.5;
 

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import '../../../core/extensions/primitive_extensions.dart';
 import '../../../data.dart';
 import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
+import '../../../pixel/effects/effect_animation_renderer.dart';
 import '../animated_background.dart';
 import 'pixlel_preview_painter.dart';
 
@@ -16,7 +16,9 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
   final int layerWidth;
   final int layerHeight;
   final Uint32List layerPixels;
-  final Function(List<AnimationFrame>) onFramesGenerated;
+  final List<Effect> effects;
+  final int effectIndex;
+  final Future<void> Function(List<AnimationFrame>) onFramesGenerated;
 
   static Future<void> showEffectAnimationGenerator(
     BuildContext context, {
@@ -24,7 +26,9 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
     required int layerWidth,
     required int layerHeight,
     required Uint32List layerPixels,
-    required Function(List<AnimationFrame>) onFramesGenerated,
+    required List<Effect> effects,
+    required int effectIndex,
+    required Future<void> Function(List<AnimationFrame>) onFramesGenerated,
   }) async {
     if (!effect.isAnimation) {
       // Show error dialog for non-animation effects
@@ -61,6 +65,8 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
         layerWidth: layerWidth,
         layerHeight: layerHeight,
         layerPixels: layerPixels,
+        effects: effects,
+        effectIndex: effectIndex,
         onFramesGenerated: onFramesGenerated,
       ),
     );
@@ -162,6 +168,8 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
     required this.layerWidth,
     required this.layerHeight,
     required this.layerPixels,
+    required this.effects,
+    required this.effectIndex,
     required this.onFramesGenerated,
   });
 
@@ -182,13 +190,13 @@ class _EffectAnimationGeneratorDialogState
   int _fps = 12;
   double _duration = 2.5; // seconds
   bool _pingPong = false;
-  bool _generateNewFrames = true;
-  int _insertPosition = 0;
 
   // Preview state
   List<Uint32List> _generatedFrames = [];
   int _currentPreviewFrame = 0;
   bool _isGenerating = false;
+  int _generationRevision = 0;
+  bool _isApplying = false;
   bool _isPlaying = false;
 
   @override
@@ -209,11 +217,12 @@ class _EffectAnimationGeneratorDialogState
 
   void _updateFrameCount() {
     _frameCount = (_duration * _fps).round();
-    if (_frameCount < 1) _frameCount = 1;
+    if (_frameCount < 2) _frameCount = 2;
     if (_frameCount > 120) _frameCount = 120; // Reasonable limit
   }
 
   Future<void> _generateFrames() async {
+    final revision = ++_generationRevision;
     if (_isGenerating) return;
 
     setState(() {
@@ -221,108 +230,42 @@ class _EffectAnimationGeneratorDialogState
       _generatedFrames.clear();
     });
 
-    await Future.delayed(
-        const Duration(milliseconds: 50)); // Allow UI to update
+    try {
+      await Future.delayed(
+          const Duration(milliseconds: 50)); // Allow UI to update
 
-    final frames = <Uint32List>[];
+      final frames = <Uint32List>[];
+      final effects = List<Effect>.from(widget.effects);
+      effects[widget.effectIndex] =
+          EffectsManager.createEffect(widget.effect.type, _parameters);
 
-    for (int i = 0; i < _frameCount; i++) {
-      // Calculate time parameter (0.0 to 1.0 over the animation duration)
-      final t = i / (_frameCount - 1);
+      for (int i = 0; i < _frameCount; i++) {
+        final t = i / (_frameCount - 1);
+        frames.add(await EffectAnimationRenderer.renderFrame(
+          pixels: widget.layerPixels,
+          width: widget.layerWidth,
+          height: widget.layerHeight,
+          effects: effects,
+          animatedEffectIndex: widget.effectIndex,
+          progress: t,
+        ));
+        if (revision != _generationRevision || !mounted) break;
+      }
 
-      // Create effect with time parameter
-      final timeParameters = Map<String, dynamic>.from(_parameters);
-      timeParameters['time'] = t;
-      timeParameters['frame'] = i;
-      timeParameters['totalFrames'] = _frameCount;
-
-      // Apply specific time-based modifications for different effects
-      _applyTimeBasedParameters(timeParameters, t, i);
-
-      final effect =
-          EffectsManager.createEffect(widget.effect.type, timeParameters);
-      final framePixels = effect.apply(
-        widget.layerPixels,
-        widget.layerWidth,
-        widget.layerHeight,
-      );
-
-      frames.add(framePixels);
-    }
-
-    if (mounted) {
-      setState(() {
-        _generatedFrames = frames;
-        _isGenerating = false;
-      });
-    }
-  }
-
-  void _applyTimeBasedParameters(
-      Map<String, dynamic> params, double t, int frame) {
-    switch (widget.effect.type) {
-      case EffectType.pulse:
-        params['phase'] = t * 2 * pi;
-        break;
-      case EffectType.wave:
-        params['wavePhase'] = t * 4 * pi;
-        break;
-      case EffectType.rotate:
-        params['angle'] = t * 360;
-        break;
-      case EffectType.float:
-      case EffectType.simpleFloat:
-        params['offset'] = sin(t * 2 * pi) * 10;
-        break;
-      case EffectType.physicsFloat:
-        params['bouncePhase'] = t;
-        break;
-      case EffectType.shake:
-      case EffectType.quickShake:
-      case EffectType.cameraShake:
-        params['shakeIntensity'] = sin(t * 8 * pi) * (params['intensity'] ?? 5);
-        break;
-      case EffectType.dissolve:
-      case EffectType.fadeDissolve:
-        params['dissolveAmount'] = t;
-        break;
-      case EffectType.melt:
-        params['meltProgress'] = t;
-        break;
-      case EffectType.explosion:
-        params['explosionRadius'] = t * (params['maxRadius'] ?? 50);
-        break;
-      case EffectType.jello:
-        params['elasticPhase'] = t * 2 * pi;
-        break;
-      case EffectType.wipe:
-        params['wipeProgress'] = t;
-        break;
-      case EffectType.sparkle:
-        params['sparklePhase'] = t;
-        params['randomSeed'] = frame;
-        break;
-      case EffectType.particle:
-        params['particleTime'] = t;
-        params['randomSeed'] = frame;
-        break;
-      case EffectType.rain:
-        params['rainOffset'] = t * (params['speed'] ?? 10);
-        break;
-      case EffectType.fire:
-        params['fireFlicker'] = t;
-        params['randomSeed'] = frame;
-        break;
-      case EffectType.oceanWaves:
-        params['waveTime'] = t;
-        break;
-      case EffectType.clouds:
-        params['cloudMovement'] = t;
-        break;
-      default:
-        // Generic time parameter
-        params['animationTime'] = t;
-        break;
+      if (mounted && revision == _generationRevision) {
+        setState(() => _generatedFrames = frames);
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGenerating = false);
+        if (revision != _generationRevision) _generateFrames();
+      }
     }
   }
 
@@ -371,6 +314,7 @@ class _EffectAnimationGeneratorDialogState
     final effectName = widget.effect.getName(context);
 
     return Dialog(
+      insetPadding: isMobile ? const EdgeInsets.all(8) : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
@@ -378,7 +322,7 @@ class _EffectAnimationGeneratorDialogState
         height: isMobile ? double.infinity : 700,
         child: AnimatedBackground(
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
             decoration: BoxDecoration(
               color:
                   Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
@@ -399,13 +343,16 @@ class _EffectAnimationGeneratorDialogState
                         children: [
                           Text(
                             s.generateAnimationFrames,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: (isMobile
+                                    ? Theme.of(context).textTheme.titleLarge
+                                    : Theme.of(context).textTheme.headlineSmall)
                                 ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
                             textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             s.effectNameLabel(effectName),
@@ -436,35 +383,79 @@ class _EffectAnimationGeneratorDialogState
                 ),
 
                 // Action buttons
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Row(
-                    children: [
-                      // Frame info
-                      Expanded(
-                        child: Text(
+                SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
                           s.framesGeneratedCount(_generatedFrames.length),
                           style: Theme.of(context).textTheme.bodyMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(s.cancel),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed:
-                            _generatedFrames.isEmpty ? null : _applyFrames,
-                        icon: const Icon(Icons.check),
-                        label: Text(s.generateFrames),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        if (isMobile) ...[
+                          _buildGenerateButton(s, compact: true),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(s.cancel),
+                          ),
+                        ] else
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text(s.cancel),
+                              ),
+                              const SizedBox(width: 8),
+                              _buildGenerateButton(s),
+                            ],
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildGenerateButton(Strings s, {bool compact = false}) {
+    final onPressed =
+        _generatedFrames.isEmpty || _isApplying ? null : _applyFrames;
+    if (compact) {
+      return ElevatedButton(
+        onPressed: onPressed,
+        child: _isApplying
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(s.generateFrames,
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+      );
+    }
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: _isApplying
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.check),
+      label: Text(
+        s.generateFrames,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -479,6 +470,8 @@ class _EffectAnimationGeneratorDialogState
           _buildAnimationSettings(),
           const SizedBox(height: 20),
           _buildFrameGenerationSettings(),
+          const SizedBox(height: 20),
+          _buildEffectParameters(),
         ],
       ),
     );
@@ -525,9 +518,13 @@ class _EffectAnimationGeneratorDialogState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              s.preview,
-              style: Theme.of(context).textTheme.titleLarge,
+            Expanded(
+              child: Text(
+                s.preview,
+                style: Theme.of(context).textTheme.titleLarge,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             Row(
               children: [
@@ -549,15 +546,23 @@ class _EffectAnimationGeneratorDialogState
         const SizedBox(height: 16),
 
         // Preview canvas
-        Container(
-          width: 300,
-          height: 300,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: _buildPreview(),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final size =
+                constraints.maxWidth < 300 ? constraints.maxWidth : 300.0;
+            return Center(
+              child: Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: _buildPreview(),
+              ),
+            );
+          },
         ),
 
         const SizedBox(height: 16),
@@ -697,10 +702,12 @@ class _EffectAnimationGeneratorDialogState
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    s.totalFrames,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  Expanded(
+                    child: Text(
+                      s.totalFrames,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
                     ),
                   ),
                   Text(
@@ -735,7 +742,6 @@ class _EffectAnimationGeneratorDialogState
 
   Widget _buildFrameGenerationSettings() {
     final s = Strings.of(context);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -747,54 +753,7 @@ class _EffectAnimationGeneratorDialogState
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            RadioListTile<bool>(
-              title: Text(s.generateNewFrames),
-              subtitle: Text(s.createNewFramesForAnimation),
-              value: true,
-              groupValue: _generateNewFrames,
-              onChanged: (value) {
-                setState(() {
-                  _generateNewFrames = value!;
-                });
-              },
-            ),
-            RadioListTile<bool>(
-              title: Text(s.insertIntoTimeline),
-              subtitle: Text(s.addFramesToExistingTimeline),
-              value: false,
-              groupValue: _generateNewFrames,
-              onChanged: (value) {
-                setState(() {
-                  _generateNewFrames = value!;
-                });
-              },
-            ),
-            if (!_generateNewFrames) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(s.insertPosition),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: DropdownButton<int>(
-                      value: _insertPosition,
-                      isExpanded: true,
-                      items: List.generate(10, (index) {
-                        return DropdownMenuItem<int>(
-                          value: index,
-                          child: Text(s.afterFrame(index + 1)),
-                        );
-                      }),
-                      onChanged: (value) {
-                        setState(() {
-                          _insertPosition = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            Text(s.addFramesToExistingTimeline),
           ],
         ),
       ),
@@ -810,16 +769,19 @@ class _EffectAnimationGeneratorDialogState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   s.effectParameters,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                TextButton(
-                  onPressed: () => _editParameters(),
-                  child: Text(s.editParameters),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => _editParameters(),
+                    child: Text(s.editParameters),
+                  ),
                 ),
               ],
             ),
@@ -954,8 +916,9 @@ class _EffectAnimationGeneratorDialogState
     );
   }
 
-  void _applyFrames() {
-    if (_generatedFrames.isEmpty) return;
+  Future<void> _applyFrames() async {
+    if (_generatedFrames.isEmpty || _isApplying) return;
+    setState(() => _isApplying = true);
 
     final frames = <AnimationFrame>[];
     final frameDuration = (1000 / _fps).round();
@@ -999,7 +962,18 @@ class _EffectAnimationGeneratorDialogState
       }
     }
 
-    widget.onFramesGenerated(frames);
+    try {
+      await widget.onFramesGenerated(frames);
+    } catch (error) {
+      if (mounted) {
+        setState(() => _isApplying = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+      return;
+    }
+    if (!mounted) return;
     Navigator.of(context).pop();
 
     // Show success message
@@ -1007,12 +981,6 @@ class _EffectAnimationGeneratorDialogState
       SnackBar(
         content:
             Text(Strings.of(context).generatedAnimationFrames(frames.length)),
-        action: SnackBarAction(
-          label: Strings.of(context).viewTimeline,
-          onPressed: () {
-            // Could trigger timeline expansion or navigation
-          },
-        ),
       ),
     );
   }

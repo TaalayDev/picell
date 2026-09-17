@@ -20,6 +20,7 @@ class EffectsSidePanel extends StatefulHookConsumerWidget {
   final int height;
   final SelectionRegion? selectionRegion;
   final Function(Layer)? onLayerUpdated;
+  final void Function(Effect, List<Effect>, int)? onAnimate;
 
   const EffectsSidePanel({
     super.key,
@@ -28,6 +29,7 @@ class EffectsSidePanel extends StatefulHookConsumerWidget {
     required this.height,
     this.selectionRegion,
     this.onLayerUpdated,
+    this.onAnimate,
   });
 
   @override
@@ -274,6 +276,10 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
                     });
                   },
                   onEdit: () => _editEffect(index),
+                  onAnimate: widget.onAnimate == null
+                      ? null
+                      : () => widget.onAnimate!(
+                            _effects[index], List<Effect>.from(_effects), index),
                   onRemove: () => _removeEffect(index),
                   showDragHandle: true,
                   showRemoveButton: false,

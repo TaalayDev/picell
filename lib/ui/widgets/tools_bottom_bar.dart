@@ -7,7 +7,6 @@ import '../../pixel/pixel_canvas_state.dart';
 import '../../pixel/tools.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import 'app_icon.dart';
-import 'panel/color_palette_panel.dart';
 import 'dialogs/layer_template_dialog.dart';
 import 'layers_panel.dart';
 import 'styled_tool_bottom_sheet.dart';
@@ -114,41 +113,10 @@ class ToolsBottomBar extends HookWidget {
                     },
                   ),
                   IconButton(
-                    icon: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: state.currentColor,
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                    ),
+                    icon: const AppIcon(AppIcons.lasso),
+                    color: currentTool.value == PixelTool.lasso ? Colors.blue : null,
                     onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) => DraggableScrollableSheet(
-                          initialChildSize: 0.9,
-                          maxChildSize: 0.9,
-                          minChildSize: 0.6,
-                          expand: false,
-                          builder: (context, scrollController) => ColorPalettePanel(
-                            scrollController: scrollController,
-                            currentColor: state.currentColor,
-                            isEyedropperSelected: currentTool.value == PixelTool.eyedropper,
-                            onSelectEyedropper: () {
-                              currentTool.value = PixelTool.eyedropper;
-                              Navigator.of(context).pop();
-                            },
-                            onColorSelected: (color) {
-                              notifier.currentColor = color;
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ),
-                      );
+                      currentTool.value = PixelTool.lasso;
                     },
                   ),
                   IconButton(

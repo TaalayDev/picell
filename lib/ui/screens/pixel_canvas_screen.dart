@@ -31,9 +31,11 @@ import '../widgets/pixel_canvas_shortcuts.dart';
 import '../widgets/dialogs/animation_preview_dialog.dart';
 import '../widgets/animation_timeline.dart';
 import '../widgets/effects/effects_panel.dart';
+import '../widgets/effects/effect_animation_generator_dialog.dart';
 import '../widgets/dialogs/save_image_window.dart';
 import '../widgets/dialogs/templates_dialog.dart';
 import '../widgets/dialogs/undo_history_dialog.dart';
+import '../widgets/mobile_color_selector.dart';
 import '../widgets/selection_mode_toggle.dart';
 import '../widgets/selection_options_button.dart';
 import '../widgets/tool_bar.dart';
@@ -602,6 +604,17 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   },
                 ),
                 if (MediaQuery.sizeOf(context).width <= 1050)
+                  MobileColorSelector(
+                    currentColor: state.currentColor,
+                    isEyedropperSelected: currentTool.value == PixelTool.eyedropper,
+                    onSelectEyedropper: () {
+                      currentTool.value = PixelTool.eyedropper;
+                    },
+                    onColorSelected: (color) {
+                      notifier.currentColor = color;
+                    },
+                  ),
+                if (MediaQuery.sizeOf(context).width <= 1050)
                   ToolsBottomBar(
                     currentTool: currentTool,
                     state: state,
@@ -628,6 +641,24 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       selectionRegion: selectionRegion,
       onLayerUpdated: (updatedLayer) {
         notifier.updateLayer(updatedLayer);
+      },
+      onAnimate: (effect, effects, effectIndex) {
+        final sourceFrame = notifier.currentFrame;
+        final sourceLayer = notifier.currentLayer;
+        EffectAnimationGeneratorDialog.showEffectAnimationGenerator(
+          context,
+          effect: effect,
+          effects: effects,
+          effectIndex: effectIndex,
+          layerWidth: project.width,
+          layerHeight: project.height,
+          layerPixels: sourceLayer.pixels,
+          onFramesGenerated: (frames) => notifier.addGeneratedEffectFrames(
+            frames,
+            sourceFrameId: sourceFrame.id,
+            sourceLayerId: sourceLayer.layerId,
+          ),
+        );
       },
     );
   }

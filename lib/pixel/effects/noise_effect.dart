@@ -8,9 +8,14 @@ class NoiseEffect extends Effect {
   Uint32List apply(Uint32List pixels, int width, int height) {
     final amount = parameters['amount'] as double;
     final result = Uint32List(pixels.length);
-    final random = Random();
+    final random = Random(42);
 
     for (int i = 0; i < pixels.length; i++) {
+      // Consume values for transparent pixels too, so adding a new pixel does
+      // not change the noise pattern on pixels that were already painted.
+      final noiseR = (random.nextDouble() * 2 - 1) * amount * 255;
+      final noiseG = (random.nextDouble() * 2 - 1) * amount * 255;
+      final noiseB = (random.nextDouble() * 2 - 1) * amount * 255;
       final a = (pixels[i] >> 24) & 0xFF;
       if (a == 0) {
         result[i] = 0; // Keep fully transparent pixels unchanged
@@ -20,11 +25,6 @@ class NoiseEffect extends Effect {
       final r = (pixels[i] >> 16) & 0xFF;
       final g = (pixels[i] >> 8) & 0xFF;
       final b = pixels[i] & 0xFF;
-
-      // Generate random noise (-amount to +amount)
-      final noiseR = (random.nextDouble() * 2 - 1) * amount * 255;
-      final noiseG = (random.nextDouble() * 2 - 1) * amount * 255;
-      final noiseB = (random.nextDouble() * 2 - 1) * amount * 255;
 
       // Apply noise
       final newR = (r + noiseR).round().clamp(0, 255);

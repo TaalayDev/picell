@@ -10,13 +10,16 @@ class LayerCacheManager extends ChangeNotifier {
   final int width;
   final int height;
   final Map<int, LayerCacheEntry> _cachedLayers = {};
+  final Map<int, int> _layerRevisions = {};
+  int _nextRevision = 0;
   bool _isBatchUpdate = false;
 
   LayerCacheManager({required this.width, required this.height});
 
   /// Get cached image for a layer
   ui.Image? getLayerImage(int layerId) {
-    return _cachedLayers[layerId]?.image;
+    final entry = _cachedLayers[layerId];
+    return entry?.isDirty == true ? null : entry?.image;
   }
 
   /// Check if a layer needs updating
@@ -26,7 +29,10 @@ class LayerCacheManager extends ChangeNotifier {
 
   /// Update a layer's cached image
   void updateLayer(int layerId, Uint32List pixels, int width, int height) {
-    _createImageAsync(layerId, pixels, width, height);
+    final revision = ++_nextRevision;
+    _layerRevisions[layerId] = revision;
+    _cachedLayers[layerId]?.isDirty = true;
+    _createImageAsync(layerId, revision, pixels, width, height);
   }
 
   /// Mark a layer as dirty (needs re-caching)
@@ -42,6 +48,7 @@ class LayerCacheManager extends ChangeNotifier {
 
   /// Remove a layer from cache
   void removeLayer(int layerId) {
+    _layerRevisions.remove(layerId);
     final entry = _cachedLayers.remove(layerId);
     entry?.dispose();
     if (!_isBatchUpdate) {
@@ -59,6 +66,7 @@ class LayerCacheManager extends ChangeNotifier {
 
   /// Clear all cached layers
   void clearAll() {
+    _layerRevisions.clear();
     for (final entry in _cachedLayers.values) {
       entry.dispose();
     }
@@ -79,10 +87,15 @@ class LayerCacheManager extends ChangeNotifier {
     );
   }
 
-  Future<void> _createImageAsync(int layerId, Uint32List pixels, int width, int height) async {
+  Future<void> _createImageAsync(int layerId, int revision, Uint32List pixels,
+      int width, int height) async {
     try {
-      final image = await ImageHelper.createImageFromPixels(Uint32List.fromList(pixels), width, height);
-
+      final image = await ImageHelper.createImageFromPixels(
+          Uint32List.fromList(pixels), width, height);
+      if (_layerRevisions[layerId] != revision) {
+        image.dispose();
+        return;
+      }
       _updateLayerImage(layerId, image);
     } catch (e) {
       debugPrint('Error creating image for layer $layerId: $e');
@@ -93,7 +106,8 @@ class LayerCacheManager extends ChangeNotifier {
     // Dispose old image if it exists
     _cachedLayers[layerId]?.dispose();
 
-    _cachedLayers[layerId] = LayerCacheEntry(image: image, isDirty: false, lastUpdated: DateTime.now());
+    _cachedLayers[layerId] = LayerCacheEntry(
+        image: image, isDirty: false, lastUpdated: DateTime.now());
 
     if (!_isBatchUpdate) {
       notifyListeners();
@@ -113,7 +127,8 @@ class LayerCacheEntry {
   bool isDirty;
   DateTime lastUpdated;
 
-  LayerCacheEntry({required this.image, required this.isDirty, required this.lastUpdated});
+  LayerCacheEntry(
+      {required this.image, required this.isDirty, required this.lastUpdated});
 
   void dispose() {
     image.dispose();
@@ -126,9 +141,13 @@ class CacheMemoryInfo {
   final int dirtyImages;
   final int estimatedMemoryBytes;
 
-  const CacheMemoryInfo({required this.totalImages, required this.dirtyImages, required this.estimatedMemoryBytes});
+  const CacheMemoryInfo(
+      {required this.totalImages,
+      required this.dirtyImages,
+      required this.estimatedMemoryBytes});
 
-  String get estimatedMemoryMB => '${(estimatedMemoryBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  String get estimatedMemoryMB =>
+      '${(estimatedMemoryBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
 
   @override
   String toString() {
