@@ -86,35 +86,45 @@ class ToolsBottomBar extends HookWidget {
                   }).toList(),
                 ).animate().fadeIn(duration: const Duration(milliseconds: 200)),
               ),
-            if (showExtraTools.value) Divider(color: Colors.grey.withValues(alpha: 0.5), thickness: 0.1),
+            if (showExtraTools.value)
+              Divider(
+                  color: Colors.grey.withValues(alpha: 0.5), thickness: 0.1),
             Expanded(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   IconButton(
                     icon: const AppIcon(AppIcons.pencil),
-                    color: currentTool.value == PixelTool.pencil ? Colors.blue : null,
+                    color: currentTool.value == PixelTool.pencil
+                        ? Colors.blue
+                        : null,
                     onPressed: () async {
                       currentTool.value = PixelTool.pencil;
                     },
                   ),
                   IconButton(
                     icon: const AppIcon(AppIcons.eraser),
-                    color: currentTool.value == PixelTool.eraser ? Colors.blue : null,
+                    color: currentTool.value == PixelTool.eraser
+                        ? Colors.blue
+                        : null,
                     onPressed: () {
                       currentTool.value = PixelTool.eraser;
                     },
                   ),
                   IconButton(
                     icon: const AppIcon(AppIcons.fill),
-                    color: currentTool.value == PixelTool.fill ? Colors.blue : null,
+                    color: currentTool.value == PixelTool.fill
+                        ? Colors.blue
+                        : null,
                     onPressed: () {
                       currentTool.value = PixelTool.fill;
                     },
                   ),
                   IconButton(
                     icon: const AppIcon(AppIcons.lasso),
-                    color: currentTool.value == PixelTool.lasso ? Colors.blue : null,
+                    color: currentTool.value == PixelTool.lasso
+                        ? Colors.blue
+                        : null,
                     onPressed: () {
                       currentTool.value = PixelTool.lasso;
                     },
@@ -129,7 +139,8 @@ class ToolsBottomBar extends HookWidget {
                           maxChildSize: 0.9,
                           minChildSize: 0.4,
                           expand: false,
-                          builder: (context, scrollController) => ValueListenableBuilder(
+                          builder: (context, scrollController) =>
+                              ValueListenableBuilder(
                             valueListenable: drawState,
                             builder: (context, state, _) => Padding(
                               padding: const EdgeInsets.only(top: 8.0),
@@ -144,26 +155,22 @@ class ToolsBottomBar extends HookWidget {
                                 onLayerUpdated: (updatedLayer) {
                                   notifier.updateLayer(updatedLayer);
                                 },
-                                onLayerVisibilityChanged: (index) {
-                                  notifier.toggleLayerVisibility(index);
-                                },
+                                onLayersVisibilityChanged:
+                                    notifier.setLayersVisibility,
                                 onLayerSelected: (index) {
                                   notifier.selectLayer(index);
                                 },
-                                onLayerDeleted: (index) {
-                                  notifier.removeLayer(index);
-                                },
-                                onLayerLockedChanged: (index) {},
-                                onLayerDuplicated: (index) {
-                                  notifier.duplicateLayer(index);
-                                },
+                                onLayersDeleted: notifier.removeLayers,
+                                onLayersLockedChanged: notifier.setLayersLocked,
+                                onLayersDuplicated: notifier.duplicateLayers,
                                 onLayerReordered: (oldIndex, newIndex) {
                                   notifier.reorderLayers(
                                     newIndex,
                                     oldIndex,
                                   );
                                 },
-                                onLayerOpacityChanged: (index, opacity) {},
+                                onLayersOpacityChanged:
+                                    notifier.setLayersOpacity,
                                 onLayerEffectsChanged: (updatedLayer) {
                                   notifier.updateLayer(updatedLayer);
                                 },
@@ -187,7 +194,9 @@ class ToolsBottomBar extends HookWidget {
                     },
                   ),
                   IconButton(
-                    color: extraTools.containsKey(currentTool.value) ? Colors.blue : null,
+                    color: extraTools.containsKey(currentTool.value)
+                        ? Colors.blue
+                        : null,
                     onPressed: () async {
                       showStyledToolBottomSheet(context, currentTool);
                     },

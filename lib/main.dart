@@ -42,7 +42,7 @@ void main() async {
 }
 
 Future<void> initWindowManager() async {
-  if (kIsWeb || !_isDesktop()) {
+  if (kIsWeb || !_isDesktop() || kDebugMode) {
     return;
   }
 

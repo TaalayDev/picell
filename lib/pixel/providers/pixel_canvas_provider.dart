@@ -22,11 +22,13 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
 
   @override
   PixelCanvasState build(Project project) {
-    _cachedController = ref.watch(pixelDrawControllerProvider(project).notifier);
+    _cachedController =
+        ref.watch(pixelDrawControllerProvider(project).notifier);
     return ref.watch(pixelDrawControllerProvider(project));
   }
 
-  final StreamController<PixelDrawEvent> _eventController = StreamController.broadcast();
+  final StreamController<PixelDrawEvent> _eventController =
+      StreamController.broadcast();
   late Stream<PixelDrawEvent> eventStream = _eventController.stream;
 
   PixelDrawController get _controller => _cachedController!;
@@ -53,11 +55,13 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   void endDrawing() => _controller.endBatchDrawing();
   void cancelDrawing() => _controller.cancelBatchDrawing();
   void setPixel(int x, int y) => _controller.batchSetPixel(x, y);
-  void fillPixels(List<PixelPoint<int>> points) => _controller.batchFillPixels(points);
+  void fillPixels(List<PixelPoint<int>> points) =>
+      _controller.batchFillPixels(points);
   void fill(int x, int y) => _controller.floodFill(x, y);
   void clear() => _controller.clearCanvas();
   Color getPixelColor(int x, int y) => _controller.getPixelColor(x, y);
-  void applyGradient(List<Color> gradientColors) => _controller.applyGradient(gradientColors);
+  void applyGradient(List<Color> gradientColors) =>
+      _controller.applyGradient(gradientColors);
   void applyGradientFromPoints(Offset startPx, Offset endPx, Color endColor) =>
       _controller.applyGradientFromPoints(startPx, endPx, endColor);
 
@@ -68,12 +72,25 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
 
   // Layer operations
   Future<void> addLayer(String name) => _controller.addLayer(name);
-  Future<void> addLayerWithPixels(Layer layer) => _controller.addLayerWithPixels(layer);
+  Future<void> addLayerWithPixels(Layer layer) =>
+      _controller.addLayerWithPixels(layer);
   Future<void> removeLayer(int index) => _controller.removeLayer(index);
+  Future<void> removeLayers(Iterable<int> indices) =>
+      _controller.removeLayers(indices);
   Future<int> duplicateLayer(int index) => _controller.duplicateLayer(index);
+  Future<void> duplicateLayers(Iterable<int> indices) =>
+      _controller.duplicateLayers(indices);
+  Future<void> setLayersVisibility(Iterable<int> indices, bool visible) =>
+      _controller.setLayersVisibility(indices, visible);
+  Future<void> setLayersLocked(Iterable<int> indices, bool locked) =>
+      _controller.setLayersLocked(indices, locked);
+  Future<void> setLayersOpacity(Iterable<int> indices, double opacity) =>
+      _controller.setLayersOpacity(indices, opacity);
   void selectLayer(int index) => _controller.selectLayer(index);
-  Future<void> toggleLayerVisibility(int index) => _controller.toggleLayerVisibility(index);
-  Future<void> reorderLayers(int oldIndex, int newIndex) => _controller.reorderLayers(oldIndex, newIndex);
+  Future<void> toggleLayerVisibility(int index) =>
+      _controller.toggleLayerVisibility(index);
+  Future<void> reorderLayers(int oldIndex, int newIndex) =>
+      _controller.reorderLayers(oldIndex, newIndex);
   void updateLayer(Layer updatedLayer) => _controller.updateLayer(updatedLayer);
   Layer getCurrentLayer() => _controller.currentLayer;
 
@@ -81,12 +98,23 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   Future<void> addFrame(String name, {int? copyFrame, int? stateId}) =>
       _controller.addFrame(name, copyFrameId: copyFrame, stateId: stateId);
   Future<void> removeFrame(int index) => _controller.removeFrame(index);
+  Future<void> removeFramesByIds(Set<int> frameIds) =>
+      _controller.removeFramesByIds(frameIds);
+  Future<void> duplicateFramesByIds(Iterable<int> frameIds) =>
+      _controller.duplicateFramesByIds(frameIds);
+  Future<void> updateFramesDurationByIds(
+          Iterable<int> frameIds, int duration) =>
+      _controller.updateFramesDurationByIds(frameIds, duration);
   void selectFrame(int frameId) => _controller.selectFrame(frameId);
   void nextFrame() => _controller.nextFrame();
   void prevFrame() => _controller.previousFrame();
 
-  Future<void> updateFrame(int index, AnimationFrame frame) => _controller.updateFrame(index, frame);
-  Future<void> reorderFrames(int oldIndex, int newIndex) => _controller.reorderFrames(oldIndex, newIndex);
+  Future<void> updateFrame(int index, AnimationFrame frame) =>
+      _controller.updateFrame(index, frame);
+  Future<void> reorderFrames(int oldIndex, int newIndex) =>
+      _controller.reorderFrames(oldIndex, newIndex);
+  Future<void> reorderFramesByIds(Set<int> draggedIds, int targetId) =>
+      _controller.reorderFramesByIds(draggedIds, targetId);
   Future<void> addGeneratedEffectFrames(
     List<AnimationFrame> frames, {
     required int sourceFrameId,
@@ -99,13 +127,18 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
       );
 
   // Animation state operations
-  Future<void> addAnimationState(String name, int frameRate) => _controller.addAnimationState(name, frameRate);
-  Future<void> removeAnimationState(int stateId) => _controller.removeAnimationState(stateId);
-  Future<void> copyAnimationState(int stateId) => _controller.copyAnimationState(stateId);
-  void selectAnimationState(int stateId) => _controller.selectAnimationState(stateId);
+  Future<void> addAnimationState(String name, int frameRate) =>
+      _controller.addAnimationState(name, frameRate);
+  Future<void> removeAnimationState(int stateId) =>
+      _controller.removeAnimationState(stateId);
+  Future<void> copyAnimationState(int stateId) =>
+      _controller.copyAnimationState(stateId);
+  void selectAnimationState(int stateId) =>
+      _controller.selectAnimationState(stateId);
 
   // Selection operations
-  void setSelection(SelectionRegion? region) => _controller.setSelection(region);
+  void setSelection(SelectionRegion? region) =>
+      _controller.setSelection(region);
   void moveSelection(Offset delta) => _controller.moveSelection(delta);
   void clearSelection() {
     _eventController.add(const ClearSelectionEvent());
@@ -113,8 +146,10 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   }
 
   void clearSelectionArea() => _controller.clearSelectionArea();
-  Future<void> cutToNewLayer() => _controller.selectionToNewLayer(clearSource: true);
-  Future<void> copyToNewLayer() => _controller.selectionToNewLayer(clearSource: false);
+  Future<void> cutToNewLayer() =>
+      _controller.selectionToNewLayer(clearSource: true);
+  Future<void> copyToNewLayer() =>
+      _controller.selectionToNewLayer(clearSource: false);
 
   /// Returns copied pixels (canvas-sized, non-selected pixels are 0).
   Uint32List? copySelectionPixels() => _controller.copySelectionPixels();
@@ -132,7 +167,8 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   void autoSelectLayer() => _controller.autoSelectLayer();
   void setAnchorPoint(Offset anchor) => _controller.setAnchorPoint(anchor);
   void persistAnchorPoint() => _controller.persistAnchorPoint();
-  void flipSelection({required bool horizontal}) => _controller.flipSelectionPixels(horizontal: horizontal);
+  void flipSelection({required bool horizontal}) =>
+      _controller.flipSelectionPixels(horizontal: horizontal);
 
   void addTemplate(Template template) => _controller.addTemplate(template);
 
@@ -149,7 +185,8 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   }
 
   // Import/Export operations
-  Future<void> exportJson(BuildContext context) => _controller.exportProjectAsJson(context);
+  Future<void> exportJson(BuildContext context) =>
+      _controller.exportProjectAsJson(context);
   Future<void> exportImage(
     BuildContext context, {
     bool background = false,
