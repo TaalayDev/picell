@@ -16,12 +16,17 @@ class DrawingService {
     required int height,
     required Color color,
     SelectionRegion? selection,
+    bool erase = false,
   }) {
     if (!_isWithinBounds(x, y, width, height)) return;
     if (!_isInSelection(x, y, selection)) return;
 
     final index = y * width + x;
-    pixels[index] = color.value;
+    pixels[index] = _compositePixel(
+      destination: pixels[index],
+      source: color.toARGB32(),
+      erase: erase,
+    );
   }
 
   void fillPixelsMutable({
@@ -30,11 +35,18 @@ class DrawingService {
     required int width,
     required Color color,
     SelectionRegion? selection,
+    bool erase = false,
   }) {
     for (final point in points) {
       final index = point.y * width + point.x;
-      if (index >= 0 && index < pixels.length && _isInSelection(point.x, point.y, selection)) {
-        pixels[index] = point.color;
+      if (index >= 0 &&
+          index < pixels.length &&
+          _isInSelection(point.x, point.y, selection)) {
+        pixels[index] = _compositePixel(
+          destination: pixels[index],
+          source: point.color,
+          erase: erase,
+        );
       }
     }
   }
@@ -57,26 +69,36 @@ class DrawingService {
     required Color color,
     SelectionRegion? selection,
     Modifier? modifier,
+    bool erase = false,
   }) {
     if (!_isWithinBounds(x, y, width, height)) return pixels;
     if (!_isInSelection(x, y, selection)) return pixels;
 
     final newPixels = Uint32List.fromList(pixels);
     final index = y * width + x;
-    newPixels[index] = color.value;
+    newPixels[index] = _compositePixel(
+      destination: newPixels[index],
+      source: color.toARGB32(),
+      erase: erase,
+    );
 
     // Apply modifier if present
     if (modifier != null && !modifier.isNone) {
       final modifierPoints = modifier.apply(
-        PixelPoint(x, y, color: color.value),
+        PixelPoint(x, y, color: color.toARGB32()),
         width,
         height,
       );
 
       for (final point in modifierPoints) {
-        if (_isWithinBounds(point.x, point.y, width, height) && _isInSelection(point.x, point.y, selection)) {
+        if (_isWithinBounds(point.x, point.y, width, height) &&
+            _isInSelection(point.x, point.y, selection)) {
           final modIndex = point.y * width + point.x;
-          newPixels[modIndex] = point.color;
+          newPixels[modIndex] = _compositePixel(
+            destination: newPixels[modIndex],
+            source: point.color,
+            erase: erase,
+          );
         }
       }
     }
@@ -90,13 +112,20 @@ class DrawingService {
     required int width,
     required Color color,
     SelectionRegion? selection,
+    bool erase = false,
   }) {
     final newPixels = Uint32List.fromList(pixels);
 
     for (final point in points) {
       final index = point.y * width + point.x;
-      if (index >= 0 && index < newPixels.length && _isInSelection(point.x, point.y, selection)) {
-        newPixels[index] = point.color;
+      if (index >= 0 &&
+          index < newPixels.length &&
+          _isInSelection(point.x, point.y, selection)) {
+        newPixels[index] = _compositePixel(
+          destination: newPixels[index],
+          source: point.color,
+          erase: erase,
+        );
       }
     }
 
@@ -111,15 +140,21 @@ class DrawingService {
     required int height,
     required Color fillColor,
     SelectionRegion? selection,
+    bool erase = false,
   }) {
     if (!_isWithinBounds(x, y, width, height)) return pixels;
     if (!_isInSelection(x, y, selection)) return pixels;
 
     final newPixels = Uint32List.fromList(pixels);
     final targetColor = newPixels[y * width + x];
-    final fillColorValue = fillColor.value;
+    final fillColorValue = fillColor.toARGB32();
+    final replacementColor = _compositePixel(
+      destination: targetColor,
+      source: fillColorValue,
+      erase: erase,
+    );
 
-    if (targetColor == fillColorValue) return pixels;
+    if (targetColor == replacementColor) return pixels;
 
     final queue = Queue<Point<int>>();
     queue.add(Point(x, y));
@@ -135,7 +170,7 @@ class DrawingService {
       final index = py * width + px;
       if (newPixels[index] != targetColor) continue;
 
-      newPixels[index] = fillColorValue;
+      newPixels[index] = replacementColor;
 
       queue.add(Point(px + 1, py));
       queue.add(Point(px - 1, py));
@@ -144,6 +179,20 @@ class DrawingService {
     }
 
     return newPixels;
+  }
+
+  int _compositePixel({
+    required int destination,
+    required int source,
+    required bool erase,
+  }) {
+    if (erase) return 0;
+
+    final sourceAlpha = (source >>> 24) & 0xFF;
+    if (sourceAlpha == 0) return destination;
+    if (sourceAlpha == 0xFF || destination == 0) return source;
+
+    return Color.alphaBlend(Color(source), Color(destination)).toARGB32();
   }
 
   Uint32List clearPixels(int width, int height) {
@@ -179,7 +228,7 @@ class DrawingService {
         newPixels[i] = Color.alphaBlend(
           gradientColors[i],
           Color(pixels[i]),
-        ).value;
+        ).toARGB32();
       }
     }
 

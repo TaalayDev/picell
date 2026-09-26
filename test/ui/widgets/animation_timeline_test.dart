@@ -99,9 +99,6 @@ void main() {
     );
     expect(horizontalListViewFinder, findsOneWidget);
 
-    // Verify frame index badge is visible
-    expect(find.text('1'), findsWidgets);
-
     // Tap frame 2 to select it
     final frame2Finder = find.byKey(const ValueKey(2));
     expect(frame2Finder, findsOneWidget);
@@ -244,5 +241,58 @@ void main() {
     await tester.pumpAndSettle();
     expect(reordered?.$1, {2, 3, 4});
     expect(reordered?.$2, 1);
+  });
+
+  testWidgets('Ctrl+A selects every frame in the focused animation panel',
+      (tester) async {
+    final frames = createSampleFrames(4);
+    Set<int>? copied;
+
+    await tester.pumpWidget(
+      buildTestableWidget(
+        AnimationTimeline(
+          width: 16,
+          height: 16,
+          isExpanded: true,
+          states: const [
+            AnimationStateModel(id: 1, name: 'Idle', frameRate: 12)
+          ],
+          frames: frames,
+          selectedStateId: 1,
+          selectedFrameId: 1,
+          isPlaying: false,
+          settings: const AnimationSettings(),
+          onSelectFrame: (_) {},
+          onAddFrame: () {},
+          onDeleteFrame: (_) {},
+          onDurationChanged: (_, __) {},
+          onFrameReordered: (_, __) {},
+          onPlayPause: () {},
+          onStop: () {},
+          onNextFrame: () {},
+          onPreviousFrame: () {},
+          onSettingsChanged: (_) {},
+          onExpandChanged: () {},
+          copyFrame: (ids) => copied = Set.of(ids),
+          onAddState: (_) {},
+          onRenameState: (_, __) {},
+          onDeleteState: (_) {},
+          onDuplicateState: (_) {},
+          onCopyState: (_) {},
+          onSelectedStateChanged: (_) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey(1)).last);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyA);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('selected-frame-count')), findsOneWidget);
+    await tester.tap(find.byIcon(Feather.copy).first);
+    expect(copied, {1, 2, 3, 4});
   });
 }

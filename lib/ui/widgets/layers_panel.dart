@@ -10,6 +10,7 @@ import '../../l10n/strings.dart';
 import '../../providers/background_image_provider.dart';
 import '../utils/multi_selection.dart';
 import 'fancy_slider.dart';
+import 'panel_select_all_region.dart';
 
 class LayersPanel extends HookConsumerWidget {
   final int width;
@@ -91,73 +92,79 @@ class LayersPanel extends HookConsumerWidget {
       onLayerSelected(layers.indexWhere((layer) => layer.id == result.active));
     }
 
-    return Column(
-      children: [
-        const SizedBox(height: 4),
-        _ActionButtonsBar(
-          layers: layers,
-          activeLayerIndex: activeLayerIndex,
-          selectedLayerIndices: selectedIndices,
-          onLayerAdded: onLayerAdded,
-          onLayersDeleted: onLayersDeleted,
-          onLayersDuplicated: onLayersDuplicated,
-          onLayersOpacityChanged: onLayersOpacityChanged,
-          onLayerUpdated: onLayerUpdated,
-          onLayerToTemplate: onLayerToTemplate,
-          onAutoSelect: onAutoSelect,
-        ),
-        const SizedBox(height: 4),
-        const SizedBox(height: 4),
-        Expanded(
-          child: AnimatedReorderableListView(
-            items: layers,
-            controller: scrollController,
-            onReorder: (oldIndex, newIndex) {
-              final reversedLength = layers.length;
-              final actualOldIndex = reversedLength - 1 - oldIndex;
-              final actualNewIndex = reversedLength - 1 - newIndex;
-              onLayerReordered(actualNewIndex, actualOldIndex);
-            },
-            itemBuilder: (context, index) {
-              final reversedLayers = layers.reversed.toList();
-              final layer = reversedLayers[index];
-              final actualIndex = layers.length - 1 - index;
-              return _LayerTile(
-                key: ValueKey(layer.id),
-                layer: layer,
-                index: actualIndex,
-                isSelected: effectiveSelection.contains(layer.id),
-                isActive: actualIndex == activeLayerIndex,
-                onLayerSelected: selectLayer,
-                onLayerVisibilityChanged: (index) {
-                  final targets = effectiveSelection.contains(layer.id)
-                      ? selectedIndices
-                      : [index];
-                  onLayersVisibilityChanged(targets, !layer.isVisible);
-                },
-                onLayerLockedChanged: (index) {
-                  final targets = effectiveSelection.contains(layer.id)
-                      ? selectedIndices
-                      : [index];
-                  onLayersLockedChanged(targets, !layer.isLocked);
-                },
-                onDoubleTap: () => _showRenameDialog(context, layer),
-              );
-            },
-            enterTransition: [FlipInX(), ScaleIn()],
-            exitTransition: [SlideInLeft()],
-            insertDuration: const Duration(milliseconds: 300),
-            removeDuration: const Duration(milliseconds: 300),
-            isSameItem: (a, b) => a.id == b.id,
+    return PanelSelectAllRegion(
+      onSelectAll: () {
+        selectedIds.value = availableIds;
+        anchor.value = activeId;
+      },
+      child: Column(
+        children: [
+          const SizedBox(height: 4),
+          _ActionButtonsBar(
+            layers: layers,
+            activeLayerIndex: activeLayerIndex,
+            selectedLayerIndices: selectedIndices,
+            onLayerAdded: onLayerAdded,
+            onLayersDeleted: onLayersDeleted,
+            onLayersDuplicated: onLayersDuplicated,
+            onLayersOpacityChanged: onLayersOpacityChanged,
+            onLayerUpdated: onLayerUpdated,
+            onLayerToTemplate: onLayerToTemplate,
+            onAutoSelect: onAutoSelect,
           ),
-        ),
-        if (backgroundImage.image != null)
-          _BackgroundImageTile(
-            width: width,
-            height: height,
+          const SizedBox(height: 4),
+          const SizedBox(height: 4),
+          Expanded(
+            child: AnimatedReorderableListView(
+              items: layers,
+              controller: scrollController,
+              onReorder: (oldIndex, newIndex) {
+                final reversedLength = layers.length;
+                final actualOldIndex = reversedLength - 1 - oldIndex;
+                final actualNewIndex = reversedLength - 1 - newIndex;
+                onLayerReordered(actualNewIndex, actualOldIndex);
+              },
+              itemBuilder: (context, index) {
+                final reversedLayers = layers.reversed.toList();
+                final layer = reversedLayers[index];
+                final actualIndex = layers.length - 1 - index;
+                return _LayerTile(
+                  key: ValueKey(layer.id),
+                  layer: layer,
+                  index: actualIndex,
+                  isSelected: effectiveSelection.contains(layer.id),
+                  isActive: actualIndex == activeLayerIndex,
+                  onLayerSelected: selectLayer,
+                  onLayerVisibilityChanged: (index) {
+                    final targets = effectiveSelection.contains(layer.id)
+                        ? selectedIndices
+                        : [index];
+                    onLayersVisibilityChanged(targets, !layer.isVisible);
+                  },
+                  onLayerLockedChanged: (index) {
+                    final targets = effectiveSelection.contains(layer.id)
+                        ? selectedIndices
+                        : [index];
+                    onLayersLockedChanged(targets, !layer.isLocked);
+                  },
+                  onDoubleTap: () => _showRenameDialog(context, layer),
+                );
+              },
+              enterTransition: [FlipInX(), ScaleIn()],
+              exitTransition: [SlideInLeft()],
+              insertDuration: const Duration(milliseconds: 300),
+              removeDuration: const Duration(milliseconds: 300),
+              isSameItem: (a, b) => a.id == b.id,
+            ),
           ),
-        const SizedBox(height: 8),
-      ],
+          if (backgroundImage.image != null)
+            _BackgroundImageTile(
+              width: width,
+              height: height,
+            ),
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 }

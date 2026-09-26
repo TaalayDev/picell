@@ -206,6 +206,7 @@ class PixelDrawController extends _$PixelDrawController {
       height: state.height,
       color: state.currentColor,
       selection: state.selectionState?.region,
+      erase: state.currentTool == PixelTool.eraser,
     );
   }
 
@@ -218,6 +219,7 @@ class PixelDrawController extends _$PixelDrawController {
       width: state.width,
       color: state.currentColor,
       selection: state.selectionState?.region,
+      erase: state.currentTool == PixelTool.eraser,
     );
   }
 
@@ -260,6 +262,7 @@ class PixelDrawController extends _$PixelDrawController {
       color: _getDrawingColor(),
       selection: state.selectionState?.region,
       modifier: modifier,
+      erase: state.currentTool == PixelTool.eraser,
     );
 
     _updateCurrentLayerPixels(newPixels);
@@ -280,6 +283,7 @@ class PixelDrawController extends _$PixelDrawController {
       width: state.width,
       color: _getDrawingColor(),
       selection: state.selectionState?.region,
+      erase: state.currentTool == PixelTool.eraser,
     );
 
     _updateCurrentLayerPixels(newPixels);
@@ -296,6 +300,7 @@ class PixelDrawController extends _$PixelDrawController {
       height: state.height,
       fillColor: _getDrawingColor(),
       selection: state.selectionState?.region,
+      erase: state.currentTool == PixelTool.eraser,
     );
 
     _updateCurrentLayerPixels(newPixels);
