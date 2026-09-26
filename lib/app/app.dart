@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:picell/ui/widgets/ad_wrapper.dart';
 
-import 'theme/theme.dart';
 import '../core/utils/locale_manager.dart';
 import '../providers/providers.dart';
 import '../l10n/strings.dart';
@@ -49,7 +48,7 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
     final themeManager = ref.watch(themeProvider);
     final appTheme = themeManager.theme;
 
-    final subscriptionState = ref.watch(subscriptionStateProvider);
+    ref.watch(subscriptionStateProvider);
 
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -62,7 +61,7 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
         supportedLocales: Strings.supportedLocales,
         localizationsDelegates: Strings.localizationsDelegates,
         locale: _getLocale(ref),
-        home: const SplashScreen(),
+        home: const ProjectsScreen(),
         builder: (context, child) {
           return AdWrapper(child: child!);
         },

@@ -1621,7 +1621,11 @@ class CloudProjectsView extends HookConsumerWidget {
                     child: CommunityProjectCard(
                       project: projects[index],
                       isFeatured: true,
-                      onTap: () => _openProjectDetail(context, ref, projects[index], subscription),
+                      onTap: () {
+                        final project = projects[index];
+                        unawaited(ref.read(projectAPIRepoProvider).recordFeaturedClick(project.id));
+                        _openProjectDetail(context, ref, project, subscription);
+                      },
                       onLike: (project) => ref.read(communityProjectsProvider.notifier).toggleLike(project),
                     ),
                   );

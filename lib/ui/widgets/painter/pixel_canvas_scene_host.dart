@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../data.dart';
 import '../../../data/models/selection_region.dart';
+import '../../../l10n/strings.dart';
 import '../../../pixel/canvas/canvas_gesture_handler.dart';
 import '../../../pixel/canvas/canvas_host_runtime.dart';
 import '../../../pixel/canvas/pixel_canvas_callbacks.dart';
@@ -57,10 +58,12 @@ class PixelCanvasSceneHost extends ConsumerStatefulWidget {
   final Function(PixelTool)? onToolAutoSwitch;
 
   @override
-  ConsumerState<PixelCanvasSceneHost> createState() => _PixelCanvasSceneHostState();
+  ConsumerState<PixelCanvasSceneHost> createState() =>
+      _PixelCanvasSceneHostState();
 }
 
-class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> with SingleTickerProviderStateMixin {
+class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost>
+    with SingleTickerProviderStateMixin {
   late final PixelCanvasHostRuntime _canvasRuntime;
   late final PixelCanvasSurfaceRuntime _surfaceRuntime;
   late final AnimationController _selectionAnimationController;
@@ -68,7 +71,8 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
   @override
   void initState() {
     super.initState();
-    _selectionAnimationController = AnimationController(duration: const Duration(seconds: 1), vsync: this);
+    _selectionAnimationController =
+        AnimationController(duration: const Duration(seconds: 1), vsync: this);
     _syncSelectionTicker();
     final sceneConfig = _buildSceneConfig();
     _canvasRuntime = PixelCanvasHostRuntime.create(
@@ -80,7 +84,8 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
       viewportController: widget.viewportController,
       inputMode: sceneConfig.inputMode,
       twoFingerUndoEnabled: sceneConfig.twoFingerUndoEnabled,
-      enableMultiTouchViewportNavigation: widget.enableMultiTouchViewportNavigation,
+      enableMultiTouchViewportNavigation:
+          widget.enableMultiTouchViewportNavigation,
       selectionState: widget.state.selectionState,
       wandTolerance: _wandToleranceThreshold,
       wandContiguous: widget.editorSettings.wandContiguous,
@@ -89,12 +94,15 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
     _surfaceRuntime = PixelCanvasSurfaceRuntime();
 
     final backgroundImage = ref.read(backgroundImageProvider);
-    _surfaceRuntime.update(backgroundImageBytes: backgroundImage.image, onionSkinFrames: sceneConfig.onionSkinFrames);
+    _surfaceRuntime.update(
+        backgroundImageBytes: backgroundImage.image,
+        onionSkinFrames: sceneConfig.onionSkinFrames);
   }
 
   /// Maps the settings' 0-100% wand tolerance onto the selection service's
   /// Euclidean ARGB distance threshold.
-  int get _wandToleranceThreshold => (widget.editorSettings.wandTolerance / 100 * 255).round();
+  int get _wandToleranceThreshold =>
+      (widget.editorSettings.wandTolerance / 100 * 255).round();
 
   /// Runs the marching-ants ticker only while a selection exists. A
   /// permanently repeating controller forces the canvas layer to repaint
@@ -122,14 +130,17 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
       viewportController: widget.viewportController,
       inputMode: sceneConfig.inputMode,
       twoFingerUndoEnabled: sceneConfig.twoFingerUndoEnabled,
-      enableMultiTouchViewportNavigation: widget.enableMultiTouchViewportNavigation,
+      enableMultiTouchViewportNavigation:
+          widget.enableMultiTouchViewportNavigation,
       selectionState: widget.state.selectionState,
       wandTolerance: _wandToleranceThreshold,
       wandContiguous: widget.editorSettings.wandContiguous,
     );
 
     final backgroundImage = ref.read(backgroundImageProvider);
-    _surfaceRuntime.update(backgroundImageBytes: backgroundImage.image, onionSkinFrames: sceneConfig.onionSkinFrames);
+    _surfaceRuntime.update(
+        backgroundImageBytes: backgroundImage.image,
+        onionSkinFrames: sceneConfig.onionSkinFrames);
   }
 
   @override
@@ -140,12 +151,28 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
     super.dispose();
   }
 
+  void _startDrawing() {
+    if (widget.notifier.startDrawing()) return;
+
+    final message = Strings.of(context).proceduralLayerDrawingBlocked;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final sceneConfig = _buildSceneConfig();
     final backgroundImage = ref.watch(backgroundImageProvider);
     ref.listen(backgroundImageProvider, (_, next) {
-      _surfaceRuntime.update(backgroundImageBytes: next.image, onionSkinFrames: sceneConfig.onionSkinFrames);
+      _surfaceRuntime.update(
+          backgroundImageBytes: next.image,
+          onionSkinFrames: sceneConfig.onionSkinFrames);
     });
 
     return PixelCanvasRenderHost(
@@ -183,7 +210,7 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
   PixelCanvasHostCallbacks _buildHostCallbacks() {
     return PixelCanvasHostCallbacks(
       getCurrentTool: () => widget.currentTool,
-      onStartDrawing: () => widget.notifier.startDrawing(),
+      onStartDrawing: _startDrawing,
       onFinishDrawing: () => widget.notifier.endDrawing(),
       onCancelDrawing: () => widget.notifier.cancelDrawing(),
       onDrawShape: (points) => widget.notifier.fillPixels(points),
@@ -195,7 +222,8 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
         }
       },
       onColorPicked: (color) {
-        widget.notifier.currentColor = color == Colors.transparent ? Colors.white : color;
+        widget.notifier.currentColor =
+            color == Colors.transparent ? Colors.white : color;
         widget.onToolAutoSwitch?.call(PixelTool.pencil);
       },
       onStartPixelDrag: (_) {
@@ -215,7 +243,8 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
       },
       onUndo: widget.notifier.undo,
       onGradientFromPoints: (startPx, endPx) {
-        widget.notifier.applyGradientFromPoints(startPx, endPx, Colors.transparent);
+        widget.notifier
+            .applyGradientFromPoints(startPx, endPx, Colors.transparent);
       },
     );
   }
@@ -227,7 +256,7 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
 
     return _PixelCanvasSceneConfig(
       callbacks: PixelCanvasCallbacks(
-        onStartDrawing: widget.notifier.startDrawing,
+        onStartDrawing: _startDrawing,
         onFinishDrawing: widget.notifier.endDrawing,
         onDrawShape: widget.notifier.fillPixels,
         onSelectionChanged: (region) {
@@ -239,17 +268,20 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
         },
         onMoveSelection: widget.notifier.moveSelection,
         onSelectionResize: (newRegion, oldRegion, newBounds, center) {
-          widget.notifier.resizeSelectionNew(newRegion.bounds, region: newRegion);
+          widget.notifier
+              .resizeSelectionNew(newRegion.bounds, region: newRegion);
         },
         onSelectionRotate: (newRegion, oldRegion, angle, center) {
-          widget.notifier.rotateSelectionNew(angle, pivot: center, region: newRegion);
+          widget.notifier
+              .rotateSelectionNew(angle, pivot: center, region: newRegion);
         },
         onTransformStart: widget.notifier.startTransformSelection,
         onTransformEnd: widget.notifier.endTransformSelection,
         onAnchorChanged: widget.notifier.setAnchorPoint,
         onAnchorChangeEnd: widget.notifier.persistAnchorPoint,
         onColorPicked: (color) {
-          widget.notifier.currentColor = color == Colors.transparent ? Colors.white : color;
+          widget.notifier.currentColor =
+              color == Colors.transparent ? Colors.white : color;
           widget.onToolAutoSwitch?.call(PixelTool.pencil);
         },
         onGradientApplied: widget.notifier.applyGradient,
@@ -272,8 +304,12 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
       ),
       inputMode: inputMode,
       twoFingerUndoEnabled: widget.editorSettings.twoFingerUndoEnabled,
-      gridWidth: widget.editorSettings.showGrid ? (widget.project.width < 64 ? widget.project.width : 64) : 0,
-      gridHeight: widget.editorSettings.showGrid ? (widget.project.height < 64 ? widget.project.height : 64) : 0,
+      gridWidth: widget.editorSettings.showGrid
+          ? (widget.project.width < 64 ? widget.project.width : 64)
+          : 0,
+      gridHeight: widget.editorSettings.showGrid
+          ? (widget.project.height < 64 ? widget.project.height : 64)
+          : 0,
       onionSkinFrames: widget.showPrevFrames
           ? List<PixelCanvasOnionSkinFrame>.generate(
               widget.state.currentFrameIndex,
@@ -282,14 +318,16 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost> wit
                 width: widget.project.width,
                 height: widget.project.height,
                 layers: widget.state.frames[index].layers,
-                opacity: _calculateOnionSkinOpacity(index, widget.state.currentFrameIndex, widget.onionSkinOpacity),
+                opacity: _calculateOnionSkinOpacity(index,
+                    widget.state.currentFrameIndex, widget.onionSkinOpacity),
               ),
             )
           : const <PixelCanvasOnionSkinFrame>[],
     );
   }
 
-  double _calculateOnionSkinOpacity(int forIndex, int count, double maxOpacity) {
+  double _calculateOnionSkinOpacity(
+      int forIndex, int count, double maxOpacity) {
     if (count <= 0 || forIndex.abs() > count) return 0.0;
 
     final opacityRange = maxOpacity - 0.01;

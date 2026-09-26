@@ -42,9 +42,12 @@ class DrawingService {
       if (index >= 0 &&
           index < pixels.length &&
           _isInSelection(point.x, point.y, selection)) {
+        final src = (point.color == 0 && !erase && color.alpha != 0)
+            ? color.toARGB32()
+            : point.color;
         pixels[index] = _compositePixel(
           destination: pixels[index],
-          source: point.color,
+          source: src,
           erase: erase,
         );
       }
@@ -121,9 +124,12 @@ class DrawingService {
       if (index >= 0 &&
           index < newPixels.length &&
           _isInSelection(point.x, point.y, selection)) {
+        final src = (point.color == 0 && !erase && color.alpha != 0)
+            ? color.toARGB32()
+            : point.color;
         newPixels[index] = _compositePixel(
           destination: newPixels[index],
-          source: point.color,
+          source: src,
           erase: erase,
         );
       }

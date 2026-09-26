@@ -474,6 +474,54 @@ class StringsZh extends Strings {
   String get effects => '特效';
 
   @override
+  String get effectWorkspaceFilters => '滤镜';
+
+  @override
+  String get effectWorkspaceMaterials => '材质';
+
+  @override
+  String get effectWorkspaceGenerators => '生成器';
+
+  @override
+  String get effectWorkspaceAnimation => '动画';
+
+  @override
+  String get animationTransformers => '变换';
+
+  @override
+  String get animationSpecialEffects => '特效';
+
+  @override
+  String get effectWorkspaceLighting => '光照';
+
+  @override
+  String get effectWorkspaceDistortions => '扭曲';
+
+  @override
+  String get effectRequiresPixels => '此效果需要图层中有可见像素或生成器。';
+
+  @override
+  String get effectRequiresEmptyLayer => '生成器只能添加到空图层。';
+
+  @override
+  String get effectGeneratorAlreadyAdded => '此图层已有生成器。';
+
+  @override
+  String get convertToPixels => '转换为像素';
+
+  @override
+  String get convertProceduralLayerTitle => '转换程序化图层？';
+
+  @override
+  String get convertProceduralLayerMessage => '这会将生成器及其后的所有效果烘焙为可编辑像素。此操作可以撤销。';
+
+  @override
+  String get proceduralLayerDrawingBlocked => '绘制前请先将此程序化图层转换为像素。';
+
+  @override
+  String get proceduralLayerConverted => '程序化图层现已转换为可编辑像素。';
+
+  @override
   String get editorSettings => '编辑器设置';
 
   @override

@@ -11,6 +11,7 @@ import '../pixel_art_converter.dart';
 import '../pixel_point.dart';
 import '../effects/effects.dart';
 import '../pixel_canvas_state.dart';
+import '../services/effect_stack_service.dart';
 import '../tools.dart';
 import 'pixel_controller_provider.dart';
 
@@ -51,7 +52,7 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   Color get currentColor => state.currentColor;
 
   // Drawing operations
-  void startDrawing() => _controller.startBatchDrawing();
+  bool startDrawing() => _controller.startBatchDrawing();
   void endDrawing() => _controller.endBatchDrawing();
   void cancelDrawing() => _controller.cancelBatchDrawing();
   void setPixel(int x, int y) => _controller.batchSetPixel(x, y);
@@ -93,6 +94,9 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
       _controller.reorderLayers(oldIndex, newIndex);
   void updateLayer(Layer updatedLayer) => _controller.updateLayer(updatedLayer);
   Layer getCurrentLayer() => _controller.currentLayer;
+  bool get currentLayerIsProcedural => _controller.currentLayerIsProcedural;
+  bool convertCurrentLayerToPixels({List<Effect>? effects}) =>
+      _controller.convertCurrentLayerToPixels(effects: effects);
 
   // Frame operations
   Future<void> addFrame(String name, {int? copyFrame, int? stateId}) =>
@@ -248,11 +252,11 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
       );
 
   // Layer effects operations
-  void addLayerEffect(Effect effect) {
-    final updatedLayer = _controller.currentLayer.copyWith(
-      effects: [..._controller.currentLayer.effects, effect],
-    );
-    updateLayer(updatedLayer);
+  EffectStackAddResult addLayerEffect(Effect effect) {
+    final result =
+        EffectStackService.addEffect(_controller.currentLayer, effect);
+    if (result.didAdd) updateLayer(result.layer);
+    return result;
   }
 
   void updateLayerEffect(int effectIndex, Effect updatedEffect) {

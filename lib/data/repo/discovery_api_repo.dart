@@ -25,6 +25,26 @@ class DiscoveryAPIRepo {
     }
   }
 
+  /// Increment the backend click count for a cross-promo app.
+  Future<ApiResponse<Map<String, dynamic>>> recordPromoAppClick(int appId) async {
+    return _apiClient.post<Map<String, dynamic>>(
+      '/api/v1/promo/apps/$appId/click',
+      converter: (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// Record the first time this installation sees a cross-promo app.
+  Future<ApiResponse<Map<String, dynamic>>> recordPromoAppImpression(
+    int appId,
+    String installationId,
+  ) async {
+    return _apiClient.post<Map<String, dynamic>>(
+      '/api/v1/promo/apps/$appId/impression',
+      data: {'installation_id': installationId},
+      converter: (data) => data as Map<String, dynamic>,
+    );
+  }
+
   /// News / announcements for the discovery carousel.
   Future<ApiResponse<List<NewsItemModel>>> getNews({int limit = 20}) async {
     try {

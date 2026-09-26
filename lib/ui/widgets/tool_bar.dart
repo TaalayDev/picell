@@ -105,12 +105,244 @@ class ToolBar extends ConsumerWidget {
     final size = MediaQuery.sizeOf(context);
     final screenSize = ScreenSize.forWidth(size.width) ?? ScreenSize.xs;
 
+    final editorSettings = ref.watch(editorSettingsNotifierProvider);
+
     return Container(
       height: 45,
       width: double.infinity,
       color: Theme.of(context).colorScheme.surface,
       child: Row(
         children: [
+          const SizedBox(width: 4),
+          _TopBarMenuButton<_FileMenuAction>(
+            key: const ValueKey('toolbar-file-menu'),
+            label: Strings.of(context).fileMenu,
+            icon: Feather.save,
+            compact: screenSize.isMobile,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: _FileMenuAction.import,
+                child: ListTile(
+                  leading: const AppIcon(AppIcons.album),
+                  title: Text(Strings.of(context).open),
+                ),
+              ),
+              if (kIsWeb ||
+                  defaultTargetPlatform == TargetPlatform.macOS ||
+                  defaultTargetPlatform == TargetPlatform.windows)
+                PopupMenuItem(
+                  value: _FileMenuAction.export,
+                  child: ListTile(
+                    leading: const AppIcon(AppIcons.archive_down),
+                    title: Text(Strings.of(context).save),
+                  ),
+                ),
+              PopupMenuItem(
+                value: _FileMenuAction.exportAsImage,
+                child: ListTile(
+                  leading: const AppIcon(AppIcons.archive_down),
+                  title: Text(Strings.of(context).saveAs),
+                ),
+              ),
+              PopupMenuItem(
+                value: _FileMenuAction.share,
+                child: ListTile(
+                  leading: const AppIcon(AppIcons.share),
+                  title: Text(Strings.of(context).share),
+                ),
+              ),
+              PopupMenuItem(
+                value: _FileMenuAction.projects,
+                child: ListTile(
+                  leading: const AppIcon(AppIcons.home),
+                  title: Text(Strings.of(context).projects),
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: _FileMenuAction.history,
+                enabled: onShowHistory != null,
+                child: ListTile(
+                  leading: const Icon(Icons.history_rounded, size: 20),
+                  title: Text(Strings.of(context).undoHistoryTitle),
+                ),
+              ),
+              PopupMenuItem(
+                value: _FileMenuAction.keyboardShortcuts,
+                child: ListTile(
+                  leading: const Icon(Icons.keyboard_rounded, size: 20),
+                  title: Text(Strings.of(context).keyboardShortcuts),
+                ),
+              ),
+              PopupMenuItem(
+                value: _FileMenuAction.settings,
+                child: ListTile(
+                  leading: const Icon(Icons.settings, size: 20),
+                  title: Text(Strings.of(context).editorSettings),
+                  trailing: editorSettings.isStylusMode
+                      ? Icon(
+                          Icons.circle,
+                          size: 8,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                ),
+              ),
+            ],
+            onSelected: (action) {
+              switch (action) {
+                case _FileMenuAction.import:
+                  import?.call();
+                case _FileMenuAction.export:
+                  export?.call();
+                case _FileMenuAction.exportAsImage:
+                  exportAsImage?.call();
+                case _FileMenuAction.share:
+                  onShare?.call();
+                case _FileMenuAction.projects:
+                  Navigator.of(context).pop();
+                case _FileMenuAction.history:
+                  onShowHistory?.call();
+                case _FileMenuAction.keyboardShortcuts:
+                  KeyboardShortcutsDialog.show(context);
+                case _FileMenuAction.settings:
+                  EditorSettingsDialog.show(context);
+              }
+            },
+          ),
+          _TopBarMenuButton<_ViewMenuAction>(
+            key: const ValueKey('toolbar-view-menu'),
+            label: Strings.of(context).view,
+            icon: Icons.visibility_outlined,
+            compact: screenSize.isMobile,
+            itemBuilder: (context) => [
+              CheckedPopupMenuItem(
+                value: _ViewMenuAction.tileMode,
+                checked: tileModeEnabled,
+                enabled: onToggleTileMode != null,
+                child: Text(Strings.of(context).tileModeTooltip),
+              ),
+              CheckedPopupMenuItem(
+                value: _ViewMenuAction.pixelGrid,
+                checked: editorSettings.showPixelGrid,
+                child: Text(Strings.of(context).showGrid),
+              ),
+              CheckedPopupMenuItem(
+                value: _ViewMenuAction.onionSkin,
+                checked: showPrevFrames,
+                enabled: showPrevFramesOpacity != null,
+                child: Text(Strings.of(context).onionSkinTooltip),
+              ),
+              PopupMenuItem(
+                value: _ViewMenuAction.onionSkinOpacity,
+                enabled: onionSkinOpacityChanged != null,
+                child: const ListTile(
+                  leading: Icon(Icons.opacity_rounded, size: 20),
+                  title: Text('Onion skin opacity'),
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: _ViewMenuAction.zoomIn,
+                enabled: onZoomIn != null,
+                child: ListTile(
+                  leading: const Icon(Feather.zoom_in, size: 20),
+                  title: Text(Strings.of(context).zoomIn),
+                ),
+              ),
+              PopupMenuItem(
+                value: _ViewMenuAction.zoomOut,
+                enabled: onZoomOut != null,
+                child: ListTile(
+                  leading: const Icon(Feather.zoom_out, size: 20),
+                  title: Text(Strings.of(context).zoomOut),
+                ),
+              ),
+            ],
+            onSelected: (action) {
+              switch (action) {
+                case _ViewMenuAction.tileMode:
+                  onToggleTileMode?.call();
+                case _ViewMenuAction.pixelGrid:
+                  ref
+                      .read(editorSettingsNotifierProvider.notifier)
+                      .setShowPixelGrid(!editorSettings.showPixelGrid);
+                case _ViewMenuAction.onionSkin:
+                  showPrevFramesOpacity?.call();
+                case _ViewMenuAction.onionSkinOpacity:
+                  showDialog<void>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Onion skin opacity'),
+                      content: _OpacitySlider(
+                        opacity: onionSkinOpacity,
+                        onChanged: onionSkinOpacityChanged,
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(Strings.of(context).done),
+                        ),
+                      ],
+                    ),
+                  );
+                case _ViewMenuAction.zoomIn:
+                  onZoomIn?.call();
+                case _ViewMenuAction.zoomOut:
+                  onZoomOut?.call();
+              }
+            },
+          ),
+          _TopBarMenuButton<_AddMenuAction>(
+            key: const ValueKey('toolbar-add-menu'),
+            label: Strings.of(context).add,
+            icon: Icons.add_box_outlined,
+            compact: screenSize.isMobile,
+            hasNotification: currentLayerHasEffects,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: _AddMenuAction.effects,
+                enabled: onEffects != null,
+                child: ListTile(
+                  leading: const Icon(Icons.auto_fix_high, size: 20),
+                  title: Text(Strings.of(context).effects),
+                  trailing: currentLayerHasEffects
+                      ? Icon(
+                          Icons.circle,
+                          size: 8,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                ),
+              ),
+              PopupMenuItem(
+                value: _AddMenuAction.templates,
+                enabled: onTemplates != null,
+                child: ListTile(
+                  leading: const AppIcon(AppIcons.gallery_wide, size: 20),
+                  title: Text(Strings.of(context).templateGallery),
+                ),
+              ),
+            ],
+            onSelected: (action) {
+              switch (action) {
+                case _AddMenuAction.effects:
+                  onEffects?.call();
+                case _AddMenuAction.templates:
+                  onTemplates?.call();
+              }
+            },
+          ),
+          _ActiveViewIndicators(
+            tileModeEnabled: tileModeEnabled,
+            pixelGridEnabled: editorSettings.showPixelGrid,
+            onionSkinEnabled: showPrevFrames,
+          ),
+          VerticalDivider(
+            width: 8,
+            color:
+                Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
+          ),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -119,87 +351,19 @@ class ToolBar extends ConsumerWidget {
                 builder: (context, tool, child) {
                   return Row(
                     children: [
-                      const SizedBox(width: 4),
-                      PopupMenuButton(
-                        icon: const Icon(Feather.save, size: 18),
-                        tooltip: Strings.of(context).fileMenu,
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'import',
-                            child: ListTile(
-                              leading: const AppIcon(AppIcons.album),
-                              title: Text(Strings.of(context).open),
-                            ),
-                          ),
-                          if (kIsWeb ||
-                              defaultTargetPlatform == TargetPlatform.macOS ||
-                              defaultTargetPlatform == TargetPlatform.windows)
-                            PopupMenuItem(
-                              value: 'export',
-                              child: ListTile(
-                                leading: const AppIcon(AppIcons.archive_down),
-                                title: Text(Strings.of(context).save),
-                              ),
-                            ),
-                          PopupMenuItem(
-                            value: 'exportAsImage',
-                            child: ListTile(
-                              leading: const AppIcon(AppIcons.archive_down),
-                              title: Text(Strings.of(context).saveAs),
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'share',
-                            child: ListTile(
-                              leading: const AppIcon(AppIcons.share),
-                              title: Text(Strings.of(context).share),
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'projects',
-                            child: ListTile(
-                              leading: const AppIcon(AppIcons.home),
-                              title: Text(Strings.of(context).projects),
-                            ),
-                          ),
-                        ],
-                        onSelected: (value) {
-                          switch (value) {
-                            case 'import':
-                              import?.call();
-                              break;
-                            case 'export':
-                              export?.call();
-                              break;
-                            case 'exportAsImage':
-                              exportAsImage?.call();
-                              break;
-                            case 'projects':
-                              Navigator.of(context).pop();
-                              break;
-                            case 'share':
-                              onShare?.call();
-                              break;
-                          }
-                        },
-                      ),
-                      VerticalDivider(
-                        width: 0,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outline
-                            .withValues(alpha: 0.1),
-                      ),
-                      const SizedBox(width: 8),
                       ValueListenableBuilder(
                         valueListenable: currentModifier,
                         builder: (context, modifier, child) {
                           return IconButton(
                             icon: SvgPicture.asset(
                               Assets.vectors.reflectSymmetry,
-                              color: modifier == PixelModifier.mirror
-                                  ? Colors.blue
-                                  : IconTheme.of(context).color,
+                              colorFilter: ColorFilter.mode(
+                                modifier == PixelModifier.mirror
+                                    ? Colors.blue
+                                    : IconTheme.of(context).color ??
+                                        Theme.of(context).colorScheme.onSurface,
+                                BlendMode.srcIn,
+                              ),
                               width: 24,
                               height: 24,
                             ),
@@ -213,78 +377,7 @@ class ToolBar extends ConsumerWidget {
                           );
                         },
                       ),
-                      const SizedBox(width: 8),
-                      // effects button
-                      IconButton(
-                        icon: Stack(
-                          children: [
-                            const Icon(Icons.auto_fix_high),
-                            if (currentLayerHasEffects)
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        tooltip: Strings.of(context).layerEffects,
-                        onPressed: onEffects,
-                      ),
-                      const SizedBox(width: 8),
-                      // tile mode toggle
-                      IconButton.filledTonal(
-                        icon: const Icon(Icons.grid_view_rounded, size: 18),
-                        tooltip: Strings.of(context).tileModeTooltip,
-                        splashColor: Colors.transparent,
-                        style: IconButton.styleFrom(
-                          backgroundColor:
-                              tileModeEnabled ? null : Colors.transparent,
-                        ),
-                        onPressed: onToggleTileMode,
-                      ),
-                      const SizedBox(width: 8),
-                      // zoom in and out
-                      if (MediaQuery.of(context).size.width > 600) ...[
-                        _GridToggleButton(),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Feather.zoom_in),
-                          onPressed: onZoomIn,
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Feather.zoom_out),
-                          onPressed: onZoomOut,
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      SizedBox(
-                        height: 30,
-                        child: VerticalDivider(
-                          width: 0,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .outline
-                              .withValues(alpha: 0.3),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      _OnionSkinButton(
-                        isActive: showPrevFrames,
-                        opacity: onionSkinOpacity,
-                        onToggle: showPrevFramesOpacity,
-                        onOpacityChanged: onionSkinOpacityChanged,
-                      ),
-                      if (MediaQuery.of(context).size.width > 600) ...[
-                        const SizedBox(width: 8),
+                      if (!screenSize.isMobile) ...[
                         if (tool == PixelTool.brush ||
                             tool == PixelTool.eraser ||
                             tool == PixelTool.sprayPaint ||
@@ -307,7 +400,7 @@ class ToolBar extends ConsumerWidget {
                             min: 1,
                             max: 10,
                             icon: const Icon(MaterialCommunityIcons.spray),
-                            child: Text('${sprayIntensity.value}'),
+                            child: Text(sprayIntensity.value.toString()),
                             onChanged: (value) {
                               sprayIntensity.value = value;
                             },
@@ -327,7 +420,7 @@ class ToolBar extends ConsumerWidget {
                           const SizedBox(width: 8),
                         ],
                       ],
-                      if (!screenSize.isMobile) ...[
+                      if (!screenSize.isMobile)
                         SelectionOptionsButton(
                           hasSelection: hasSelection,
                           onClearSelection: () => notifier.clearSelection(),
@@ -341,7 +434,6 @@ class ToolBar extends ConsumerWidget {
                           onGrow: () => notifier.growSelection(),
                           onShrink: () => notifier.shrinkSelection(),
                         ),
-                      ],
                     ],
                   );
                 },
@@ -349,143 +441,167 @@ class ToolBar extends ConsumerWidget {
             ),
           ),
           IconButton(
-            onPressed: onTemplates,
-            icon: const AppIcon(AppIcons.gallery_wide, size: 20),
-            tooltip: Strings.of(context).templateGallery,
+            icon: Icon(
+              Icons.undo,
+              color: onUndo != null ? null : Colors.grey,
+            ),
+            onPressed: onUndo,
+            tooltip: Strings.of(context).undo,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.redo,
+              color: onRedo != null ? null : Colors.grey,
+            ),
+            onPressed: onRedo,
+            tooltip: Strings.of(context).redo,
           ),
           const SizedBox(width: 4),
-          if (!screenSize.isMobile) ...[
-            IconButton(
-              onPressed: () => KeyboardShortcutsDialog.show(context),
-              icon: const Icon(Icons.keyboard_rounded, size: 20),
-              tooltip: Strings.of(context).keyboardShortcuts,
-            ),
-            const SizedBox(width: 4),
-          ],
-          _EditorSettingsButton(),
-          const SizedBox(width: 8),
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.undo,
-                    color: onUndo != null ? null : Colors.grey),
-                onPressed: onUndo,
-                tooltip: Strings.of(context).undo,
-              ),
-              IconButton(
-                icon: Icon(Icons.redo,
-                    color: onRedo != null ? null : Colors.grey),
-                onPressed: onRedo,
-                tooltip: Strings.of(context).redo,
-              ),
-              if (!screenSize.isMobile) ...[
-                IconButton(
-                  icon: const Icon(Icons.history_rounded, size: 20),
-                  onPressed: onShowHistory,
-                  tooltip: Strings.of(context).undoHistoryTitle,
-                ),
-              ]
-            ],
-          ),
         ],
       ),
     );
   }
 }
 
-class _EditorSettingsButton extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(editorSettingsNotifierProvider);
-    final isStylusMode = settings.inputMode == InputMode.stylusOnly;
-
-    return IconButton(
-      onPressed: () => EditorSettingsDialog.show(context),
-      icon: Stack(
-        children: [
-          const Icon(Icons.settings, size: 20),
-          if (isStylusMode)
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.surface,
-                    width: 1,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-      tooltip: isStylusMode
-          ? Strings.of(context).settingsStylusMode
-          : Strings.of(context).editorSettings,
-    );
-  }
+enum _FileMenuAction {
+  import,
+  export,
+  exportAsImage,
+  share,
+  projects,
+  history,
+  keyboardShortcuts,
+  settings,
 }
 
-/// Onion skin toggle button with a long-press popup opacity slider.
-class _OnionSkinButton extends StatelessWidget {
-  const _OnionSkinButton({
-    required this.isActive,
-    required this.opacity,
-    required this.onToggle,
-    this.onOpacityChanged,
+enum _ViewMenuAction {
+  tileMode,
+  pixelGrid,
+  onionSkin,
+  onionSkinOpacity,
+  zoomIn,
+  zoomOut,
+}
+
+enum _AddMenuAction {
+  effects,
+  templates,
+}
+
+class _TopBarMenuButton<T> extends StatelessWidget {
+  const _TopBarMenuButton({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.compact,
+    required this.itemBuilder,
+    required this.onSelected,
+    this.hasNotification = false,
   });
 
-  final bool isActive;
-  final double opacity;
-  final VoidCallback? onToggle;
-  final ValueChanged<double>? onOpacityChanged;
+  final String label;
+  final IconData icon;
+  final bool compact;
+  final PopupMenuItemBuilder<T> itemBuilder;
+  final PopupMenuItemSelected<T> onSelected;
+  final bool hasNotification;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onLongPress: () => _showOpacityPopup(context),
-      child: IconButton.filledTonal(
-        icon: const Icon(Icons.animation_rounded),
-        tooltip: Strings.of(context).onionSkinTooltip,
-        onPressed: onToggle,
-        splashColor: Colors.transparent,
-        style: IconButton.styleFrom(
-          backgroundColor: isActive ? null : Colors.transparent,
+    return PopupMenuButton<T>(
+      tooltip: label,
+      offset: const Offset(0, 40),
+      itemBuilder: itemBuilder,
+      onSelected: onSelected,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: compact ? 40 : 64),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(icon, size: 18),
+                  if (hasNotification)
+                    Positioned(
+                      right: -3,
+                      top: -3,
+                      child: Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              if (!compact) ...[
+                const SizedBox(width: 5),
+                Text(label),
+                const Icon(Icons.arrow_drop_down, size: 16),
+              ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  void _showOpacityPopup(BuildContext context) {
-    final RenderBox button = context.findRenderObject()! as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject()! as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(button.size.bottomRight(Offset.zero),
-            ancestor: overlay),
+class _ActiveViewIndicators extends StatelessWidget {
+  const _ActiveViewIndicators({
+    required this.tileModeEnabled,
+    required this.pixelGridEnabled,
+    required this.onionSkinEnabled,
+  });
+
+  final bool tileModeEnabled;
+  final bool pixelGridEnabled;
+  final bool onionSkinEnabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = <({IconData icon, String label})>[
+      if (tileModeEnabled)
+        (icon: Icons.grid_view_rounded, label: 'Tile mode is active'),
+      if (pixelGridEnabled)
+        (icon: Icons.grid_on_rounded, label: 'Pixel grid is active'),
+      if (onionSkinEnabled)
+        (icon: Icons.animation_rounded, label: 'Onion skin is active'),
+    ];
+
+    if (active.isEmpty) return const SizedBox.shrink();
+
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('toolbar-active-view-indicators'),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(8),
       ),
-      Offset.zero & overlay.size,
-    );
-
-    showMenu<void>(
-      context: context,
-      position: position,
-      items: [
-        PopupMenuItem<void>(
-          enabled: false,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: _OpacitySlider(
-            opacity: opacity,
-            onChanged: onOpacityChanged,
-          ),
-        ),
-      ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final item in active)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Tooltip(
+                message: item.label,
+                child: Icon(
+                  item.icon,
+                  size: 14,
+                  color: colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -547,45 +663,3 @@ class _OpacitySliderState extends State<_OpacitySlider> {
 }
 
 /// Quick toggle for pixel grid overlay, with a dot indicator when active.
-class _GridToggleButton extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(editorSettingsNotifierProvider);
-    final active = settings.showPixelGrid;
-
-    return IconButton.filledTonal(
-      icon: Stack(
-        children: [
-          const Icon(Icons.grid_on_rounded, size: 18),
-          if (active)
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.surface,
-                    width: 1,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-      tooltip: active ? 'Hide pixel grid' : 'Show pixel grid',
-      splashColor: Colors.transparent,
-      style: IconButton.styleFrom(
-        backgroundColor: active ? null : Colors.transparent,
-      ),
-      onPressed: () {
-        ref
-            .read(editorSettingsNotifierProvider.notifier)
-            .setShowPixelGrid(!active);
-      },
-    );
-  }
-}

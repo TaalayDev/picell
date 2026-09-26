@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../data.dart';
 import '../effects/effects.dart';
+import 'effect_stack_service.dart';
 
 class LayerService {
   final ProjectRepo _projectRepo;
@@ -69,8 +70,7 @@ class LayerService {
   }
 
   Layer addEffectToLayer(Layer layer, Effect effect) {
-    final updatedEffects = List<Effect>.from(layer.effects)..add(effect);
-    return layer.copyWith(effects: updatedEffects);
+    return EffectStackService.addEffect(layer, effect).layer;
   }
 
   Layer updateLayerEffect(Layer layer, int effectIndex, Effect updatedEffect) {

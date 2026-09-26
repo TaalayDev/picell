@@ -6,6 +6,7 @@ import '../../../data/models/layer.dart';
 import '../../../data/models/selection_region.dart';
 import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
+import '../../../pixel/services/effect_stack_service.dart';
 import '../animated_background.dart';
 import 'effect_list_item.dart';
 import 'effects_editor_dialog.dart';
@@ -21,6 +22,7 @@ class EffectsPanel extends StatefulWidget {
   final SelectionRegion? selectionRegion;
   final bool isDialog;
   final VoidCallback? onClose;
+  final bool Function(List<Effect>)? onConvertToPixels;
 
   const EffectsPanel({
     super.key,
@@ -32,6 +34,7 @@ class EffectsPanel extends StatefulWidget {
     this.selectionRegion,
     this.isDialog = false,
     this.onClose,
+    this.onConvertToPixels,
   });
 
   @override
@@ -79,9 +82,15 @@ class _EffectsPanelState extends State<EffectsPanel> {
     showDialog(
       context: context,
       builder: (context) => EffectSelectorDialog(
+        layer: widget.layer.copyWith(effects: _effects),
         onEffectSelected: (effect) {
+          final result = EffectStackService.addEffect(
+            widget.layer.copyWith(effects: _effects),
+            effect,
+          );
+          if (!result.didAdd) return;
           setState(() {
-            _effects.add(effect);
+            _effects = List<Effect>.from(result.layer.effects);
             _updatePreview();
           });
         },
@@ -112,7 +121,8 @@ class _EffectsPanelState extends State<EffectsPanel> {
       _effects.removeAt(index);
       if (_selectedEffectIndex == index) {
         _selectedEffectIndex = null;
-      } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
+      } else if (_selectedEffectIndex != null &&
+          _selectedEffectIndex! > index) {
         _selectedEffectIndex = _selectedEffectIndex! - 1;
       }
       _updatePreview();
@@ -167,11 +177,12 @@ class _EffectsPanelState extends State<EffectsPanel> {
 
   void _handleReorder(int oldIndex, int newIndex) {
     setState(() {
-      if (oldIndex < newIndex) {
-        newIndex -= 1;
-      }
-      final item = _effects.removeAt(oldIndex);
-      _effects.insert(newIndex, item);
+      final reordered = EffectStackService.reorderEffect(
+        widget.layer.copyWith(effects: _effects),
+        oldIndex,
+        newIndex,
+      );
+      _effects = List<Effect>.from(reordered.effects);
       _updatePreview();
     });
   }
@@ -190,6 +201,11 @@ class _EffectsPanelState extends State<EffectsPanel> {
   }
 
   void _performApplyEffect(Effect effect) {
+    if (EffectCatalog.forType(effect.type).role == EffectRole.generator) {
+      _convertProceduralStack();
+      return;
+    }
+
     final effectsToApply = [effect];
     final index = _effects.indexOf(effect);
 
@@ -212,7 +228,8 @@ class _EffectsPanelState extends State<EffectsPanel> {
       _effects.removeAt(index);
       if (_selectedEffectIndex == index) {
         _selectedEffectIndex = null;
-      } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
+      } else if (_selectedEffectIndex != null &&
+          _selectedEffectIndex! > index) {
         _selectedEffectIndex = _selectedEffectIndex! - 1;
       }
     });
@@ -241,6 +258,14 @@ class _EffectsPanelState extends State<EffectsPanel> {
   }
 
   void _performApplyAllEffects() {
+    if (_effects.any(
+      (effect) =>
+          EffectCatalog.forType(effect.type).role == EffectRole.generator,
+    )) {
+      _convertProceduralStack();
+      return;
+    }
+
     // Apply all effects to get processed pixels
     final processedPixels = widget.selectionRegion == null
         ? EffectsManager.applyMultipleEffects(
@@ -285,10 +310,28 @@ class _EffectsPanelState extends State<EffectsPanel> {
     );
   }
 
+  void _convertProceduralStack() {
+    final convert = widget.onConvertToPixels;
+    if (convert == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(Strings.of(context).proceduralLayerDrawingBlocked),
+          ),
+        );
+      return;
+    }
+
+    if (!convert(List<Effect>.from(_effects))) return;
+    if (widget.isDialog) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
-    final isTablet = MediaQuery.of(context).size.width >= 600 && MediaQuery.of(context).size.width < 1024;
+    final isTablet = MediaQuery.of(context).size.width >= 600 &&
+        MediaQuery.of(context).size.width < 1024;
 
     return LayoutBuilder(builder: (context, constraints) {
       if (isMobile) {
@@ -454,7 +497,10 @@ class _MobileLayout extends StatelessWidget {
               Text(
                 s.effectCount(effects.length),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
                     ),
               ),
             ],
@@ -469,13 +515,19 @@ class _MobileLayout extends StatelessWidget {
                       Icon(
                         Feather.droplet,
                         size: 48,
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         s.noEffectsApplied,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -499,7 +551,8 @@ class _MobileLayout extends StatelessWidget {
                       onEdit: () => onEditEffect(index),
                       onRemove: () => onRemoveEffect(index),
                       onApply: () => onApplyEffect(effect),
-                      onAnimate: onAnimate == null ? null : () => onAnimate!(effect),
+                      onAnimate:
+                          onAnimate == null ? null : () => onAnimate!(effect),
                       showApplyButton: true,
                     );
                   },
@@ -623,8 +676,10 @@ class _TabletLayout extends StatelessWidget {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
                         ),
                         onPressed: onApplyChanges,
                         child: Text(s.effectsPanelActionApply),
@@ -669,13 +724,19 @@ class _TabletLayout extends StatelessWidget {
                             Icon(
                               Feather.droplet,
                               size: 64,
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.3),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               s.noEffectsApplied,
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6),
                                 fontSize: 16,
                               ),
                             ),
@@ -694,7 +755,9 @@ class _TabletLayout extends StatelessWidget {
                             onEdit: () => onEditEffect(index),
                             onRemove: () => onRemoveEffect(index),
                             onApply: () => onApplyEffect(effect),
-                            onAnimate: onAnimate == null ? null : () => onAnimate!(effect),
+                            onAnimate: onAnimate == null
+                                ? null
+                                : () => onAnimate!(effect),
                             showApplyButton: true,
                           );
                         },
@@ -785,8 +848,13 @@ class _DesktopLayout extends StatelessWidget {
                             children: [
                               Text(
                                 s.finalResult,
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
                                     ),
                               ),
                               const SizedBox(height: 16),
@@ -821,7 +889,8 @@ class _DesktopLayout extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
                                     Column(
                                       children: [
@@ -829,8 +898,10 @@ class _DesktopLayout extends StatelessWidget {
                                           width: 120,
                                           height: 120,
                                           decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.grey.shade300),
-                                            color: Theme.of(context).canvasColor,
+                                            border: Border.all(
+                                                color: Colors.grey.shade300),
+                                            color:
+                                                Theme.of(context).canvasColor,
                                           ),
                                           child: CustomPaint(
                                             painter: PixelPreviewPainter(
@@ -846,7 +917,8 @@ class _DesktopLayout extends StatelessWidget {
                                     ),
                                     Icon(
                                       Icons.arrow_forward,
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                     ),
                                     Column(
                                       children: [
@@ -854,8 +926,10 @@ class _DesktopLayout extends StatelessWidget {
                                           width: 120,
                                           height: 120,
                                           decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.grey.shade300),
-                                            color: Theme.of(context).canvasColor,
+                                            border: Border.all(
+                                                color: Colors.grey.shade300),
+                                            color:
+                                                Theme.of(context).canvasColor,
                                           ),
                                           child: _PreviewWidget(
                                             pixels: previewPixels,
@@ -896,8 +970,10 @@ class _DesktopLayout extends StatelessWidget {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
                         ),
                         onPressed: onApplyChanges,
                         child: Text(s.saveChanges),
@@ -947,14 +1023,18 @@ class _DesktopLayout extends StatelessWidget {
               ),
               if (effects.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         s.effectsAppliedCount(effects.length),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.6),
                             ),
                       ),
                       TextButton.icon(
@@ -980,13 +1060,19 @@ class _DesktopLayout extends StatelessWidget {
                             Icon(
                               Feather.droplet,
                               size: 64,
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.3),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               s.noEffectsApplied,
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6),
                                 fontSize: 18,
                               ),
                             ),
@@ -1006,14 +1092,17 @@ class _DesktopLayout extends StatelessWidget {
                           final isSelected = selectedEffectIndex == index;
                           final effect = effects[index];
                           return EffectListItem(
-                            key: ValueKey(effect.type.toString() + index.toString()),
+                            key: ValueKey(
+                                effect.type.toString() + index.toString()),
                             effect: effect,
                             isSelected: isSelected,
                             onSelect: () => onSelectEffect(index),
                             onEdit: () => onEditEffect(index),
                             onRemove: () => onRemoveEffect(index),
                             onApply: () => onApplyEffect(effect),
-                            onAnimate: onAnimate == null ? null : () => onAnimate!(effect),
+                            onAnimate: onAnimate == null
+                                ? null
+                                : () => onAnimate!(effect),
                             showDragHandle: true,
                             showApplyButton: true,
                           );
@@ -1063,6 +1152,7 @@ extension EffectPanelDialogExtension on BuildContext {
     required Function(Layer) onLayerUpdated,
     void Function(Effect, List<Effect>, int)? onAnimate,
     SelectionRegion? selectionRegion,
+    bool Function(List<Effect>)? onConvertToPixels,
   }) {
     final size = MediaQuery.sizeOf(this);
     final isSmallScreen = size.width < 600;
@@ -1082,6 +1172,7 @@ extension EffectPanelDialogExtension on BuildContext {
             onLayerUpdated: onLayerUpdated,
             onAnimate: onAnimate,
             selectionRegion: selectionRegion,
+            onConvertToPixels: onConvertToPixels,
             isDialog: true,
           ),
         ),
@@ -1107,6 +1198,7 @@ extension EffectPanelDialogExtension on BuildContext {
                 onLayerUpdated: onLayerUpdated,
                 onAnimate: onAnimate,
                 selectionRegion: selectionRegion,
+                onConvertToPixels: onConvertToPixels,
                 isDialog: true,
               ),
             ),

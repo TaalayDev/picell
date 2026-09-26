@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../data/models/discovery_api_models.dart';
 import '../../../data/models/project_api_models.dart';
 import '../../../providers/discovery_slides_provider.dart';
+import '../../../providers/providers.dart';
 import '../../screens/project_detail_screen.dart';
 
 /// Auto-advancing carousel cycling through cross-promo app ads, featured
@@ -43,7 +44,7 @@ class DiscoveryCarousel extends HookConsumerWidget {
   }
 }
 
-class _CarouselBody extends HookWidget {
+class _CarouselBody extends HookConsumerWidget {
   final List<DiscoverySlide> slides;
   final double height;
   final bool showArrows;
@@ -55,16 +56,37 @@ class _CarouselBody extends HookWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final carouselController = useMemoized(() => CarouselController());
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loopedItemCount = slides.length == 1 ? 1 : slides.length * 10000;
+    final initialVirtualIndex =
+        slides.length == 1 ? 0 : (loopedItemCount ~/ 2) - ((loopedItemCount ~/ 2) % slides.length);
+    final carouselController = useMemoized(
+      () => CarouselController(initialItem: initialVirtualIndex),
+      [slides.length],
+    );
     final currentPage = useState(0);
+    final currentVirtualIndex = useState(initialVirtualIndex);
     final timerRef = useRef<Timer?>(null);
+    final recordedPromoIds = useRef(<int>{});
 
-    void goToSlide(int index, {Duration duration = const Duration(milliseconds: 450)}) {
-      final next = index.clamp(0, slides.length - 1);
-      currentPage.value = next;
+    void recordVisiblePromo(int index) {
+      final slide = slides[index];
+      if (slide is! PromoAppSlide || !recordedPromoIds.value.add(slide.app.id)) return;
+
+      final installationId = ref.read(localStorageProvider).installationId;
+      unawaited(
+        ref.read(discoveryAPIRepoProvider).recordPromoAppImpression(slide.app.id, installationId),
+      );
+    }
+
+    void goToVirtualItem(int index, {Duration duration = const Duration(milliseconds: 450)}) {
+      final nextVirtual = index.clamp(0, loopedItemCount - 1);
+      final nextPage = nextVirtual % slides.length;
+      currentVirtualIndex.value = nextVirtual;
+      currentPage.value = nextPage;
+      recordVisiblePromo(nextPage);
       carouselController.animateToItem(
-        next,
+        nextVirtual,
         duration: duration,
         curve: Curves.easeInOut,
       );
@@ -72,15 +94,23 @@ class _CarouselBody extends HookWidget {
 
     void restartTimer() {
       timerRef.value?.cancel();
+      if (slides.length <= 1) return;
       timerRef.value = Timer.periodic(const Duration(seconds: 6), (_) {
         if (!carouselController.hasClients) return;
-        final next = (currentPage.value + 1) % slides.length;
-        goToSlide(next, duration: const Duration(milliseconds: 500));
+        goToVirtualItem(
+          currentVirtualIndex.value + 1,
+          duration: const Duration(milliseconds: 500),
+        );
       });
     }
 
+    useEffect(() => carouselController.dispose, [carouselController]);
+
     useEffect(() {
-      restartTimer();
+      if (slides.length > 1) restartTimer();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) recordVisiblePromo(currentPage.value);
+      });
       return () => timerRef.value?.cancel();
       // ignore: exhaustive_keys
     }, [slides.length]);
@@ -92,102 +122,159 @@ class _CarouselBody extends HookWidget {
         onExit: (_) => restartTimer(),
         child: SizedBox(
           height: height,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final itemExtent = _carouselItemExtent(constraints.maxWidth);
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = MediaQuery.sizeOf(context).width >= 780;
+                  final itemExtent = _carouselItemExtent(constraints.maxWidth);
 
-              return Stack(
-                children: [
-                  NotificationListener<ScrollNotification>(
-                    onNotification: (notification) {
-                      if (notification.metrics.axis != Axis.horizontal) {
-                        return false;
-                      }
-                      final nextPage = (notification.metrics.pixels / itemExtent).round().clamp(0, slides.length - 1);
-                      if (currentPage.value != nextPage) {
-                        currentPage.value = nextPage;
-                      }
-                      if (notification is ScrollEndNotification) {
-                        restartTimer();
-                      }
-                      return false;
-                    },
-                    child: CarouselView(
-                      controller: carouselController,
-                      itemExtent: itemExtent,
-                      itemSnapping: true,
-                      shrinkExtent: 96,
+                  int virtualIndexFor(ScrollMetrics metrics) {
+                    if (!isWide) {
+                      return (metrics.pixels / itemExtent).round().clamp(0, loopedItemCount - 1);
+                    }
+
+                    const totalWeight = 8;
+                    const prominentItemOffset = 1;
+                    final step = constraints.maxWidth / totalWeight;
+                    return ((metrics.pixels / step).round() + prominentItemOffset).clamp(0, loopedItemCount - 1);
+                  }
+
+                  Widget buildSlide(BuildContext context, int virtualIndex) {
+                    final slide = slides[virtualIndex % slides.length];
+                    return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6),
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      itemClipBehavior: Clip.antiAlias,
-                      enableSplash: false,
-                      children: [
-                        for (final slide in slides)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: _SlideCard(slide: slide),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (showArrows && slides.length > 1) ...[
-                    Positioned(
-                      left: 4,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: _NavArrow(
-                          icon: Feather.chevron_left,
-                          onTap: () {
-                            final prev = (currentPage.value - 1 + slides.length) % slides.length;
-                            goToSlide(prev, duration: const Duration(milliseconds: 400));
-                            restartTimer();
-                          },
-                        ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: _SlideCard(slide: slide),
                       ),
-                    ),
-                    Positioned(
-                      right: 4,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: _NavArrow(
-                          icon: Feather.chevron_right,
-                          onTap: () {
-                            final next = (currentPage.value + 1) % slides.length;
-                            goToSlide(next, duration: const Duration(milliseconds: 400));
+                    );
+                  }
+
+                  final carousel = isWide && slides.length > 1
+                      ? CarouselView.weightedBuilder(
+                          controller: carouselController,
+                          flexWeights: const [2, 4, 2],
+                          consumeMaxWeight: false,
+                          itemCount: loopedItemCount,
+                          itemBuilder: buildSlide,
+                          itemSnapping: true,
+                          shrinkExtent: 72,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          itemClipBehavior: Clip.antiAlias,
+                          enableSplash: false,
+                        )
+                      : CarouselView.builder(
+                          controller: carouselController,
+                          itemExtent: itemExtent,
+                          itemCount: loopedItemCount,
+                          itemBuilder: buildSlide,
+                          itemSnapping: true,
+                          shrinkExtent: 96,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          itemClipBehavior: Clip.antiAlias,
+                          enableSplash: false,
+                        );
+
+                  return Stack(
+                    children: [
+                      NotificationListener<ScrollNotification>(
+                        onNotification: (notification) {
+                          if (notification.metrics.axis != Axis.horizontal) {
+                            return false;
+                          }
+                          final nextVirtual = virtualIndexFor(notification.metrics);
+                          final nextPage = nextVirtual % slides.length;
+                          currentVirtualIndex.value = nextVirtual;
+                          if (currentPage.value != nextPage) {
+                            currentPage.value = nextPage;
+                            recordVisiblePromo(nextPage);
+                          }
+                          if (notification is ScrollEndNotification) {
+                            if (slides.length > 1 &&
+                                (nextVirtual < slides.length * 2 ||
+                                    nextVirtual > loopedItemCount - slides.length * 2)) {
+                              final recentered = initialVirtualIndex + nextPage;
+                              currentVirtualIndex.value = recentered;
+                              unawaited(carouselController.animateToItem(
+                                recentered,
+                                duration: Duration.zero,
+                              ));
+                            }
                             restartTimer();
-                          },
-                        ),
+                          }
+                          return false;
+                        },
+                        child: carousel,
                       ),
-                    ),
-                  ],
-                  if (slides.length > 1)
-                    Positioned(
-                      bottom: 10,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(slides.length, (i) {
-                          final active = i == currentPage.value;
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            width: active ? 18 : 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: active ? 0.9 : 0.5),
-                              borderRadius: BorderRadius.circular(3),
+                      if (showArrows && slides.length > 1) ...[
+                        Positioned(
+                          left: 4,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: _NavArrow(
+                              icon: Feather.chevron_left,
+                              onTap: () {
+                                goToVirtualItem(
+                                  currentVirtualIndex.value - 1,
+                                  duration: const Duration(milliseconds: 400),
+                                );
+                                restartTimer();
+                              },
                             ),
-                          );
-                        }),
-                      ),
-                    ),
-                ],
-              );
-            },
+                          ),
+                        ),
+                        Positioned(
+                          right: 4,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: _NavArrow(
+                              icon: Feather.chevron_right,
+                              onTap: () {
+                                goToVirtualItem(
+                                  currentVirtualIndex.value + 1,
+                                  duration: const Duration(milliseconds: 400),
+                                );
+                                restartTimer();
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (slides.length > 1)
+                        Positioned(
+                          bottom: 10,
+                          left: 0,
+                          right: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(slides.length, (i) {
+                              final active = i == currentPage.value;
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 250),
+                                margin: const EdgeInsets.symmetric(horizontal: 3),
+                                width: active ? 18 : 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: active ? 0.9 : 0.5),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
         ),
       ),
@@ -224,23 +311,32 @@ class _NavArrow extends StatelessWidget {
   }
 }
 
-class _SlideCard extends StatelessWidget {
+class _SlideCard extends ConsumerWidget {
   final DiscoverySlide slide;
 
   const _SlideCard({required this.slide});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return switch (slide) {
-      PromoAppSlide(:final app) => _PromoAppSlide(app: app, onTap: () => _openPromoApp(app)),
+      PromoAppSlide(:final app) => _PromoAppSlide(
+          app: app,
+          onTap: () {
+            unawaited(ref.read(discoveryAPIRepoProvider).recordPromoAppClick(app.id));
+            _openPromoApp(app);
+          },
+        ),
       FeaturedProjectSlide(:final project) => _ImageSlide(
           imageUrl: project.thumbnailUrl,
           badgeLabel: 'FEATURED',
           title: project.title,
           subtitle: project.displayName ?? project.username,
-          onTap: () => _openProject(context, project),
+          onTap: () {
+            unawaited(ref.read(projectAPIRepoProvider).recordFeaturedClick(project.id));
+            _openProject(context, project);
+          },
         ),
       CommunityHighlightSlide(:final project) => _ImageSlide(
           imageUrl: project.thumbnailUrl,

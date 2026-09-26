@@ -1009,6 +1009,102 @@ abstract class Strings {
   /// **'Effects'**
   String get effects;
 
+  /// No description provided for @effectWorkspaceFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get effectWorkspaceFilters;
+
+  /// No description provided for @effectWorkspaceMaterials.
+  ///
+  /// In en, this message translates to:
+  /// **'Materials'**
+  String get effectWorkspaceMaterials;
+
+  /// No description provided for @effectWorkspaceGenerators.
+  ///
+  /// In en, this message translates to:
+  /// **'Generators'**
+  String get effectWorkspaceGenerators;
+
+  /// No description provided for @effectWorkspaceAnimation.
+  ///
+  /// In en, this message translates to:
+  /// **'Animation'**
+  String get effectWorkspaceAnimation;
+
+  /// No description provided for @animationTransformers.
+  ///
+  /// In en, this message translates to:
+  /// **'Transformers'**
+  String get animationTransformers;
+
+  /// No description provided for @animationSpecialEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Special effects'**
+  String get animationSpecialEffects;
+
+  /// No description provided for @effectWorkspaceLighting.
+  ///
+  /// In en, this message translates to:
+  /// **'Lighting'**
+  String get effectWorkspaceLighting;
+
+  /// No description provided for @effectWorkspaceDistortions.
+  ///
+  /// In en, this message translates to:
+  /// **'Distortions'**
+  String get effectWorkspaceDistortions;
+
+  /// No description provided for @effectRequiresPixels.
+  ///
+  /// In en, this message translates to:
+  /// **'This effect needs visible pixels or a generator on the layer.'**
+  String get effectRequiresPixels;
+
+  /// No description provided for @effectRequiresEmptyLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Generators can only be added to an empty layer.'**
+  String get effectRequiresEmptyLayer;
+
+  /// No description provided for @effectGeneratorAlreadyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'This layer already has a generator.'**
+  String get effectGeneratorAlreadyAdded;
+
+  /// No description provided for @convertToPixels.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert to pixels'**
+  String get convertToPixels;
+
+  /// No description provided for @convertProceduralLayerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert procedural layer?'**
+  String get convertProceduralLayerTitle;
+
+  /// No description provided for @convertProceduralLayerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This bakes the generator and all following effects into editable pixels. You can undo this action.'**
+  String get convertProceduralLayerMessage;
+
+  /// No description provided for @proceduralLayerDrawingBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert this procedural layer to pixels before drawing.'**
+  String get proceduralLayerDrawingBlocked;
+
+  /// No description provided for @proceduralLayerConverted.
+  ///
+  /// In en, this message translates to:
+  /// **'The procedural layer is now editable pixels.'**
+  String get proceduralLayerConverted;
+
   /// No description provided for @editorSettings.
   ///
   /// In en, this message translates to:

@@ -702,6 +702,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
       onLayerUpdated: (updatedLayer) {
         notifier.updateLayer(updatedLayer);
       },
+      onConvertToPixels: (effects) =>
+          notifier.convertCurrentLayerToPixels(effects: effects),
       onAnimate: (effect, effects, effectIndex) {
         final sourceFrame = notifier.currentFrame;
         final sourceLayer = notifier.currentLayer;
