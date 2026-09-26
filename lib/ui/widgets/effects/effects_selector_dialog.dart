@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../data/models/layer.dart';
 import '../../../data/models/subscription_model.dart';
+import '../../../pixel/services/effect_stack_service.dart';
 import '../../../pixel/effects/effects.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../screens/subscription_screen.dart';
@@ -11,10 +13,20 @@ import '../../../l10n/strings.dart';
 
 class EffectSelectorDialog extends ConsumerStatefulWidget {
   final Function(Effect) onEffectSelected;
+  final EffectWorkspace? initialWorkspace;
+  final bool lockWorkspace;
+  final AnimationKind? initialAnimationKind;
+  final bool lockAnimationKind;
+  final Layer? layer;
 
   const EffectSelectorDialog({
     super.key,
     required this.onEffectSelected,
+    this.initialWorkspace,
+    this.lockWorkspace = false,
+    this.initialAnimationKind,
+    this.lockAnimationKind = false,
+    this.layer,
   });
 
   @override
@@ -24,483 +36,78 @@ class EffectSelectorDialog extends ConsumerStatefulWidget {
 
 class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   String _searchQuery = '';
-  int _selectedCategoryIndex = 0;
+  EffectWorkspace? _selectedWorkspace;
+  AnimationKind? _selectedAnimationKind;
 
-  List<String> _getCategories(BuildContext context) {
-    final s = Strings.of(context);
-    return [
-      s.categoryAll,
-      s.categoryColorTone,
-      s.categoryBlurSharpen,
-      s.categoryArtistic,
-      s.categoryAnimation,
-      s.categoryNature,
-      s.categoryParticles,
-      s.categoryDistortion,
-      s.categoryTextures,
-      s.categorySpecialFx,
-    ];
+  @override
+  void initState() {
+    super.initState();
+    _selectedWorkspace = widget.initialWorkspace;
+    _selectedAnimationKind = widget.initialAnimationKind;
+  }
+
+  @override
+  void didUpdateWidget(covariant EffectSelectorDialog oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialWorkspace != widget.initialWorkspace ||
+        oldWidget.lockWorkspace != widget.lockWorkspace ||
+        oldWidget.initialAnimationKind != widget.initialAnimationKind ||
+        oldWidget.lockAnimationKind != widget.lockAnimationKind) {
+      _selectedWorkspace = widget.initialWorkspace;
+      _selectedAnimationKind = widget.initialAnimationKind;
+      _searchQuery = '';
+    }
+  }
+
+  String _animationKindLabel(
+    BuildContext context,
+    AnimationKind? animationKind,
+  ) {
+    final strings = Strings.of(context);
+    return switch (animationKind) {
+      null => strings.categoryAll,
+      AnimationKind.transformer => strings.animationTransformers,
+      AnimationKind.specialEffect => strings.animationSpecialEffects,
+    };
+  }
+
+  List<EffectWorkspace?> get _workspaces => widget.lockWorkspace
+      ? [widget.initialWorkspace]
+      : [null, ...EffectWorkspace.values];
+
+  String _workspaceLabel(BuildContext context, EffectWorkspace? workspace) {
+    final strings = Strings.of(context);
+    return switch (workspace) {
+      null => strings.categoryAll,
+      EffectWorkspace.filters => strings.effectWorkspaceFilters,
+      EffectWorkspace.materials => strings.effectWorkspaceMaterials,
+      EffectWorkspace.generators => strings.effectWorkspaceGenerators,
+      EffectWorkspace.animation => strings.effectWorkspaceAnimation,
+      EffectWorkspace.lighting => strings.effectWorkspaceLighting,
+      EffectWorkspace.distortions => strings.effectWorkspaceDistortions,
+    };
   }
 
   List<EffectType> get _filteredEffects {
-    const allEffects = EffectType.values;
+    final workspaceFiltered = EffectType.values.where((type) {
+      final descriptor = EffectCatalog.forType(type);
+      if (_selectedWorkspace != null &&
+          descriptor.workspace != _selectedWorkspace) {
+        return false;
+      }
+      if (_selectedWorkspace == EffectWorkspace.animation &&
+          _selectedAnimationKind != null &&
+          descriptor.animationKind != _selectedAnimationKind) {
+        return false;
+      }
+      return true;
+    });
 
-    // First filter by category
-    List<EffectType> categoryFiltered;
-
-    switch (_selectedCategoryIndex) {
-      case 1: // Color & Tone
-        categoryFiltered = [
-          EffectType.brightness,
-          EffectType.contrast,
-          EffectType.invert,
-          EffectType.grayscale,
-          EffectType.sepia,
-          EffectType.colorBalance,
-          EffectType.threshold,
-          EffectType.gradient,
-          EffectType.paletteReduction,
-          EffectType.colorCycling,
-          EffectType.luminanceGradientMap,
-          EffectType.directionalLightRamp,
-        ];
-        break;
-      case 2: // Blur & Sharpen
-        categoryFiltered = [
-          EffectType.blur,
-          EffectType.sharpen,
-          EffectType.pixelate,
-          EffectType.directionalMotionBlur,
-          EffectType.radialZoomBlur,
-          EffectType.ditheredFrostedBlur,
-        ];
-        break;
-      case 3: // Artistic
-        categoryFiltered = [
-          EffectType.emboss,
-          EffectType.vignette,
-          EffectType.outline,
-          EffectType.dithering,
-          EffectType.watercolor,
-          EffectType.halftone,
-          EffectType.oilPaint,
-          EffectType.stainedGlass,
-          EffectType.crt,
-          EffectType.lcdMatrix,
-          EffectType.dropShadow,
-          EffectType.rimLight,
-          EffectType.gothicRosette,
-          EffectType.runicMaze,
-          EffectType.bismuthCrystals,
-          EffectType.risographPrint,
-          EffectType.pixelSorting,
-          EffectType.inkCrosshatch,
-          EffectType.woodblockUkiyoe,
-          EffectType.cyanotypePrint,
-          EffectType.linocutStamp,
-          EffectType.byzantineMosaic,
-          EffectType.chalkPastel,
-          EffectType.waxSgraffito,
-          EffectType.benDayComic,
-          EffectType.delftwareTile,
-          EffectType.thermalReceipt,
-          EffectType.kintsugiLacquer,
-          EffectType.kaleidoscope,
-          EffectType.topographicContours,
-          EffectType.isometricExtrusion,
-          EffectType.paperCutout,
-          EffectType.celShading,
-          EffectType.lowPolyFacets,
-          EffectType.asciiMosaic,
-          EffectType.silhouetteDepthBevel,
-        ];
-        break;
-      case 4: // Animation
-        categoryFiltered = [
-          EffectType.pulse,
-          EffectType.wave,
-          EffectType.rotate,
-          EffectType.kaleidoscope,
-          EffectType.float,
-          EffectType.simpleFloat,
-          EffectType.physicsFloat,
-          EffectType.shake,
-          EffectType.quickShake,
-          EffectType.cameraShake,
-          EffectType.jello,
-          EffectType.colorCycling,
-          EffectType.squashStretch,
-          EffectType.windSway,
-          EffectType.hitFlash,
-          EffectType.ghostTrail,
-          EffectType.starfield,
-          EffectType.electricArc,
-          EffectType.blizzard,
-          EffectType.portalVortex,
-          EffectType.energyShield,
-          EffectType.radiantRays,
-          EffectType.burningEmbers,
-          EffectType.underwaterCaustics,
-          EffectType.risingBubbles,
-          EffectType.slimeDrip,
-          EffectType.radialShockwave,
-          EffectType.slashArc,
-          EffectType.hologramGlitch,
-          EffectType.solarEclipse,
-          EffectType.meteorShower,
-          EffectType.autumnWind,
-          EffectType.soulWisps,
-          EffectType.abyssalTentacles,
-          EffectType.cursedChains,
-          EffectType.beamTeleport,
-          EffectType.dangerAlarm,
-          EffectType.coinFountain,
-          EffectType.magmaFissures,
-          EffectType.frostGlaze,
-          EffectType.dragonAura,
-          EffectType.cellularDungeon,
-          EffectType.gothicRosette,
-          EffectType.runicMaze,
-          EffectType.circuitBoard,
-          EffectType.deepSpaceNebula,
-          EffectType.spaceshipHull,
-          EffectType.bismuthCrystals,
-          EffectType.coralReef,
-          EffectType.basaltColumns,
-          EffectType.mountainRange,
-          EffectType.waterfallCascade,
-          EffectType.fireflySwarm,
-          EffectType.whisperingReeds,
-          EffectType.geyserVent,
-          EffectType.stalactiteDrips,
-          EffectType.lichenMoss,
-          EffectType.sporeBloom,
-          EffectType.banyanMangrove,
-          EffectType.sunbeamGodRays,
-          EffectType.dustDevil,
-          EffectType.auroraCurtains,
-          EffectType.glacialCrevasse,
-          EffectType.sandDunes,
-          EffectType.tidalRockPool,
-        ];
-        break;
-      case 5: // Nature
-        categoryFiltered = [
-          EffectType.fire,
-          EffectType.wood,
-          EffectType.rain,
-          EffectType.stone,
-          EffectType.mountainRange,
-          EffectType.forest,
-          EffectType.ocean,
-          EffectType.clouds,
-          EffectType.treeBark,
-          EffectType.leafVenation,
-          EffectType.fog,
-          EffectType.starfield,
-          EffectType.electricArc,
-          EffectType.blizzard,
-          EffectType.underwaterCaustics,
-          EffectType.risingBubbles,
-          EffectType.slimeDrip,
-          EffectType.solarEclipse,
-          EffectType.meteorShower,
-          EffectType.autumnWind,
-          EffectType.magmaFissures,
-          EffectType.frostGlaze,
-          EffectType.deepSpaceNebula,
-          EffectType.bismuthCrystals,
-          EffectType.coralReef,
-          EffectType.basaltColumns,
-          EffectType.waterfallCascade,
-          EffectType.fireflySwarm,
-          EffectType.whisperingReeds,
-          EffectType.geyserVent,
-          EffectType.stalactiteDrips,
-          EffectType.lichenMoss,
-          EffectType.sporeBloom,
-          EffectType.banyanMangrove,
-          EffectType.sunbeamGodRays,
-          EffectType.dustDevil,
-          EffectType.auroraCurtains,
-          EffectType.glacialCrevasse,
-          EffectType.sandDunes,
-          EffectType.tidalRockPool,
-          EffectType.petrifiedAgate,
-        ];
-        break;
-      case 6: // Particles
-        categoryFiltered = [
-          EffectType.sparkle,
-          EffectType.particle,
-          EffectType.explosion,
-          EffectType.glow,
-          EffectType.starfield,
-          EffectType.electricArc,
-          EffectType.blizzard,
-          EffectType.portalVortex,
-          EffectType.radiantRays,
-          EffectType.burningEmbers,
-          EffectType.risingBubbles,
-          EffectType.slimeDrip,
-          EffectType.radialShockwave,
-          EffectType.slashArc,
-          EffectType.meteorShower,
-          EffectType.autumnWind,
-          EffectType.soulWisps,
-          EffectType.cursedChains,
-          EffectType.beamTeleport,
-          EffectType.coinFountain,
-          EffectType.dragonAura,
-          EffectType.fireflySwarm,
-          EffectType.geyserVent,
-          EffectType.stalactiteDrips,
-          EffectType.sporeBloom,
-          EffectType.sunbeamGodRays,
-          EffectType.dustDevil,
-          EffectType.actionSpeedLines,
-          EffectType.chromaticEchoDash,
-          EffectType.boosterThruster,
-          EffectType.crownSoulFire,
-          EffectType.hangingIcicles,
-          EffectType.viscousSlime,
-          EffectType.arcLightning,
-          EffectType.kiFlareAura,
-          EffectType.orbitingRunesHalo,
-          EffectType.hexagonalAegis,
-          EffectType.crystalShardReflector,
-          EffectType.gravitySingularity,
-          EffectType.stompDustImpact,
-          EffectType.waterRippleWake,
-          EffectType.sproutingBramble,
-          EffectType.abyssalTendrilMiasma,
-          EffectType.lostSoulWisps,
-          EffectType.eldritchPeepingEyes,
-          EffectType.tacticalReticle,
-          EffectType.holoScanlineGlitch,
-          EffectType.nanotechCircuit,
-          EffectType.alchemicalCircle,
-          EffectType.floatingSigils,
-          EffectType.sacredGeometryHalo,
-          EffectType.supernovaCorona,
-          EffectType.orbitingMoons,
-          EffectType.zodiacConstellation,
-        ];
-        break;
-      case 7: // Distortion
-        categoryFiltered = [
-          EffectType.glitch,
-          EffectType.dissolve,
-          EffectType.fadeDissolve,
-          EffectType.melt,
-          EffectType.wipe,
-          EffectType.crt,
-          EffectType.chromaticAberration,
-          EffectType.squashStretch,
-          EffectType.windSway,
-          EffectType.portalVortex,
-          EffectType.burningEmbers,
-          EffectType.underwaterCaustics,
-          EffectType.radialShockwave,
-          EffectType.hologramGlitch,
-          EffectType.abyssalTentacles,
-          EffectType.cursedChains,
-          EffectType.beamTeleport,
-          EffectType.dangerAlarm,
-          EffectType.magmaFissures,
-          EffectType.dragonAura,
-          EffectType.cellularDungeon,
-          EffectType.gothicRosette,
-          EffectType.runicMaze,
-          EffectType.voronoiShatter,
-          EffectType.windAshDispersal,
-          EffectType.lateralSliceGlitch,
-          EffectType.directionalMotionBlur,
-          EffectType.radialZoomBlur,
-          EffectType.ditheredFrostedBlur,
-          EffectType.luminanceGradientMap,
-          EffectType.directionalLightRamp,
-          EffectType.silhouetteDepthBevel,
-          EffectType.actionSpeedLines,
-          EffectType.chromaticEchoDash,
-          EffectType.boosterThruster,
-          EffectType.crownSoulFire,
-          EffectType.hangingIcicles,
-          EffectType.viscousSlime,
-          EffectType.arcLightning,
-          EffectType.kiFlareAura,
-          EffectType.orbitingRunesHalo,
-          EffectType.hexagonalAegis,
-          EffectType.crystalShardReflector,
-          EffectType.gravitySingularity,
-          EffectType.stompDustImpact,
-          EffectType.waterRippleWake,
-          EffectType.sproutingBramble,
-          EffectType.abyssalTendrilMiasma,
-          EffectType.lostSoulWisps,
-          EffectType.eldritchPeepingEyes,
-          EffectType.tacticalReticle,
-          EffectType.holoScanlineGlitch,
-          EffectType.nanotechCircuit,
-          EffectType.alchemicalCircle,
-          EffectType.floatingSigils,
-          EffectType.sacredGeometryHalo,
-          EffectType.supernovaCorona,
-          EffectType.orbitingMoons,
-          EffectType.zodiacConstellation,
-        ];
-        break;
-      case 8: // Textures
-        categoryFiltered = [
-          EffectType.crystal,
-          EffectType.metal,
-          EffectType.noise,
-          EffectType.lcdMatrix,
-          EffectType.normalMap,
-          EffectType.cellularDungeon,
-          EffectType.gothicRosette,
-          EffectType.runicMaze,
-          EffectType.circuitBoard,
-          EffectType.spaceshipHull,
-          EffectType.bismuthCrystals,
-          EffectType.basaltColumns,
-          EffectType.woodblockUkiyoe,
-          EffectType.cyanotypePrint,
-          EffectType.linocutStamp,
-          EffectType.byzantineMosaic,
-          EffectType.chalkPastel,
-          EffectType.waxSgraffito,
-          EffectType.delftwareTile,
-          EffectType.lichenMoss,
-          EffectType.banyanMangrove,
-          EffectType.glacialCrevasse,
-          EffectType.sandDunes,
-          EffectType.romanTravertine,
-          EffectType.kintsugiLacquer,
-          EffectType.petrifiedAgate,
-          EffectType.rustCorrosion,
-          EffectType.wornFabric,
-          EffectType.crackedCeramic,
-          EffectType.mossLichen,
-          EffectType.paintPeeling,
-          EffectType.voronoiShatter,
-          EffectType.windAshDispersal,
-        ];
-        break;
-      case 9: // Special FX
-        categoryFiltered = [
-          EffectType.city,
-          EffectType.dropShadow,
-          EffectType.normalMap,
-          EffectType.hitFlash,
-          EffectType.ghostTrail,
-          EffectType.starfield,
-          EffectType.electricArc,
-          EffectType.portalVortex,
-          EffectType.energyShield,
-          EffectType.radiantRays,
-          EffectType.burningEmbers,
-          EffectType.underwaterCaustics,
-          EffectType.risingBubbles,
-          EffectType.slimeDrip,
-          EffectType.radialShockwave,
-          EffectType.slashArc,
-          EffectType.hologramGlitch,
-          EffectType.solarEclipse,
-          EffectType.meteorShower,
-          EffectType.autumnWind,
-          EffectType.soulWisps,
-          EffectType.abyssalTentacles,
-          EffectType.cursedChains,
-          EffectType.beamTeleport,
-          EffectType.dangerAlarm,
-          EffectType.coinFountain,
-          EffectType.magmaFissures,
-          EffectType.frostGlaze,
-          EffectType.dragonAura,
-          EffectType.cellularDungeon,
-          EffectType.gothicRosette,
-          EffectType.runicMaze,
-          EffectType.circuitBoard,
-          EffectType.deepSpaceNebula,
-          EffectType.spaceshipHull,
-          EffectType.bismuthCrystals,
-          EffectType.coralReef,
-          EffectType.basaltColumns,
-          EffectType.waterfallCascade,
-          EffectType.fireflySwarm,
-          EffectType.whisperingReeds,
-          EffectType.geyserVent,
-          EffectType.stalactiteDrips,
-          EffectType.woodblockUkiyoe,
-          EffectType.cyanotypePrint,
-          EffectType.linocutStamp,
-          EffectType.byzantineMosaic,
-          EffectType.chalkPastel,
-          EffectType.waxSgraffito,
-          EffectType.benDayComic,
-          EffectType.delftwareTile,
-          EffectType.thermalReceipt,
-          EffectType.lichenMoss,
-          EffectType.sporeBloom,
-          EffectType.banyanMangrove,
-          EffectType.sunbeamGodRays,
-          EffectType.dustDevil,
-          EffectType.auroraCurtains,
-          EffectType.glacialCrevasse,
-          EffectType.sandDunes,
-          EffectType.tidalRockPool,
-          EffectType.romanTravertine,
-          EffectType.kintsugiLacquer,
-          EffectType.petrifiedAgate,
-          EffectType.voronoiShatter,
-          EffectType.windAshDispersal,
-          EffectType.lateralSliceGlitch,
-          EffectType.directionalMotionBlur,
-          EffectType.radialZoomBlur,
-          EffectType.ditheredFrostedBlur,
-          EffectType.luminanceGradientMap,
-          EffectType.directionalLightRamp,
-          EffectType.silhouetteDepthBevel,
-          EffectType.actionSpeedLines,
-          EffectType.chromaticEchoDash,
-          EffectType.boosterThruster,
-          EffectType.crownSoulFire,
-          EffectType.hangingIcicles,
-          EffectType.viscousSlime,
-          EffectType.arcLightning,
-          EffectType.kiFlareAura,
-          EffectType.orbitingRunesHalo,
-          EffectType.hexagonalAegis,
-          EffectType.crystalShardReflector,
-          EffectType.gravitySingularity,
-          EffectType.stompDustImpact,
-          EffectType.waterRippleWake,
-          EffectType.sproutingBramble,
-          EffectType.abyssalTendrilMiasma,
-          EffectType.lostSoulWisps,
-          EffectType.eldritchPeepingEyes,
-          EffectType.tacticalReticle,
-          EffectType.holoScanlineGlitch,
-          EffectType.nanotechCircuit,
-          EffectType.alchemicalCircle,
-          EffectType.floatingSigils,
-          EffectType.sacredGeometryHalo,
-          EffectType.supernovaCorona,
-          EffectType.orbitingMoons,
-          EffectType.zodiacConstellation,
-        ];
-        break;
-      default: // All
-        categoryFiltered = allEffects;
-    }
-
-    // Then filter by search
     if (_searchQuery.isEmpty) {
-      return categoryFiltered;
+      return workspaceFiltered.toList();
     }
 
-    return categoryFiltered.where((type) {
+    return workspaceFiltered.where((type) {
       final query =
           _searchQuery.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
       final enumName = type.name.toLowerCase();
@@ -516,6 +123,8 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
     final subscriptionState = ref.watch(subscriptionStateProvider);
+    final stackState =
+        widget.layer == null ? null : EffectStackService.inspect(widget.layer!);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -575,34 +184,75 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                   ),
                 ),
 
-                // Categories
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: SizedBox(
-                    height: 40,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _getCategories(context).length,
-                      itemBuilder: (context, index) {
-                        final isSelected = _selectedCategoryIndex == index;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: ChoiceChip(
-                            label: Text(_getCategories(context)[index]),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              if (selected) {
-                                setState(() {
-                                  _selectedCategoryIndex = index;
-                                });
-                              }
-                            },
-                          ),
-                        );
-                      },
+                if (!widget.lockWorkspace)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: SizedBox(
+                      height: 40,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _workspaces.length,
+                        itemBuilder: (context, index) {
+                          final workspace = _workspaces[index];
+                          final isSelected = _selectedWorkspace == workspace;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              label: Text(
+                                _workspaceLabel(context, workspace),
+                              ),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  setState(() {
+                                    _selectedWorkspace = workspace;
+                                    _selectedAnimationKind = null;
+                                  });
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
+
+                if (_selectedWorkspace == EffectWorkspace.animation &&
+                    !widget.lockAnimationKind)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          for (final animationKind in <AnimationKind?>[
+                            null,
+                            ...AnimationKind.values,
+                          ])
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                key: ValueKey(
+                                  'animation-kind-${animationKind?.name ?? 'all'}',
+                                ),
+                                label: Text(
+                                  _animationKindLabel(context, animationKind),
+                                ),
+                                selected:
+                                    _selectedAnimationKind == animationKind,
+                                onSelected: (selected) {
+                                  if (!selected) return;
+                                  setState(() {
+                                    _selectedAnimationKind = animationKind;
+                                  });
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
 
                 // Effects grid
                 Expanded(
@@ -639,9 +289,21 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                             final hasProAccess =
                                 subscriptionState.hasFeatureAccess(
                                     SubscriptionFeature.advancedTools);
+                            final validation = stackState == null
+                                ? const EffectStackAddValidation.allowed()
+                                : EffectStackService.validateAddToState(
+                                    stackState,
+                                    effect,
+                                  );
 
-                            return _buildEffectCard(context, name, effectType,
-                                effect, hasProAccess);
+                            return _buildEffectCard(
+                              context,
+                              name,
+                              effectType,
+                              effect,
+                              hasProAccess,
+                              validation,
+                            );
                           },
                         ),
                 ),
@@ -659,6 +321,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     EffectType type,
     Effect effect,
     bool hasProAccess,
+    EffectStackAddValidation validation,
   ) {
     final color = effect.getColor(context);
     final icon = effect.getIcon(size: 28, color: color);
@@ -676,6 +339,16 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
       ),
       child: InkWell(
         onTap: () {
+          if (!validation.isAllowed) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(_validationMessage(context, validation)),
+                ),
+              );
+            return;
+          }
           if (isLocked) {
             _showUpgradePrompt(context);
           } else {
@@ -726,7 +399,29 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
       return ProBadge(child: content);
     }
 
+    if (!validation.isAllowed) {
+      return Tooltip(
+        message: _validationMessage(context, validation),
+        child: Opacity(opacity: 0.45, child: content),
+      );
+    }
+
     return content;
+  }
+
+  String _validationMessage(
+    BuildContext context,
+    EffectStackAddValidation validation,
+  ) {
+    final strings = Strings.of(context);
+    return switch (validation.failure) {
+      EffectStackAddFailure.requiresPixels => strings.effectRequiresPixels,
+      EffectStackAddFailure.requiresEmptyLayer =>
+        strings.effectRequiresEmptyLayer,
+      EffectStackAddFailure.generatorAlreadyExists =>
+        strings.effectGeneratorAlreadyAdded,
+      null => '',
+    };
   }
 
   void _showUpgradePrompt(BuildContext context) {

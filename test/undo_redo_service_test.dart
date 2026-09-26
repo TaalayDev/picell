@@ -4,15 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:picell/data/models/animation_frame_model.dart';
 import 'package:picell/data/models/layer.dart';
+import 'package:picell/pixel/effects/effects.dart';
 import 'package:picell/pixel/pixel_canvas_state.dart';
+import 'package:picell/pixel/services/effect_stack_service.dart';
 import 'package:picell/pixel/services/undo_redo_service.dart';
 import 'package:picell/pixel/tools.dart';
 
-PixelCanvasState _buildState({int width = 8, int height = 8, Uint32List? pixels}) {
+PixelCanvasState _buildState({
+  int width = 8,
+  int height = 8,
+  Uint32List? pixels,
+  List<Effect> effects = const [],
+}) {
   return PixelCanvasState(
     width: width,
     height: height,
-    animationStates: const [AnimationStateModel(id: 1, name: 'Default', frameRate: 12)],
+    animationStates: const [
+      AnimationStateModel(id: 1, name: 'Default', frameRate: 12)
+    ],
     frames: [
       AnimationFrame(
         id: 1,
@@ -25,6 +34,7 @@ PixelCanvasState _buildState({int width = 8, int height = 8, Uint32List? pixels}
             id: 'layer-1',
             name: 'Layer 1',
             pixels: pixels ?? Uint32List(width * height),
+            effects: effects,
             order: 0,
           ),
         ],
@@ -42,7 +52,9 @@ PixelCanvasState _commitPixels(PixelCanvasState state, Uint32List newPixels) {
   final frame = state.frames[0];
   final layer = frame.layers[0].copyWith(pixels: newPixels);
   return state.copyWith(
-    frames: [frame.copyWith(layers: [layer])],
+    frames: [
+      frame.copyWith(layers: [layer])
+    ],
   );
 }
 
@@ -57,7 +69,8 @@ void main() {
       after[10] = 0xFF112233;
       after[11] = 0xFF445566;
 
-      service.savePixelDiff(preState: state, prePixels: before, postPixels: after);
+      service.savePixelDiff(
+          preState: state, prePixels: before, postPixels: after);
       state = _commitPixels(state, after);
 
       final undone = service.undo(state)!;
@@ -73,7 +86,10 @@ void main() {
       final pixels = Uint32List(64);
       final state = _buildState(pixels: pixels);
 
-      service.savePixelDiff(preState: state, prePixels: pixels, postPixels: Uint32List.fromList(pixels));
+      service.savePixelDiff(
+          preState: state,
+          prePixels: pixels,
+          postPixels: Uint32List.fromList(pixels));
       expect(service.canUndo, isFalse);
     });
 
@@ -88,7 +104,8 @@ void main() {
         after[i] = 0xFFABCDEF;
       }
 
-      service.savePixelDiff(preState: state, prePixels: before, postPixels: after);
+      service.savePixelDiff(
+          preState: state, prePixels: before, postPixels: after);
       state = _commitPixels(state, after);
 
       final undone = service.undo(state)!;
@@ -172,7 +189,8 @@ void main() {
       var state = _buildState(pixels: before);
 
       final after = Uint32List.fromList(before)..[3] = 0xFF010203;
-      service.savePixelDiff(preState: state, prePixels: before, postPixels: after);
+      service.savePixelDiff(
+          preState: state, prePixels: before, postPixels: after);
       state = _commitPixels(state, after);
 
       // Prepend an unrelated frame — the entry should still find frame id 1.
@@ -182,7 +200,12 @@ void main() {
         name: 'Frame 0',
         duration: 100,
         layers: [
-          Layer(layerId: 2, id: 'layer-2', name: 'L', pixels: Uint32List(64), order: 0),
+          Layer(
+              layerId: 2,
+              id: 'layer-2',
+              name: 'L',
+              pixels: Uint32List(64),
+              order: 0),
         ],
       );
       state = state.copyWith(frames: [extraFrame, ...state.frames]);
@@ -190,6 +213,39 @@ void main() {
       final undone = service.undo(state)!;
       final targetFrame = undone.frames.firstWhere((f) => f.id == 1);
       expect(targetFrame.layers[0].pixels, equals(before));
+    });
+
+    test('procedural conversion is reversible as one full snapshot', () {
+      final service = UndoRedoService();
+      var state = _buildState(
+        width: 32,
+        height: 32,
+        effects: [MountainRangeEffect(), BrightnessEffect()],
+      );
+      final proceduralLayer = state.currentLayer;
+
+      service.saveState(state);
+      final converted = EffectStackService.convertToPixels(
+        proceduralLayer,
+        width: 32,
+        height: 32,
+      );
+      final frame = state.currentFrame.copyWith(layers: [converted]);
+      state = state.copyWith(frames: [frame]);
+
+      expect(state.currentLayer.effects, isEmpty);
+      expect(
+          state.currentLayer.pixels.any((pixel) => pixel >>> 24 != 0), isTrue);
+
+      state = service.undo(state)!;
+      expect(state.currentLayer.effects, hasLength(2));
+      expect(state.currentLayer.effects.first, isA<MountainRangeEffect>());
+      expect(state.currentLayer.pixels, equals(proceduralLayer.pixels));
+
+      state = service.redo(state)!;
+      expect(state.currentLayer.effects, isEmpty);
+      expect(
+          state.currentLayer.pixels.any((pixel) => pixel >>> 24 != 0), isTrue);
     });
   });
 }

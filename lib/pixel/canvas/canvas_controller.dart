@@ -192,14 +192,13 @@ class PixelCanvasController extends ChangeNotifier {
   }
 
   /// Whether the preview must be composited into a merged layer image.
-  /// Opaque strokes without effects render identically through the cheap
-  /// vertices path in the painter; translucent or erasing previews need the
-  /// merged image because vertices would blend over the current layer's
-  /// pixels instead of replacing them.
+  /// Strokes without effects render through the fast vertices path in the painter
+  /// with BlendMode.srcOver (or BlendMode.clear for eraser). Only layers with
+  /// active effects require a live merged image preview so that effects (e.g. blur,
+  /// glow, noise) are rendered accurately during the stroke.
   bool get _needsLivePreviewImage {
     if (_previewPixels.isEmpty) return false;
-    if (_previewEffectsEnabled && currentLayer.effects.isNotEmpty) return true;
-    return (_previewPixels.last.color >>> 24) != 0xFF;
+    return _previewEffectsEnabled && currentLayer.effects.isNotEmpty;
   }
 
   void _schedulePreviewImageRebuild() {
@@ -497,8 +496,17 @@ class PixelCanvasController extends ChangeNotifier {
   Uint32List _mergePixels(Uint32List base, Uint32List overlay) {
     final merged = Uint32List.fromList(base);
     for (int i = 0; i < overlay.length && i < merged.length; i++) {
-      if (overlay[i] != 0) {
-        merged[i] = overlay[i];
+      final src = overlay[i];
+      if (src != 0) {
+        final dst = merged[i];
+        final srcAlpha = (src >>> 24) & 0xFF;
+        if (srcAlpha == 0) {
+          // Keep dst
+        } else if (srcAlpha == 0xFF || dst == 0) {
+          merged[i] = src;
+        } else {
+          merged[i] = Color.alphaBlend(Color(src), Color(dst)).toARGB32();
+        }
       }
     }
     return merged;
@@ -507,12 +515,25 @@ class PixelCanvasController extends ChangeNotifier {
   Uint32List _mergePixelsWithPoints(
       Uint32List base, List<PixelPoint<int>> points) {
     final merged = Uint32List.fromList(base);
+    final isEraser = _currentTool == PixelTool.eraser;
     for (final point in points) {
       final index = point.y * width + point.x;
       if (index >= 0 && index < merged.length) {
-        merged[index] = _currentTool == PixelTool.eraser
-            ? Colors.transparent.toARGB32()
-            : point.color;
+        if (isEraser) {
+          merged[index] = Colors.transparent.toARGB32();
+        } else {
+          final src = point.color;
+          final dst = base[index];
+          final srcAlpha = (src >>> 24) & 0xFF;
+          if (srcAlpha == 0) {
+            merged[index] = dst;
+          } else if (srcAlpha == 0xFF || dst == 0) {
+            merged[index] = src;
+          } else {
+            merged[index] =
+                Color.alphaBlend(Color(src), Color(dst)).toARGB32();
+          }
+        }
       }
     }
     return merged;

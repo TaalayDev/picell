@@ -9,6 +9,7 @@ import '../../../data/models/selection_region.dart';
 import '../../../l10n/strings.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../../pixel/effects/effects.dart';
+import '../../../pixel/services/effect_stack_service.dart';
 import '../../utils/multi_selection.dart';
 import '../panel_select_all_region.dart';
 import 'effect_list_item.dart';
@@ -23,6 +24,9 @@ class EffectsSidePanel extends StatefulHookConsumerWidget {
   final SelectionRegion? selectionRegion;
   final Function(Layer)? onLayerUpdated;
   final void Function(Effect, List<Effect>, int)? onAnimate;
+  final EffectWorkspace? workspace;
+  final AnimationKind? animationKind;
+  final VoidCallback? onConvertToPixels;
 
   const EffectsSidePanel({
     super.key,
@@ -32,6 +36,9 @@ class EffectsSidePanel extends StatefulHookConsumerWidget {
     this.selectionRegion,
     this.onLayerUpdated,
     this.onAnimate,
+    this.workspace,
+    this.animationKind,
+    this.onConvertToPixels,
   });
 
   @override
@@ -53,7 +60,9 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   @override
   void didUpdateWidget(EffectsSidePanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.layer != widget.layer) {
+    if (oldWidget.layer != widget.layer ||
+        oldWidget.workspace != widget.workspace ||
+        oldWidget.animationKind != widget.animationKind) {
       setState(() {
         _effects = List<Effect>.from(widget.layer.effects);
         _selectedEffectIndex = null;
@@ -61,6 +70,23 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
       });
     }
   }
+
+  bool _isVisibleEffect(Effect effect) {
+    final descriptor = EffectCatalog.forType(effect.type);
+    if (widget.workspace != null && descriptor.workspace != widget.workspace) {
+      return false;
+    }
+    if (widget.animationKind != null &&
+        descriptor.animationKind != widget.animationKind) {
+      return false;
+    }
+    return true;
+  }
+
+  List<int> get _visibleEffectIndices => [
+        for (final (index, effect) in _effects.indexed)
+          if (_isVisibleEffect(effect)) index,
+      ];
 
   void _updateLayer() {
     if (widget.selectionRegion != null) {
@@ -80,9 +106,19 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
     showDialog(
       context: context,
       builder: (context) => EffectSelectorDialog(
+        initialWorkspace: widget.workspace,
+        lockWorkspace: widget.workspace != null,
+        initialAnimationKind: widget.animationKind,
+        lockAnimationKind: widget.animationKind != null,
+        layer: widget.layer.copyWith(effects: _effects),
         onEffectSelected: (effect) {
+          final result = EffectStackService.addEffect(
+            widget.layer.copyWith(effects: _effects),
+            effect,
+          );
+          if (!result.didAdd) return;
           setState(() {
-            _effects.add(effect);
+            _effects = List<Effect>.from(result.layer.effects);
           });
           _updateLayer();
         },
@@ -196,7 +232,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   }
 
   void _clearAllEffects() {
-    if (_effects.isEmpty) return;
+    if (_visibleEffectIndices.isEmpty) return;
 
     final s = Strings.of(context);
     showDialog(
@@ -213,7 +249,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
             onPressed: () {
               Navigator.of(context).pop();
               setState(() {
-                _effects.clear();
+                _effects.removeWhere(_isVisibleEffect);
                 _selectedEffectIndex = null;
                 _selectedEffectIndices = {};
               });
@@ -273,21 +309,20 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   @override
   Widget build(BuildContext context) {
     final subscription = ref.watch(subscriptionStateProvider);
+    final visibleEffectIndices = _visibleEffectIndices;
 
     return PanelSelectAllRegion(
       onSelectAll: () {
-        if (_effects.isEmpty) return;
+        if (visibleEffectIndices.isEmpty) return;
         setState(() {
-          _selectedEffectIndices = Set.of(
-            List<int>.generate(_effects.length, (index) => index),
-          );
-          _selectedEffectIndex ??= 0;
+          _selectedEffectIndices = visibleEffectIndices.toSet();
+          _selectedEffectIndex ??= visibleEffectIndices.first;
         });
       },
       child: Column(
         children: [
           _buildActionButtonsBar(context, subscription),
-          if (_effects.isEmpty)
+          if (visibleEffectIndices.isEmpty)
             Expanded(
               child: EffectsEmptyWidget(
                 addEffect: _addEffect,
@@ -297,53 +332,43 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
             Expanded(
               child: ReorderableListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 4),
-                itemCount: _effects.length,
+                itemCount: visibleEffectIndices.length,
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
                     if (oldIndex < newIndex) {
                       newIndex -= 1;
                     }
-                    final item = _effects.removeAt(oldIndex);
-                    _effects.insert(newIndex, item);
-
-                    int remap(int index) {
-                      if (index == oldIndex) return newIndex;
-                      if (oldIndex < newIndex &&
-                          index > oldIndex &&
-                          index <= newIndex) {
-                        return index - 1;
-                      }
-                      if (oldIndex > newIndex &&
-                          index >= newIndex &&
-                          index < oldIndex) {
-                        return index + 1;
-                      }
-                      return index;
+                    final reordered = [
+                      for (final index in visibleEffectIndices) _effects[index],
+                    ];
+                    final item = reordered.removeAt(oldIndex);
+                    reordered.insert(newIndex, item);
+                    for (var index = 0;
+                        index < visibleEffectIndices.length;
+                        index++) {
+                      _effects[visibleEffectIndices[index]] = reordered[index];
                     }
-
-                    _selectedEffectIndices =
-                        _selectedEffectIndices.map(remap).toSet();
-                    if (_selectedEffectIndex != null) {
-                      _selectedEffectIndex = remap(_selectedEffectIndex!);
-                    }
+                    _selectedEffectIndices = {};
+                    _selectedEffectIndex = null;
                   });
                   _updateLayer();
                 },
                 itemBuilder: (context, index) {
-                  final isSelected = _selectedEffectIndices.contains(index);
+                  final effectIndex = visibleEffectIndices[index];
+                  final isSelected =
+                      _selectedEffectIndices.contains(effectIndex);
                   return EffectListItem(
-                    key: ValueKey(
-                        _effects[index].type.toString() + index.toString()),
-                    effect: _effects[index],
+                    key: ValueKey(_effects[effectIndex].type.toString() +
+                        effectIndex.toString()),
+                    effect: _effects[effectIndex],
                     isSelected: isSelected,
                     onSelect: () {
                       setState(() {
                         final result = updateMultiSelection(
-                          orderedItems:
-                              List<int>.generate(_effects.length, (i) => i),
+                          orderedItems: visibleEffectIndices,
                           selected: _selectedEffectIndices,
-                          active: _selectedEffectIndex ?? index,
-                          clicked: index,
+                          active: _selectedEffectIndex ?? effectIndex,
+                          clicked: effectIndex,
                           anchor: _selectedEffectIndex,
                           toggle: isMultiSelectTogglePressed,
                           extendRange: isRangeSelectPressed,
@@ -352,17 +377,17 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
                         _selectedEffectIndex = result.active;
                       });
                     },
-                    onEdit: () => _editEffect(index),
+                    onEdit: () => _editEffect(effectIndex),
                     onAnimate: widget.onAnimate == null
                         ? null
-                        : () => widget.onAnimate!(_effects[index],
-                            List<Effect>.from(_effects), index),
-                    onRemove: () => _removeEffect(index),
+                        : () => widget.onAnimate!(_effects[effectIndex],
+                            List<Effect>.from(_effects), effectIndex),
+                    onRemove: () => _removeEffect(effectIndex),
                     showDragHandle: true,
                     showRemoveButton: false,
                     onParametersChanged: (updatedEffect) {
                       setState(() {
-                        _effects[index] = updatedEffect;
+                        _effects[effectIndex] = updatedEffect;
                       });
                       _updateLayer();
                     },
@@ -378,6 +403,10 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   Widget _buildActionButtonsBar(
       BuildContext context, UserSubscription subscription) {
     final s = Strings.of(context);
+    final selectedEffect =
+        _selectedEffectIndex == null ? null : _effects[_selectedEffectIndex!];
+    final selectedIsGenerator = selectedEffect != null &&
+        EffectCatalog.forType(selectedEffect.type).role == EffectRole.generator;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
@@ -407,9 +436,11 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
             icon: Icons.check,
             label: s.effectsPanelActionApply,
             color: Colors.blue,
-            onPressed: _selectedEffectIndex != null
-                ? () => _performApplyEffect(_effects[_selectedEffectIndex!])
-                : null,
+            onPressed: selectedEffect == null
+                ? null
+                : selectedIsGenerator
+                    ? widget.onConvertToPixels
+                    : () => _performApplyEffect(selectedEffect),
           ),
           const SizedBox(width: 8),
           _buildActionButton(
@@ -439,6 +470,16 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (widget.onConvertToPixels != null)
+                        ListTile(
+                          key: const ValueKey('convert-procedural-to-pixels'),
+                          leading: const Icon(Icons.grid_on),
+                          title: Text(s.convertToPixels),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            widget.onConvertToPixels!();
+                          },
+                        ),
                       ListTile(
                         leading: const Icon(Icons.checklist_outlined,
                             color: Colors.green),

@@ -105,4 +105,68 @@ void main() {
     expect(items, hasLength(3));
     expect(items.every((item) => item.isSelected), isTrue);
   });
+
+  testWidgets('workspace panel keeps full-stack indices while filtering',
+      (tester) async {
+    final layer = Layer(
+      layerId: 1,
+      id: 'layer',
+      name: 'Layer',
+      pixels: Uint32List(4),
+      effects: [
+        BrightnessEffect({'value': 0.1}),
+        WoodEffect(),
+        MountainRangeEffect(),
+      ],
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        EffectsSidePanel(
+          layer: layer,
+          width: 2,
+          height: 2,
+          workspace: EffectWorkspace.materials,
+          onLayerUpdated: (_) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final items =
+        tester.widgetList<EffectListItem>(find.byType(EffectListItem)).toList();
+    expect(items, hasLength(1));
+    expect(items.single.effect.type, EffectType.wood);
+  });
+
+  testWidgets('animation panel filters by animation kind', (tester) async {
+    final layer = Layer(
+      layerId: 1,
+      id: 'animation-layer',
+      name: 'Animation',
+      pixels: Uint32List.fromList([0xFFFFFFFF, 0, 0, 0]),
+      effects: [PulseEffect(), FireEffect(), WaveEffect()],
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        EffectsSidePanel(
+          layer: layer,
+          width: 2,
+          height: 2,
+          workspace: EffectWorkspace.animation,
+          animationKind: AnimationKind.transformer,
+          onLayerUpdated: (_) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final items =
+        tester.widgetList<EffectListItem>(find.byType(EffectListItem)).toList();
+    expect(items.map((item) => item.effect.type), [
+      EffectType.pulse,
+      EffectType.wave,
+    ]);
+  });
 }

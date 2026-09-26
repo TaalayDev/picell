@@ -501,6 +501,59 @@ class StringsRu extends Strings {
   String get effects => 'Эффекты';
 
   @override
+  String get effectWorkspaceFilters => 'Фильтры';
+
+  @override
+  String get effectWorkspaceMaterials => 'Материалы';
+
+  @override
+  String get effectWorkspaceGenerators => 'Генераторы';
+
+  @override
+  String get effectWorkspaceAnimation => 'Анимация';
+
+  @override
+  String get animationTransformers => 'Трансформаторы';
+
+  @override
+  String get animationSpecialEffects => 'Спецэффекты';
+
+  @override
+  String get effectWorkspaceLighting => 'Освещение';
+
+  @override
+  String get effectWorkspaceDistortions => 'Искажения';
+
+  @override
+  String get effectRequiresPixels =>
+      'Для этого эффекта нужны видимые пиксели или генератор на слое.';
+
+  @override
+  String get effectRequiresEmptyLayer =>
+      'Генератор можно добавить только на пустой слой.';
+
+  @override
+  String get effectGeneratorAlreadyAdded => 'На этом слое уже есть генератор.';
+
+  @override
+  String get convertToPixels => 'Преобразовать в пиксели';
+
+  @override
+  String get convertProceduralLayerTitle => 'Преобразовать процедурный слой?';
+
+  @override
+  String get convertProceduralLayerMessage =>
+      'Генератор и все следующие эффекты будут запечены в редактируемые пиксели. Действие можно отменить.';
+
+  @override
+  String get proceduralLayerDrawingBlocked =>
+      'Перед рисованием преобразуйте процедурный слой в пиксели.';
+
+  @override
+  String get proceduralLayerConverted =>
+      'Процедурный слой преобразован в редактируемые пиксели.';
+
+  @override
   String get editorSettings => 'Настройки редактора';
 
   @override

@@ -21,6 +21,7 @@ import '../../providers/imported_palette_provider.dart';
 import '../../providers/project_upload_provider.dart';
 import '../services/animation_service.dart';
 import '../services/drawing_service.dart';
+import '../services/effect_stack_service.dart';
 import '../services/frame_service.dart';
 import '../services/import_export_service.dart';
 import '../services/layer_service.dart';
@@ -125,6 +126,8 @@ class PixelDrawController extends _$PixelDrawController {
 
   AnimationFrame get currentFrame => state.currentFrame;
   Layer get currentLayer => state.currentLayer;
+  bool get currentLayerIsProcedural =>
+      EffectStackService.isProcedural(currentLayer);
   bool get canUndo => _undoRedoService.canUndo;
   bool get canRedo => _undoRedoService.canRedo;
   int get undoStackSize => _undoRedoService.undoStackSize;
@@ -189,10 +192,12 @@ class PixelDrawController extends _$PixelDrawController {
 
   // MARK: Batch Drawing Methods
 
-  void startBatchDrawing() {
+  bool startBatchDrawing() {
+    if (currentLayerIsProcedural) return false;
     _isBatching = true;
     _beginPixelUndo();
     _activeBuffer = Uint32List.fromList(currentLayer.pixels);
+    return true;
   }
 
   void batchSetPixel(int x, int y) {
@@ -357,6 +362,7 @@ class PixelDrawController extends _$PixelDrawController {
   Uint32List? _originalPixels;
 
   void startDrag() {
+    if (currentLayerIsProcedural) return;
     _saveState();
     _dragStartOffset = null;
     _originalPixels = null;
@@ -835,6 +841,22 @@ class PixelDrawController extends _$PixelDrawController {
       _updateCurrentFrame(updatedFrame);
       _updateProject();
     }
+  }
+
+  bool convertCurrentLayerToPixels({List<Effect>? effects}) {
+    final sourceLayer = effects == null
+        ? currentLayer
+        : currentLayer.copyWith(effects: List<Effect>.from(effects));
+    if (!EffectStackService.isProcedural(sourceLayer)) return false;
+
+    _saveState();
+    final converted = EffectStackService.convertToPixels(
+      sourceLayer,
+      width: state.width,
+      height: state.height,
+    );
+    updateLayer(converted);
+    return true;
   }
 
   // Frame operations
@@ -1805,6 +1827,13 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void _updateCurrentLayerPixels(Uint32List newPixels) {
+    if (currentLayerIsProcedural) {
+      _activeBuffer = null;
+      _isBatching = false;
+      _clearPendingPixelUndo();
+      return;
+    }
+
     final undoPreState = _pendingUndoPreState;
     final undoPrePixels = _pendingUndoPrePixels;
     _clearPendingPixelUndo();

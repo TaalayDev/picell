@@ -477,6 +477,56 @@ class StringsJa extends Strings {
   String get effects => 'エフェクト';
 
   @override
+  String get effectWorkspaceFilters => 'フィルター';
+
+  @override
+  String get effectWorkspaceMaterials => 'マテリアル';
+
+  @override
+  String get effectWorkspaceGenerators => 'ジェネレーター';
+
+  @override
+  String get effectWorkspaceAnimation => 'アニメーション';
+
+  @override
+  String get animationTransformers => '変形';
+
+  @override
+  String get animationSpecialEffects => '特殊効果';
+
+  @override
+  String get effectWorkspaceLighting => 'ライティング';
+
+  @override
+  String get effectWorkspaceDistortions => 'ディストーション';
+
+  @override
+  String get effectRequiresPixels => 'このエフェクトには、レイヤー上の表示ピクセルまたはジェネレーターが必要です。';
+
+  @override
+  String get effectRequiresEmptyLayer => 'ジェネレーターは空のレイヤーにのみ追加できます。';
+
+  @override
+  String get effectGeneratorAlreadyAdded => 'このレイヤーには既にジェネレーターがあります。';
+
+  @override
+  String get convertToPixels => 'ピクセルに変換';
+
+  @override
+  String get convertProceduralLayerTitle => 'プロシージャルレイヤーを変換しますか？';
+
+  @override
+  String get convertProceduralLayerMessage =>
+      'ジェネレーターと後続のすべてのエフェクトを編集可能なピクセルに焼き込みます。この操作は元に戻せます。';
+
+  @override
+  String get proceduralLayerDrawingBlocked =>
+      '描画する前に、このプロシージャルレイヤーをピクセルに変換してください。';
+
+  @override
+  String get proceduralLayerConverted => 'プロシージャルレイヤーを編集可能なピクセルに変換しました。';
+
+  @override
   String get editorSettings => 'エディター設定';
 
   @override

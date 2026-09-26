@@ -497,6 +497,61 @@ class StringsKy extends Strings {
   String get effects => 'Эффекттер';
 
   @override
+  String get effectWorkspaceFilters => 'Чыпкалар';
+
+  @override
+  String get effectWorkspaceMaterials => 'Материалдар';
+
+  @override
+  String get effectWorkspaceGenerators => 'Генераторлор';
+
+  @override
+  String get effectWorkspaceAnimation => 'Анимация';
+
+  @override
+  String get animationTransformers => 'Трансформаторлор';
+
+  @override
+  String get animationSpecialEffects => 'Атайын эффекттер';
+
+  @override
+  String get effectWorkspaceLighting => 'Жарыктандыруу';
+
+  @override
+  String get effectWorkspaceDistortions => 'Бурмалоолор';
+
+  @override
+  String get effectRequiresPixels =>
+      'Бул эффект үчүн катмарда көрүнгөн пикселдер же генератор болушу керек.';
+
+  @override
+  String get effectRequiresEmptyLayer =>
+      'Генераторду бош катмарга гана кошууга болот.';
+
+  @override
+  String get effectGeneratorAlreadyAdded =>
+      'Бул катмарда генератор мурунтан эле бар.';
+
+  @override
+  String get convertToPixels => 'Пикселдерге айландыруу';
+
+  @override
+  String get convertProceduralLayerTitle =>
+      'Процедуралык катмар айландырылсынбы?';
+
+  @override
+  String get convertProceduralLayerMessage =>
+      'Генератор жана андан кийинки бардык эффекттер түзөтүлүүчү пикселдерге айландырылат. Бул аракетти артка кайтарууга болот.';
+
+  @override
+  String get proceduralLayerDrawingBlocked =>
+      'Сүрөт тартуудан мурун процедуралык катмарды пикселдерге айландырыңыз.';
+
+  @override
+  String get proceduralLayerConverted =>
+      'Процедуралык катмар эми түзөтүлүүчү пикселдерге айланды.';
+
+  @override
   String get editorSettings => 'Редактор жөндөөлөрү';
 
   @override

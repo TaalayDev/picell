@@ -494,6 +494,60 @@ class StringsEn extends Strings {
   String get effects => 'Effects';
 
   @override
+  String get effectWorkspaceFilters => 'Filters';
+
+  @override
+  String get effectWorkspaceMaterials => 'Materials';
+
+  @override
+  String get effectWorkspaceGenerators => 'Generators';
+
+  @override
+  String get effectWorkspaceAnimation => 'Animation';
+
+  @override
+  String get animationTransformers => 'Transformers';
+
+  @override
+  String get animationSpecialEffects => 'Special effects';
+
+  @override
+  String get effectWorkspaceLighting => 'Lighting';
+
+  @override
+  String get effectWorkspaceDistortions => 'Distortions';
+
+  @override
+  String get effectRequiresPixels =>
+      'This effect needs visible pixels or a generator on the layer.';
+
+  @override
+  String get effectRequiresEmptyLayer =>
+      'Generators can only be added to an empty layer.';
+
+  @override
+  String get effectGeneratorAlreadyAdded =>
+      'This layer already has a generator.';
+
+  @override
+  String get convertToPixels => 'Convert to pixels';
+
+  @override
+  String get convertProceduralLayerTitle => 'Convert procedural layer?';
+
+  @override
+  String get convertProceduralLayerMessage =>
+      'This bakes the generator and all following effects into editable pixels. You can undo this action.';
+
+  @override
+  String get proceduralLayerDrawingBlocked =>
+      'Convert this procedural layer to pixels before drawing.';
+
+  @override
+  String get proceduralLayerConverted =>
+      'The procedural layer is now editable pixels.';
+
+  @override
   String get editorSettings => 'Editor Settings';
 
   @override

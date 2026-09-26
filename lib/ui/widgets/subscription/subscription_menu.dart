@@ -163,7 +163,7 @@ class _SubscriptionPromoBannerState extends ConsumerState<SubscriptionPromoBanne
           padding: const EdgeInsets.all(8.0),
           child: Transform.scale(
             scale: _scaleAnimation.value,
-            child: Container(
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -259,7 +259,7 @@ class _SubscriptionPromoBannerState extends ConsumerState<SubscriptionPromoBanne
   }
 
   Widget _buildUpgradeButton() {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),

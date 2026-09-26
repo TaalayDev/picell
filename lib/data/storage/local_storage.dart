@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 enum StorageKey {
   token,
@@ -9,6 +10,7 @@ enum StorageKey {
   locale,
   notificationsEnabled,
   deviceId,
+  installationId,
   firstRun,
   authSkipped,
   currentUser,
@@ -46,8 +48,8 @@ abstract class LocalStorage {
 
   LocalStorage._();
 
-  static init() async {
-    assert(_instance == null);
+  static Future<LocalStorage> init() async {
+    if (_instance != null) return _instance!;
     _instance = await SharedPrefLocalStorageImpl._().init();
     return _instance!;
   }
@@ -69,11 +71,22 @@ abstract class LocalStorage {
   void addListener<T>(StorageKey key, Function(dynamic value) listener);
   void removeListener(StorageKey key);
 
-  bool get notificationsEnabled => getBool(StorageKey.notificationsEnabled.name) ?? true;
-  set notificationsEnabled(bool val) => setBool(StorageKey.notificationsEnabled.name, val);
+  bool get notificationsEnabled =>
+      getBool(StorageKey.notificationsEnabled.name) ?? true;
+  set notificationsEnabled(bool val) =>
+      setBool(StorageKey.notificationsEnabled.name, val);
 
   int? get deviceId => getInt(StorageKey.deviceId.name);
   set deviceId(int? id) => setInt(StorageKey.deviceId.name, id ?? -1);
+
+  String get installationId {
+    final existing = getString(StorageKey.installationId.name);
+    if (existing != null && existing.isNotEmpty) return existing;
+
+    final generated = const Uuid().v4();
+    setString(StorageKey.installationId.name, generated);
+    return generated;
+  }
 
   bool get firstRun => getBool(StorageKey.firstRun.name) ?? true;
 
@@ -117,8 +130,10 @@ abstract class LocalStorage {
     }
   }
 
-  bool get feedbackPromptNeverAskAgain => getBool(StorageKey.feedbackPromptNeverAskAgain.name) ?? false;
-  set feedbackPromptNeverAskAgain(bool val) => setBool(StorageKey.feedbackPromptNeverAskAgain.name, val);
+  bool get feedbackPromptNeverAskAgain =>
+      getBool(StorageKey.feedbackPromptNeverAskAgain.name) ?? false;
+  set feedbackPromptNeverAskAgain(bool val) =>
+      setBool(StorageKey.feedbackPromptNeverAskAgain.name, val);
 }
 
 class SharedPrefLocalStorageImpl extends LocalStorage {

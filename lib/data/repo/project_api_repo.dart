@@ -191,6 +191,14 @@ class ProjectAPIRepo {
     }
   }
 
+  /// Increment the backend click count for a project in a featured placement.
+  Future<ApiResponse<Map<String, dynamic>>> recordFeaturedClick(int projectId) async {
+    return _apiClient.post<Map<String, dynamic>>(
+      '/api/v1/projects/$projectId/featured-click',
+      converter: ProjectConverters.simpleMap,
+    );
+  }
+
   /// Get direct forks (remixes) of a project — other users' projects created
   /// by downloading and re-uploading this one.
   Future<ApiResponse<List<ApiProject>>> getProjectForks(int projectId, {int limit = 20}) async {
