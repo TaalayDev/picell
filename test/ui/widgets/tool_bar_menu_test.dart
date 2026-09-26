@@ -112,9 +112,26 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('toolbar-add-menu')));
     await tester.pumpAndSettle();
-    expect(find.text('Effects'), findsOneWidget);
+    expect(find.text('Filters'), findsOneWidget);
+    expect(find.text('Materials'), findsOneWidget);
+    expect(find.text('Generators'), findsOneWidget);
+    expect(find.text('Animation: Transformers'), findsOneWidget);
+    expect(find.text('Animation: Special effects'), findsOneWidget);
+    expect(find.text('Lighting'), findsOneWidget);
+    expect(find.text('Distortions'), findsOneWidget);
+    expect(find.text('Layer Effects'), findsOneWidget);
     expect(find.text('Template Gallery'), findsOneWidget);
-    await tester.tap(find.text('Effects'));
+
+    await tester.tap(find.text('Materials'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Select Effect'), findsOneWidget);
+    expect(find.byType(ChoiceChip), findsNothing);
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byKey(const ValueKey('toolbar-add-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Layer Effects'));
     await tester.pumpAndSettle();
     expect(effectsCalls, 1);
   });

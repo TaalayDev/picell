@@ -10,6 +10,7 @@ import '../../l10n/strings.dart';
 import '../../config/assets.dart';
 import '../../data/models/subscription_model.dart';
 import '../../data/models/selection_region.dart';
+import '../../pixel/effects/effects.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/tools.dart';
 import '../../pixel/tools/texture_brush_tool.dart';
@@ -17,6 +18,7 @@ import '../../providers/editor_settings_provider.dart';
 import 'app_icon.dart';
 import 'dialogs/editor_settings_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
+import 'effects/effects_selector_dialog.dart';
 import 'menu_value_field.dart';
 import 'selection_mode_toggle.dart';
 import 'selection_options_button.dart';
@@ -106,6 +108,23 @@ class ToolBar extends ConsumerWidget {
     final screenSize = ScreenSize.forWidth(size.width) ?? ScreenSize.xs;
 
     final editorSettings = ref.watch(editorSettingsNotifierProvider);
+
+    void openEffectSelector(
+      EffectWorkspace workspace, {
+      AnimationKind? animationKind,
+    }) {
+      showDialog<void>(
+        context: context,
+        builder: (context) => EffectSelectorDialog(
+          initialWorkspace: workspace,
+          lockWorkspace: true,
+          initialAnimationKind: animationKind,
+          lockAnimationKind: animationKind != null,
+          layer: notifier.currentLayer,
+          onEffectSelected: notifier.addLayerEffect,
+        ),
+      );
+    }
 
     return Container(
       height: 45,
@@ -301,11 +320,75 @@ class ToolBar extends ConsumerWidget {
             hasNotification: currentLayerHasEffects,
             itemBuilder: (context) => [
               PopupMenuItem(
-                value: _AddMenuAction.effects,
+                key: const ValueKey('toolbar-add-filters'),
+                value: _AddMenuAction.filters,
+                child: ListTile(
+                  leading: const Icon(Icons.filter_alt_outlined, size: 20),
+                  title: Text(Strings.of(context).effectWorkspaceFilters),
+                ),
+              ),
+              PopupMenuItem(
+                key: const ValueKey('toolbar-add-materials'),
+                value: _AddMenuAction.materials,
+                child: ListTile(
+                  leading: const Icon(Icons.texture_outlined, size: 20),
+                  title: Text(Strings.of(context).effectWorkspaceMaterials),
+                ),
+              ),
+              PopupMenuItem(
+                key: const ValueKey('toolbar-add-generators'),
+                value: _AddMenuAction.generators,
+                child: ListTile(
+                  leading: const Icon(Icons.auto_awesome_outlined, size: 20),
+                  title: Text(Strings.of(context).effectWorkspaceGenerators),
+                ),
+              ),
+              PopupMenuItem(
+                key: const ValueKey('toolbar-add-animation-transformers'),
+                value: _AddMenuAction.animationTransformers,
+                child: ListTile(
+                  leading: const Icon(Icons.transform, size: 20),
+                  title: Text(
+                    '${Strings.of(context).effectWorkspaceAnimation}: '
+                    '${Strings.of(context).animationTransformers}',
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                key: const ValueKey('toolbar-add-animation-special-effects'),
+                value: _AddMenuAction.animationSpecialEffects,
+                child: ListTile(
+                  leading: const Icon(Icons.auto_awesome, size: 20),
+                  title: Text(
+                    '${Strings.of(context).effectWorkspaceAnimation}: '
+                    '${Strings.of(context).animationSpecialEffects}',
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                key: const ValueKey('toolbar-add-lighting'),
+                value: _AddMenuAction.lighting,
+                child: ListTile(
+                  leading: const Icon(Icons.light_mode_outlined, size: 20),
+                  title: Text(Strings.of(context).effectWorkspaceLighting),
+                ),
+              ),
+              PopupMenuItem(
+                key: const ValueKey('toolbar-add-distortions'),
+                value: _AddMenuAction.distortions,
+                child: ListTile(
+                  leading: const Icon(Icons.waves_outlined, size: 20),
+                  title: Text(Strings.of(context).effectWorkspaceDistortions),
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                key: const ValueKey('toolbar-manage-effects'),
+                value: _AddMenuAction.manageEffects,
                 enabled: onEffects != null,
                 child: ListTile(
-                  leading: const Icon(Icons.auto_fix_high, size: 20),
-                  title: Text(Strings.of(context).effects),
+                  leading: const Icon(Icons.layers_outlined, size: 20),
+                  title: Text(Strings.of(context).layerEffects),
                   trailing: currentLayerHasEffects
                       ? Icon(
                           Icons.circle,
@@ -326,7 +409,27 @@ class ToolBar extends ConsumerWidget {
             ],
             onSelected: (action) {
               switch (action) {
-                case _AddMenuAction.effects:
+                case _AddMenuAction.filters:
+                  openEffectSelector(EffectWorkspace.filters);
+                case _AddMenuAction.materials:
+                  openEffectSelector(EffectWorkspace.materials);
+                case _AddMenuAction.generators:
+                  openEffectSelector(EffectWorkspace.generators);
+                case _AddMenuAction.animationTransformers:
+                  openEffectSelector(
+                    EffectWorkspace.animation,
+                    animationKind: AnimationKind.transformer,
+                  );
+                case _AddMenuAction.animationSpecialEffects:
+                  openEffectSelector(
+                    EffectWorkspace.animation,
+                    animationKind: AnimationKind.specialEffect,
+                  );
+                case _AddMenuAction.lighting:
+                  openEffectSelector(EffectWorkspace.lighting);
+                case _AddMenuAction.distortions:
+                  openEffectSelector(EffectWorkspace.distortions);
+                case _AddMenuAction.manageEffects:
                   onEffects?.call();
                 case _AddMenuAction.templates:
                   onTemplates?.call();
@@ -484,7 +587,14 @@ enum _ViewMenuAction {
 }
 
 enum _AddMenuAction {
-  effects,
+  filters,
+  materials,
+  generators,
+  animationTransformers,
+  animationSpecialEffects,
+  lighting,
+  distortions,
+  manageEffects,
   templates,
 }
 
