@@ -1,15 +1,11 @@
 part of 'effects.dart';
 
-/// More realistic procedural mountain ranges with:
-/// - Fractal noise (FBM) + ridged noise for sharp features
-/// - Seeded noise (stable per randomSeed)
-/// - Layer-specific palettes, haze, and fog
-/// - Better lighting via a height-field normal approximation
-/// - Optional sun disc + subtle sky noise
-///
-/// Notes:
-/// - Colors are written as ARGB ints for speed inside hot loops.
-/// - Handles layers==1 safely.
+/// Procedural mountain ranges with:
+/// - Multi-layer depth parallax with dynamic timeline scrolling
+/// - Fractal noise (FBM) + ridged noise for sharp craggy peaks
+/// - Diurnal sun transit and dynamic directional height-field lighting
+/// - Atmospheric haze, altitude snow caps, and wind-blown valley mist
+/// - Strongly-typed UIField controls and custom color palettes
 class MountainRangeEffect extends Effect {
   MountainRangeEffect([Map<String, dynamic>? parameters])
       : super(
@@ -20,21 +16,23 @@ class MountainRangeEffect extends Effect {
                 'style': 0, // 0=smooth, 1=jagged, 2=rolling, 3=alpine, 4=volcanic
                 'heightVariation': 0.55, // (0-1)
                 'baseHeight': 0.0, // (0-1)
-                'colorScheme': 0, // 0=blue,1=sunset,2=mono,3=forest,4=desert,5=arctic
+                'colorScheme': 0, // 0=blue, 1=sunset, 2=mono, 3=forest, 4=desert, 5=arctic
                 'atmosphericHaze': 0.5, // (0-1)
-                'skyGradient': false,
+                'skyGradient': true,
                 'sunPosition': 0.7, // (0-1)
                 'sunElevation': 0.35, // (0-1)
-                'sunSize': 0.06, // (0-0.2) relative to min(width,height)
+                'sunSize': 0.06, // (0-0.2)
                 'sunStrength': 0.25, // (0-1)
                 'mistIntensity': 0.3, // (0-1)
-                'mistHeight': 0.28, // (0-1) bottom portion of image
-                'randomSeed': 42,
+                'mistHeight': 0.28, // (0.05-0.6)
                 'snowCaps': 0.2, // (0-1)
                 'detailLevel': 0.6, // (0-1)
-                'ridgeStrength': 0.55, // (0-1) extra sharpness
-                'edgeSoftness': 0.7, // (0-1) anti-alias on silhouette
-                'skyNoise': 0.15, // (0-1)
+                'ridgeStrength': 0.55, // (0-1)
+                'edgeSoftness': 0.7, // (0-1)
+                'parallaxScroll': true,
+                'time': 0.0, // (0-1)
+                'preserveAlpha': false,
+                'randomSeed': 42,
               },
         );
 
@@ -46,19 +44,21 @@ class MountainRangeEffect extends Effect {
         'baseHeight': 0.0,
         'colorScheme': 0,
         'atmosphericHaze': 0.5,
-        'skyGradient': false,
+        'skyGradient': true,
         'sunPosition': 0.7,
         'sunElevation': 0.35,
         'sunSize': 0.06,
         'sunStrength': 0.25,
         'mistIntensity': 0.3,
         'mistHeight': 0.28,
-        'randomSeed': 42,
         'snowCaps': 0.2,
         'detailLevel': 0.6,
         'ridgeStrength': 0.55,
         'edgeSoftness': 0.7,
-        'skyNoise': 0.15,
+        'parallaxScroll': true,
+        'time': 0.0,
+        'preserveAlpha': false,
+        'randomSeed': 42,
       };
 
   @override
@@ -99,22 +99,6 @@ class MountainRangeEffect extends Effect {
           'max': 1.0,
           'divisions': 100,
         },
-        'detailLevel': {
-          'label': 'Detail Level',
-          'description': 'Higher = more small-scale ridges and micro features.',
-          'type': 'slider',
-          'min': 0.0,
-          'max': 1.0,
-          'divisions': 100,
-        },
-        'ridgeStrength': {
-          'label': 'Ridge Strength',
-          'description': 'Sharpness of ridges (ridged noise contribution).',
-          'type': 'slider',
-          'min': 0.0,
-          'max': 1.0,
-          'divisions': 100,
-        },
         'colorScheme': {
           'label': 'Color Scheme',
           'description': 'Color palette for the mountain range.',
@@ -130,7 +114,15 @@ class MountainRangeEffect extends Effect {
         },
         'atmosphericHaze': {
           'label': 'Atmospheric Haze',
-          'description': 'Depth via atmospheric perspective (stronger on far layers).',
+          'description': 'Depth via atmospheric perspective on far layers.',
+          'type': 'slider',
+          'min': 0.0,
+          'max': 1.0,
+          'divisions': 100,
+        },
+        'snowCaps': {
+          'label': 'Snow Caps',
+          'description': 'Amount of snow coverage on high peaks.',
           'type': 'slider',
           'min': 0.0,
           'max': 1.0,
@@ -138,55 +130,7 @@ class MountainRangeEffect extends Effect {
         },
         'mistIntensity': {
           'label': 'Mist Intensity',
-          'description': 'Amount of low-lying fog.',
-          'type': 'slider',
-          'min': 0.0,
-          'max': 1.0,
-          'divisions': 100,
-        },
-        'mistHeight': {
-          'label': 'Mist Height',
-          'description': 'Vertical size of the mist band (bottom portion).',
-          'type': 'slider',
-          'min': 0.05,
-          'max': 0.6,
-          'divisions': 55,
-        },
-        'snowCaps': {
-          'label': 'Snow Caps',
-          'description': 'Amount of snow at high altitude.',
-          'type': 'slider',
-          'min': 0.0,
-          'max': 1.0,
-          'divisions': 100,
-        },
-        'sunPosition': {
-          'label': 'Sun Position',
-          'description': 'Sun horizontal position (0=left, 1=right).',
-          'type': 'slider',
-          'min': 0.0,
-          'max': 1.0,
-          'divisions': 100,
-        },
-        'sunElevation': {
-          'label': 'Sun Elevation',
-          'description': 'Sun vertical position (0=top, 1=bottom).',
-          'type': 'slider',
-          'min': 0.0,
-          'max': 1.0,
-          'divisions': 100,
-        },
-        'sunSize': {
-          'label': 'Sun Size',
-          'description': 'Sun disc radius relative to canvas.',
-          'type': 'slider',
-          'min': 0.0,
-          'max': 0.2,
-          'divisions': 100,
-        },
-        'sunStrength': {
-          'label': 'Sun Glow',
-          'description': 'Strength of sun glow in the sky.',
+          'description': 'Amount of low-lying windblown valley fog.',
           'type': 'slider',
           'min': 0.0,
           'max': 1.0,
@@ -194,67 +138,184 @@ class MountainRangeEffect extends Effect {
         },
         'skyGradient': {
           'label': 'Sky Gradient',
-          'description': 'Adds a gradient sky background.',
+          'description': 'Renders atmospheric sky background behind mountains.',
           'type': 'bool',
         },
-        'skyNoise': {
-          'label': 'Sky Noise',
-          'description': 'Subtle sky texture (grain + thin clouds).',
+        'sunPosition': {
+          'label': 'Sun Position',
+          'description': 'Sun horizontal position across the sky.',
           'type': 'slider',
           'min': 0.0,
           'max': 1.0,
           'divisions': 100,
         },
-        'edgeSoftness': {
-          'label': 'Edge Softness',
-          'description': 'Softens the mountain silhouette edge (anti-alias look).',
+        'parallaxScroll': {
+          'label': 'Parallax Scrolling',
+          'description': 'Scroll layers with multi-plane depth parallax over time.',
+          'type': 'bool',
+        },
+        'time': {
+          'label': 'Animation Time',
+          'description': 'Timeline progress for parallax scroll and mist drift.',
           'type': 'slider',
           'min': 0.0,
           'max': 1.0,
           'divisions': 100,
         },
-        'randomSeed': {
-          'label': 'Random Seed',
-          'description': 'Changes the mountain pattern and layout.',
-          'type': 'slider',
-          'min': 1,
-          'max': 100,
-          'divisions': 99,
+        'preserveAlpha': {
+          'label': 'Preserve Transparency',
+          'description': 'Restrict mountain range to existing sprite silhouette.',
+          'type': 'bool',
         },
       };
 
   @override
+  List<UIField> getFields() => [
+        const SliderField(
+          key: 'layers',
+          label: 'Mountain Layers',
+          description: 'Number of depth layers.',
+          min: 1,
+          max: 5,
+          divisions: 4,
+          isInteger: true,
+        ),
+        const SelectField(
+          key: 'style',
+          label: 'Mountain Style',
+          description: 'Peak and ridge morphology.',
+          options: {
+            0: 'Smooth Ridges',
+            1: 'Jagged Peaks',
+            2: 'Rolling Hills',
+            3: 'Sharp Alpine',
+            4: 'Volcanic',
+          },
+        ),
+        const SliderField(
+          key: 'heightVariation',
+          label: 'Height Variation',
+          description: 'Peak elevation disparity.',
+          min: 0.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+        const SliderField(
+          key: 'baseHeight',
+          label: 'Mountain Height',
+          description: 'Overall ridge elevation.',
+          min: 0.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+        const SelectField(
+          key: 'colorScheme',
+          label: 'Color Scheme',
+          description: 'Atmospheric color palette.',
+          options: {
+            0: 'Blue Gradient',
+            1: 'Sunset',
+            2: 'Monochrome',
+            3: 'Forest Green',
+            4: 'Desert',
+            5: 'Arctic',
+          },
+        ),
+        const SliderField(
+          key: 'atmosphericHaze',
+          label: 'Atmospheric Haze',
+          description: 'Far layer depth mist.',
+          min: 0.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+        const SliderField(
+          key: 'snowCaps',
+          label: 'Snow Caps',
+          description: 'Alpine summit snowline.',
+          min: 0.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+        const SliderField(
+          key: 'mistIntensity',
+          label: 'Mist Intensity',
+          description: 'Valley fog and clouds.',
+          min: 0.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+        const BoolField(
+          key: 'skyGradient',
+          label: 'Sky Gradient',
+          description: 'Atmospheric sky background.',
+        ),
+        const SliderField(
+          key: 'sunPosition',
+          label: 'Sun Position',
+          description: 'Sun horizontal transit.',
+          min: 0.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+        const BoolField(
+          key: 'parallaxScroll',
+          label: 'Parallax Scrolling',
+          description: 'Multi-plane camera scroll.',
+        ),
+        const SliderField(
+          key: 'time',
+          label: 'Animation Time',
+          description: 'Parallax and mist animation cycle.',
+          min: 0.0,
+          max: 1.0,
+          divisions: 100,
+        ),
+        const BoolField(
+          key: 'preserveAlpha',
+          label: 'Preserve Transparency',
+          description: 'Restrict to existing sprite silhouette.',
+        ),
+      ];
+
+  @override
   Uint32List apply(Uint32List pixels, int width, int height) {
-    final layers = (parameters['layers'] as int).clamp(1, 5);
-    final style = parameters['style'] as int;
-    final heightVariation = (parameters['heightVariation'] as double).clamp(0.0, 1.0);
-    final baseHeight = (parameters['baseHeight'] as double).clamp(0.0, 1.0);
-    final colorScheme = parameters['colorScheme'] as int;
-    final atmosphericHaze = (parameters['atmosphericHaze'] as double).clamp(0.0, 1.0);
-    final skyGradient = parameters['skyGradient'] as bool;
-    final sunPosition = (parameters['sunPosition'] as double).clamp(0.0, 1.0);
-    final sunElevation = (parameters['sunElevation'] as double).clamp(0.0, 1.0);
-    final sunSize = (parameters['sunSize'] as double).clamp(0.0, 0.2);
-    final sunStrength = (parameters['sunStrength'] as double).clamp(0.0, 1.0);
-    final mistIntensity = (parameters['mistIntensity'] as double).clamp(0.0, 1.0);
-    final mistHeight = (parameters['mistHeight'] as double).clamp(0.05, 0.6);
-    final randomSeed = (parameters['randomSeed'] as int).clamp(1, 1000000);
-    final snowCaps = (parameters['snowCaps'] as double).clamp(0.0, 1.0);
-    final detailLevel = (parameters['detailLevel'] as double).clamp(0.0, 1.0);
-    final ridgeStrength = (parameters['ridgeStrength'] as double).clamp(0.0, 1.0);
-    final edgeSoftness = (parameters['edgeSoftness'] as double).clamp(0.0, 1.0);
-    final skyNoise = (parameters['skyNoise'] as double).clamp(0.0, 1.0);
+    if (width <= 0 || height <= 0) return pixels;
+
+    final layers = ((parameters['layers'] as num?)?.toInt() ?? 3).clamp(1, 5);
+    final style = (parameters['style'] as num?)?.toInt() ?? 0;
+    final heightVariation = ((parameters['heightVariation'] as num?)?.toDouble() ?? 0.55).clamp(0.0, 1.0);
+    final baseHeight = ((parameters['baseHeight'] as num?)?.toDouble() ?? 0.0).clamp(0.0, 1.0);
+    final colorScheme = (parameters['colorScheme'] as num?)?.toInt() ?? 0;
+    final atmosphericHaze = ((parameters['atmosphericHaze'] as num?)?.toDouble() ?? 0.5).clamp(0.0, 1.0);
+    final skyGradient = parameters['skyGradient'] as bool? ?? true;
+    final baseSunPosition = ((parameters['sunPosition'] as num?)?.toDouble() ?? 0.7).clamp(0.0, 1.0);
+    final sunElevation = ((parameters['sunElevation'] as num?)?.toDouble() ?? 0.35).clamp(0.0, 1.0);
+    final sunSize = ((parameters['sunSize'] as num?)?.toDouble() ?? 0.06).clamp(0.0, 0.2);
+    final sunStrength = ((parameters['sunStrength'] as num?)?.toDouble() ?? 0.25).clamp(0.0, 1.0);
+    final mistIntensity = ((parameters['mistIntensity'] as num?)?.toDouble() ?? 0.3).clamp(0.0, 1.0);
+    final mistHeight = ((parameters['mistHeight'] as num?)?.toDouble() ?? 0.28).clamp(0.05, 0.6);
+    final randomSeed = ((parameters['randomSeed'] as num?)?.toInt() ?? 42).clamp(1, 1000000);
+    final snowCaps = ((parameters['snowCaps'] as num?)?.toDouble() ?? 0.2).clamp(0.0, 1.0);
+    final detailLevel = ((parameters['detailLevel'] as num?)?.toDouble() ?? 0.6).clamp(0.0, 1.0);
+    final ridgeStrength = ((parameters['ridgeStrength'] as num?)?.toDouble() ?? 0.55).clamp(0.0, 1.0);
+    final edgeSoftness = ((parameters['edgeSoftness'] as num?)?.toDouble() ?? 0.7).clamp(0.0, 1.0);
+    final parallaxScroll = parameters['parallaxScroll'] as bool? ?? true;
+    final time = (parameters['time'] as num?)?.toDouble() ?? 0.0;
+    final preserveAlpha = parameters['preserveAlpha'] as bool? ?? false;
 
     final result = Uint32List(pixels.length);
-    final rng = Random(randomSeed);
+    final cycleTime = time - time.floorToDouble();
+
+    // Calculate dynamic sun transit
+    final sunPosition = (baseSunPosition + cycleTime * 0.3) % 1.0;
 
     final colors = _getColorScheme(colorScheme);
 
-    // 1) Sky
+    // 1) Sky background
     if (skyGradient) {
       _fillSkyGradient(result, width, height, colors.skyTop, colors.skyBottom);
     } else {
-      // If no sky gradient, copy original pixels.
       result.setAll(0, pixels);
     }
 
@@ -262,27 +323,30 @@ class MountainRangeEffect extends Effect {
       _addSunDiscAndGlow(result, width, height, colors.sun, sunPosition, sunElevation, sunSize, sunStrength);
     }
 
-    if (skyNoise > 0) {
-      _addSkyNoise(result, width, height, skyNoise, randomSeed);
-    }
-
-    // 2) Height profiles (front layer index 0, back layer index layers-1)
+    // 2) Height profiles with depth parallax scrolling
     final profiles = List<List<double>>.generate(
       layers,
-      (layer) => _generateHeightProfile(
-        width,
-        layer,
-        layers,
-        style,
-        heightVariation,
-        baseHeight,
-        detailLevel,
-        ridgeStrength,
-        randomSeed,
-      ),
+      (layer) {
+        // Foreground layers scroll faster than distant layers
+        final depth = layers == 1 ? 0.0 : layer / (layers - 1);
+        final scrollSpeed = parallaxScroll ? (1.0 - depth * 0.75) * cycleTime * width : 0.0;
+
+        return _generateHeightProfile(
+          width,
+          layer,
+          layers,
+          style,
+          heightVariation,
+          baseHeight,
+          detailLevel,
+          ridgeStrength,
+          randomSeed,
+          scrollSpeed,
+        );
+      },
     );
 
-    // 3) Render from back to front
+    // 3) Render mountain layers from back to front
     for (int layer = layers - 1; layer >= 0; layer--) {
       final depth = layers == 1 ? 0.0 : layer / (layers - 1); // 0 front, 1 back
 
@@ -290,7 +354,6 @@ class MountainRangeEffect extends Effect {
       final hazeLayerColor =
           _lerpColorInt(baseLayerColor, colors.atmosphericHaze, (depth * atmosphericHaze).clamp(0.0, 1.0));
 
-      // Precompute lighting for this layer (per x) for speed.
       final lighting = Float32List(width);
       _computeLightingField(lighting, profiles[layer], width, sunPosition, sunElevation);
 
@@ -309,7 +372,7 @@ class MountainRangeEffect extends Effect {
       );
     }
 
-    // 4) Mist/fog (applied after mountains)
+    // 4) Windblown valley mist and fog
     if (mistIntensity > 0) {
       _addMistEffect(
         result,
@@ -318,9 +381,21 @@ class MountainRangeEffect extends Effect {
         mistIntensity,
         mistHeight,
         colors.mist,
-        rng,
         randomSeed,
+        cycleTime,
       );
+    }
+
+    // 5) If preserveAlpha is requested, mask against original silhouette
+    if (preserveAlpha) {
+      for (int i = 0; i < pixels.length; i++) {
+        final origA = (pixels[i] >>> 24) & 0xFF;
+        if (origA == 0) {
+          result[i] = 0x00000000;
+        } else if (origA < 255) {
+          result[i] = (origA << 24) | (result[i] & 0x00FFFFFF);
+        }
+      }
     }
 
     return result;
@@ -340,23 +415,21 @@ class MountainRangeEffect extends Effect {
     double detailLevel,
     double ridgeStrength,
     int seed,
+    double scrollOffsetX,
   ) {
     final profile = List<double>.filled(width, 0.0);
 
-    // Far layers shorter + smoother.
     final depth = totalLayers == 1 ? 0.0 : layer / (totalLayers - 1);
     final layerHeight = baseHeight * (1.0 - depth * 0.35);
 
-    // Noise params
     final baseFreq = 0.0015 + detailLevel * 0.0035;
     final fineFreq = 0.006 + detailLevel * 0.018;
     final amp = 0.65 + heightVariation * 0.85;
 
-    // Layer seed offset
-    final layerSeed = seed + layer * 104729; // big prime
+    final layerSeed = seed + layer * 104729;
 
     for (int x = 0; x < width; x++) {
-      final nx = x.toDouble();
+      final nx = (x + scrollOffsetX).toDouble();
 
       double h;
       switch (style) {
@@ -377,19 +450,13 @@ class MountainRangeEffect extends Effect {
           h = _mountainSmooth(nx, baseFreq, fineFreq, amp, ridgeStrength * 0.5, layerSeed);
       }
 
-      // Add subtle macro-shape so ranges don't look flat.
       final macro = _fbm1D(nx * baseFreq * 0.35, 4, 0.55, layerSeed + 17);
-
-      // Combine
       var height = layerHeight + (h + macro * 0.25) * heightVariation;
-
-      // Depth flattens detail a bit.
       height = _lerpDouble(height, layerHeight, depth * 0.18);
 
       profile[x] = height;
     }
 
-    // Normalize gently: keep shape but ensure within [0,1] with minimal distortion.
     double minH = double.infinity;
     double maxH = double.negativeInfinity;
     for (final v in profile) {
@@ -397,11 +464,8 @@ class MountainRangeEffect extends Effect {
       if (v > maxH) maxH = v;
     }
 
-    // Shift up if negative.
     final shift = minH < 0 ? -minH : 0.0;
     final shiftedMax = maxH + shift;
-
-    // If too tall, scale down slightly.
     final scale = shiftedMax > 1 ? 1.0 / shiftedMax : 1.0;
 
     for (int i = 0; i < width; i++) {
@@ -425,14 +489,13 @@ class MountainRangeEffect extends Effect {
   }
 
   double _mountainRolling(double x, double baseFreq, double fineFreq, double amp, double ridge, int seed) {
-    final wave = sin(x * baseFreq * 1.9) * 0.35 + sin(x * baseFreq * 0.55 + 1.3) * 0.25;
+    final wave = math.sin(x * baseFreq * 1.9) * 0.35 + math.sin(x * baseFreq * 0.55 + 1.3) * 0.25;
     final n = _fbm1D(x * (baseFreq * 0.7), 3, 0.6, seed);
     final softRidged = _ridged1D(x * (fineFreq * 0.6), 3, 0.6, seed + 31) * ridge;
     return (wave + n * 0.45 + softRidged) * amp;
   }
 
   double _mountainAlpine(double x, double baseFreq, double fineFreq, double amp, double ridge, int seed) {
-    // Alpine: sharper peaks + micro detail.
     final ridged = _ridged1D(x * fineFreq, 6, 0.5, seed) * (0.7 + ridge);
     final micro = _fbm1D(x * (fineFreq * 2.2), 2, 0.5, seed + 101) * 0.18;
     final n = _fbm1D(x * baseFreq, 4, 0.55, seed + 19) * 0.4;
@@ -440,10 +503,9 @@ class MountainRangeEffect extends Effect {
   }
 
   double _mountainVolcanic(double x, double baseFreq, double fineFreq, double amp, double ridge, int seed) {
-    // Volcanic: periodic cones + noise breakup.
-    final coneSpacing = 0.055; // smaller => more cones
-    final cone = cos(x * coneSpacing).abs();
-    final coneShape = pow(cone, 2.2).toDouble() * 0.55;
+    const coneSpacing = 0.055;
+    final cone = math.cos(x * coneSpacing).abs();
+    final coneShape = math.pow(cone, 2.2).toDouble() * 0.55;
     final breakup = _fbm1D(x * baseFreq * 1.1, 4, 0.55, seed) * 0.35;
     final ridged = _ridged1D(x * fineFreq * 0.8, 4, 0.55, seed + 41) * ridge * 0.45;
     return (coneShape + breakup + ridged) * amp;
@@ -466,10 +528,7 @@ class MountainRangeEffect extends Effect {
     double edgeSoftness,
     int seed,
   ) {
-    // Snow tuning: far layers slightly less contrasty.
     final snowAmount = (snowCaps * (1.0 - depth * 0.25)).clamp(0.0, 1.0);
-
-    // Edge softness: 0 => hard edge, 1 => soft. We'll do a 1px blend band.
     final edgeAlpha = (edgeSoftness * 255).round().clamp(0, 255);
 
     for (int x = 0; x < width; x++) {
@@ -477,15 +536,11 @@ class MountainRangeEffect extends Effect {
       final pixelHeight = (mh * height).round().clamp(1, height);
       final startY = (height - pixelHeight).clamp(0, height - 1);
 
-      // Precompute snow threshold for this column using altitude + slope.
       final slope = _slopeAt(profile, x, width).abs();
       final slopePenalty = (slope * 3.0).clamp(0.0, 0.35);
       final snowLine = (1.0 - snowAmount + slopePenalty).clamp(0.0, 1.0);
-
-      // A tiny per-column variation to break uniform snow.
       final snowNoise = (_hash01(seed, x, 19) - 0.5) * 0.08;
 
-      // Silhouette AA: blend the top pixel with sky using alpha.
       if (edgeAlpha > 0 && startY > 0) {
         final idx = (startY - 1) * width + x;
         final under = pixels[idx];
@@ -494,29 +549,20 @@ class MountainRangeEffect extends Effect {
 
       for (int y = startY; y < height; y++) {
         final idx = y * width + x;
-
-        // Height in [0,1] within the mountain body.
         final t = pixelHeight <= 1 ? 1.0 : (y - startY) / (pixelHeight - 1);
         final altitude = 1.0 - t;
 
-        // Snow mask: altitude above snowLine.
         final snowMask = (altitude + snowNoise) >= snowLine;
 
         int c = layerColor;
-
         if (snowMask) {
-          // Snow color: slightly bluish; far layers more hazy.
           final snow = _lerpColorInt(0xFFF2FAFF, 0xFFE7F3FF, (depth * 0.35).clamp(0.0, 1.0));
           c = snow;
         }
 
-        // Ambient occlusion-ish darkening near base for depth.
         final baseDarken = (t * 0.22 + depth * 0.08).clamp(0.0, 0.35);
-
-        // Apply lighting field + base darken.
         final lit = _applyLightingInt(c, lighting[x], baseDarken);
 
-        // Add subtle shadow color in creases (uses slope + noise).
         final crease = (_hash01(seed, x, y) * 0.6 + _hash01(seed + 7, x, y + 13) * 0.4);
         final creaseAmount = ((slope.abs() * 1.6) * (1.0 - altitude) * 0.6 + crease * 0.08).clamp(0.0, 0.35);
         final finalC = _lerpColorInt(lit, shadowColor, creaseAmount);
@@ -533,33 +579,28 @@ class MountainRangeEffect extends Effect {
     double sunX,
     double sunY,
   ) {
-    // Sun direction in screen space.
     final dx = (sunX - 0.5) * 2.0;
     final dy = (sunY - 0.5) * 2.0;
 
-    // Normalize.
-    final len = sqrt(dx * dx + dy * dy);
+    final len = math.sqrt(dx * dx + dy * dy);
     final sdx = len == 0 ? 1.0 : dx / len;
     final sdy = len == 0 ? -0.2 : dy / len;
 
     for (int x = 0; x < width; x++) {
       final slope = _slopeAt(profile, x, width);
 
-      // Height field normal approx: n = normalize((-slope, 1)).
       var nx = -slope;
       var ny = 1.0;
-      final nLen = sqrt(nx * nx + ny * ny);
+      final nLen = math.sqrt(nx * nx + ny * ny);
       nx /= nLen;
       ny /= nLen;
 
-      // Light dot normal.
-      var dot = nx * sdx + ny * (-sdy); // invert y since up is negative in screen space
+      var dot = nx * sdx + ny * (-sdy);
       dot = dot.clamp(-1.0, 1.0);
 
-      // Bias: keep a minimum ambient.
-      final ambient = 0.62;
-      final diffuse = 0.55;
-      final lit = (ambient + max(0.0, dot) * diffuse).clamp(0.35, 1.25);
+      const ambient = 0.62;
+      const diffuse = 0.55;
+      final lit = (ambient + math.max(0.0, dot) * diffuse).clamp(0.35, 1.25);
 
       out[x] = lit;
     }
@@ -596,70 +637,39 @@ class MountainRangeEffect extends Effect {
     double size,
     double strength,
   ) {
-    final minDim = min(width, height).toDouble();
+    final minDim = math.min(width, height).toDouble();
     final cx = sunX * (width - 1);
     final cy = sunY * (height - 1);
-    final radius = (size * minDim).clamp(0.0, minDim * 0.5);
-    final glowR = radius * 3.0;
 
-    if (radius <= 0.5 || strength <= 0) return;
+    final rDisc = max(1.0, size * minDim);
+    final rGlow = rDisc * 3.5;
 
-    for (int y = 0; y < height; y++) {
-      final dy = (y - cy);
+    final minX = max(0, (cx - rGlow).floor());
+    final maxX = min(width - 1, (cx + rGlow).ceil());
+    final minY = max(0, (cy - rGlow).floor());
+    final maxY = min(height - 1, (cy + rGlow).ceil());
+
+    for (int y = minY; y <= maxY; y++) {
+      final dy = y - cy;
       final row = y * width;
-      for (int x = 0; x < width; x++) {
-        final dx = (x - cx);
-        final d = sqrt(dx * dx + dy * dy);
+      for (int x = minX; x <= maxX; x++) {
+        final dx = x - cx;
+        final d = math.sqrt(dx * dx + dy * dy);
 
-        if (d > glowR) continue;
-
-        double a;
-        if (d <= radius) {
-          // Disc: mostly solid.
-          a = 0.85;
-        } else {
-          // Glow falloff.
-          final t = (d - radius) / (glowR - radius);
-          a = (1.0 - t);
-          a = a * a * 0.55;
+        if (d <= rDisc) {
+          final t = (d / rDisc).clamp(0.0, 1.0);
+          final a = ((1.0 - t * 0.15) * strength * 255).round().clamp(0, 255);
+          final idx = row + x;
+          pixels[idx] = _alphaBlend(pixels[idx], sunColor, a);
+        } else if (d <= rGlow) {
+          final t = ((d - rDisc) / (rGlow - rDisc)).clamp(0.0, 1.0);
+          final falloff = math.pow(1.0 - t, 2.0).toDouble();
+          final a = (falloff * strength * 160).round().clamp(0, 255);
+          if (a > 0) {
+            final idx = row + x;
+            pixels[idx] = _alphaBlend(pixels[idx], sunColor, a);
+          }
         }
-
-        a *= strength;
-        if (a <= 0.001) continue;
-
-        final idx = row + x;
-        final alpha = (a * 255).round().clamp(0, 255);
-        pixels[idx] = _alphaBlend(pixels[idx], sunColor, alpha);
-      }
-    }
-  }
-
-  void _addSkyNoise(Uint32List pixels, int width, int height, double amount, int seed) {
-    // Adds subtle banded noise + thin cloud wisps.
-    final a = (amount * 0.25).clamp(0.0, 0.25);
-    if (a <= 0) return;
-
-    for (int y = 0; y < height; y++) {
-      final row = y * width;
-      final ny = y / max(1, height - 1);
-
-      // stronger noise higher in the sky.
-      final strength = (1.0 - ny).clamp(0.0, 1.0) * a;
-
-      for (int x = 0; x < width; x++) {
-        // FBM-ish noise
-        final n = _fbm2D(x * 0.006, y * 0.004, 3, 0.55, seed + 991);
-        // thin cloud bands
-        final band = sin(y * 0.03 + _fbm1D(x * 0.01, 2, 0.6, seed + 123) * 3.0) * 0.5 + 0.5;
-        final cloud = max(0.0, band - 0.65) * 0.9;
-
-        final mix = (n * 0.55 + cloud * 0.45);
-        final alpha = (mix * strength * 255).round().clamp(0, 70);
-
-        if (alpha <= 0) continue;
-        final idx = row + x;
-        // Slightly lighten sky with white-ish overlay
-        pixels[idx] = _alphaBlend(pixels[idx], 0xFFFFFFFF, alpha);
       }
     }
   }
@@ -671,21 +681,20 @@ class MountainRangeEffect extends Effect {
     double intensity,
     double bandHeight,
     int mistColor,
-    Random rng,
     int seed,
+    double cycleTime,
   ) {
     final startY = (height * (1.0 - bandHeight)).round().clamp(0, height - 1);
+    final mistDriftX = cycleTime * 2.0;
 
     for (int y = startY; y < height; y++) {
       final row = y * width;
-      final tY = (y - startY) / max(1, (height - startY - 1));
-      // denser near the bottom, but not fully uniform
+      final tY = (y - startY) / math.max(1, (height - startY - 1));
       final base = (1.0 - tY).clamp(0.0, 1.0);
 
       for (int x = 0; x < width; x++) {
-        // soft rolling fog noise (low frequency)
-        final n = _fbm2D(x * 0.01, y * 0.008, 4, 0.55, seed + 5003);
-        final swirl = sin((x * 0.02) + (y * 0.01) + rng.nextDouble() * 0.15) * 0.04;
+        final n = _fbm2D((x * 0.01 + mistDriftX), y * 0.008, 4, 0.55, seed + 5003);
+        final swirl = math.sin((x * 0.02 + mistDriftX * 3.0) + (y * 0.01)) * 0.04;
         final fog = (n * 0.85 + swirl) * base;
 
         final alpha = (fog * intensity * 170).round().clamp(0, 170);
@@ -778,8 +787,6 @@ class MountainRangeEffect extends Effect {
   // -----------------------------
 
   int _applyLightingInt(int argb, double lighting, double baseDarken) {
-    // lighting ~ [0.35..1.25]
-    // baseDarken ~ [0..0.35]
     final a = (argb >>> 24) & 0xFF;
     var r = (argb >>> 16) & 0xFF;
     var g = (argb >>> 8) & 0xFF;
@@ -796,6 +803,7 @@ class MountainRangeEffect extends Effect {
 
   int _lerpColorInt(int a, int b, double t) {
     final tt = t.clamp(0.0, 1.0);
+
     final aA = (a >>> 24) & 0xFF;
     final aR = (a >>> 16) & 0xFF;
     final aG = (a >>> 8) & 0xFF;
@@ -826,7 +834,6 @@ class MountainRangeEffect extends Effect {
     final bG = (base >>> 8) & 0xFF;
     final bB = base & 0xFF;
 
-    final oA = (overlay >>> 24) & 0xFF;
     final oR = (overlay >>> 16) & 0xFF;
     final oG = (overlay >>> 8) & 0xFF;
     final oB = overlay & 0xFF;
@@ -835,7 +842,6 @@ class MountainRangeEffect extends Effect {
     final g = ((bG * inv) + (oG * a)) ~/ 255;
     final b = ((bB * inv) + (oB * a)) ~/ 255;
 
-    // Keep base alpha (most buffers are opaque anyway)
     return (bA << 24) | (r << 16) | (g << 8) | b;
   }
 
@@ -845,7 +851,6 @@ class MountainRangeEffect extends Effect {
   // Seeded value noise + FBM
   // -----------------------------
 
-  // Value noise in [-1,1]
   double _noise2D(double x, double y, int seed) {
     final ix = x.floor();
     final iy = y.floor();
@@ -898,7 +903,6 @@ class MountainRangeEffect extends Effect {
     return norm == 0 ? 0.0 : (sum / norm);
   }
 
-  // Ridged noise in roughly [-1,1]
   double _ridged1D(double x, int octaves, double gain, int seed) {
     var freq = 1.0;
     var amp = 0.5;
@@ -907,11 +911,8 @@ class MountainRangeEffect extends Effect {
 
     for (int i = 0; i < octaves; i++) {
       final n = _noise2D(x * freq, 0.0, seed + i * 199);
-      // ridges: 1 - abs(noise)
       final r = 1.0 - n.abs();
-      // sharpen
       final rr = r * r;
-      // map to [-1,1]
       sum += (rr * 2.0 - 1.0) * amp;
       norm += amp;
       freq *= 2.0;
@@ -921,7 +922,6 @@ class MountainRangeEffect extends Effect {
     return norm == 0 ? 0.0 : (sum / norm);
   }
 
-  // Hash that returns [0,1]
   double _hash01(int seed, int x, int y) {
     var h = seed;
     h ^= x * 0x27d4eb2d;
@@ -929,7 +929,6 @@ class MountainRangeEffect extends Effect {
     h = (h ^ (h >> 15)) * 0x85ebca6b;
     h = (h ^ (h >> 13)) * 0xc2b2ae35;
     h ^= (h >> 16);
-    // keep 24 bits
     return (h & 0xFFFFFF) / 0xFFFFFF;
   }
 }

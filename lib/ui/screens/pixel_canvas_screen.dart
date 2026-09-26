@@ -44,7 +44,8 @@ import '../widgets/tools_bottom_bar.dart';
 import '../widgets/wand_options_bar.dart';
 
 class PixelCanvasScreen extends StatefulHookConsumerWidget {
-  const PixelCanvasScreen({super.key, required this.project, this.tilemapPixels});
+  const PixelCanvasScreen(
+      {super.key, required this.project, this.tilemapPixels});
 
   final Project project;
 
@@ -55,9 +56,11 @@ class PixelCanvasScreen extends StatefulHookConsumerWidget {
   ConsumerState<PixelCanvasScreen> createState() => _PixelCanvasScreenState();
 }
 
-class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with TickerProviderStateMixin {
+class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
+    with TickerProviderStateMixin {
   late Project project = widget.project;
-  late PixelCanvasNotifierProvider provider = pixelCanvasNotifierProvider(project);
+  late PixelCanvasNotifierProvider provider =
+      pixelCanvasNotifierProvider(project);
   late PixelCanvasNotifier notifier = ref.read(provider.notifier);
 
   final _shortcutsFocusNode = FocusNode();
@@ -82,7 +85,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     }
   }
 
-  void handleExport(BuildContext context, PixelCanvasNotifier notifier, PixelCanvasState state) async {
+  void handleExport(BuildContext context, PixelCanvasNotifier notifier,
+      PixelCanvasState state) async {
     _shortcutsFocusNode.canRequestFocus = false;
     _shortcutsFocusNode.unfocus();
 
@@ -99,15 +103,22 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
 
           switch (format) {
             case 'png':
-              notifier.exportImage(context, background: !transparent, exportWidth: width, exportHeight: height);
+              notifier.exportImage(context,
+                  background: !transparent,
+                  exportWidth: width,
+                  exportHeight: height);
               break;
 
             case 'gif':
-              notifier.exportAnimation(context, background: !transparent, exportWidth: width, exportHeight: height);
+              notifier.exportAnimation(context,
+                  background: !transparent,
+                  exportWidth: width,
+                  exportHeight: height);
               break;
 
             case 'sprite-sheet':
-              final spriteOptions = options['spriteSheetOptions'] as Map<String, dynamic>;
+              final spriteOptions =
+                  options['spriteSheetOptions'] as Map<String, dynamic>;
               await notifier.exportSpriteSheet(
                 context,
                 columns: spriteOptions['columns'] as int,
@@ -158,7 +169,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     return ImportDialog.show(context);
   }
 
-  void _handleDroppedImage(DroppedFileResult result, PixelCanvasNotifier notifier) {
+  void _handleDroppedImage(
+      DroppedFileResult result, PixelCanvasNotifier notifier) {
     if (result.image == null) return;
 
     final dropHandler = DropHandlerService();
@@ -173,7 +185,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(Strings.of(context).importedFileAsNewLayer(result.fileName)),
+        content:
+            Text(Strings.of(context).importedFileAsNewLayer(result.fileName)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -187,7 +200,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       context: context,
       builder: (context) => AlertDialog(
         title: Text(Strings.of(context).importAsepriteFile),
-        content: Text(Strings.of(context).howImportAsepriteFile(result.fileName)),
+        content:
+            Text(Strings.of(context).howImportAsepriteFile(result.fileName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -197,14 +211,16 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
             onPressed: () {
               Navigator.pop(context);
               // Import first frame as layer
-              if (result.project!.frames.isNotEmpty && result.project!.frames.first.layers.isNotEmpty) {
+              if (result.project!.frames.isNotEmpty &&
+                  result.project!.frames.first.layers.isNotEmpty) {
                 final importedLayer = result.project!.frames.first.layers.first;
                 notifier.addLayerWithPixels(importedLayer);
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(
                   SnackBar(
-                    content: Text(Strings.of(context).importedFirstLayerFromFile(result.fileName)),
+                    content: Text(Strings.of(context)
+                        .importedFirstLayerFromFile(result.fileName)),
                   ),
                 );
               }
@@ -217,7 +233,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
               // Open as new project
               Navigator.of(
                 context,
-              ).pushReplacement(MaterialPageRoute(builder: (context) => PixelCanvasScreen(project: result.project!)));
+              ).pushReplacement(MaterialPageRoute(
+                  builder: (context) =>
+                      PixelCanvasScreen(project: result.project!)));
             },
             child: Text(Strings.of(context).openAsProject),
           ),
@@ -353,7 +371,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                     final result = await showImportDialog(context);
                     if (!context.mounted || result == null) return;
 
-                    notifier.importImage(context, isBackground: result.isBackground, options: result.conversionOptions);
+                    notifier.importImage(context,
+                        isBackground: result.isBackground,
+                        options: result.conversionOptions);
                   },
                   currentModifier: currentModifier,
                   onSelectModifier: (modifier) {
@@ -372,9 +392,11 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   },
                   onionSkinOpacity: onionSkinOpacity.value,
                   onionSkinOpacityChanged: (v) => onionSkinOpacity.value = v,
-                  onEffects: () => handleEffects(context, notifier, state.selectionState?.region),
+                  onEffects: () => handleEffects(
+                      context, notifier, state.selectionState?.region),
                   tileModeEnabled: tileModeEnabled.value,
-                  onToggleTileMode: () => tileModeEnabled.value = !tileModeEnabled.value,
+                  onToggleTileMode: () =>
+                      tileModeEnabled.value = !tileModeEnabled.value,
                   canPaste: clipboard != null,
                   onCopySelection: copySelectionToClipboard,
                   onCutSelection: cutSelectionToClipboard,
@@ -392,7 +414,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                       onRedo: notifier.redo,
                     );
                   },
-                  currentLayerHasEffects: notifier.getCurrentLayer().effects.isNotEmpty,
+                  currentLayerHasEffects:
+                      notifier.getCurrentLayer().effects.isNotEmpty,
                 ),
                 Expanded(
                   child: Row(
@@ -410,9 +433,12 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                             currentColor: state.currentColor,
                             subscription: subscription,
                             onTextureSelected: (texture, blendMode, isFill) {
-                              currentTool.value = isFill ? PixelTool.textureFill : PixelTool.textureBrush;
+                              currentTool.value = isFill
+                                  ? PixelTool.textureFill
+                                  : PixelTool.textureBrush;
                               notifier.pushEvent(
-                                TextureBrushPatternEvent(texture, blendMode: blendMode, isFill: isFill),
+                                TextureBrushPatternEvent(texture,
+                                    blendMode: blendMode, isFill: isFill),
                               );
                             },
                             // onColorSelected: (color) {},
@@ -421,8 +447,10 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                       Expanded(
                         child: ClipRect(
                           child: CanvasDropTarget(
-                            onImageDropped: (result) => _handleDroppedImage(result, notifier),
-                            onAsepriteDropped: (result) => _handleDroppedAseprite(context, result),
+                            onImageDropped: (result) =>
+                                _handleDroppedImage(result, notifier),
+                            onAsepriteDropped: (result) =>
+                                _handleDroppedAseprite(context, result),
                             child: PixelViewportGestureLayer(
                               controller: viewportController,
                               child: Stack(
@@ -431,15 +459,19 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                   Positioned.fill(
                                     child: LayoutBuilder(
                                       builder: (context, constraints) {
-                                        final viewportWidth = constraints.maxWidth;
-                                        final viewportHeight = constraints.maxHeight;
+                                        final viewportWidth =
+                                            constraints.maxWidth;
+                                        final viewportHeight =
+                                            constraints.maxHeight;
 
                                         double canvasWidth = viewportWidth;
-                                        double canvasHeight = canvasWidth * height / width;
+                                        double canvasHeight =
+                                            canvasWidth * height / width;
 
                                         if (canvasHeight > viewportHeight) {
                                           canvasHeight = viewportHeight;
-                                          canvasWidth = canvasHeight * width / height;
+                                          canvasWidth =
+                                              canvasHeight * width / height;
                                         }
 
                                         return Center(
@@ -453,7 +485,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                               controller: viewportController,
                                               child: TiledCanvasWrap(
                                                 enabled: tileModeEnabled.value,
-                                                layers: state.currentFrame.layers,
+                                                layers:
+                                                    state.currentFrame.layers,
                                                 width: width,
                                                 height: height,
                                                 canvasWidth: canvasWidth,
@@ -462,26 +495,43 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                                   width: canvasWidth,
                                                   height: canvasHeight,
                                                   child: Padding(
-                                                    padding: const EdgeInsets.all(8.0),
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
                                                     child: PixelCanvasSceneHost(
                                                       project: project,
                                                       state: state,
                                                       notifier: notifier,
-                                                      viewportController: viewportController,
-                                                      currentTool: currentTool.value,
-                                                      modifier: currentModifier.value,
-                                                      currentColor: state.currentColor,
-                                                      brushSize: brushSize.value,
-                                                      sprayIntensity: sprayIntensity.value,
-                                                      mirrorAxis: MirrorAxis.vertical,
-                                                      eventStream: notifier.eventStream,
-                                                      editorSettings: editorSettings,
-                                                      enableMultiTouchViewportNavigation: false,
-                                                      showPrevFrames: showPrevFrames.value,
-                                                      selectionMode: selectionMode.value,
-                                                      onionSkinOpacity: onionSkinOpacity.value,
+                                                      viewportController:
+                                                          viewportController,
+                                                      currentTool:
+                                                          currentTool.value,
+                                                      modifier:
+                                                          currentModifier.value,
+                                                      currentColor:
+                                                          state.currentColor,
+                                                      brushSize:
+                                                          brushSize.value,
+                                                      sprayIntensity:
+                                                          sprayIntensity.value,
+                                                      mirrorAxis:
+                                                          MirrorAxis.vertical,
+                                                      eventStream:
+                                                          notifier.eventStream,
+                                                      editorSettings:
+                                                          editorSettings,
+                                                      enableMultiTouchViewportNavigation:
+                                                          false,
+                                                      showPrevFrames:
+                                                          showPrevFrames.value,
+                                                      selectionMode:
+                                                          selectionMode.value,
+                                                      onionSkinOpacity:
+                                                          onionSkinOpacity
+                                                              .value,
                                                       onToolAutoSwitch: (tool) {
-                                                        currentTool.value = tool;
+                                                        currentTool.value =
+                                                            tool;
                                                       },
                                                     ),
                                                   ),
@@ -493,7 +543,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                       },
                                     ),
                                   ),
-                                  if (MediaQuery.sizeOf(context).width < 1000) ...[
+                                  if (MediaQuery.sizeOf(context).width <
+                                      1000) ...[
                                     Positioned(
                                       left: 16,
                                       right: 16,
@@ -512,16 +563,25 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                         child: SelectionOptionsButton(
                                           hasSelection: hasSelection,
                                           isFloating: true,
-                                          onClearSelection: () => notifier.clearSelection(),
-                                          onDelete: () => notifier.clearSelectionArea(),
-                                          onCutToNewLayer: () => notifier.cutToNewLayer(),
-                                          onCopyToNewLayer: () => notifier.copyToNewLayer(),
+                                          onClearSelection: () =>
+                                              notifier.clearSelection(),
+                                          onDelete: () =>
+                                              notifier.clearSelectionArea(),
+                                          onCutToNewLayer: () =>
+                                              notifier.cutToNewLayer(),
+                                          onCopyToNewLayer: () =>
+                                              notifier.copyToNewLayer(),
                                           onCopy: copySelectionToClipboard,
                                           onCut: cutSelectionToClipboard,
-                                          onPaste: clipboard != null ? pasteFromClipboard : null,
-                                          onInvert: () => notifier.invertSelection(),
-                                          onGrow: () => notifier.growSelection(),
-                                          onShrink: () => notifier.shrinkSelection(),
+                                          onPaste: clipboard != null
+                                              ? pasteFromClipboard
+                                              : null,
+                                          onInvert: () =>
+                                              notifier.invertSelection(),
+                                          onGrow: () =>
+                                              notifier.growSelection(),
+                                          onShrink: () =>
+                                              notifier.shrinkSelection(),
                                         ),
                                       ),
                                   ],
@@ -548,16 +608,13 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   // itemsHeight: 80,
                   onSelectFrame: notifier.selectFrame,
                   onAddFrame: () {
-                    notifier.addFrame('Frame ${state.currentFrames.length + 1}');
+                    notifier
+                        .addFrame('Frame ${state.currentFrames.length + 1}');
                   },
-                  copyFrame: (id) {
-                    notifier.addFrame('Frame ${state.currentFrames.length + 1}', copyFrame: id);
-                  },
-                  onDeleteFrame: notifier.removeFrame,
-                  onDurationChanged: (index, duration) {
-                    notifier.updateFrame(index, state.frames[index].copyWith(duration: duration));
-                  },
-                  onFrameReordered: notifier.reorderFrames,
+                  copyFrame: notifier.duplicateFramesByIds,
+                  onDeleteFrame: notifier.removeFramesByIds,
+                  onDurationChanged: notifier.updateFramesDurationByIds,
+                  onFrameReordered: notifier.reorderFramesByIds,
                   onPlayPause: () {
                     isPlaying.value = !isPlaying.value;
                     if (isPlaying.value) {
@@ -590,7 +647,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   onSettingsChanged: (settings) {},
                   isExpanded: isAnimationTimelineExpanded.value,
                   onExpandChanged: () {
-                    isAnimationTimelineExpanded.value = !isAnimationTimelineExpanded.value;
+                    isAnimationTimelineExpanded.value =
+                        !isAnimationTimelineExpanded.value;
                   },
                   onAddState: (name) {
                     notifier.addAnimationState(name, 24);
@@ -606,7 +664,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                 if (MediaQuery.sizeOf(context).width <= 1050)
                   MobileColorSelector(
                     currentColor: state.currentColor,
-                    isEyedropperSelected: currentTool.value == PixelTool.eyedropper,
+                    isEyedropperSelected:
+                        currentTool.value == PixelTool.eyedropper,
                     onSelectEyedropper: () {
                       currentTool.value = PixelTool.eyedropper;
                     },
@@ -631,7 +690,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     );
   }
 
-  void handleEffects(BuildContext context, PixelCanvasNotifier notifier, SelectionRegion? selectionRegion) {
+  void handleEffects(BuildContext context, PixelCanvasNotifier notifier,
+      SelectionRegion? selectionRegion) {
     final currentLayer = notifier.getCurrentLayer();
 
     context.showEffectsPanel(
@@ -740,7 +800,12 @@ class _ToolElements extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _SliderPill(icon: Icons.brush_rounded, value: brushSize, min: 1, max: 10, accentColor: colorScheme.primary),
+        _SliderPill(
+            icon: Icons.brush_rounded,
+            value: brushSize,
+            min: 1,
+            max: 10,
+            accentColor: colorScheme.primary),
         if (isSpray) ...[
           const SizedBox(height: 6),
           _SliderPill(
@@ -782,9 +847,13 @@ class _SliderPill extends StatelessWidget {
           decoration: BoxDecoration(
             color: accentColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: accentColor.withValues(alpha: 0.25), width: 1),
+            border: Border.all(
+                color: accentColor.withValues(alpha: 0.25), width: 1),
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 6, offset: const Offset(0, 2)),
+              BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2)),
             ],
           ),
           child: Row(
@@ -796,8 +865,10 @@ class _SliderPill extends StatelessWidget {
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 2,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    overlayShape:
+                        const RoundSliderOverlayShape(overlayRadius: 12),
                     activeTrackColor: accentColor,
                     inactiveTrackColor: accentColor.withValues(alpha: 0.2),
                     thumbColor: accentColor,
@@ -815,7 +886,10 @@ class _SliderPill extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Text(
                   '$current',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
               ),
               const SizedBox(width: 4),

@@ -95,6 +95,105 @@ part 'slime_drip_effect.dart';
 part 'radial_shockwave_effect.dart';
 part 'slash_arc_effect.dart';
 part 'hologram_glitch_effect.dart';
+part 'solar_eclipse_effect.dart';
+part 'meteor_shower_effect.dart';
+part 'autumn_wind_effect.dart';
+part 'soul_wisps_effect.dart';
+part 'abyssal_tentacles_effect.dart';
+part 'cursed_chains_effect.dart';
+part 'beam_teleport_effect.dart';
+part 'danger_alarm_effect.dart';
+part 'coin_fountain_effect.dart';
+part 'magma_fissures_effect.dart';
+part 'frost_glaze_effect.dart';
+part 'dragon_aura_effect.dart';
+part 'cellular_dungeon_effect.dart';
+part 'gothic_rosette_effect.dart';
+part 'runic_maze_effect.dart';
+part 'circuit_board_effect.dart';
+part 'deep_space_nebula_effect.dart';
+part 'spaceship_hull_effect.dart';
+part 'bismuth_crystals_effect.dart';
+part 'coral_reef_effect.dart';
+part 'basalt_columns_effect.dart';
+part 'waterfall_cascade_effect.dart';
+part 'firefly_swarm_effect.dart';
+part 'whispering_reeds_effect.dart';
+part 'risograph_print_effect.dart';
+part 'pixel_sorting_effect.dart';
+part 'ink_crosshatch_effect.dart';
+part 'rust_corrosion_effect.dart';
+part 'worn_fabric_effect.dart';
+part 'cracked_ceramic_effect.dart';
+part 'moss_lichen_effect.dart';
+part 'paint_peeling_effect.dart';
+part 'texture_effect_utils.dart';
+part 'kaleidoscope_effect.dart';
+part 'topographic_contours_effect.dart';
+part 'isometric_extrusion_effect.dart';
+part 'paper_cutout_effect.dart';
+part 'cel_shading_effect.dart';
+part 'low_poly_facets_effect.dart';
+part 'ascii_mosaic_effect.dart';
+part 'geyser_vent_effect.dart';
+part 'stalactite_drips_effect.dart';
+part 'woodblock_ukiyoe_effect.dart';
+part 'cyanotype_print_effect.dart';
+part 'linocut_stamp_effect.dart';
+part 'byzantine_mosaic_effect.dart';
+part 'chalk_pastel_effect.dart';
+part 'wax_sgraffito_effect.dart';
+part 'ben_day_comic_effect.dart';
+part 'delftware_tile_effect.dart';
+part 'thermal_receipt_effect.dart';
+part 'lichen_moss_effect.dart';
+part 'spore_bloom_effect.dart';
+part 'banyan_mangrove_effect.dart';
+part 'sunbeam_god_rays_effect.dart';
+part 'dust_devil_effect.dart';
+part 'aurora_curtains_effect.dart';
+part 'glacial_crevasse_effect.dart';
+part 'sand_dunes_effect.dart';
+part 'tidal_rock_pool_effect.dart';
+part 'roman_travertine_effect.dart';
+part 'kintsugi_lacquer_effect.dart';
+part 'petrified_agate_effect.dart';
+part 'voronoi_shatter_effect.dart';
+part 'wind_ash_dispersal_effect.dart';
+part 'lateral_slice_glitch_effect.dart';
+part 'directional_motion_blur_effect.dart';
+part 'radial_zoom_blur_effect.dart';
+part 'dithered_frosted_blur_effect.dart';
+part 'luminance_gradient_map_effect.dart';
+part 'directional_light_ramp_effect.dart';
+part 'silhouette_depth_bevel_effect.dart';
+part 'action_speed_lines_effect.dart';
+part 'chromatic_echo_dash_effect.dart';
+part 'booster_thruster_effect.dart';
+part 'crown_soul_fire_effect.dart';
+part 'hanging_icicles_effect.dart';
+part 'viscous_slime_effect.dart';
+part 'arc_lightning_effect.dart';
+part 'ki_flare_aura_effect.dart';
+part 'orbiting_runes_halo_effect.dart';
+part 'hexagonal_aegis_effect.dart';
+part 'crystal_shard_reflector_effect.dart';
+part 'gravity_singularity_effect.dart';
+part 'stomp_dust_impact_effect.dart';
+part 'water_ripple_wake_effect.dart';
+part 'sprouting_bramble_effect.dart';
+part 'abyssal_tendril_miasma_effect.dart';
+part 'lost_soul_wisps_effect.dart';
+part 'eldritch_peeping_eyes_effect.dart';
+part 'tactical_reticle_effect.dart';
+part 'holo_scanline_glitch_effect.dart';
+part 'nanotech_circuit_effect.dart';
+part 'alchemical_circle_effect.dart';
+part 'floating_sigils_effect.dart';
+part 'sacred_geometry_halo_effect.dart';
+part 'supernova_corona_effect.dart';
+part 'orbiting_moons_effect.dart';
+part 'zodiac_constellation_effect.dart';
 
 enum EffectType {
   brightness,
@@ -185,6 +284,104 @@ enum EffectType {
   radialShockwave,
   slashArc,
   hologramGlitch,
+  solarEclipse,
+  meteorShower,
+  autumnWind,
+  soulWisps,
+  abyssalTentacles,
+  cursedChains,
+  beamTeleport,
+  dangerAlarm,
+  coinFountain,
+  magmaFissures,
+  frostGlaze,
+  dragonAura,
+  cellularDungeon,
+  gothicRosette,
+  runicMaze,
+  circuitBoard,
+  deepSpaceNebula,
+  spaceshipHull,
+  bismuthCrystals,
+  coralReef,
+  basaltColumns,
+  waterfallCascade,
+  fireflySwarm,
+  whisperingReeds,
+  risographPrint,
+  pixelSorting,
+  inkCrosshatch,
+  rustCorrosion,
+  wornFabric,
+  crackedCeramic,
+  mossLichen,
+  paintPeeling,
+  kaleidoscope,
+  topographicContours,
+  isometricExtrusion,
+  paperCutout,
+  celShading,
+  lowPolyFacets,
+  asciiMosaic,
+  geyserVent,
+  stalactiteDrips,
+  woodblockUkiyoe,
+  cyanotypePrint,
+  linocutStamp,
+  byzantineMosaic,
+  chalkPastel,
+  waxSgraffito,
+  benDayComic,
+  delftwareTile,
+  thermalReceipt,
+  lichenMoss,
+  sporeBloom,
+  banyanMangrove,
+  sunbeamGodRays,
+  dustDevil,
+  auroraCurtains,
+  glacialCrevasse,
+  sandDunes,
+  tidalRockPool,
+  romanTravertine,
+  kintsugiLacquer,
+  petrifiedAgate,
+  voronoiShatter,
+  windAshDispersal,
+  lateralSliceGlitch,
+  directionalMotionBlur,
+  radialZoomBlur,
+  ditheredFrostedBlur,
+  luminanceGradientMap,
+  directionalLightRamp,
+  silhouetteDepthBevel,
+  actionSpeedLines,
+  chromaticEchoDash,
+  boosterThruster,
+  crownSoulFire,
+  hangingIcicles,
+  viscousSlime,
+  arcLightning,
+  kiFlareAura,
+  orbitingRunesHalo,
+  hexagonalAegis,
+  crystalShardReflector,
+  gravitySingularity,
+  stompDustImpact,
+  waterRippleWake,
+  sproutingBramble,
+  abyssalTendrilMiasma,
+  lostSoulWisps,
+  eldritchPeepingEyes,
+  tacticalReticle,
+  holoScanlineGlitch,
+  nanotechCircuit,
+  alchemicalCircle,
+  floatingSigils,
+  sacredGeometryHalo,
+  supernovaCorona,
+  orbitingMoons,
+  zodiacConstellation,
 }
 
 /// Base abstract class for all effects
@@ -295,6 +492,106 @@ abstract class Effect {
         EffectType.radialShockwave => 'Radial Shockwave & Blast',
         EffectType.slashArc => 'Melee Slash Wave & Arc',
         EffectType.hologramGlitch => 'Hologram Glitch & Flicker',
+        EffectType.solarEclipse => 'Solar Eclipse & Corona',
+        EffectType.meteorShower => 'Meteor Shower & Starfall',
+        EffectType.autumnWind => 'Autumn Wind & Leaf Vortex',
+        EffectType.soulWisps => 'Necromantic Soul Wisps',
+        EffectType.abyssalTentacles => 'Abyssal Tentacles & Eye Swarm',
+        EffectType.cursedChains => 'Cursed Chains & Runic Break',
+        EffectType.beamTeleport => 'Pixel Beam Teleport & Spawn',
+        EffectType.dangerAlarm => 'Pixel Heartbeat & Danger Alarm',
+        EffectType.coinFountain => '8-Bit Coin Fountain & Confetti',
+        EffectType.magmaFissures => 'Molten Magma Fissures & Haze',
+        EffectType.frostGlaze => 'Frost Glaze & Crystal Freeze',
+        EffectType.dragonAura => 'Supercharged Dragon Aura',
+        EffectType.cellularDungeon => 'Cellular Dungeon & Cave Labyrinth',
+        EffectType.gothicRosette => 'Gothic Stained Glass Rosette',
+        EffectType.runicMaze => 'Ancient Runic Maze & Stele',
+        EffectType.circuitBoard => 'Procedural PCB & Circuit Board',
+        EffectType.deepSpaceNebula => 'Deep Space Nebula & Gas Giant',
+        EffectType.spaceshipHull => 'Spaceship Hull & Greeble Plating',
+        EffectType.bismuthCrystals => 'Bismuth Crystals & Stepped Geodes',
+        EffectType.coralReef => 'Coral Reef & Turing Flora',
+        EffectType.basaltColumns => 'Basalt Columns & Volcanic Steppes',
+        EffectType.waterfallCascade => 'Waterfall Cascade & Foam Splash Mist',
+        EffectType.fireflySwarm =>
+          'Bioluminescent Firefly Swarm & Twilight Meadow',
+        EffectType.whisperingReeds => 'Whispering Reeds & Rippling Pond Water',
+        EffectType.risographPrint => 'Risograph Print',
+        EffectType.pixelSorting => 'Pixel Sorting',
+        EffectType.inkCrosshatch => 'Ink & Crosshatch',
+        EffectType.rustCorrosion => 'Rust & Corrosion',
+        EffectType.wornFabric => 'Worn Fabric',
+        EffectType.crackedCeramic => 'Cracked Ceramic',
+        EffectType.mossLichen => 'Moss & Lichen',
+        EffectType.paintPeeling => 'Paint Peeling',
+        EffectType.kaleidoscope => 'Kaleidoscope',
+        EffectType.topographicContours => 'Topographic Contours',
+        EffectType.isometricExtrusion => 'Isometric Extrusion',
+        EffectType.paperCutout => 'Paper Cutout',
+        EffectType.celShading => 'Cel Shading',
+        EffectType.lowPolyFacets => 'Low-Poly Facets',
+        EffectType.asciiMosaic => 'ASCII Mosaic',
+        EffectType.geyserVent => 'Geyser Steam Vent & Boiling Mud Pool',
+        EffectType.stalactiteDrips =>
+          'Stalactite Mineral Drips & Cavern Echo Ripples',
+        EffectType.woodblockUkiyoe => 'Woodblock Ukiyo-e & Bokashi',
+        EffectType.cyanotypePrint => 'Cyanotype Sun Print & Prussian Blue',
+        EffectType.linocutStamp => 'Linocut Relief Stamp & Brayer',
+        EffectType.byzantineMosaic => 'Byzantine Mosaic & Gold Leaf',
+        EffectType.chalkPastel => 'Chalk Pastel & Charcoal Smudge',
+        EffectType.waxSgraffito => 'Wax Crayon & Oil Sgraffito',
+        EffectType.benDayComic => 'Ben-Day Comic & Misregistration',
+        EffectType.delftwareTile => 'Glazed Delftware & Majolica Tile',
+        EffectType.thermalReceipt => 'Thermal Receipt & Dot Matrix',
+        EffectType.lichenMoss => 'Lichen Crust & Rock Moss',
+        EffectType.sporeBloom => 'Spore Bloom & Fungal Woods',
+        EffectType.banyanMangrove => 'Banyan Mangrove & Aerial Roots',
+        EffectType.sunbeamGodRays => 'Sunbeam God Rays & Tyndall Haze',
+        EffectType.dustDevil => 'Dust Devil & Desert Haboob',
+        EffectType.auroraCurtains => 'Aurora Borealis Curtains',
+        EffectType.glacialCrevasse => 'Glacial Crevasse & Serac Ice',
+        EffectType.sandDunes => 'Wind-Sculpted Sand Dunes',
+        EffectType.tidalRockPool => 'Tidal Rock Pool & Anemone',
+        EffectType.romanTravertine => 'Roman Travertine & Ashlar Stone',
+        EffectType.kintsugiLacquer => 'Cracked Kintsugi Gold Lacquer',
+        EffectType.petrifiedAgate => 'Petrified Wood & Banded Agate',
+        EffectType.voronoiShatter => 'Voronoi Glass Shatter',
+        EffectType.windAshDispersal => 'Wind Ash & Sand Dispersal',
+        EffectType.lateralSliceGlitch => 'Lateral Slice & Fault Glitch',
+        EffectType.directionalMotionBlur => 'Directional Motion Blur',
+        EffectType.radialZoomBlur => 'Radial Zoom & Shock Blur',
+        EffectType.ditheredFrostedBlur => 'Dithered Frosted Blur',
+        EffectType.luminanceGradientMap => 'Luminance Gradient Map',
+        EffectType.directionalLightRamp => 'Directional Light Ramp',
+        EffectType.silhouetteDepthBevel => 'Silhouette Depth Bevel',
+        EffectType.actionSpeedLines => 'Anime Speed Lines & Focus Stream',
+        EffectType.chromaticEchoDash => 'Chromatic Echo Dash & Ghost Afterimages',
+        EffectType.boosterThruster => 'Booster Thruster & Rocket Flame Exhaust',
+        EffectType.crownSoulFire => 'Crown Soul Fire & Flame Licks',
+        EffectType.hangingIcicles => 'Frost Glaze & Hanging Icicles',
+        EffectType.viscousSlime => 'Viscous Slime & Acid Ooze Drippings',
+        EffectType.arcLightning => 'Arc Lightning & Supercharged Crackle',
+        EffectType.kiFlareAura => 'Super Saiyan Ki Flare & Fighting Aura',
+        EffectType.orbitingRunesHalo => 'Levitating Orbiting Runes & Celestial Halo',
+        EffectType.hexagonalAegis => 'Hard-Light Hexagonal Aegis',
+        EffectType.crystalShardReflector => 'Prismatic Crystal Shard Reflector',
+        EffectType.gravitySingularity => 'Gravity Singularity & Accretion Well',
+        EffectType.stompDustImpact => 'Kinetic Stomp Dust & Impact Shockwave',
+        EffectType.waterRippleWake => 'Water Ripple & Puddle Reflection Wake',
+        EffectType.sproutingBramble => 'Sprouting Wildflower & Bramble Footsteps',
+        EffectType.abyssalTendrilMiasma => 'Abyssal Tendril Miasma',
+        EffectType.lostSoulWisps => 'Wandering Lost Soul Wisps',
+        EffectType.eldritchPeepingEyes => 'Eldritch Gaze & Peeping Eyes',
+        EffectType.tacticalReticle => 'Tactical Lock-On Reticle',
+        EffectType.holoScanlineGlitch => 'Holo-Scanline Glitch & Decimation',
+        EffectType.nanotechCircuit => 'Nanotech Circuit Conduits',
+        EffectType.alchemicalCircle => 'Alchemical Transmutation Circle',
+        EffectType.floatingSigils => 'Runic Glyphs & Floating Sigils',
+        EffectType.sacredGeometryHalo => 'Sacred Geometry Halo',
+        EffectType.supernovaCorona => 'Supernova Corona Flare',
+        EffectType.orbitingMoons => 'Orbiting Satellite Moons',
+        EffectType.zodiacConstellation => 'Zodiac Constellation Map',
       };
 
   String getDescription(BuildContext context) => switch (type) {
@@ -429,6 +726,202 @@ abstract class Effect {
           'Curved crescent katana slash wave, cutting edge glint, and sparks',
         EffectType.hologramGlitch =>
           'Holographic scanline raster, beam flutter, and slice tear jitter',
+        EffectType.solarEclipse =>
+          'Celestial occulting disc, undulating corona prominences, and diamond ring burst',
+        EffectType.meteorShower =>
+          'High-speed incandescent shooting star streaks, glowing tails, and bursts',
+        EffectType.autumnWind =>
+          'Tumbling sakura petals, maple leaves, and ginkgo caught in wind swirl currents',
+        EffectType.soulWisps =>
+          '3D orbiting spectral spirits with hollow eye sockets and whisper vapor trails',
+        EffectType.abyssalTentacles =>
+          'Writhing shadowy tentacles with blinking eldritch eyes and glancing pupils',
+        EffectType.cursedChains =>
+          'Interlocking binding iron chains, pulsing runes, strain vibration, and shatter burst',
+        EffectType.beamTeleport =>
+          'Vertical laser column spawn, ground impact dust, and streaming digital blocks',
+        EffectType.dangerAlarm =>
+          'Cardiac lub-dub pulse rhythm, pulsing crimson vignette, and monochrome desaturation',
+        EffectType.coinFountain =>
+          'Ballistic celebration fountain with spinning coins, sparkling gems, and confetti',
+        EffectType.magmaFissures =>
+          'Glowing subterranean lava cracks, charred crust, and refractive heat haze',
+        EffectType.frostGlaze =>
+          'Dendritic frost needles, hexagonal ice crystals, and specular shimmer',
+        EffectType.dragonAura =>
+          'Raging plasma energy flames, jagged upward spikes, and static lightning arcs',
+        EffectType.cellularDungeon =>
+          'Procedural roguelike stone keeps, organic caves, catacombs, and wall torches',
+        EffectType.gothicRosette =>
+          'Symmetrical rose windows with lead came tracery, jewel glass, and sunbeams',
+        EffectType.runicMaze =>
+          'Carved Celtic knots, Greek meanders, Aztec stepped spirals, and runic pulses',
+        EffectType.circuitBoard =>
+          'PCB conducting traces, solder vias, SMD chips, and traveling electronic data packets',
+        EffectType.deepSpaceNebula =>
+          'Multi-octave cosmic gas clouds, star clusters, and a ringed gas giant planet',
+        EffectType.spaceshipHull =>
+          'Segmented starship armor plates, rivets, ventilation grilles, hazard stripes, and beacons',
+        EffectType.bismuthCrystals =>
+          'Concentric stepped cubic hopper crystals, rainbow thin-film oxides, and facet glints',
+        EffectType.coralReef =>
+          'Reaction-diffusion Turing brain corals, sea fans, tube sponges, and bioluminescent polyps',
+        EffectType.basaltColumns =>
+          'Interlocking hexagonal volcanic basalt columns, stepped heights, and molten lava seepage',
+        EffectType.waterfallCascade =>
+          'Vertical multi-stream torrents plunging down rock tiers with acceleration, impact foam, spray, and mist',
+        EffectType.fireflySwarm =>
+          'Wandering phosphorescent fireflies drifting in 3D flight paths with organic bio-pulses and soft ambient glow',
+        EffectType.whisperingReeds =>
+          'Shoreline reeds and cattails gently swaying to wind gusts, paired with expanding concentric water ripples',
+        EffectType.risographPrint =>
+          'Limited spot inks, imperfect registration, and tactile paper grain',
+        EffectType.pixelSorting =>
+          'Sort brightness, hue, or saturation bands into directional glitch trails',
+        EffectType.inkCrosshatch =>
+          'Hand-inked outlines with directional crosshatched shading',
+        EffectType.rustCorrosion =>
+          'Layered oxidation, pitted metal, and downward corrosion streaks',
+        EffectType.wornFabric =>
+          'Woven threads, faded fibers, worn patches, and frayed edges',
+        EffectType.crackedCeramic =>
+          'Glossy fired glaze with branching crazing and chipped areas',
+        EffectType.mossLichen =>
+          'Organic moss and lichen clusters that gather in shaded edges',
+        EffectType.paintPeeling =>
+          'Flaking painted layers that reveal the original material beneath',
+        EffectType.kaleidoscope =>
+          'Mirrored radial segments with rotation and animated folding',
+        EffectType.topographicContours =>
+          'Layered elevation lines derived from image brightness',
+        EffectType.isometricExtrusion =>
+          'Blocky directional depth extending from opaque sprite pixels',
+        EffectType.paperCutout =>
+          'Layered colored paper shapes with stepped cast shadows',
+        EffectType.celShading =>
+          'Quantized lighting bands with configurable ink contours',
+        EffectType.lowPolyFacets =>
+          'Triangulated flat-color facets with directional lighting',
+        EffectType.asciiMosaic =>
+          'Tonal image regions rendered as character or symbol tiles',
+        EffectType.geyserVent =>
+          'Pressurized geothermal geyser eruption with boiling mud bubbles, steam plumes, and mineral terraces',
+        EffectType.stalactiteDrips =>
+          'Hanging limestone stalactites dripping water beads with acoustic puddle ripples and stalagmite splashes',
+        EffectType.woodblockUkiyoe =>
+          'Carved woodcut relief keylines with fibrous washi paper grain and hand-wiped bokashi gradients',
+        EffectType.cyanotypePrint =>
+          'Ferric cyanotype photographic sun print with rich Prussian blue tones and paper tooth',
+        EffectType.linocutStamp =>
+          'High-contrast relief print with sharp directional gouges, roller ink, and background chatter',
+        EffectType.byzantineMosaic =>
+          'Fractured stone, ceramic tiles, and shimmering gold leaf smalti with mortar grout',
+        EffectType.chalkPastel =>
+          'Textured charcoal and French pastel with flow-field smudges, paper tooth, and chalk dust',
+        EffectType.waxSgraffito =>
+          'Thick waxy impasto with scratched-through incisions revealing radiant rainbow under-wax',
+        EffectType.benDayComic =>
+          'Silver-age comic offset print with angled CMYK Ben-Day dots, misregistration, and aged newsprint',
+        EffectType.delftwareTile =>
+          'Tin-glazed pottery tile with diffusing cobalt oxide wash, porcelain crazing, and vitreous bevel gloss',
+        EffectType.thermalReceipt =>
+          'Point-of-sale thermal receipt and 9-pin impact print with dithered needle dots, fading, and creases',
+        EffectType.lichenMoss =>
+          'Multi-tier crustose lichen rings, creeping moss tendrils, and micro-spores on stone',
+        EffectType.sporeBloom =>
+          'Bioluminescent mushroom caps venting swirling phosphorescent spore clouds with curl noise',
+        EffectType.banyanMangrove =>
+          'Tangled aerial root pillars with wind-swayed Spanish moss fronds and swamp waterlines',
+        EffectType.sunbeamGodRays =>
+          'Volumetric crepuscular light shafts piercing canopy foliage with floating specular dust motes',
+        EffectType.dustDevil =>
+          'Swirling cyclonic sandstorm vortex with 3D orbiting sand grains, ground skirts, and heat mirage',
+        EffectType.auroraCurtains =>
+          'Undulating ribbons of celestial geomagnetic plasma rippling over starry arctic skies with vertical ray striations',
+        EffectType.glacialCrevasse =>
+          'Cavernous glacial ice chasm glowing with saturated sapphire subsurface scattering, fracture walls, and snow cornices',
+        EffectType.sandDunes =>
+          'Sweeping crescent barchan sand dunes with razor slipface crests, wind micro-ripples, and blowing sand plumes',
+        EffectType.tidalRockPool =>
+          'Low-tide coastal granite basin holding saltwater with dancing caustics, swaying kelp, anemones, and white salt rims',
+        EffectType.romanTravertine =>
+          'Honed porous travertine limestone with dissolved karst pore cavities, bedding bands, and mortar joints',
+        EffectType.kintsugiLacquer =>
+          'Traditional fractured Japanese pottery with raised 24k gold leaf repair seams and makie gold dust',
+        EffectType.petrifiedAgate =>
+          'Fossilized tree wood with concentric banded chalcedony agate rings and quartz geode druse pockets',
+        EffectType.voronoiShatter =>
+          'Explodes sprite into geometric polygon shards with fracture gaps and outward blast displacement',
+        EffectType.windAshDispersal =>
+          'Dissolves sprite contours into blowing sand grains and burning ash motes drifting downwind',
+        EffectType.lateralSliceGlitch =>
+          'Shears sprite into stepped horizontal slices with alternating lateral shifts and chromatic fault dispersion',
+        EffectType.directionalMotionBlur =>
+          'Smears pixels along a velocity angle vector with trailing, symmetric, or leading falloff',
+        EffectType.radialZoomBlur =>
+          'Radiates explosive motion blur outward or inward from a focal center with crisp deadzone',
+        EffectType.ditheredFrostedBlur =>
+          'Scatters and softens pixels using Bayer matrix dithering, stochastic jitter, and palette quantization',
+        EffectType.luminanceGradientMap =>
+          'Remaps pixel luminance values through curated multi-stop gradient color palettes with Bayer dithering',
+        EffectType.directionalLightRamp =>
+          'Directional environmental lighting blend between primary overhead sun and opposing ground/lava bounce',
+        EffectType.silhouetteDepthBevel =>
+          'Automatic 3D inner contour beveling, surface normal lighting, specular facet highlights, and ambient occlusion',
+        EffectType.actionSpeedLines =>
+          'Dynamic anime manga speed lines streaming from sprite trailing contours with randomized stroke weights and dust',
+        EffectType.chromaticEchoDash =>
+          'Stepped ghost afterimages trailing behind along motion vector with chromatic color shifting and Bayer dither dissolves',
+        EffectType.boosterThruster =>
+          'Directional rocket thruster flame exhaust with supersonic Mach shock diamonds, propellant palettes, and smoke billows',
+        EffectType.crownSoulFire =>
+          'Flickering tongues of fire sprouting upward from head, shoulders, or contour perimeter with floating embers',
+        EffectType.hangingIcicles =>
+          'Dendritic crystalline frost creeping across top surfaces with needle icicle spikes and dripping melted beads',
+        EffectType.viscousSlime =>
+          'Thick bubbling viscous ooze coating top contours with hanging fluid droplets stretching and dripping downward',
+        EffectType.arcLightning =>
+          'Jagged branching electric arcs hugging silhouette contours and leaping between extremities with core sparks',
+        EffectType.kiFlareAura =>
+          'Blazing combat energy aura enveloping the character with vertical heat plumes, inner rim glow, and floating motes',
+        EffectType.orbitingRunesHalo =>
+          'Mystical 3D perspective halos, ancient orbiting rune stones, and concentrated mana spheres hovering above crown',
+        EffectType.hexagonalAegis =>
+          'Glowing cyberpunk honeycomb hexagonal barrier micro-plates contouring around the sprite with dithered energy fill',
+        EffectType.crystalShardReflector =>
+          'Sharp floating polygonal diamond crystal facets hovering outside sprite contour with prismatic refraction and glints',
+        EffectType.gravitySingularity =>
+          'Miniature dark gravitational lens and event horizon void core with swirling relativistic accretion disk arms',
+        EffectType.stompDustImpact =>
+          'Bilateral kicking dust billows, floating soil motes, and ground impact cracks erupting from character feet contact points',
+        EffectType.waterRippleWake =>
+          'Concentric perspective ripples and dithered inverted mirror reflection shimmering in a shallow water pool beneath feet',
+        EffectType.sproutingBramble =>
+          'Verdant creeping moss, climbing vine tendrils, and micro-flower blossoms sprouting along the ground baseline',
+        EffectType.abyssalTendrilMiasma =>
+          'Creeping ink-black serpentine tendrils and viscous dark matter oozing from contour edges with glowing miasma fringes',
+        EffectType.lostSoulWisps =>
+          'Hovering spectral spirit skulls and ghostly wisps with hollow facial voids and undulating ethereal vapor tails',
+        EffectType.eldritchPeepingEyes =>
+          'Geometric demonic eyeballs opening along the silhouette contour with slit or cross pupils and capillary veins',
+        EffectType.tacticalReticle =>
+          'Sci-fi holographic targeting reticle with corner framing brackets, centroid crosshair ticks, and telemetry data',
+        EffectType.holoScanlineGlitch =>
+          'Holographic phosphor scanlines, horizontal row displacement jitter, and chromatic aberration decimation',
+        EffectType.nanotechCircuit =>
+          'Glowing subdermal PCB conductive circuit traces, 45° and 90° bus tracks, and pulsing nanite data packets',
+        EffectType.alchemicalCircle =>
+          'Sacred alchemical transmutation array with concentric containment rings, star polygons, and celestial spoke rays',
+        EffectType.floatingSigils =>
+          'Hovering Elder Futhark runes and celestial sigils with luminescent halos and connecting ether threads',
+        EffectType.sacredGeometryHalo =>
+          'Polyhedral sacred geometry halos, Metatron 13-sphere cubes, and Merkaba star tetrahedrons with nodal sparks',
+        EffectType.supernovaCorona =>
+          'Blazing stellar corona flare with multi-point diffraction starburst spikes and coronal plasma prominences',
+        EffectType.orbitingMoons =>
+          'Gravitational satellite system with spherical shaded moons and inclined orbital guide tracks',
+        EffectType.zodiacConstellation =>
+          'Astronomical star chart with major constellation asterisms, 4-point cross glints, and background stardust',
       };
 
   bool get isAnimation {
@@ -474,6 +967,43 @@ abstract class Effect {
       case EffectType.radialShockwave:
       case EffectType.slashArc:
       case EffectType.hologramGlitch:
+      case EffectType.solarEclipse:
+      case EffectType.meteorShower:
+      case EffectType.autumnWind:
+      case EffectType.soulWisps:
+      case EffectType.abyssalTentacles:
+      case EffectType.cursedChains:
+      case EffectType.beamTeleport:
+      case EffectType.dangerAlarm:
+      case EffectType.coinFountain:
+      case EffectType.magmaFissures:
+      case EffectType.frostGlaze:
+      case EffectType.dragonAura:
+      case EffectType.cellularDungeon:
+      case EffectType.gothicRosette:
+      case EffectType.runicMaze:
+      case EffectType.circuitBoard:
+      case EffectType.deepSpaceNebula:
+      case EffectType.spaceshipHull:
+      case EffectType.bismuthCrystals:
+      case EffectType.coralReef:
+      case EffectType.basaltColumns:
+      case EffectType.mountainRange:
+      case EffectType.waterfallCascade:
+      case EffectType.fireflySwarm:
+      case EffectType.whisperingReeds:
+      case EffectType.geyserVent:
+      case EffectType.stalactiteDrips:
+      case EffectType.lichenMoss:
+      case EffectType.sporeBloom:
+      case EffectType.banyanMangrove:
+      case EffectType.sunbeamGodRays:
+      case EffectType.dustDevil:
+      case EffectType.auroraCurtains:
+      case EffectType.glacialCrevasse:
+      case EffectType.sandDunes:
+      case EffectType.tidalRockPool:
+      case EffectType.kaleidoscope:
         return true;
 
       // Static effects that don't animate
@@ -505,7 +1035,6 @@ abstract class Effect {
       case EffectType.metal:
       case EffectType.stone:
       case EffectType.ice:
-      case EffectType.mountainRange:
       case EffectType.forest:
       case EffectType.ocean:
       case EffectType.cloudFormation:
@@ -525,6 +1054,68 @@ abstract class Effect {
       case EffectType.dropShadow:
       case EffectType.normalMap:
       case EffectType.rimLight:
+      case EffectType.risographPrint:
+      case EffectType.pixelSorting:
+      case EffectType.inkCrosshatch:
+      case EffectType.rustCorrosion:
+      case EffectType.wornFabric:
+      case EffectType.crackedCeramic:
+      case EffectType.mossLichen:
+      case EffectType.paintPeeling:
+      case EffectType.topographicContours:
+      case EffectType.isometricExtrusion:
+      case EffectType.paperCutout:
+      case EffectType.celShading:
+      case EffectType.lowPolyFacets:
+      case EffectType.asciiMosaic:
+      case EffectType.woodblockUkiyoe:
+      case EffectType.cyanotypePrint:
+      case EffectType.linocutStamp:
+      case EffectType.byzantineMosaic:
+      case EffectType.chalkPastel:
+      case EffectType.waxSgraffito:
+      case EffectType.benDayComic:
+      case EffectType.delftwareTile:
+      case EffectType.thermalReceipt:
+      case EffectType.romanTravertine:
+      case EffectType.kintsugiLacquer:
+      case EffectType.petrifiedAgate:
+      case EffectType.voronoiShatter:
+      case EffectType.windAshDispersal:
+      case EffectType.lateralSliceGlitch:
+      case EffectType.directionalMotionBlur:
+      case EffectType.radialZoomBlur:
+      case EffectType.ditheredFrostedBlur:
+      case EffectType.luminanceGradientMap:
+      case EffectType.directionalLightRamp:
+      case EffectType.silhouetteDepthBevel:
+      case EffectType.actionSpeedLines:
+      case EffectType.chromaticEchoDash:
+      case EffectType.boosterThruster:
+      case EffectType.crownSoulFire:
+      case EffectType.hangingIcicles:
+      case EffectType.viscousSlime:
+      case EffectType.arcLightning:
+      case EffectType.kiFlareAura:
+      case EffectType.orbitingRunesHalo:
+      case EffectType.hexagonalAegis:
+      case EffectType.crystalShardReflector:
+      case EffectType.gravitySingularity:
+      case EffectType.stompDustImpact:
+      case EffectType.waterRippleWake:
+      case EffectType.sproutingBramble:
+      case EffectType.abyssalTendrilMiasma:
+      case EffectType.lostSoulWisps:
+      case EffectType.eldritchPeepingEyes:
+      case EffectType.tacticalReticle:
+      case EffectType.holoScanlineGlitch:
+      case EffectType.nanotechCircuit:
+      case EffectType.alchemicalCircle:
+      case EffectType.floatingSigils:
+      case EffectType.sacredGeometryHalo:
+      case EffectType.supernovaCorona:
+      case EffectType.orbitingMoons:
+      case EffectType.zodiacConstellation:
         return false;
     }
   }
@@ -622,6 +1213,104 @@ abstract class Effect {
       case EffectType.radialShockwave:
       case EffectType.slashArc:
       case EffectType.hologramGlitch:
+      case EffectType.solarEclipse:
+      case EffectType.meteorShower:
+      case EffectType.autumnWind:
+      case EffectType.soulWisps:
+      case EffectType.abyssalTentacles:
+      case EffectType.cursedChains:
+      case EffectType.beamTeleport:
+      case EffectType.dangerAlarm:
+      case EffectType.coinFountain:
+      case EffectType.magmaFissures:
+      case EffectType.frostGlaze:
+      case EffectType.dragonAura:
+      case EffectType.cellularDungeon:
+      case EffectType.gothicRosette:
+      case EffectType.runicMaze:
+      case EffectType.circuitBoard:
+      case EffectType.deepSpaceNebula:
+      case EffectType.spaceshipHull:
+      case EffectType.bismuthCrystals:
+      case EffectType.coralReef:
+      case EffectType.basaltColumns:
+      case EffectType.waterfallCascade:
+      case EffectType.fireflySwarm:
+      case EffectType.whisperingReeds:
+      case EffectType.risographPrint:
+      case EffectType.pixelSorting:
+      case EffectType.inkCrosshatch:
+      case EffectType.rustCorrosion:
+      case EffectType.wornFabric:
+      case EffectType.crackedCeramic:
+      case EffectType.mossLichen:
+      case EffectType.paintPeeling:
+      case EffectType.kaleidoscope:
+      case EffectType.topographicContours:
+      case EffectType.isometricExtrusion:
+      case EffectType.paperCutout:
+      case EffectType.celShading:
+      case EffectType.lowPolyFacets:
+      case EffectType.asciiMosaic:
+      case EffectType.geyserVent:
+      case EffectType.stalactiteDrips:
+      case EffectType.woodblockUkiyoe:
+      case EffectType.cyanotypePrint:
+      case EffectType.linocutStamp:
+      case EffectType.byzantineMosaic:
+      case EffectType.chalkPastel:
+      case EffectType.waxSgraffito:
+      case EffectType.benDayComic:
+      case EffectType.delftwareTile:
+      case EffectType.thermalReceipt:
+      case EffectType.lichenMoss:
+      case EffectType.sporeBloom:
+      case EffectType.banyanMangrove:
+      case EffectType.sunbeamGodRays:
+      case EffectType.dustDevil:
+      case EffectType.auroraCurtains:
+      case EffectType.glacialCrevasse:
+      case EffectType.sandDunes:
+      case EffectType.tidalRockPool:
+      case EffectType.romanTravertine:
+      case EffectType.kintsugiLacquer:
+      case EffectType.petrifiedAgate:
+      case EffectType.voronoiShatter:
+      case EffectType.windAshDispersal:
+      case EffectType.lateralSliceGlitch:
+      case EffectType.directionalMotionBlur:
+      case EffectType.radialZoomBlur:
+      case EffectType.ditheredFrostedBlur:
+      case EffectType.luminanceGradientMap:
+      case EffectType.directionalLightRamp:
+      case EffectType.silhouetteDepthBevel:
+      case EffectType.actionSpeedLines:
+      case EffectType.chromaticEchoDash:
+      case EffectType.boosterThruster:
+      case EffectType.crownSoulFire:
+      case EffectType.hangingIcicles:
+      case EffectType.viscousSlime:
+      case EffectType.arcLightning:
+      case EffectType.kiFlareAura:
+      case EffectType.orbitingRunesHalo:
+      case EffectType.hexagonalAegis:
+      case EffectType.crystalShardReflector:
+      case EffectType.gravitySingularity:
+      case EffectType.stompDustImpact:
+      case EffectType.waterRippleWake:
+      case EffectType.sproutingBramble:
+      case EffectType.abyssalTendrilMiasma:
+      case EffectType.lostSoulWisps:
+      case EffectType.eldritchPeepingEyes:
+      case EffectType.tacticalReticle:
+      case EffectType.holoScanlineGlitch:
+      case EffectType.nanotechCircuit:
+      case EffectType.alchemicalCircle:
+      case EffectType.floatingSigils:
+      case EffectType.sacredGeometryHalo:
+      case EffectType.supernovaCorona:
+      case EffectType.orbitingMoons:
+      case EffectType.zodiacConstellation:
         return false;
     }
   }
@@ -735,38 +1424,27 @@ abstract class Effect {
         Icon(MaterialCommunityIcons.creation, size: size, color: color),
       EffectType.voronoi =>
         Icon(MaterialCommunityIcons.hexagon_multiple, size: size, color: color),
-      EffectType.crt =>
-        Icon(Icons.tv, size: size, color: color),
+      EffectType.crt => Icon(Icons.tv, size: size, color: color),
       EffectType.lcdMatrix =>
         Icon(Icons.videogame_asset, size: size, color: color),
       EffectType.chromaticAberration =>
         Icon(Icons.filter_tilt_shift, size: size, color: color),
-      EffectType.dropShadow =>
-        Icon(Icons.layers, size: size, color: color),
-      EffectType.normalMap =>
-        Icon(Icons.explore, size: size, color: color),
-      EffectType.colorCycling =>
-        Icon(Icons.sync, size: size, color: color),
-      EffectType.rimLight =>
-        Icon(Icons.wb_sunny, size: size, color: color),
+      EffectType.dropShadow => Icon(Icons.layers, size: size, color: color),
+      EffectType.normalMap => Icon(Icons.explore, size: size, color: color),
+      EffectType.colorCycling => Icon(Icons.sync, size: size, color: color),
+      EffectType.rimLight => Icon(Icons.wb_sunny, size: size, color: color),
       EffectType.squashStretch =>
         Icon(Icons.swap_vert, size: size, color: color),
-      EffectType.windSway =>
-        Icon(Icons.air, size: size, color: color),
-      EffectType.hitFlash =>
-        Icon(Icons.flash_on, size: size, color: color),
+      EffectType.windSway => Icon(Icons.air, size: size, color: color),
+      EffectType.hitFlash => Icon(Icons.flash_on, size: size, color: color),
       EffectType.ghostTrail =>
         Icon(Icons.fast_forward, size: size, color: color),
       EffectType.starfield =>
         Icon(Icons.auto_awesome, size: size, color: color),
-      EffectType.electricArc =>
-        Icon(Icons.bolt, size: size, color: color),
-      EffectType.blizzard =>
-        Icon(Icons.ac_unit, size: size, color: color),
-      EffectType.portalVortex =>
-        Icon(Icons.cyclone, size: size, color: color),
-      EffectType.energyShield =>
-        Icon(Icons.shield, size: size, color: color),
+      EffectType.electricArc => Icon(Icons.bolt, size: size, color: color),
+      EffectType.blizzard => Icon(Icons.ac_unit, size: size, color: color),
+      EffectType.portalVortex => Icon(Icons.cyclone, size: size, color: color),
+      EffectType.energyShield => Icon(Icons.shield, size: size, color: color),
       EffectType.radiantRays =>
         Icon(Icons.wb_twilight, size: size, color: color),
       EffectType.burningEmbers =>
@@ -775,14 +1453,175 @@ abstract class Effect {
         Icon(Icons.waves, size: size, color: color),
       EffectType.risingBubbles =>
         Icon(Icons.bubble_chart, size: size, color: color),
-      EffectType.slimeDrip =>
-        Icon(Icons.water_drop, size: size, color: color),
+      EffectType.slimeDrip => Icon(Icons.water_drop, size: size, color: color),
       EffectType.radialShockwave =>
         Icon(Icons.adjust, size: size, color: color),
-      EffectType.slashArc =>
-        Icon(Icons.flash_on, size: size, color: color),
-      EffectType.hologramGlitch =>
-        Icon(Icons.cast, size: size, color: color),
+      EffectType.slashArc => Icon(Icons.flash_on, size: size, color: color),
+      EffectType.hologramGlitch => Icon(Icons.cast, size: size, color: color),
+      EffectType.solarEclipse =>
+        Icon(Icons.brightness_3, size: size, color: color),
+      EffectType.meteorShower => Icon(Icons.star, size: size, color: color),
+      EffectType.autumnWind => Icon(Icons.air, size: size, color: color),
+      EffectType.soulWisps => Icon(Icons.blur_on, size: size, color: color),
+      EffectType.abyssalTentacles =>
+        Icon(Icons.visibility, size: size, color: color),
+      EffectType.cursedChains => Icon(Icons.link, size: size, color: color),
+      EffectType.beamTeleport =>
+        Icon(Icons.vertical_align_bottom, size: size, color: color),
+      EffectType.dangerAlarm => Icon(Icons.favorite, size: size, color: color),
+      EffectType.coinFountain =>
+        Icon(Icons.monetization_on, size: size, color: color),
+      EffectType.magmaFissures =>
+        Icon(Icons.whatshot, size: size, color: color),
+      EffectType.frostGlaze => Icon(Icons.ac_unit, size: size, color: color),
+      EffectType.dragonAura => Icon(Icons.flash_on, size: size, color: color),
+      EffectType.cellularDungeon =>
+        Icon(Icons.grid_view, size: size, color: color),
+      EffectType.gothicRosette =>
+        Icon(Icons.brightness_7, size: size, color: color),
+      EffectType.runicMaze =>
+        Icon(Icons.account_tree, size: size, color: color),
+      EffectType.circuitBoard =>
+        Icon(Icons.developer_board, size: size, color: color),
+      EffectType.deepSpaceNebula =>
+        Icon(Icons.public, size: size, color: color),
+      EffectType.spaceshipHull => Icon(Icons.shield, size: size, color: color),
+      EffectType.bismuthCrystals =>
+        Icon(Icons.auto_awesome, size: size, color: color),
+      EffectType.coralReef => Icon(Icons.spa, size: size, color: color),
+      EffectType.basaltColumns =>
+        Icon(Icons.view_column, size: size, color: color),
+      EffectType.waterfallCascade =>
+        Icon(Icons.waves, size: size, color: color),
+      EffectType.fireflySwarm =>
+        Icon(Icons.bubble_chart, size: size, color: color),
+      EffectType.whisperingReeds => Icon(Icons.grass, size: size, color: color),
+      EffectType.risographPrint => Icon(Icons.print, size: size, color: color),
+      EffectType.pixelSorting => Icon(Icons.sort, size: size, color: color),
+      EffectType.inkCrosshatch => Icon(Icons.gesture, size: size, color: color),
+      EffectType.rustCorrosion => Icon(Icons.blur_on, size: size, color: color),
+      EffectType.wornFabric => Icon(Icons.texture, size: size, color: color),
+      EffectType.crackedCeramic =>
+        Icon(Icons.broken_image, size: size, color: color),
+      EffectType.mossLichen => Icon(Icons.grass, size: size, color: color),
+      EffectType.paintPeeling =>
+        Icon(Icons.format_paint, size: size, color: color),
+      EffectType.kaleidoscope => Icon(Icons.camera, size: size, color: color),
+      EffectType.topographicContours =>
+        Icon(Icons.map, size: size, color: color),
+      EffectType.isometricExtrusion =>
+        Icon(Icons.view_in_ar, size: size, color: color),
+      EffectType.paperCutout => Icon(Icons.layers, size: size, color: color),
+      EffectType.celShading => Icon(Icons.tonality, size: size, color: color),
+      EffectType.lowPolyFacets =>
+        Icon(Icons.change_history, size: size, color: color),
+      EffectType.asciiMosaic =>
+        Icon(Icons.text_fields, size: size, color: color),
+      EffectType.geyserVent => Icon(Icons.whatshot, size: size, color: color),
+      EffectType.stalactiteDrips =>
+        Icon(Icons.opacity, size: size, color: color),
+      EffectType.woodblockUkiyoe => Icon(Icons.brush, size: size, color: color),
+      EffectType.cyanotypePrint =>
+        Icon(Icons.wb_sunny, size: size, color: color),
+      EffectType.linocutStamp => Icon(Icons.cut, size: size, color: color),
+      EffectType.byzantineMosaic =>
+        Icon(Icons.grid_view, size: size, color: color),
+      EffectType.chalkPastel => Icon(Icons.gesture, size: size, color: color),
+      EffectType.waxSgraffito => Icon(Icons.draw, size: size, color: color),
+      EffectType.benDayComic =>
+        Icon(Icons.photo_filter, size: size, color: color),
+      EffectType.delftwareTile => Icon(Icons.layers, size: size, color: color),
+      EffectType.thermalReceipt =>
+        Icon(Icons.receipt_long, size: size, color: color),
+      EffectType.lichenMoss => Icon(Icons.grass, size: size, color: color),
+      EffectType.sporeBloom =>
+        Icon(Icons.bubble_chart, size: size, color: color),
+      EffectType.banyanMangrove => Icon(Icons.park, size: size, color: color),
+      EffectType.sunbeamGodRays =>
+        Icon(Icons.wb_sunny, size: size, color: color),
+      EffectType.dustDevil => Icon(Icons.cyclone, size: size, color: color),
+      EffectType.auroraCurtains => Icon(Icons.waves, size: size, color: color),
+      EffectType.glacialCrevasse =>
+        Icon(Icons.ac_unit, size: size, color: color),
+      EffectType.sandDunes => Icon(Icons.terrain, size: size, color: color),
+      EffectType.tidalRockPool => Icon(Icons.pool, size: size, color: color),
+      EffectType.romanTravertine =>
+        Icon(Icons.view_quilt, size: size, color: color),
+      EffectType.kintsugiLacquer =>
+        Icon(Icons.auto_awesome, size: size, color: color),
+      EffectType.petrifiedAgate => Icon(Icons.grain, size: size, color: color),
+      EffectType.voronoiShatter =>
+        Icon(Icons.broken_image, size: size, color: color),
+      EffectType.windAshDispersal =>
+        Icon(Icons.grain, size: size, color: color),
+      EffectType.lateralSliceGlitch =>
+        Icon(Icons.splitscreen, size: size, color: color),
+      EffectType.directionalMotionBlur =>
+        Icon(Icons.fast_forward, size: size, color: color),
+      EffectType.radialZoomBlur =>
+        Icon(Icons.zoom_out_map, size: size, color: color),
+      EffectType.ditheredFrostedBlur =>
+        Icon(Icons.blur_on, size: size, color: color),
+      EffectType.luminanceGradientMap =>
+        Icon(Icons.gradient, size: size, color: color),
+      EffectType.directionalLightRamp =>
+        Icon(Icons.wb_twilight, size: size, color: color),
+      EffectType.silhouetteDepthBevel =>
+        Icon(Icons.layers, size: size, color: color),
+      EffectType.actionSpeedLines =>
+        Icon(Icons.fast_forward, size: size, color: color),
+      EffectType.chromaticEchoDash =>
+        Icon(Icons.motion_photos_on, size: size, color: color),
+      EffectType.boosterThruster =>
+        Icon(Icons.local_fire_department, size: size, color: color),
+      EffectType.crownSoulFire =>
+        Icon(Icons.whatshot, size: size, color: color),
+      EffectType.hangingIcicles =>
+        Icon(Icons.severe_cold, size: size, color: color),
+      EffectType.viscousSlime =>
+        Icon(Icons.water_drop, size: size, color: color),
+      EffectType.arcLightning =>
+        Icon(Icons.bolt, size: size, color: color),
+      EffectType.kiFlareAura =>
+        Icon(Icons.flare, size: size, color: color),
+      EffectType.orbitingRunesHalo =>
+        Icon(Icons.stars, size: size, color: color),
+      EffectType.hexagonalAegis =>
+        Icon(Icons.shield_outlined, size: size, color: color),
+      EffectType.crystalShardReflector =>
+        Icon(Icons.diamond_outlined, size: size, color: color),
+      EffectType.gravitySingularity =>
+        Icon(Icons.cyclone, size: size, color: color),
+      EffectType.stompDustImpact =>
+        Icon(Icons.landslide_outlined, size: size, color: color),
+      EffectType.waterRippleWake =>
+        Icon(Icons.waves, size: size, color: color),
+      EffectType.sproutingBramble =>
+        Icon(Icons.park_outlined, size: size, color: color),
+      EffectType.abyssalTendrilMiasma =>
+        Icon(Icons.grain, size: size, color: color),
+      EffectType.lostSoulWisps =>
+        Icon(Icons.blur_on, size: size, color: color),
+      EffectType.eldritchPeepingEyes =>
+        Icon(Icons.visibility_outlined, size: size, color: color),
+      EffectType.tacticalReticle =>
+        Icon(Icons.filter_center_focus, size: size, color: color),
+      EffectType.holoScanlineGlitch =>
+        Icon(Icons.developer_board, size: size, color: color),
+      EffectType.nanotechCircuit =>
+        Icon(Icons.memory, size: size, color: color),
+      EffectType.alchemicalCircle =>
+        Icon(Icons.change_circle_outlined, size: size, color: color),
+      EffectType.floatingSigils =>
+        Icon(Icons.auto_awesome, size: size, color: color),
+      EffectType.sacredGeometryHalo =>
+        Icon(Icons.hub_outlined, size: size, color: color),
+      EffectType.supernovaCorona =>
+        Icon(Icons.wb_sunny_outlined, size: size, color: color),
+      EffectType.orbitingMoons =>
+        Icon(Icons.public, size: size, color: color),
+      EffectType.zodiacConstellation =>
+        Icon(Icons.flare, size: size, color: color),
     };
   }
 
@@ -876,28 +1715,204 @@ abstract class Effect {
       EffectType.voronoi => const Color(0xFF00BCD4), // Cyan
       EffectType.crt => const Color(0xFF00E5FF), // Retro phosphor cyan
       EffectType.lcdMatrix => const Color(0xFF8BAC0F), // DMG Game Boy Green
-      EffectType.chromaticAberration => const Color(0xFFFF2A6D), // Synthwave Neon Pink
+      EffectType.chromaticAberration =>
+        const Color(0xFFFF2A6D), // Synthwave Neon Pink
       EffectType.dropShadow => const Color(0xFF546E7A), // Slate shadow grey
-      EffectType.normalMap => const Color(0xFF8080FF), // Tangent normal blue-violet
-      EffectType.colorCycling => const Color(0xFF00E676), // Vibrant cycling green
+      EffectType.normalMap =>
+        const Color(0xFF8080FF), // Tangent normal blue-violet
+      EffectType.colorCycling =>
+        const Color(0xFF00E676), // Vibrant cycling green
       EffectType.rimLight => const Color(0xFFFFD54F), // Warm sunlight gold
-      EffectType.squashStretch => const Color(0xFFFF7043), // Elastic coral orange
+      EffectType.squashStretch =>
+        const Color(0xFFFF7043), // Elastic coral orange
       EffectType.windSway => const Color(0xFF66BB6A), // Foliage wind green
       EffectType.hitFlash => const Color(0xFFFF1744), // Damage flash crimson
-      EffectType.ghostTrail => const Color(0xFF29B6F6), // Speed phantom light blue
-      EffectType.starfield => const Color(0xFF7C4DFF), // Deep cosmic starlight purple
-      EffectType.electricArc => const Color(0xFF00E5FF), // Ionized electric cyan
+      EffectType.ghostTrail =>
+        const Color(0xFF29B6F6), // Speed phantom light blue
+      EffectType.starfield =>
+        const Color(0xFF7C4DFF), // Deep cosmic starlight purple
+      EffectType.electricArc =>
+        const Color(0xFF00E5FF), // Ionized electric cyan
       EffectType.blizzard => const Color(0xFF80D8FF), // Frosted ice blue
-      EffectType.portalVortex => const Color(0xFFD500F9), // Electric violet portal
-      EffectType.energyShield => const Color(0xFF00B0FF), // Forcefield electric blue
+      EffectType.portalVortex =>
+        const Color(0xFFD500F9), // Electric violet portal
+      EffectType.energyShield =>
+        const Color(0xFF00B0FF), // Forcefield electric blue
       EffectType.radiantRays => const Color(0xFFFFD700), // Holy ascension gold
-      EffectType.burningEmbers => const Color(0xFFFF6D00), // Incandescent flame orange
-      EffectType.underwaterCaustics => const Color(0xFF00E5FF), // Tropical cyan caustics
+      EffectType.burningEmbers =>
+        const Color(0xFFFF6D00), // Incandescent flame orange
+      EffectType.underwaterCaustics =>
+        const Color(0xFF00E5FF), // Tropical cyan caustics
       EffectType.risingBubbles => const Color(0xFF80DEEA), // Effervescent aqua
       EffectType.slimeDrip => const Color(0xFF76FF03), // Toxic acid lime green
-      EffectType.radialShockwave => const Color(0xFFFF9100), // Impact blast amber orange
-      EffectType.slashArc => const Color(0xFFFF1744), // Crimson blade strike red
-      EffectType.hologramGlitch => const Color(0xFF00E5FF), // Hologram laser cyan
+      EffectType.radialShockwave =>
+        const Color(0xFFFF9100), // Impact blast amber orange
+      EffectType.slashArc =>
+        const Color(0xFFFF1744), // Crimson blade strike red
+      EffectType.hologramGlitch =>
+        const Color(0xFF00E5FF), // Hologram laser cyan
+      EffectType.solarEclipse => const Color(0xFFFFB300), // Corona gold amber
+      EffectType.meteorShower =>
+        const Color(0xFF80D8FF), // Cosmic shooting star cyan
+      EffectType.autumnWind => const Color(0xFFFF7043), // Autumn scarlet maple
+      EffectType.soulWisps => const Color(0xFF00E676), // Spectral soul green
+      EffectType.abyssalTentacles => const Color(0xFF7C4DFF), // Abyssal purple
+      EffectType.cursedChains => const Color(0xFFFF1744), // Cursed crimson seal
+      EffectType.beamTeleport => const Color(0xFF00E5FF), // Retro laser cyan
+      EffectType.dangerAlarm => const Color(0xFFFF1744), // Critical warning red
+      EffectType.coinFountain => const Color(0xFFFFD700), // Victory gold
+      EffectType.magmaFissures => const Color(0xFFFF3D00), // Molten lava orange
+      EffectType.frostGlaze => const Color(0xFF80D8FF), // Glacial frost cyan
+      EffectType.dragonAura => const Color(0xFFFFD600), // Dragon aura gold
+      EffectType.cellularDungeon =>
+        const Color(0xFF78909C), // Stone dungeon slate
+      EffectType.gothicRosette =>
+        const Color(0xFFC2185B), // Cathedral rose magenta
+      EffectType.runicMaze => const Color(0xFF00E5FF), // Arcane rune cyan
+      EffectType.circuitBoard => const Color(0xFF00E676), // PCB circuit emerald
+      EffectType.deepSpaceNebula =>
+        const Color(0xFF7C4DFF), // Cosmic nebula purple
+      EffectType.spaceshipHull =>
+        const Color(0xFF90A4AE), // Starship armor slate
+      EffectType.bismuthCrystals =>
+        const Color(0xFFE040FB), // Iridescent bismuth magenta
+      EffectType.coralReef => const Color(0xFFFF4081), // Living coral pink
+      EffectType.basaltColumns =>
+        const Color(0xFFFF5722), // Volcanic magma basalt
+      EffectType.waterfallCascade =>
+        const Color(0xFF00B4D8), // Glacial cascade cyan
+      EffectType.fireflySwarm =>
+        const Color(0xFF76FF03), // Bioluminescent lime phosphor
+      EffectType.whisperingReeds =>
+        const Color(0xFF26A69A), // Serene reed water teal
+      EffectType.risographPrint =>
+        const Color(0xFFFF5A5F), // Riso fluorescent red
+      EffectType.pixelSorting => const Color(0xFF00E5FF), // Digital cyan
+      EffectType.inkCrosshatch =>
+        const Color(0xFF3E2723), // India ink brown-black
+      EffectType.rustCorrosion => const Color(0xFFB44719), // Iron oxide orange
+      EffectType.wornFabric =>
+        const Color(0xFF607D8B), // Faded textile blue-grey
+      EffectType.crackedCeramic => const Color(0xFF80CBC4), // Celadon glaze
+      EffectType.mossLichen => const Color(0xFF689F38), // Moss green
+      EffectType.paintPeeling => const Color(0xFFE57373), // Weathered paint red
+      EffectType.kaleidoscope => const Color(0xFFE040FB),
+      EffectType.topographicContours => const Color(0xFF8D6E63),
+      EffectType.isometricExtrusion => const Color(0xFF5C6BC0),
+      EffectType.paperCutout => const Color(0xFFFF8A65),
+      EffectType.celShading => const Color(0xFFFFD54F),
+      EffectType.lowPolyFacets => const Color(0xFF26A69A),
+      EffectType.asciiMosaic => const Color(0xFF66BB6A),
+      EffectType.geyserVent =>
+        const Color(0xFFFFB300), // Geothermal sulfur amber
+      EffectType.stalactiteDrips =>
+        const Color(0xFF90A4AE), // Cave limestone slate
+      EffectType.woodblockUkiyoe =>
+        const Color(0xFFC62828), // Cinnabar vermilion
+      EffectType.cyanotypePrint =>
+        const Color(0xFF0D47A1), // Prussian royal blue
+      EffectType.linocutStamp =>
+        const Color(0xFF37474F), // Linoleum relief slate
+      EffectType.byzantineMosaic =>
+        const Color(0xFFD4AF37), // Byzantine imperial gold
+      EffectType.chalkPastel => const Color(0xFF708090), // Charcoal slate
+      EffectType.waxSgraffito =>
+        const Color(0xFFFF4081), // Prismatic sgraffito magenta
+      EffectType.benDayComic =>
+        const Color(0xFFE91E63), // Comic process magenta
+      EffectType.delftwareTile => const Color(0xFF1976D2), // Delft cobalt blue
+      EffectType.thermalReceipt =>
+        const Color(0xFF546E7A), // Thermal receipt slate
+      EffectType.lichenMoss => const Color(0xFF689F38), // Lichen Yellow-Green
+      EffectType.sporeBloom => const Color(0xFF00E5FF), // Bioluminescent Cyan
+      EffectType.banyanMangrove =>
+        const Color(0xFF5D4037), // Mangrove Bark Brown
+      EffectType.sunbeamGodRays => const Color(0xFFFFD54F), // Amber Sunlight
+      EffectType.dustDevil => const Color(0xFFD87D4A), // Desert Terracotta Sand
+      EffectType.auroraCurtains =>
+        const Color(0xFF00E676), // Polar Aurora Emerald
+      EffectType.glacialCrevasse => const Color(0xFF00B0FF), // Glacial Cyan
+      EffectType.sandDunes => const Color(0xFFFF9800), // Dune Amber
+      EffectType.tidalRockPool =>
+        const Color(0xFF00BCD4), // Tidepool Saltwater Cyan
+      EffectType.romanTravertine =>
+        const Color(0xFFD7CCC8), // Travertine Limestone Warm Grey
+      EffectType.kintsugiLacquer =>
+        const Color(0xFFFFD700), // Kintsugi Gold Leaf
+      EffectType.petrifiedAgate =>
+        const Color(0xFFE64A19), // Petrified Agate Rust/Amber
+      EffectType.voronoiShatter =>
+        const Color(0xFF80DEEA), // Glass Cyan / Shard
+      EffectType.windAshDispersal =>
+        const Color(0xFFFF7043), // Ember Ash Orange
+      EffectType.lateralSliceGlitch =>
+        const Color(0xFFBA68C8), // Glitch Violet / Magenta
+      EffectType.directionalMotionBlur =>
+        const Color(0xFF29B6F6), // Velocity Light Blue
+      EffectType.radialZoomBlur =>
+        const Color(0xFFFF7043), // Impact Burst Orange
+      EffectType.ditheredFrostedBlur =>
+        const Color(0xFF4DB6AC), // Frosted Glass Teal
+      EffectType.luminanceGradientMap =>
+        const Color(0xFFAB47BC), // Gradient Magenta / Purple
+      EffectType.directionalLightRamp =>
+        const Color(0xFFFFB300), // Sunlight Amber
+      EffectType.silhouetteDepthBevel =>
+        const Color(0xFF26A69A), // 3D Bevel Teal
+      EffectType.actionSpeedLines =>
+        const Color(0xFF00E5FF), // Speed Line Electric Cyan
+      EffectType.chromaticEchoDash =>
+        const Color(0xFFE040FB), // Ghost Echo Neon Magenta
+      EffectType.boosterThruster =>
+        const Color(0xFFFF6D00), // Rocket Thruster Flame Orange
+      EffectType.crownSoulFire =>
+        const Color(0xFFFF3D00), // Flame vermilion / fire orange
+      EffectType.hangingIcicles =>
+        const Color(0xFF00E5FF), // Glacial frost cyan
+      EffectType.viscousSlime =>
+        const Color(0xFF76FF03), // Toxic acid lime green
+      EffectType.arcLightning =>
+        const Color(0xFF00E5FF), // Tesla electric cyan
+      EffectType.kiFlareAura =>
+        const Color(0xFFFFD700), // Super Saiyan gold
+      EffectType.orbitingRunesHalo =>
+        const Color(0xFFFFAB00), // Celestial halo gold
+      EffectType.hexagonalAegis =>
+        const Color(0xFF00E5FF), // Holo-cyan barrier
+      EffectType.crystalShardReflector =>
+        const Color(0xFF80DEEA), // Prismatic crystal cyan/diamond
+      EffectType.gravitySingularity =>
+        const Color(0xFFE040FB), // Cosmic singularity violet
+      EffectType.stompDustImpact =>
+        const Color(0xFF8D6E63), // Dust earth brown
+      EffectType.waterRippleWake =>
+        const Color(0xFF29B6F6), // Water ripple azure
+      EffectType.sproutingBramble =>
+        const Color(0xFF00C853), // Botanical flora green
+      EffectType.abyssalTendrilMiasma =>
+        const Color(0xFF7B1FA2), // Nether violet
+      EffectType.lostSoulWisps =>
+        const Color(0xFF00E5FF), // Ghost cyan
+      EffectType.eldritchPeepingEyes =>
+        const Color(0xFFFF1744), // Crimson eye red
+      EffectType.tacticalReticle =>
+        const Color(0xFF00F0FF), // Cyber cyan
+      EffectType.holoScanlineGlitch =>
+        const Color(0xFFFF0055), // Holo magenta
+      EffectType.nanotechCircuit =>
+        const Color(0xFFFFB000), // Circuit gold
+      EffectType.alchemicalCircle =>
+        const Color(0xFFFFD700), // Hermetic gold
+      EffectType.floatingSigils =>
+        const Color(0xFF18FFFF), // Valkyrie cyan
+      EffectType.sacredGeometryHalo =>
+        const Color(0xFFFF8A65), // Solar prism
+      EffectType.supernovaCorona =>
+        const Color(0xFFFFD54F), // Solar white/gold
+      EffectType.orbitingMoons =>
+        const Color(0xFF80D8FF), // Celestial azure
+      EffectType.zodiacConstellation =>
+        const Color(0xFFE040FB), // Cosmic amethyst
     };
   }
 
@@ -1027,7 +2042,8 @@ class EffectsManager {
   static Uint32List _applyMultipleEffectsForCompute(
     ({Uint32List pixels, int width, int height, List<Effect> effects}) args,
   ) {
-    return applyMultipleEffects(args.pixels, args.width, args.height, args.effects);
+    return applyMultipleEffects(
+        args.pixels, args.width, args.height, args.effects);
   }
 
   static Uint32List applyEffectToSelection(
@@ -1276,6 +2292,202 @@ class EffectsManager {
         return SlashArcEffect(params);
       case EffectType.hologramGlitch:
         return HologramGlitchEffect(params);
+      case EffectType.solarEclipse:
+        return SolarEclipseEffect(params);
+      case EffectType.meteorShower:
+        return MeteorShowerEffect(params);
+      case EffectType.autumnWind:
+        return AutumnWindEffect(params);
+      case EffectType.soulWisps:
+        return SoulWispsEffect(params);
+      case EffectType.abyssalTentacles:
+        return AbyssalTentaclesEffect(params);
+      case EffectType.cursedChains:
+        return CursedChainsEffect(params);
+      case EffectType.beamTeleport:
+        return BeamTeleportEffect(params);
+      case EffectType.dangerAlarm:
+        return DangerAlarmEffect(params);
+      case EffectType.coinFountain:
+        return CoinFountainEffect(params);
+      case EffectType.magmaFissures:
+        return MagmaFissuresEffect(params);
+      case EffectType.frostGlaze:
+        return FrostGlazeEffect(params);
+      case EffectType.dragonAura:
+        return DragonAuraEffect(params);
+      case EffectType.cellularDungeon:
+        return CellularDungeonEffect(params);
+      case EffectType.gothicRosette:
+        return GothicRosetteEffect(params);
+      case EffectType.runicMaze:
+        return RunicMazeEffect(params);
+      case EffectType.circuitBoard:
+        return CircuitBoardEffect(params);
+      case EffectType.deepSpaceNebula:
+        return DeepSpaceNebulaEffect(params);
+      case EffectType.spaceshipHull:
+        return SpaceshipHullEffect(params);
+      case EffectType.bismuthCrystals:
+        return BismuthCrystalsEffect(params);
+      case EffectType.coralReef:
+        return CoralReefEffect(params);
+      case EffectType.basaltColumns:
+        return BasaltColumnsEffect(params);
+      case EffectType.waterfallCascade:
+        return WaterfallCascadeEffect(params);
+      case EffectType.fireflySwarm:
+        return FireflySwarmEffect(params);
+      case EffectType.whisperingReeds:
+        return WhisperingReedsEffect(params);
+      case EffectType.risographPrint:
+        return RisographPrintEffect(params);
+      case EffectType.pixelSorting:
+        return PixelSortingEffect(params);
+      case EffectType.inkCrosshatch:
+        return InkCrosshatchEffect(params);
+      case EffectType.rustCorrosion:
+        return RustCorrosionEffect(params);
+      case EffectType.wornFabric:
+        return WornFabricEffect(params);
+      case EffectType.crackedCeramic:
+        return CrackedCeramicEffect(params);
+      case EffectType.mossLichen:
+        return MossLichenEffect(params);
+      case EffectType.paintPeeling:
+        return PaintPeelingEffect(params);
+      case EffectType.kaleidoscope:
+        return KaleidoscopeEffect(params);
+      case EffectType.topographicContours:
+        return TopographicContoursEffect(params);
+      case EffectType.isometricExtrusion:
+        return IsometricExtrusionEffect(params);
+      case EffectType.paperCutout:
+        return PaperCutoutEffect(params);
+      case EffectType.celShading:
+        return CelShadingEffect(params);
+      case EffectType.lowPolyFacets:
+        return LowPolyFacetsEffect(params);
+      case EffectType.asciiMosaic:
+        return AsciiMosaicEffect(params);
+      case EffectType.geyserVent:
+        return GeyserVentEffect(params);
+      case EffectType.stalactiteDrips:
+        return StalactiteDripsEffect(params);
+      case EffectType.woodblockUkiyoe:
+        return WoodblockUkiyoeEffect(params);
+      case EffectType.cyanotypePrint:
+        return CyanotypePrintEffect(params);
+      case EffectType.linocutStamp:
+        return LinocutStampEffect(params);
+      case EffectType.byzantineMosaic:
+        return ByzantineMosaicEffect(params);
+      case EffectType.chalkPastel:
+        return ChalkPastelEffect(params);
+      case EffectType.waxSgraffito:
+        return WaxSgraffitoEffect(params);
+      case EffectType.benDayComic:
+        return BenDayComicEffect(params);
+      case EffectType.delftwareTile:
+        return DelftwareTileEffect(params);
+      case EffectType.thermalReceipt:
+        return ThermalReceiptEffect(params);
+      case EffectType.lichenMoss:
+        return LichenMossEffect(params);
+      case EffectType.sporeBloom:
+        return SporeBloomEffect(params);
+      case EffectType.banyanMangrove:
+        return BanyanMangroveEffect(params);
+      case EffectType.sunbeamGodRays:
+        return SunbeamGodRaysEffect(params);
+      case EffectType.dustDevil:
+        return DustDevilEffect(params);
+      case EffectType.auroraCurtains:
+        return AuroraCurtainsEffect(params);
+      case EffectType.glacialCrevasse:
+        return GlacialCrevasseEffect(params);
+      case EffectType.sandDunes:
+        return SandDunesEffect(params);
+      case EffectType.tidalRockPool:
+        return TidalRockPoolEffect(params);
+      case EffectType.romanTravertine:
+        return RomanTravertineEffect(params);
+      case EffectType.kintsugiLacquer:
+        return KintsugiLacquerEffect(params);
+      case EffectType.petrifiedAgate:
+        return PetrifiedAgateEffect(params);
+      case EffectType.voronoiShatter:
+        return VoronoiShatterEffect(params);
+      case EffectType.windAshDispersal:
+        return WindAshDispersalEffect(params);
+      case EffectType.lateralSliceGlitch:
+        return LateralSliceGlitchEffect(params);
+      case EffectType.directionalMotionBlur:
+        return DirectionalMotionBlurEffect(params);
+      case EffectType.radialZoomBlur:
+        return RadialZoomBlurEffect(params);
+      case EffectType.ditheredFrostedBlur:
+        return DitheredFrostedBlurEffect(params);
+      case EffectType.luminanceGradientMap:
+        return LuminanceGradientMapEffect(params);
+      case EffectType.directionalLightRamp:
+        return DirectionalLightRampEffect(params);
+      case EffectType.silhouetteDepthBevel:
+        return SilhouetteDepthBevelEffect(params);
+      case EffectType.actionSpeedLines:
+        return ActionSpeedLinesEffect(params);
+      case EffectType.chromaticEchoDash:
+        return ChromaticEchoDashEffect(params);
+      case EffectType.boosterThruster:
+        return BoosterThrusterEffect(params);
+      case EffectType.crownSoulFire:
+        return CrownSoulFireEffect(params);
+      case EffectType.hangingIcicles:
+        return HangingIciclesEffect(params);
+      case EffectType.viscousSlime:
+        return ViscousSlimeEffect(params);
+      case EffectType.arcLightning:
+        return ArcLightningEffect(params);
+      case EffectType.kiFlareAura:
+        return KiFlareAuraEffect(params);
+      case EffectType.orbitingRunesHalo:
+        return OrbitingRunesHaloEffect(params);
+      case EffectType.hexagonalAegis:
+        return HexagonalAegisEffect(params);
+      case EffectType.crystalShardReflector:
+        return CrystalShardReflectorEffect(params);
+      case EffectType.gravitySingularity:
+        return GravitySingularityEffect(params);
+      case EffectType.stompDustImpact:
+        return StompDustImpactEffect(params);
+      case EffectType.waterRippleWake:
+        return WaterRippleWakeEffect(params);
+      case EffectType.sproutingBramble:
+        return SproutingBrambleEffect(params);
+      case EffectType.abyssalTendrilMiasma:
+        return AbyssalTendrilMiasmaEffect(params);
+      case EffectType.lostSoulWisps:
+        return LostSoulWispsEffect(params);
+      case EffectType.eldritchPeepingEyes:
+        return EldritchPeepingEyesEffect(params);
+      case EffectType.tacticalReticle:
+        return TacticalReticleEffect(params);
+      case EffectType.holoScanlineGlitch:
+        return HoloScanlineGlitchEffect(params);
+      case EffectType.nanotechCircuit:
+        return NanotechCircuitEffect(params);
+      case EffectType.alchemicalCircle:
+        return AlchemicalCircleEffect(params);
+      case EffectType.floatingSigils:
+        return FloatingSigilsEffect(params);
+      case EffectType.sacredGeometryHalo:
+        return SacredGeometryHaloEffect(params);
+      case EffectType.supernovaCorona:
+        return SupernovaCoronaEffect(params);
+      case EffectType.orbitingMoons:
+        return OrbitingMoonsEffect(params);
+      case EffectType.zodiacConstellation:
+        return ZodiacConstellationEffect(params);
     }
   }
 
