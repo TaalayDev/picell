@@ -19,6 +19,7 @@ import '../../providers/background_image_provider.dart';
 import '../../providers/editor_settings_provider.dart';
 import '../../providers/imported_palette_provider.dart';
 import '../../providers/project_upload_provider.dart';
+import '../effects/effects.dart';
 import '../services/animation_service.dart';
 import '../services/drawing_service.dart';
 import '../services/effect_stack_service.dart';

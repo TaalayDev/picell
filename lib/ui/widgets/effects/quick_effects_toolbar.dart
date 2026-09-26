@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import '../../../data.dart';
 import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
+import '../../../pixel/services/effect_stack_service.dart';
 import 'effects_panel.dart';
+import 'effects_selector_dialog.dart';
 
 class QuickEffectsToolbar extends StatelessWidget {
+  final Layer layer;
   final Function(Effect) onApplyEffect;
 
   const QuickEffectsToolbar({
     super.key,
+    required this.layer,
     required this.onApplyEffect,
   });
 
@@ -19,126 +23,57 @@ class QuickEffectsToolbar extends StatelessWidget {
     return Container(
       height: 50,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _buildEffectButton(
-            context,
-            s.effectInvert,
-            Icons.invert_colors,
-            () => onApplyEffect(InvertEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectGrayscale,
-            Icons.monochrome_photos,
-            () => onApplyEffect(GrayscaleEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectSepia,
-            Icons.filter_vintage,
-            () => onApplyEffect(SepiaEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectWatercolor,
-            Icons.water_drop, // Using water_drop icon for watercolor
-            () => onApplyEffect(WatercolorEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectHalftone,
-            Icons.grid_3x3, // Using grid_3x3 icon for halftone
-            () => onApplyEffect(HalftoneEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectGlow,
-            Icons.light_mode, // Using light_mode icon for glow
-            () => onApplyEffect(GlowEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectOilPaint,
-            Icons.brush, // Using brush icon for oil paint
-            () => onApplyEffect(OilPaintEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectBlur,
-            Icons.blur_on,
-            () => onApplyEffect(BlurEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectSharpen,
-            Icons.blur_linear,
-            () => onApplyEffect(SharpenEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectPixelate,
-            Icons.grid_on,
-            () => onApplyEffect(PixelateEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectEmboss,
-            Icons.layers,
-            () => onApplyEffect(EmbossEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectNoise,
-            Icons.grain,
-            () => onApplyEffect(NoiseEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectBrightness,
-            Icons.brightness_6,
-            () => onApplyEffect(BrightnessEffect({'value': 0.2})),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectContrast,
-            Icons.contrast,
-            () => onApplyEffect(ContrastEffect({'value': 0.2})),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectThreshold,
-            Icons.tonality,
-            () => onApplyEffect(ThresholdEffect()),
-          ),
-          _buildEffectButton(
-            context,
-            s.effectVignette,
-            Icons.vignette,
-            () => onApplyEffect(VignetteEffect()),
-          ),
+          for (final workspace in EffectWorkspace.values)
+            _buildWorkspaceButton(context, workspace, s),
         ],
       ),
     );
   }
 
-  Widget _buildEffectButton(
+  Widget _buildWorkspaceButton(
     BuildContext context,
-    String name,
-    IconData icon,
-    VoidCallback onTap,
+    EffectWorkspace workspace,
+    Strings s,
   ) {
+    final name = switch (workspace) {
+      EffectWorkspace.filters => s.effectWorkspaceFilters,
+      EffectWorkspace.materials => s.effectWorkspaceMaterials,
+      EffectWorkspace.generators => s.effectWorkspaceGenerators,
+      EffectWorkspace.animation => s.effectWorkspaceAnimation,
+      EffectWorkspace.lighting => s.effectWorkspaceLighting,
+      EffectWorkspace.distortions => s.effectWorkspaceDistortions,
+    };
+    final icon = switch (workspace) {
+      EffectWorkspace.filters => Icons.filter_alt_outlined,
+      EffectWorkspace.materials => Icons.texture_outlined,
+      EffectWorkspace.generators => Icons.auto_awesome_outlined,
+      EffectWorkspace.animation => Icons.animation_outlined,
+      EffectWorkspace.lighting => Icons.light_mode_outlined,
+      EffectWorkspace.distortions => Icons.waves_outlined,
+    };
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Tooltip(
         message: name,
         child: InkWell(
-          onTap: onTap,
+          key: ValueKey('quick-effects-workspace-${workspace.name}'),
+          onTap: () => showDialog<void>(
+            context: context,
+            builder: (context) => EffectSelectorDialog(
+              initialWorkspace: workspace,
+              lockWorkspace: true,
+              layer: layer,
+              onEffectSelected: onApplyEffect,
+            ),
+          ),
           borderRadius: BorderRadius.circular(4),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -168,12 +103,12 @@ class EnhancedEffectsDialog extends StatelessWidget {
   final Function(Layer) onLayerUpdated;
 
   const EnhancedEffectsDialog({
-    Key? key,
+    super.key,
     required this.layer,
     required this.width,
     required this.height,
     required this.onLayerUpdated,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -188,12 +123,10 @@ class EnhancedEffectsDialog extends StatelessWidget {
           children: [
             // Quick effects toolbar
             QuickEffectsToolbar(
+              layer: layer,
               onApplyEffect: (effect) {
-                final updatedEffects = List<Effect>.from(layer.effects)
-                  ..add(effect);
-                final updatedLayer = layer.copyWith(effects: updatedEffects);
-                onLayerUpdated(updatedLayer);
-                Navigator.of(context).pop();
+                final result = EffectStackService.addEffect(layer, effect);
+                if (result.didAdd) onLayerUpdated(result.layer);
               },
             ),
             const Divider(),
@@ -273,9 +206,9 @@ class EffectPresetsWidget extends StatelessWidget {
   final Function(List<Effect>) onApplyPreset;
 
   const EffectPresetsWidget({
-    Key? key,
+    super.key,
     required this.onApplyPreset,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

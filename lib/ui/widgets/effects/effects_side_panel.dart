@@ -88,6 +88,42 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
           if (_isVisibleEffect(effect)) index,
       ];
 
+  String? _workspaceLabel(BuildContext context) {
+    final workspace = widget.workspace;
+    if (workspace == null) return null;
+
+    final strings = Strings.of(context);
+    final workspaceLabel = switch (workspace) {
+      EffectWorkspace.filters => strings.effectWorkspaceFilters,
+      EffectWorkspace.materials => strings.effectWorkspaceMaterials,
+      EffectWorkspace.generators => strings.effectWorkspaceGenerators,
+      EffectWorkspace.animation => strings.effectWorkspaceAnimation,
+      EffectWorkspace.lighting => strings.effectWorkspaceLighting,
+      EffectWorkspace.distortions => strings.effectWorkspaceDistortions,
+    };
+    final animationLabel = switch (widget.animationKind) {
+      AnimationKind.transformer => strings.animationTransformers,
+      AnimationKind.specialEffect => strings.animationSpecialEffects,
+      null => null,
+    };
+    return animationLabel == null
+        ? workspaceLabel
+        : '$workspaceLabel · $animationLabel';
+  }
+
+  IconData get _workspaceIcon => switch (widget.workspace) {
+        EffectWorkspace.filters => Icons.filter_alt_outlined,
+        EffectWorkspace.materials => Icons.texture_outlined,
+        EffectWorkspace.generators => Icons.auto_awesome_outlined,
+        EffectWorkspace.animation =>
+          widget.animationKind == AnimationKind.transformer
+              ? Icons.transform
+              : Icons.auto_awesome,
+        EffectWorkspace.lighting => Icons.light_mode_outlined,
+        EffectWorkspace.distortions => Icons.waves_outlined,
+        null => Icons.auto_fix_high,
+      };
+
   void _updateLayer() {
     if (widget.selectionRegion != null) {
       return;
@@ -307,9 +343,16 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   }
 
   @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final subscription = ref.watch(subscriptionStateProvider);
     final visibleEffectIndices = _visibleEffectIndices;
+    final workspaceLabel = _workspaceLabel(context);
 
     return PanelSelectAllRegion(
       onSelectAll: () {
@@ -321,11 +364,20 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
       },
       child: Column(
         children: [
-          _buildActionButtonsBar(context, subscription),
+          if (workspaceLabel != null)
+            _buildWorkspaceHeader(
+              context,
+              label: workspaceLabel,
+              count: visibleEffectIndices.length,
+            ),
+          if (visibleEffectIndices.isNotEmpty || widget.workspace == null)
+            _buildActionButtonsBar(context, subscription),
           if (visibleEffectIndices.isEmpty)
             Expanded(
               child: EffectsEmptyWidget(
                 addEffect: _addEffect,
+                title: workspaceLabel,
+                icon: _workspaceIcon,
               ),
             )
           else
@@ -400,6 +452,65 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
     );
   }
 
+  Widget _buildWorkspaceHeader(
+    BuildContext context, {
+    required String label,
+    required int count,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('effects-workspace-header'),
+      padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.16),
+        border: Border(
+          bottom: BorderSide(
+            color: colors.outlineVariant.withValues(alpha: 0.25),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(_workspaceIcon, size: 17, color: colors.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              key: const ValueKey('effects-workspace-label'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+          ),
+          Container(
+            key: const ValueKey('effects-workspace-count'),
+            constraints: const BoxConstraints(minWidth: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: colors.primaryContainer,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '$count',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.onPrimaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ),
+          IconButton(
+            key: const ValueKey('effects-workspace-add'),
+            tooltip: Strings.of(context).effectsPanelAddEffect,
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.add, size: 18),
+            onPressed: _addEffect,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionButtonsBar(
       BuildContext context, UserSubscription subscription) {
     final s = Strings.of(context);
@@ -423,14 +534,16 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          _buildActionButton(
-            context: context,
-            icon: Icons.add,
-            label: s.add,
-            color: Colors.green,
-            onPressed: _addEffect,
-          ),
-          const SizedBox(width: 8),
+          if (widget.workspace == null) ...[
+            _buildActionButton(
+              context: context,
+              icon: Icons.add,
+              label: s.add,
+              color: Colors.green,
+              onPressed: _addEffect,
+            ),
+            const SizedBox(width: 8),
+          ],
           _buildActionButton(
             context: context,
             icon: Icons.check,

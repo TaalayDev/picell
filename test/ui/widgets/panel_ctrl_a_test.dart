@@ -10,8 +10,14 @@ import 'package:picell/pixel/effects/effects.dart';
 import 'package:picell/ui/widgets/effects/effect_list_item.dart';
 import 'package:picell/ui/widgets/effects/effects_side_panel.dart';
 import 'package:picell/ui/widgets/layers_panel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+    await LocalStorage.init();
+  });
+
   Widget testApp(Widget child) => ProviderScope(
         child: MaterialApp(
           localizationsDelegates: Strings.localizationsDelegates,
@@ -137,6 +143,56 @@ void main() {
         tester.widgetList<EffectListItem>(find.byType(EffectListItem)).toList();
     expect(items, hasLength(1));
     expect(items.single.effect.type, EffectType.wood);
+    expect(
+        find.byKey(const ValueKey('effects-workspace-header')), findsOneWidget);
+    expect(find.text('Materials'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('effects-workspace-count')),
+        matching: find.text('1'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('empty workspace names the category and opens locked discovery',
+      (tester) async {
+    final layer = Layer(
+      layerId: 1,
+      id: 'empty-materials',
+      name: 'Empty materials',
+      pixels: Uint32List.fromList([0xFFFFFFFF, 0, 0, 0]),
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        EffectsSidePanel(
+          layer: layer,
+          width: 2,
+          height: 2,
+          workspace: EffectWorkspace.materials,
+          onLayerUpdated: (_) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Materials'), findsNWidgets(2));
+    expect(find.text('No effects applied'), findsOneWidget);
+    expect(find.byKey(const ValueKey('effects-empty-add')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('effects-workspace-count')),
+        matching: find.text('0'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('effects-workspace-add')));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Select Effect'), findsOneWidget);
+    expect(find.byType(ChoiceChip), findsNothing);
   });
 
   testWidgets('animation panel filters by animation kind', (tester) async {
