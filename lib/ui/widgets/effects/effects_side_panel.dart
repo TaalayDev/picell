@@ -9,6 +9,8 @@ import '../../../data/models/selection_region.dart';
 import '../../../l10n/strings.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../../pixel/effects/effects.dart';
+import '../../utils/multi_selection.dart';
+import '../panel_select_all_region.dart';
 import 'effect_list_item.dart';
 import 'effects_editor_dialog.dart';
 import 'effects_empty_widget.dart';
@@ -39,6 +41,7 @@ class EffectsSidePanel extends StatefulHookConsumerWidget {
 class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   late List<Effect> _effects;
   int? _selectedEffectIndex;
+  Set<int> _selectedEffectIndices = {};
   Timer? _debounceTimer;
 
   @override
@@ -54,6 +57,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
       setState(() {
         _effects = List<Effect>.from(widget.layer.effects);
         _selectedEffectIndex = null;
+        _selectedEffectIndices = {};
       });
     }
   }
@@ -125,11 +129,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
                 Navigator.of(context).pop();
                 setState(() {
                   _effects.removeAt(index);
-                  if (_selectedEffectIndex == index) {
-                    _selectedEffectIndex = null;
-                  } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
-                    _selectedEffectIndex = _selectedEffectIndex! - 1;
-                  }
+                  _adjustSelectionAfterRemoval(index);
                 });
                 _updateLayer();
               },
@@ -142,8 +142,56 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   }
 
   void _removeSelectedEffect() {
-    if (_selectedEffectIndex != null) {
-      _removeEffect(_selectedEffectIndex!);
+    if (_selectedEffectIndices.isEmpty) return;
+    if (_selectedEffectIndices.length == 1) {
+      _removeEffect(_selectedEffectIndices.single);
+      return;
+    }
+
+    final s = Strings.of(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(s.effectsPanelRemoveEffectTitle),
+        content: Text(
+            '${s.effectsPanelActionRemove}: ${_selectedEffectIndices.length}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(s.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                final selected = _selectedEffectIndices;
+                _effects = [
+                  for (final (index, effect) in _effects.indexed)
+                    if (!selected.contains(index)) effect,
+                ];
+                _selectedEffectIndices = {};
+                _selectedEffectIndex = null;
+              });
+              _updateLayer();
+            },
+            child: Text(s.effectsPanelActionRemove),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _adjustSelectionAfterRemoval(int removedIndex) {
+    _selectedEffectIndices = {
+      for (final index in _selectedEffectIndices)
+        if (index != removedIndex) index > removedIndex ? index - 1 : index,
+    };
+    if (_selectedEffectIndex == removedIndex) {
+      _selectedEffectIndex =
+          _selectedEffectIndices.isEmpty ? null : _selectedEffectIndices.first;
+    } else if (_selectedEffectIndex != null &&
+        _selectedEffectIndex! > removedIndex) {
+      _selectedEffectIndex = _selectedEffectIndex! - 1;
     }
   }
 
@@ -167,6 +215,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
               setState(() {
                 _effects.clear();
                 _selectedEffectIndex = null;
+                _selectedEffectIndices = {};
               });
               _updateLayer();
             },
@@ -199,11 +248,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
 
     setState(() {
       _effects.removeAt(index);
-      if (_selectedEffectIndex == index) {
-        _selectedEffectIndex = null;
-      } else if (_selectedEffectIndex != null && _selectedEffectIndex! > index) {
-        _selectedEffectIndex = _selectedEffectIndex! - 1;
-      }
+      _adjustSelectionAfterRemoval(index);
     });
 
     final updatedLayer = widget.layer.copyWith(
@@ -229,80 +274,117 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   Widget build(BuildContext context) {
     final subscription = ref.watch(subscriptionStateProvider);
 
-    return Column(
-      children: [
-        _buildActionButtonsBar(context, subscription),
-        if (_effects.isEmpty)
-          Expanded(
-            child: EffectsEmptyWidget(
-              addEffect: _addEffect,
-            ),
-          )
-        else
-          Expanded(
-            child: ReorderableListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              itemCount: _effects.length,
-              onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (oldIndex < newIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = _effects.removeAt(oldIndex);
-                  _effects.insert(newIndex, item);
-
-                  // Update selected index if needed
-                  if (_selectedEffectIndex == oldIndex) {
-                    _selectedEffectIndex = newIndex;
-                  } else if (_selectedEffectIndex != null) {
-                    if (oldIndex < _selectedEffectIndex! && newIndex >= _selectedEffectIndex!) {
-                      _selectedEffectIndex = _selectedEffectIndex! - 1;
-                    } else if (oldIndex > _selectedEffectIndex! && newIndex <= _selectedEffectIndex!) {
-                      _selectedEffectIndex = _selectedEffectIndex! + 1;
+    return PanelSelectAllRegion(
+      onSelectAll: () {
+        if (_effects.isEmpty) return;
+        setState(() {
+          _selectedEffectIndices = Set.of(
+            List<int>.generate(_effects.length, (index) => index),
+          );
+          _selectedEffectIndex ??= 0;
+        });
+      },
+      child: Column(
+        children: [
+          _buildActionButtonsBar(context, subscription),
+          if (_effects.isEmpty)
+            Expanded(
+              child: EffectsEmptyWidget(
+                addEffect: _addEffect,
+              ),
+            )
+          else
+            Expanded(
+              child: ReorderableListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                itemCount: _effects.length,
+                onReorder: (oldIndex, newIndex) {
+                  setState(() {
+                    if (oldIndex < newIndex) {
+                      newIndex -= 1;
                     }
-                  }
-                });
-                _updateLayer();
-              },
-              itemBuilder: (context, index) {
-                final isSelected = _selectedEffectIndex == index;
-                return EffectListItem(
-                  key: ValueKey(_effects[index].type.toString() + index.toString()),
-                  effect: _effects[index],
-                  isSelected: isSelected,
-                  onSelect: () {
-                    setState(() {
-                      _selectedEffectIndex = isSelected ? null : index;
-                    });
-                  },
-                  onEdit: () => _editEffect(index),
-                  onAnimate: widget.onAnimate == null
-                      ? null
-                      : () => widget.onAnimate!(
-                            _effects[index], List<Effect>.from(_effects), index),
-                  onRemove: () => _removeEffect(index),
-                  showDragHandle: true,
-                  showRemoveButton: false,
-                  onParametersChanged: (updatedEffect) {
-                    setState(() {
-                      _effects[index] = updatedEffect;
-                    });
-                    _updateLayer();
-                  },
-                );
-              },
+                    final item = _effects.removeAt(oldIndex);
+                    _effects.insert(newIndex, item);
+
+                    int remap(int index) {
+                      if (index == oldIndex) return newIndex;
+                      if (oldIndex < newIndex &&
+                          index > oldIndex &&
+                          index <= newIndex) {
+                        return index - 1;
+                      }
+                      if (oldIndex > newIndex &&
+                          index >= newIndex &&
+                          index < oldIndex) {
+                        return index + 1;
+                      }
+                      return index;
+                    }
+
+                    _selectedEffectIndices =
+                        _selectedEffectIndices.map(remap).toSet();
+                    if (_selectedEffectIndex != null) {
+                      _selectedEffectIndex = remap(_selectedEffectIndex!);
+                    }
+                  });
+                  _updateLayer();
+                },
+                itemBuilder: (context, index) {
+                  final isSelected = _selectedEffectIndices.contains(index);
+                  return EffectListItem(
+                    key: ValueKey(
+                        _effects[index].type.toString() + index.toString()),
+                    effect: _effects[index],
+                    isSelected: isSelected,
+                    onSelect: () {
+                      setState(() {
+                        final result = updateMultiSelection(
+                          orderedItems:
+                              List<int>.generate(_effects.length, (i) => i),
+                          selected: _selectedEffectIndices,
+                          active: _selectedEffectIndex ?? index,
+                          clicked: index,
+                          anchor: _selectedEffectIndex,
+                          toggle: isMultiSelectTogglePressed,
+                          extendRange: isRangeSelectPressed,
+                        );
+                        _selectedEffectIndices = result.selected;
+                        _selectedEffectIndex = result.active;
+                      });
+                    },
+                    onEdit: () => _editEffect(index),
+                    onAnimate: widget.onAnimate == null
+                        ? null
+                        : () => widget.onAnimate!(_effects[index],
+                            List<Effect>.from(_effects), index),
+                    onRemove: () => _removeEffect(index),
+                    showDragHandle: true,
+                    showRemoveButton: false,
+                    onParametersChanged: (updatedEffect) {
+                      setState(() {
+                        _effects[index] = updatedEffect;
+                      });
+                      _updateLayer();
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildActionButtonsBar(BuildContext context, UserSubscription subscription) {
+  Widget _buildActionButtonsBar(
+      BuildContext context, UserSubscription subscription) {
     final s = Strings.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.1),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.1),
         border: Border(
           bottom: BorderSide(
             color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
@@ -325,7 +407,9 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
             icon: Icons.check,
             label: s.effectsPanelActionApply,
             color: Colors.blue,
-            onPressed: _selectedEffectIndex != null ? () => _performApplyEffect(_effects[_selectedEffectIndex!]) : null,
+            onPressed: _selectedEffectIndex != null
+                ? () => _performApplyEffect(_effects[_selectedEffectIndex!])
+                : null,
           ),
           const SizedBox(width: 8),
           _buildActionButton(
@@ -333,7 +417,9 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
             icon: Icons.delete_outline,
             label: s.effectsPanelActionRemove,
             color: Colors.red,
-            onPressed: _selectedEffectIndex != null ? _removeSelectedEffect : null,
+            onPressed: _selectedEffectIndices.isNotEmpty
+                ? _removeSelectedEffect
+                : null,
           ),
           const SizedBox(width: 8),
           _buildActionButton(
@@ -347,18 +433,21 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
                 builder: (context) => AlertDialog(
                   title: Text(
                     s.effectsPanelMoreActionsTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.red),
                   ),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.checklist_outlined, color: Colors.green),
+                        leading: const Icon(Icons.checklist_outlined,
+                            color: Colors.green),
                         title: Text(s.effectsPanelApplyAll),
                         onTap: () {},
                       ),
                       ListTile(
-                        leading: const Icon(Icons.delete_sweep, color: Colors.red),
+                        leading:
+                            const Icon(Icons.delete_sweep, color: Colors.red),
                         title: Text(s.effectsPanelClearAllEffectsTitle),
                         onTap: () {
                           Navigator.of(context).pop();
@@ -396,10 +485,14 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: isEnabled ? color.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.2),
+              color: isEnabled
+                  ? color.withValues(alpha: 0.3)
+                  : Colors.grey.withValues(alpha: 0.2),
               width: 1,
             ),
-            color: isEnabled ? color.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.05),
+            color: isEnabled
+                ? color.withValues(alpha: 0.1)
+                : Colors.grey.withValues(alpha: 0.05),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

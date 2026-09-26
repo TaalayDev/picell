@@ -11,6 +11,7 @@ import '../../l10n/strings.dart';
 import '../utils/multi_selection.dart';
 import '../widgets.dart';
 import 'app_expandable.dart';
+import 'panel_select_all_region.dart';
 
 class AnimationTimeline extends HookWidget {
   const AnimationTimeline({
@@ -107,20 +108,26 @@ class AnimationTimeline extends HookWidget {
       text: activeFrame.duration.toString(),
     );
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildMainControlBar(context, textController, effectiveSelection),
-        AppExpandable(
-          expand: isExpanded,
-          child: _buildExpandedTimeline(
-            context,
-            textController,
-            effectiveSelection,
-            selectFrame,
+    return PanelSelectAllRegion(
+      onSelectAll: () {
+        selectedIds.value = stateFrameIds;
+        anchor.value = selectedFrameId;
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildMainControlBar(context, textController, effectiveSelection),
+          AppExpandable(
+            expand: isExpanded,
+            child: _buildExpandedTimeline(
+              context,
+              textController,
+              effectiveSelection,
+              selectFrame,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -579,7 +586,6 @@ class _FramesGrid extends StatelessWidget {
           isActive: isActive,
           width: width,
           height: height,
-          index: index,
         );
 
         return AspectRatio(
@@ -607,7 +613,6 @@ class _FramesGrid extends StatelessWidget {
                       isActive: true,
                       width: width,
                       height: height,
-                      index: index,
                     ),
                   ),
                 ),
@@ -649,7 +654,6 @@ class _FrameThumbnail extends StatelessWidget {
     required this.isActive,
     required this.width,
     required this.height,
-    this.index,
   });
 
   final AnimationFrame frame;
@@ -657,7 +661,6 @@ class _FrameThumbnail extends StatelessWidget {
   final bool isActive;
   final int width;
   final int height;
-  final int? index;
 
   @override
   Widget build(BuildContext context) {
@@ -665,6 +668,9 @@ class _FrameThumbnail extends StatelessWidget {
     final primaryColor = theme.colorScheme.primary;
 
     return Semantics(
+      key: ValueKey(
+        'frame-${frame.id}-${isSelected ? 'selected' : 'unselected'}',
+      ),
       selected: isSelected,
       focused: isActive,
       label: frame.name,
@@ -716,50 +722,6 @@ class _FrameThumbnail extends StatelessWidget {
                 },
               ),
             ),
-            if (isSelected)
-              Positioned(
-                right: 2,
-                top: 2,
-                child: Container(
-                  key: ValueKey('frame-${frame.id}-selected'),
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? primaryColor
-                        : primaryColor.withValues(alpha: 0.85),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1),
-                  ),
-                  child: Icon(
-                    isActive ? Icons.circle : Icons.check,
-                    size: isActive ? 5 : 8,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            if (index != null)
-              Positioned(
-                left: 2,
-                bottom: 2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 2.5, vertical: 0.5),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  child: Text(
-                    '${index! + 1}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 7.5,
-                      fontWeight: FontWeight.bold,
-                      height: 1.1,
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
