@@ -30,6 +30,7 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
     this.onToggleTileMode,
     this.onToggleGrid,
     this.onToggleOnionSkin,
+    this.enabled = true,
     required this.child,
   });
 
@@ -54,6 +55,7 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
   final VoidCallback? onToggleTileMode;
   final VoidCallback? onToggleGrid;
   final VoidCallback? onToggleOnionSkin;
+  final bool enabled;
   final Widget child;
 
   static bool _isSelectionTool(PixelTool tool) {
@@ -70,6 +72,7 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
     final previousTool = useState<PixelTool?>(null);
 
     return ShortcutsWrapper(
+      enabled: enabled,
       focusNode: shortcutsFocusNode,
       currentBrushSize: brushSize.value,
       maxBrushSize: 10,

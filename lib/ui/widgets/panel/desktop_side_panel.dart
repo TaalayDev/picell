@@ -21,6 +21,7 @@ class DesktopSidePanel extends StatefulHookConsumerWidget {
   final PixelCanvasState state;
   final PixelCanvasNotifier notifier;
   final ValueNotifier<PixelTool> currentTool;
+  final ValueChanged<List<int>>? onLayerSelectionChanged;
 
   const DesktopSidePanel({
     super.key,
@@ -29,14 +30,14 @@ class DesktopSidePanel extends StatefulHookConsumerWidget {
     required this.state,
     required this.notifier,
     required this.currentTool,
+    this.onLayerSelectionChanged,
   });
 
   @override
   ConsumerState<DesktopSidePanel> createState() => _DesktopSidePanelState();
 }
 
-class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
-    with TickerProviderStateMixin {
+class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with TickerProviderStateMixin {
   late List<_SidePanelTab> _tabs;
   late TabController _tabController;
   _SidePanelTab _lastContentTab = _SidePanelTab.layers;
@@ -70,9 +71,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
       final currentTab = pendingTab ?? _tabs[_tabController.index];
       _tabController.dispose();
       _tabs = nextTabs;
-      final initialIndex = _tabs.contains(currentTab)
-          ? _tabs.indexOf(currentTab)
-          : _tabs.indexOf(_SidePanelTab.filters);
+      final initialIndex =
+          _tabs.contains(currentTab) ? _tabs.indexOf(currentTab) : _tabs.indexOf(_SidePanelTab.filters);
       _tabController = TabController(
         length: _tabs.length,
         initialIndex: initialIndex,
@@ -94,22 +94,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
   }
 
   List<_SidePanelTab> _tabsForState(PixelCanvasState state) {
-    final usedWorkspaces = <EffectWorkspace>{
-      for (final layer in state.currentFrame.layers)
-        for (final effect in layer.effects)
-          EffectCatalog.forType(effect.type).workspace,
-    };
-
-    return [
-      _SidePanelTab.layers,
-      _SidePanelTab.filters,
-      _SidePanelTab.materials,
-      if (usedWorkspaces.contains(EffectWorkspace.generators))
-        _SidePanelTab.generators,
-      if (usedWorkspaces.contains(EffectWorkspace.animation))
-        _SidePanelTab.animation,
-      _SidePanelTab.lighting,
-    ];
+    return [_SidePanelTab.layers, _SidePanelTab.filters, _SidePanelTab.materials, _SidePanelTab.lighting];
   }
 
   bool _sameTabs(List<_SidePanelTab> left, List<_SidePanelTab> right) {
@@ -151,8 +136,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
               layerWidth: widget.width,
               layerHeight: widget.height,
               layerPixels: sourceLayer.pixels,
-              onFramesGenerated: (frames) =>
-                  widget.notifier.addGeneratedEffectFrames(
+              onFramesGenerated: (frames) => widget.notifier.addGeneratedEffectFrames(
                 frames,
                 sourceFrameId: sourceFrame.id,
                 sourceLayerId: sourceLayer.layerId,
@@ -241,8 +225,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
                       tabAlignment: TabAlignment.start,
                       labelPadding: const EdgeInsets.symmetric(horizontal: 10),
                       labelColor: colorScheme.primary,
-                      unselectedLabelColor:
-                          colorScheme.onSurface.withValues(alpha: 0.5),
+                      unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.5),
                       indicatorColor: colorScheme.primary,
                       indicatorSize: TabBarIndicatorSize.tab,
                       indicatorWeight: 2,
@@ -255,11 +238,9 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
                             child: DefaultTextStyle(
                               style: TextStyle(
                                 fontSize: 10,
-                                color:
-                                    _tabController.index == _tabs.indexOf(tab)
-                                        ? colorScheme.primary
-                                        : colorScheme.onSurface
-                                            .withValues(alpha: 0.5),
+                                color: _tabController.index == _tabs.indexOf(tab)
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface.withValues(alpha: 0.5),
                               ),
                               child: Tab(
                                 key: ValueKey('side-panel-tab-${tab.name}'),
@@ -299,8 +280,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
               flex: 3,
               child: ColorPalettePanel(
                 currentColor: widget.state.currentColor,
-                isEyedropperSelected:
-                    widget.currentTool.value == PixelTool.eyedropper,
+                isEyedropperSelected: widget.currentTool.value == PixelTool.eyedropper,
                 onSelectEyedropper: () {
                   widget.currentTool.value = PixelTool.eyedropper;
                 },
@@ -343,6 +323,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
           );
         },
         onAutoSelect: widget.notifier.autoSelectLayer,
+        onSelectionChanged: widget.onLayerSelectionChanged,
       );
     }
 
@@ -365,8 +346,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
       height: widget.height,
       workspace: workspace,
       animationKind: animationKind,
-      onConvertToPixels: workspace == EffectWorkspace.generators &&
-              widget.notifier.currentLayerIsProcedural
+      onConvertToPixels: workspace == EffectWorkspace.generators && widget.notifier.currentLayerIsProcedural
           ? _confirmConvertToPixels
           : null,
       selectionRegion: widget.state.selectionState?.region,
@@ -382,8 +362,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
           layerWidth: widget.width,
           layerHeight: widget.height,
           layerPixels: sourceLayer.pixels,
-          onFramesGenerated: (frames) =>
-              widget.notifier.addGeneratedEffectFrames(
+          onFramesGenerated: (frames) => widget.notifier.addGeneratedEffectFrames(
             frames,
             sourceFrameId: sourceFrame.id,
             sourceLayerId: sourceLayer.layerId,

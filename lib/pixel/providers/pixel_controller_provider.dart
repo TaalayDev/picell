@@ -17,10 +17,12 @@ import '../../data.dart';
 import '../../providers/providers.dart';
 import '../../providers/background_image_provider.dart';
 import '../../providers/editor_settings_provider.dart';
+import '../../providers/editor_workspace_provider.dart';
 import '../../providers/imported_palette_provider.dart';
 import '../../providers/project_upload_provider.dart';
 import '../effects/effects.dart';
 import '../services/animation_service.dart';
+import '../services/clipboard_placement_service.dart';
 import '../services/drawing_service.dart';
 import '../services/editor_selection_service.dart';
 import '../services/effect_stack_service.dart';
@@ -58,6 +60,8 @@ class PixelDrawController extends _$PixelDrawController {
   static const _localSaveDebounce = Duration(seconds: 2);
   Timer? _projectSaveTimer;
   Project? _pendingProjectSave;
+  Future<bool>? _projectSaveInFlight;
+  int _projectSaveGeneration = 0;
   AppLifecycleListener? _lifecycleListener;
   late final ProjectRepo _projectRepo;
 
@@ -78,14 +82,14 @@ class PixelDrawController extends _$PixelDrawController {
     // Flush the pending save when the app is backgrounded or closing so the
     // debounce window can't drop the last edits.
     _lifecycleListener = AppLifecycleListener(
-      onPause: flushPendingProjectSave,
-      onDetach: flushPendingProjectSave,
+      onPause: () => unawaited(flushPendingProjectSave()),
+      onDetach: () => unawaited(flushPendingProjectSave()),
     );
 
     ref.onDispose(() {
       _cloudSyncTimer?.cancel();
       _lifecycleListener?.dispose();
-      flushPendingProjectSave();
+      unawaited(flushPendingProjectSave());
     });
 
     final animationStates = project.states.isNotEmpty
@@ -180,8 +184,15 @@ class PixelDrawController extends _$PixelDrawController {
       editedAt: DateTime.now(),
     );
     _pendingProjectSave = updated;
+    _projectSaveGeneration += 1;
+    ref
+        .read(editorWorkspaceProvider.notifier)
+        .setUnsavedChanges(project.id, true);
     _projectSaveTimer?.cancel();
-    _projectSaveTimer = Timer(_localSaveDebounce, flushPendingProjectSave);
+    _projectSaveTimer = Timer(
+      _localSaveDebounce,
+      () => unawaited(flushPendingProjectSave()),
+    );
     _scheduleCloudSync(updated);
   }
 
@@ -204,13 +215,41 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   /// Writes the most recent pending project snapshot immediately.
-  void flushPendingProjectSave() {
+  Future<bool> flushPendingProjectSave() {
     _projectSaveTimer?.cancel();
     _projectSaveTimer = null;
     final pending = _pendingProjectSave;
-    if (pending == null) return;
+    if (pending == null) {
+      return _projectSaveInFlight ?? Future.value(true);
+    }
     _pendingProjectSave = null;
-    _projectRepo.updateProject(pending);
+    final generation = _projectSaveGeneration;
+    final previousSave = _projectSaveInFlight;
+    final save = () async {
+      if (previousSave != null) await previousSave;
+      return _persistProject(pending, generation);
+    }();
+    _projectSaveInFlight = save;
+    unawaited(save.whenComplete(() {
+      if (identical(_projectSaveInFlight, save)) {
+        _projectSaveInFlight = null;
+      }
+    }));
+    return save;
+  }
+
+  Future<bool> _persistProject(Project pending, int generation) async {
+    final workspace = ref.read(editorWorkspaceProvider.notifier);
+    try {
+      await _projectRepo.updateProject(pending);
+      if (_pendingProjectSave == null && generation == _projectSaveGeneration) {
+        workspace.setUnsavedChanges(project.id, false);
+      }
+      return true;
+    } catch (_) {
+      workspace.setUnsavedChanges(project.id, true);
+      return false;
+    }
   }
 
   void _scheduleCloudSync(Project updated) {
@@ -468,20 +507,31 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   /// Pastes [pixels] as a floating new layer and selects it.
-  Future<void> pastePixels(Uint32List pixels, SelectionRegion region) async {
-    _saveState();
+  Future<void> pastePixels(
+    Uint32List pixels,
+    SelectionRegion region, {
+    required int sourceWidth,
+    required int sourceHeight,
+  }) async {
     final layerId = const Uuid().v4();
+    final placement = placeClipboardPixels(
+      source: pixels,
+      sourceWidth: sourceWidth,
+      sourceHeight: sourceHeight,
+      targetWidth: state.width,
+      targetHeight: state.height,
+    );
     final newLayer = Layer(
       layerId: 0,
       id: layerId,
       name: 'Pasted',
-      pixels: pixels,
+      pixels: placement.pixels,
       isVisible: true,
       order: state.currentFrame.layers.length,
     );
     await addLayerWithPixels(newLayer);
     selectLayer(state.currentFrame.layers.length - 1);
-    setSelection(region);
+    setSelection(region.shifted(placement.offset));
   }
 
   Future<void> selectionToNewLayer({bool clearSource = false}) async {
@@ -663,6 +713,76 @@ class PixelDrawController extends _$PixelDrawController {
     _updateCurrentFrame(updatedFrame);
 
     state = state.copyWith(currentLayerIndex: updatedLayers.length - 1);
+    _updateProject();
+  }
+
+  List<Layer> copyLayers(Iterable<int> indices) {
+    final valid = indices
+        .where((index) => index >= 0 && index < currentFrame.layers.length)
+        .toSet()
+        .toList()
+      ..sort();
+
+    return [
+      for (final index in valid)
+        Layer.fromJson(currentFrame.layers[index].toJson()),
+    ];
+  }
+
+  Future<void> pasteLayers(
+    List<Layer> sourceLayers, {
+    required int sourceWidth,
+    required int sourceHeight,
+  }) async {
+    if (sourceLayers.isEmpty) return;
+
+    _detachSelectionFromLayer();
+    _saveState();
+
+    var layers = List<Layer>.from(currentFrame.layers);
+    var insertIndex = state.currentLayerIndex + 1;
+    String? lastCreatedId;
+
+    for (final source in sourceLayers) {
+      final created = await _layerService.createLayer(
+        projectId: project.id,
+        frameId: currentFrame.id,
+        name: source.name,
+        width: state.width,
+        height: state.height,
+        order: layers.length,
+      );
+      final placement = placeClipboardPixels(
+        source: source.pixels,
+        sourceWidth: sourceWidth,
+        sourceHeight: sourceHeight,
+        targetWidth: state.width,
+        targetHeight: state.height,
+      );
+      final cloned = Layer.fromJson(source.toJson());
+      final pasted = created.copyWith(
+        pixels: placement.pixels,
+        effects: cloned.effects,
+        isVisible: source.isVisible,
+        isLocked: source.isLocked,
+        opacity: source.opacity,
+        anchorPoint: () => source.anchorPoint == null
+            ? null
+            : source.anchorPoint! + placement.offset,
+      );
+      layers.insert(insertIndex, pasted);
+      insertIndex += 1;
+      lastCreatedId = pasted.id;
+    }
+
+    layers = [
+      for (final (index, layer) in layers.indexed) layer.copyWith(order: index),
+    ];
+    _updateCurrentFrame(currentFrame.copyWith(layers: layers));
+    state = state.copyWith(
+      currentLayerIndex:
+          layers.indexWhere((layer) => layer.id == lastCreatedId),
+    );
     _updateProject();
   }
 

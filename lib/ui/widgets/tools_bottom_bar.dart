@@ -20,6 +20,7 @@ class ToolsBottomBar extends HookWidget {
     required this.width,
     required this.height,
     required this.subscription,
+    this.onLayerSelectionChanged,
   });
 
   final ValueNotifier<PixelTool> currentTool;
@@ -28,6 +29,7 @@ class ToolsBottomBar extends HookWidget {
   final UserSubscription subscription;
   final int width;
   final int height;
+  final ValueChanged<List<int>>? onLayerSelectionChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +142,7 @@ class ToolsBottomBar extends HookWidget {
                         notifier: notifier,
                         width: width,
                         height: height,
+                        onLayerSelectionChanged: onLayerSelectionChanged,
                       );
                     },
                   ),

@@ -47,6 +47,7 @@ class ShortcutsWrapper extends StatefulWidget {
     this.maxBrushSize = 10,
     this.maxLayers = 10,
     this.focusNode,
+    this.enabled = true,
   });
 
   final Widget child;
@@ -107,6 +108,7 @@ class ShortcutsWrapper extends StatefulWidget {
   final int maxBrushSize;
   final int maxLayers;
   final FocusNode? focusNode;
+  final bool enabled;
 
   @override
   State<ShortcutsWrapper> createState() => _ShortcutsWrapperState();
@@ -128,6 +130,14 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
         _focusNode.requestFocus();
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant ShortcutsWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.enabled == widget.enabled) return;
+    _focusNode.canRequestFocus = widget.enabled;
+    if (!widget.enabled) _focusNode.unfocus();
   }
 
   @override
@@ -169,8 +179,8 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           actions: _buildActions(),
           child: Focus(
             focusNode: _focusNode,
-            autofocus: true,
-            canRequestFocus: true,
+            autofocus: widget.enabled,
+            canRequestFocus: widget.enabled,
             skipTraversal: false,
             onKeyEvent: (_, event) {
               _handleKeyEvent(event);

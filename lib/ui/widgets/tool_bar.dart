@@ -172,7 +172,7 @@ class ToolBar extends ConsumerWidget {
                   AppNotification.success(
                     parentContext,
                     Strings.of(parentContext).effectsPanelAppliedToLayerMessage(
-                      configuredEffect.getName(context),
+                      configuredEffect.getName(parentContext),
                     ),
                     duration: const Duration(seconds: 2),
                   );

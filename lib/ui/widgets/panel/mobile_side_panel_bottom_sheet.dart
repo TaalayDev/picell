@@ -58,6 +58,7 @@ class MobileSidePanelBottomSheet extends StatefulWidget {
   final int width;
   final int height;
   final EffectWorkspace? initialWorkspace;
+  final ValueChanged<List<int>>? onLayerSelectionChanged;
 
   const MobileSidePanelBottomSheet({
     super.key,
@@ -66,6 +67,7 @@ class MobileSidePanelBottomSheet extends StatefulWidget {
     required this.width,
     required this.height,
     this.initialWorkspace,
+    this.onLayerSelectionChanged,
   });
 
   static Future<void> show(
@@ -75,6 +77,7 @@ class MobileSidePanelBottomSheet extends StatefulWidget {
     required int width,
     required int height,
     EffectWorkspace? initialWorkspace,
+    ValueChanged<List<int>>? onLayerSelectionChanged,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -91,6 +94,7 @@ class MobileSidePanelBottomSheet extends StatefulWidget {
           width: width,
           height: height,
           initialWorkspace: initialWorkspace,
+          onLayerSelectionChanged: onLayerSelectionChanged,
         ),
       ),
     );
@@ -474,6 +478,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                               );
                             },
                             onAutoSelect: widget.notifier.autoSelectLayer,
+                            onSelectionChanged: widget.onLayerSelectionChanged,
                           ),
                         )
                       else if (currentLayer != null)
