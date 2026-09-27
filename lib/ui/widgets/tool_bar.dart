@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -20,6 +21,7 @@ import 'dialogs/editor_settings_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
 import 'effects/effects_selector_dialog.dart';
 import 'menu_value_field.dart';
+import 'pen_path_actions.dart';
 import 'selection_mode_toggle.dart';
 import 'selection_options_button.dart';
 import 'wand_options_bar.dart';
@@ -34,6 +36,8 @@ class ToolBar extends ConsumerWidget {
   final Function(PixelModifier) onSelectModifier;
   final VoidCallback? onZoomIn;
   final VoidCallback? onZoomOut;
+  final VoidCallback? onZoomFit;
+  final VoidCallback? onZoom100;
   final VoidCallback? onUndo;
   final VoidCallback? onRedo;
   final VoidCallback? import;
@@ -59,6 +63,8 @@ class ToolBar extends ConsumerWidget {
   final bool canPaste;
   final VoidCallback? onShowHistory;
   final ValueNotifier<SelectionMode>? selectionMode;
+  final VoidCallback? onFinishPenPath;
+  final VoidCallback? onCancelPenPath;
 
   const ToolBar({
     super.key,
@@ -73,6 +79,8 @@ class ToolBar extends ConsumerWidget {
     this.showPrevFrames = false,
     this.onZoomIn,
     this.onZoomOut,
+    this.onZoomFit,
+    this.onZoom100,
     this.import,
     this.export,
     this.exportAsImage,
@@ -96,6 +104,8 @@ class ToolBar extends ConsumerWidget {
     this.canPaste = false,
     this.onShowHistory,
     this.selectionMode,
+    this.onFinishPenPath,
+    this.onCancelPenPath,
   });
 
   @override
@@ -139,73 +149,57 @@ class ToolBar extends ConsumerWidget {
             icon: Feather.save,
             compact: screenSize.isMobile,
             itemBuilder: (context) => [
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _FileMenuAction.import,
-                child: ListTile(
-                  leading: const AppIcon(AppIcons.album),
-                  title: Text(Strings.of(context).open),
-                ),
+                icon: const AppIcon(AppIcons.album, size: 18),
+                title: Strings.of(context).open,
+                shortcut: _cmd('O'),
               ),
               if (kIsWeb ||
                   defaultTargetPlatform == TargetPlatform.macOS ||
                   defaultTargetPlatform == TargetPlatform.windows)
-                PopupMenuItem(
+                _TopBarMenuItem(
                   value: _FileMenuAction.export,
-                  child: ListTile(
-                    leading: const AppIcon(AppIcons.archive_down),
-                    title: Text(Strings.of(context).save),
-                  ),
+                  icon: const AppIcon(AppIcons.archive_down, size: 18),
+                  title: Strings.of(context).save,
+                  shortcut: _cmd('S'),
                 ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _FileMenuAction.exportAsImage,
-                child: ListTile(
-                  leading: const AppIcon(AppIcons.archive_down),
-                  title: Text(Strings.of(context).saveAs),
-                ),
+                icon: const Icon(Icons.file_download_outlined, size: 18),
+                title: Strings.of(context).saveAs,
+                shortcut: _cmd('E'),
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _FileMenuAction.share,
-                child: ListTile(
-                  leading: const AppIcon(AppIcons.share),
-                  title: Text(Strings.of(context).share),
-                ),
+                icon: const AppIcon(AppIcons.share, size: 18),
+                title: Strings.of(context).share,
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _FileMenuAction.projects,
-                child: ListTile(
-                  leading: const AppIcon(AppIcons.home),
-                  title: Text(Strings.of(context).projects),
-                ),
+                icon: const AppIcon(AppIcons.home, size: 18),
+                title: Strings.of(context).projects,
               ),
               const PopupMenuDivider(),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _FileMenuAction.history,
                 enabled: onShowHistory != null,
-                child: ListTile(
-                  leading: const Icon(Icons.history_rounded, size: 20),
-                  title: Text(Strings.of(context).undoHistoryTitle),
-                ),
+                icon: const Icon(Icons.history_rounded, size: 18),
+                title: Strings.of(context).undoHistoryTitle,
+                shortcut: _cmd('H'),
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _FileMenuAction.keyboardShortcuts,
-                child: ListTile(
-                  leading: const Icon(Icons.keyboard_rounded, size: 20),
-                  title: Text(Strings.of(context).keyboardShortcuts),
-                ),
+                icon: const Icon(Icons.keyboard_rounded, size: 18),
+                title: Strings.of(context).keyboardShortcuts,
+                shortcut: '?',
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _FileMenuAction.settings,
-                child: ListTile(
-                  leading: const Icon(Icons.settings, size: 20),
-                  title: Text(Strings.of(context).editorSettings),
-                  trailing: editorSettings.isStylusMode
-                      ? Icon(
-                          Icons.circle,
-                          size: 8,
-                          color: Theme.of(context).colorScheme.primary,
-                        )
-                      : null,
-                ),
+                icon: const Icon(Icons.settings_outlined, size: 18),
+                title: Strings.of(context).editorSettings,
+                shortcut: _cmd(','),
+                hasNotification: editorSettings.isStylusMode,
               ),
             ],
             onSelected: (action) {
@@ -235,48 +229,64 @@ class ToolBar extends ConsumerWidget {
             icon: Icons.visibility_outlined,
             compact: screenSize.isMobile,
             itemBuilder: (context) => [
-              CheckedPopupMenuItem(
+              _TopBarMenuItem(
                 value: _ViewMenuAction.tileMode,
-                checked: tileModeEnabled,
+                icon: const Icon(Icons.grid_view_rounded, size: 18),
+                title: Strings.of(context).tileModeTooltip,
+                shortcut: _shift('T'),
+                isChecked: tileModeEnabled,
                 enabled: onToggleTileMode != null,
-                child: Text(Strings.of(context).tileModeTooltip),
               ),
-              CheckedPopupMenuItem(
+              _TopBarMenuItem(
                 value: _ViewMenuAction.pixelGrid,
-                checked: editorSettings.showPixelGrid,
-                child: Text(Strings.of(context).showGrid),
+                icon: const Icon(Icons.grid_on_rounded, size: 18),
+                title: Strings.of(context).showGrid,
+                shortcut: _cmd("'"),
+                isChecked: editorSettings.showPixelGrid,
               ),
-              CheckedPopupMenuItem(
+              _TopBarMenuItem(
                 value: _ViewMenuAction.onionSkin,
-                checked: showPrevFrames,
+                icon: const Icon(Icons.animation_rounded, size: 18),
+                title: Strings.of(context).onionSkinTooltip,
+                shortcut: _shift('O'),
+                isChecked: showPrevFrames,
                 enabled: showPrevFramesOpacity != null,
-                child: Text(Strings.of(context).onionSkinTooltip),
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _ViewMenuAction.onionSkinOpacity,
+                icon: const Icon(Icons.opacity_rounded, size: 18),
+                title: 'Onion skin opacity',
                 enabled: onionSkinOpacityChanged != null,
-                child: const ListTile(
-                  leading: Icon(Icons.opacity_rounded, size: 20),
-                  title: Text('Onion skin opacity'),
-                ),
               ),
               const PopupMenuDivider(),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _ViewMenuAction.zoomIn,
+                icon: const Icon(Feather.zoom_in, size: 18),
+                title: Strings.of(context).zoomIn,
+                shortcut: '+',
                 enabled: onZoomIn != null,
-                child: ListTile(
-                  leading: const Icon(Feather.zoom_in, size: 20),
-                  title: Text(Strings.of(context).zoomIn),
-                ),
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _ViewMenuAction.zoomOut,
+                icon: const Icon(Feather.zoom_out, size: 18),
+                title: Strings.of(context).zoomOut,
+                shortcut: '-',
                 enabled: onZoomOut != null,
-                child: ListTile(
-                  leading: const Icon(Feather.zoom_out, size: 20),
-                  title: Text(Strings.of(context).zoomOut),
-                ),
               ),
+              if (onZoomFit != null)
+                _TopBarMenuItem(
+                  value: _ViewMenuAction.zoomFit,
+                  icon: const Icon(Icons.fit_screen_outlined, size: 18),
+                  title: Strings.of(context).zoomToFit,
+                  shortcut: '0',
+                ),
+              if (onZoom100 != null)
+                _TopBarMenuItem(
+                  value: _ViewMenuAction.zoom100,
+                  icon: const Icon(Icons.aspect_ratio_outlined, size: 18),
+                  title: Strings.of(context).zoomOneToOne,
+                  shortcut: '1',
+                ),
             ],
             onSelected: (action) {
               switch (action) {
@@ -309,6 +319,10 @@ class ToolBar extends ConsumerWidget {
                   onZoomIn?.call();
                 case _ViewMenuAction.zoomOut:
                   onZoomOut?.call();
+                case _ViewMenuAction.zoomFit:
+                  onZoomFit?.call();
+                case _ViewMenuAction.zoom100:
+                  onZoom100?.call();
               }
             },
           ),
@@ -317,94 +331,79 @@ class ToolBar extends ConsumerWidget {
             label: Strings.of(context).add,
             icon: Icons.add_box_outlined,
             compact: screenSize.isMobile,
-            hasNotification: currentLayerHasEffects,
             itemBuilder: (context) => [
-              PopupMenuItem(
+              _TopBarMenuItem(
                 key: const ValueKey('toolbar-add-filters'),
                 value: _AddMenuAction.filters,
-                child: ListTile(
-                  leading: const Icon(Icons.filter_alt_outlined, size: 20),
-                  title: Text(Strings.of(context).effectWorkspaceFilters),
-                ),
+                icon: const Icon(Icons.filter_alt_outlined, size: 18),
+                title: Strings.of(context).effectWorkspaceFilters,
+                shortcut: _alt('1'),
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 key: const ValueKey('toolbar-add-materials'),
                 value: _AddMenuAction.materials,
-                child: ListTile(
-                  leading: const Icon(Icons.texture_outlined, size: 20),
-                  title: Text(Strings.of(context).effectWorkspaceMaterials),
-                ),
+                icon: const Icon(Icons.texture_outlined, size: 18),
+                title: Strings.of(context).effectWorkspaceMaterials,
+                shortcut: _alt('2'),
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 key: const ValueKey('toolbar-add-generators'),
                 value: _AddMenuAction.generators,
-                child: ListTile(
-                  leading: const Icon(Icons.auto_awesome_outlined, size: 20),
-                  title: Text(Strings.of(context).effectWorkspaceGenerators),
-                ),
+                icon: const Icon(Icons.auto_awesome_outlined, size: 18),
+                title: Strings.of(context).effectWorkspaceGenerators,
+                shortcut: _alt('3'),
               ),
-              PopupMenuItem(
-                key: const ValueKey('toolbar-add-animation-transformers'),
-                value: _AddMenuAction.animationTransformers,
-                child: ListTile(
-                  leading: const Icon(Icons.transform, size: 20),
-                  title: Text(
-                    '${Strings.of(context).effectWorkspaceAnimation}: '
-                    '${Strings.of(context).animationTransformers}',
+              _SubmenuTopBarMenuItem(
+                key: const ValueKey('toolbar-add-animation'),
+                icon: const Icon(Icons.auto_awesome_motion_outlined, size: 18),
+                title: Strings.of(context).effectWorkspaceAnimation,
+                items: [
+                  _SubmenuItem(
+                    key: const ValueKey('toolbar-add-animation-transformers'),
+                    icon: const Icon(Icons.transform, size: 18),
+                    title: Strings.of(context).animationTransformers,
+                    shortcut: _alt('4'),
+                    onTap: () {
+                      openEffectSelector(
+                        EffectWorkspace.animation,
+                        animationKind: AnimationKind.transformer,
+                      );
+                    },
                   ),
-                ),
-              ),
-              PopupMenuItem(
-                key: const ValueKey('toolbar-add-animation-special-effects'),
-                value: _AddMenuAction.animationSpecialEffects,
-                child: ListTile(
-                  leading: const Icon(Icons.auto_awesome, size: 20),
-                  title: Text(
-                    '${Strings.of(context).effectWorkspaceAnimation}: '
-                    '${Strings.of(context).animationSpecialEffects}',
+                  _SubmenuItem(
+                    key: const ValueKey('toolbar-add-animation-special-effects'),
+                    icon: const Icon(Icons.auto_awesome, size: 18),
+                    title: Strings.of(context).animationSpecialEffects,
+                    shortcut: _alt('5'),
+                    onTap: () {
+                      openEffectSelector(
+                        EffectWorkspace.animation,
+                        animationKind: AnimationKind.specialEffect,
+                      );
+                    },
                   ),
-                ),
+                ],
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 key: const ValueKey('toolbar-add-lighting'),
                 value: _AddMenuAction.lighting,
-                child: ListTile(
-                  leading: const Icon(Icons.light_mode_outlined, size: 20),
-                  title: Text(Strings.of(context).effectWorkspaceLighting),
-                ),
+                icon: const Icon(Icons.light_mode_outlined, size: 18),
+                title: Strings.of(context).effectWorkspaceLighting,
+                shortcut: _alt('6'),
               ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 key: const ValueKey('toolbar-add-distortions'),
                 value: _AddMenuAction.distortions,
-                child: ListTile(
-                  leading: const Icon(Icons.waves_outlined, size: 20),
-                  title: Text(Strings.of(context).effectWorkspaceDistortions),
-                ),
+                icon: const Icon(Icons.waves_outlined, size: 18),
+                title: Strings.of(context).effectWorkspaceDistortions,
+                shortcut: _alt('7'),
               ),
               const PopupMenuDivider(),
-              PopupMenuItem(
-                key: const ValueKey('toolbar-manage-effects'),
-                value: _AddMenuAction.manageEffects,
-                enabled: onEffects != null,
-                child: ListTile(
-                  leading: const Icon(Icons.layers_outlined, size: 20),
-                  title: Text(Strings.of(context).layerEffects),
-                  trailing: currentLayerHasEffects
-                      ? Icon(
-                          Icons.circle,
-                          size: 8,
-                          color: Theme.of(context).colorScheme.primary,
-                        )
-                      : null,
-                ),
-              ),
-              PopupMenuItem(
+              _TopBarMenuItem(
                 value: _AddMenuAction.templates,
+                icon: const AppIcon(AppIcons.gallery_wide, size: 18),
+                title: Strings.of(context).templateGallery,
                 enabled: onTemplates != null,
-                child: ListTile(
-                  leading: const AppIcon(AppIcons.gallery_wide, size: 20),
-                  title: Text(Strings.of(context).templateGallery),
-                ),
               ),
             ],
             onSelected: (action) {
@@ -415,22 +414,10 @@ class ToolBar extends ConsumerWidget {
                   openEffectSelector(EffectWorkspace.materials);
                 case _AddMenuAction.generators:
                   openEffectSelector(EffectWorkspace.generators);
-                case _AddMenuAction.animationTransformers:
-                  openEffectSelector(
-                    EffectWorkspace.animation,
-                    animationKind: AnimationKind.transformer,
-                  );
-                case _AddMenuAction.animationSpecialEffects:
-                  openEffectSelector(
-                    EffectWorkspace.animation,
-                    animationKind: AnimationKind.specialEffect,
-                  );
                 case _AddMenuAction.lighting:
                   openEffectSelector(EffectWorkspace.lighting);
                 case _AddMenuAction.distortions:
                   openEffectSelector(EffectWorkspace.distortions);
-                case _AddMenuAction.manageEffects:
-                  onEffects?.call();
                 case _AddMenuAction.templates:
                   onTemplates?.call();
               }
@@ -522,6 +509,15 @@ class ToolBar extends ConsumerWidget {
                           const WandOptionsBar(),
                           const SizedBox(width: 8),
                         ],
+                        if (tool == PixelTool.pen &&
+                            onFinishPenPath != null &&
+                            onCancelPenPath != null) ...[
+                          PenPathActions(
+                            onFinish: onFinishPenPath!,
+                            onCancel: onCancelPenPath!,
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                       ],
                       if (!screenSize.isMobile)
                         SelectionOptionsButton(
@@ -584,18 +580,497 @@ enum _ViewMenuAction {
   onionSkinOpacity,
   zoomIn,
   zoomOut,
+  zoomFit,
+  zoom100,
 }
 
 enum _AddMenuAction {
   filters,
   materials,
   generators,
-  animationTransformers,
-  animationSpecialEffects,
   lighting,
   distortions,
-  manageEffects,
   templates,
+}
+
+class _SubmenuItem {
+  final Key? key;
+  final Widget icon;
+  final String title;
+  final String? shortcut;
+  final VoidCallback onTap;
+
+  const _SubmenuItem({
+    this.key,
+    required this.icon,
+    required this.title,
+    this.shortcut,
+    required this.onTap,
+  });
+}
+
+class _SubmenuTopBarMenuItem<T> extends PopupMenuEntry<T> {
+  const _SubmenuTopBarMenuItem({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.items,
+    this.height = kMinInteractiveDimension,
+  });
+
+  final Widget icon;
+  final String title;
+  final List<_SubmenuItem> items;
+  @override
+  final double height;
+
+  @override
+  bool represents(T? value) => false;
+
+  @override
+  State<_SubmenuTopBarMenuItem<T>> createState() =>
+      _SubmenuTopBarMenuItemState<T>();
+}
+
+class _SubmenuTopBarMenuItemState<T> extends State<_SubmenuTopBarMenuItem<T>> {
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  Timer? _closeTimer;
+  bool _isHovered = false;
+
+  void _showSubmenu() {
+    _closeTimer?.cancel();
+    if (_overlayEntry != null) return;
+
+    final overlay = Overlay.of(context);
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+    final size = renderBox.size;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final screenSize = MediaQuery.sizeOf(context);
+
+    const submenuWidth = 260.0;
+    final openLeft =
+        (position.dx + size.width + submenuWidth + 10) > screenSize.width;
+    final offset =
+        openLeft ? const Offset(-submenuWidth, 0) : Offset(size.width, 0);
+
+    final parentRoute = ModalRoute.of(context);
+
+    _overlayEntry = OverlayEntry(
+      builder: (ctx) {
+        return CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: offset,
+          child: MouseRegion(
+            onEnter: (_) {
+              _closeTimer?.cancel();
+            },
+            onExit: (_) {
+              _scheduleClose();
+            },
+            child: _SubmenuContainer(
+              width: submenuWidth,
+              items: widget.items,
+              onItemSelected: (item) {
+                _closeSubmenu();
+                if (parentRoute != null && parentRoute.isCurrent) {
+                  Navigator.of(context, rootOverlay: false).pop();
+                }
+                item.onTap();
+              },
+            ),
+          ),
+        );
+      },
+    );
+
+    overlay.insert(_overlayEntry!);
+    if (mounted) {
+      setState(() {
+        _isHovered = true;
+      });
+    }
+  }
+
+  void _scheduleClose() {
+    _closeTimer?.cancel();
+    _closeTimer = Timer(const Duration(milliseconds: 200), () {
+      _closeSubmenu();
+    });
+  }
+
+  void _closeSubmenu() {
+    _closeTimer?.cancel();
+    if (_overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+    }
+    if (mounted) {
+      setState(() {
+        _isHovered = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _closeTimer?.cancel();
+    if (_overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final primaryColor = colorScheme.primary;
+    final popupTextStyle =
+        theme.popupMenuTheme.textStyle ?? theme.textTheme.bodyMedium;
+    final defaultTextColor = popupTextStyle?.color ?? colorScheme.onSurface;
+    final isHighlighted = _isHovered || _overlayEntry != null;
+
+    return MouseRegion(
+      onEnter: (_) => _showSubmenu(),
+      onExit: (_) => _scheduleClose(),
+      child: InkWell(
+        onTap: () {
+          if (_overlayEntry != null) {
+            _closeSubmenu();
+          } else {
+            _showSubmenu();
+          }
+        },
+        child: CompositedTransformTarget(
+          link: _layerLink,
+          child: Container(
+            height: widget.height,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: Center(
+                    child: IconTheme(
+                      data: IconThemeData(
+                        size: 18,
+                        color: isHighlighted
+                            ? primaryColor
+                            : defaultTextColor.withValues(alpha: 0.85),
+                      ),
+                      child: widget.icon,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: popupTextStyle?.copyWith(
+                      color: isHighlighted ? primaryColor : defaultTextColor,
+                      fontWeight:
+                          isHighlighted ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: isHighlighted
+                      ? primaryColor
+                      : defaultTextColor.withValues(alpha: 0.5),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SubmenuContainer extends StatelessWidget {
+  const _SubmenuContainer({
+    required this.width,
+    required this.items,
+    required this.onItemSelected,
+  });
+
+  final double width;
+  final List<_SubmenuItem> items;
+  final ValueChanged<_SubmenuItem> onItemSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final popupTheme = theme.popupMenuTheme;
+    final backgroundColor = popupTheme.color ?? colorScheme.surface;
+    final shape = popupTheme.shape ??
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
+
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: width,
+        decoration: ShapeDecoration(
+          color: backgroundColor,
+          shape: shape,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: items.map((item) {
+              return _SubmenuItemRow(
+                item: item,
+                onTap: () => onItemSelected(item),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SubmenuItemRow extends StatefulWidget {
+  const _SubmenuItemRow({
+    required this.item,
+    required this.onTap,
+  });
+
+  final _SubmenuItem item;
+  final VoidCallback onTap;
+
+  @override
+  State<_SubmenuItemRow> createState() => _SubmenuItemRowState();
+}
+
+class _SubmenuItemRowState extends State<_SubmenuItemRow> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final primaryColor = colorScheme.primary;
+    final popupTextStyle =
+        theme.popupMenuTheme.textStyle ?? theme.textTheme.bodyMedium;
+    final defaultTextColor = popupTextStyle?.color ?? colorScheme.onSurface;
+
+    final textColor = _isHovered ? primaryColor : defaultTextColor;
+    final shortcutColor = _isHovered
+        ? primaryColor.withValues(alpha: 0.8)
+        : defaultTextColor.withValues(alpha: 0.5);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: InkWell(
+        key: widget.item.key,
+        onTap: widget.onTap,
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: Center(
+                  child: IconTheme(
+                    data: IconThemeData(
+                      size: 18,
+                      color: _isHovered
+                          ? primaryColor
+                          : defaultTextColor.withValues(alpha: 0.85),
+                    ),
+                    child: widget.item.icon,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  widget.item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: popupTextStyle?.copyWith(
+                    color: textColor,
+                    fontWeight:
+                        _isHovered ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ),
+              if (widget.item.shortcut != null) ...[
+                const SizedBox(width: 10),
+                Text(
+                  widget.item.shortcut!,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: shortcutColor,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _cmd(String key) =>
+    defaultTargetPlatform == TargetPlatform.macOS ? 'Cmd + $key' : 'Ctrl + $key';
+String _shift(String key) => 'Shift + $key';
+String _alt(String key) =>
+    defaultTargetPlatform == TargetPlatform.macOS ? 'Opt + $key' : 'Alt + $key';
+
+class _TopBarMenuItem<T> extends PopupMenuItem<T> {
+  _TopBarMenuItem({
+    super.key,
+    required super.value,
+    required Widget icon,
+    required String title,
+    String? shortcut,
+    bool? isChecked,
+    bool hasNotification = false,
+    super.enabled = true,
+  }) : super(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: _MenuEntryRow(
+            icon: icon,
+            title: title,
+            shortcut: shortcut,
+            isChecked: isChecked,
+            hasNotification: hasNotification,
+            enabled: enabled,
+          ),
+        );
+}
+
+class _MenuEntryRow extends StatelessWidget {
+  const _MenuEntryRow({
+    required this.icon,
+    required this.title,
+    this.shortcut,
+    this.isChecked,
+    this.hasNotification = false,
+    this.enabled = true,
+  });
+
+  final Widget icon;
+  final String title;
+  final String? shortcut;
+  final bool? isChecked;
+  final bool hasNotification;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final checked = isChecked;
+
+    final primaryColor = colorScheme.primary;
+    final popupTextStyle =
+        theme.popupMenuTheme.textStyle ?? theme.textTheme.bodyMedium;
+    final defaultTextColor = popupTextStyle?.color ?? colorScheme.onSurface;
+
+    final titleColor = enabled
+        ? (checked == true ? primaryColor : defaultTextColor)
+        : defaultTextColor.withValues(alpha: 0.38);
+
+    final shortcutColor = enabled
+        ? defaultTextColor.withValues(alpha: 0.5)
+        : defaultTextColor.withValues(alpha: 0.25);
+
+    return Row(
+      children: [
+        SizedBox(
+          width: 22,
+          height: 22,
+          child: Center(
+            child: IconTheme(
+              data: IconThemeData(
+                size: 18,
+                color: enabled
+                    ? (checked == true
+                        ? primaryColor
+                        : defaultTextColor.withValues(alpha: 0.85))
+                    : defaultTextColor.withValues(alpha: 0.38),
+              ),
+              child: icon,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: popupTextStyle?.copyWith(
+              color: titleColor,
+              fontWeight: checked == true ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ),
+        if (hasNotification) ...[
+          const SizedBox(width: 6),
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: primaryColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ],
+        if (checked != null) ...[
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 18,
+            child: checked
+                ? Icon(
+                    Icons.check_rounded,
+                    size: 16,
+                    color: primaryColor,
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
+        if (shortcut != null) ...[
+          const SizedBox(width: 10),
+          Text(
+            shortcut!,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: shortcutColor,
+              fontWeight: FontWeight.w500,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 class _TopBarMenuButton<T> extends StatelessWidget {
@@ -621,6 +1096,7 @@ class _TopBarMenuButton<T> extends StatelessWidget {
     return PopupMenuButton<T>(
       tooltip: label,
       offset: const Offset(0, 40),
+      constraints: const BoxConstraints(minWidth: 280, maxWidth: 500),
       itemBuilder: itemBuilder,
       onSelected: onSelected,
       child: ConstrainedBox(

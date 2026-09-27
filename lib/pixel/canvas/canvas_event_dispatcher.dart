@@ -10,9 +10,9 @@ class PixelCanvasEventDispatcher {
     required PixelCanvasInputAdapter inputAdapter,
     required ToolDrawingManager toolManager,
     Stream<canvas_events.PixelDrawEvent>? eventStream,
-  }) : _inputAdapter = inputAdapter,
-       _toolManager = toolManager,
-       _eventStream = eventStream;
+  })  : _inputAdapter = inputAdapter,
+        _toolManager = toolManager,
+        _eventStream = eventStream;
 
   PixelCanvasInputAdapter _inputAdapter;
   ToolDrawingManager _toolManager;
@@ -75,13 +75,19 @@ class PixelCanvasEventDispatcher {
       return;
     }
 
+    if (event is canvas_events.CancelPenPathEvent) {
+      _inputAdapter.cancelPenPath();
+      return;
+    }
+
     if (event is canvas_events.TextureBrushPatternEvent) {
       unawaited(
         _toolManager.setTextureBrush(
           textureId: event.texture.id,
           blendMode: event.blendMode,
           mode: event.isFill ? TextureBrushMode.fill : TextureBrushMode.brush,
-          fillMode: event.isFill ? TextureFillMode.stretch : TextureFillMode.center,
+          fillMode:
+              event.isFill ? TextureFillMode.stretch : TextureFillMode.center,
         ),
       );
       return;

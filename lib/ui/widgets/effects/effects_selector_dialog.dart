@@ -89,6 +89,152 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     };
   }
 
+  String _dialogTitle(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode;
+    switch (_selectedWorkspace) {
+      case EffectWorkspace.filters:
+        return switch (lang) {
+          'ru' => 'Выбор фильтра',
+          'zh' => '选择滤镜',
+          'ja' => 'フィルターを選択',
+          'ky' => 'Фильтр тандаңыз',
+          _ => 'Select Filter',
+        };
+      case EffectWorkspace.materials:
+        return switch (lang) {
+          'ru' => 'Выбор материала',
+          'zh' => '选择材质',
+          'ja' => 'マテリアルを選択',
+          'ky' => 'Материал тандаңыз',
+          _ => 'Select Material',
+        };
+      case EffectWorkspace.generators:
+        return switch (lang) {
+          'ru' => 'Выбор генератора',
+          'zh' => '选择生成器',
+          'ja' => 'ジェネレーターを選択',
+          'ky' => 'Генератор тандаңыз',
+          _ => 'Select Generator',
+        };
+      case EffectWorkspace.animation:
+        if (_selectedAnimationKind == AnimationKind.transformer) {
+          return switch (lang) {
+            'ru' => 'Выбор трансформации',
+            'zh' => '选择变换效果',
+            'ja' => 'トランスフォーマーを選択',
+            'ky' => 'Трансформация тандаңыз',
+            _ => 'Select Transformer',
+          };
+        } else if (_selectedAnimationKind == AnimationKind.specialEffect) {
+          return switch (lang) {
+            'ru' => 'Выбор спецэффекта',
+            'zh' => '选择特效',
+            'ja' => '特殊効果を選択',
+            'ky' => 'Атайын эффект тандаңыз',
+            _ => 'Select Special Effect',
+          };
+        }
+        return switch (lang) {
+          'ru' => 'Выбор анимации',
+          'zh' => '选择动画效果',
+          'ja' => 'アニメーションを選択',
+          'ky' => 'Анимация тандаңыз',
+          _ => 'Select Animation',
+        };
+      case EffectWorkspace.lighting:
+        return switch (lang) {
+          'ru' => 'Выбор освещения',
+          'zh' => '选择光照效果',
+          'ja' => 'ライティングを選択',
+          'ky' => 'Жарыктандыруу тандаңыз',
+          _ => 'Select Lighting',
+        };
+      case EffectWorkspace.distortions:
+        return switch (lang) {
+          'ru' => 'Выбор искажения',
+          'zh' => '选择扭曲效果',
+          'ja' => '歪み効果を選択',
+          'ky' => 'Бузулуу тандаңыз',
+          _ => 'Select Distortion',
+        };
+      case null:
+        return Strings.of(context).selectEffect;
+    }
+  }
+
+  String _searchHint(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode;
+    switch (_selectedWorkspace) {
+      case EffectWorkspace.filters:
+        return switch (lang) {
+          'ru' => 'Поиск фильтров',
+          'zh' => '搜索滤镜',
+          'ja' => 'フィルターを検索',
+          'ky' => 'Фильтрлерди издөө',
+          _ => 'Search filters',
+        };
+      case EffectWorkspace.materials:
+        return switch (lang) {
+          'ru' => 'Поиск материалов',
+          'zh' => '搜索材质',
+          'ja' => 'マテリアルを検索',
+          'ky' => 'Материалдарды издөө',
+          _ => 'Search materials',
+        };
+      case EffectWorkspace.generators:
+        return switch (lang) {
+          'ru' => 'Поиск генераторов',
+          'zh' => '搜索生成器',
+          'ja' => 'ジェネレーターを検索',
+          'ky' => 'Генераторлорду издөө',
+          _ => 'Search generators',
+        };
+      case EffectWorkspace.animation:
+        if (_selectedAnimationKind == AnimationKind.transformer) {
+          return switch (lang) {
+            'ru' => 'Поиск трансформаций',
+            'zh' => '搜索变换效果',
+            'ja' => 'トランスフォーマーを検索',
+            'ky' => 'Трансформацияларды издөө',
+            _ => 'Search transformers',
+          };
+        } else if (_selectedAnimationKind == AnimationKind.specialEffect) {
+          return switch (lang) {
+            'ru' => 'Поиск спецэффектов',
+            'zh' => '搜索特效',
+            'ja' => '特殊効果を検索',
+            'ky' => 'Атайын эффекттерди издөө',
+            _ => 'Search special effects',
+          };
+        }
+        return switch (lang) {
+          'ru' => 'Поиск анимаций',
+          'zh' => '搜索动画效果',
+          'ja' => 'アニメーション効果を検索',
+          'ky' => 'Анимацияларды издөө',
+          _ => 'Search animation effects',
+        };
+      case EffectWorkspace.lighting:
+        return switch (lang) {
+          'ru' => 'Поиск освещения',
+          'zh' => '搜索光照效果',
+          'ja' => 'ライティングを検索',
+          'ky' => 'Жарыктандырууну издөө',
+          _ => 'Search lighting',
+        };
+      case EffectWorkspace.distortions:
+        return switch (lang) {
+          'ru' => 'Поиск искажений',
+          'zh' => '搜索扭曲效果',
+          'ja' => '歪み効果を検索',
+          'ky' => 'Бузулууларды издөө',
+          _ => 'Search distortions',
+        };
+      case null:
+        return Strings.of(context).searchEffects;
+    }
+  }
+
   List<EffectType> get _filteredEffects {
     final workspaceFiltered = EffectType.values.where((type) {
       final descriptor = EffectCatalog.forType(type);
@@ -149,7 +295,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                     ),
                     Expanded(
                       child: Text(
-                        Strings.of(context).selectEffect,
+                        _dialogTitle(context),
                         style: Theme.of(context)
                             .textTheme
                             .headlineSmall
@@ -170,7 +316,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: Strings.of(context).searchEffects,
+                      hintText: _searchHint(context),
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),

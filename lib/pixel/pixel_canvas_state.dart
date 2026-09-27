@@ -32,8 +32,11 @@ class PixelCanvasState with _$PixelCanvasState {
   }) = _PixelCanvasState;
 
   // Computed properties
-  AnimationStateModel get currentAnimationState => animationStates[currentAnimationStateIndex];
-  List<AnimationFrame> get currentFrames => frames.where((frame) => frame.stateId == currentAnimationState.id).toList();
+  AnimationStateModel get currentAnimationState =>
+      animationStates[currentAnimationStateIndex];
+  List<AnimationFrame> get currentFrames => frames
+      .where((frame) => frame.stateId == currentAnimationState.id)
+      .toList();
   AnimationFrame get currentFrame => currentFrames[currentFrameIndex];
   Layer get currentLayer => currentFrame.layers[currentLayerIndex];
   List<Layer> get layers => currentFrame.layers;
@@ -67,12 +70,17 @@ class ClosePenPathEvent extends PixelDrawEvent {
   const ClosePenPathEvent();
 }
 
+class CancelPenPathEvent extends PixelDrawEvent {
+  const CancelPenPathEvent();
+}
+
 class TextureBrushPatternEvent extends PixelDrawEvent {
   final TexturePattern texture;
   final BlendMode blendMode;
   final bool isFill;
 
-  const TextureBrushPatternEvent(this.texture, {this.blendMode = BlendMode.srcOver, this.isFill = false});
+  const TextureBrushPatternEvent(this.texture,
+      {this.blendMode = BlendMode.srcOver, this.isFill = false});
 }
 
 class ClearSelectionEvent extends PixelDrawEvent {

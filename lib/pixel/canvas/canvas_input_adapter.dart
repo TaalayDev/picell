@@ -20,8 +20,8 @@ class PixelCanvasInputAdapter {
     required this.toolManager,
     required PixelCanvasRuntimeConfig config,
     required Size Function() getCanvasSize,
-  }) : _config = config,
-       _getCanvasSize = getCanvasSize;
+  })  : _config = config,
+        _getCanvasSize = getCanvasSize;
 
   static const _outsideSelectionDragThreshold = 4.0;
 
@@ -94,9 +94,15 @@ class PixelCanvasInputAdapter {
   }
 
   void finishPenPath() {
+    if (!gestureHandler.isPenDrawingActive) return;
     final details = _createDrawDetails(Offset.zero);
     toolManager.closePenPath(controller, details, close: false);
-    gestureHandler.finishDrawing();
+    gestureHandler.finishPenDrawing();
+  }
+
+  void cancelPenPath() {
+    if (!gestureHandler.isPenDrawingActive) return;
+    gestureHandler.cancelPenDrawing();
   }
 
   /// Combine mode for a selection gesture starting now: Shift adds, Alt
@@ -115,28 +121,34 @@ class PixelCanvasInputAdapter {
     }
 
     final isSelectionTool = _isSelectionInteractionTool(_config.currentTool);
-    final selectionMode = isSelectionTool ? _effectiveSelectionMode() : SelectionMode.replace;
-    final isCombineGesture = isSelectionTool && selectionMode != SelectionMode.replace;
+    final selectionMode =
+        isSelectionTool ? _effectiveSelectionMode() : SelectionMode.replace;
+    final isCombineGesture =
+        isSelectionTool && selectionMode != SelectionMode.replace;
     if (isSelectionTool) {
-      toolManager.beginSelectionGesture(selectionMode, controller.currentSelectionRegion);
+      toolManager.beginSelectionGesture(
+          selectionMode, controller.currentSelectionRegion);
     }
 
     if (_config.currentTool == PixelTool.curve) {
       _handleCurveToolInteraction(event.localPosition, event.pointer);
-    } else if (!isCombineGesture && _shouldHandleInsideSelectionPointer(event)) {
+    } else if (!isCombineGesture &&
+        _shouldHandleInsideSelectionPointer(event)) {
       _pendingInsideSelectionRegion = controller.currentSelectionRegion;
       _pendingInsideSelectionPointer = event.pointer;
       _pendingInsideSelectionStart = event.localPosition;
       _pendingInsideSelectionAppliedOffset = Offset.zero;
       _isDraggingInsideSelection = false;
-    } else if (!isCombineGesture && _shouldHandleOutsideSelectionPointer(event)) {
+    } else if (!isCombineGesture &&
+        _shouldHandleOutsideSelectionPointer(event)) {
       _pendingOutsideSelectionDownEvent = event;
       _pendingOutsideSelectionStart = event.localPosition;
     } else {
       // Combine gestures skip the inside-selection move machinery (Shift/Alt
       // drag draws a new shape instead of moving) and must not clear the
       // base selection before the confirm-time combine.
-      gestureHandler.handlePointerDown(event, _config.currentTool, _createDrawDetails(event.localPosition));
+      gestureHandler.handlePointerDown(
+          event, _config.currentTool, _createDrawDetails(event.localPosition));
     }
   }
 
@@ -155,7 +167,8 @@ class PixelCanvasInputAdapter {
       final startPosition = _pendingOutsideSelectionStart;
       if (startPosition == null) return;
 
-      final didStartDrag = (event.localPosition - startPosition).distance >= _outsideSelectionDragThreshold;
+      final didStartDrag = (event.localPosition - startPosition).distance >=
+          _outsideSelectionDragThreshold;
       if (didStartDrag) {
         _startNewSelectionFromPendingPointer(event);
       }
@@ -163,8 +176,10 @@ class PixelCanvasInputAdapter {
     }
 
     if (_config.currentTool == PixelTool.curve && toolManager.isCurveDefining) {
-      if (_curveDefiningPointer == event.pointer && _curveDefiningStart != null) {
-        if ((event.localPosition - _curveDefiningStart!).distance >= _curveDragCommitThreshold) {
+      if (_curveDefiningPointer == event.pointer &&
+          _curveDefiningStart != null) {
+        if ((event.localPosition - _curveDefiningStart!).distance >=
+            _curveDragCommitThreshold) {
           _curveDefiningDidDrag = true;
         }
       }
@@ -173,7 +188,8 @@ class PixelCanvasInputAdapter {
       return;
     }
 
-    gestureHandler.handlePointerMove(event, _config.currentTool, _createDrawDetails(event.localPosition));
+    gestureHandler.handlePointerMove(
+        event, _config.currentTool, _createDrawDetails(event.localPosition));
   }
 
   void handlePointerUp(PointerUpEvent event) {
@@ -216,7 +232,8 @@ class PixelCanvasInputAdapter {
       return;
     }
 
-    gestureHandler.handlePointerUp(event, _config.currentTool, _createDrawDetails(event.localPosition));
+    gestureHandler.handlePointerUp(
+        event, _config.currentTool, _createDrawDetails(event.localPosition));
   }
 
   void handlePointerCancel(PointerCancelEvent event) {
@@ -245,7 +262,8 @@ class PixelCanvasInputAdapter {
       return;
     }
 
-    gestureHandler.handlePointerCancel(event, _config.currentTool, _createDrawDetails(Offset.zero));
+    gestureHandler.handlePointerCancel(
+        event, _config.currentTool, _createDrawDetails(Offset.zero));
   }
 
   void handlePointerHover(PointerHoverEvent event) {
@@ -276,7 +294,9 @@ class PixelCanvasInputAdapter {
   }
 
   bool _isSelectionDragCreateTool(PixelTool tool) {
-    return tool == PixelTool.select || tool == PixelTool.ellipseSelect || tool == PixelTool.lasso;
+    return tool == PixelTool.select ||
+        tool == PixelTool.ellipseSelect ||
+        tool == PixelTool.lasso;
   }
 
   void _clearPendingInsideSelection() {
@@ -330,13 +350,16 @@ class PixelCanvasInputAdapter {
   }
 
   Offset _clampPixelOffset(Offset pixelPos) {
-    return Offset(pixelPos.dx.clamp(0.0, _config.width.toDouble()), pixelPos.dy.clamp(0.0, _config.height.toDouble()));
+    return Offset(pixelPos.dx.clamp(0.0, _config.width.toDouble()),
+        pixelPos.dy.clamp(0.0, _config.height.toDouble()));
   }
 
   CanvasSelectionHandle? _hitTestSelectionHandle(Offset localPosition) {
     final canvasSize = _getCanvasSize();
     final selectionRegion = controller.currentSelectionRegion;
-    if (canvasSize == Size.zero || selectionRegion == null || selectionRegion.bounds == Rect.zero) {
+    if (canvasSize == Size.zero ||
+        selectionRegion == null ||
+        selectionRegion.bounds == Rect.zero) {
       return null;
     }
 
@@ -377,7 +400,8 @@ class PixelCanvasInputAdapter {
       case CanvasSelectionHandle.rotate:
         _rotationOriginalRegion = selectionRegion;
         _selectionHandleOriginalRegion = selectionRegion;
-        _rotationCenter = _config.selectionState?.effectiveAnchor ?? selectionRegion.bounds.center;
+        _rotationCenter = _config.selectionState?.effectiveAnchor ??
+            selectionRegion.bounds.center;
         _rotationCenterScreen = CanvasSelectionHandleGeometry.pixelToScreen(
           pixelPosition: _rotationCenter!,
           canvasSize: canvasSize,
@@ -411,7 +435,8 @@ class PixelCanvasInputAdapter {
 
   bool _shouldHandleInsideSelectionPointer(PointerDownEvent event) {
     final selectionRegion = controller.currentSelectionRegion;
-    if (selectionRegion == null || !_isSelectionInteractionTool(_config.currentTool)) {
+    if (selectionRegion == null ||
+        !_isSelectionInteractionTool(_config.currentTool)) {
       return false;
     }
 
@@ -421,7 +446,8 @@ class PixelCanvasInputAdapter {
 
   bool _shouldHandleOutsideSelectionPointer(PointerDownEvent event) {
     final selectionRegion = controller.currentSelectionRegion;
-    if (selectionRegion == null || !_isSelectionDragCreateTool(_config.currentTool)) {
+    if (selectionRegion == null ||
+        !_isSelectionDragCreateTool(_config.currentTool)) {
       return false;
     }
 
@@ -435,21 +461,26 @@ class PixelCanvasInputAdapter {
     if (downEvent == null || startPosition == null) return;
 
     clearLocalSelection();
-    gestureHandler.handlePointerDown(downEvent, _config.currentTool, _createDrawDetails(startPosition));
+    gestureHandler.handlePointerDown(
+        downEvent, _config.currentTool, _createDrawDetails(startPosition));
     _clearPendingOutsideSelection();
-    gestureHandler.handlePointerMove(event, _config.currentTool, _createDrawDetails(event.localPosition));
+    gestureHandler.handlePointerMove(
+        event, _config.currentTool, _createDrawDetails(event.localPosition));
   }
 
   void _handleInsideSelectionMove(PointerMoveEvent event) {
     final startPosition = _pendingInsideSelectionStart;
     final baseRegion = _pendingInsideSelectionRegion;
     final canvasSize = _getCanvasSize();
-    if (startPosition == null || baseRegion == null || canvasSize == Size.zero) {
+    if (startPosition == null ||
+        baseRegion == null ||
+        canvasSize == Size.zero) {
       return;
     }
 
     final totalScreenDelta = event.localPosition - startPosition;
-    if (!_isDraggingInsideSelection && totalScreenDelta.distance < _outsideSelectionDragThreshold) {
+    if (!_isDraggingInsideSelection &&
+        totalScreenDelta.distance < _outsideSelectionDragThreshold) {
       return;
     }
 
@@ -462,9 +493,12 @@ class PixelCanvasInputAdapter {
     final pixelHeight = canvasSize.height / _config.height;
     if (pixelWidth <= 0 || pixelHeight <= 0) return;
 
-    final totalPixelOffset = Offset(totalScreenDelta.dx / pixelWidth, totalScreenDelta.dy / pixelHeight);
-    final roundedPixelOffset = Offset(totalPixelOffset.dx.roundToDouble(), totalPixelOffset.dy.roundToDouble());
-    final pixelDelta = roundedPixelOffset - _pendingInsideSelectionAppliedOffset;
+    final totalPixelOffset = Offset(
+        totalScreenDelta.dx / pixelWidth, totalScreenDelta.dy / pixelHeight);
+    final roundedPixelOffset = Offset(totalPixelOffset.dx.roundToDouble(),
+        totalPixelOffset.dy.roundToDouble());
+    final pixelDelta =
+        roundedPixelOffset - _pendingInsideSelectionAppliedOffset;
 
     if (pixelDelta != Offset.zero) {
       _pendingInsideSelectionAppliedOffset = roundedPixelOffset;
@@ -488,10 +522,14 @@ class PixelCanvasInputAdapter {
 
     switch (handle) {
       case CanvasSelectionHandle.move:
-        final totalScreenDelta = event.localPosition - _selectionHandleStartScreen;
-        final totalPixelOffset = Offset(totalScreenDelta.dx / pixelWidth, totalScreenDelta.dy / pixelHeight);
-        final roundedPixelOffset = Offset(totalPixelOffset.dx.roundToDouble(), totalPixelOffset.dy.roundToDouble());
-        final pixelDelta = roundedPixelOffset - _selectionHandleLastAppliedOffset;
+        final totalScreenDelta =
+            event.localPosition - _selectionHandleStartScreen;
+        final totalPixelOffset = Offset(totalScreenDelta.dx / pixelWidth,
+            totalScreenDelta.dy / pixelHeight);
+        final roundedPixelOffset = Offset(totalPixelOffset.dx.roundToDouble(),
+            totalPixelOffset.dy.roundToDouble());
+        final pixelDelta =
+            roundedPixelOffset - _selectionHandleLastAppliedOffset;
 
         if (pixelDelta != Offset.zero) {
           _selectionHandleLastAppliedOffset = roundedPixelOffset;
@@ -501,7 +539,9 @@ class PixelCanvasInputAdapter {
       case CanvasSelectionHandle.rotate:
         final rotationCenterScreen = _rotationCenterScreen;
         final baseRegion = _selectionHandleOriginalRegion;
-        if (rotationCenterScreen == null || baseRegion == null || _rotationOriginalRegion == null) {
+        if (rotationCenterScreen == null ||
+            baseRegion == null ||
+            _rotationOriginalRegion == null) {
           return;
         }
 
@@ -511,17 +551,22 @@ class PixelCanvasInputAdapter {
         final currentAngle = math.atan2(dy, dx);
         final rotationAngle = currentAngle - _initialRotationAngle;
 
-        final anchorPixel = _config.selectionState?.effectiveAnchor ?? selectionRegion.bounds.center;
-        final matrix = Matrix4.translationValues(anchorPixel.dx, anchorPixel.dy, 0.0)
+        final anchorPixel = _config.selectionState?.effectiveAnchor ??
+            selectionRegion.bounds.center;
+        final matrix = Matrix4.translationValues(
+            anchorPixel.dx, anchorPixel.dy, 0.0)
           ..rotateZ(rotationAngle)
-          ..multiply(Matrix4.translationValues(-anchorPixel.dx, -anchorPixel.dy, 0.0));
+          ..multiply(
+              Matrix4.translationValues(-anchorPixel.dx, -anchorPixel.dy, 0.0));
 
         final rotatedRegion = baseRegion.transformed(matrix);
         controller.setSelection(rotatedRegion);
-        _config.onSelectionRotate?.call(rotatedRegion, _rotationOriginalRegion!, rotationAngle, _rotationCenter);
+        _config.onSelectionRotate?.call(rotatedRegion, _rotationOriginalRegion!,
+            rotationAngle, _rotationCenter);
         break;
       case CanvasSelectionHandle.anchor:
-        final newPixelPos = _clampPixelOffset(_screenToPixel(event.localPosition, canvasSize));
+        final newPixelPos =
+            _clampPixelOffset(_screenToPixel(event.localPosition, canvasSize));
         _config.onAnchorChanged?.call(newPixelPos);
         break;
       case CanvasSelectionHandle.topLeft:

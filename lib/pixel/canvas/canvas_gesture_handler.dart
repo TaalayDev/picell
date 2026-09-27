@@ -72,7 +72,8 @@ class CanvasGestureHandler {
 
   bool _canDrawWithPointer(PointerDeviceKind kind) {
     if (inputMode == GestureInputMode.standard) return true;
-    return kind == PointerDeviceKind.stylus || kind == PointerDeviceKind.invertedStylus;
+    return kind == PointerDeviceKind.stylus ||
+        kind == PointerDeviceKind.invertedStylus;
   }
 
   bool _shouldUseForNavigation(PointerDeviceKind kind) {
@@ -131,7 +132,8 @@ class CanvasGestureHandler {
     _pendingMoveDetails = null;
   }
 
-  void handleScaleStart(ScaleStartDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handleScaleStart(ScaleStartDetails details, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     _pointerCount = details.pointerCount;
 
     if (_pointerCount == 1) {
@@ -141,7 +143,8 @@ class CanvasGestureHandler {
     }
   }
 
-  void handleScaleUpdate(ScaleUpdateDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handleScaleUpdate(ScaleUpdateDetails details, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     _pointerCount = details.pointerCount;
 
     if (_pointerCount == 1) {
@@ -151,14 +154,17 @@ class CanvasGestureHandler {
     }
   }
 
-  void handleScaleEnd(ScaleEndDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handleScaleEnd(ScaleEndDetails details, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     final wasUndoAttempt = _isTwoFingerPotentiallyUndo;
     final startTimeForUndo = _twoFingerStartTimeMs;
     final currentPointerCountAtEnd = _pointerCount;
 
     _resetTwoFingerState();
 
-    if (wasUndoAttempt && startTimeForUndo != null && currentPointerCountAtEnd == 2) {
+    if (wasUndoAttempt &&
+        startTimeForUndo != null &&
+        currentPointerCountAtEnd == 2) {
       if (_handleUndoGesture(startTimeForUndo)) {
         _pointerCount = 0;
         _isDrawingActive = false;
@@ -173,7 +179,8 @@ class CanvasGestureHandler {
     _pointerCount = 0;
   }
 
-  void handleTapDown(TapDownDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handleTapDown(TapDownDetails details, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     if (_shouldHandleDirectTap(currentTool)) {
       onStartDrawing();
       toolManager.handleTap(currentTool, drawDetails);
@@ -181,7 +188,7 @@ class CanvasGestureHandler {
         _finishDrawing();
       }
     } else if (currentTool == PixelTool.pen) {
-      toolManager.handlePenTap(drawDetails, controller);
+      _handlePenTap(drawDetails);
     } else if (currentTool == PixelTool.curve) {
       toolManager.handleCurveTap(drawDetails, controller);
       if (!toolManager.isCurveActive) {
@@ -195,9 +202,14 @@ class CanvasGestureHandler {
     }
   }
 
-  void handleTapUp(TapUpDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handleTapUp(TapUpDetails details, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     _flushPendingMove();
-    if (!_shouldHandleDirectTap(currentTool) && !_isSelectionTool(currentTool)) {
+    if (currentTool == PixelTool.pen || currentTool == PixelTool.curve) {
+      return;
+    }
+    if (!_shouldHandleDirectTap(currentTool) &&
+        !_isSelectionTool(currentTool)) {
       _finishDrawing();
     } else if (_isSelectionTool(currentTool) && _isDrawingActive) {
       toolManager.endDrawing(currentTool, drawDetails);
@@ -205,19 +217,22 @@ class CanvasGestureHandler {
     }
   }
 
-  void handleCurveTap(TapDownDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handleCurveTap(TapDownDetails details, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     if (currentTool == PixelTool.curve) {
       toolManager.handleCurveTap(drawDetails, controller);
     }
   }
 
-  void handleCurveMove(Offset position, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handleCurveMove(
+      Offset position, PixelTool currentTool, PixelDrawDetails drawDetails) {
     if (currentTool == PixelTool.curve) {
       toolManager.handleCurveMove(drawDetails, controller);
     }
   }
 
-  void _handleSingleFingerStart(ScaleStartDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void _handleSingleFingerStart(ScaleStartDetails details,
+      PixelTool currentTool, PixelDrawDetails drawDetails) {
     if (currentTool == PixelTool.drag) {
       _panStartPosition = details.localFocalPoint - controller.offset;
       onStartPixelDrag?.call(controller.offset);
@@ -231,7 +246,8 @@ class CanvasGestureHandler {
     }
   }
 
-  void _handleSingleFingerUpdate(ScaleUpdateDetails details, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void _handleSingleFingerUpdate(ScaleUpdateDetails details,
+      PixelTool currentTool, PixelDrawDetails drawDetails) {
     if (currentTool == PixelTool.drag) {
       final newOffset = details.localFocalPoint - _panStartPosition!;
       controller.setOffset(newOffset);
@@ -245,7 +261,8 @@ class CanvasGestureHandler {
     }
   }
 
-  void _handleSingleFingerEnd(PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void _handleSingleFingerEnd(
+      PixelTool currentTool, PixelDrawDetails drawDetails) {
     _flushPendingMove();
     if (currentTool == PixelTool.drag) {
       onPixelDragEnd?.call(controller.offset);
@@ -266,12 +283,14 @@ class CanvasGestureHandler {
     _twoFingerStartTimeMs = DateTime.now().millisecondsSinceEpoch;
     _initialTwoFingerScale = controller.zoomLevel;
     _isTwoFingerPotentiallyUndo = true;
-    _normalizedOffset = (controller.offset - details.localFocalPoint) / controller.zoomLevel;
+    _normalizedOffset =
+        (controller.offset - details.localFocalPoint) / controller.zoomLevel;
   }
 
   void _handleTwoFingerUpdate(ScaleUpdateDetails details) {
     if (_isTwoFingerPotentiallyUndo) {
-      final distanceMoved = (details.localFocalPoint - _twoFingerStartFocalPoint!).distance;
+      final distanceMoved =
+          (details.localFocalPoint - _twoFingerStartFocalPoint!).distance;
       if (distanceMoved > 12.0 || (details.scale - 1.0).abs() > 0.05) {
         _isTwoFingerPotentiallyUndo = false;
       }
@@ -343,7 +362,8 @@ class CanvasGestureHandler {
 
   // ── Raw pointer handling (used by Listener, not GestureDetector) ──
 
-  void handlePointerDown(PointerDownEvent event, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handlePointerDown(PointerDownEvent event, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     _activePointers[event.pointer] = event;
     final pointerCount = _activePointers.length;
 
@@ -354,7 +374,8 @@ class CanvasGestureHandler {
     }
   }
 
-  void handlePointerMove(PointerMoveEvent event, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handlePointerMove(PointerMoveEvent event, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     if (!_activePointers.containsKey(event.pointer)) return;
 
     _activePointers[event.pointer] = event;
@@ -367,7 +388,8 @@ class CanvasGestureHandler {
     }
   }
 
-  void handlePointerUp(PointerUpEvent event, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handlePointerUp(PointerUpEvent event, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     _activePointers.remove(event.pointer);
     final pointerCount = _activePointers.length;
 
@@ -378,7 +400,8 @@ class CanvasGestureHandler {
     }
   }
 
-  void _handleSinglePointerDown(PointerDownEvent event, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void _handleSinglePointerDown(PointerDownEvent event, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     final pointerKind = event.kind;
     final canDraw = _canDrawWithPointer(pointerKind);
     final shouldNavigate = _shouldUseForNavigation(pointerKind);
@@ -400,7 +423,7 @@ class CanvasGestureHandler {
         _finishDrawing();
       }
     } else if (currentTool == PixelTool.pen) {
-      toolManager.handlePenTap(drawDetails, controller, onPathClosed: () => _finishDrawing());
+      _handlePenTap(drawDetails);
     } else if (_isSelectionTool(currentTool)) {
       // Selection tools: don't save undo state, just start the selection gesture
       toolManager.startDrawing(currentTool, drawDetails);
@@ -412,7 +435,8 @@ class CanvasGestureHandler {
     }
   }
 
-  void _handleSinglePointerMove(PointerMoveEvent event, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void _handleSinglePointerMove(PointerMoveEvent event, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     final pointerKind = event.kind;
     final shouldNavigate = _shouldUseForNavigation(pointerKind);
 
@@ -470,7 +494,8 @@ class CanvasGestureHandler {
 
       if (enableMultiTouchViewportNavigation) {
         _initialTwoFingerScale = controller.zoomLevel;
-        _normalizedOffset = (controller.offset - focalPoint) / controller.zoomLevel;
+        _normalizedOffset =
+            (controller.offset - focalPoint) / controller.zoomLevel;
       }
     }
   }
@@ -487,13 +512,17 @@ class CanvasGestureHandler {
       (pointer1.localPosition.dy + pointer2.localPosition.dy) / 2,
     );
 
-    final currentDistance = (pointer1.localPosition - pointer2.localPosition).distance;
+    final currentDistance =
+        (pointer1.localPosition - pointer2.localPosition).distance;
     // Use the distance captured when both fingers first touched (not current).
     final initialDistance = _initialTwoPointerDistance;
 
     if (_isTwoFingerPotentiallyUndo && _twoFingerStartFocalPoint != null) {
-      final distanceMoved = (currentFocalPoint - _twoFingerStartFocalPoint!).distance;
-      final scaleChange = initialDistance > 0 ? (currentDistance / initialDistance - 1.0).abs() : 0.0;
+      final distanceMoved =
+          (currentFocalPoint - _twoFingerStartFocalPoint!).distance;
+      final scaleChange = initialDistance > 0
+          ? (currentDistance / initialDistance - 1.0).abs()
+          : 0.0;
 
       if (distanceMoved > 12.0 || scaleChange > 0.05) {
         _isTwoFingerPotentiallyUndo = false;
@@ -514,7 +543,8 @@ class CanvasGestureHandler {
     }
   }
 
-  void _handleAllPointersUp(PointerUpEvent event, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void _handleAllPointersUp(PointerUpEvent event, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     if (_isTwoFingerPotentiallyUndo && _twoFingerStartTimeMs != null) {
       if (_handleUndoGesture(_twoFingerStartTimeMs!)) {
         _discardPendingMove();
@@ -549,13 +579,47 @@ class CanvasGestureHandler {
 
   void _finishRawPointerDrawing() {
     if (_isRawPointerDrawing) {
-      final previewPixels = List<PixelPoint<int>>.from(controller.previewPixels);
+      final previewPixels =
+          List<PixelPoint<int>>.from(controller.previewPixels);
       if (previewPixels.isNotEmpty) {
         onDrawShape(previewPixels);
       }
       onFinishDrawing();
       _isRawPointerDrawing = false;
     }
+  }
+
+  void _handlePenTap(PixelDrawDetails details) {
+    if (!_isPenDrawingActive) {
+      onStartDrawing();
+      _isPenDrawingActive = true;
+    }
+    toolManager.handlePenTap(
+      details,
+      controller,
+      onPathClosed: finishPenDrawing,
+    );
+  }
+
+  /// True while all points of the current pen path share one drawing batch.
+  bool get isPenDrawingActive => _isPenDrawingActive;
+  bool _isPenDrawingActive = false;
+
+  /// Commits the current pen preview as one undoable drawing operation.
+  void finishPenDrawing() {
+    if (!_isPenDrawingActive) return;
+    _finishDrawing();
+    _isPenDrawingActive = false;
+  }
+
+  /// Discards the current pen path and its pending drawing batch.
+  void cancelPenDrawing() {
+    if (!_isPenDrawingActive) return;
+    controller.clearPreviewPixels();
+    controller.setPenPoints([]);
+    controller.setDrawingPenPath(false);
+    (onCancelDrawing ?? onFinishDrawing).call();
+    _isPenDrawingActive = false;
   }
 
   void _resetPointerState() {
@@ -583,7 +647,8 @@ class CanvasGestureHandler {
     return (pointers[0].localPosition - pointers[1].localPosition).distance;
   }
 
-  void handlePointerCancel(PointerCancelEvent event, PixelTool currentTool, PixelDrawDetails drawDetails) {
+  void handlePointerCancel(PointerCancelEvent event, PixelTool currentTool,
+      PixelDrawDetails drawDetails) {
     _discardPendingMove();
     _activePointers.remove(event.pointer);
 

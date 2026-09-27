@@ -230,6 +230,14 @@ class ShapesMenuButton extends StatelessWidget {
           child: ListTile(
             leading: const Icon(Icons.show_chart),
             title: Text(Strings.of(context).lineTool),
+            trailing: Text(
+              'L',
+              style: TextStyle(
+                fontFamily: 'monospace',
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                fontSize: 12,
+              ),
+            ),
           ),
         ),
         PopupMenuItem<PixelTool>(
@@ -237,6 +245,14 @@ class ShapesMenuButton extends StatelessWidget {
           child: ListTile(
             leading: const Icon(Icons.crop_square),
             title: Text(Strings.of(context).rectangleTool),
+            trailing: Text(
+              'U',
+              style: TextStyle(
+                fontFamily: 'monospace',
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                fontSize: 12,
+              ),
+            ),
           ),
         ),
         PopupMenuItem<PixelTool>(
@@ -244,6 +260,14 @@ class ShapesMenuButton extends StatelessWidget {
           child: ListTile(
             leading: const Icon(Icons.radio_button_unchecked),
             title: Text(Strings.of(context).circleTool),
+            trailing: Text(
+              'O',
+              style: TextStyle(
+                fontFamily: 'monospace',
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                fontSize: 12,
+              ),
+            ),
           ),
         ),
         const PopupMenuDivider(),
@@ -385,6 +409,14 @@ class SelectionToolsMenuButton extends StatelessWidget {
           child: ListTile(
             leading: const AppIcon(AppIcons.select),
             title: Text(Strings.of(context).rectangleSelect),
+            trailing: Text(
+              'M',
+              style: TextStyle(
+                fontFamily: 'monospace',
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                fontSize: 12,
+              ),
+            ),
           ),
         ),
         PopupMenuItem<PixelTool>(

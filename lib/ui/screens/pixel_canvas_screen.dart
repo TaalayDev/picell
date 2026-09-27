@@ -36,6 +36,7 @@ import '../widgets/dialogs/save_image_window.dart';
 import '../widgets/dialogs/templates_dialog.dart';
 import '../widgets/dialogs/undo_history_dialog.dart';
 import '../widgets/mobile_color_selector.dart';
+import '../widgets/pen_path_actions.dart';
 import '../widgets/selection_mode_toggle.dart';
 import '../widgets/selection_options_button.dart';
 import '../widgets/tool_bar.dart';
@@ -343,6 +344,13 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
       onCopySelection: copySelectionToClipboard,
       onCutSelection: cutSelectionToClipboard,
       onPasteSelection: pasteFromClipboard,
+      onToggleTileMode: () => tileModeEnabled.value = !tileModeEnabled.value,
+      onToggleGrid: () {
+        ref
+            .read(editorSettingsNotifierProvider.notifier)
+            .setShowPixelGrid(!editorSettings.showPixelGrid);
+      },
+      onToggleOnionSkin: () => showPrevFrames.value = !showPrevFrames.value,
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         body: SafeArea(
@@ -386,6 +394,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                   onZoomOut: () {
                     viewportController.zoomOut();
                   },
+                  onZoomFit: () => _setZoomFit(viewportController),
+                  onZoom100: () => _setZoom100(viewportController),
                   onShare: () => notifier.share(context),
                   showPrevFramesOpacity: () {
                     showPrevFrames.value = !showPrevFrames.value;
@@ -416,6 +426,10 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                   },
                   currentLayerHasEffects:
                       notifier.getCurrentLayer().effects.isNotEmpty,
+                  onFinishPenPath: () =>
+                      notifier.pushEvent(const ClosePenPathEvent()),
+                  onCancelPenPath: () =>
+                      notifier.pushEvent(const CancelPenPathEvent()),
                 ),
                 Expanded(
                   child: Row(
@@ -560,29 +574,39 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                                       Positioned(
                                         right: 26,
                                         bottom: 26,
-                                        child: SelectionOptionsButton(
-                                          hasSelection: hasSelection,
-                                          isFloating: true,
-                                          onClearSelection: () =>
-                                              notifier.clearSelection(),
-                                          onDelete: () =>
-                                              notifier.clearSelectionArea(),
-                                          onCutToNewLayer: () =>
-                                              notifier.cutToNewLayer(),
-                                          onCopyToNewLayer: () =>
-                                              notifier.copyToNewLayer(),
-                                          onCopy: copySelectionToClipboard,
-                                          onCut: cutSelectionToClipboard,
-                                          onPaste: clipboard != null
-                                              ? pasteFromClipboard
-                                              : null,
-                                          onInvert: () =>
-                                              notifier.invertSelection(),
-                                          onGrow: () =>
-                                              notifier.growSelection(),
-                                          onShrink: () =>
-                                              notifier.shrinkSelection(),
-                                        ),
+                                        child: currentTool.value ==
+                                                PixelTool.pen
+                                            ? PenPathActions(
+                                                isFloating: true,
+                                                onFinish: () => notifier.pushEvent(
+                                                    const ClosePenPathEvent()),
+                                                onCancel: () => notifier.pushEvent(
+                                                    const CancelPenPathEvent()),
+                                              )
+                                            : SelectionOptionsButton(
+                                                hasSelection: hasSelection,
+                                                isFloating: true,
+                                                onClearSelection: () =>
+                                                    notifier.clearSelection(),
+                                                onDelete: () => notifier
+                                                    .clearSelectionArea(),
+                                                onCutToNewLayer: () =>
+                                                    notifier.cutToNewLayer(),
+                                                onCopyToNewLayer: () =>
+                                                    notifier.copyToNewLayer(),
+                                                onCopy:
+                                                    copySelectionToClipboard,
+                                                onCut: cutSelectionToClipboard,
+                                                onPaste: clipboard != null
+                                                    ? pasteFromClipboard
+                                                    : null,
+                                                onInvert: () =>
+                                                    notifier.invertSelection(),
+                                                onGrow: () =>
+                                                    notifier.growSelection(),
+                                                onShrink: () =>
+                                                    notifier.shrinkSelection(),
+                                              ),
                                       ),
                                   ],
                                 ],

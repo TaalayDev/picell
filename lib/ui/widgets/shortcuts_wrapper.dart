@@ -17,6 +17,9 @@ class ShortcutsWrapper extends StatefulWidget {
     this.onZoomOut,
     this.onZoomFit,
     this.onZoom100,
+    this.onToggleTileMode,
+    this.onToggleGrid,
+    this.onToggleOnionSkin,
     this.onSwapColors,
     this.onDefaultColors,
     this.onToggleUI,
@@ -62,6 +65,9 @@ class ShortcutsWrapper extends StatefulWidget {
   final VoidCallback? onZoomOut;
   final VoidCallback? onZoomFit;
   final VoidCallback? onZoom100;
+  final VoidCallback? onToggleTileMode;
+  final VoidCallback? onToggleGrid;
+  final VoidCallback? onToggleOnionSkin;
 
   // Color actions
   final VoidCallback? onSwapColors;
@@ -242,9 +248,20 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
 
       // Zoom
       LogicalKeySet(LogicalKeyboardKey.equal): const ZoomInIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.equal): const ZoomInIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.add): const ZoomInIntent(),
       LogicalKeySet(LogicalKeyboardKey.minus): const ZoomOutIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.minus): const ZoomOutIntent(),
       LogicalKeySet(LogicalKeyboardKey.digit0): const ZoomFitIntent(),
       LogicalKeySet(LogicalKeyboardKey.digit1): const Zoom100Intent(),
+
+      // View toggles
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyT):
+          const ToggleTileModeIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.quote):
+          const ToggleGridIntent(),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyO):
+          const ToggleOnionSkinIntent(),
 
       // Colors
       LogicalKeySet(LogicalKeyboardKey.keyX): const SwapColorsIntent(),
@@ -334,6 +351,15 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       ),
       Zoom100Intent: CallbackAction<Zoom100Intent>(
         onInvoke: (intent) => widget.onZoom100?.call(),
+      ),
+      ToggleTileModeIntent: CallbackAction<ToggleTileModeIntent>(
+        onInvoke: (intent) => widget.onToggleTileMode?.call(),
+      ),
+      ToggleGridIntent: CallbackAction<ToggleGridIntent>(
+        onInvoke: (intent) => widget.onToggleGrid?.call(),
+      ),
+      ToggleOnionSkinIntent: CallbackAction<ToggleOnionSkinIntent>(
+        onInvoke: (intent) => widget.onToggleOnionSkin?.call(),
       ),
       SwapColorsIntent: CallbackAction<SwapColorsIntent>(
         onInvoke: (intent) => widget.onSwapColors?.call(),
@@ -448,6 +474,18 @@ class ZoomFitIntent extends Intent {
 
 class Zoom100Intent extends Intent {
   const Zoom100Intent();
+}
+
+class ToggleTileModeIntent extends Intent {
+  const ToggleTileModeIntent();
+}
+
+class ToggleGridIntent extends Intent {
+  const ToggleGridIntent();
+}
+
+class ToggleOnionSkinIntent extends Intent {
+  const ToggleOnionSkinIntent();
 }
 
 class SwapColorsIntent extends Intent {

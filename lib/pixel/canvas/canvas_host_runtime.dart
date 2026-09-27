@@ -57,16 +57,17 @@ class PixelCanvasHostRuntime {
     required SelectionState? selectionState,
     required int wandTolerance,
     required bool wandContiguous,
-  }) : _lastLayers = layers,
-       _lastCurrentLayerIndex = currentLayerIndex,
-       _lastCurrentTool = currentTool,
-       _lastInputMode = inputMode,
-       _lastTwoFingerUndoEnabled = twoFingerUndoEnabled,
-       _lastEnableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation,
-       _lastSelectionState = selectionState,
-       _lastWandTolerance = wandTolerance,
-       _lastWandContiguous = wandContiguous,
-       _viewportController = viewportController;
+  })  : _lastLayers = layers,
+        _lastCurrentLayerIndex = currentLayerIndex,
+        _lastCurrentTool = currentTool,
+        _lastInputMode = inputMode,
+        _lastTwoFingerUndoEnabled = twoFingerUndoEnabled,
+        _lastEnableMultiTouchViewportNavigation =
+            enableMultiTouchViewportNavigation,
+        _lastSelectionState = selectionState,
+        _lastWandTolerance = wandTolerance,
+        _lastWandContiguous = wandContiguous,
+        _viewportController = viewportController;
 
   factory PixelCanvasHostRuntime.create({
     required int width,
@@ -109,7 +110,9 @@ class PixelCanvasHostRuntime {
         final wasCombineGesture = toolManager.hasActiveCombineGesture;
         final resolved = toolManager.resolveSelectionGesture(region);
         final tooSmall = !wasCombineGesture &&
-            (resolved == null || resolved.bounds.width < 2 || resolved.bounds.height < 2);
+            (resolved == null ||
+                resolved.bounds.width < 2 ||
+                resolved.bounds.height < 2);
 
         if (resolved == null || resolved.bounds.isEmpty || tooSmall) {
           controller.clearSelection();
@@ -146,7 +149,8 @@ class PixelCanvasHostRuntime {
       },
       onDrawShape: (shape) {
         final currentToolValue = callbacks.getCurrentTool();
-        if (currentToolValue == PixelTool.select || currentToolValue == PixelTool.ellipseSelect) {
+        if (currentToolValue == PixelTool.select ||
+            currentToolValue == PixelTool.ellipseSelect) {
           return;
         }
         callbacks.onDrawShape(shape);
@@ -163,11 +167,14 @@ class PixelCanvasHostRuntime {
 
     controller.initialize(layers);
     controller.setCurrentTool(currentTool);
-    controller.setZoomAndOffset(viewportController.scale, viewportController.offset);
-    toolManager.setWandOptions(tolerance: wandTolerance, contiguous: wandContiguous);
+    controller.setZoomAndOffset(
+        viewportController.scale, viewportController.offset);
+    toolManager.setWandOptions(
+        tolerance: wandTolerance, contiguous: wandContiguous);
     gestureHandler.inputMode = inputMode;
     gestureHandler.twoFingerUndoEnabled = twoFingerUndoEnabled;
-    gestureHandler.enableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation;
+    gestureHandler.enableMultiTouchViewportNavigation =
+        enableMultiTouchViewportNavigation;
 
     final runtime = PixelCanvasHostRuntime._(
       controller: controller,
@@ -232,8 +239,15 @@ class PixelCanvasHostRuntime {
     if (currentTool != _lastCurrentTool) {
       // If we're leaving the curve tool with an in-progress curve, abort it
       // so the orphaned undo snapshot and preview pixels don't linger.
-      if (_lastCurrentTool == PixelTool.curve && currentTool != PixelTool.curve && toolManager.isCurveActive) {
+      if (_lastCurrentTool == PixelTool.curve &&
+          currentTool != PixelTool.curve &&
+          toolManager.isCurveActive) {
         gestureHandler.resetCurveTool();
+      }
+      // Leaving Pen must not let setCurrentTool clear a path that is already
+      // visible to the user. Commit its current preview first.
+      if (_lastCurrentTool == PixelTool.pen && currentTool != PixelTool.pen) {
+        gestureHandler.finishPenDrawing();
       }
       controller.setCurrentTool(currentTool);
       _lastCurrentTool = currentTool;
@@ -262,13 +276,18 @@ class PixelCanvasHostRuntime {
       _lastTwoFingerUndoEnabled = twoFingerUndoEnabled;
     }
 
-    if (enableMultiTouchViewportNavigation != _lastEnableMultiTouchViewportNavigation) {
-      gestureHandler.enableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation;
-      _lastEnableMultiTouchViewportNavigation = enableMultiTouchViewportNavigation;
+    if (enableMultiTouchViewportNavigation !=
+        _lastEnableMultiTouchViewportNavigation) {
+      gestureHandler.enableMultiTouchViewportNavigation =
+          enableMultiTouchViewportNavigation;
+      _lastEnableMultiTouchViewportNavigation =
+          enableMultiTouchViewportNavigation;
     }
 
-    if (wandTolerance != _lastWandTolerance || wandContiguous != _lastWandContiguous) {
-      toolManager.setWandOptions(tolerance: wandTolerance, contiguous: wandContiguous);
+    if (wandTolerance != _lastWandTolerance ||
+        wandContiguous != _lastWandContiguous) {
+      toolManager.setWandOptions(
+          tolerance: wandTolerance, contiguous: wandContiguous);
       _lastWandTolerance = wandTolerance;
       _lastWandContiguous = wandContiguous;
     }
@@ -281,7 +300,8 @@ class PixelCanvasHostRuntime {
   }
 
   void _syncViewportFromController() {
-    controller.setZoomAndOffset(_viewportController.scale, _viewportController.offset);
+    controller.setZoomAndOffset(
+        _viewportController.scale, _viewportController.offset);
   }
 
   void _handleViewportChanged() {
