@@ -12,6 +12,11 @@ abstract class ProjectRepo {
   Future<Project?> fetchProjectByOrigin(int communityProjectId);
   Future<Project> createProject(Project project);
   Future<void> updateProject(Project project);
+  Future<void> updateProjectSelection(
+    int projectId, {
+    required int frameId,
+    required int layerId,
+  });
   Future<void> renameProject(int projectId, String name);
   Future<void> deleteProject(Project project);
   Future<void> markProjectAsSynced(int projectId, int? remoteProjectId);
@@ -64,7 +69,9 @@ class ProjectLocalRepo extends ProjectRepo {
 
       // For tile generator projects, the thumbnail is provided by the caller
       // For pixel art projects, regenerate thumbnail from layers
-      if (project.type == ProjectType.pixelArt && project.frames.isNotEmpty && project.frames.first.layers.isNotEmpty) {
+      if (project.type == ProjectType.pixelArt &&
+          project.frames.isNotEmpty &&
+          project.frames.first.layers.isNotEmpty) {
         final thumbnail = await compute(_generateProjectThumbnail, (
           width: project.width,
           height: project.height,
@@ -78,13 +85,30 @@ class ProjectLocalRepo extends ProjectRepo {
   }
 
   @override
+  Future<void> updateProjectSelection(
+    int projectId, {
+    required int frameId,
+    required int layerId,
+  }) {
+    return queueManager.addCoalesced(
+      'updateProjectSelection:$projectId',
+      () => db.updateProjectSelection(
+        projectId,
+        frameId: frameId,
+        layerId: layerId,
+      ),
+    );
+  }
+
+  @override
   Future<void> renameProject(int projectId, String name) {
     return queueManager.add(() => db.renameProject(projectId, name));
   }
 
   @override
   Future<void> markProjectAsSynced(int projectId, int? remoteProjectId) {
-    return queueManager.add(() => db.markProjectAsSynced(projectId, remoteProjectId));
+    return queueManager
+        .add(() => db.markProjectAsSynced(projectId, remoteProjectId));
   }
 
   @override

@@ -203,12 +203,16 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('toolbar-view-menu')));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.grid_view_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.grid_on_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.animation_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.opacity_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.fit_screen_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.aspect_ratio_outlined), findsOneWidget);
+    Finder findMenuIcon(IconData icon) => find.byWidgetPredicate(
+          (w) => w is Icon && w.icon == icon && w.size == 18.0,
+        );
+
+    expect(findMenuIcon(Icons.grid_view_rounded), findsOneWidget);
+    expect(findMenuIcon(Icons.grid_on_rounded), findsOneWidget);
+    expect(findMenuIcon(Icons.animation_rounded), findsOneWidget);
+    expect(findMenuIcon(Icons.opacity_rounded), findsOneWidget);
+    expect(findMenuIcon(Icons.fit_screen_outlined), findsOneWidget);
+    expect(findMenuIcon(Icons.aspect_ratio_outlined), findsOneWidget);
 
     expect(find.text('Shift + T'), findsOneWidget);
     expect(find.text('Shift + O'), findsOneWidget);

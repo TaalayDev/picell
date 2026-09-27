@@ -34,6 +34,8 @@ class Project with EquatableMixin {
   /// to"), this survives regardless of ownership so lineage isn't lost when
   /// a downloaded-but-not-owned project is later uploaded as a new fork.
   final int? forkedFromId;
+  final int? selectedFrameId;
+  final int? selectedLayerId;
   final DateTime createdAt;
   final DateTime editedAt;
 
@@ -66,6 +68,8 @@ class Project with EquatableMixin {
     this.isCloudSynced = false,
     this.remoteId,
     this.forkedFromId,
+    this.selectedFrameId,
+    this.selectedLayerId,
     this.states = const [],
     this.frames = const [],
     this.type = ProjectType.pixelArt,
@@ -89,6 +93,10 @@ class Project with EquatableMixin {
     bool clearRemoteId = false,
     int? forkedFromId,
     bool clearForkedFromId = false,
+    int? selectedFrameId,
+    bool clearSelectedFrameId = false,
+    int? selectedLayerId,
+    bool clearSelectedLayerId = false,
     DateTime? createdAt,
     DateTime? editedAt,
     ProjectType? type,
@@ -108,7 +116,14 @@ class Project with EquatableMixin {
       frames: frames ?? this.frames,
       isCloudSynced: isCloudSynced ?? this.isCloudSynced,
       remoteId: clearRemoteId ? null : (remoteId ?? this.remoteId),
-      forkedFromId: clearForkedFromId ? null : (forkedFromId ?? this.forkedFromId),
+      forkedFromId:
+          clearForkedFromId ? null : (forkedFromId ?? this.forkedFromId),
+      selectedFrameId: clearSelectedFrameId
+          ? null
+          : (selectedFrameId ?? this.selectedFrameId),
+      selectedLayerId: clearSelectedLayerId
+          ? null
+          : (selectedLayerId ?? this.selectedLayerId),
       thumbnail: thumbnail ?? this.thumbnail,
       createdAt: createdAt ?? this.createdAt,
       editedAt: editedAt ?? this.editedAt,
@@ -139,6 +154,8 @@ class Project with EquatableMixin {
       'isCloudSynced': isCloudSynced,
       'remoteId': remoteId,
       'forkedFromId': forkedFromId,
+      'selectedFrameId': selectedFrameId,
+      'selectedLayerId': selectedLayerId,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'editedAt': editedAt.millisecondsSinceEpoch,
     };
@@ -163,7 +180,8 @@ class Project with EquatableMixin {
       tilemapData: json['tilemapData'] as String?,
       states: (json['states'] as List)
           .map(
-            (state) => AnimationStateModel.fromJson(state as Map<String, dynamic>),
+            (state) =>
+                AnimationStateModel.fromJson(state as Map<String, dynamic>),
           )
           .toList(),
       frames: (json['frames'] as List)
@@ -174,7 +192,11 @@ class Project with EquatableMixin {
       isCloudSynced: json['isCloudSynced'] as bool? ?? false,
       remoteId: json['remoteId'] as int?,
       forkedFromId: json['forkedFromId'] as int?,
-      thumbnail: json['thumbnail'] != null ? Uint8List.fromList(json['thumbnail'].cast<int>()) : null,
+      selectedFrameId: json['selectedFrameId'] as int?,
+      selectedLayerId: json['selectedLayerId'] as int?,
+      thumbnail: json['thumbnail'] != null
+          ? Uint8List.fromList(json['thumbnail'].cast<int>())
+          : null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
       editedAt: DateTime.fromMillisecondsSinceEpoch(json['editedAt'] as int),
     );
@@ -194,6 +216,8 @@ class Project with EquatableMixin {
         tilemapData,
         frames,
         states,
+        selectedFrameId,
+        selectedLayerId,
         thumbnail,
         createdAt,
         editedAt,

@@ -213,11 +213,20 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
                         for (final tab in _tabs)
                           Tooltip(
                             message: tab.label(context),
-                            child: Tab(
-                              key: ValueKey('side-panel-tab-${tab.name}'),
-                              height: 36,
-                              icon: Icon(tab.icon, size: 18),
-                              iconMargin: EdgeInsets.zero,
+                            child: DefaultTextStyle(
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: _tabController.index == _tabs.indexOf(tab)
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface.withValues(alpha: 0.5),
+                              ),
+                              child: Tab(
+                                key: ValueKey('side-panel-tab-${tab.name}'),
+                                height: 36,
+                                // icon: Icon(tab.icon, size: 18),
+                                text: tab.label(context),
+                                iconMargin: EdgeInsets.zero,
+                              ),
                             ),
                           ),
                       ],

@@ -114,6 +114,18 @@ class $ProjectsTableTable extends ProjectsTable
   late final GeneratedColumn<int> forkedFromId = GeneratedColumn<int>(
       'forked_from_id', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _selectedFrameIdMeta =
+      const VerificationMeta('selectedFrameId');
+  @override
+  late final GeneratedColumn<int> selectedFrameId = GeneratedColumn<int>(
+      'selected_frame_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _selectedLayerIdMeta =
+      const VerificationMeta('selectedLayerId');
+  @override
+  late final GeneratedColumn<int> selectedLayerId = GeneratedColumn<int>(
+      'selected_layer_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -131,7 +143,9 @@ class $ProjectsTableTable extends ProjectsTable
         gridColumns,
         gridRows,
         tilemapData,
-        forkedFromId
+        forkedFromId,
+        selectedFrameId,
+        selectedLayerId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -228,6 +242,18 @@ class $ProjectsTableTable extends ProjectsTable
           forkedFromId.isAcceptableOrUnknown(
               data['forked_from_id']!, _forkedFromIdMeta));
     }
+    if (data.containsKey('selected_frame_id')) {
+      context.handle(
+          _selectedFrameIdMeta,
+          selectedFrameId.isAcceptableOrUnknown(
+              data['selected_frame_id']!, _selectedFrameIdMeta));
+    }
+    if (data.containsKey('selected_layer_id')) {
+      context.handle(
+          _selectedLayerIdMeta,
+          selectedLayerId.isAcceptableOrUnknown(
+              data['selected_layer_id']!, _selectedLayerIdMeta));
+    }
     return context;
   }
 
@@ -269,6 +295,10 @@ class $ProjectsTableTable extends ProjectsTable
           .read(DriftSqlType.string, data['${effectivePrefix}tilemap_data']),
       forkedFromId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}forked_from_id']),
+      selectedFrameId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}selected_frame_id']),
+      selectedLayerId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}selected_layer_id']),
     );
   }
 
@@ -296,6 +326,8 @@ class ProjectsTableData extends DataClass
   final int? gridRows;
   final String? tilemapData;
   final int? forkedFromId;
+  final int? selectedFrameId;
+  final int? selectedLayerId;
   const ProjectsTableData(
       {required this.id,
       required this.name,
@@ -312,7 +344,9 @@ class ProjectsTableData extends DataClass
       this.gridColumns,
       this.gridRows,
       this.tilemapData,
-      this.forkedFromId});
+      this.forkedFromId,
+      this.selectedFrameId,
+      this.selectedLayerId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -347,6 +381,12 @@ class ProjectsTableData extends DataClass
     }
     if (!nullToAbsent || forkedFromId != null) {
       map['forked_from_id'] = Variable<int>(forkedFromId);
+    }
+    if (!nullToAbsent || selectedFrameId != null) {
+      map['selected_frame_id'] = Variable<int>(selectedFrameId);
+    }
+    if (!nullToAbsent || selectedLayerId != null) {
+      map['selected_layer_id'] = Variable<int>(selectedLayerId);
     }
     return map;
   }
@@ -385,6 +425,12 @@ class ProjectsTableData extends DataClass
       forkedFromId: forkedFromId == null && nullToAbsent
           ? const Value.absent()
           : Value(forkedFromId),
+      selectedFrameId: selectedFrameId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(selectedFrameId),
+      selectedLayerId: selectedLayerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(selectedLayerId),
     );
   }
 
@@ -408,6 +454,8 @@ class ProjectsTableData extends DataClass
       gridRows: serializer.fromJson<int?>(json['gridRows']),
       tilemapData: serializer.fromJson<String?>(json['tilemapData']),
       forkedFromId: serializer.fromJson<int?>(json['forkedFromId']),
+      selectedFrameId: serializer.fromJson<int?>(json['selectedFrameId']),
+      selectedLayerId: serializer.fromJson<int?>(json['selectedLayerId']),
     );
   }
   @override
@@ -430,6 +478,8 @@ class ProjectsTableData extends DataClass
       'gridRows': serializer.toJson<int?>(gridRows),
       'tilemapData': serializer.toJson<String?>(tilemapData),
       'forkedFromId': serializer.toJson<int?>(forkedFromId),
+      'selectedFrameId': serializer.toJson<int?>(selectedFrameId),
+      'selectedLayerId': serializer.toJson<int?>(selectedLayerId),
     };
   }
 
@@ -449,7 +499,9 @@ class ProjectsTableData extends DataClass
           Value<int?> gridColumns = const Value.absent(),
           Value<int?> gridRows = const Value.absent(),
           Value<String?> tilemapData = const Value.absent(),
-          Value<int?> forkedFromId = const Value.absent()}) =>
+          Value<int?> forkedFromId = const Value.absent(),
+          Value<int?> selectedFrameId = const Value.absent(),
+          Value<int?> selectedLayerId = const Value.absent()}) =>
       ProjectsTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -468,6 +520,12 @@ class ProjectsTableData extends DataClass
         tilemapData: tilemapData.present ? tilemapData.value : this.tilemapData,
         forkedFromId:
             forkedFromId.present ? forkedFromId.value : this.forkedFromId,
+        selectedFrameId: selectedFrameId.present
+            ? selectedFrameId.value
+            : this.selectedFrameId,
+        selectedLayerId: selectedLayerId.present
+            ? selectedLayerId.value
+            : this.selectedLayerId,
       );
   ProjectsTableData copyWithCompanion(ProjectsTableCompanion data) {
     return ProjectsTableData(
@@ -495,6 +553,12 @@ class ProjectsTableData extends DataClass
       forkedFromId: data.forkedFromId.present
           ? data.forkedFromId.value
           : this.forkedFromId,
+      selectedFrameId: data.selectedFrameId.present
+          ? data.selectedFrameId.value
+          : this.selectedFrameId,
+      selectedLayerId: data.selectedLayerId.present
+          ? data.selectedLayerId.value
+          : this.selectedLayerId,
     );
   }
 
@@ -516,7 +580,9 @@ class ProjectsTableData extends DataClass
           ..write('gridColumns: $gridColumns, ')
           ..write('gridRows: $gridRows, ')
           ..write('tilemapData: $tilemapData, ')
-          ..write('forkedFromId: $forkedFromId')
+          ..write('forkedFromId: $forkedFromId, ')
+          ..write('selectedFrameId: $selectedFrameId, ')
+          ..write('selectedLayerId: $selectedLayerId')
           ..write(')'))
         .toString();
   }
@@ -538,7 +604,9 @@ class ProjectsTableData extends DataClass
       gridColumns,
       gridRows,
       tilemapData,
-      forkedFromId);
+      forkedFromId,
+      selectedFrameId,
+      selectedLayerId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -558,7 +626,9 @@ class ProjectsTableData extends DataClass
           other.gridColumns == this.gridColumns &&
           other.gridRows == this.gridRows &&
           other.tilemapData == this.tilemapData &&
-          other.forkedFromId == this.forkedFromId);
+          other.forkedFromId == this.forkedFromId &&
+          other.selectedFrameId == this.selectedFrameId &&
+          other.selectedLayerId == this.selectedLayerId);
 }
 
 class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
@@ -578,6 +648,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
   final Value<int?> gridRows;
   final Value<String?> tilemapData;
   final Value<int?> forkedFromId;
+  final Value<int?> selectedFrameId;
+  final Value<int?> selectedLayerId;
   const ProjectsTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -595,6 +667,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.gridRows = const Value.absent(),
     this.tilemapData = const Value.absent(),
     this.forkedFromId = const Value.absent(),
+    this.selectedFrameId = const Value.absent(),
+    this.selectedLayerId = const Value.absent(),
   });
   ProjectsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -613,6 +687,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.gridRows = const Value.absent(),
     this.tilemapData = const Value.absent(),
     this.forkedFromId = const Value.absent(),
+    this.selectedFrameId = const Value.absent(),
+    this.selectedLayerId = const Value.absent(),
   })  : name = Value(name),
         width = Value(width),
         height = Value(height),
@@ -635,6 +711,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     Expression<int>? gridRows,
     Expression<String>? tilemapData,
     Expression<int>? forkedFromId,
+    Expression<int>? selectedFrameId,
+    Expression<int>? selectedLayerId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -653,6 +731,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       if (gridRows != null) 'grid_rows': gridRows,
       if (tilemapData != null) 'tilemap_data': tilemapData,
       if (forkedFromId != null) 'forked_from_id': forkedFromId,
+      if (selectedFrameId != null) 'selected_frame_id': selectedFrameId,
+      if (selectedLayerId != null) 'selected_layer_id': selectedLayerId,
     });
   }
 
@@ -672,7 +752,9 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       Value<int?>? gridColumns,
       Value<int?>? gridRows,
       Value<String?>? tilemapData,
-      Value<int?>? forkedFromId}) {
+      Value<int?>? forkedFromId,
+      Value<int?>? selectedFrameId,
+      Value<int?>? selectedLayerId}) {
     return ProjectsTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -690,6 +772,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       gridRows: gridRows ?? this.gridRows,
       tilemapData: tilemapData ?? this.tilemapData,
       forkedFromId: forkedFromId ?? this.forkedFromId,
+      selectedFrameId: selectedFrameId ?? this.selectedFrameId,
+      selectedLayerId: selectedLayerId ?? this.selectedLayerId,
     );
   }
 
@@ -744,6 +828,12 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     if (forkedFromId.present) {
       map['forked_from_id'] = Variable<int>(forkedFromId.value);
     }
+    if (selectedFrameId.present) {
+      map['selected_frame_id'] = Variable<int>(selectedFrameId.value);
+    }
+    if (selectedLayerId.present) {
+      map['selected_layer_id'] = Variable<int>(selectedLayerId.value);
+    }
     return map;
   }
 
@@ -765,7 +855,9 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
           ..write('gridColumns: $gridColumns, ')
           ..write('gridRows: $gridRows, ')
           ..write('tilemapData: $tilemapData, ')
-          ..write('forkedFromId: $forkedFromId')
+          ..write('forkedFromId: $forkedFromId, ')
+          ..write('selectedFrameId: $selectedFrameId, ')
+          ..write('selectedLayerId: $selectedLayerId')
           ..write(')'))
         .toString();
   }
@@ -2123,6 +2215,8 @@ typedef $$ProjectsTableTableCreateCompanionBuilder = ProjectsTableCompanion
   Value<int?> gridRows,
   Value<String?> tilemapData,
   Value<int?> forkedFromId,
+  Value<int?> selectedFrameId,
+  Value<int?> selectedLayerId,
 });
 typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
     Function({
@@ -2142,6 +2236,8 @@ typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
   Value<int?> gridRows,
   Value<String?> tilemapData,
   Value<int?> forkedFromId,
+  Value<int?> selectedFrameId,
+  Value<int?> selectedLayerId,
 });
 
 final class $$ProjectsTableTableReferences extends BaseReferences<_$AppDatabase,
@@ -2281,6 +2377,16 @@ class $$ProjectsTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<int> get selectedFrameId => $state.composableBuilder(
+      column: $state.table.selectedFrameId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get selectedLayerId => $state.composableBuilder(
+      column: $state.table.selectedLayerId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ComposableFilter animationStateTableRefs(
       ComposableFilter Function($$AnimationStateTableTableFilterComposer f) f) {
     final $$AnimationStateTableTableFilterComposer composer =
@@ -2407,6 +2513,16 @@ class $$ProjectsTableTableOrderingComposer
       column: $state.table.forkedFromId,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get selectedFrameId => $state.composableBuilder(
+      column: $state.table.selectedFrameId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get selectedLayerId => $state.composableBuilder(
+      column: $state.table.selectedLayerId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
 class $$ProjectsTableTableTableManager extends RootTableManager<
@@ -2448,6 +2564,8 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> gridRows = const Value.absent(),
             Value<String?> tilemapData = const Value.absent(),
             Value<int?> forkedFromId = const Value.absent(),
+            Value<int?> selectedFrameId = const Value.absent(),
+            Value<int?> selectedLayerId = const Value.absent(),
           }) =>
               ProjectsTableCompanion(
             id: id,
@@ -2466,6 +2584,8 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             gridRows: gridRows,
             tilemapData: tilemapData,
             forkedFromId: forkedFromId,
+            selectedFrameId: selectedFrameId,
+            selectedLayerId: selectedLayerId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2484,6 +2604,8 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> gridRows = const Value.absent(),
             Value<String?> tilemapData = const Value.absent(),
             Value<int?> forkedFromId = const Value.absent(),
+            Value<int?> selectedFrameId = const Value.absent(),
+            Value<int?> selectedLayerId = const Value.absent(),
           }) =>
               ProjectsTableCompanion.insert(
             id: id,
@@ -2502,6 +2624,8 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             gridRows: gridRows,
             tilemapData: tilemapData,
             forkedFromId: forkedFromId,
+            selectedFrameId: selectedFrameId,
+            selectedLayerId: selectedLayerId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
