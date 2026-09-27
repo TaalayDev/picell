@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -129,6 +130,7 @@ class SelectionOptionsButton extends ConsumerWidget {
             tooltip: Strings.of(context).selectionOptions,
             color: theme.surface,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(g.dialogRadius)),
+            constraints: const BoxConstraints(minWidth: 240, maxWidth: 360),
             onSelected: (value) => _handleMenuSelection(value),
             itemBuilder: (BuildContext context) => _buildMenuItems(context, theme),
           ),
@@ -154,6 +156,7 @@ class SelectionOptionsButton extends ConsumerWidget {
           tooltip: Strings.of(context).selectionOptions,
           color: theme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(g.dialogRadius)),
+          constraints: const BoxConstraints(minWidth: 240, maxWidth: 360),
           onSelected: (value) => _handleMenuSelection(value),
           itemBuilder: (BuildContext context) => _buildMenuItems(context, theme),
         ),
@@ -161,15 +164,32 @@ class SelectionOptionsButton extends ConsumerWidget {
     );
   }
 
+  String _cmd(String key) =>
+      defaultTargetPlatform == TargetPlatform.macOS ? 'Cmd + $key' : 'Ctrl + $key';
+
   List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context, AppTheme theme) {
     final s = Strings.of(context);
 
-    Widget item(IconData icon, String label, {Color? color}) {
+    Widget item(IconData icon, String label, {Color? color, String? shortcut}) {
       return Row(
         children: [
           Icon(icon, size: 20, color: color ?? theme.textPrimary),
           const SizedBox(width: 8),
-          Text(label, style: TextStyle(color: color ?? theme.textPrimary)),
+          Expanded(
+            child: Text(label, style: TextStyle(color: color ?? theme.textPrimary)),
+          ),
+          if (shortcut != null) ...[
+            const SizedBox(width: 12),
+            Text(
+              shortcut,
+              style: TextStyle(
+                color: (color ?? theme.textPrimary).withValues(alpha: 0.5),
+                fontSize: 12,
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ],
       );
     }
@@ -177,22 +197,22 @@ class SelectionOptionsButton extends ConsumerWidget {
     return [
       PopupMenuItem<String>(
         value: 'clear',
-        child: item(Icons.clear, s.clearSelection),
+        child: item(Icons.clear, s.clearSelection, shortcut: _cmd('D')),
       ),
       if (onInvert != null)
         PopupMenuItem<String>(
           value: 'invert',
-          child: item(Icons.flip_to_back, s.invertSelection),
+          child: item(Icons.flip_to_back, s.invertSelection, shortcut: _cmd('Shift + I')),
         ),
       if (onGrow != null)
         PopupMenuItem<String>(
           value: 'grow',
-          child: item(Icons.open_in_full, s.growSelectionOnePixel),
+          child: item(Icons.open_in_full, s.growSelectionOnePixel, shortcut: _cmd('Shift + G')),
         ),
       if (onShrink != null)
         PopupMenuItem<String>(
           value: 'shrink',
-          child: item(Icons.close_fullscreen, s.shrinkSelectionOnePixel),
+          child: item(Icons.close_fullscreen, s.shrinkSelectionOnePixel, shortcut: _cmd('Shift + H')),
         ),
       if (onRotate90 != null) ...[
         PopupMenuDivider(color: theme.divider),
@@ -223,7 +243,9 @@ class SelectionOptionsButton extends ConsumerWidget {
                 child: Icon(Icons.flip, size: 20, color: theme.textPrimary),
               ),
               const SizedBox(width: 8),
-              Text(s.flipVertical, style: TextStyle(color: theme.textPrimary)),
+              Expanded(
+                child: Text(s.flipVertical, style: TextStyle(color: theme.textPrimary)),
+              ),
             ],
           ),
         ),
@@ -244,22 +266,22 @@ class SelectionOptionsButton extends ConsumerWidget {
       if (onCut != null)
         PopupMenuItem<String>(
           value: 'cut',
-          child: item(Icons.content_cut, s.cut),
+          child: item(Icons.content_cut, s.cut, shortcut: _cmd('X')),
         ),
       if (onCopy != null)
         PopupMenuItem<String>(
           value: 'copy',
-          child: item(Icons.content_copy, s.copy),
+          child: item(Icons.content_copy, s.copy, shortcut: _cmd('C')),
         ),
       if (onPaste != null)
         PopupMenuItem<String>(
           value: 'paste',
-          child: item(Icons.content_paste, s.paste),
+          child: item(Icons.content_paste, s.paste, shortcut: _cmd('V')),
         ),
       if (onDelete != null)
         PopupMenuItem<String>(
           value: 'delete',
-          child: item(Icons.delete, s.clearArea, color: theme.error),
+          child: item(Icons.delete, s.clearArea, color: theme.error, shortcut: 'Del'),
         ),
     ];
   }

@@ -93,7 +93,10 @@ class KeyboardShortcutsDialog extends StatelessWidget {
                       _ShortcutRow(s.defaultColors, 'D'),
                     ]),
                     _section(context, s.view, [
-                      _ShortcutRow(s.zoomIn, '='),
+                      _ShortcutRow(s.tileModeTooltip, 'Shift + T'),
+                      _ShortcutRow(s.showGrid, 'Ctrl + \''),
+                      _ShortcutRow(s.onionSkinTooltip, 'Shift + O'),
+                      _ShortcutRow(s.zoomIn, '=  /  +'),
                       _ShortcutRow(s.zoomOut, '-'),
                       _ShortcutRow(s.zoomToFit, '0'),
                       _ShortcutRow(s.zoomOneToOne, '1'),

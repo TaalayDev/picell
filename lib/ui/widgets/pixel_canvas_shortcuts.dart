@@ -27,6 +27,9 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
     required this.onCopySelection,
     required this.onCutSelection,
     required this.onPasteSelection,
+    this.onToggleTileMode,
+    this.onToggleGrid,
+    this.onToggleOnionSkin,
     required this.child,
   });
 
@@ -36,15 +39,21 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
   final PixelViewportController viewportController;
   final PixelCanvasState state;
   final PixelCanvasNotifier notifier;
-  final Function(BuildContext context, PixelCanvasNotifier notifier, PixelCanvasState state) handleExport;
+  final Function(BuildContext context, PixelCanvasNotifier notifier,
+      PixelCanvasState state) handleExport;
   final Function(PixelViewportController controller) setZoomFit;
   final Function(PixelViewportController controller) setZoom100;
-  final Future<ImportDialogResult?> Function(BuildContext context) showImportDialog;
-  final Function(BuildContext context, PixelCanvasNotifier notifier) showColorPicker;
+  final Future<ImportDialogResult?> Function(BuildContext context)
+      showImportDialog;
+  final Function(BuildContext context, PixelCanvasNotifier notifier)
+      showColorPicker;
   final VoidCallback toggleUI;
   final VoidCallback onCopySelection;
   final VoidCallback onCutSelection;
   final VoidCallback onPasteSelection;
+  final VoidCallback? onToggleTileMode;
+  final VoidCallback? onToggleGrid;
+  final VoidCallback? onToggleOnionSkin;
   final Widget child;
 
   static bool _isSelectionTool(PixelTool tool) {
@@ -99,6 +108,9 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       },
       onZoomFit: () => setZoomFit(viewportController),
       onZoom100: () => setZoom100(viewportController),
+      onToggleTileMode: onToggleTileMode,
+      onToggleGrid: onToggleGrid,
+      onToggleOnionSkin: onToggleOnionSkin,
       onSwapColors: () {},
       onDefaultColors: () {},
       onToggleUI: toggleUI,
@@ -155,7 +167,9 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       },
       onSelectAll: notifier.selectAll,
       onDeselectAll: () {
-        if (state.selectionState != null) {
+        if (currentTool.value == PixelTool.pen) {
+          notifier.pushEvent(const CancelPenPathEvent());
+        } else if (state.selectionState != null) {
           notifier.clearSelection();
         }
       },

@@ -191,7 +191,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('effects-workspace-add')));
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('Select Effect'), findsOneWidget);
+    expect(find.text('Select Material'), findsOneWidget);
     expect(find.byType(ChoiceChip), findsNothing);
   });
 
