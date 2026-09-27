@@ -6,9 +6,9 @@ import '../../data/models/subscription_model.dart';
 import '../../pixel/pixel_canvas_state.dart';
 import '../../pixel/tools.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
+import '../../l10n/strings.dart';
 import 'app_icon.dart';
-import 'dialogs/layer_template_dialog.dart';
-import 'layers_panel.dart';
+import 'panel/mobile_side_panel_bottom_sheet.dart';
 import 'styled_tool_bottom_sheet.dart';
 
 class ToolsBottomBar extends HookWidget {
@@ -130,66 +130,16 @@ class ToolsBottomBar extends HookWidget {
                     },
                   ),
                   IconButton(
+                    key: const ValueKey('tools-bottom-bar-layers'),
                     icon: const AppIcon(AppIcons.layers),
+                    tooltip: Strings.of(context).layers,
                     onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) => DraggableScrollableSheet(
-                          initialChildSize: 0.6,
-                          maxChildSize: 0.9,
-                          minChildSize: 0.4,
-                          expand: false,
-                          builder: (context, scrollController) =>
-                              ValueListenableBuilder(
-                            valueListenable: drawState,
-                            builder: (context, state, _) => Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: LayersPanel(
-                                width: width,
-                                height: height,
-                                layers: state.layers,
-                                activeLayerIndex: state.currentLayerIndex,
-                                onLayerAdded: (name) {
-                                  notifier.addLayer(name);
-                                },
-                                onLayerUpdated: (updatedLayer) {
-                                  notifier.updateLayer(updatedLayer);
-                                },
-                                onLayersVisibilityChanged:
-                                    notifier.setLayersVisibility,
-                                onLayerSelected: (index) {
-                                  notifier.selectLayer(index);
-                                },
-                                onLayersDeleted: notifier.removeLayers,
-                                onLayersLockedChanged: notifier.setLayersLocked,
-                                onLayersDuplicated: notifier.duplicateLayers,
-                                onLayerReordered: (oldIndex, newIndex) {
-                                  notifier.reorderLayers(
-                                    newIndex,
-                                    oldIndex,
-                                  );
-                                },
-                                onLayersOpacityChanged:
-                                    notifier.setLayersOpacity,
-                                onLayerEffectsChanged: (updatedLayer) {
-                                  notifier.updateLayer(updatedLayer);
-                                },
-                                onLayerToTemplate: (layer) {
-                                  Navigator.pop(context);
-                                  LayerToTemplateDialog.show(
-                                    context,
-                                    layer: layer,
-                                    width: state.width,
-                                    height: state.height,
-                                  );
-                                },
-                                onAutoSelect: () {
-                                  notifier.autoSelectLayer();
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
+                      MobileSidePanelBottomSheet.show(
+                        context,
+                        drawState: drawState,
+                        notifier: notifier,
+                        width: width,
+                        height: height,
                       );
                     },
                   ),
