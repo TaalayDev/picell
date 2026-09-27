@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data/models/feedback_models.dart';
 import '../../providers/feedback_providers.dart';
 import '../../l10n/strings.dart';
+import '../widgets/notifications/app_notification.dart';
 
 class FeedbackScreen extends ConsumerWidget {
   const FeedbackScreen({super.key});
@@ -201,11 +202,9 @@ class FeedbackScreen extends ConsumerWidget {
     final notifier = ref.read(feedbackNotifierProvider.notifier);
 
     if (!_validateAnswers(feedbackQuestions, state)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(s.feedback_validation_error),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
+      AppNotification.error(
+        context,
+        s.feedback_validation_error,
       );
       return;
     }

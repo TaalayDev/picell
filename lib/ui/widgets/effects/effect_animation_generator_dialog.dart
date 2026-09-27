@@ -3,12 +3,13 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../../core/extensions/primitive_extensions.dart';
 import '../../../data.dart';
 import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
 import '../../../pixel/effects/effect_animation_renderer.dart';
 import '../animated_background.dart';
+import '../fields/ui_field_builder.dart';
+import '../notifications/app_notification.dart';
 import 'pixlel_preview_painter.dart';
 
 class EffectAnimationGeneratorDialog extends StatefulWidget {
@@ -121,10 +122,8 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(Strings.of(context)
-                      .animationDetailEffect(effect.getName(context))),
-                  Text(Strings.of(context)
-                      .animationDetailEstimatedFrames(estimatedFrames)),
+                  Text(Strings.of(context).animationDetailEffect(effect.getName(context))),
+                  Text(Strings.of(context).animationDetailEstimatedFrames(estimatedFrames)),
                   Text(
                     Strings.of(context).animationDetailProcessingTime(
                       (estimatedFrames * 0.1).round(),
@@ -137,10 +136,7 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
             Text(
               Strings.of(context).generateAnimationTimelineNote,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
             ),
           ],
@@ -174,16 +170,14 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
   });
 
   @override
-  State<EffectAnimationGeneratorDialog> createState() =>
-      _EffectAnimationGeneratorDialogState();
+  State<EffectAnimationGeneratorDialog> createState() => _EffectAnimationGeneratorDialogState();
 }
 
-class _EffectAnimationGeneratorDialogState
-    extends State<EffectAnimationGeneratorDialog>
-    with TickerProviderStateMixin {
+class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGeneratorDialog> with TickerProviderStateMixin {
   late Map<String, dynamic> _parameters;
   late AnimationController _previewController;
   Timer? _previewTimer;
+  Timer? _parameterDebounceTimer;
 
   // Animation settings
   int _frameCount = 30;
@@ -212,7 +206,20 @@ class _EffectAnimationGeneratorDialogState
   void dispose() {
     _previewController.dispose();
     _previewTimer?.cancel();
+    _parameterDebounceTimer?.cancel();
     super.dispose();
+  }
+
+  void _onParameterChanged(String key, dynamic value) {
+    setState(() {
+      _parameters[key] = value;
+    });
+    _parameterDebounceTimer?.cancel();
+    _parameterDebounceTimer = Timer(const Duration(milliseconds: 150), () {
+      if (mounted) {
+        _generateFrames();
+      }
+    });
   }
 
   void _updateFrameCount() {
@@ -231,13 +238,11 @@ class _EffectAnimationGeneratorDialogState
     });
 
     try {
-      await Future.delayed(
-          const Duration(milliseconds: 50)); // Allow UI to update
+      await Future.delayed(const Duration(milliseconds: 50)); // Allow UI to update
 
       final frames = <Uint32List>[];
       final effects = List<Effect>.from(widget.effects);
-      effects[widget.effectIndex] =
-          EffectsManager.createEffect(widget.effect.type, _parameters);
+      effects[widget.effectIndex] = EffectsManager.createEffect(widget.effect.type, _parameters);
 
       for (int i = 0; i < _frameCount; i++) {
         final t = i / (_frameCount - 1);
@@ -257,8 +262,9 @@ class _EffectAnimationGeneratorDialogState
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
+        AppNotification.error(
+          context,
+          error.toString(),
         );
       }
     } finally {
@@ -286,8 +292,7 @@ class _EffectAnimationGeneratorDialogState
       }
 
       setState(() {
-        _currentPreviewFrame =
-            (_currentPreviewFrame + 1) % _generatedFrames.length;
+        _currentPreviewFrame = (_currentPreviewFrame + 1) % _generatedFrames.length;
       });
     });
   }
@@ -324,8 +329,7 @@ class _EffectAnimationGeneratorDialogState
           child: Container(
             padding: EdgeInsets.all(isMobile ? 16 : 20),
             decoration: BoxDecoration(
-              color:
-                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -356,10 +360,7 @@ class _EffectAnimationGeneratorDialogState
                           ),
                           Text(
                             s.effectNameLabel(effectName),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
                             textAlign: TextAlign.center,
@@ -378,8 +379,7 @@ class _EffectAnimationGeneratorDialogState
 
                 // Content
                 Expanded(
-                  child:
-                      isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+                  child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
                 ),
 
                 // Action buttons
@@ -428,8 +428,7 @@ class _EffectAnimationGeneratorDialogState
   }
 
   Widget _buildGenerateButton(Strings s, {bool compact = false}) {
-    final onPressed =
-        _generatedFrames.isEmpty || _isApplying ? null : _applyFrames;
+    final onPressed = _generatedFrames.isEmpty || _isApplying ? null : _applyFrames;
     if (compact) {
       return ElevatedButton(
         onPressed: onPressed,
@@ -439,8 +438,7 @@ class _EffectAnimationGeneratorDialogState
                 height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(s.generateFrames,
-                maxLines: 1, overflow: TextOverflow.ellipsis),
+            : Text(s.generateFrames, maxLines: 1, overflow: TextOverflow.ellipsis),
       );
     }
     return ElevatedButton.icon(
@@ -497,9 +495,7 @@ class _EffectAnimationGeneratorDialogState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildAnimationSettings(),
-                const SizedBox(height: 20),
-                _buildFrameGenerationSettings(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 _buildEffectParameters(),
               ],
             ),
@@ -514,42 +510,10 @@ class _EffectAnimationGeneratorDialogState
 
     return Column(
       children: [
-        // Preview title and controls
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                s.preview,
-                style: Theme.of(context).textTheme.titleLarge,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: _generatedFrames.isEmpty ? null : _togglePreview,
-                  icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-                  tooltip: _isPlaying ? s.pause : s.play,
-                ),
-                IconButton(
-                  onPressed: _generatedFrames.isEmpty ? null : _stopPreview,
-                  icon: const Icon(Icons.stop),
-                  tooltip: s.stop,
-                ),
-              ],
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
         // Preview canvas
         LayoutBuilder(
           builder: (context, constraints) {
-            final size =
-                constraints.maxWidth < 300 ? constraints.maxWidth : 300.0;
+            final size = constraints.maxWidth < 300 ? constraints.maxWidth : 300.0;
             return Center(
               child: Container(
                 width: size,
@@ -571,8 +535,11 @@ class _EffectAnimationGeneratorDialogState
         if (_generatedFrames.isNotEmpty) ...[
           Row(
             children: [
-              Text(s.frameLabel),
-              const SizedBox(width: 8),
+              IconButton(
+                onPressed: _generatedFrames.isEmpty ? null : _togglePreview,
+                icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+                tooltip: _isPlaying ? s.pause : s.play,
+              ),
               Expanded(
                 child: Slider(
                   value: _currentPreviewFrame.toDouble(),
@@ -762,6 +729,7 @@ class _EffectAnimationGeneratorDialogState
 
   Widget _buildEffectParameters() {
     final s = Strings.of(context);
+    final fields = widget.effect.getFields();
 
     return Card(
       child: Padding(
@@ -769,110 +737,32 @@ class _EffectAnimationGeneratorDialogState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  s.effectParameters,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => _editParameters(),
-                    child: Text(s.editParameters),
-                  ),
-                ),
-              ],
+            Text(
+              s.parameters,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-
             Text(
               s.effectParametersBaseNote,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
             ),
-
             const SizedBox(height: 12),
-
-            // Show some key parameters
-            ..._parameters.entries.take(3).map((entry) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      entry.key.capitalize(),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    Text(
-                      entry.value.toString(),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+            if (fields.isNotEmpty)
+              ...UIFieldBuilder.buildAll(
+                context: context,
+                fields: fields,
+                values: _parameters,
+                onChanged: _onParameterChanged,
+              )
+            else if (_parameters.isNotEmpty)
+              ..._parameters.entries.map((entry) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('${entry.key}: ${entry.value}'),
+                  )),
           ],
         ),
-      ),
-    );
-  }
-
-  void _editParameters() {
-    // Show a simplified parameter editor
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(Strings.of(context).editBaseParameters),
-        content: SizedBox(
-          width: 400,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: _parameters.entries.map((entry) {
-              if (entry.value is double) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(entry.key.capitalize()),
-                    Slider(
-                      value: entry.value,
-                      min: 0.0,
-                      max: 2.0,
-                      onChanged: (value) {
-                        setState(() {
-                          _parameters[entry.key] = value;
-                        });
-                      },
-                    ),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            }).toList(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(Strings.of(context).cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _generateFrames();
-            },
-            child: Text(Strings.of(context).applyAndRegenerate),
-          ),
-        ],
       ),
     );
   }
@@ -947,8 +837,7 @@ class _EffectAnimationGeneratorDialogState
 
     // If ping-pong, add reversed frames
     if (_pingPong && frames.length > 1) {
-      final reversedFrames =
-          frames.reversed.skip(1).take(frames.length - 1).toList();
+      final reversedFrames = frames.reversed.skip(1).take(frames.length - 1).toList();
       for (int i = 0; i < reversedFrames.length; i++) {
         final frame = reversedFrames[i];
         final newFrame = frame.copyWith(
@@ -967,8 +856,9 @@ class _EffectAnimationGeneratorDialogState
     } catch (error) {
       if (mounted) {
         setState(() => _isApplying = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
+        AppNotification.error(
+          context,
+          error.toString(),
         );
       }
       return;
@@ -977,11 +867,9 @@ class _EffectAnimationGeneratorDialogState
     Navigator.of(context).pop();
 
     // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content:
-            Text(Strings.of(context).generatedAnimationFrames(frames.length)),
-      ),
+    AppNotification.success(
+      context,
+      Strings.of(context).generatedAnimationFrames(frames.length),
     );
   }
 }

@@ -9,6 +9,7 @@ import '../fields/ui_field_builder.dart';
 import '../animated_background.dart';
 import 'pixlel_preview_painter.dart';
 import '../../../l10n/strings.dart';
+import '../notifications/app_notification.dart';
 
 class EffectEditorDialog extends StatefulWidget {
   final Effect effect;
@@ -16,6 +17,8 @@ class EffectEditorDialog extends StatefulWidget {
   final int layerHeight;
   final Uint32List layerPixels;
   final Function(Effect) onEffectUpdated;
+  final String? title;
+  final String? applyButtonText;
 
   const EffectEditorDialog({
     super.key,
@@ -24,7 +27,33 @@ class EffectEditorDialog extends StatefulWidget {
     required this.layerHeight,
     required this.layerPixels,
     required this.onEffectUpdated,
+    this.title,
+    this.applyButtonText,
   });
+
+  static Future<void> show({
+    required BuildContext context,
+    required Effect effect,
+    required int layerWidth,
+    required int layerHeight,
+    required Uint32List layerPixels,
+    required ValueChanged<Effect> onApply,
+    String? title,
+    String? applyButtonText,
+  }) {
+    return showDialog(
+      context: context,
+      builder: (context) => EffectEditorDialog(
+        effect: effect,
+        layerWidth: layerWidth,
+        layerHeight: layerHeight,
+        layerPixels: layerPixels,
+        onEffectUpdated: onApply,
+        title: title,
+        applyButtonText: applyButtonText,
+      ),
+    );
+  }
 
   @override
   State<EffectEditorDialog> createState() => _EffectEditorDialogState();
@@ -35,6 +64,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
   late Map<String, dynamic> _metadata;
   Uint32List? _previewPixels;
   bool _isProcessing = false;
+  bool _needsUpdate = false;
 
   @override
   void initState() {
@@ -45,21 +75,33 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
   }
 
   Future<void> _updatePreview() async {
-    if (_isProcessing) return;
+    if (_isProcessing) {
+      _needsUpdate = true;
+      return;
+    }
 
     setState(() {
       _isProcessing = true;
     });
 
-    await Future.microtask(() {
-      final effect =
-          EffectsManager.createEffect(widget.effect.type, _parameters);
-      _previewPixels = effect.apply(
-        widget.layerPixels,
-        widget.layerWidth,
-        widget.layerHeight,
-      );
-    });
+    while (mounted) {
+      _needsUpdate = false;
+      final currentParams = Map<String, dynamic>.from(_parameters);
+      final preview = await Future.microtask(() {
+        final effect =
+            EffectsManager.createEffect(widget.effect.type, currentParams);
+        return effect.apply(
+          widget.layerPixels,
+          widget.layerWidth,
+          widget.layerHeight,
+        );
+      });
+
+      if (!mounted) break;
+      _previewPixels = preview;
+
+      if (!_needsUpdate) break;
+    }
 
     if (mounted) {
       setState(() {
@@ -98,7 +140,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                     ),
                     Expanded(
                       child: Text(
-                        Strings.of(context).editEffect(effectName),
+                        widget.title ?? Strings.of(context).editEffect(effectName),
                         style: Theme.of(context)
                             .textTheme
                             .headlineSmall
@@ -116,11 +158,9 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                     IconButton(
                       icon: const Icon(Icons.help_outline),
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content:
-                                Text(widget.effect.getDescription(context)),
-                          ),
+                        AppNotification.info(
+                          context,
+                          widget.effect.getDescription(context),
                         );
                       },
                     ),
@@ -148,7 +188,10 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                       const SizedBox(width: 8),
                       ElevatedButton(
                         onPressed: _applyChanges,
-                        child: Text(Strings.of(context).applyChanges),
+                        child: Text(
+                          widget.applyButtonText ??
+                              Strings.of(context).applyChanges,
+                        ),
                       ),
                     ],
                   ),
@@ -258,7 +301,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
   }
 
   Widget _buildPreview() {
-    if (_isProcessing) {
+    if (_previewPixels == null && _isProcessing) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -268,12 +311,28 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
 
     return AspectRatio(
       aspectRatio: widget.layerWidth / widget.layerHeight,
-      child: CustomPaint(
-        painter: PixelPreviewPainter(
-          pixels: _previewPixels!,
-          width: widget.layerWidth,
-          height: widget.layerHeight,
-        ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CustomPaint(
+            size: Size.infinite,
+            painter: PixelPreviewPainter(
+              pixels: _previewPixels!,
+              width: widget.layerWidth,
+              height: widget.layerHeight,
+            ),
+          ),
+          if (_isProcessing)
+            const Positioned(
+              top: 8,
+              right: 8,
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+        ],
       ),
     );
   }

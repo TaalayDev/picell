@@ -8,12 +8,14 @@ import '../../pixel/effects/effects.dart';
 import '../../pixel/services/effect_icon_export_service.dart';
 import '../widgets/effects/effects_editor_dialog.dart';
 import '../widgets/effects/pixlel_preview_painter.dart';
+import '../widgets/notifications/app_notification.dart';
 
 class EffectIconGeneratorScreen extends StatefulWidget {
   const EffectIconGeneratorScreen({super.key});
 
   @override
-  State<EffectIconGeneratorScreen> createState() => _EffectIconGeneratorScreenState();
+  State<EffectIconGeneratorScreen> createState() =>
+      _EffectIconGeneratorScreenState();
 }
 
 class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
@@ -31,7 +33,8 @@ class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
   void initState() {
     super.initState();
     _effects = {
-      for (final type in EffectType.values) type: EffectsManager.createEffect(type),
+      for (final type in EffectType.values)
+        type: EffectsManager.createEffect(type),
     };
     _searchController.addListener(_refreshSearch);
   }
@@ -50,7 +53,8 @@ class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
     final query = _searchController.text.trim().toLowerCase();
     return [
       for (final effect in _effects.values)
-        if ((_workspace == null || EffectCatalog.forType(effect.type).workspace == _workspace) &&
+        if ((_workspace == null ||
+                EffectCatalog.forType(effect.type).workspace == _workspace) &&
             (query.isEmpty ||
                 effect.type.name.toLowerCase().contains(query) ||
                 effect.getName(context).toLowerCase().contains(query)))
@@ -70,7 +74,6 @@ class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
       EffectWorkspace.generators => strings.effectWorkspaceGenerators,
       EffectWorkspace.animation => strings.effectWorkspaceAnimation,
       EffectWorkspace.lighting => strings.effectWorkspaceLighting,
-      EffectWorkspace.distortions => strings.effectWorkspaceDistortions,
     };
   }
 
@@ -107,18 +110,15 @@ class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
       if (!mounted) return;
       await FileUtils(context).saveImage(asset.bytes, asset.fileName);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${strings.effectIconExportComplete}: ${asset.fileName}'),
-        ),
+      AppNotification.success(
+        context,
+        '${strings.effectIconExportComplete}: ${asset.fileName}',
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${strings.effectIconExportFailed}: $error'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
+      AppNotification.error(
+        context,
+        '${strings.effectIconExportFailed}: $error',
       );
     }
   }
@@ -151,22 +151,19 @@ class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
       );
       if (!mounted) return;
       final failed = result.failures.length;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${strings.effectIconExportComplete}: '
-            '${result.exportedCount}/${visibleEffects.length}'
-            '${failed == 0 ? '' : ' · ${strings.effectIconExportFailed}: $failed'}',
-          ),
-        ),
-      );
+      final message = '${strings.effectIconExportComplete}: '
+          '${result.exportedCount}/${visibleEffects.length}'
+          '${failed == 0 ? '' : ' · ${strings.effectIconExportFailed}: $failed'}';
+      if (failed == 0) {
+        AppNotification.success(context, message);
+      } else {
+        AppNotification.warning(context, message);
+      }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${strings.effectIconExportFailed}: $error'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
+      AppNotification.error(
+        context,
+        '${strings.effectIconExportFailed}: $error',
       );
     } finally {
       if (mounted) {
@@ -285,7 +282,8 @@ class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
                             Padding(
                               padding: const EdgeInsets.only(right: 8),
                               child: ChoiceChip(
-                                label: Text(_workspaceLabel(context, workspace)),
+                                label:
+                                    Text(_workspaceLabel(context, workspace)),
                                 selected: _workspace == workspace,
                                 onSelected: (_) {
                                   setState(() => _workspace = workspace);
@@ -301,7 +299,9 @@ class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
             ),
             if (_exporting)
               LinearProgressIndicator(
-                value: _totalExports == 0 ? null : _completedExports / _totalExports,
+                value: _totalExports == 0
+                    ? null
+                    : _completedExports / _totalExports,
                 semanticsLabel: strings.effectIconExporting,
               ),
             Expanded(
@@ -310,7 +310,8 @@ class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
                   : GridView.builder(
                       key: const ValueKey('effect-icon-grid'),
                       padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: 270,
                         mainAxisExtent: 330,
                         crossAxisSpacing: 12,
@@ -398,7 +399,8 @@ class _EffectIconCardState extends State<_EffectIconCard> {
                     if (snapshot.hasError) {
                       return Tooltip(
                         message: snapshot.error.toString(),
-                        child: Icon(Icons.broken_image_outlined, color: colors.error),
+                        child: Icon(Icons.broken_image_outlined,
+                            color: colors.error),
                       );
                     }
                     if (!snapshot.hasData) {
@@ -422,7 +424,10 @@ class _EffectIconCardState extends State<_EffectIconCard> {
               widget.effect.getName(context),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           Padding(
@@ -436,7 +441,9 @@ class _EffectIconCardState extends State<_EffectIconCard> {
                   color: descriptor.isAnimated ? Colors.purple : Colors.blue,
                 ),
                 _FormatBadge(
-                  label: isGenerator ? strings.effectIconEmptySource : strings.effectIconSmileySource,
+                  label: isGenerator
+                      ? strings.effectIconEmptySource
+                      : strings.effectIconSmileySource,
                   color: isGenerator ? Colors.orange : Colors.green,
                 ),
               ],

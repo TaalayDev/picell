@@ -255,11 +255,9 @@ class CommunityProjectCard extends ConsumerWidget {
     Project? localProject,
   ) async {
     if (localProject == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(Strings.of(context).localProjectNotFound),
-          backgroundColor: Colors.red,
-        ),
+      AppNotification.error(
+        context,
+        Strings.of(context).localProjectNotFound,
       );
       return;
     }
@@ -285,22 +283,19 @@ class CommunityProjectCard extends ConsumerWidget {
     if (isAdLoaded) {
       _showRewardDialog(context, project);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(Strings.of(context).premiumRequiredToDownloadProjects),
-          duration: const Duration(seconds: 3),
-          action: SnackBarAction(
-            label: Strings.of(context).upgrade,
-            onPressed: () {
-              // Navigate to subscription screen
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SubscriptionOfferScreen(),
-                ),
-              );
-            },
-          ),
-        ),
+      AppNotification.warning(
+        context,
+        Strings.of(context).premiumRequiredToDownloadProjects,
+        duration: const Duration(seconds: 3),
+        actionLabel: Strings.of(context).upgrade,
+        onAction: () {
+          // Navigate to subscription screen
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const SubscriptionOfferScreen(),
+            ),
+          );
+        },
       );
     }
   }
@@ -312,12 +307,10 @@ class CommunityProjectCard extends ConsumerWidget {
       subtitle: Strings.of(context).downloadProjectRewardSubtitle,
       onRewardEarned: () async {
         // User successfully watched the video, allow download
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).thankYouWatchingDownloadStarting),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
+        AppNotification.success(
+          context,
+          Strings.of(context).thankYouWatchingDownloadStarting,
+          duration: const Duration(seconds: 2),
         );
 
         // Show download dialog

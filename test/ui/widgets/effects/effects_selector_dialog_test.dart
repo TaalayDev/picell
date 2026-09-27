@@ -83,12 +83,22 @@ void main() {
     });
 
     const cases = [
-      (EffectWorkspace.filters, null, 'Paper Cutout'),
-      (EffectWorkspace.materials, null, 'Rust & Corrosion'),
-      (EffectWorkspace.generators, null, 'Mountain Range'),
-      (EffectWorkspace.animation, AnimationKind.transformer, 'Kaleidoscope'),
-      (EffectWorkspace.lighting, null, 'Glow'),
-      (EffectWorkspace.distortions, null, 'Isometric Extrusion'),
+      (EffectWorkspace.filters, FilterKind.filter, null, 'Paper Cutout'),
+      (
+        EffectWorkspace.filters,
+        FilterKind.distortion,
+        null,
+        'Isometric Extrusion'
+      ),
+      (EffectWorkspace.materials, null, null, 'Rust & Corrosion'),
+      (EffectWorkspace.generators, null, null, 'Mountain Range'),
+      (
+        EffectWorkspace.animation,
+        null,
+        AnimationKind.transformer,
+        'Kaleidoscope'
+      ),
+      (EffectWorkspace.lighting, null, null, 'Glow'),
     ];
 
     for (final entry in cases) {
@@ -101,8 +111,10 @@ void main() {
               body: EffectSelectorDialog(
                 initialWorkspace: entry.$1,
                 lockWorkspace: true,
-                initialAnimationKind: entry.$2,
-                lockAnimationKind: entry.$2 != null,
+                initialFilterKind: entry.$2,
+                lockFilterKind: entry.$2 != null,
+                initialAnimationKind: entry.$3,
+                lockAnimationKind: entry.$3 != null,
                 onEffectSelected: (_) {},
               ),
             ),
@@ -112,12 +124,12 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(ChoiceChip), findsNothing);
 
-      await tester.enterText(find.byType(TextField), entry.$3);
+      await tester.enterText(find.byType(TextField), entry.$4);
       await tester.pump();
       expect(
         find.descendant(
           of: find.byType(GridView),
-          matching: find.text(entry.$3),
+          matching: find.text(entry.$4),
         ),
         findsOneWidget,
         reason: entry.$1.name,
@@ -185,6 +197,88 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('effect-preview-fire')), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'Hologram Glitch');
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: find.byType(GridView),
+        matching: find.text('Hologram Glitch & Flicker'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+      'Frost Glaze & Crystal Freeze is in animation special effects and not materials',
+      (tester) async {
+    final descriptor = EffectCatalog.forType(EffectType.frostGlaze);
+    expect(descriptor.workspace, EffectWorkspace.animation);
+    expect(descriptor.animationKind, AnimationKind.specialEffect);
+
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    // Verify not in materials
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: Strings.localizationsDelegates,
+          supportedLocales: Strings.supportedLocales,
+          home: Scaffold(
+            body: EffectSelectorDialog(
+              initialWorkspace: EffectWorkspace.materials,
+              lockWorkspace: true,
+              onEffectSelected: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), 'Frost Glaze');
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: find.byType(GridView),
+        matching: find.text('Frost Glaze & Crystal Freeze'),
+      ),
+      findsNothing,
+    );
+
+    // Verify in animation special effects
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: Strings.localizationsDelegates,
+          supportedLocales: Strings.supportedLocales,
+          home: Scaffold(
+            body: EffectSelectorDialog(
+              key: const ValueKey('special-effects-dialog'),
+              initialWorkspace: EffectWorkspace.animation,
+              lockWorkspace: true,
+              initialAnimationKind: AnimationKind.specialEffect,
+              lockAnimationKind: true,
+              onEffectSelected: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), 'Frost Glaze');
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: find.byType(GridView),
+        matching: find.text('Frost Glaze & Crystal Freeze'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('explains why an effect cannot be added to the current layer',

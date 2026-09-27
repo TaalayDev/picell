@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../core/services/drop_handler_service.dart';
+import 'notifications/app_notification.dart';
 
 /// Callback when files are successfully dropped
 typedef OnFilesDropped = void Function(List<DroppedFileResult> results);
@@ -333,11 +334,9 @@ class _CanvasDropTargetState extends State<CanvasDropTarget> {
   }
 
   void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
+    AppNotification.error(
+      context,
+      message,
     );
   }
 }

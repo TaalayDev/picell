@@ -877,6 +877,27 @@ class PixelDrawController extends _$PixelDrawController {
     }
   }
 
+  void applyEffectToLayer(Effect effect) {
+    _saveState();
+    final sourceLayer = currentLayer;
+    final region = state.selectionState?.region;
+    final processedPixels = region == null
+        ? effect.apply(
+            sourceLayer.pixels,
+            state.width,
+            state.height,
+          )
+        : EffectsManager.applyMultipleEffectsToSelection(
+            sourceLayer.pixels,
+            state.width,
+            state.height,
+            [effect],
+            region,
+          );
+    final updatedLayer = sourceLayer.copyWith(pixels: processedPixels);
+    updateLayer(updatedLayer);
+  }
+
   bool convertCurrentLayerToPixels({List<Effect>? effects}) {
     final sourceLayer = effects == null
         ? currentLayer

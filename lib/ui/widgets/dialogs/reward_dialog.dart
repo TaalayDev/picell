@@ -5,6 +5,7 @@ import '../../../l10n/strings.dart';
 import '../../../providers/ad/reward_video_ad_controller.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../screens/subscription_screen.dart';
+import '../notifications/app_notification.dart';
 
 class RewardDialog extends HookConsumerWidget {
   const RewardDialog({
@@ -257,33 +258,27 @@ class RewardDialog extends HookConsumerWidget {
         onRewardEarned?.call();
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(Strings.of(context).proAccessGrantedOneHour),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 3),
-            ),
+          AppNotification.success(
+            context,
+            Strings.of(context).proAccessGrantedOneHour,
+            duration: const Duration(seconds: 3),
           );
         }
       } else if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).videoAdNotCompleted),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 3),
-          ),
+        AppNotification.warning(
+          context,
+          Strings.of(context).videoAdNotCompleted,
+          duration: const Duration(seconds: 3),
         );
       }
     } catch (e) {
       if (context.mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).failedToLoadVideoAd('$e')),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
+        AppNotification.error(
+          context,
+          Strings.of(context).failedToLoadVideoAd('$e'),
+          duration: const Duration(seconds: 3),
         );
       }
     }

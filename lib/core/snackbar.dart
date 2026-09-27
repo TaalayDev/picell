@@ -1,5 +1,8 @@
-import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
+
+import '../ui/widgets/notifications/app_notification.dart';
+
+export '../ui/widgets/notifications/app_notification.dart';
 
 Future<T?> showTopFlushbar<T>(
   BuildContext context, {
@@ -7,36 +10,18 @@ Future<T?> showTopFlushbar<T>(
   Widget? icon,
   Color? color,
   Duration duration = const Duration(seconds: 2),
-}) {
-  return Flushbar<T>(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 10.0,
-      vertical: 15.0,
-    ),
-    margin: const EdgeInsets.symmetric(
-      horizontal: 5.0,
-      vertical: 5.0,
-    ),
-    borderRadius: BorderRadius.circular(5.0),
-    backgroundColor: const Color(0xffCBCBCB).withValues(alpha: 0.8),
-    messageText: DefaultTextStyle(
-      style: TextStyle(
-        color: color ?? Theme.of(context).colorScheme.onSurface,
-        fontSize: 16,
-      ),
-      child: message,
-    ),
+}) async {
+  final text = message is Text
+      ? (message.data ?? '')
+      : (message is DefaultTextStyle ? '' : message.toString());
+
+  AppNotification.show(
+    context,
+    message: text.isNotEmpty ? text : 'Notification',
     duration: duration,
-    flushbarPosition: FlushbarPosition.TOP,
-    icon: icon != null
-        ? IconTheme(
-            data: IconThemeData(
-              color: color ?? Theme.of(context).colorScheme.onSurface,
-            ),
-            child: icon,
-          )
-        : null,
-  ).show(context);
+    type: AppNotificationType.info,
+  );
+  return null;
 }
 
 Future<T?> showBottomFlushbar<T>(
@@ -45,34 +30,12 @@ Future<T?> showBottomFlushbar<T>(
   Widget? icon,
   Color? color,
   Duration duration = const Duration(seconds: 2),
-}) {
-  return Flushbar<T>(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 10.0,
-      vertical: 15.0,
-    ),
-    margin: const EdgeInsets.symmetric(
-      horizontal: 5.0,
-      vertical: 5.0,
-    ),
-    borderRadius: BorderRadius.circular(5.0),
-    backgroundColor: const Color(0xffCBCBCB).withValues(alpha: 0.4),
-    messageText: DefaultTextStyle(
-      style: TextStyle(
-        color: color ?? Theme.of(context).colorScheme.onSurface,
-        fontSize: 16,
-      ),
-      child: message,
-    ),
+}) async {
+  return showTopFlushbar(
+    context,
+    message: message,
+    icon: icon,
+    color: color,
     duration: duration,
-    flushbarPosition: FlushbarPosition.BOTTOM,
-    icon: icon != null
-        ? IconTheme(
-            data: IconThemeData(
-              color: color ?? Theme.of(context).colorScheme.onSurface,
-            ),
-            child: icon,
-          )
-        : null,
-  ).show(context);
+  );
 }

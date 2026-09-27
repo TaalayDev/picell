@@ -14,6 +14,7 @@ import '../../../providers/template_provider.dart';
 import '../animated_background.dart';
 import '../app_icon.dart';
 import 'auth_dialog.dart';
+import '../notifications/app_notification.dart';
 
 class LayerToTemplateDialog extends HookConsumerWidget {
   final Layer layer;
@@ -625,11 +626,9 @@ class LayerToTemplateDialog extends HookConsumerWidget {
       if (context.mounted) {
         onTemplateCreated?.call(enhancedTemplate);
         Navigator.of(context).pop(enhancedTemplate);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_getSuccessMessage(context, saveOption, localSaveSuccess, uploadSuccess)),
-            backgroundColor: Colors.green,
-          ),
+        AppNotification.success(
+          context,
+          _getSuccessMessage(context, saveOption, localSaveSuccess, uploadSuccess),
         );
       }
     } catch (e) {

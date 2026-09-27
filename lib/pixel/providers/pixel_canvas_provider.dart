@@ -252,6 +252,9 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
       );
 
   // Layer effects operations
+  void applyEffectToLayer(Effect effect) =>
+      _controller.applyEffectToLayer(effect);
+
   EffectStackAddResult addLayerEffect(Effect effect) {
     final result =
         EffectStackService.addEffect(_controller.currentLayer, effect);

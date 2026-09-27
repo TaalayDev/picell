@@ -117,10 +117,25 @@ void main() {
     expect(find.text('Generators'), findsOneWidget);
     expect(find.text('Animation'), findsOneWidget);
     expect(find.text('Lighting'), findsOneWidget);
-    expect(find.text('Distortions'), findsOneWidget);
+    expect(find.text('Distortions'), findsNothing);
     expect(find.text('Layer Effects'), findsNothing);
     expect(find.text('Template Gallery'), findsOneWidget);
 
+    await tester.tap(find.byKey(const ValueKey('toolbar-add-filters')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('toolbar-add-filter-effects')),
+      findsOneWidget,
+    );
+    expect(find.text('Distortions'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('toolbar-add-distortions')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Select Distortion'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byKey(const ValueKey('toolbar-add-menu')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Materials'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Select Material'), findsOneWidget);
@@ -246,6 +261,10 @@ void main() {
     expect(find.byIcon(Icons.auto_awesome_outlined), findsOneWidget);
     expect(find.byIcon(Icons.auto_awesome_motion_outlined), findsOneWidget);
     expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
+
+    // Open Filters submenu
+    await tester.tap(find.text('Filters'));
+    await tester.pumpAndSettle();
     expect(find.byIcon(Icons.waves_outlined), findsOneWidget);
 
     // Open Animation submenu
