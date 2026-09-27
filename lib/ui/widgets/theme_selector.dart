@@ -9,6 +9,7 @@ import '../../providers/ad/reward_video_ad_controller.dart';
 import '../../providers/subscription_provider.dart';
 import '../screens/subscription_screen.dart';
 import 'dialogs/reward_dialog.dart';
+import 'notifications/app_notification.dart';
 
 final themeProvider = ChangeNotifierProvider((ref) => ThemeProvider());
 
@@ -71,14 +72,9 @@ class ThemeSelector extends HookConsumerWidget {
                 type,
               ];
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    Strings.of(context).themeUnlocked(type.displayName),
-                  ),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
-                ),
+              AppNotification.success(
+                context,
+                Strings.of(context).themeUnlocked(type.displayName),
               );
             },
           );

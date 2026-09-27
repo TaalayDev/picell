@@ -411,30 +411,24 @@ class ProjectDetailScreen extends HookConsumerWidget {
       if (result) {
         Navigator.of(context).pop();
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).projectDeletedSuccessfully),
-          ),
+        AppNotification.success(
+          context,
+          Strings.of(context).projectDeletedSuccessfully,
         );
       } else {
         Navigator.of(context).pop(); // Hide loading
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).failedToDeleteProject),
-            backgroundColor: Colors.red,
-          ),
+        AppNotification.error(
+          context,
+          Strings.of(context).failedToDeleteProject,
         );
       }
     } catch (e) {
       // Hide loading
       if (context.mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context)
-                .failedToDeleteProjectWithError(e.toString())),
-            backgroundColor: Colors.red,
-          ),
+        AppNotification.error(
+          context,
+          Strings.of(context).failedToDeleteProjectWithError(e.toString()),
         );
       }
     }
@@ -1463,11 +1457,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
     Project? localProject,
   ) async {
     if (localProject == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(Strings.of(context).localProjectNotFound),
-          backgroundColor: Colors.red,
-        ),
+      AppNotification.error(
+        context,
+        Strings.of(context).localProjectNotFound,
       );
       return;
     }
@@ -2005,26 +1997,20 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 // Hide loading
                 if (context.mounted) {
                   Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        newVisibility
-                            ? Strings.of(context).projectIsNowPublic
-                            : Strings.of(context).projectIsNowPrivate,
-                      ),
-                    ),
+                  AppNotification.info(
+                    context,
+                    newVisibility
+                        ? Strings.of(context).projectIsNowPublic
+                        : Strings.of(context).projectIsNowPrivate,
                   );
                 }
               } catch (e) {
                 // Hide loading
                 if (context.mounted) {
                   Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(Strings.of(context)
-                          .failedToUpdateVisibility(e.toString())),
-                      backgroundColor: Colors.red,
-                    ),
+                  AppNotification.error(
+                    context,
+                    Strings.of(context).failedToUpdateVisibility(e.toString()),
                   );
                 }
               }
@@ -2128,10 +2114,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
   void _editProject(
       BuildContext context, WidgetRef ref, ApiProject currentProject) {
     // Navigate to project editor or show edit dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(Strings.of(context).openingProjectEditor),
-      ),
+    AppNotification.info(
+      context,
+      Strings.of(context).openingProjectEditor,
     );
     // Implementation would navigate to the pixel art editor with this project
   }
@@ -2287,34 +2272,31 @@ class ProjectDetailScreen extends HookConsumerWidget {
   void _copyProjectLink(BuildContext context, ApiProject currentProject) {
     final link = 'https://pixelverse.app/project/${currentProject.id}';
     Clipboard.setData(ClipboardData(text: link));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(Strings.of(context).projectLinkCopied),
-        duration: Duration(seconds: 2),
-      ),
+    AppNotification.info(
+      context,
+      Strings.of(context).projectLinkCopied,
+      duration: const Duration(seconds: 2),
     );
   }
 
   void _saveToFavorites(
       BuildContext context, WidgetRef ref, ApiProject currentProject) {
     // Implement save to favorites functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(Strings.of(context).addedToFavorites),
-        duration: Duration(seconds: 2),
-      ),
+    AppNotification.success(
+      context,
+      Strings.of(context).addedToFavorites,
+      duration: const Duration(seconds: 2),
     );
   }
 
   void _followArtist(
       BuildContext context, WidgetRef ref, ApiProject currentProject) {
     // Implement follow artist functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(Strings.of(context).nowFollowingUser(
-            currentProject.displayName ?? currentProject.username ?? '')),
-        duration: Duration(seconds: 2),
-      ),
+    AppNotification.info(
+      context,
+      Strings.of(context).nowFollowingUser(
+          currentProject.displayName ?? currentProject.username ?? ''),
+      duration: const Duration(seconds: 2),
     );
   }
 
@@ -2332,10 +2314,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(Strings.of(context).reportThanks),
-                ),
+              AppNotification.info(
+                context,
+                Strings.of(context).reportThanks,
               );
             },
             child: Text(Strings.of(context).report),
@@ -2357,23 +2338,19 @@ class ProjectDetailScreen extends HookConsumerWidget {
       if (isAdLoaded) {
         _showDownloadOptionsDialog(context, ref, currentProject);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text(Strings.of(context).premiumRequiredToDownloadProjects),
-            duration: const Duration(seconds: 3),
-            action: SnackBarAction(
-              label: Strings.of(context).upgrade,
-              onPressed: () {
-                // Navigate to subscription screen
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const SubscriptionOfferScreen(),
-                  ),
-                );
-              },
-            ),
-          ),
+        AppNotification.warning(
+          context,
+          Strings.of(context).premiumRequiredToDownloadProjects,
+          duration: const Duration(seconds: 3),
+          actionLabel: Strings.of(context).upgrade,
+          onAction: () {
+            // Navigate to subscription screen
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const SubscriptionOfferScreen(),
+              ),
+            );
+          },
         );
       }
       return;
@@ -2395,12 +2372,10 @@ class ProjectDetailScreen extends HookConsumerWidget {
       subtitle: Strings.of(context).downloadProjectRewardSubtitle,
       onRewardEarned: () async {
         // User successfully watched the video, allow download
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).thankYouWatchingDownloadStarting),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
+        AppNotification.success(
+          context,
+          Strings.of(context).thankYouWatchingDownloadStarting,
+          duration: const Duration(seconds: 2),
         );
 
         // Show download dialog
@@ -2417,11 +2392,10 @@ class ProjectDetailScreen extends HookConsumerWidget {
       BuildContext context, WidgetRef ref, ApiProject currentProject) {
     final authState = ref.read(authProvider);
     if (!authState.isSignedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(Strings.of(context).pleaseSignInToAddComments),
-          duration: Duration(seconds: 2),
-        ),
+      AppNotification.warning(
+        context,
+        Strings.of(context).pleaseSignInToAddComments,
+        duration: const Duration(seconds: 2),
       );
       return;
     }
@@ -2455,18 +2429,16 @@ class ProjectDetailScreen extends HookConsumerWidget {
 
                   if (context.mounted) {
                     Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              Strings.of(context).commentAddedSuccessfully)),
+                    AppNotification.success(
+                      context,
+                      Strings.of(context).commentAddedSuccessfully,
                     );
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(Strings.of(context)
-                              .failedToAddComment(e.toString()))),
+                    AppNotification.error(
+                      context,
+                      Strings.of(context).failedToAddComment(e.toString()),
                     );
                   }
                 }

@@ -9,9 +9,11 @@ import 'color_palette_panel.dart';
 import '../dialogs/layer_template_dialog.dart';
 import '../effects/effects_side_panel.dart';
 import '../effects/effects_selector_dialog.dart';
+import '../effects/effects_editor_dialog.dart';
 import '../effects/effect_animation_generator_dialog.dart';
 import '../layers_panel.dart';
 import '../../../l10n/strings.dart';
+import '../notifications/app_notification.dart';
 
 class DesktopSidePanel extends StatefulHookConsumerWidget {
   final int width;
@@ -33,13 +35,12 @@ class DesktopSidePanel extends StatefulHookConsumerWidget {
   ConsumerState<DesktopSidePanel> createState() => _DesktopSidePanelState();
 }
 
-class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with TickerProviderStateMixin {
+class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel>
+    with TickerProviderStateMixin {
   late List<_SidePanelTab> _tabs;
   late TabController _tabController;
   _SidePanelTab _lastContentTab = _SidePanelTab.layers;
   EffectWorkspace? _pendingWorkspace;
-  AnimationKind _selectedAnimationKind = AnimationKind.transformer;
-  AnimationKind? _pendingAnimationKind;
 
   @override
   void initState() {
@@ -64,16 +65,14 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
     final nextTabs = _tabsForState(widget.state);
     final tabsChanged = !_sameTabs(_tabs, nextTabs);
     final pendingTab = _SidePanelTab.fromWorkspace(_pendingWorkspace);
-    if (_pendingAnimationKind != null) {
-      _selectedAnimationKind = _pendingAnimationKind!;
-    }
 
     if (tabsChanged) {
       final currentTab = pendingTab ?? _tabs[_tabController.index];
       _tabController.dispose();
       _tabs = nextTabs;
-      final initialIndex =
-          _tabs.contains(currentTab) ? _tabs.indexOf(currentTab) : _tabs.indexOf(_SidePanelTab.filters);
+      final initialIndex = _tabs.contains(currentTab)
+          ? _tabs.indexOf(currentTab)
+          : _tabs.indexOf(_SidePanelTab.filters);
       _tabController = TabController(
         length: _tabs.length,
         initialIndex: initialIndex,
@@ -81,7 +80,6 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
       );
       _lastContentTab = _tabs[initialIndex];
       _pendingWorkspace = null;
-      _pendingAnimationKind = null;
       return;
     }
 
@@ -89,7 +87,6 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
       final index = _tabs.indexOf(pendingTab);
       _lastContentTab = pendingTab;
       _pendingWorkspace = null;
-      _pendingAnimationKind = null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _tabController.animateTo(index);
       });
@@ -99,18 +96,19 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
   List<_SidePanelTab> _tabsForState(PixelCanvasState state) {
     final usedWorkspaces = <EffectWorkspace>{
       for (final layer in state.currentFrame.layers)
-        for (final effect in layer.effects) EffectCatalog.forType(effect.type).workspace,
+        for (final effect in layer.effects)
+          EffectCatalog.forType(effect.type).workspace,
     };
 
     return [
       _SidePanelTab.layers,
       _SidePanelTab.filters,
-      if (usedWorkspaces.contains(EffectWorkspace.materials)) _SidePanelTab.materials,
-      if (usedWorkspaces.contains(EffectWorkspace.generators)) _SidePanelTab.generators,
-      if (usedWorkspaces.contains(EffectWorkspace.animation)) _SidePanelTab.animation,
-      if (usedWorkspaces.contains(EffectWorkspace.lighting)) _SidePanelTab.lighting,
-      if (usedWorkspaces.contains(EffectWorkspace.distortions)) _SidePanelTab.distortions,
-      _SidePanelTab.add,
+      _SidePanelTab.materials,
+      if (usedWorkspaces.contains(EffectWorkspace.generators))
+        _SidePanelTab.generators,
+      if (usedWorkspaces.contains(EffectWorkspace.animation))
+        _SidePanelTab.animation,
+      _SidePanelTab.lighting,
     ];
   }
 
@@ -142,8 +140,49 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
         layer: widget.notifier.currentLayer,
         onEffectSelected: (effect) {
           final descriptor = EffectCatalog.forType(effect.type);
+          if (descriptor.workspace == EffectWorkspace.animation) {
+            final sourceFrame = widget.notifier.currentFrame;
+            final sourceLayer = widget.notifier.currentLayer;
+            EffectAnimationGeneratorDialog.showEffectAnimationGenerator(
+              context,
+              effect: effect,
+              effects: [...sourceLayer.effects, effect],
+              effectIndex: sourceLayer.effects.length,
+              layerWidth: widget.width,
+              layerHeight: widget.height,
+              layerPixels: sourceLayer.pixels,
+              onFramesGenerated: (frames) =>
+                  widget.notifier.addGeneratedEffectFrames(
+                frames,
+                sourceFrameId: sourceFrame.id,
+                sourceLayerId: sourceLayer.layerId,
+              ),
+            );
+            return;
+          }
+          if (descriptor.workspace == EffectWorkspace.generators) {
+            final sourceLayer = widget.notifier.currentLayer;
+            EffectEditorDialog.show(
+              context: context,
+              effect: effect,
+              layerWidth: widget.width,
+              layerHeight: widget.height,
+              layerPixels: sourceLayer.pixels,
+              applyButtonText: Strings.of(context).apply,
+              onApply: (configuredEffect) {
+                widget.notifier.applyEffectToLayer(configuredEffect);
+                AppNotification.success(
+                  context,
+                  Strings.of(context).effectsPanelAppliedToLayerMessage(
+                    configuredEffect.getName(context),
+                  ),
+                  duration: const Duration(seconds: 2),
+                );
+              },
+            );
+            return;
+          }
           _pendingWorkspace = descriptor.workspace;
-          _pendingAnimationKind = descriptor.animationKind;
           widget.notifier.addLayerEffect(effect);
         },
       ),
@@ -172,11 +211,10 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
     if (confirmed != true || !mounted) return;
 
     if (widget.notifier.convertCurrentLayerToPixels()) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(strings.proceduralLayerConverted)),
-        );
+      AppNotification.info(
+        context,
+        strings.proceduralLayerConverted,
+      );
     }
   }
 
@@ -203,7 +241,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
                       tabAlignment: TabAlignment.start,
                       labelPadding: const EdgeInsets.symmetric(horizontal: 10),
                       labelColor: colorScheme.primary,
-                      unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.5),
+                      unselectedLabelColor:
+                          colorScheme.onSurface.withValues(alpha: 0.5),
                       indicatorColor: colorScheme.primary,
                       indicatorSize: TabBarIndicatorSize.tab,
                       indicatorWeight: 2,
@@ -216,9 +255,11 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
                             child: DefaultTextStyle(
                               style: TextStyle(
                                 fontSize: 10,
-                                color: _tabController.index == _tabs.indexOf(tab)
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurface.withValues(alpha: 0.5),
+                                color:
+                                    _tabController.index == _tabs.indexOf(tab)
+                                        ? colorScheme.primary
+                                        : colorScheme.onSurface
+                                            .withValues(alpha: 0.5),
                               ),
                               child: Tab(
                                 key: ValueKey('side-panel-tab-${tab.name}'),
@@ -258,7 +299,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
               flex: 3,
               child: ColorPalettePanel(
                 currentColor: widget.state.currentColor,
-                isEyedropperSelected: widget.currentTool.value == PixelTool.eyedropper,
+                isEyedropperSelected:
+                    widget.currentTool.value == PixelTool.eyedropper,
                 onSelectEyedropper: () {
                   widget.currentTool.value = PixelTool.eyedropper;
                 },
@@ -307,53 +349,6 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
     final workspace = tab.workspace;
     if (workspace == null) return const SizedBox.shrink();
 
-    if (workspace == EffectWorkspace.animation) {
-      final strings = Strings.of(context);
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-            child: SegmentedButton<AnimationKind>(
-              key: const ValueKey('animation-kind-selector'),
-              showSelectedIcon: false,
-              segments: [
-                ButtonSegment(
-                  value: AnimationKind.transformer,
-                  label: Text(
-                    strings.animationTransformers,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  icon: const Icon(Icons.transform, size: 16),
-                ),
-                ButtonSegment(
-                  value: AnimationKind.specialEffect,
-                  label: Text(
-                    strings.animationSpecialEffects,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  icon: const Icon(Icons.auto_awesome, size: 16),
-                ),
-              ],
-              selected: {_selectedAnimationKind},
-              onSelectionChanged: (selection) {
-                setState(() {
-                  _selectedAnimationKind = selection.single;
-                });
-              },
-            ),
-          ),
-          Expanded(
-            child: _buildEffectsPanel(
-              workspace,
-              animationKind: _selectedAnimationKind,
-            ),
-          ),
-        ],
-      );
-    }
-
     return _buildEffectsPanel(workspace);
   }
 
@@ -370,7 +365,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
       height: widget.height,
       workspace: workspace,
       animationKind: animationKind,
-      onConvertToPixels: workspace == EffectWorkspace.generators && widget.notifier.currentLayerIsProcedural
+      onConvertToPixels: workspace == EffectWorkspace.generators &&
+              widget.notifier.currentLayerIsProcedural
           ? _confirmConvertToPixels
           : null,
       selectionRegion: widget.state.selectionState?.region,
@@ -386,7 +382,8 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
           layerWidth: widget.width,
           layerHeight: widget.height,
           layerPixels: sourceLayer.pixels,
-          onFramesGenerated: (frames) => widget.notifier.addGeneratedEffectFrames(
+          onFramesGenerated: (frames) =>
+              widget.notifier.addGeneratedEffectFrames(
             frames,
             sourceFrameId: sourceFrame.id,
             sourceLayerId: sourceLayer.layerId,
@@ -404,7 +401,6 @@ enum _SidePanelTab {
   generators,
   animation,
   lighting,
-  distortions,
   add;
 
   EffectWorkspace? get workspace => switch (this) {
@@ -413,7 +409,6 @@ enum _SidePanelTab {
         generators => EffectWorkspace.generators,
         animation => EffectWorkspace.animation,
         lighting => EffectWorkspace.lighting,
-        distortions => EffectWorkspace.distortions,
         layers || add => null,
       };
 
@@ -424,7 +419,6 @@ enum _SidePanelTab {
         generators => Icons.auto_awesome_outlined,
         animation => Icons.animation_outlined,
         lighting => Icons.light_mode_outlined,
-        distortions => Icons.waves_outlined,
         add => Icons.add,
       };
 
@@ -437,7 +431,6 @@ enum _SidePanelTab {
       generators => strings.effectWorkspaceGenerators,
       animation => strings.effectWorkspaceAnimation,
       lighting => strings.effectWorkspaceLighting,
-      distortions => strings.effectWorkspaceDistortions,
       add => strings.add,
     };
   }
@@ -450,7 +443,6 @@ enum _SidePanelTab {
       EffectWorkspace.generators => generators,
       EffectWorkspace.animation => animation,
       EffectWorkspace.lighting => lighting,
-      EffectWorkspace.distortions => distortions,
     };
   }
 }

@@ -3,6 +3,7 @@ import '../../../data.dart';
 import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
 import '../../../pixel/services/effect_stack_service.dart';
+import 'effects_editor_dialog.dart';
 import 'effects_panel.dart';
 import 'effects_selector_dialog.dart';
 
@@ -48,7 +49,6 @@ class QuickEffectsToolbar extends StatelessWidget {
       EffectWorkspace.generators => s.effectWorkspaceGenerators,
       EffectWorkspace.animation => s.effectWorkspaceAnimation,
       EffectWorkspace.lighting => s.effectWorkspaceLighting,
-      EffectWorkspace.distortions => s.effectWorkspaceDistortions,
     };
     final icon = switch (workspace) {
       EffectWorkspace.filters => Icons.filter_alt_outlined,
@@ -56,7 +56,6 @@ class QuickEffectsToolbar extends StatelessWidget {
       EffectWorkspace.generators => Icons.auto_awesome_outlined,
       EffectWorkspace.animation => Icons.animation_outlined,
       EffectWorkspace.lighting => Icons.light_mode_outlined,
-      EffectWorkspace.distortions => Icons.waves_outlined,
     };
 
     return Padding(
@@ -125,6 +124,29 @@ class EnhancedEffectsDialog extends StatelessWidget {
             QuickEffectsToolbar(
               layer: layer,
               onApplyEffect: (effect) {
+                final descriptor = EffectCatalog.forType(effect.type);
+                if (descriptor.workspace == EffectWorkspace.generators) {
+                  EffectEditorDialog.show(
+                    context: context,
+                    effect: effect,
+                    layerWidth: width,
+                    layerHeight: height,
+                    layerPixels: layer.pixels,
+                    applyButtonText: Strings.of(context).apply,
+                    onApply: (configuredEffect) {
+                      final processedPixels = configuredEffect.apply(
+                        layer.pixels,
+                        width,
+                        height,
+                      );
+                      final updatedLayer = layer.copyWith(
+                        pixels: processedPixels,
+                      );
+                      onLayerUpdated(updatedLayer);
+                    },
+                  );
+                  return;
+                }
                 final result = EffectStackService.addEffect(layer, effect);
                 if (result.didAdd) onLayerUpdated(result.layer);
               },

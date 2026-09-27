@@ -154,11 +154,9 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
       } else {
         // If fetch failed, show error and use existing template data as fallback
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(Strings.of(context).failedTemplateDetailsCached),
-              backgroundColor: Colors.orange,
-            ),
+          AppNotification.warning(
+            context,
+            Strings.of(context).failedTemplateDetailsCached,
           );
         }
         widget.onTemplateSelected(template);
@@ -167,11 +165,9 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
     } catch (e) {
       // On error, show message and use existing template data as fallback
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).errorLoadingTemplate(e.toString())),
-            backgroundColor: Colors.red,
-          ),
+        AppNotification.error(
+          context,
+          Strings.of(context).errorLoadingTemplate(e.toString()),
         );
         widget.onTemplateSelected(template);
         Navigator.of(context).pop();
@@ -335,14 +331,17 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
     }
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success
-              ? Strings.of(context).templateDeletedSuccessfully(template.name)
-              : Strings.of(context).failedToDeleteTemplate(template.name)),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
-      );
+      if (success) {
+        AppNotification.success(
+          context,
+          Strings.of(context).templateDeletedSuccessfully(template.name),
+        );
+      } else {
+        AppNotification.error(
+          context,
+          Strings.of(context).failedToDeleteTemplate(template.name),
+        );
+      }
     }
   }
 }

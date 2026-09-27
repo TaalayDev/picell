@@ -11,11 +11,14 @@ import '../animated_background.dart';
 import '../subscription/feature_gate.dart';
 import '../../../l10n/strings.dart';
 import 'effect_icon_preview.dart';
+import '../notifications/app_notification.dart';
 
 class EffectSelectorDialog extends ConsumerStatefulWidget {
   final Function(Effect) onEffectSelected;
   final EffectWorkspace? initialWorkspace;
   final bool lockWorkspace;
+  final FilterKind? initialFilterKind;
+  final bool lockFilterKind;
   final AnimationKind? initialAnimationKind;
   final bool lockAnimationKind;
   final Layer? layer;
@@ -25,6 +28,8 @@ class EffectSelectorDialog extends ConsumerStatefulWidget {
     required this.onEffectSelected,
     this.initialWorkspace,
     this.lockWorkspace = false,
+    this.initialFilterKind,
+    this.lockFilterKind = false,
     this.initialAnimationKind,
     this.lockAnimationKind = false,
     this.layer,
@@ -38,12 +43,14 @@ class EffectSelectorDialog extends ConsumerStatefulWidget {
 class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   String _searchQuery = '';
   EffectWorkspace? _selectedWorkspace;
+  FilterKind? _selectedFilterKind;
   AnimationKind? _selectedAnimationKind;
 
   @override
   void initState() {
     super.initState();
     _selectedWorkspace = widget.initialWorkspace;
+    _selectedFilterKind = widget.initialFilterKind;
     _selectedAnimationKind = widget.initialAnimationKind;
   }
 
@@ -52,9 +59,12 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialWorkspace != widget.initialWorkspace ||
         oldWidget.lockWorkspace != widget.lockWorkspace ||
+        oldWidget.initialFilterKind != widget.initialFilterKind ||
+        oldWidget.lockFilterKind != widget.lockFilterKind ||
         oldWidget.initialAnimationKind != widget.initialAnimationKind ||
         oldWidget.lockAnimationKind != widget.lockAnimationKind) {
       _selectedWorkspace = widget.initialWorkspace;
+      _selectedFilterKind = widget.initialFilterKind;
       _selectedAnimationKind = widget.initialAnimationKind;
       _searchQuery = '';
     }
@@ -72,6 +82,15 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     };
   }
 
+  String _filterKindLabel(BuildContext context, FilterKind? filterKind) {
+    final strings = Strings.of(context);
+    return switch (filterKind) {
+      null => strings.categoryAll,
+      FilterKind.filter => strings.effectWorkspaceFilters,
+      FilterKind.distortion => strings.effectWorkspaceDistortions,
+    };
+  }
+
   List<EffectWorkspace?> get _workspaces => widget.lockWorkspace
       ? [widget.initialWorkspace]
       : [null, ...EffectWorkspace.values];
@@ -85,7 +104,6 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
       EffectWorkspace.generators => strings.effectWorkspaceGenerators,
       EffectWorkspace.animation => strings.effectWorkspaceAnimation,
       EffectWorkspace.lighting => strings.effectWorkspaceLighting,
-      EffectWorkspace.distortions => strings.effectWorkspaceDistortions,
     };
   }
 
@@ -93,6 +111,15 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     final lang = Localizations.localeOf(context).languageCode;
     switch (_selectedWorkspace) {
       case EffectWorkspace.filters:
+        if (_selectedFilterKind == FilterKind.distortion) {
+          return switch (lang) {
+            'ru' => 'Выбор искажения',
+            'zh' => '选择扭曲效果',
+            'ja' => '歪み効果を選択',
+            'ky' => 'Бузулуу тандаңыз',
+            _ => 'Select Distortion',
+          };
+        }
         return switch (lang) {
           'ru' => 'Выбор фильтра',
           'zh' => '选择滤镜',
@@ -149,14 +176,6 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           'ky' => 'Жарыктандыруу тандаңыз',
           _ => 'Select Lighting',
         };
-      case EffectWorkspace.distortions:
-        return switch (lang) {
-          'ru' => 'Выбор искажения',
-          'zh' => '选择扭曲效果',
-          'ja' => '歪み効果を選択',
-          'ky' => 'Бузулуу тандаңыз',
-          _ => 'Select Distortion',
-        };
       case null:
         return Strings.of(context).selectEffect;
     }
@@ -166,6 +185,15 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     final lang = Localizations.localeOf(context).languageCode;
     switch (_selectedWorkspace) {
       case EffectWorkspace.filters:
+        if (_selectedFilterKind == FilterKind.distortion) {
+          return switch (lang) {
+            'ru' => 'Поиск искажений',
+            'zh' => '搜索扭曲效果',
+            'ja' => '歪み効果を検索',
+            'ky' => 'Бузулууларды издөө',
+            _ => 'Search distortions',
+          };
+        }
         return switch (lang) {
           'ru' => 'Поиск фильтров',
           'zh' => '搜索滤镜',
@@ -222,14 +250,6 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           'ky' => 'Жарыктандырууну издөө',
           _ => 'Search lighting',
         };
-      case EffectWorkspace.distortions:
-        return switch (lang) {
-          'ru' => 'Поиск искажений',
-          'zh' => '搜索扭曲效果',
-          'ja' => '歪み効果を検索',
-          'ky' => 'Бузулууларды издөө',
-          _ => 'Search distortions',
-        };
       case null:
         return Strings.of(context).searchEffects;
     }
@@ -240,6 +260,11 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
       final descriptor = EffectCatalog.forType(type);
       if (_selectedWorkspace != null &&
           descriptor.workspace != _selectedWorkspace) {
+        return false;
+      }
+      if (_selectedWorkspace == EffectWorkspace.filters &&
+          _selectedFilterKind != null &&
+          descriptor.filterKind != _selectedFilterKind) {
         return false;
       }
       if (_selectedWorkspace == EffectWorkspace.animation &&
@@ -353,6 +378,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                                 if (selected) {
                                   setState(() {
                                     _selectedWorkspace = workspace;
+                                    _selectedFilterKind = null;
                                     _selectedAnimationKind = null;
                                   });
                                 }
@@ -360,6 +386,42 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                             ),
                           );
                         },
+                      ),
+                    ),
+                  ),
+
+                if (_selectedWorkspace == EffectWorkspace.filters &&
+                    !widget.lockFilterKind)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          for (final filterKind in <FilterKind?>[
+                            null,
+                            ...FilterKind.values,
+                          ])
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                key: ValueKey(
+                                  'filter-kind-${filterKind?.name ?? 'all'}',
+                                ),
+                                label: Text(
+                                  _filterKindLabel(context, filterKind),
+                                ),
+                                selected: _selectedFilterKind == filterKind,
+                                onSelected: (selected) {
+                                  if (!selected) return;
+                                  setState(() {
+                                    _selectedFilterKind = filterKind;
+                                  });
+                                },
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
@@ -436,7 +498,13 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                             final hasProAccess =
                                 subscriptionState.hasFeatureAccess(
                                     SubscriptionFeature.advancedTools);
-                            final validation = stackState == null
+                            final descriptor =
+                                EffectCatalog.forType(effectType);
+                            final validation = (stackState == null ||
+                                    descriptor.workspace ==
+                                        EffectWorkspace.generators ||
+                                    descriptor.workspace ==
+                                        EffectWorkspace.animation)
                                 ? const EffectStackAddValidation.allowed()
                                 : EffectStackService.validateAddToState(
                                     stackState,
@@ -485,20 +553,17 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
       child: InkWell(
         onTap: () {
           if (!validation.isAllowed) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(
-                  content: Text(_validationMessage(context, validation)),
-                ),
-              );
+            AppNotification.warning(
+              context,
+              _validationMessage(context, validation),
+            );
             return;
           }
           if (isLocked) {
             _showUpgradePrompt(context);
           } else {
-            widget.onEffectSelected(effect);
             Navigator.of(context).pop();
+            widget.onEffectSelected(effect);
           }
         },
         borderRadius: BorderRadius.circular(12),

@@ -6,6 +6,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../../l10n/strings.dart';
 import '../../../providers/auth_provider.dart';
+import '../notifications/app_notification.dart';
 
 class DeleteAccountDialog extends HookConsumerWidget {
   const DeleteAccountDialog({
@@ -589,11 +590,9 @@ class QuickDeleteAccountDialog extends HookConsumerWidget {
                   } catch (e) {
                     isDeleting.value = false;
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(s.failedToDeleteAccount('$e')),
-                          backgroundColor: Colors.red,
-                        ),
+                      AppNotification.error(
+                        context,
+                        s.failedToDeleteAccount('$e'),
                       );
                     }
                   }

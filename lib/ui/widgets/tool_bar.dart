@@ -19,6 +19,8 @@ import '../../providers/editor_settings_provider.dart';
 import 'app_icon.dart';
 import 'dialogs/editor_settings_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
+import 'effects/effect_animation_generator_dialog.dart';
+import 'effects/effects_editor_dialog.dart';
 import 'effects/effects_selector_dialog.dart';
 import 'menu_value_field.dart';
 import 'pen_path_actions.dart';
@@ -121,17 +123,65 @@ class ToolBar extends ConsumerWidget {
 
     void openEffectSelector(
       EffectWorkspace workspace, {
+      FilterKind? filterKind,
       AnimationKind? animationKind,
     }) {
+      final parentContext = context;
       showDialog<void>(
         context: context,
         builder: (context) => EffectSelectorDialog(
           initialWorkspace: workspace,
           lockWorkspace: true,
+          initialFilterKind: filterKind,
+          lockFilterKind: filterKind != null,
           initialAnimationKind: animationKind,
           lockAnimationKind: animationKind != null,
           layer: notifier.currentLayer,
-          onEffectSelected: notifier.addLayerEffect,
+          onEffectSelected: (effect) {
+            final descriptor = EffectCatalog.forType(effect.type);
+            if (descriptor.workspace == EffectWorkspace.animation) {
+              final sourceFrame = notifier.currentFrame;
+              final sourceLayer = notifier.currentLayer;
+              EffectAnimationGeneratorDialog.showEffectAnimationGenerator(
+                context,
+                effect: effect,
+                effects: [...sourceLayer.effects, effect],
+                effectIndex: sourceLayer.effects.length,
+                layerWidth: project.width,
+                layerHeight: project.height,
+                layerPixels: sourceLayer.pixels,
+                onFramesGenerated: (frames) => notifier.addGeneratedEffectFrames(
+                  frames,
+                  sourceFrameId: sourceFrame.id,
+                  sourceLayerId: sourceLayer.layerId,
+                ),
+              );
+              return;
+            }
+            if (descriptor.workspace == EffectWorkspace.generators) {
+              final sourceLayer = notifier.currentLayer;
+              EffectEditorDialog.show(
+                context: context,
+                effect: effect,
+                layerWidth: project.width,
+                layerHeight: project.height,
+                layerPixels: sourceLayer.pixels,
+                applyButtonText: Strings.of(context).apply,
+                onApply: (configuredEffect) {
+                  notifier.applyEffectToLayer(configuredEffect);
+                  AppNotification.success(
+                    parentContext,
+                    Strings.of(parentContext).effectsPanelAppliedToLayerMessage(
+                      configuredEffect.getName(context),
+                    ),
+                    duration: const Duration(seconds: 2),
+                  );
+                },
+              );
+              return;
+            }
+            notifier.addLayerEffect(effect);
+          },
         ),
       );
     }
@@ -330,12 +380,36 @@ class ToolBar extends ConsumerWidget {
             icon: Icons.add_box_outlined,
             compact: screenSize.isMobile,
             itemBuilder: (context) => [
-              _TopBarMenuItem(
+              _SubmenuTopBarMenuItem(
                 key: const ValueKey('toolbar-add-filters'),
-                value: _AddMenuAction.filters,
                 icon: const Icon(Icons.filter_alt_outlined, size: 18),
                 title: Strings.of(context).effectWorkspaceFilters,
-                shortcut: _alt('1'),
+                items: [
+                  _SubmenuItem(
+                    key: const ValueKey('toolbar-add-filter-effects'),
+                    icon: const Icon(Icons.filter_alt_outlined, size: 18),
+                    title: Strings.of(context).effectWorkspaceFilters,
+                    shortcut: _alt('1'),
+                    onTap: () {
+                      openEffectSelector(
+                        EffectWorkspace.filters,
+                        filterKind: FilterKind.filter,
+                      );
+                    },
+                  ),
+                  _SubmenuItem(
+                    key: const ValueKey('toolbar-add-distortions'),
+                    icon: const Icon(Icons.waves_outlined, size: 18),
+                    title: Strings.of(context).effectWorkspaceDistortions,
+                    shortcut: _alt('7'),
+                    onTap: () {
+                      openEffectSelector(
+                        EffectWorkspace.filters,
+                        filterKind: FilterKind.distortion,
+                      );
+                    },
+                  ),
+                ],
               ),
               _TopBarMenuItem(
                 key: const ValueKey('toolbar-add-materials'),
@@ -389,13 +463,6 @@ class ToolBar extends ConsumerWidget {
                 title: Strings.of(context).effectWorkspaceLighting,
                 shortcut: _alt('6'),
               ),
-              _TopBarMenuItem(
-                key: const ValueKey('toolbar-add-distortions'),
-                value: _AddMenuAction.distortions,
-                icon: const Icon(Icons.waves_outlined, size: 18),
-                title: Strings.of(context).effectWorkspaceDistortions,
-                shortcut: _alt('7'),
-              ),
               const PopupMenuDivider(),
               _TopBarMenuItem(
                 value: _AddMenuAction.templates,
@@ -406,16 +473,12 @@ class ToolBar extends ConsumerWidget {
             ],
             onSelected: (action) {
               switch (action) {
-                case _AddMenuAction.filters:
-                  openEffectSelector(EffectWorkspace.filters);
                 case _AddMenuAction.materials:
                   openEffectSelector(EffectWorkspace.materials);
                 case _AddMenuAction.generators:
                   openEffectSelector(EffectWorkspace.generators);
                 case _AddMenuAction.lighting:
                   openEffectSelector(EffectWorkspace.lighting);
-                case _AddMenuAction.distortions:
-                  openEffectSelector(EffectWorkspace.distortions);
                 case _AddMenuAction.templates:
                   onTemplates?.call();
               }
@@ -577,11 +640,9 @@ enum _ViewMenuAction {
 }
 
 enum _AddMenuAction {
-  filters,
   materials,
   generators,
   lighting,
-  distortions,
   templates,
 }
 

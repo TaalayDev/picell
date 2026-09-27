@@ -11,6 +11,7 @@ import '../animated_background.dart';
 import 'effect_list_item.dart';
 import 'effects_editor_dialog.dart';
 import 'effects_selector_dialog.dart';
+import '../notifications/app_notification.dart';
 import 'pixlel_preview_painter.dart';
 
 class EffectsPanel extends StatefulWidget {
@@ -84,6 +85,56 @@ class _EffectsPanelState extends State<EffectsPanel> {
       builder: (context) => EffectSelectorDialog(
         layer: widget.layer.copyWith(effects: _effects),
         onEffectSelected: (effect) {
+          final descriptor = EffectCatalog.forType(effect.type);
+          if (descriptor.workspace == EffectWorkspace.animation) {
+            if (widget.onAnimate != null) {
+              widget.onAnimate!(
+                effect,
+                [..._effects, effect],
+                _effects.length,
+              );
+            }
+            return;
+          }
+          if (descriptor.workspace == EffectWorkspace.generators) {
+            EffectEditorDialog.show(
+              context: context,
+              effect: effect,
+              layerWidth: widget.width,
+              layerHeight: widget.height,
+              layerPixels: widget.layer.pixels,
+              applyButtonText: Strings.of(context).apply,
+              onApply: (configuredEffect) {
+                final processedPixels = widget.selectionRegion == null
+                    ? configuredEffect.apply(
+                        widget.layer.pixels,
+                        widget.width,
+                        widget.height,
+                      )
+                    : EffectsManager.applyMultipleEffectsToSelection(
+                        widget.layer.pixels,
+                        widget.width,
+                        widget.height,
+                        [configuredEffect],
+                        widget.selectionRegion!,
+                      );
+                final updatedLayer = widget.layer.copyWith(
+                  pixels: processedPixels,
+                  effects: _effects,
+                );
+                _updatePreview();
+                widget.onLayerUpdated(updatedLayer);
+                AppNotification.success(
+                  context,
+                  Strings.of(context).effectsPanelAppliedToLayerMessage(
+                    configuredEffect.getName(context),
+                  ),
+                  duration: const Duration(seconds: 2),
+                );
+              },
+            );
+            return;
+          }
           final result = EffectStackService.addEffect(
             widget.layer.copyWith(effects: _effects),
             effect,
@@ -244,16 +295,12 @@ class _EffectsPanelState extends State<EffectsPanel> {
     widget.onLayerUpdated(updatedLayer);
 
     // Show confirmation
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          Strings.of(context).effectsPanelAppliedToLayerMessage(
-            effectsToApply.first.getName(context),
-          ),
-        ),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
+    AppNotification.success(
+      context,
+      Strings.of(context).effectsPanelAppliedToLayerMessage(
+        effectsToApply.first.getName(context),
       ),
+      duration: const Duration(seconds: 2),
     );
   }
 
@@ -301,25 +348,20 @@ class _EffectsPanelState extends State<EffectsPanel> {
     widget.onLayerUpdated(updatedLayer);
 
     // Show confirmation
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(Strings.of(context).effectsPanelAllAppliedMessage),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
+    AppNotification.success(
+      context,
+      Strings.of(context).effectsPanelAllAppliedMessage,
+      duration: const Duration(seconds: 2),
     );
   }
 
   void _convertProceduralStack() {
     final convert = widget.onConvertToPixels;
     if (convert == null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).proceduralLayerDrawingBlocked),
-          ),
-        );
+      AppNotification.warning(
+        context,
+        Strings.of(context).proceduralLayerDrawingBlocked,
+      );
       return;
     }
 
@@ -1041,10 +1083,9 @@ class _DesktopLayout extends StatelessWidget {
                         icon: const Icon(Icons.help_outline, size: 16),
                         label: Text(s.effectsAppliedInOrder),
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(s.effectsReorderHint),
-                            ),
+                          AppNotification.info(
+                            context,
+                            s.effectsReorderHint,
                           );
                         },
                       ),

@@ -6,6 +6,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import '../../../data.dart';
 import '../../../l10n/strings.dart';
 import '../../../providers/project_upload_provider.dart';
+import '../notifications/app_notification.dart';
 import '../project/project_thumbnail.dart';
 
 class ProjectUploadDialog extends HookConsumerWidget {
@@ -272,8 +273,9 @@ class ProjectUploadDialog extends HookConsumerWidget {
     ValueNotifier<bool> isUploading,
   ) async {
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(Strings.of(context).pleaseEnterTitle)),
+      AppNotification.warning(
+        context,
+        Strings.of(context).pleaseEnterTitle,
       );
       return;
     }
@@ -642,11 +644,10 @@ class _TagsGrid extends StatelessWidget {
               selectedTags.value = selectedTags.value.where((t) => t != name).toList();
             } else {
               if (selectedTags.value.length >= 5) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(Strings.of(context).maximumTagsAllowed),
-                    duration: Duration(seconds: 2),
-                  ),
+                AppNotification.warning(
+                  context,
+                  Strings.of(context).maximumTagsAllowed,
+                  duration: const Duration(seconds: 2),
                 );
                 return;
               }

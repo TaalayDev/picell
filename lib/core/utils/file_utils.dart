@@ -12,6 +12,7 @@ import 'package:platform/platform.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 
+import '../../ui/widgets/notifications/app_notification.dart';
 import 'image_helper.dart';
 
 /// Converts raw ARGB pixels to (optionally resized) PNG bytes. Top-level so
@@ -48,8 +49,9 @@ class FileUtils {
 
     saveImage(jpg, fileName);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Image saved as $fileName')),
+    AppNotification.success(
+      context,
+      'Image saved as $fileName',
     );
   }
 
@@ -72,8 +74,9 @@ class FileUtils {
 
     await saveImage(png, fileName);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Image saved as $fileName')),
+    AppNotification.success(
+      context,
+      'Image saved as $fileName',
     );
   }
 

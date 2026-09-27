@@ -47,6 +47,7 @@ void main() {
               pixels: Uint32List(32 * 32),
               effects: [
                 BrightnessEffect(),
+                GlitchEffect(),
                 WoodEffect(),
                 PulseEffect(),
                 FireEffect(),
@@ -94,30 +95,29 @@ void main() {
         find.byKey(const ValueKey('side-panel-tab-materials')), findsOneWidget);
     expect(
         find.byKey(const ValueKey('side-panel-tab-animation')), findsOneWidget);
-    expect(find.byKey(const ValueKey('side-panel-tab-add')), findsOneWidget);
     expect(
         find.byKey(const ValueKey('side-panel-tab-generators')), findsNothing);
-    expect(find.text('Layers'), findsNothing);
-    expect(find.text('Filters'), findsNothing);
+    expect(find.text('Layers'), findsOneWidget);
+    expect(find.text('Filters'), findsOneWidget);
 
     await tester.tap(
-      find.byKey(const ValueKey('side-panel-tab-animation')),
+      find.byKey(const ValueKey('side-panel-tab-filters')),
     );
     await tester.pumpAndSettle();
-
+    final filterItems =
+        tester.widgetList<EffectListItem>(find.byType(EffectListItem)).toList();
     expect(
-      find.byKey(const ValueKey('animation-kind-selector')),
-      findsOneWidget,
-    );
+        filterItems.map((item) => item.effect.type), [EffectType.brightness, EffectType.glitch]);
+
+    final animationTab =
+        find.byKey(const ValueKey('side-panel-tab-animation'));
+    await tester.ensureVisible(animationTab);
+    await tester.tap(animationTab);
+    await tester.pumpAndSettle();
+
     var animationItems =
         tester.widgetList<EffectListItem>(find.byType(EffectListItem)).toList();
-    expect(animationItems.map((item) => item.effect.type), [EffectType.pulse]);
-
-    await tester.tap(find.text('Special effects'));
-    await tester.pumpAndSettle();
-    animationItems =
-        tester.widgetList<EffectListItem>(find.byType(EffectListItem)).toList();
-    expect(animationItems.map((item) => item.effect.type), [EffectType.fire]);
+    expect(animationItems.map((item) => item.effect.type), [EffectType.pulse, EffectType.fire]);
 
     notifier!.addLayerEffect(MountainRangeEffect());
     await tester.pumpAndSettle();

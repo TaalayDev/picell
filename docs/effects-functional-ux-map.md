@@ -22,13 +22,13 @@ Each effect has exactly one **primary workspace** used for discovery and side-pa
 
 | Workspace | User intent | Default input policy | Stack role |
 | --- | --- | --- | --- |
-| Filters | Correct or stylize existing artwork | `requiresPixels` | modifier |
+| Filters / Filters | Correct or stylize existing artwork | `requiresPixels` | modifier |
+| Filters / Distortions | Spatially displace, fragment, or glitch existing artwork | `requiresPixels` | modifier |
 | Materials | Replace or enrich the surface of existing pixels while preserving the silhouette | `requiresPixels` | modifier |
 | Generators | Create the layer's base image procedurally | `requiresEmptyLayer` | generator, first in stack |
 | Animation / Transformers | Move, deform, reveal, or recolor existing artwork over time | `requiresPixels` | modifier |
 | Animation / Special Effects | Add an animated or event-like visual around artwork | effect-specific, normally `anyLayer` | modifier/overlay |
 | Lighting | Add light, shadow, depth, or atmospheric illumination | effect-specific, normally `requiresPixels` | modifier/overlay |
-| Distortions | Spatially displace, fragment, or glitch existing artwork | `requiresPixels` | modifier |
 
 Tags such as `nature`, `print`, `retro`, `particles`, `environment`, and `premium` improve search but never create another primary location for the same effect.
 
@@ -36,11 +36,15 @@ Tags such as `nature`, `print`, `retro`, `particles`, `environment`, and `premiu
 
 The lists below are exhaustive for the current 186 enum values. They are the classification baseline for the descriptor registry in Step 1.
 
-### Filters — 46
+### Filters — 57
 
 Default policy: `requiresPixels`; role: `modifier`.
 
 `brightness`, `contrast`, `invert`, `grayscale`, `sepia`, `threshold`, `pixelate`, `blur`, `sharpen`, `emboss`, `noise`, `colorBalance`, `dithering`, `outline`, `paletteReduction`, `watercolor`, `halftone`, `oilPaint`, `gradient`, `stainedGlass`, `opacity`, `crt`, `lcdMatrix`, `risographPrint`, `inkCrosshatch`, `topographicContours`, `paperCutout`, `celShading`, `lowPolyFacets`, `asciiMosaic`, `woodblockUkiyoe`, `cyanotypePrint`, `linocutStamp`, `byzantineMosaic`, `chalkPastel`, `waxSgraffito`, `benDayComic`, `delftwareTile`, `thermalReceipt`, `ditheredFrostedBlur`, `luminanceGradientMap`, `kintsugiLacquer`, `petrifiedAgate`, `normalMap`, `vignette`, `platformer`
+
+Distortions submenu — 11:
+
+`glitch`, `chromaticAberration`, `pixelSorting`, `isometricExtrusion`, `voronoiShatter`, `windAshDispersal`, `lateralSliceGlitch`, `directionalMotionBlur`, `radialZoomBlur`, `holoScanlineGlitch`, `nanotechCircuit`
 
 Notes:
 
@@ -48,11 +52,11 @@ Notes:
 - `vignette` remains a filter because it is a whole-image tonal correction; it receives a `lighting` search tag.
 - `kintsugiLacquer` and `petrifiedAgate` require a code-level alpha audit in Step 1. They stay in Filters until silhouette-preserving behavior is confirmed.
 
-### Materials — 18
+### Materials — 17
 
 Default policy: `requiresPixels`; role: `modifier`; must preserve transparent pixels.
 
-`wood`, `crystal`, `metal`, `stone`, `ice`, `treeBark`, `leafVenation`, `groundTexture`, `wallTexture`, `rustCorrosion`, `wornFabric`, `crackedCeramic`, `mossLichen`, `paintPeeling`, `frostGlaze`, `romanTravertine`, `perlinWorms`, `voronoi`
+`wood`, `crystal`, `metal`, `stone`, `ice`, `treeBark`, `leafVenation`, `groundTexture`, `wallTexture`, `rustCorrosion`, `wornFabric`, `crackedCeramic`, `mossLichen`, `paintPeeling`, `romanTravertine`, `perlinWorms`, `voronoi`
 
 Notes:
 
@@ -84,15 +88,15 @@ Secondary grouping inside the Animation panel:
 - Reveal/transition: `dissolve`, `fadeDissolve`, `wipe`
 - Color: `colorCycling`
 
-### Animation / Special Effects — 58
+### Animation / Special Effects — 60
 
 Default policy: `anyLayer`; role: `overlay`; capability is `animated` only where the current renderer supports time-based output.
 
-`fire`, `fog`, `rain`, `sparkle`, `particle`, `explosion`, `oceanWaves`, `clouds`, `sky`, `hitFlash`, `ghostTrail`, `starfield`, `electricArc`, `blizzard`, `portalVortex`, `energyShield`, `burningEmbers`, `risingBubbles`, `slimeDrip`, `radialShockwave`, `slashArc`, `meteorShower`, `autumnWind`, `soulWisps`, `abyssalTentacles`, `cursedChains`, `beamTeleport`, `dangerAlarm`, `coinFountain`, `magmaFissures`, `dragonAura`, `waterfallCascade`, `fireflySwarm`, `whisperingReeds`, `geyserVent`, `stalactiteDrips`, `lichenMoss`, `sporeBloom`, `dustDevil`, `actionSpeedLines`, `chromaticEchoDash`, `boosterThruster`, `crownSoulFire`, `hangingIcicles`, `viscousSlime`, `arcLightning`, `kiFlareAura`, `orbitingRunesHalo`, `hexagonalAegis`, `crystalShardReflector`, `gravitySingularity`, `stompDustImpact`, `waterRippleWake`, `sproutingBramble`, `abyssalTendrilMiasma`, `lostSoulWisps`, `eldritchPeepingEyes`, `tacticalReticle`
+`hologramGlitch`, `fire`, `fog`, `rain`, `sparkle`, `particle`, `explosion`, `oceanWaves`, `clouds`, `sky`, `hitFlash`, `ghostTrail`, `starfield`, `electricArc`, `blizzard`, `portalVortex`, `energyShield`, `burningEmbers`, `risingBubbles`, `slimeDrip`, `radialShockwave`, `slashArc`, `meteorShower`, `autumnWind`, `soulWisps`, `abyssalTentacles`, `cursedChains`, `beamTeleport`, `dangerAlarm`, `coinFountain`, `magmaFissures`, `dragonAura`, `waterfallCascade`, `fireflySwarm`, `whisperingReeds`, `geyserVent`, `stalactiteDrips`, `lichenMoss`, `sporeBloom`, `dustDevil`, `actionSpeedLines`, `chromaticEchoDash`, `boosterThruster`, `crownSoulFire`, `hangingIcicles`, `frostGlaze`, `viscousSlime`, `arcLightning`, `kiFlareAura`, `orbitingRunesHalo`, `hexagonalAegis`, `crystalShardReflector`, `gravitySingularity`, `stompDustImpact`, `waterRippleWake`, `sproutingBramble`, `abyssalTendrilMiasma`, `lostSoulWisps`, `eldritchPeepingEyes`, `tacticalReticle`
 
 Input-policy exceptions to confirm in Step 1:
 
-- Anchored effects should become `requiresPixels`: `hitFlash`, `ghostTrail`, `energyShield`, `slimeDrip`, `slashArc`, `frostGlaze`, `hangingIcicles`, `viscousSlime`, `crystalShardReflector`, `waterRippleWake`, `sproutingBramble`, `eldritchPeepingEyes`.
+- Anchored effects use `requiresPixels`: `hologramGlitch`, `hitFlash`, `ghostTrail`, `energyShield`, `slimeDrip`, `slashArc`, `frostGlaze`, `hangingIcicles`, `viscousSlime`, `crystalShardReflector`, `waterRippleWake`, `sproutingBramble`, `eldritchPeepingEyes`.
 - Scene-like effects that fully replace the input must be moved to Generators rather than receiving `requiresEmptyLayer` inside Special Effects.
 
 ### Lighting — 16
@@ -105,17 +109,6 @@ Policy exceptions:
 
 - `radiantRays`, `solarEclipse`, `sunbeamGodRays`, `auroraCurtains`, `supernovaCorona`, `orbitingMoons`, `zodiacConstellation`, `sacredGeometryHalo`, `floatingSigils`, and `alchemicalCircle` are overlays and may use `anyLayer` if an empty-input render test confirms meaningful output.
 - Animated lighting stays in Lighting and receives the `animated` capability.
-
-### Distortions — 12
-
-Default policy: `requiresPixels`; role: `modifier`.
-
-`glitch`, `chromaticAberration`, `hologramGlitch`, `pixelSorting`, `isometricExtrusion`, `voronoiShatter`, `windAshDispersal`, `lateralSliceGlitch`, `directionalMotionBlur`, `radialZoomBlur`, `holoScanlineGlitch`, `nanotechCircuit`
-
-Notes:
-
-- `nanotechCircuit` receives a `sci-fi` tag. If the alpha audit shows that it only decorates the source surface, it may move to Materials before Step 1 is frozen.
-- `hologramGlitch` and `kaleidoscope` retain their current animation capability even though their primary workspaces differ.
 
 ## 4. Top-bar information architecture
 
@@ -143,13 +136,14 @@ Desktop and wide layouts use three menus. Compact layouts may collapse them into
 ### Add
 
 - Filters
+  - Filters
+  - Distortions
 - Materials
 - Generators
 - Animation
   - Transformers
   - Special Effects
 - Lighting
-- Distortions
 - Template Gallery
 
 The direct toolbar retains only:
@@ -174,12 +168,11 @@ Stable order:
 4. Generators — visible when the project/frame uses a generator
 5. Animation — visible when the project/frame uses an animation effect
 6. Lighting — visible when the project/frame uses a lighting effect
-7. Distortions — visible when the project/frame uses a distortion
-8. Add (`+`) — always visible and opens effect discovery
+7. Add (`+`) — always visible and opens effect discovery
 
 Visibility is derived from the current project or frame, not only the selected layer. This prevents tabs from shifting whenever the user selects another layer. A visible workspace with no matching effect on the selected layer shows an empty state and an Add action.
 
-Selecting an effect from Add opens the corresponding workspace automatically. Animation uses one sidebar tab with Transformers and Special Effects as internal segments.
+Selecting an effect from Add opens the corresponding workspace automatically. Filters uses Filters and Distortions as internal segments; Animation uses Transformers and Special Effects.
 
 ## 6. Input and stack rules
 

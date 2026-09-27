@@ -184,12 +184,10 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
 
     notifier.addLayerWithPixels(layer);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content:
-            Text(Strings.of(context).importedFileAsNewLayer(result.fileName)),
-        duration: const Duration(seconds: 2),
-      ),
+    AppNotification.info(
+      context,
+      Strings.of(context).importedFileAsNewLayer(result.fileName),
+      duration: const Duration(seconds: 2),
     );
   }
 
@@ -216,13 +214,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                   result.project!.frames.first.layers.isNotEmpty) {
                 final importedLayer = result.project!.frames.first.layers.first;
                 notifier.addLayerWithPixels(importedLayer);
-                ScaffoldMessenger.of(
+                AppNotification.info(
                   context,
-                ).showSnackBar(
-                  SnackBar(
-                    content: Text(Strings.of(context)
-                        .importedFirstLayerFromFile(result.fileName)),
-                  ),
+                  Strings.of(context).importedFirstLayerFromFile(result.fileName),
                 );
               }
             },

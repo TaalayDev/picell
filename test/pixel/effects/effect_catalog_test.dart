@@ -18,12 +18,11 @@ void main() {
     });
 
     test('matches the approved workspace inventory', () {
-      expect(_count(EffectWorkspace.filters), 46);
-      expect(_count(EffectWorkspace.materials), 18);
+      expect(_count(EffectWorkspace.filters), 57);
+      expect(_count(EffectWorkspace.materials), 17);
       expect(_count(EffectWorkspace.generators), 18);
-      expect(_count(EffectWorkspace.animation), 76);
+      expect(_count(EffectWorkspace.animation), 78);
       expect(_count(EffectWorkspace.lighting), 16);
-      expect(_count(EffectWorkspace.distortions), 12);
     });
 
     test('all generators have an empty-layer policy and generator role', () {
@@ -89,7 +88,7 @@ void main() {
           .where((item) => item.animationKind == AnimationKind.specialEffect);
 
       expect(transformers.length, 18);
-      expect(specialEffects.length, 58);
+      expect(specialEffects.length, 60);
       expect(
         animation.every((item) => item.animationKind != null),
         isTrue,
@@ -103,6 +102,25 @@ void main() {
         ),
         isTrue,
       );
+    });
+
+    test('distortions are a filters subtype and hologram is a special effect',
+        () {
+      final distortions = EffectCatalog.inWorkspace(EffectWorkspace.filters)
+          .where((item) => item.filterKind == FilterKind.distortion)
+          .toList();
+
+      expect(distortions.length, 11);
+      expect(
+        distortions.every((item) => item.role == EffectRole.modifier),
+        isTrue,
+      );
+
+      final hologram = EffectCatalog.forType(EffectType.hologramGlitch);
+      expect(hologram.workspace, EffectWorkspace.animation);
+      expect(hologram.animationKind, AnimationKind.specialEffect);
+      expect(hologram.inputPolicy, EffectInputPolicy.requiresPixels);
+      expect(hologram.filterKind, isNull);
     });
 
     test('legacy isAnimation reads the catalog capability', () {

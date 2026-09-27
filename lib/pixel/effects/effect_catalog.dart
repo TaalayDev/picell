@@ -7,7 +7,6 @@ enum EffectWorkspace {
   generators,
   animation,
   lighting,
-  distortions,
 }
 
 /// The effect's structural responsibility in a layer effect stack.
@@ -28,6 +27,12 @@ enum EffectInputPolicy {
 enum AnimationKind {
   transformer,
   specialEffect,
+}
+
+/// User-facing subdivision within the Filters workspace.
+enum FilterKind {
+  filter,
+  distortion,
 }
 
 /// Independent runtime and presentation features supported by an effect.
@@ -53,6 +58,7 @@ class EffectDescriptor {
     required this.workspace,
     required this.role,
     required this.inputPolicy,
+    this.filterKind,
     this.animationKind,
     this.tags = const {},
     this.capabilities = const {},
@@ -62,6 +68,7 @@ class EffectDescriptor {
   final EffectWorkspace workspace;
   final EffectRole role;
   final EffectInputPolicy inputPolicy;
+  final FilterKind? filterKind;
   final AnimationKind? animationKind;
   final Set<EffectTag> tags;
   final Set<EffectCapability> capabilities;
@@ -93,6 +100,7 @@ class EffectCatalog {
       required EffectWorkspace workspace,
       required EffectRole role,
       required EffectInputPolicy inputPolicy,
+      FilterKind? filterKind,
       AnimationKind? animationKind,
     }) {
       for (final type in types) {
@@ -109,6 +117,7 @@ class EffectCatalog {
           workspace: workspace,
           role: role,
           inputPolicy: _inputPolicyOverrides[type] ?? inputPolicy,
+          filterKind: filterKind,
           animationKind: animationKind,
           tags: Set.unmodifiable(_tagsFor(type)),
           capabilities: _animatedTypes.contains(type)
@@ -123,6 +132,7 @@ class EffectCatalog {
       workspace: EffectWorkspace.filters,
       role: EffectRole.modifier,
       inputPolicy: EffectInputPolicy.requiresPixels,
+      filterKind: FilterKind.filter,
     );
     addWorkspace(
       _materials,
@@ -158,9 +168,10 @@ class EffectCatalog {
     );
     addWorkspace(
       _distortions,
-      workspace: EffectWorkspace.distortions,
+      workspace: EffectWorkspace.filters,
       role: EffectRole.modifier,
       inputPolicy: EffectInputPolicy.requiresPixels,
+      filterKind: FilterKind.distortion,
     );
 
     final missing =
@@ -195,6 +206,8 @@ class EffectCatalog {
     EffectType.slimeDrip: EffectInputPolicy.requiresPixels,
     EffectType.slashArc: EffectInputPolicy.requiresPixels,
     EffectType.hangingIcicles: EffectInputPolicy.requiresPixels,
+    EffectType.hologramGlitch: EffectInputPolicy.requiresPixels,
+    EffectType.frostGlaze: EffectInputPolicy.requiresPixels,
     EffectType.viscousSlime: EffectInputPolicy.requiresPixels,
     EffectType.crystalShardReflector: EffectInputPolicy.requiresPixels,
     EffectType.waterRippleWake: EffectInputPolicy.requiresPixels,
@@ -277,7 +290,6 @@ class EffectCatalog {
     EffectType.crackedCeramic,
     EffectType.mossLichen,
     EffectType.paintPeeling,
-    EffectType.frostGlaze,
     EffectType.romanTravertine,
     EffectType.perlinWorms,
     EffectType.voronoi,
@@ -326,6 +338,7 @@ class EffectCatalog {
   };
 
   static const Set<EffectType> _animationSpecialEffects = {
+    EffectType.hologramGlitch,
     EffectType.fire,
     EffectType.fog,
     EffectType.rain,
@@ -370,6 +383,7 @@ class EffectCatalog {
     EffectType.boosterThruster,
     EffectType.crownSoulFire,
     EffectType.hangingIcicles,
+    EffectType.frostGlaze,
     EffectType.viscousSlime,
     EffectType.arcLightning,
     EffectType.kiFlareAura,
@@ -408,7 +422,6 @@ class EffectCatalog {
   static const Set<EffectType> _distortions = {
     EffectType.glitch,
     EffectType.chromaticAberration,
-    EffectType.hologramGlitch,
     EffectType.pixelSorting,
     EffectType.isometricExtrusion,
     EffectType.voronoiShatter,

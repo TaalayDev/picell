@@ -16,6 +16,7 @@ import '../../../pixel/providers/pixel_canvas_provider.dart';
 import '../../../pixel/tools.dart';
 import '../../../providers/background_image_provider.dart';
 import '../../../providers/editor_settings_provider.dart';
+import '../notifications/app_notification.dart';
 
 class PixelCanvasSceneHost extends ConsumerStatefulWidget {
   const PixelCanvasSceneHost({
@@ -154,15 +155,11 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost>
   void _startDrawing() {
     if (widget.notifier.startDrawing()) return;
 
-    final message = Strings.of(context).proceduralLayerDrawingBlocked;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    AppNotification.warning(
+      context,
+      Strings.of(context).proceduralLayerDrawingBlocked,
+      duration: const Duration(seconds: 2),
+    );
   }
 
   @override

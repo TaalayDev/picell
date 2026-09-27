@@ -16,6 +16,7 @@ import '../../l10n/strings.dart';
 import '../../providers/subscription_provider.dart';
 import '../../providers/ad/reward_video_ad_controller.dart';
 import '../widgets/theme_selector.dart';
+import '../widgets/notifications/app_notification.dart';
 
 class SubscriptionOfferScreen extends ConsumerStatefulWidget {
   static Future<bool?> show(
@@ -415,12 +416,10 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
 
           if (mounted) {
             setState(() => _temporaryProAdsWatched = 0);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(Strings.of(context).proAccessGrantedOneHour),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3),
-              ),
+            AppNotification.success(
+              context,
+              Strings.of(context).proAccessGrantedOneHour,
+              duration: const Duration(seconds: 3),
             );
           }
         } else {
@@ -431,34 +430,26 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
 
           if (mounted) {
             setState(() => _temporaryProAdsWatched = completedAds);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  Strings.of(context).adCompletedStartNext(completedAds, _requiredTemporaryProAds),
-                ),
-                backgroundColor: Colors.orange,
-                duration: const Duration(seconds: 3),
-              ),
+            AppNotification.info(
+              context,
+              Strings.of(context).adCompletedStartNext(completedAds, _requiredTemporaryProAds),
+              duration: const Duration(seconds: 3),
             );
           }
         }
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).videoAdNotCompleted),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 3),
-          ),
+        AppNotification.warning(
+          context,
+          Strings.of(context).videoAdNotCompleted,
+          duration: const Duration(seconds: 3),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Strings.of(context).failedToLoadVideoAd(e.toString())),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
+        AppNotification.error(
+          context,
+          Strings.of(context).failedToLoadVideoAd(e.toString()),
+          duration: const Duration(seconds: 3),
         );
       }
     } finally {
