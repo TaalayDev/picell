@@ -1057,6 +1057,60 @@ abstract class Strings {
   /// **'Distortions'**
   String get effectWorkspaceDistortions;
 
+  /// No description provided for @effectIconGeneratorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect Icon Generator'**
+  String get effectIconGeneratorTitle;
+
+  /// No description provided for @effectIconGeneratorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smiley input for effects, empty input for generators. Static assets export as JPG and animated assets as GIF.'**
+  String get effectIconGeneratorSubtitle;
+
+  /// No description provided for @effectIconExportVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'Export visible'**
+  String get effectIconExportVisible;
+
+  /// No description provided for @effectIconExporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting effect icons'**
+  String get effectIconExporting;
+
+  /// No description provided for @effectIconSmileySource.
+  ///
+  /// In en, this message translates to:
+  /// **'Smiley source'**
+  String get effectIconSmileySource;
+
+  /// No description provided for @effectIconEmptySource.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty source'**
+  String get effectIconEmptySource;
+
+  /// No description provided for @effectIconExportComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect icon export complete'**
+  String get effectIconExportComplete;
+
+  /// No description provided for @effectIconExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect icon export failed'**
+  String get effectIconExportFailed;
+
+  /// No description provided for @effectIconOutputSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Output size'**
+  String get effectIconOutputSize;
+
   /// No description provided for @effectRequiresPixels.
   ///
   /// In en, this message translates to:

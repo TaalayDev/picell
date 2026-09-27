@@ -501,6 +501,34 @@ class StringsJa extends Strings {
   String get effectWorkspaceDistortions => 'ディストーション';
 
   @override
+  String get effectIconGeneratorTitle => 'エフェクトアイコン生成';
+
+  @override
+  String get effectIconGeneratorSubtitle =>
+      'エフェクトにはスマイリー、ジェネレーターには空レイヤーを使用します。静止画はJPG、アニメーションはGIFで書き出します。';
+
+  @override
+  String get effectIconExportVisible => '表示中を書き出す';
+
+  @override
+  String get effectIconExporting => 'エフェクトアイコンを書き出し中';
+
+  @override
+  String get effectIconSmileySource => 'ソース：スマイリー';
+
+  @override
+  String get effectIconEmptySource => 'ソース：空レイヤー';
+
+  @override
+  String get effectIconExportComplete => 'アイコンの書き出しが完了しました';
+
+  @override
+  String get effectIconExportFailed => 'アイコンを書き出せませんでした';
+
+  @override
+  String get effectIconOutputSize => '出力サイズ';
+
+  @override
   String get effectRequiresPixels => 'このエフェクトには、レイヤー上の表示ピクセルまたはジェネレーターが必要です。';
 
   @override
