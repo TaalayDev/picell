@@ -498,6 +498,34 @@ class StringsZh extends Strings {
   String get effectWorkspaceDistortions => '扭曲';
 
   @override
+  String get effectIconGeneratorTitle => '效果图标生成器';
+
+  @override
+  String get effectIconGeneratorSubtitle =>
+      '普通效果使用笑脸输入，生成器使用空图层。静态资源导出为 JPG，动画资源导出为 GIF。';
+
+  @override
+  String get effectIconExportVisible => '导出可见项';
+
+  @override
+  String get effectIconExporting => '正在导出效果图标';
+
+  @override
+  String get effectIconSmileySource => '输入：笑脸';
+
+  @override
+  String get effectIconEmptySource => '输入：空图层';
+
+  @override
+  String get effectIconExportComplete => '效果图标导出完成';
+
+  @override
+  String get effectIconExportFailed => '效果图标导出失败';
+
+  @override
+  String get effectIconOutputSize => '输出尺寸';
+
+  @override
   String get effectRequiresPixels => '此效果需要图层中有可见像素或生成器。';
 
   @override

@@ -525,6 +525,34 @@ class StringsRu extends Strings {
   String get effectWorkspaceDistortions => 'Искажения';
 
   @override
+  String get effectIconGeneratorTitle => 'Генератор иконок эффектов';
+
+  @override
+  String get effectIconGeneratorSubtitle =>
+      'Для эффектов используется smiley, для генераторов — пустой слой. Статичные ассеты экспортируются в JPG, а анимированные — в GIF.';
+
+  @override
+  String get effectIconExportVisible => 'Экспортировать видимые';
+
+  @override
+  String get effectIconExporting => 'Экспорт иконок эффектов';
+
+  @override
+  String get effectIconSmileySource => 'Источник: smiley';
+
+  @override
+  String get effectIconEmptySource => 'Источник: пустой слой';
+
+  @override
+  String get effectIconExportComplete => 'Экспорт иконок завершён';
+
+  @override
+  String get effectIconExportFailed => 'Не удалось экспортировать иконки';
+
+  @override
+  String get effectIconOutputSize => 'Размер результата';
+
+  @override
   String get effectRequiresPixels =>
       'Для этого эффекта нужны видимые пиксели или генератор на слое.';
 

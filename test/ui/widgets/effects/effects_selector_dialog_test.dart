@@ -61,6 +61,16 @@ void main() {
         findsOneWidget,
       );
     }
+
+    expect(
+      find.byKey(const ValueKey('effect-preview-voronoi')),
+      findsOneWidget,
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      find.byKey(const ValueKey('effect-icon-preview-voronoi')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('locked functional workspaces expose only their own effects',
@@ -174,6 +184,7 @@ void main() {
       ),
       findsOneWidget,
     );
+    expect(find.byKey(const ValueKey('effect-preview-fire')), findsOneWidget);
   });
 
   testWidgets('explains why an effect cannot be added to the current layer',

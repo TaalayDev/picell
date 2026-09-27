@@ -518,6 +518,34 @@ class StringsEn extends Strings {
   String get effectWorkspaceDistortions => 'Distortions';
 
   @override
+  String get effectIconGeneratorTitle => 'Effect Icon Generator';
+
+  @override
+  String get effectIconGeneratorSubtitle =>
+      'Smiley input for effects, empty input for generators. Static assets export as JPG and animated assets as GIF.';
+
+  @override
+  String get effectIconExportVisible => 'Export visible';
+
+  @override
+  String get effectIconExporting => 'Exporting effect icons';
+
+  @override
+  String get effectIconSmileySource => 'Smiley source';
+
+  @override
+  String get effectIconEmptySource => 'Empty source';
+
+  @override
+  String get effectIconExportComplete => 'Effect icon export complete';
+
+  @override
+  String get effectIconExportFailed => 'Effect icon export failed';
+
+  @override
+  String get effectIconOutputSize => 'Output size';
+
+  @override
   String get effectRequiresPixels =>
       'This effect needs visible pixels or a generator on the layer.';
 

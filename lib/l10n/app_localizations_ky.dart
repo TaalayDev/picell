@@ -521,6 +521,34 @@ class StringsKy extends Strings {
   String get effectWorkspaceDistortions => 'Бурмалоолор';
 
   @override
+  String get effectIconGeneratorTitle => 'Эффект иконкаларын түзүүчү';
+
+  @override
+  String get effectIconGeneratorSubtitle =>
+      'Эффекттер үчүн smiley, генераторлор үчүн бош катмар колдонулат. Кыймылсыздары JPG, анимациялуулары GIF болуп экспорттолот.';
+
+  @override
+  String get effectIconExportVisible => 'Көрүнгөндөрдү экспорттоо';
+
+  @override
+  String get effectIconExporting => 'Эффект иконкаларын экспорттоо';
+
+  @override
+  String get effectIconSmileySource => 'Булак: smiley';
+
+  @override
+  String get effectIconEmptySource => 'Булак: бош катмар';
+
+  @override
+  String get effectIconExportComplete => 'Иконкаларды экспорттоо аяктады';
+
+  @override
+  String get effectIconExportFailed => 'Иконкаларды экспорттоо ишке ашкан жок';
+
+  @override
+  String get effectIconOutputSize => 'Натыйжа өлчөмү';
+
+  @override
   String get effectRequiresPixels =>
       'Бул эффект үчүн катмарда көрүнгөн пикселдер же генератор болушу керек.';
 

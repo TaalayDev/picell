@@ -42,6 +42,7 @@ import '../widgets/theme_selector_sheet.dart';
 import 'feedback_screen.dart';
 import 'subscription_screen.dart';
 import 'about_screen.dart';
+import 'effect_icon_generator_screen.dart';
 import '../../app/routing/flagship_page_route.dart';
 import 'pixel_canvas_screen.dart';
 import 'project_detail_screen.dart' hide CheckerboardPainter;
@@ -147,6 +148,11 @@ class ProjectsScreen extends HookConsumerWidget {
                     ),
                   ),
                   onTheme: () => ThemeSelectorBottomSheet.show(context),
+                  onEffectIcons: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const EffectIconGeneratorScreen(),
+                    ),
+                  ),
                   onPro: () => _showSubscriptionScreen(context),
                 ),
                 Expanded(
@@ -251,6 +257,16 @@ class ProjectsScreen extends HookConsumerWidget {
             ),
             leadingWidth: 200,
             actions: [
+              IconButton(
+                key: const ValueKey('open-effect-icon-generator'),
+                tooltip: Strings.of(context).effectIconGeneratorTitle,
+                icon: const Icon(Icons.auto_awesome_mosaic_outlined),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const EffectIconGeneratorScreen(),
+                  ),
+                ),
+              ),
               if (!subscription.isPro && !showBadge.value) ...[
                 AnimatedProButton(
                   onTap: () => _showSubscriptionScreen(context),
@@ -790,6 +806,7 @@ class _DesktopSidebar extends StatelessWidget {
   final VoidCallback onFeedback;
   final VoidCallback onAbout;
   final VoidCallback onTheme;
+  final VoidCallback onEffectIcons;
   final VoidCallback onPro;
 
   const _DesktopSidebar({
@@ -808,6 +825,7 @@ class _DesktopSidebar extends StatelessWidget {
     required this.onFeedback,
     required this.onAbout,
     required this.onTheme,
+    required this.onEffectIcons,
     required this.onPro,
   });
 
@@ -885,6 +903,14 @@ class _DesktopSidebar extends StatelessWidget {
                   theme: theme,
                   flagship: flagship,
                   onTap: onTheme,
+                ),
+                _NavItem(
+                  icon: Icons.auto_awesome_mosaic_outlined,
+                  label: Strings.of(context).effectIconGeneratorTitle,
+                  selected: false,
+                  theme: theme,
+                  flagship: flagship,
+                  onTap: onEffectIcons,
                 ),
                 _NavItem(
                   icon: Feather.info,

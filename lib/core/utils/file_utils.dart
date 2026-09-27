@@ -196,6 +196,22 @@ class FileUtils {
     }
   }
 
+  /// Saves an arbitrary binary file without routing mobile data through the
+  /// image gallery. Use this for archives and other non-image exports.
+  Future<void> saveBinaryFile(Uint8List data, String fileName) async {
+    if (kIsWeb) {
+      _downloadFileWeb(data, fileName);
+      return;
+    }
+
+    const platform = LocalPlatform();
+    if (platform.isMacOS || platform.isWindows || platform.isLinux) {
+      await _saveWithFilePicker(data, fileName);
+    } else {
+      await _saveToDocuments(data, fileName);
+    }
+  }
+
   Future<void> saveUIImage(ui.Image image, String fileName) async {
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     final pngBytes = byteData!.buffer.asUint8List();

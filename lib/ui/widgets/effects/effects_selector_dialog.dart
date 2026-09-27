@@ -10,6 +10,7 @@ import '../../screens/subscription_screen.dart';
 import '../animated_background.dart';
 import '../subscription/feature_gate.dart';
 import '../../../l10n/strings.dart';
+import 'effect_icon_preview.dart';
 
 class EffectSelectorDialog extends ConsumerStatefulWidget {
   final Function(Effect) onEffectSelected;
@@ -278,7 +279,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                             childAspectRatio: 1.2,
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
-                            mainAxisExtent: 150,
+                            mainAxisExtent: 220,
                           ),
                           itemCount: _filteredEffects.length,
                           itemBuilder: (context, index) {
@@ -323,8 +324,6 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     bool hasProAccess,
     EffectStackAddValidation validation,
   ) {
-    final color = effect.getColor(context);
-    final icon = effect.getIcon(size: 28, color: color);
     final isPremium = effect.isPremium;
     final isLocked = isPremium && !hasProAccess;
 
@@ -358,16 +357,20 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(10),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: color.withValues(alpha: 0.2),
-                child: icon,
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: EffectIconPreview(
+                    key: ValueKey('effect-preview-${type.name}'),
+                    effect: effect,
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
@@ -376,7 +379,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Text(
                 effect.getDescription(context),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
