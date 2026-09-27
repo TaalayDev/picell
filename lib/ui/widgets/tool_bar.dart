@@ -293,9 +293,7 @@ class ToolBar extends ConsumerWidget {
                 case _ViewMenuAction.tileMode:
                   onToggleTileMode?.call();
                 case _ViewMenuAction.pixelGrid:
-                  ref
-                      .read(editorSettingsNotifierProvider.notifier)
-                      .setShowPixelGrid(!editorSettings.showPixelGrid);
+                  ref.read(editorSettingsNotifierProvider.notifier).setShowPixelGrid(!editorSettings.showPixelGrid);
                 case _ViewMenuAction.onionSkin:
                   showPrevFramesOpacity?.call();
                 case _ViewMenuAction.onionSkinOpacity:
@@ -430,8 +428,7 @@ class ToolBar extends ConsumerWidget {
           ),
           VerticalDivider(
             width: 8,
-            color:
-                Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -450,8 +447,7 @@ class ToolBar extends ConsumerWidget {
                               colorFilter: ColorFilter.mode(
                                 modifier == PixelModifier.mirror
                                     ? Colors.blue
-                                    : IconTheme.of(context).color ??
-                                        Theme.of(context).colorScheme.onSurface,
+                                    : IconTheme.of(context).color ?? Theme.of(context).colorScheme.onSurface,
                                 BlendMode.srcIn,
                               ),
                               width: 24,
@@ -459,9 +455,7 @@ class ToolBar extends ConsumerWidget {
                             ),
                             onPressed: () {
                               onSelectModifier(
-                                modifier == PixelModifier.mirror
-                                    ? PixelModifier.none
-                                    : PixelModifier.mirror,
+                                modifier == PixelModifier.mirror ? PixelModifier.none : PixelModifier.mirror,
                               );
                             },
                           );
@@ -509,9 +503,7 @@ class ToolBar extends ConsumerWidget {
                           const WandOptionsBar(),
                           const SizedBox(width: 8),
                         ],
-                        if (tool == PixelTool.pen &&
-                            onFinishPenPath != null &&
-                            onCancelPenPath != null) ...[
+                        if (tool == PixelTool.pen && onFinishPenPath != null && onCancelPenPath != null) ...[
                           PenPathActions(
                             onFinish: onFinishPenPath!,
                             onCancel: onCancelPenPath!,
@@ -628,8 +620,7 @@ class _SubmenuTopBarMenuItem<T> extends PopupMenuEntry<T> {
   bool represents(T? value) => false;
 
   @override
-  State<_SubmenuTopBarMenuItem<T>> createState() =>
-      _SubmenuTopBarMenuItemState<T>();
+  State<_SubmenuTopBarMenuItem<T>> createState() => _SubmenuTopBarMenuItemState<T>();
 }
 
 class _SubmenuTopBarMenuItemState<T> extends State<_SubmenuTopBarMenuItem<T>> {
@@ -649,11 +640,9 @@ class _SubmenuTopBarMenuItemState<T> extends State<_SubmenuTopBarMenuItem<T>> {
     final position = renderBox.localToGlobal(Offset.zero);
     final screenSize = MediaQuery.sizeOf(context);
 
-    const submenuWidth = 260.0;
-    final openLeft =
-        (position.dx + size.width + submenuWidth + 10) > screenSize.width;
-    final offset =
-        openLeft ? const Offset(-submenuWidth, 0) : Offset(size.width, 0);
+    const submenuWidth = 230.0;
+    final openLeft = (position.dx + size.width + submenuWidth + 10) > screenSize.width;
+    final offset = openLeft ? const Offset(-submenuWidth, -4) : Offset(size.width, -4);
 
     final parentRoute = ModalRoute.of(context);
 
@@ -663,23 +652,29 @@ class _SubmenuTopBarMenuItemState<T> extends State<_SubmenuTopBarMenuItem<T>> {
           link: _layerLink,
           showWhenUnlinked: false,
           offset: offset,
-          child: MouseRegion(
-            onEnter: (_) {
-              _closeTimer?.cancel();
-            },
-            onExit: (_) {
-              _scheduleClose();
-            },
-            child: _SubmenuContainer(
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
               width: submenuWidth,
-              items: widget.items,
-              onItemSelected: (item) {
-                _closeSubmenu();
-                if (parentRoute != null && parentRoute.isCurrent) {
-                  Navigator.of(context, rootOverlay: false).pop();
-                }
-                item.onTap();
-              },
+              child: MouseRegion(
+                onEnter: (_) {
+                  _closeTimer?.cancel();
+                },
+                onExit: (_) {
+                  _scheduleClose();
+                },
+                child: _SubmenuContainer(
+                  width: submenuWidth,
+                  items: widget.items,
+                  onItemSelected: (item) {
+                    _closeSubmenu();
+                    if (parentRoute != null && parentRoute.isCurrent) {
+                      Navigator.of(context, rootNavigator: false).pop();
+                    }
+                    item.onTap();
+                  },
+                ),
+              ),
             ),
           ),
         );
@@ -729,8 +724,7 @@ class _SubmenuTopBarMenuItemState<T> extends State<_SubmenuTopBarMenuItem<T>> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final primaryColor = colorScheme.primary;
-    final popupTextStyle =
-        theme.popupMenuTheme.textStyle ?? theme.textTheme.bodyMedium;
+    final popupTextStyle = theme.popupMenuTheme.textStyle ?? theme.textTheme.bodyMedium;
     final defaultTextColor = popupTextStyle?.color ?? colorScheme.onSurface;
     final isHighlighted = _isHovered || _overlayEntry != null;
 
@@ -759,9 +753,7 @@ class _SubmenuTopBarMenuItemState<T> extends State<_SubmenuTopBarMenuItem<T>> {
                     child: IconTheme(
                       data: IconThemeData(
                         size: 18,
-                        color: isHighlighted
-                            ? primaryColor
-                            : defaultTextColor.withValues(alpha: 0.85),
+                        color: isHighlighted ? primaryColor : defaultTextColor.withValues(alpha: 0.85),
                       ),
                       child: widget.icon,
                     ),
@@ -775,17 +767,14 @@ class _SubmenuTopBarMenuItemState<T> extends State<_SubmenuTopBarMenuItem<T>> {
                     overflow: TextOverflow.ellipsis,
                     style: popupTextStyle?.copyWith(
                       color: isHighlighted ? primaryColor : defaultTextColor,
-                      fontWeight:
-                          isHighlighted ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),
                 Icon(
                   Icons.chevron_right_rounded,
                   size: 18,
-                  color: isHighlighted
-                      ? primaryColor
-                      : defaultTextColor.withValues(alpha: 0.5),
+                  color: isHighlighted ? primaryColor : defaultTextColor.withValues(alpha: 0.5),
                 ),
               ],
             ),
@@ -813,8 +802,7 @@ class _SubmenuContainer extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final popupTheme = theme.popupMenuTheme;
     final backgroundColor = popupTheme.color ?? colorScheme.surface;
-    final shape = popupTheme.shape ??
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
+    final shape = popupTheme.shape ?? RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
 
     return Material(
       color: Colors.transparent,
@@ -825,15 +813,15 @@ class _SubmenuContainer extends StatelessWidget {
           shape: shape,
           shadows: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: items.map((item) {
@@ -870,14 +858,11 @@ class _SubmenuItemRowState extends State<_SubmenuItemRow> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final primaryColor = colorScheme.primary;
-    final popupTextStyle =
-        theme.popupMenuTheme.textStyle ?? theme.textTheme.bodyMedium;
+    final popupTextStyle = theme.popupMenuTheme.textStyle ?? theme.textTheme.bodyMedium;
     final defaultTextColor = popupTextStyle?.color ?? colorScheme.onSurface;
 
     final textColor = _isHovered ? primaryColor : defaultTextColor;
-    final shortcutColor = _isHovered
-        ? primaryColor.withValues(alpha: 0.8)
-        : defaultTextColor.withValues(alpha: 0.5);
+    final shortcutColor = _isHovered ? primaryColor.withValues(alpha: 0.8) : defaultTextColor.withValues(alpha: 0.5);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -886,26 +871,24 @@ class _SubmenuItemRowState extends State<_SubmenuItemRow> {
         key: widget.item.key,
         onTap: widget.onTap,
         child: Container(
-          height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          height: 38,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
               SizedBox(
-                width: 22,
-                height: 22,
+                width: 20,
+                height: 20,
                 child: Center(
                   child: IconTheme(
                     data: IconThemeData(
-                      size: 18,
-                      color: _isHovered
-                          ? primaryColor
-                          : defaultTextColor.withValues(alpha: 0.85),
+                      size: 16,
+                      color: _isHovered ? primaryColor : defaultTextColor.withValues(alpha: 0.85),
                     ),
                     child: widget.item.icon,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   widget.item.title,
@@ -913,13 +896,12 @@ class _SubmenuItemRowState extends State<_SubmenuItemRow> {
                   overflow: TextOverflow.ellipsis,
                   style: popupTextStyle?.copyWith(
                     color: textColor,
-                    fontWeight:
-                        _isHovered ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: _isHovered ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ),
               if (widget.item.shortcut != null) ...[
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Text(
                   widget.item.shortcut!,
                   style: theme.textTheme.labelSmall?.copyWith(
@@ -937,11 +919,9 @@ class _SubmenuItemRowState extends State<_SubmenuItemRow> {
   }
 }
 
-String _cmd(String key) =>
-    defaultTargetPlatform == TargetPlatform.macOS ? 'Cmd + $key' : 'Ctrl + $key';
+String _cmd(String key) => defaultTargetPlatform == TargetPlatform.macOS ? 'Cmd + $key' : 'Ctrl + $key';
 String _shift(String key) => 'Shift + $key';
-String _alt(String key) =>
-    defaultTargetPlatform == TargetPlatform.macOS ? 'Opt + $key' : 'Alt + $key';
+String _alt(String key) => defaultTargetPlatform == TargetPlatform.macOS ? 'Opt + $key' : 'Alt + $key';
 
 class _TopBarMenuItem<T> extends PopupMenuItem<T> {
   _TopBarMenuItem({
@@ -990,17 +970,13 @@ class _MenuEntryRow extends StatelessWidget {
     final checked = isChecked;
 
     final primaryColor = colorScheme.primary;
-    final popupTextStyle =
-        theme.popupMenuTheme.textStyle ?? theme.textTheme.bodyMedium;
+    final popupTextStyle = theme.popupMenuTheme.textStyle ?? theme.textTheme.bodyMedium;
     final defaultTextColor = popupTextStyle?.color ?? colorScheme.onSurface;
 
-    final titleColor = enabled
-        ? (checked == true ? primaryColor : defaultTextColor)
-        : defaultTextColor.withValues(alpha: 0.38);
+    final titleColor =
+        enabled ? (checked == true ? primaryColor : defaultTextColor) : defaultTextColor.withValues(alpha: 0.38);
 
-    final shortcutColor = enabled
-        ? defaultTextColor.withValues(alpha: 0.5)
-        : defaultTextColor.withValues(alpha: 0.25);
+    final shortcutColor = enabled ? defaultTextColor.withValues(alpha: 0.5) : defaultTextColor.withValues(alpha: 0.25);
 
     return Row(
       children: [
@@ -1012,9 +988,7 @@ class _MenuEntryRow extends StatelessWidget {
               data: IconThemeData(
                 size: 18,
                 color: enabled
-                    ? (checked == true
-                        ? primaryColor
-                        : defaultTextColor.withValues(alpha: 0.85))
+                    ? (checked == true ? primaryColor : defaultTextColor.withValues(alpha: 0.85))
                     : defaultTextColor.withValues(alpha: 0.38),
               ),
               child: icon,
@@ -1152,12 +1126,9 @@ class _ActiveViewIndicators extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = <({IconData icon, String label})>[
-      if (tileModeEnabled)
-        (icon: Icons.grid_view_rounded, label: 'Tile mode is active'),
-      if (pixelGridEnabled)
-        (icon: Icons.grid_on_rounded, label: 'Pixel grid is active'),
-      if (onionSkinEnabled)
-        (icon: Icons.animation_rounded, label: 'Onion skin is active'),
+      if (tileModeEnabled) (icon: Icons.grid_view_rounded, label: 'Tile mode is active'),
+      if (pixelGridEnabled) (icon: Icons.grid_on_rounded, label: 'Pixel grid is active'),
+      if (onionSkinEnabled) (icon: Icons.animation_rounded, label: 'Onion skin is active'),
     ];
 
     if (active.isEmpty) return const SizedBox.shrink();

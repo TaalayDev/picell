@@ -38,6 +38,9 @@ class ProjectsTable extends Table {
   // version 8 - fork lineage: the community project id this project was
   // downloaded/forked from, distinct from remoteId (see Project.forkedFromId).
   IntColumn get forkedFromId => integer().nullable()();
+  // version 9 - editor selection restored when reopening the project.
+  IntColumn get selectedFrameId => integer().nullable()();
+  IntColumn get selectedLayerId => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -95,7 +98,7 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => instance;
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -149,6 +152,15 @@ class AppDatabase extends _$AppDatabase {
           await migrator.alterTable(TableMigration(
             projectsTable,
             newColumns: [projectsTable.forkedFromId],
+          ));
+        }
+        if (from < 9) {
+          await migrator.alterTable(TableMigration(
+            projectsTable,
+            newColumns: [
+              projectsTable.selectedFrameId,
+              projectsTable.selectedLayerId,
+            ],
           ));
         }
       },
@@ -253,6 +265,8 @@ class AppDatabase extends _$AppDatabase {
             isCloudSynced: projectRow.isCloudSynced,
             remoteId: projectRow.remoteId,
             forkedFromId: projectRow.forkedFromId,
+            selectedFrameId: projectRow.selectedFrameId,
+            selectedLayerId: projectRow.selectedLayerId,
             createdAt: projectRow.createdAt,
             editedAt: projectRow.editedAt,
             type: _parseProjectType(projectRow.projectType),
@@ -342,6 +356,8 @@ class AppDatabase extends _$AppDatabase {
           isCloudSynced: project.isCloudSynced,
           remoteId: project.remoteId,
           forkedFromId: project.forkedFromId,
+          selectedFrameId: project.selectedFrameId,
+          selectedLayerId: project.selectedLayerId,
           type: _parseProjectType(project.projectType),
           tileWidth: project.tileWidth,
           tileHeight: project.tileHeight,
@@ -418,6 +434,8 @@ class AppDatabase extends _$AppDatabase {
       isCloudSynced: projectRow.isCloudSynced,
       remoteId: projectRow.remoteId,
       forkedFromId: projectRow.forkedFromId,
+      selectedFrameId: projectRow.selectedFrameId,
+      selectedLayerId: projectRow.selectedLayerId,
       type: _parseProjectType(projectRow.projectType),
       tileWidth: projectRow.tileWidth,
       tileHeight: projectRow.tileHeight,
@@ -452,6 +470,8 @@ class AppDatabase extends _$AppDatabase {
       isCloudSynced: projectRow.isCloudSynced,
       remoteId: projectRow.remoteId,
       forkedFromId: projectRow.forkedFromId,
+      selectedFrameId: projectRow.selectedFrameId,
+      selectedLayerId: projectRow.selectedLayerId,
       type: _parseProjectType(projectRow.projectType),
       tileWidth: projectRow.tileWidth,
       tileHeight: projectRow.tileHeight,
@@ -472,6 +492,8 @@ class AppDatabase extends _$AppDatabase {
       isCloudSynced: Value(project.isCloudSynced),
       remoteId: Value(project.remoteId),
       forkedFromId: Value(project.forkedFromId),
+      selectedFrameId: const Value(null),
+      selectedLayerId: const Value(null),
       projectType: Value(_projectTypeToString(project.type)),
       tileWidth: Value(project.tileWidth),
       tileHeight: Value(project.tileHeight),
@@ -498,6 +520,8 @@ class AppDatabase extends _$AppDatabase {
     }
 
     final frames = <AnimationFrame>[];
+    int? selectedFrameId;
+    int? selectedLayerId;
     for (final frame in project.frames) {
       // Map the frame's stateId to the new database stateId
       final newStateId = stateIds[frame.stateId] ??
@@ -511,6 +535,8 @@ class AppDatabase extends _$AppDatabase {
         editedAt: Value(frame.editedAt),
         order: Value(frame.order),
       ));
+      final isSelectedFrame = frame.id == project.selectedFrameId;
+      if (isSelectedFrame) selectedFrameId = frameId;
 
       final layers = <Layer>[];
       for (final layer in frame.layers) {
@@ -526,6 +552,9 @@ class AppDatabase extends _$AppDatabase {
           order: Value(layer.order),
           effects: Value(_encodeEffects(layer.effects)),
         ));
+        if (isSelectedFrame && layer.layerId == project.selectedLayerId) {
+          selectedLayerId = layerId;
+        }
         layers.add(layer.copyWith(layerId: layerId));
       }
 
@@ -533,7 +562,23 @@ class AppDatabase extends _$AppDatabase {
           frame.copyWith(id: frameId, stateId: newStateId, layers: layers));
     }
 
-    return project.copyWith(id: projectId, states: states, frames: frames);
+    if (selectedFrameId != null && selectedLayerId != null) {
+      await updateProjectSelection(
+        projectId,
+        frameId: selectedFrameId,
+        layerId: selectedLayerId,
+      );
+    }
+
+    return project.copyWith(
+      id: projectId,
+      states: states,
+      frames: frames,
+      selectedFrameId: selectedFrameId,
+      clearSelectedFrameId: selectedFrameId == null,
+      selectedLayerId: selectedLayerId,
+      clearSelectedLayerId: selectedLayerId == null,
+    );
   }
 
   Future<void> updateProject(Project project) async {
@@ -548,6 +593,8 @@ class AppDatabase extends _$AppDatabase {
       isCloudSynced: Value(project.isCloudSynced),
       remoteId: Value(project.remoteId),
       forkedFromId: Value(project.forkedFromId),
+      selectedFrameId: Value(project.selectedFrameId),
+      selectedLayerId: Value(project.selectedLayerId),
       projectType: Value(project.type == ProjectType.tilemap
           ? 'tileGenerator'
           : project.type.name),
@@ -647,6 +694,18 @@ class AppDatabase extends _$AppDatabase {
         }
       }
     }
+  }
+
+  Future<void> updateProjectSelection(
+    int projectId, {
+    required int frameId,
+    required int layerId,
+  }) {
+    return (update(projectsTable)..where((row) => row.id.equals(projectId)))
+        .write(ProjectsTableCompanion(
+      selectedFrameId: Value(frameId),
+      selectedLayerId: Value(layerId),
+    ));
   }
 
   Future<void> deleteProject(int projectId) async {

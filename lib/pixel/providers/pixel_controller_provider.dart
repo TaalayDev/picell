@@ -22,6 +22,7 @@ import '../../providers/project_upload_provider.dart';
 import '../effects/effects.dart';
 import '../services/animation_service.dart';
 import '../services/drawing_service.dart';
+import '../services/editor_selection_service.dart';
 import '../services/effect_stack_service.dart';
 import '../services/frame_service.dart';
 import '../services/import_export_service.dart';
@@ -87,15 +88,26 @@ class PixelDrawController extends _$PixelDrawController {
       flushPendingProjectSave();
     });
 
+    final animationStates = project.states.isNotEmpty
+        ? List<AnimationStateModel>.from(project.states)
+        : [const AnimationStateModel(id: 0, name: 'Default', frameRate: 12)];
+    final frames = project.frames.isNotEmpty
+        ? List<AnimationFrame>.from(project.frames)
+        : _createDefaultFrame();
+    final restoredSelection = restoreEditorSelection(
+      project,
+      animationStates,
+      frames,
+    );
+
     return PixelCanvasState(
       width: project.width,
       height: project.height,
-      animationStates: project.states.isNotEmpty
-          ? List<AnimationStateModel>.from(project.states)
-          : [const AnimationStateModel(id: 0, name: 'Default', frameRate: 12)],
-      frames: project.frames.isNotEmpty
-          ? List<AnimationFrame>.from(project.frames)
-          : _createDefaultFrame(),
+      animationStates: animationStates,
+      frames: frames,
+      currentAnimationStateIndex: restoredSelection.stateIndex,
+      currentFrameIndex: restoredSelection.frameIndex,
+      currentLayerIndex: restoredSelection.layerIndex,
       currentColor: Colors.black,
       currentTool: PixelTool.pencil,
       mirrorAxis: MirrorAxis.vertical,
@@ -163,12 +175,32 @@ class PixelDrawController extends _$PixelDrawController {
     final updated = project.copyWith(
       frames: state.frames,
       states: state.animationStates,
+      selectedFrameId: currentFrame.id,
+      selectedLayerId: currentLayer.layerId,
       editedAt: DateTime.now(),
     );
     _pendingProjectSave = updated;
     _projectSaveTimer?.cancel();
     _projectSaveTimer = Timer(_localSaveDebounce, flushPendingProjectSave);
     _scheduleCloudSync(updated);
+  }
+
+  void _persistEditorSelection() {
+    if (currentFrame.layers.isEmpty) return;
+    final frameId = currentFrame.id;
+    final layerId = currentLayer.layerId;
+    final pendingSave = _pendingProjectSave;
+    if (pendingSave != null) {
+      _pendingProjectSave = pendingSave.copyWith(
+        selectedFrameId: frameId,
+        selectedLayerId: layerId,
+      );
+    }
+    unawaited(_projectRepo.updateProjectSelection(
+      project.id,
+      frameId: frameId,
+      layerId: layerId,
+    ));
   }
 
   /// Writes the most recent pending project snapshot immediately.
@@ -801,6 +833,7 @@ class PixelDrawController extends _$PixelDrawController {
     if (index == state.currentLayerIndex) return;
     _detachSelectionFromLayer();
     state = state.copyWith(currentLayerIndex: index);
+    _persistEditorSelection();
   }
 
   Future<void> toggleLayerVisibility(int index) async {
@@ -884,6 +917,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentFrameIndex: state.currentFrames.length,
       currentLayerIndex: _safeLayerIndex(newFrame),
     );
+    _persistEditorSelection();
   }
 
   /// Append generated animation frames to the source frame's animation state.
@@ -1089,6 +1123,7 @@ class PixelDrawController extends _$PixelDrawController {
         currentFrameIndex: index,
         currentLayerIndex: _safeLayerIndex(targetFrame),
       );
+      _persistEditorSelection();
     }
   }
 
@@ -1101,6 +1136,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentFrameIndex: nextIndex,
       currentLayerIndex: _safeLayerIndex(targetFrame),
     );
+    _persistEditorSelection();
   }
 
   void previousFrame() {
@@ -1113,6 +1149,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentFrameIndex: prevIndex,
       currentLayerIndex: _safeLayerIndex(targetFrame),
     );
+    _persistEditorSelection();
   }
 
   int _safeLayerIndex(AnimationFrame frame) {
@@ -1148,6 +1185,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentFrameIndex: 0,
       currentLayerIndex: 0,
     );
+    _persistEditorSelection();
   }
 
   Future<void> copyAnimationState(int sourceStateId) async {
@@ -1235,6 +1273,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentFrameIndex: 0,
       currentLayerIndex: 0,
     );
+    _persistEditorSelection();
   }
 
   void addTemplate(Template template) async {
@@ -1283,6 +1322,7 @@ class PixelDrawController extends _$PixelDrawController {
         currentFrameIndex: 0,
         currentLayerIndex: layerIndex,
       );
+      if (targetFrames.isNotEmpty) _persistEditorSelection();
     }
   }
 

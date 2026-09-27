@@ -54,8 +54,11 @@ class EffectIconExportService {
     Effect effect, {
     double progress = 0.35,
   }) async {
+    final descriptor = EffectCatalog.forType(effect.type);
+    final isAnimated = descriptor.isAnimated ||
+        descriptor.workspace == EffectWorkspace.animation;
     final source = sourcePixelsFor(effect);
-    if (!EffectCatalog.forType(effect.type).isAnimated) {
+    if (!isAnimated) {
       return effect.apply(source, canvasSize, canvasSize);
     }
 
@@ -66,6 +69,34 @@ class EffectIconExportService {
       effects: [effect],
       animatedEffectIndex: 0,
       progress: progress,
+    );
+  }
+
+  Future<List<Uint32List>> renderPreviewFrames(
+    Effect effect, {
+    int frameCount = animationFrameCount,
+  }) async {
+    final descriptor = EffectCatalog.forType(effect.type);
+    final isAnimated = descriptor.isAnimated ||
+        descriptor.workspace == EffectWorkspace.animation;
+    final source = sourcePixelsFor(effect);
+    if (!isAnimated) {
+      final singleFrame = await effect.apply(source, canvasSize, canvasSize);
+      return [singleFrame];
+    }
+
+    return Future.wait(
+      List.generate(frameCount, (frame) {
+        final progress = frame / frameCount;
+        return EffectAnimationRenderer.renderFrame(
+          pixels: Uint32List.fromList(source),
+          width: canvasSize,
+          height: canvasSize,
+          effects: [effect],
+          animatedEffectIndex: 0,
+          progress: progress,
+        );
+      }),
     );
   }
 

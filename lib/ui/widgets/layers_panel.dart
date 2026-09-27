@@ -136,15 +136,11 @@ class LayersPanel extends HookConsumerWidget {
                   isActive: actualIndex == activeLayerIndex,
                   onLayerSelected: selectLayer,
                   onLayerVisibilityChanged: (index) {
-                    final targets = effectiveSelection.contains(layer.id)
-                        ? selectedIndices
-                        : [index];
+                    final targets = effectiveSelection.contains(layer.id) ? selectedIndices : [index];
                     onLayersVisibilityChanged(targets, !layer.isVisible);
                   },
                   onLayerLockedChanged: (index) {
-                    final targets = effectiveSelection.contains(layer.id)
-                        ? selectedIndices
-                        : [index];
+                    final targets = effectiveSelection.contains(layer.id) ? selectedIndices : [index];
                     onLayersLockedChanged(targets, !layer.isLocked);
                   },
                   onDoubleTap: () => _showRenameDialog(context, layer),
@@ -197,8 +193,7 @@ class _ActionButtonsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = Strings.of(context);
-    final hasSelectedLayer =
-        activeLayerIndex >= 0 && activeLayerIndex < layers.length;
+    final hasSelectedLayer = activeLayerIndex >= 0 && activeLayerIndex < layers.length;
     final selectedLayer = hasSelectedLayer ? layers[activeLayerIndex] : null;
 
     return Container(
@@ -215,35 +210,28 @@ class _ActionButtonsBar extends StatelessWidget {
             icon: Icons.add,
             label: s.add,
             color: Colors.green,
-            onPressed: () =>
-                onLayerAdded(s.defaultLayerName(layers.length + 1)),
+            onPressed: () => onLayerAdded(s.defaultLayerName(layers.length + 1)),
           ),
           const SizedBox(width: 8),
           _ActionButton(
             icon: Icons.copy,
             label: s.copy,
             color: Colors.blue,
-            onPressed: hasSelectedLayer
-                ? () => onLayersDuplicated(selectedLayerIndices)
-                : null,
+            onPressed: hasSelectedLayer ? () => onLayersDuplicated(selectedLayerIndices) : null,
           ),
           const SizedBox(width: 8),
           _ActionButton(
             icon: Icons.edit,
             label: s.edit,
             color: Colors.orange,
-            onPressed: hasSelectedLayer
-                ? () => _showEditLayerDialog(context, selectedLayer!)
-                : null,
+            onPressed: hasSelectedLayer ? () => _showEditLayerDialog(context, selectedLayer!) : null,
           ),
           const SizedBox(width: 8),
           _ActionButton(
             icon: Icons.delete_outline,
             label: s.remove,
             color: Colors.red,
-            onPressed: hasSelectedLayer && layers.length > 1
-                ? () => _showDeleteConfirmation(context)
-                : null,
+            onPressed: hasSelectedLayer && layers.length > 1 ? () => _showDeleteConfirmation(context) : null,
           ),
           const SizedBox(width: 8),
           _ActionButton(
@@ -262,24 +250,19 @@ class _ActionButtonsBar extends StatelessWidget {
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               s.effectsPanelMoreActionsTitle,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red),
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
                             ),
                             const Divider(),
                             ListTile(
-                              leading: const Icon(Icons.opacity,
-                                  color: Colors.blue, size: 18),
+                              leading: const Icon(Icons.opacity, color: Colors.blue, size: 18),
                               contentPadding: EdgeInsets.zero,
-                              title: Text(s.adjustOpacity,
-                                  style: const TextStyle(fontSize: 14)),
+                              title: Text(s.adjustOpacity, style: const TextStyle(fontSize: 14)),
                               onTap: () {
                                 Navigator.of(context).pop();
                                 showDialog(
@@ -291,9 +274,7 @@ class _ActionButtonsBar extends StatelessWidget {
                                         s.adjustLayerOpacity,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                           fontSize: 16,
                                         ),
                                       ),
@@ -318,15 +299,13 @@ class _ActionButtonsBar extends StatelessWidget {
                                       ),
                                       actions: [
                                         TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(),
+                                          onPressed: () => Navigator.of(context).pop(),
                                           child: Text(s.cancel),
                                         ),
                                         ElevatedButton(
                                           onPressed: () {
                                             Navigator.of(context).pop();
-                                            onLayersOpacityChanged(
-                                                selectedLayerIndices, opacity);
+                                            onLayersOpacityChanged(selectedLayerIndices, opacity);
                                           },
                                           child: Text(s.apply),
                                         ),
@@ -337,10 +316,8 @@ class _ActionButtonsBar extends StatelessWidget {
                               },
                             ),
                             ListTile(
-                              leading: const Icon(Icons.checklist_outlined,
-                                  color: Colors.green, size: 18),
-                              title: Text(s.addToTemplate,
-                                  style: const TextStyle(fontSize: 14)),
+                              leading: const Icon(Icons.checklist_outlined, color: Colors.green, size: 18),
+                              title: Text(s.addToTemplate, style: const TextStyle(fontSize: 14)),
                               contentPadding: EdgeInsets.zero,
                               onTap: () {
                                 Navigator.of(context).pop();
@@ -424,14 +401,10 @@ class _ActionButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isEnabled
-                  ? color.withValues(alpha: 0.3)
-                  : Colors.grey.withValues(alpha: 0.2),
+              color: isEnabled ? color.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.2),
               width: 1,
             ),
-            color: isEnabled
-                ? color.withValues(alpha: 0.1)
-                : Colors.grey.withValues(alpha: 0.05),
+            color: isEnabled ? color.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.05),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -473,8 +446,7 @@ class _LayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final contentColor =
-        isActive ? Colors.white : Theme.of(context).colorScheme.onSurface;
+    final contentColor = isActive ? Colors.white : Theme.of(context).colorScheme.onSurface;
     return SizedBox(
       height: 40,
       child: Card(
@@ -487,9 +459,7 @@ class _LayerTile extends StatelessWidget {
                 : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: isSelected
-              ? BorderSide(color: Colors.blue.shade300, width: isActive ? 2 : 1)
-              : BorderSide.none,
+          side: isSelected ? BorderSide(color: Colors.blue.shade300, width: isActive ? 2 : 1) : BorderSide.none,
         ),
         child: Padding(
           padding: const EdgeInsets.only(right: 8),
@@ -498,7 +468,7 @@ class _LayerTile extends StatelessWidget {
             onDoubleTap: onDoubleTap,
             child: Row(
               children: [
-                IconButton(
+                ActionIconButton(
                   onPressed: () => onLayerVisibilityChanged(index),
                   icon: Icon(
                     layer.isVisible ? Icons.visibility : Icons.visibility_off,
@@ -506,7 +476,7 @@ class _LayerTile extends StatelessWidget {
                     color: contentColor,
                   ),
                 ),
-                IconButton(
+                ActionIconButton(
                   onPressed: () => onLayerLockedChanged(index),
                   icon: Icon(
                     layer.isLocked ? Icons.lock : Icons.lock_open,
@@ -514,6 +484,7 @@ class _LayerTile extends StatelessWidget {
                     color: contentColor,
                   ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   layer.name,
                   style: TextStyle(
@@ -526,6 +497,25 @@ class _LayerTile extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ActionIconButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final Widget icon;
+
+  const ActionIconButton({super.key, required this.onPressed, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: icon,
       ),
     );
   }
@@ -642,21 +632,18 @@ class _BackgroundImageTile extends ConsumerWidget {
                         children: [
                           Text(
                             Strings.of(context).backgroundShort,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 12),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.amber.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               Strings.of(context).reference,
-                              style: TextStyle(
-                                  fontSize: 10, color: Colors.amber.shade800),
+                              style: TextStyle(fontSize: 10, color: Colors.amber.shade800),
                             ),
                           ),
                         ],
@@ -665,20 +652,16 @@ class _BackgroundImageTile extends ConsumerWidget {
                       Row(
                         children: [
                           InkWell(
-                            onTap: () => ref
-                                .read(backgroundImageProvider.notifier)
-                                .resetTransform(),
+                            onTap: () => ref.read(backgroundImageProvider.notifier).resetTransform(),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.grey.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 Strings.of(context).reset,
-                                style: TextStyle(
-                                    fontSize: 9, color: Colors.grey.shade700),
+                                style: TextStyle(fontSize: 9, color: Colors.grey.shade700),
                               ),
                             ),
                           ),
@@ -686,19 +669,16 @@ class _BackgroundImageTile extends ConsumerWidget {
                           InkWell(
                             onTap: () => ref
                                 .read(backgroundImageProvider.notifier)
-                                .fitToCanvas(
-                                    width.toDouble(), height.toDouble()),
+                                .fitToCanvas(width.toDouble(), height.toDouble()),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.grey.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 Strings.of(context).fit,
-                                style: TextStyle(
-                                    fontSize: 9, color: Colors.grey.shade700),
+                                style: TextStyle(fontSize: 9, color: Colors.grey.shade700),
                               ),
                             ),
                           ),
@@ -708,12 +688,10 @@ class _BackgroundImageTile extends ConsumerWidget {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete_outline,
-                      size: 15, color: Colors.red.shade400),
+                  icon: Icon(Icons.delete_outline, size: 15, color: Colors.red.shade400),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  onPressed: () =>
-                      _showBackgroundDeleteConfirmation(context, ref),
+                  onPressed: () => _showBackgroundDeleteConfirmation(context, ref),
                   tooltip: Strings.of(context).removeBackgroundImage,
                 ),
               ],
@@ -723,9 +701,8 @@ class _BackgroundImageTile extends ConsumerWidget {
               context,
               icon: Icons.opacity,
               value: backgroundImage.opacity,
-              onChanged: (value) => ref
-                  .read(backgroundImageProvider.notifier)
-                  .update((state) => state.copyWith(opacity: value)),
+              onChanged: (value) =>
+                  ref.read(backgroundImageProvider.notifier).update((state) => state.copyWith(opacity: value)),
               activeColor: Colors.amber,
               label: '${(backgroundImage.opacity * 100).toInt()}%',
             ),
@@ -735,8 +712,7 @@ class _BackgroundImageTile extends ConsumerWidget {
               value: backgroundImage.scale,
               min: 0.1,
               max: 1,
-              onChanged: (value) =>
-                  ref.read(backgroundImageProvider.notifier).setScale(value),
+              onChanged: (value) => ref.read(backgroundImageProvider.notifier).setScale(value),
               activeColor: Colors.blue,
               label: '${(backgroundImage.scale * 100).toInt()}%',
             ),
@@ -780,8 +756,7 @@ class _BackgroundImageTile extends ConsumerWidget {
         ),
         SizedBox(
           width: 32,
-          child: Text(label,
-              style: TextStyle(fontSize: 10, color: Colors.grey.shade700)),
+          child: Text(label, style: TextStyle(fontSize: 10, color: Colors.grey.shade700)),
         ),
       ],
     );
@@ -808,9 +783,7 @@ class _BackgroundImageTile extends ConsumerWidget {
               child: Text(Strings.of(context).remove),
               onPressed: () {
                 Navigator.of(context).pop();
-                ref
-                    .read(backgroundImageProvider.notifier)
-                    .update((state) => state.copyWith(image: null));
+                ref.read(backgroundImageProvider.notifier).update((state) => state.copyWith(image: null));
               },
             ),
           ],
