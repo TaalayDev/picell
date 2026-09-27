@@ -45,13 +45,20 @@ import '../widgets/tools_bottom_bar.dart';
 import '../widgets/wand_options_bar.dart';
 
 class PixelCanvasScreen extends StatefulHookConsumerWidget {
-  const PixelCanvasScreen(
-      {super.key, required this.project, this.tilemapPixels});
+  const PixelCanvasScreen({
+    super.key,
+    required this.project,
+    this.tilemapPixels,
+    this.isActive = true,
+    this.onOpenProject,
+  });
 
   final Project project;
 
   /// Optional pre-rendered pixels from a tilemap editor
   final Uint32List? tilemapPixels;
+  final bool isActive;
+  final ValueChanged<Project>? onOpenProject;
 
   @override
   ConsumerState<PixelCanvasScreen> createState() => _PixelCanvasScreenState();
@@ -71,10 +78,12 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
   final _timelineOnboardingNode = FocusNode(debugLabel: 'editor_timeline');
   bool _showUI = true;
   bool _tilemapPixelsApplied = false;
+  List<int> _selectedLayerIndices = const [];
 
   @override
   void initState() {
     super.initState();
+    _shortcutsFocusNode.canRequestFocus = widget.isActive;
     // Apply tilemap pixels after the first frame if provided
     if (widget.tilemapPixels != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -84,6 +93,24 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
         }
       });
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant PixelCanvasScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive == widget.isActive) return;
+
+    _shortcutsFocusNode.canRequestFocus = widget.isActive;
+    if (!widget.isActive) {
+      _shortcutsFocusNode.unfocus();
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _shortcutsFocusNode.canRequestFocus) {
+        _shortcutsFocusNode.requestFocus();
+      }
+    });
   }
 
   void handleExport(BuildContext context, PixelCanvasNotifier notifier,
@@ -216,7 +243,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                 notifier.addLayerWithPixels(importedLayer);
                 AppNotification.info(
                   context,
-                  Strings.of(context).importedFirstLayerFromFile(result.fileName),
+                  Strings.of(context)
+                      .importedFirstLayerFromFile(result.fileName),
                 );
               }
             },
@@ -225,12 +253,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // Open as new project
-              Navigator.of(
-                context,
-              ).pushReplacement(MaterialPageRoute(
-                  builder: (context) =>
-                      PixelCanvasScreen(project: result.project!)));
+              widget.onOpenProject?.call(result.project!);
             },
             child: Text(Strings.of(context).openAsProject),
           ),
@@ -292,37 +315,90 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
     // Shared clipboard handlers — used by both the toolbar buttons and the
     // keyboard shortcuts (Ctrl+C/X/V).
     void copySelectionToClipboard() {
-      final pixels = notifier.copySelectionPixels();
       final region = state.selectionState?.region;
-      if (pixels != null && region != null) {
-        clipboardNotifier.state = PixelClipboardData(
+      final pixels = notifier.copySelectionPixels();
+      if (region != null && pixels != null) {
+        clipboardNotifier.store(PixelClipboardData(
           pixels: pixels,
           width: width,
           height: height,
           region: region,
-        );
+        ));
+        return;
       }
+
+      final indices = _selectedLayerIndices.isEmpty
+          ? [state.currentLayerIndex]
+          : _selectedLayerIndices;
+      final layers = notifier.copyLayers(indices);
+      if (layers.isEmpty) return;
+      clipboardNotifier.store(LayerClipboardData(
+        layers: layers,
+        width: width,
+        height: height,
+      ));
     }
 
     void cutSelectionToClipboard() {
       final region = state.selectionState?.region;
       final pixels = notifier.cutSelectionPixels();
-      if (pixels != null && region != null) {
-        clipboardNotifier.state = PixelClipboardData(
+      if (region != null && pixels != null) {
+        clipboardNotifier.store(PixelClipboardData(
           pixels: pixels,
           width: width,
           height: height,
           region: region,
-        );
+        ));
+        return;
+      }
+
+      final indices = _selectedLayerIndices.isEmpty
+          ? [state.currentLayerIndex]
+          : _selectedLayerIndices;
+      final layers = notifier.copyLayers(indices);
+      if (layers.isEmpty) return;
+      clipboardNotifier.store(LayerClipboardData(
+        layers: layers,
+        width: width,
+        height: height,
+      ));
+      notifier.removeLayers(indices);
+    }
+
+    Future<void> pasteFromClipboard() async {
+      final clip = clipboardNotifier.take();
+      if (clip == null) return;
+      final pasteErrorMessage = Strings.of(context).anErrorOccurred;
+
+      try {
+        switch (clip) {
+          case PixelClipboardData():
+            await notifier.pastePixels(
+              clip.pixels,
+              clip.region,
+              sourceWidth: clip.width,
+              sourceHeight: clip.height,
+            );
+          case LayerClipboardData():
+            await notifier.pasteLayers(
+              clip.layers,
+              sourceWidth: clip.width,
+              sourceHeight: clip.height,
+            );
+        }
+      } catch (_) {
+        clipboardNotifier.restoreIfEmpty(clip);
+        if (mounted) {
+          AppNotification.error(
+            this.context,
+            pasteErrorMessage,
+          );
+        }
       }
     }
 
-    void pasteFromClipboard() {
-      final clip = clipboard;
-      if (clip != null) notifier.pastePixels(clip.pixels, clip.region);
-    }
-
     return PixelCanvasShortcutsWrapper(
+      enabled: widget.isActive,
       shortcutsFocusNode: _shortcutsFocusNode,
       currentTool: currentTool,
       brushSize: brushSize,
@@ -616,6 +692,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                           state: state,
                           notifier: notifier,
                           currentTool: currentTool,
+                          onLayerSelectionChanged: (indices) {
+                            _selectedLayerIndices = indices;
+                          },
                         ),
                     ],
                   ),
@@ -699,6 +778,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen>
                     subscription: subscription,
                     width: width,
                     height: height,
+                    onLayerSelectionChanged: (indices) {
+                      _selectedLayerIndices = indices;
+                    },
                   ),
               ],
             ),

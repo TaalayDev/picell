@@ -44,7 +44,7 @@ import 'subscription_screen.dart';
 import 'about_screen.dart';
 import 'effect_icon_generator_screen.dart';
 import '../../app/routing/flagship_page_route.dart';
-import 'pixel_canvas_screen.dart';
+import 'editor_workspace_screen.dart';
 import 'project_detail_screen.dart' hide CheckerboardPainter;
 
 class ProjectsScreen extends HookConsumerWidget {
@@ -612,7 +612,7 @@ class ProjectsScreen extends HookConsumerWidget {
         Navigator.of(context).push(
           FlagshipPageRoute(
             context: context,
-            builder: (context) => PixelCanvasScreen(project: newProject),
+            builder: (context) => EditorWorkspaceScreen(initialProject: newProject),
           ),
         );
       }
@@ -643,7 +643,7 @@ class ProjectsScreen extends HookConsumerWidget {
       Navigator.of(context).push(
         FlagshipPageRoute(
           context: context,
-          builder: (context) => PixelCanvasScreen(project: projectToOpen!),
+          builder: (context) => EditorWorkspaceScreen(initialProject: projectToOpen!),
         ),
       );
     }

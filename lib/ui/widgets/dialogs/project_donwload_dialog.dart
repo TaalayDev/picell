@@ -6,7 +6,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import '../../../data/models/project_api_models.dart';
 import '../../../l10n/strings.dart';
 import '../../../providers/project_download_provider.dart';
-import '../../screens/pixel_canvas_screen.dart';
+import '../../screens/editor_workspace_screen.dart';
 
 class ProjectDownloadDialog extends HookConsumerWidget {
   final ApiProject project;
@@ -215,8 +215,8 @@ class ProjectDownloadDialog extends HookConsumerWidget {
               if (downloadState.downloadedProject != null) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => PixelCanvasScreen(
-                      project: downloadState.downloadedProject!,
+                    builder: (context) => EditorWorkspaceScreen(
+                      initialProject: downloadState.downloadedProject!,
                     ),
                   ),
                 );

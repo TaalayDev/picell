@@ -29,6 +29,7 @@ class LayersPanel extends HookConsumerWidget {
   final Function(Layer) onLayerUpdated;
   final Function(Layer) onLayerToTemplate;
   final VoidCallback? onAutoSelect;
+  final ValueChanged<List<int>>? onSelectionChanged;
   final ScrollController? scrollController;
 
   const LayersPanel({
@@ -48,6 +49,7 @@ class LayersPanel extends HookConsumerWidget {
     required this.onLayerUpdated,
     required this.onLayerToTemplate,
     this.onAutoSelect,
+    this.onSelectionChanged,
     this.onLayerEffectsChanged,
     this.scrollController,
   });
@@ -76,6 +78,11 @@ class LayersPanel extends HookConsumerWidget {
         if (effectiveSelection.contains(layer.id)) index,
     ];
 
+    useEffect(() {
+      onSelectionChanged?.call(selectedIndices);
+      return null;
+    }, [layers, activeLayerIndex, selectedIds.value]);
+
     void selectLayer(int index) {
       final clicked = layers[index].id;
       final result = updateMultiSelection(
@@ -89,6 +96,10 @@ class LayersPanel extends HookConsumerWidget {
       );
       selectedIds.value = result.selected;
       anchor.value = result.anchor;
+      onSelectionChanged?.call([
+        for (final (layerIndex, layer) in layers.indexed)
+          if (result.selected.contains(layer.id)) layerIndex,
+      ]);
       onLayerSelected(layers.indexWhere((layer) => layer.id == result.active));
     }
 
@@ -96,6 +107,9 @@ class LayersPanel extends HookConsumerWidget {
       onSelectAll: () {
         selectedIds.value = availableIds;
         anchor.value = activeId;
+        onSelectionChanged?.call([
+          for (var index = 0; index < layers.length; index++) index,
+        ]);
       },
       child: Column(
         children: [

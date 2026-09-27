@@ -81,6 +81,20 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   Future<int> duplicateLayer(int index) => _controller.duplicateLayer(index);
   Future<void> duplicateLayers(Iterable<int> indices) =>
       _controller.duplicateLayers(indices);
+  List<Layer> copyLayers(Iterable<int> indices) =>
+      _controller.copyLayers(indices);
+  Future<void> pasteLayers(
+    List<Layer> layers, {
+    required int sourceWidth,
+    required int sourceHeight,
+  }) =>
+      _controller.pasteLayers(
+        layers,
+        sourceWidth: sourceWidth,
+        sourceHeight: sourceHeight,
+      );
+  Future<bool> flushPendingProjectSave() =>
+      _controller.flushPendingProjectSave();
   Future<void> setLayersVisibility(Iterable<int> indices, bool visible) =>
       _controller.setLayersVisibility(indices, visible);
   Future<void> setLayersLocked(Iterable<int> indices, bool locked) =>
@@ -162,8 +176,18 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   Uint32List? cutSelectionPixels() => _controller.cutSelectionPixels();
 
   /// Pastes [pixels] as a new floating layer and selects it.
-  Future<void> pastePixels(Uint32List pixels, SelectionRegion region) =>
-      _controller.pastePixels(pixels, region);
+  Future<void> pastePixels(
+    Uint32List pixels,
+    SelectionRegion region, {
+    required int sourceWidth,
+    required int sourceHeight,
+  }) =>
+      _controller.pastePixels(
+        pixels,
+        region,
+        sourceWidth: sourceWidth,
+        sourceHeight: sourceHeight,
+      );
   void selectAll() => _controller.selectAll();
   void invertSelection() => _controller.invertSelectionRegion();
   void growSelection() => _controller.growSelectionRegion();

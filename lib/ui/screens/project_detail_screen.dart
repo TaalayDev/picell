@@ -1478,7 +1478,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => PixelCanvasScreen(project: projectToOpen!),
+        builder: (context) =>
+            EditorWorkspaceScreen(initialProject: projectToOpen!),
       ),
     );
   }
