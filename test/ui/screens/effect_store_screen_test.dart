@@ -56,7 +56,7 @@ void main() {
   });
 
   final artisticOwner = UserSubscription(
-    ownedProductIds: {SubscriptionProductIds.pack(EffectPackId.artistic)},
+    ownedProductIds: {SubscriptionProductIds.pack(EffectPackId.artistic)!},
   );
 
   testWidgets('store lists every pack and offers Ultimate', (tester) async {

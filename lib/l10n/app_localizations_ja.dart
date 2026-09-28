@@ -3118,4 +3118,7 @@ class StringsJa extends Strings {
   String gemsReward(int count) {
     return '+$countジェム';
   }
+
+  @override
+  String get managePurchases => '購入の管理';
 }

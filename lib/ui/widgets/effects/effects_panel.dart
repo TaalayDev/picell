@@ -80,7 +80,7 @@ class _EffectsPanelState extends State<EffectsPanel> {
   }
 
   void _addEffect() {
-    showDialog(
+    EffectSelectorDialog.present(
       context: context,
       builder: (context) => EffectSelectorDialog(
         layer: widget.layer.copyWith(effects: _effects),

@@ -67,12 +67,21 @@ class SubscriptionProductIds {
   static const String ultimateUpgrade = 'com.pixelverse.app.ultimate.upgrade';
   static const String cloudAddon = 'com.pixelverse.app.addon.cloud';
 
-  static const String _packPrefix = 'com.pixelverse.app.pack.';
+  /// Store ids of the effect packs, exactly as configured in the stores.
+  static const Map<EffectPackId, String> _packs = {
+    EffectPackId.basicFilters: 'com.pixelverse.app.pack.basefilters',
+    EffectPackId.artistic: 'com.pixelverse.app.pack.artisticstyles',
+    EffectPackId.materials: 'com.pixelverse.app.pack.materialstextures',
+    EffectPackId.worldGenerators: 'com.pixelverse.app.pack.basegenerators',
+    EffectPackId.lightingDistortion: 'com.pixelverse.app.pack.lightigdistortions',
+    EffectPackId.motion: 'com.pixelverse.app.pack.motion',
+    EffectPackId.vfxNature: 'com.pixelverse.app.pack.vfxbase',
+    EffectPackId.vfxMagic: 'com.pixelverse.app.pack.vfxmagic',
+    EffectPackId.vfxAction: 'com.pixelverse.app.pack.vfxactionscyfi',
+  };
 
-  static String pack(EffectPackId pack) => '$_packPrefix${_snakeCase(pack.name)}';
-
-  static String _snakeCase(String value) =>
-      value.replaceAllMapped(RegExp('[A-Z]'), (m) => '_${m[0]!.toLowerCase()}');
+  /// Store id of a pack, or null for the free pack, which is not sold.
+  static String? pack(EffectPackId pack) => _packs[pack];
 }
 
 class ProductCatalog {
@@ -93,7 +102,7 @@ class ProductCatalog {
     SubscriptionProductIds.ultimateUpgrade: _ultimate,
     SubscriptionProductIds.cloudAddon: const {Entitlement.cloud},
     for (final pack in EffectPackId.values)
-      if (pack != EffectPackId.free) SubscriptionProductIds.pack(pack): {Entitlement.pack(pack)},
+      if (SubscriptionProductIds.pack(pack) case final productId?) productId: {Entitlement.pack(pack)},
   });
 
   static Set<String> get allProductIds => entitlementsByProduct.keys.toSet();

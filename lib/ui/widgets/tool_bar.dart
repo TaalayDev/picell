@@ -127,7 +127,7 @@ class ToolBar extends ConsumerWidget {
       AnimationKind? animationKind,
     }) {
       final parentContext = context;
-      showDialog<void>(
+      EffectSelectorDialog.present(
         context: context,
         builder: (context) => EffectSelectorDialog(
           initialWorkspace: workspace,
@@ -486,7 +486,7 @@ class ToolBar extends ConsumerWidget {
           ),
           _ActiveViewIndicators(
             tileModeEnabled: tileModeEnabled,
-            pixelGridEnabled: editorSettings.showPixelGrid,
+            pixelGridEnabled: false, // editorSettings.showPixelGrid,
             onionSkinEnabled: showPrevFrames,
           ),
           VerticalDivider(

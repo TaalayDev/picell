@@ -1619,5 +1619,6 @@
     "questAnimationExported": "アニメーションをエクスポート",
     "questProjectImported": "プロジェクトをインポート",
     "questProjectPublished": "コミュニティにプロジェクトを{count}個公開",
-    "gemsReward": "+{count}ジェム"
+    "gemsReward": "+{count}ジェム",
+    "managePurchases": "購入の管理"
 }

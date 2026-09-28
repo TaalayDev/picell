@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
+import '../../core/services/subscription_service.dart';
 
 import '../../data/models/progression_model.dart';
 import '../../data/models/subscription_model.dart';
@@ -144,7 +144,9 @@ class _PacksTab extends ConsumerWidget {
 /// Store price of a pack, or null while products load or if the store lacks it.
 String? _packPrice(WidgetRef ref, EffectPackId packId) {
   ref.watch(productsStreamProvider);
-  return ref.read(subscriptionServiceProvider).getProductDetails(SubscriptionProductIds.pack(packId))?.price;
+  final productId = SubscriptionProductIds.pack(packId);
+  if (productId == null) return null;
+  return ref.read(subscriptionServiceProvider).getProductDetails(productId)?.priceString;
 }
 
 class _UltimateBanner extends StatelessWidget {
@@ -367,7 +369,8 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
   ];
   bool _isBuying = false;
 
-  String get _productId => SubscriptionProductIds.pack(widget.packId);
+  /// Null for the free pack, which is always owned and never bought.
+  String? get _productId => SubscriptionProductIds.pack(widget.packId);
 
   @override
   void initState() {
@@ -381,7 +384,9 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
   Future<void> _buy() async {
     setState(() => _isBuying = true);
     try {
-      await ref.read(subscriptionStateProvider.notifier).purchase(_productId);
+      final productId = _productId;
+      if (productId == null) return;
+      await ref.read(subscriptionStateProvider.notifier).purchase(productId);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isBuying = false);
@@ -407,12 +412,13 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
         AppNotification.success(context, s.effectPackPurchased(packName));
       }
     });
-    ref.listen(purchaseUpdatesStreamProvider, (previous, next) {
-      final purchases = next.valueOrNull ?? const <PurchaseDetails>[];
-      final ended = purchases.any(
-        (p) => p.productID == _productId && (p.status == PurchaseStatus.error || p.status == PurchaseStatus.canceled),
-      );
-      if (ended && _isBuying) setState(() => _isBuying = false);
+    ref.listen(purchaseEventsStreamProvider, (previous, next) {
+      final event = next.valueOrNull;
+      if (event == null || event.productId != _productId || !_isBuying) return;
+      if (event.outcome == PurchaseOutcome.cancelled || event.outcome == PurchaseOutcome.failed) {
+        setState(() => _isBuying = false);
+        if (event.outcome == PurchaseOutcome.failed) AppNotification.error(context, s.purchaseFailed);
+      }
     });
 
     return Scaffold(

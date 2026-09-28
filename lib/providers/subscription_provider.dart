@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:picell/config/constants.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -99,15 +99,15 @@ Stream<UserSubscription> subscriptionStream(SubscriptionStreamRef ref) {
 }
 
 @riverpod
-Stream<List<ProductDetails>> productsStream(ProductsStreamRef ref) {
+Stream<List<StoreProduct>> productsStream(ProductsStreamRef ref) {
   final service = ref.watch(subscriptionServiceProvider);
   return service.productsStream;
 }
 
 @riverpod
-Stream<List<PurchaseDetails>> purchaseUpdatesStream(PurchaseUpdatesStreamRef ref) {
+Stream<PurchaseEvent> purchaseEventsStream(PurchaseEventsStreamRef ref) {
   final service = ref.watch(subscriptionServiceProvider);
-  return service.purchaseUpdatedStream;
+  return service.purchaseEvents;
 }
 
 @riverpod
@@ -153,8 +153,8 @@ List<PurchaseOffer> purchaseOffers(PurchaseOffersRef ref) {
     offers.add(
       PurchaseOffer(
         plan: SubscriptionPlan.pro,
-        productId: proProduct.id,
-        price: proProduct.price,
+        productId: proProduct.identifier,
+        price: proProduct.priceString,
       ),
     );
   }
@@ -168,8 +168,8 @@ List<PurchaseOffer> purchaseOffers(PurchaseOffersRef ref) {
     offers.add(
       PurchaseOffer(
         plan: SubscriptionPlan.ultimate,
-        productId: ultimateProduct.id,
-        price: ultimateProduct.price,
+        productId: ultimateProduct.identifier,
+        price: ultimateProduct.priceString,
         isMostPopular: true,
         isUpgrade: isUpgrade,
       ),

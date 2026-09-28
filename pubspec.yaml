@@ -83,7 +83,6 @@ dependencies:
   sign_in_with_apple: ^7.0.1
 
   # subscription
-  in_app_purchase: ^3.3.0
   # purchase_validator: ^1.0.1
 
   flutter_markdown: ^0.6.18
@@ -104,6 +103,8 @@ dependencies:
   desktop_drop: ^0.5.0
   archive: ^4.0.4
   onboarding_overlay: ^3.2.3
+  purchases_flutter: ^10.13.2
+  purchases_ui_flutter: ^10.13.2
 
 
 dependency_overrides:

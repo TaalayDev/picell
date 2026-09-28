@@ -5778,6 +5778,12 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'+{count} gems'**
   String gemsReward(int count);
+
+  /// No description provided for @managePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage purchases'**
+  String get managePurchases;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

@@ -3220,4 +3220,7 @@ class StringsKy extends Strings {
   String gemsReward(int count) {
     return '+$count кристалл';
   }
+
+  @override
+  String get managePurchases => 'Сатып алууларды башкаруу';
 }
