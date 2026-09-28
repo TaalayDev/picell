@@ -9,7 +9,6 @@ void main() {
       final effect = FrostGlazeEffect();
       expect(effect.type, equals(EffectType.frostGlaze));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['crystalDensity'], equals(5));
       expect(effect.parameters['iceTint'], equals(0xFF80D8FF));
       expect(effect.parameters['frostBranching'], equals(0.7));

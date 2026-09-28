@@ -9,7 +9,6 @@ void main() {
       final effect = DirectionalMotionBlurEffect();
       expect(effect.type, equals(EffectType.directionalMotionBlur));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['blurLength'], equals(6.0));
       expect(effect.parameters['angle'], equals(0.0));
       expect(effect.parameters['blurProfile'], equals('trailing'));

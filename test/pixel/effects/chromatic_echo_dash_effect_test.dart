@@ -9,7 +9,6 @@ void main() {
       final effect = ChromaticEchoDashEffect();
       expect(effect.type, equals(EffectType.chromaticEchoDash));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['motionAngle'], equals(0.0));
       expect(effect.parameters['echoCount'], equals(3.0));
       expect(effect.parameters['trailDistance'], equals(12.0));

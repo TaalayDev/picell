@@ -9,7 +9,6 @@ void main() {
       final effect = ChalkPastelEffect();
       expect(effect.type, equals(EffectType.chalkPastel));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['smudgeRadius'], equals(3.0));
       expect(effect.parameters['charcoalSoftness'], equals(0.5));
       expect(effect.parameters['paperToothRoughness'], equals(0.4));

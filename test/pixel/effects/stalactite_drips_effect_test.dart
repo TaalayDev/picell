@@ -9,7 +9,6 @@ void main() {
       final effect = StalactiteDripsEffect();
       expect(effect.type, equals(EffectType.stalactiteDrips));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['dripRate'], equals(1.5));
       expect(effect.parameters['stalactiteDensity'], equals(6));
       expect(effect.parameters['splashImpactParticles'], equals(8));

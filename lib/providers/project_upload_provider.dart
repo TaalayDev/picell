@@ -8,6 +8,8 @@ import '../data/models/api_models.dart';
 import '../data/models/project_api_models.dart';
 import '../data.dart';
 import '../core/utils.dart';
+import '../data/models/progression_model.dart';
+import '../providers/progression_provider.dart';
 import '../providers/providers.dart';
 
 part 'project_upload_provider.freezed.dart';
@@ -101,6 +103,7 @@ class ProjectUpload extends _$ProjectUpload {
         state = state.copyWith(uploadProgress: 0.9);
         if (!isUpdate) {
           await ref.read(projectRepo).markProjectAsSynced(localProject.id, response.data!.id);
+          ref.read(progressionProvider.notifier).record(ProgressionEvent.projectPublished);
         }
 
         state = state.copyWith(

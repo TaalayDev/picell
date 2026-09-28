@@ -9,7 +9,6 @@ void main() {
       final effect = RadialShockwaveEffect();
       expect(effect.type, equals(EffectType.radialShockwave));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['waveThickness'], equals(2));
       expect(effect.parameters['expansionSpeed'], equals(1.5));
       expect(effect.parameters['ringShape'], equals('circular'));

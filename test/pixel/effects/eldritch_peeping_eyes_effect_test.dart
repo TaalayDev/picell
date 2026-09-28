@@ -9,7 +9,6 @@ void main() {
       final effect = EldritchPeepingEyesEffect();
       expect(effect.type, equals(EffectType.eldritchPeepingEyes));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['eyeCount'], equals(5));
       expect(effect.parameters['pupilType'], equals('slitCat'));
       expect(effect.parameters['eyeSize'], equals(4.5));

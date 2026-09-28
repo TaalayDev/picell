@@ -9,7 +9,6 @@ void main() {
       final effect = ElectricArcEffect();
       expect(effect.type, equals(EffectType.electricArc));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['strikeMode'], equals('vertical'));
       expect(effect.parameters['arcColor'], equals(0xFF00E5FF));
       expect(effect.parameters['branching'], equals(0.6));

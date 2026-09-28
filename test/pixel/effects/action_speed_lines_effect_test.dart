@@ -9,7 +9,6 @@ void main() {
       final effect = ActionSpeedLinesEffect();
       expect(effect.type, equals(EffectType.actionSpeedLines));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['motionAngle'], equals(0.0));
       expect(effect.parameters['lineLength'], equals(24.0));
       expect(effect.parameters['lineDensity'], equals(0.6));

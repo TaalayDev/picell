@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../pixel/effects/effect_pack_catalog.dart';
 import '../../../pixel/effects/effects.dart';
 import '../../../l10n/strings.dart';
+import '../../../providers/progression_provider.dart';
+import '../../screens/effect_store_screen.dart';
 import '../app_icon.dart';
+import '../fields/ui_field.dart';
 import '../fields/ui_field_builder.dart';
+import 'effect_pack_l10n.dart';
 
-class EffectListItem extends StatefulWidget {
+/// A layer effect row. Effects from packs the user does not own still render,
+/// but their parameters and animation generation stay locked.
+class EffectListItem extends ConsumerStatefulWidget {
   final Effect effect;
   final bool isSelected;
   final VoidCallback onSelect;
@@ -35,10 +43,10 @@ class EffectListItem extends StatefulWidget {
   });
 
   @override
-  State<EffectListItem> createState() => _EffectListItemState();
+  ConsumerState<EffectListItem> createState() => _EffectListItemState();
 }
 
-class _EffectListItemState extends State<EffectListItem> {
+class _EffectListItemState extends ConsumerState<EffectListItem> {
   bool _isExpanded = false;
   late Map<String, dynamic> _parameters;
 
@@ -76,7 +84,10 @@ class _EffectListItemState extends State<EffectListItem> {
     final effectColor = widget.effect.getColor(context);
     final effectIcon = widget.effect.getIcon(color: effectColor, size: 18);
     final theme = Theme.of(context);
-    final fields = widget.effect.getFields();
+    final isLocked = !ref.watch(effectAccessProvider(widget.effect.type));
+    final fields = isLocked ? const <UIField>[] : widget.effect.getFields();
+    final pack = EffectPackCatalog.packIdOf(widget.effect.type);
+    void openPack() => EffectStoreScreen.show(context, pack: pack);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -116,6 +127,19 @@ class _EffectListItemState extends State<EffectListItem> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (isLocked)
+                    Tooltip(
+                      message: Strings.of(context).effectLockedTooltip(pack.localizedName(context)),
+                      child: InkWell(
+                        key: const ValueKey('locked-effect-badge'),
+                        onTap: openPack,
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Icon(Icons.lock_outline, size: 16, color: theme.colorScheme.primary),
+                        ),
+                      ),
+                    ),
                   if (fields.isNotEmpty)
                     InkWell(
                       onTap: () => setState(() => _isExpanded = !_isExpanded),
@@ -130,7 +154,7 @@ class _EffectListItemState extends State<EffectListItem> {
                     ),
 
                   InkWell(
-                    onTap: widget.onEdit,
+                    onTap: isLocked ? openPack : widget.onEdit,
                     borderRadius: BorderRadius.circular(4),
                     child: const Padding(
                       padding: EdgeInsets.all(4.0),
@@ -140,7 +164,7 @@ class _EffectListItemState extends State<EffectListItem> {
                   const SizedBox(width: 8),
                   if (widget.effect.isAnimation && widget.onAnimate != null)
                     IconButton(
-                      onPressed: widget.onAnimate,
+                      onPressed: isLocked ? openPack : widget.onAnimate,
                       tooltip: Strings.of(context).generateAnimation,
                       icon: const Icon(Icons.movie_creation_outlined, size: 18),
                       visualDensity: VisualDensity.compact,

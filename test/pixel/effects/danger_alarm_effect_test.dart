@@ -9,7 +9,6 @@ void main() {
       final effect = DangerAlarmEffect();
       expect(effect.type, equals(EffectType.dangerAlarm));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['pulseBPM'], equals(120.0));
       expect(effect.parameters['vignetteThickness'], equals(0.45));
       expect(effect.parameters['alarmColor'], equals(0xFFFF1744));

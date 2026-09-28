@@ -9,7 +9,6 @@ void main() {
       final effect = WaterfallCascadeEffect();
       expect(effect.type, equals(EffectType.waterfallCascade));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['flowSpeed'], equals(2.0));
       expect(effect.parameters['cascadeWidth'], equals(0.6));
       expect(effect.parameters['foamTurbulence'], equals(0.5));

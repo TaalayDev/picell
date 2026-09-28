@@ -9,7 +9,6 @@ void main() {
       final effect = FloatingSigilsEffect();
       expect(effect.type, equals(EffectType.floatingSigils));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['sigilCount'], equals(6.0));
       expect(effect.parameters['orbitRadius'], equals(11.0));
       expect(effect.parameters['runeStyle'], equals('elderFuthark'));

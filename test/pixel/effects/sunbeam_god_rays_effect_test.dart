@@ -9,7 +9,6 @@ void main() {
       final effect = SunbeamGodRaysEffect();
       expect(effect.type, equals(EffectType.sunbeamGodRays));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['rayAngle'], equals(30.0));
       expect(effect.parameters['rayIntensity'], equals(0.65));
       expect(effect.parameters['dustMoteCount'], equals(45));

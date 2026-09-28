@@ -9,7 +9,6 @@ void main() {
       final effect = HangingIciclesEffect();
       expect(effect.type, equals(EffectType.hangingIcicles));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['frostCoverage'], equals(0.6));
       expect(effect.parameters['icicleLength'], equals(10.0));
       expect(effect.parameters['iceOpacity'], equals(0.85));

@@ -2880,4 +2880,402 @@ class StringsRu extends Strings {
   @override
   String get upgradePromptPrioritySupportSubtitle =>
       'Получайте более быструю поддержку по любым вопросам';
+
+  @override
+  String get plansTitle => 'Тарифы';
+
+  @override
+  String get planPro => 'Pro';
+
+  @override
+  String get planUltimate => 'Ultimate';
+
+  @override
+  String get freePlanDescription => 'Базовое создание пиксель-арта';
+
+  @override
+  String get proPlanDescription => 'Все инструменты и функции, разовая покупка';
+
+  @override
+  String get ultimatePlanDescription =>
+      'Всё навсегда, включая будущие паки эффектов';
+
+  @override
+  String get ultimateUpgradeDescription =>
+      'Улучшите Pro и откройте всё навсегда';
+
+  @override
+  String get offerStarterEffects => 'Стартовые эффекты из каждой категории';
+
+  @override
+  String get offerAllToolsTemplates => 'Все инструменты и шаблоны';
+
+  @override
+  String get offerBasicFiltersPack => 'Пак эффектов «Базовые фильтры»';
+
+  @override
+  String get offerNoWatermarks => 'Без водяных знаков';
+
+  @override
+  String get offerEverythingInPro => 'Всё, что есть в Pro';
+
+  @override
+  String get offerAllEffectPacks => 'Все паки эффектов — текущие и будущие';
+
+  @override
+  String get offerCloudSync => 'Облачная синхронизация и бэкап';
+
+  @override
+  String getPlan(String plan) {
+    return 'Получить $plan';
+  }
+
+  @override
+  String get upgradeToUltimate => 'Перейти на Ultimate';
+
+  @override
+  String currentPlan(String plan) {
+    return 'Ваш тариф: $plan';
+  }
+
+  @override
+  String get ultimateOwnedSubtitle => 'Всё открыто. Спасибо за поддержку!';
+
+  @override
+  String get proOwnedSubtitle =>
+      'Перейдите на Ultimate, чтобы получить все паки эффектов и облачную синхронизацию.';
+
+  @override
+  String get planComparisonTitle => 'Сравнение тарифов';
+
+  @override
+  String get featureEffectPacks => 'Паки эффектов';
+
+  @override
+  String get effectsStarterSet => 'Стартовый набор';
+
+  @override
+  String get effectsPlusBasicFilters => '+ Базовые фильтры';
+
+  @override
+  String get effectsAllIncludingFuture => 'Все, включая будущие';
+
+  @override
+  String get cloudAddonAvailable => 'Дополнение';
+
+  @override
+  String get effectIncludedInPro => 'Этот эффект входит в Pro и Ultimate.';
+
+  @override
+  String get effectIncludedInUltimate =>
+      'Этот эффект входит в премиум-пак. Ultimate открывает все паки, включая будущие.';
+
+  @override
+  String get viewPlans => 'Посмотреть тарифы';
+
+  @override
+  String get promoBannerSubtitle =>
+      'Все инструменты, безлимитные проекты и паки эффектов';
+
+  @override
+  String get effectStoreTitle => 'Магазин эффектов';
+
+  @override
+  String get effectPackOwned => 'Куплено';
+
+  @override
+  String get effectPackIncludedInPro => 'В Pro';
+
+  @override
+  String effectPackBuyFor(String price) {
+    return 'Купить за $price';
+  }
+
+  @override
+  String get effectPackUnavailable => 'Пока недоступно';
+
+  @override
+  String get effectStoreUltimateTitle => 'Все паки сразу — в Ultimate';
+
+  @override
+  String get effectStoreUltimateSubtitle =>
+      'Включая будущие паки, облачную синхронизацию и все функции Pro';
+
+  @override
+  String get effectStoreAllUnlocked => 'Все паки эффектов открыты';
+
+  @override
+  String effectPackPurchased(String pack) {
+    return 'Пак «$pack» открыт!';
+  }
+
+  @override
+  String get getPack => 'Получить пак';
+
+  @override
+  String get browseEffectPacks => 'Или купите отдельные паки эффектов';
+
+  @override
+  String effectLockedTooltip(String pack) {
+    return 'Закрыто: получите пак «$pack», чтобы редактировать';
+  }
+
+  @override
+  String get packNameFree => 'Бесплатный набор';
+
+  @override
+  String get packDescFree => 'Понемногу из каждой категории';
+
+  @override
+  String get packNameBasicFilters => 'Базовые фильтры';
+
+  @override
+  String get packDescBasicFilters =>
+      'Размытие, резкость, дизеринг, палитры и ретро-экраны';
+
+  @override
+  String get packNameArtistic => 'Художественные стили';
+
+  @override
+  String get packDescArtistic =>
+      'Акварель, масло, гравюра, комиксы и печатные техники';
+
+  @override
+  String get packNameMaterials => 'Материалы и текстуры';
+
+  @override
+  String get packDescMaterials =>
+      'Дерево, металл, камень, лёд, ржавчина и другие поверхности';
+
+  @override
+  String get packNameWorldGenerators => 'Генераторы миров';
+
+  @override
+  String get packDescWorldGenerators =>
+      'Горы, леса, океаны, города и подземелья в одно касание';
+
+  @override
+  String get packNameLightingDistortion => 'Свет и искажения';
+
+  @override
+  String get packDescLightingDistortion =>
+      'Лучи света, сияния, ореолы, глитчи и размытие движения';
+
+  @override
+  String get packNameMotion => 'Движение';
+
+  @override
+  String get packDescMotion =>
+      'Пульсация, волна, парение, тряска, растворение и другие анимации';
+
+  @override
+  String get packNameVfxNature => 'VFX: природа и погода';
+
+  @override
+  String get packDescVfxNature =>
+      'Огонь, дождь, снег, водопады, светлячки и слизь';
+
+  @override
+  String get packNameVfxMagic => 'VFX: магия и тёмное фэнтези';
+
+  @override
+  String get packDescVfxMagic => 'Ауры, порталы, руны, духи и древние ужасы';
+
+  @override
+  String get packNameVfxAction => 'VFX: экшен и фантастика';
+
+  @override
+  String get packDescVfxAction =>
+      'Взрывы, молнии, щиты, двигатели и эффекты ударов';
+
+  @override
+  String get storeTabPacks => 'Паки';
+
+  @override
+  String get storeTabQuests => 'Задания';
+
+  @override
+  String get dailyQuestsTitle => 'Ежедневные задания';
+
+  @override
+  String get starterQuestsTitle => 'Первые шаги';
+
+  @override
+  String get questClaim => 'Забрать';
+
+  @override
+  String get questClaimed => 'Готово';
+
+  @override
+  String questRewardEffect(String effect) {
+    return '+ $effect';
+  }
+
+  @override
+  String streakTitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Серия: $days дня',
+      many: 'Серия: $days дней',
+      few: 'Серия: $days дня',
+      one: 'Серия: $days день',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakNextReward(int days, int coins) {
+    return 'Следующая награда на $days-й день: +$coins крист.';
+  }
+
+  @override
+  String watchAdForCoins(int coins) {
+    return 'Посмотреть рекламу: +$coins крист.';
+  }
+
+  @override
+  String adsLeftToday(int count) {
+    return 'Осталось сегодня: $count';
+  }
+
+  @override
+  String unlockForCoins(int coins) {
+    return 'Открыть за $coins крист.';
+  }
+
+  @override
+  String get notEnoughCoins =>
+      'Недостаточно кристаллов. Выполняйте задания, чтобы заработать.';
+
+  @override
+  String unlockEffectConfirm(String effect, int coins) {
+    return 'Открыть «$effect» за $coins крист.?';
+  }
+
+  @override
+  String get tryPackForAnHour => 'Попробовать 1 час (реклама)';
+
+  @override
+  String get packTrialActive => 'Пробный доступ';
+
+  @override
+  String questCompletedToast(String quest) {
+    return 'Задание выполнено: $quest';
+  }
+
+  @override
+  String streakRewardToast(int days, int coins) {
+    return 'Серия $days дн.! +$coins крист.';
+  }
+
+  @override
+  String effectUnlocked(String effect) {
+    return 'Эффект «$effect» открыт!';
+  }
+
+  @override
+  String get openAction => 'Открыть';
+
+  @override
+  String get unlockAction => 'Открыть';
+
+  @override
+  String get walletTooltip =>
+      'Ваши кристаллы — зарабатывайте их, выполняя задания';
+
+  @override
+  String questProjectCreated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Создайте $count проекта',
+      many: 'Создайте $count проектов',
+      few: 'Создайте $count проекта',
+      one: 'Создайте $count проект',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questStrokeCompleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Нарисуйте $count штриха',
+      many: 'Нарисуйте $count штрихов',
+      few: 'Нарисуйте $count штриха',
+      one: 'Нарисуйте $count штрих',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questLayerAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Добавьте $count слоя',
+      many: 'Добавьте $count слоёв',
+      few: 'Добавьте $count слоя',
+      one: 'Добавьте $count слой',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questFrameAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Добавьте $count кадра анимации',
+      many: 'Добавьте $count кадров анимации',
+      few: 'Добавьте $count кадра анимации',
+      one: 'Добавьте $count кадр анимации',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questEffectAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Примените $count эффекта',
+      many: 'Примените $count эффектов',
+      few: 'Примените $count эффекта',
+      one: 'Примените $count эффект',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get questAnimationGenerated => 'Сгенерируйте анимацию эффекта';
+
+  @override
+  String get questImageExported => 'Экспортируйте изображение';
+
+  @override
+  String get questAnimationExported => 'Экспортируйте анимацию';
+
+  @override
+  String get questProjectImported => 'Импортируйте проект';
+
+  @override
+  String questProjectPublished(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Опубликуйте $count проекта',
+      many: 'Опубликуйте $count проектов',
+      few: 'Опубликуйте $count проекта',
+      one: 'Опубликуйте $count проект',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String gemsReward(int count) {
+    return '+$count крист.';
+  }
 }

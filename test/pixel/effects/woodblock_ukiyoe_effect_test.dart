@@ -9,7 +9,6 @@ void main() {
       final effect = WoodblockUkiyoeEffect();
       expect(effect.type, equals(EffectType.woodblockUkiyoe));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['keylineThickness'], equals(1.2));
       expect(effect.parameters['bokashiFade'], equals(0.5));
       expect(effect.parameters['paperGrainIntensity'], equals(0.35));

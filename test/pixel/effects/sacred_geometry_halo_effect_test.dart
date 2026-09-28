@@ -9,7 +9,6 @@ void main() {
       final effect = SacredGeometryHaloEffect();
       expect(effect.type, equals(EffectType.sacredGeometryHalo));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['geometryType'], equals('metatronCube'));
       expect(effect.parameters['haloRadius'], equals(13.0));
       expect(effect.parameters['showNodes'], isTrue);

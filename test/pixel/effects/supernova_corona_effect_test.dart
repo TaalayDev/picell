@@ -9,7 +9,6 @@ void main() {
       final effect = SupernovaCoronaEffect();
       expect(effect.type, equals(EffectType.supernovaCorona));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['coronaRadius'], equals(10.0));
       expect(effect.parameters['spikeLength'], equals(16.0));
       expect(effect.parameters['spikePattern'], equals('cross4'));

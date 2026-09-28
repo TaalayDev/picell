@@ -9,7 +9,6 @@ void main() {
       final effect = BoosterThrusterEffect();
       expect(effect.type, equals(EffectType.boosterThruster));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['thrustAngle'], equals(90.0));
       expect(effect.parameters['flameLength'], equals(24.0));
       expect(effect.parameters['plumeWidth'], equals(0.8));

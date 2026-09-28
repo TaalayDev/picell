@@ -9,7 +9,6 @@ void main() {
       final effect = OrbitingRunesHaloEffect();
       expect(effect.type, equals(EffectType.orbitingRunesHalo));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['orbitRadiusX'], equals(14.0));
       expect(effect.parameters['orbitRadiusY'], equals(6.0));
       expect(effect.parameters['runeCount'], equals(5.0));

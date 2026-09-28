@@ -9,7 +9,6 @@ void main() {
       final effect = GravitySingularityEffect();
       expect(effect.type, equals(EffectType.gravitySingularity));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['singularityRadius'], equals(4.5));
       expect(effect.parameters['diskRadius'], equals(10.0));
       expect(effect.parameters['swirlTwist'], equals(2.5));

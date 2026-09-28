@@ -9,7 +9,6 @@ void main() {
       final effect = MountainRangeEffect();
       expect(effect.type, equals(EffectType.mountainRange));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isTrue);
       expect(effect.parameters['layers'], equals(3));
       expect(effect.parameters['style'], equals(0));
       expect(effect.parameters['heightVariation'], equals(0.55));

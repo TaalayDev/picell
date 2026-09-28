@@ -9,7 +9,6 @@ void main() {
       final effect = HologramGlitchEffect();
       expect(effect.type, equals(EffectType.hologramGlitch));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['holoColor'], equals(0xFF00E5FF));
       expect(effect.parameters['colorIntensity'], equals(0.75));
       expect(effect.parameters['scanlineDensity'], equals(2));

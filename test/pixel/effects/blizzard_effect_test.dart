@@ -9,7 +9,6 @@ void main() {
       final effect = BlizzardEffect();
       expect(effect.type, equals(EffectType.blizzard));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['intensity'], equals(0.6));
       expect(effect.parameters['windAngle'], equals(25.0));
       expect(effect.parameters['swirlTurbulence'], equals(0.5));

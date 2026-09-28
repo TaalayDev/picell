@@ -9,7 +9,6 @@ void main() {
       final effect = GeyserVentEffect();
       expect(effect.type, equals(EffectType.geyserVent));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['eruptionInterval'], equals(5.0));
       expect(effect.parameters['plumeHeight'], equals(0.75));
       expect(effect.parameters['bubbleBoilRate'], equals(2.0));

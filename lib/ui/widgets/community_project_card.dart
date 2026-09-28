@@ -44,7 +44,7 @@ class CommunityProjectCard extends ConsumerWidget {
     final isAdloaded = ref.watch(rewardVideoAdProvider);
 
     final g = theme.geometry;
-    final canDownload = subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup);
+    final canDownload = subscription.isPro;
 
     return Card(
       elevation: isFeatured ? g.cardElevation + 2 : g.cardElevation,
@@ -231,7 +231,7 @@ class CommunityProjectCard extends ConsumerWidget {
 
   void _downloadProject(BuildContext context, WidgetRef ref, UserSubscription subscription) {
     // Check subscription access
-    if (!subscription.hasFeatureAccess(SubscriptionFeature.cloudBackup)) {
+    if (!subscription.isPro) {
       showTopFlushbar(
         context,
         message: Text(Strings.of(context).premiumRequiredToDownloadProjects),

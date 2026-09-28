@@ -1424,5 +1424,262 @@
     "upgradePromptAdvancedToolsSubtitle": "Access premium tools and effects • Try with video ads",
     "upgradePromptCloudBackupSubtitle": "Never lose your pixel art creations",
     "upgradePromptNoWatermarkSubtitle": "Export clean art without watermarks",
-    "upgradePromptPrioritySupportSubtitle": "Get faster support for any issues"
+    "upgradePromptPrioritySupportSubtitle": "Get faster support for any issues",
+    "plansTitle": "Plans",
+    "planPro": "Pro",
+    "planUltimate": "Ultimate",
+    "freePlanDescription": "Basic pixel art creation",
+    "proPlanDescription": "All tools and features, one-time purchase",
+    "ultimatePlanDescription": "Everything forever, including future effect packs",
+    "ultimateUpgradeDescription": "Upgrade your Pro and unlock everything forever",
+    "offerStarterEffects": "Starter effects from every category",
+    "offerAllToolsTemplates": "All tools & templates",
+    "offerBasicFiltersPack": "Basic Filters effect pack",
+    "offerNoWatermarks": "No watermarks",
+    "offerEverythingInPro": "Everything in Pro",
+    "offerAllEffectPacks": "All effect packs, current and future",
+    "offerCloudSync": "Cloud sync & backup",
+    "getPlan": "Get {plan}",
+    "@getPlan": {
+        "placeholders": {
+            "plan": {
+                "type": "String"
+            }
+        }
+    },
+    "upgradeToUltimate": "Upgrade to Ultimate",
+    "currentPlan": "Your plan: {plan}",
+    "@currentPlan": {
+        "placeholders": {
+            "plan": {
+                "type": "String"
+            }
+        }
+    },
+    "ultimateOwnedSubtitle": "Everything is unlocked. Thank you for your support!",
+    "proOwnedSubtitle": "Upgrade to Ultimate to get every effect pack and cloud sync.",
+    "planComparisonTitle": "Compare Plans",
+    "featureEffectPacks": "Effect packs",
+    "effectsStarterSet": "Starter set",
+    "effectsPlusBasicFilters": "+ Basic Filters",
+    "effectsAllIncludingFuture": "All, including future",
+    "cloudAddonAvailable": "Add-on",
+    "effectIncludedInPro": "This effect is included in Pro and Ultimate.",
+    "effectIncludedInUltimate": "This effect is part of a premium effect pack. Ultimate unlocks every pack, including future ones.",
+    "viewPlans": "View plans",
+    "promoBannerSubtitle": "Unlock all tools, unlimited projects and effect packs",
+    "effectStoreTitle": "Effect Store",
+    "effectPackOwned": "Owned",
+    "effectPackIncludedInPro": "In Pro",
+    "effectPackBuyFor": "Buy for {price}",
+    "@effectPackBuyFor": {
+        "placeholders": {
+            "price": {
+                "type": "String"
+            }
+        }
+    },
+    "effectPackUnavailable": "Not available yet",
+    "effectStoreUltimateTitle": "Get every pack with Ultimate",
+    "effectStoreUltimateSubtitle": "Includes future packs, cloud sync and all Pro features",
+    "effectStoreAllUnlocked": "All effect packs are unlocked",
+    "effectPackPurchased": "{pack} unlocked!",
+    "@effectPackPurchased": {
+        "placeholders": {
+            "pack": {
+                "type": "String"
+            }
+        }
+    },
+    "getPack": "Get pack",
+    "browseEffectPacks": "Or buy individual effect packs",
+    "effectLockedTooltip": "Locked: get the {pack} pack to edit",
+    "@effectLockedTooltip": {
+        "placeholders": {
+            "pack": {
+                "type": "String"
+            }
+        }
+    },
+    "packNameFree": "Free Essentials",
+    "packDescFree": "A taste of every category",
+    "packNameBasicFilters": "Basic Filters",
+    "packDescBasicFilters": "Blur, sharpen, dithering, palettes and retro screens",
+    "packNameArtistic": "Artistic Styles",
+    "packDescArtistic": "Watercolor, oil, woodblock, comics and print techniques",
+    "packNameMaterials": "Materials & Textures",
+    "packDescMaterials": "Wood, metal, stone, ice, rust and more surfaces",
+    "packNameWorldGenerators": "World Generators",
+    "packDescWorldGenerators": "Mountains, forests, oceans, cities and dungeons in one tap",
+    "packNameLightingDistortion": "Lighting & Distortion",
+    "packDescLightingDistortion": "God rays, auroras, halos, glitches and motion blur",
+    "packNameMotion": "Motion",
+    "packDescMotion": "Pulse, wave, float, shake, dissolve and more animations",
+    "packNameVfxNature": "VFX: Nature & Weather",
+    "packDescVfxNature": "Fire, rain, snow, waterfalls, fireflies and slime",
+    "packNameVfxMagic": "VFX: Magic & Dark Fantasy",
+    "packDescVfxMagic": "Auras, portals, runes, spirits and eldritch horrors",
+    "packNameVfxAction": "VFX: Action & Sci-Fi",
+    "packDescVfxAction": "Explosions, lightning, shields, thrusters and hit effects",
+    "storeTabPacks": "Packs",
+    "storeTabQuests": "Quests",
+    "dailyQuestsTitle": "Daily quests",
+    "starterQuestsTitle": "Getting started",
+    "questClaim": "Claim",
+    "questClaimed": "Done",
+    "questRewardEffect": "+ {effect}",
+    "@questRewardEffect": {
+        "placeholders": {
+            "effect": {
+                "type": "String"
+            }
+        }
+    },
+    "streakTitle": "{days, plural, =1{1-day streak} other{{days}-day streak}}",
+    "@streakTitle": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "streakNextReward": "Next reward on day {days}: +{coins} gems",
+    "@streakNextReward": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            },
+            "coins": {
+                "type": "int"
+            }
+        }
+    },
+    "watchAdForCoins": "Watch an ad: +{coins} gems",
+    "@watchAdForCoins": {
+        "placeholders": {
+            "coins": {
+                "type": "int"
+            }
+        }
+    },
+    "adsLeftToday": "{count} left today",
+    "@adsLeftToday": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "unlockForCoins": "Unlock for {coins} gems",
+    "@unlockForCoins": {
+        "placeholders": {
+            "coins": {
+                "type": "int"
+            }
+        }
+    },
+    "notEnoughCoins": "Not enough gems. Complete quests to earn more.",
+    "unlockEffectConfirm": "Unlock {effect} for {coins} gems?",
+    "@unlockEffectConfirm": {
+        "placeholders": {
+            "effect": {
+                "type": "String"
+            },
+            "coins": {
+                "type": "int"
+            }
+        }
+    },
+    "tryPackForAnHour": "Try for 1 hour (ad)",
+    "packTrialActive": "Trial active",
+    "questCompletedToast": "Quest complete: {quest}",
+    "@questCompletedToast": {
+        "placeholders": {
+            "quest": {
+                "type": "String"
+            }
+        }
+    },
+    "streakRewardToast": "{days}-day streak! +{coins} gems",
+    "@streakRewardToast": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            },
+            "coins": {
+                "type": "int"
+            }
+        }
+    },
+    "effectUnlocked": "{effect} unlocked!",
+    "@effectUnlocked": {
+        "placeholders": {
+            "effect": {
+                "type": "String"
+            }
+        }
+    },
+    "openAction": "Open",
+    "unlockAction": "Unlock",
+    "walletTooltip": "Your gems — earn them by completing quests",
+    "questProjectCreated": "{count, plural, =1{Create a project} other{Create {count} projects}}",
+    "@questProjectCreated": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questStrokeCompleted": "{count, plural, =1{Draw a stroke} other{Draw {count} strokes}}",
+    "@questStrokeCompleted": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questLayerAdded": "{count, plural, =1{Add a layer} other{Add {count} layers}}",
+    "@questLayerAdded": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questFrameAdded": "{count, plural, =1{Add an animation frame} other{Add {count} animation frames}}",
+    "@questFrameAdded": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questEffectAdded": "{count, plural, =1{Apply an effect} other{Apply {count} effects}}",
+    "@questEffectAdded": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questAnimationGenerated": "Generate an effect animation",
+    "questImageExported": "Export an image",
+    "questAnimationExported": "Export an animation",
+    "questProjectImported": "Import a project",
+    "questProjectPublished": "{count, plural, =1{Publish a project to the community} other{Publish {count} projects}}",
+    "@questProjectPublished": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "gemsReward": "+{count} gems",
+    "@gemsReward": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    }
 }

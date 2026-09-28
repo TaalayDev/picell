@@ -9,7 +9,6 @@ void main() {
       final effect = MeteorShowerEffect();
       expect(effect.type, equals(EffectType.meteorShower));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['meteorAngle'], equals(-45.0));
       expect(effect.parameters['showerDensity'], equals(12));
       expect(effect.parameters['trailLength'], equals(12));

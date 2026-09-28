@@ -9,7 +9,6 @@ void main() {
       final effect = DirectionalLightRampEffect();
       expect(effect.type, equals(EffectType.directionalLightRamp));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['lightAngle'], equals(270.0));
       expect(effect.parameters['primaryLightColor'], equals(0xFFFFE082));
       expect(effect.parameters['secondaryLightColor'], equals(0xFFFF3D00));

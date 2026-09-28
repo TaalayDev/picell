@@ -9,7 +9,6 @@ void main() {
       final effect = MagmaFissuresEffect();
       expect(effect.type, equals(EffectType.magmaFissures));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['fissureDensity'], equals(4));
       expect(effect.parameters['magmaColor'], equals(0xFFFF3D00));
       expect(effect.parameters['heatHazeDistortion'], equals(0.6));

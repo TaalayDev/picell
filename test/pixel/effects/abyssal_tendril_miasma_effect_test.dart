@@ -9,7 +9,6 @@ void main() {
       final effect = AbyssalTendrilMiasmaEffect();
       expect(effect.type, equals(EffectType.abyssalTendrilMiasma));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['tendrilCount'], equals(6));
       expect(effect.parameters['reachLength'], equals(10.0));
       expect(effect.parameters['curlTwist'], equals(1.5));

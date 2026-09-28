@@ -7,6 +7,8 @@ import 'package:uuid/uuid.dart';
 
 import '../core/utils.dart';
 import '../data.dart';
+import '../data/models/progression_model.dart';
+import 'progression_provider.dart';
 import 'providers.dart';
 
 part 'projects_provider.g.dart';
@@ -23,6 +25,7 @@ class Projects extends _$Projects {
       'project_id': newProject.id,
       'project_name': newProject.name,
     });
+    ref.read(progressionProvider.notifier).record(ProgressionEvent.projectCreated);
 
     // Check if the incoming project already has states and frames (e.g., from imported image/aseprite)
     // The insertProject method in the database handles states, frames, and layers automatically
@@ -118,6 +121,7 @@ class Projects extends _$Projects {
       final project = Project.fromJson(jsonDecode(contents));
 
       addProject(project);
+      ref.read(progressionProvider.notifier).record(ProgressionEvent.projectImported);
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());

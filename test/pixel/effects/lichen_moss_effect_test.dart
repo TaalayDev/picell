@@ -9,7 +9,6 @@ void main() {
       final effect = LichenMossEffect();
       expect(effect.type, equals(EffectType.lichenMoss));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['lichenCoverage'], equals(0.5));
       expect(effect.parameters['growthPattern'], equals('crustoseRings'));
       expect(effect.parameters['sporePustules'], equals(0.4));

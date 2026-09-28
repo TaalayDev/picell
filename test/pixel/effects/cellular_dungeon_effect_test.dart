@@ -9,7 +9,6 @@ void main() {
       final effect = CellularDungeonEffect();
       expect(effect.type, equals(EffectType.cellularDungeon));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['dungeonType'], equals('stoneDungeon'));
       expect(effect.parameters['roomCount'], equals(5));
       expect(effect.parameters['corridorWidth'], equals(3));

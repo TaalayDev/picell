@@ -9,7 +9,6 @@ void main() {
       final effect = RomanTravertineEffect();
       expect(effect.type, equals(EffectType.romanTravertine));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['blockScale'], equals(6.0));
       expect(effect.parameters['poreDensity'], equals(0.45));
       expect(effect.parameters['beddingBands'], equals(0.6));

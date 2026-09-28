@@ -9,7 +9,6 @@ void main() {
       final effect = WaxSgraffitoEffect();
       expect(effect.type, equals(EffectType.waxSgraffito));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['sgraffitoScratchDensity'], equals(0.45));
       expect(effect.parameters['waxThickImpasto'], equals(0.5));
       expect(effect.parameters['scratchStrokeLength'], equals(5.0));

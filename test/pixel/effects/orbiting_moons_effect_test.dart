@@ -9,7 +9,6 @@ void main() {
       final effect = OrbitingMoonsEffect();
       expect(effect.type, equals(EffectType.orbitingMoons));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['moonCount'], equals(3.0));
       expect(effect.parameters['orbitRadius'], equals(13.0));
       expect(effect.parameters['orbitTilt'], equals(15.0));

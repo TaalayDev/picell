@@ -9,7 +9,6 @@ void main() {
       final effect = CursedChainsEffect();
       expect(effect.type, equals(EffectType.cursedChains));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['chainCount'], equals(3));
       expect(effect.parameters['chainTightness'], equals(1.0));
       expect(effect.parameters['runeColor'], equals(0xFFFF1744));

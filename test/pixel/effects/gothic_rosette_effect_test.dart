@@ -9,7 +9,6 @@ void main() {
       final effect = GothicRosetteEffect();
       expect(effect.type, equals(EffectType.gothicRosette));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['symmetryOrder'], equals(8));
       expect(effect.parameters['leadThickness'], equals(1));
       expect(effect.parameters['glassPalette'], equals('roseCathedral'));

@@ -9,7 +9,6 @@ void main() {
       final effect = AbyssalTentaclesEffect();
       expect(effect.type, equals(EffectType.abyssalTentacles));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['tentacleCount'], equals(5));
       expect(effect.parameters['tentacleLength'], equals(18));
       expect(effect.parameters['wriggleSpeed'], equals(1.5));

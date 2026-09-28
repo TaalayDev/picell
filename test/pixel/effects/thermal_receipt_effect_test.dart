@@ -9,7 +9,6 @@ void main() {
       final effect = ThermalReceiptEffect();
       expect(effect.type, equals(EffectType.thermalReceipt));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['pinDensity'], equals(2.0));
       expect(effect.parameters['thermalBurnStrength'], equals(0.6));
       expect(effect.parameters['paperFadeAge'], equals(0.35));

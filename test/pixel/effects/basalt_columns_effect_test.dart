@@ -9,7 +9,6 @@ void main() {
       final effect = BasaltColumnsEffect();
       expect(effect.type, equals(EffectType.basaltColumns));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['columnScale'], equals(8));
       expect(effect.parameters['heightVariation'], equals(0.5));
       expect(effect.parameters['hexBevel'], equals(0.6));

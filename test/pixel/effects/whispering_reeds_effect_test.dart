@@ -9,7 +9,6 @@ void main() {
       final effect = WhisperingReedsEffect();
       expect(effect.type, equals(EffectType.whisperingReeds));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['reedDensity'], equals(14));
       expect(effect.parameters['windGustSpeed'], equals(1.8));
       expect(effect.parameters['rippleFrequency'], equals(5));

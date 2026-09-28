@@ -2761,4 +2761,330 @@ class StringsZh extends Strings {
 
   @override
   String get upgradePromptPrioritySupportSubtitle => '任何问题都能获得更快的支持';
+
+  @override
+  String get plansTitle => '套餐';
+
+  @override
+  String get planPro => 'Pro';
+
+  @override
+  String get planUltimate => 'Ultimate';
+
+  @override
+  String get freePlanDescription => '基础像素画创作';
+
+  @override
+  String get proPlanDescription => '全部工具与功能，一次性购买';
+
+  @override
+  String get ultimatePlanDescription => '永久拥有全部内容，包括未来的特效包';
+
+  @override
+  String get ultimateUpgradeDescription => '升级您的 Pro，永久解锁全部内容';
+
+  @override
+  String get offerStarterEffects => '每个类别的入门特效';
+
+  @override
+  String get offerAllToolsTemplates => '全部工具和模板';
+
+  @override
+  String get offerBasicFiltersPack => '“基础滤镜”特效包';
+
+  @override
+  String get offerNoWatermarks => '无水印';
+
+  @override
+  String get offerEverythingInPro => '包含 Pro 的全部内容';
+
+  @override
+  String get offerAllEffectPacks => '全部特效包，包括现有和未来的';
+
+  @override
+  String get offerCloudSync => '云同步与备份';
+
+  @override
+  String getPlan(String plan) {
+    return '获取 $plan';
+  }
+
+  @override
+  String get upgradeToUltimate => '升级到 Ultimate';
+
+  @override
+  String currentPlan(String plan) {
+    return '您的套餐：$plan';
+  }
+
+  @override
+  String get ultimateOwnedSubtitle => '已解锁全部内容。感谢您的支持！';
+
+  @override
+  String get proOwnedSubtitle => '升级到 Ultimate 即可获得全部特效包和云同步。';
+
+  @override
+  String get planComparisonTitle => '套餐对比';
+
+  @override
+  String get featureEffectPacks => '特效包';
+
+  @override
+  String get effectsStarterSet => '入门套装';
+
+  @override
+  String get effectsPlusBasicFilters => '+ 基础滤镜';
+
+  @override
+  String get effectsAllIncludingFuture => '全部，包括未来的';
+
+  @override
+  String get cloudAddonAvailable => '附加项';
+
+  @override
+  String get effectIncludedInPro => '此特效包含在 Pro 和 Ultimate 中。';
+
+  @override
+  String get effectIncludedInUltimate => '此特效属于高级特效包。Ultimate 可解锁全部特效包，包括未来的。';
+
+  @override
+  String get viewPlans => '查看套餐';
+
+  @override
+  String get promoBannerSubtitle => '解锁全部工具、无限项目和特效包';
+
+  @override
+  String get effectStoreTitle => '特效商店';
+
+  @override
+  String get effectPackOwned => '已拥有';
+
+  @override
+  String get effectPackIncludedInPro => '含于 Pro';
+
+  @override
+  String effectPackBuyFor(String price) {
+    return '以 $price 购买';
+  }
+
+  @override
+  String get effectPackUnavailable => '暂不可购买';
+
+  @override
+  String get effectStoreUltimateTitle => '通过 Ultimate 获取全部特效包';
+
+  @override
+  String get effectStoreUltimateSubtitle => '包含未来特效包、云同步及全部 Pro 功能';
+
+  @override
+  String get effectStoreAllUnlocked => '已解锁全部特效包';
+
+  @override
+  String effectPackPurchased(String pack) {
+    return '已解锁“$pack”！';
+  }
+
+  @override
+  String get getPack => '获取特效包';
+
+  @override
+  String get browseEffectPacks => '或单独购买特效包';
+
+  @override
+  String effectLockedTooltip(String pack) {
+    return '已锁定：获取“$pack”特效包后可编辑';
+  }
+
+  @override
+  String get packNameFree => '免费基础包';
+
+  @override
+  String get packDescFree => '每个类别的精选体验';
+
+  @override
+  String get packNameBasicFilters => '基础滤镜';
+
+  @override
+  String get packDescBasicFilters => '模糊、锐化、抖动、调色板与复古屏幕';
+
+  @override
+  String get packNameArtistic => '艺术风格';
+
+  @override
+  String get packDescArtistic => '水彩、油画、木刻、漫画与印刷技法';
+
+  @override
+  String get packNameMaterials => '材质与纹理';
+
+  @override
+  String get packDescMaterials => '木材、金属、石材、冰、锈迹等表面';
+
+  @override
+  String get packNameWorldGenerators => '世界生成器';
+
+  @override
+  String get packDescWorldGenerators => '一键生成山脉、森林、海洋、城市与地牢';
+
+  @override
+  String get packNameLightingDistortion => '光效与扭曲';
+
+  @override
+  String get packDescLightingDistortion => '光束、极光、光环、故障与动态模糊';
+
+  @override
+  String get packNameMotion => '动态';
+
+  @override
+  String get packDescMotion => '脉动、波浪、漂浮、抖动、溶解等动画';
+
+  @override
+  String get packNameVfxNature => '特效：自然与天气';
+
+  @override
+  String get packDescVfxNature => '火焰、雨、雪、瀑布、萤火虫与史莱姆';
+
+  @override
+  String get packNameVfxMagic => '特效：魔法与黑暗奇幻';
+
+  @override
+  String get packDescVfxMagic => '光环、传送门、符文、灵魂与远古恐惧';
+
+  @override
+  String get packNameVfxAction => '特效：动作与科幻';
+
+  @override
+  String get packDescVfxAction => '爆炸、闪电、护盾、推进器与打击特效';
+
+  @override
+  String get storeTabPacks => '特效包';
+
+  @override
+  String get storeTabQuests => '任务';
+
+  @override
+  String get dailyQuestsTitle => '每日任务';
+
+  @override
+  String get starterQuestsTitle => '新手任务';
+
+  @override
+  String get questClaim => '领取';
+
+  @override
+  String get questClaimed => '已完成';
+
+  @override
+  String questRewardEffect(String effect) {
+    return '+ $effect';
+  }
+
+  @override
+  String streakTitle(int days) {
+    return '连续 $days 天';
+  }
+
+  @override
+  String streakNextReward(int days, int coins) {
+    return '第 $days 天奖励：+$coins 宝石';
+  }
+
+  @override
+  String watchAdForCoins(int coins) {
+    return '观看广告：+$coins 宝石';
+  }
+
+  @override
+  String adsLeftToday(int count) {
+    return '今天还剩 $count 次';
+  }
+
+  @override
+  String unlockForCoins(int coins) {
+    return '用 $coins 宝石 解锁';
+  }
+
+  @override
+  String get notEnoughCoins => '宝石不足。完成任务即可获得更多。';
+
+  @override
+  String unlockEffectConfirm(String effect, int coins) {
+    return '用 $coins 宝石 解锁“$effect”？';
+  }
+
+  @override
+  String get tryPackForAnHour => '试用 1 小时（广告）';
+
+  @override
+  String get packTrialActive => '试用中';
+
+  @override
+  String questCompletedToast(String quest) {
+    return '任务完成：$quest';
+  }
+
+  @override
+  String streakRewardToast(int days, int coins) {
+    return '连续 $days 天！+$coins 宝石';
+  }
+
+  @override
+  String effectUnlocked(String effect) {
+    return '已解锁“$effect”！';
+  }
+
+  @override
+  String get openAction => '打开';
+
+  @override
+  String get unlockAction => '解锁';
+
+  @override
+  String get walletTooltip => '您的宝石 — 完成任务即可获得';
+
+  @override
+  String questProjectCreated(int count) {
+    return '创建 $count 个项目';
+  }
+
+  @override
+  String questStrokeCompleted(int count) {
+    return '绘制 $count 笔';
+  }
+
+  @override
+  String questLayerAdded(int count) {
+    return '添加 $count 个图层';
+  }
+
+  @override
+  String questFrameAdded(int count) {
+    return '添加 $count 个动画帧';
+  }
+
+  @override
+  String questEffectAdded(int count) {
+    return '应用 $count 个特效';
+  }
+
+  @override
+  String get questAnimationGenerated => '生成特效动画';
+
+  @override
+  String get questImageExported => '导出一张图片';
+
+  @override
+  String get questAnimationExported => '导出一个动画';
+
+  @override
+  String get questProjectImported => '导入一个项目';
+
+  @override
+  String questProjectPublished(int count) {
+    return '向社区发布 $count 个项目';
+  }
+
+  @override
+  String gemsReward(int count) {
+    return '+$count 宝石';
+  }
 }

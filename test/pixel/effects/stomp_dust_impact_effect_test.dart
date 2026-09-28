@@ -9,7 +9,6 @@ void main() {
       final effect = StompDustImpactEffect();
       expect(effect.type, equals(EffectType.stompDustImpact));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['plumeWidth'], equals(12.0));
       expect(effect.parameters['plumeHeight'], equals(6.0));
       expect(effect.parameters['dustDensity'], equals(0.7));

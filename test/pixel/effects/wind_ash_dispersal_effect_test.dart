@@ -9,7 +9,6 @@ void main() {
       final effect = WindAshDispersalEffect();
       expect(effect.type, equals(EffectType.windAshDispersal));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['disperseProgress'], equals(0.4));
       expect(effect.parameters['windAngle'], equals(20.0));
       expect(effect.parameters['scatterSpread'], equals(0.5));

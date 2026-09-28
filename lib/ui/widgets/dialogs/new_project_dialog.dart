@@ -114,7 +114,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
   @override
   Widget build(BuildContext context) {
     final maxCanvasSize =
-        SubscriptionFeatureConfig.maxCanvasSize[widget.subscription.plan] ?? 64;
+        widget.subscription.getFeatureLimit<int>(SubscriptionFeature.maxCanvasSize);
 
     return AlertDialog(
       title: Text(

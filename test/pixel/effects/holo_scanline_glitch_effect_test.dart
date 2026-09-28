@@ -9,7 +9,6 @@ void main() {
       final effect = HoloScanlineGlitchEffect();
       expect(effect.type, equals(EffectType.holoScanlineGlitch));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['scanlineGap'], equals(2.0));
       expect(effect.parameters['scanlineOpacity'], equals(0.35));
       expect(effect.parameters['glitchIntensity'], equals(3.0));

@@ -2871,4 +2871,389 @@ class StringsEn extends Strings {
   @override
   String get upgradePromptPrioritySupportSubtitle =>
       'Get faster support for any issues';
+
+  @override
+  String get plansTitle => 'Plans';
+
+  @override
+  String get planPro => 'Pro';
+
+  @override
+  String get planUltimate => 'Ultimate';
+
+  @override
+  String get freePlanDescription => 'Basic pixel art creation';
+
+  @override
+  String get proPlanDescription => 'All tools and features, one-time purchase';
+
+  @override
+  String get ultimatePlanDescription =>
+      'Everything forever, including future effect packs';
+
+  @override
+  String get ultimateUpgradeDescription =>
+      'Upgrade your Pro and unlock everything forever';
+
+  @override
+  String get offerStarterEffects => 'Starter effects from every category';
+
+  @override
+  String get offerAllToolsTemplates => 'All tools & templates';
+
+  @override
+  String get offerBasicFiltersPack => 'Basic Filters effect pack';
+
+  @override
+  String get offerNoWatermarks => 'No watermarks';
+
+  @override
+  String get offerEverythingInPro => 'Everything in Pro';
+
+  @override
+  String get offerAllEffectPacks => 'All effect packs, current and future';
+
+  @override
+  String get offerCloudSync => 'Cloud sync & backup';
+
+  @override
+  String getPlan(String plan) {
+    return 'Get $plan';
+  }
+
+  @override
+  String get upgradeToUltimate => 'Upgrade to Ultimate';
+
+  @override
+  String currentPlan(String plan) {
+    return 'Your plan: $plan';
+  }
+
+  @override
+  String get ultimateOwnedSubtitle =>
+      'Everything is unlocked. Thank you for your support!';
+
+  @override
+  String get proOwnedSubtitle =>
+      'Upgrade to Ultimate to get every effect pack and cloud sync.';
+
+  @override
+  String get planComparisonTitle => 'Compare Plans';
+
+  @override
+  String get featureEffectPacks => 'Effect packs';
+
+  @override
+  String get effectsStarterSet => 'Starter set';
+
+  @override
+  String get effectsPlusBasicFilters => '+ Basic Filters';
+
+  @override
+  String get effectsAllIncludingFuture => 'All, including future';
+
+  @override
+  String get cloudAddonAvailable => 'Add-on';
+
+  @override
+  String get effectIncludedInPro =>
+      'This effect is included in Pro and Ultimate.';
+
+  @override
+  String get effectIncludedInUltimate =>
+      'This effect is part of a premium effect pack. Ultimate unlocks every pack, including future ones.';
+
+  @override
+  String get viewPlans => 'View plans';
+
+  @override
+  String get promoBannerSubtitle =>
+      'Unlock all tools, unlimited projects and effect packs';
+
+  @override
+  String get effectStoreTitle => 'Effect Store';
+
+  @override
+  String get effectPackOwned => 'Owned';
+
+  @override
+  String get effectPackIncludedInPro => 'In Pro';
+
+  @override
+  String effectPackBuyFor(String price) {
+    return 'Buy for $price';
+  }
+
+  @override
+  String get effectPackUnavailable => 'Not available yet';
+
+  @override
+  String get effectStoreUltimateTitle => 'Get every pack with Ultimate';
+
+  @override
+  String get effectStoreUltimateSubtitle =>
+      'Includes future packs, cloud sync and all Pro features';
+
+  @override
+  String get effectStoreAllUnlocked => 'All effect packs are unlocked';
+
+  @override
+  String effectPackPurchased(String pack) {
+    return '$pack unlocked!';
+  }
+
+  @override
+  String get getPack => 'Get pack';
+
+  @override
+  String get browseEffectPacks => 'Or buy individual effect packs';
+
+  @override
+  String effectLockedTooltip(String pack) {
+    return 'Locked: get the $pack pack to edit';
+  }
+
+  @override
+  String get packNameFree => 'Free Essentials';
+
+  @override
+  String get packDescFree => 'A taste of every category';
+
+  @override
+  String get packNameBasicFilters => 'Basic Filters';
+
+  @override
+  String get packDescBasicFilters =>
+      'Blur, sharpen, dithering, palettes and retro screens';
+
+  @override
+  String get packNameArtistic => 'Artistic Styles';
+
+  @override
+  String get packDescArtistic =>
+      'Watercolor, oil, woodblock, comics and print techniques';
+
+  @override
+  String get packNameMaterials => 'Materials & Textures';
+
+  @override
+  String get packDescMaterials =>
+      'Wood, metal, stone, ice, rust and more surfaces';
+
+  @override
+  String get packNameWorldGenerators => 'World Generators';
+
+  @override
+  String get packDescWorldGenerators =>
+      'Mountains, forests, oceans, cities and dungeons in one tap';
+
+  @override
+  String get packNameLightingDistortion => 'Lighting & Distortion';
+
+  @override
+  String get packDescLightingDistortion =>
+      'God rays, auroras, halos, glitches and motion blur';
+
+  @override
+  String get packNameMotion => 'Motion';
+
+  @override
+  String get packDescMotion =>
+      'Pulse, wave, float, shake, dissolve and more animations';
+
+  @override
+  String get packNameVfxNature => 'VFX: Nature & Weather';
+
+  @override
+  String get packDescVfxNature =>
+      'Fire, rain, snow, waterfalls, fireflies and slime';
+
+  @override
+  String get packNameVfxMagic => 'VFX: Magic & Dark Fantasy';
+
+  @override
+  String get packDescVfxMagic =>
+      'Auras, portals, runes, spirits and eldritch horrors';
+
+  @override
+  String get packNameVfxAction => 'VFX: Action & Sci-Fi';
+
+  @override
+  String get packDescVfxAction =>
+      'Explosions, lightning, shields, thrusters and hit effects';
+
+  @override
+  String get storeTabPacks => 'Packs';
+
+  @override
+  String get storeTabQuests => 'Quests';
+
+  @override
+  String get dailyQuestsTitle => 'Daily quests';
+
+  @override
+  String get starterQuestsTitle => 'Getting started';
+
+  @override
+  String get questClaim => 'Claim';
+
+  @override
+  String get questClaimed => 'Done';
+
+  @override
+  String questRewardEffect(String effect) {
+    return '+ $effect';
+  }
+
+  @override
+  String streakTitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days-day streak',
+      one: '1-day streak',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakNextReward(int days, int coins) {
+    return 'Next reward on day $days: +$coins gems';
+  }
+
+  @override
+  String watchAdForCoins(int coins) {
+    return 'Watch an ad: +$coins gems';
+  }
+
+  @override
+  String adsLeftToday(int count) {
+    return '$count left today';
+  }
+
+  @override
+  String unlockForCoins(int coins) {
+    return 'Unlock for $coins gems';
+  }
+
+  @override
+  String get notEnoughCoins => 'Not enough gems. Complete quests to earn more.';
+
+  @override
+  String unlockEffectConfirm(String effect, int coins) {
+    return 'Unlock $effect for $coins gems?';
+  }
+
+  @override
+  String get tryPackForAnHour => 'Try for 1 hour (ad)';
+
+  @override
+  String get packTrialActive => 'Trial active';
+
+  @override
+  String questCompletedToast(String quest) {
+    return 'Quest complete: $quest';
+  }
+
+  @override
+  String streakRewardToast(int days, int coins) {
+    return '$days-day streak! +$coins gems';
+  }
+
+  @override
+  String effectUnlocked(String effect) {
+    return '$effect unlocked!';
+  }
+
+  @override
+  String get openAction => 'Open';
+
+  @override
+  String get unlockAction => 'Unlock';
+
+  @override
+  String get walletTooltip => 'Your gems — earn them by completing quests';
+
+  @override
+  String questProjectCreated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Create $count projects',
+      one: 'Create a project',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questStrokeCompleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Draw $count strokes',
+      one: 'Draw a stroke',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questLayerAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count layers',
+      one: 'Add a layer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questFrameAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count animation frames',
+      one: 'Add an animation frame',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questEffectAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Apply $count effects',
+      one: 'Apply an effect',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get questAnimationGenerated => 'Generate an effect animation';
+
+  @override
+  String get questImageExported => 'Export an image';
+
+  @override
+  String get questAnimationExported => 'Export an animation';
+
+  @override
+  String get questProjectImported => 'Import a project';
+
+  @override
+  String questProjectPublished(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Publish $count projects',
+      one: 'Publish a project to the community',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String gemsReward(int count) {
+    return '+$count gems';
+  }
 }

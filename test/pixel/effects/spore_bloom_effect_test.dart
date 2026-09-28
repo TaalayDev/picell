@@ -9,7 +9,6 @@ void main() {
       final effect = SporeBloomEffect();
       expect(effect.type, equals(EffectType.sporeBloom));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['mushroomCount'], equals(6));
       expect(effect.parameters['bioluminescenceGlow'], equals(0.7));
       expect(effect.parameters['sporeCloudDensity'], equals(0.5));

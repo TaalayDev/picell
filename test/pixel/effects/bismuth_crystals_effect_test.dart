@@ -9,7 +9,6 @@ void main() {
       final effect = BismuthCrystalsEffect();
       expect(effect.type, equals(EffectType.bismuthCrystals));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['hopperStepCount'], equals(6));
       expect(effect.parameters['iridescencePalette'], equals('rainbowOxide'));
       expect(effect.parameters['hollowCoreRatio'], equals(0.4));

@@ -2874,4 +2874,350 @@ class StringsKy extends Strings {
   @override
   String get upgradePromptPrioritySupportSubtitle =>
       'Каалаган маселе боюнча тезирээк колдоо алыңыз';
+
+  @override
+  String get plansTitle => 'Тарифтер';
+
+  @override
+  String get planPro => 'Pro';
+
+  @override
+  String get planUltimate => 'Ultimate';
+
+  @override
+  String get freePlanDescription => 'Негизги пиксель-арт түзүү';
+
+  @override
+  String get proPlanDescription =>
+      'Бардык куралдар жана функциялар, бир жолку сатып алуу';
+
+  @override
+  String get ultimatePlanDescription =>
+      'Баары түбөлүккө, келечектеги эффект пакеттерин кошо алганда';
+
+  @override
+  String get ultimateUpgradeDescription =>
+      'Pro\'ңузду жаңыртып, баарын түбөлүккө ачыңыз';
+
+  @override
+  String get offerStarterEffects => 'Ар бир категориядан баштапкы эффекттер';
+
+  @override
+  String get offerAllToolsTemplates => 'Бардык куралдар жана шаблондор';
+
+  @override
+  String get offerBasicFiltersPack => '«Негизги фильтрлер» эффект пакети';
+
+  @override
+  String get offerNoWatermarks => 'Суу белгилери жок';
+
+  @override
+  String get offerEverythingInPro => 'Pro\'догу бардыгы';
+
+  @override
+  String get offerAllEffectPacks =>
+      'Бардык эффект пакеттери — азыркы жана келечектеги';
+
+  @override
+  String get offerCloudSync => 'Булут синхрондоо жана камдык көчүрмө';
+
+  @override
+  String getPlan(String plan) {
+    return '$plan алуу';
+  }
+
+  @override
+  String get upgradeToUltimate => 'Ultimate\'ке өтүү';
+
+  @override
+  String currentPlan(String plan) {
+    return 'Сиздин тариф: $plan';
+  }
+
+  @override
+  String get ultimateOwnedSubtitle => 'Баары ачык. Колдооңуз үчүн рахмат!';
+
+  @override
+  String get proOwnedSubtitle =>
+      'Бардык эффект пакеттерин жана булут синхрондоону алуу үчүн Ultimate\'ке өтүңүз.';
+
+  @override
+  String get planComparisonTitle => 'Тарифтерди салыштыруу';
+
+  @override
+  String get featureEffectPacks => 'Эффект пакеттери';
+
+  @override
+  String get effectsStarterSet => 'Баштапкы топтом';
+
+  @override
+  String get effectsPlusBasicFilters => '+ Негизги фильтрлер';
+
+  @override
+  String get effectsAllIncludingFuture => 'Баары, келечектегилерди кошо';
+
+  @override
+  String get cloudAddonAvailable => 'Кошумча';
+
+  @override
+  String get effectIncludedInPro =>
+      'Бул эффект Pro жана Ultimate тарифтерине кирет.';
+
+  @override
+  String get effectIncludedInUltimate =>
+      'Бул эффект премиум пакетке кирет. Ultimate бардык пакеттерди, келечектегилерди кошо ачат.';
+
+  @override
+  String get viewPlans => 'Тарифтерди көрүү';
+
+  @override
+  String get promoBannerSubtitle =>
+      'Бардык куралдар, чексиз долбоорлор жана эффект пакеттери';
+
+  @override
+  String get effectStoreTitle => 'Эффекттер дүкөнү';
+
+  @override
+  String get effectPackOwned => 'Сатып алынган';
+
+  @override
+  String get effectPackIncludedInPro => 'Pro\'до';
+
+  @override
+  String effectPackBuyFor(String price) {
+    return '$price сатып алуу';
+  }
+
+  @override
+  String get effectPackUnavailable => 'Азырынча жеткиликсиз';
+
+  @override
+  String get effectStoreUltimateTitle => 'Бардык пакеттер — Ultimate\'те';
+
+  @override
+  String get effectStoreUltimateSubtitle =>
+      'Келечектеги пакеттер, булут синхрондоо жана Pro\'нун бардык функциялары кошо';
+
+  @override
+  String get effectStoreAllUnlocked => 'Бардык эффект пакеттери ачык';
+
+  @override
+  String effectPackPurchased(String pack) {
+    return '«$pack» пакети ачылды!';
+  }
+
+  @override
+  String get getPack => 'Пакетти алуу';
+
+  @override
+  String get browseEffectPacks => 'Же өзүнчө эффект пакеттерин сатып алыңыз';
+
+  @override
+  String effectLockedTooltip(String pack) {
+    return 'Жабык: түзөтүү үчүн «$pack» пакетин алыңыз';
+  }
+
+  @override
+  String get packNameFree => 'Акысыз топтом';
+
+  @override
+  String get packDescFree => 'Ар бир категориядан бирден';
+
+  @override
+  String get packNameBasicFilters => 'Негизги фильтрлер';
+
+  @override
+  String get packDescBasicFilters =>
+      'Бүдөмүктөтүү, курчтук, дизеринг, палитралар жана ретро экрандар';
+
+  @override
+  String get packNameArtistic => 'Көркөм стилдер';
+
+  @override
+  String get packDescArtistic =>
+      'Акварель, май боёк, гравюра, комикс жана басма ыкмалары';
+
+  @override
+  String get packNameMaterials => 'Материалдар жана текстуралар';
+
+  @override
+  String get packDescMaterials =>
+      'Жыгач, металл, таш, муз, дат жана башка беттер';
+
+  @override
+  String get packNameWorldGenerators => 'Дүйнө генераторлору';
+
+  @override
+  String get packDescWorldGenerators =>
+      'Тоолор, токойлор, океандар, шаарлар жана зындандар бир басуу менен';
+
+  @override
+  String get packNameLightingDistortion => 'Жарык жана бурмалоо';
+
+  @override
+  String get packDescLightingDistortion =>
+      'Жарык нурлары, түндүк жарыгы, ореолдор, глитчтер жана кыймыл бүдөмүгү';
+
+  @override
+  String get packNameMotion => 'Кыймыл';
+
+  @override
+  String get packDescMotion =>
+      'Пульсация, толкун, калкуу, силкинүү, эрүү жана башка анимациялар';
+
+  @override
+  String get packNameVfxNature => 'VFX: табият жана аба ырайы';
+
+  @override
+  String get packDescVfxNature =>
+      'От, жамгыр, кар, шаркыратмалар, жаркылдактар жана былжыр';
+
+  @override
+  String get packNameVfxMagic => 'VFX: сыйкыр жана караңгы фэнтези';
+
+  @override
+  String get packDescVfxMagic =>
+      'Ауралар, порталдар, руналар, рухтар жана байыркы коркунучтар';
+
+  @override
+  String get packNameVfxAction => 'VFX: экшн жана илимий фантастика';
+
+  @override
+  String get packDescVfxAction =>
+      'Жарылуулар, чагылган, калкандар, кыймылдаткычтар жана сокку эффекттери';
+
+  @override
+  String get storeTabPacks => 'Пакеттер';
+
+  @override
+  String get storeTabQuests => 'Тапшырмалар';
+
+  @override
+  String get dailyQuestsTitle => 'Күнүмдүк тапшырмалар';
+
+  @override
+  String get starterQuestsTitle => 'Алгачкы кадамдар';
+
+  @override
+  String get questClaim => 'Алуу';
+
+  @override
+  String get questClaimed => 'Даяр';
+
+  @override
+  String questRewardEffect(String effect) {
+    return '+ $effect';
+  }
+
+  @override
+  String streakTitle(int days) {
+    return 'Катар $days күн';
+  }
+
+  @override
+  String streakNextReward(int days, int coins) {
+    return 'Кийинки сыйлык $days-күнү: +$coins кристалл';
+  }
+
+  @override
+  String watchAdForCoins(int coins) {
+    return 'Жарнама көрүү: +$coins кристалл';
+  }
+
+  @override
+  String adsLeftToday(int count) {
+    return 'Бүгүн калды: $count';
+  }
+
+  @override
+  String unlockForCoins(int coins) {
+    return '$coins кристалл ачуу';
+  }
+
+  @override
+  String get notEnoughCoins =>
+      'Кристаллдар жетишсиз. Көбүрөөк табуу үчүн тапшырмаларды аткарыңыз.';
+
+  @override
+  String unlockEffectConfirm(String effect, int coins) {
+    return '«$effect» эффектин $coins кристалл ачасызбы?';
+  }
+
+  @override
+  String get tryPackForAnHour => '1 саат сынап көрүү (жарнама)';
+
+  @override
+  String get packTrialActive => 'Сынамык жеткиликтүүлүк';
+
+  @override
+  String questCompletedToast(String quest) {
+    return 'Тапшырма аткарылды: $quest';
+  }
+
+  @override
+  String streakRewardToast(int days, int coins) {
+    return '$days күн катар! +$coins кристалл';
+  }
+
+  @override
+  String effectUnlocked(String effect) {
+    return '«$effect» эффекти ачылды!';
+  }
+
+  @override
+  String get openAction => 'Ачуу';
+
+  @override
+  String get unlockAction => 'Ачуу';
+
+  @override
+  String get walletTooltip =>
+      'Сиздин кристаллдар — аларды тапшырмаларды аткарып табыңыз';
+
+  @override
+  String questProjectCreated(int count) {
+    return '$count долбоор түзүңүз';
+  }
+
+  @override
+  String questStrokeCompleted(int count) {
+    return '$count сызык тартыңыз';
+  }
+
+  @override
+  String questLayerAdded(int count) {
+    return '$count катмар кошуңуз';
+  }
+
+  @override
+  String questFrameAdded(int count) {
+    return '$count анимация кадрын кошуңуз';
+  }
+
+  @override
+  String questEffectAdded(int count) {
+    return '$count эффект колдонуңуз';
+  }
+
+  @override
+  String get questAnimationGenerated => 'Эффект анимациясын түзүңүз';
+
+  @override
+  String get questImageExported => 'Сүрөт экспорттоңуз';
+
+  @override
+  String get questAnimationExported => 'Анимация экспорттоңуз';
+
+  @override
+  String get questProjectImported => 'Долбоор импорттоңуз';
+
+  @override
+  String questProjectPublished(int count) {
+    return '$count долбоорду жарыялаңыз';
+  }
+
+  @override
+  String gemsReward(int count) {
+    return '+$count кристалл';
+  }
 }

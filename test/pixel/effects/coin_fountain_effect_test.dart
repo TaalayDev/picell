@@ -9,7 +9,6 @@ void main() {
       final effect = CoinFountainEffect();
       expect(effect.type, equals(EffectType.coinFountain));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['itemType'], equals('coins'));
       expect(effect.parameters['particleCount'], equals(24));
       expect(effect.parameters['fountainForce'], equals(1.2));

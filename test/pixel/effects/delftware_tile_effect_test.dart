@@ -9,7 +9,6 @@ void main() {
       final effect = DelftwareTileEffect();
       expect(effect.type, equals(EffectType.delftwareTile));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['cobaltBleed'], equals(0.45));
       expect(effect.parameters['crazingCrackDensity'], equals(0.4));
       expect(effect.parameters['enamelGloss'], equals(0.5));

@@ -9,7 +9,6 @@ void main() {
       final effect = CyanotypePrintEffect();
       expect(effect.type, equals(EffectType.cyanotypePrint));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['exposureDepth'], equals(1.2));
       expect(effect.parameters['prussianHueShift'], equals(0.0));
       expect(effect.parameters['edgeVignetteBleach'], equals(0.45));

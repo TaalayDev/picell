@@ -9,7 +9,6 @@ void main() {
       final effect = BurningEmbersEffect();
       expect(effect.type, equals(EffectType.burningEmbers));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['emberColor'], equals(0xFFFF6D00));
       expect(effect.parameters['decayDirection'], equals('bottomToTop'));
       expect(effect.parameters['wispSpread'], equals(0.5));

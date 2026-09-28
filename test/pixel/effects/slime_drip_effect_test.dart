@@ -9,7 +9,6 @@ void main() {
       final effect = SlimeDripEffect();
       expect(effect.type, equals(EffectType.slimeDrip));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['dripFrequency'], equals(2));
       expect(effect.parameters['viscosity'], equals(0.6));
       expect(effect.parameters['liquidColor'], equals(0xFF76FF03));

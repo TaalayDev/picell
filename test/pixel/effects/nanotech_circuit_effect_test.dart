@@ -9,7 +9,6 @@ void main() {
       final effect = NanotechCircuitEffect();
       expect(effect.type, equals(EffectType.nanotechCircuit));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['traceDensity'], equals(6.0));
       expect(effect.parameters['angleMode'], equals('angled45'));
       expect(effect.parameters['showPads'], isTrue);

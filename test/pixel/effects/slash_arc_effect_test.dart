@@ -9,7 +9,6 @@ void main() {
       final effect = SlashArcEffect();
       expect(effect.type, equals(EffectType.slashArc));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['slashAngle'], equals(-35.0));
       expect(effect.parameters['arcCurvature'], equals(0.4));
       expect(effect.parameters['slashWidth'], equals(3));

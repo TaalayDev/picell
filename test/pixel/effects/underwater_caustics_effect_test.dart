@@ -9,7 +9,6 @@ void main() {
       final effect = UnderwaterCausticsEffect();
       expect(effect.type, equals(EffectType.underwaterCaustics));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['causticScale'], equals(1.5));
       expect(effect.parameters['rippleSpeed'], equals(1.5));
       expect(effect.parameters['waterTint'], equals(0xFF00E5FF));

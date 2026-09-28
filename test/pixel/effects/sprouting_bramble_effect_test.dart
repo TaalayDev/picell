@@ -9,7 +9,6 @@ void main() {
       final effect = SproutingBrambleEffect();
       expect(effect.type, equals(EffectType.sproutingBramble));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['growthSpread'], equals(10.0));
       expect(effect.parameters['brambleHeight'], equals(5.0));
       expect(effect.parameters['flowerDensity'], equals(0.6));

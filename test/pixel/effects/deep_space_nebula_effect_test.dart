@@ -9,7 +9,6 @@ void main() {
       final effect = DeepSpaceNebulaEffect();
       expect(effect.type, equals(EffectType.deepSpaceNebula));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['nebulaPalette'], equals('orionViolet'));
       expect(effect.parameters['fractalTurbulence'], equals(0.6));
       expect(effect.parameters['starClusterDensity'], equals(35));

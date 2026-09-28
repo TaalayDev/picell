@@ -9,7 +9,6 @@ void main() {
       final effect = VoronoiShatterEffect();
       expect(effect.type, equals(EffectType.voronoiShatter));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['impactCenterX'], equals(0.5));
       expect(effect.parameters['impactCenterY'], equals(0.5));
       expect(effect.parameters['shardCount'], equals(16.0));

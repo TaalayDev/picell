@@ -9,7 +9,6 @@ void main() {
       final effect = SandDunesEffect();
       expect(effect.type, equals(EffectType.sandDunes));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['duneScale'], equals(2.5));
       expect(effect.parameters['windAngle'], equals(20.0));
       expect(effect.parameters['rippleFrequency'], equals(5.0));

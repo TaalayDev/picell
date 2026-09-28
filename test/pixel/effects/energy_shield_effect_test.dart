@@ -9,7 +9,6 @@ void main() {
       final effect = EnergyShieldEffect();
       expect(effect.type, equals(EffectType.energyShield));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['shieldShape'], equals('hexMatrix'));
       expect(effect.parameters['barrierColor'], equals(0xFF00B0FF));
       expect(effect.parameters['pulseRate'], equals(1.5));

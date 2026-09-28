@@ -9,7 +9,6 @@ void main() {
       final effect = RunicMazeEffect();
       expect(effect.type, equals(EffectType.runicMaze));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['mazeStyle'], equals('celticKnot'));
       expect(effect.parameters['grooveDepth'], equals(0.7));
       expect(effect.parameters['runePulse'], isTrue);

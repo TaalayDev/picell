@@ -9,7 +9,6 @@ void main() {
       final effect = SpaceshipHullEffect();
       expect(effect.type, equals(EffectType.spaceshipHull));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['panelGridSize'], equals(8));
       expect(effect.parameters['greebleDensity'], equals(0.5));
       expect(effect.parameters['rivetSpacing'], equals(3));

@@ -9,7 +9,6 @@ void main() {
       final effect = CoralReefEffect();
       expect(effect.type, equals(EffectType.coralReef));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['coralPattern'], equals('turingBrain'));
       expect(effect.parameters['bioluminescenceGlow'], equals(0.6));
       expect(effect.parameters['polypDensity'], equals(25));

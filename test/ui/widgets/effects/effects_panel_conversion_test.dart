@@ -37,19 +37,21 @@ void main() {
     var directLayerUpdates = 0;
 
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: Strings.localizationsDelegates,
-        supportedLocales: Strings.supportedLocales,
-        home: Scaffold(
-          body: EffectsPanel(
-            layer: layer,
-            width: 32,
-            height: 32,
-            onLayerUpdated: (_) => directLayerUpdates++,
-            onConvertToPixels: (effects) {
-              convertedEffects = effects;
-              return true;
-            },
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: Strings.localizationsDelegates,
+          supportedLocales: Strings.supportedLocales,
+          home: Scaffold(
+            body: EffectsPanel(
+              layer: layer,
+              width: 32,
+              height: 32,
+              onLayerUpdated: (_) => directLayerUpdates++,
+              onConvertToPixels: (effects) {
+                convertedEffects = effects;
+                return true;
+              },
+            ),
           ),
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../data/models/subscription_model.dart';
+import '../../../l10n/strings.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../screens/subscription_screen.dart';
 
@@ -85,7 +86,7 @@ class SubscriptionBadge extends ConsumerWidget {
     return IconButton(
       icon: Badge(
         label: Text(
-          plan != SubscriptionPlan.free ? 'Premium' : 'Pro',
+          plan == SubscriptionPlan.ultimate ? 'Ultimate' : 'Pro',
           style: const TextStyle(
             fontSize: 8,
             fontWeight: FontWeight.bold,
@@ -200,9 +201,9 @@ class _SubscriptionPromoBannerState extends ConsumerState<SubscriptionPromoBanne
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text(
-                                'Upgrade to Pro',
-                                style: TextStyle(
+                              Text(
+                                Strings.of(context).upgradeToPro,
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                   fontSize: 16,
@@ -210,7 +211,7 @@ class _SubscriptionPromoBannerState extends ConsumerState<SubscriptionPromoBanne
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Unlock advanced tools, unlimited projects, and more!',
+                                Strings.of(context).promoBannerSubtitle,
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.white.withValues(alpha: 0.9),
@@ -279,7 +280,7 @@ class _SubscriptionPromoBannerState extends ConsumerState<SubscriptionPromoBanne
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              'UPGRADE',
+              Strings.of(context).upgrade.toUpperCase(),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,

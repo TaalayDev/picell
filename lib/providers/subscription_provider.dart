@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:picell/config/constants.dart';
@@ -26,22 +25,13 @@ class SubscriptionState extends _$SubscriptionState {
   @override
   UserSubscription build() {
     if (kIsDemo) {
-      return const UserSubscription(
-        plan: SubscriptionPlan.free,
-        status: AppPurchaseStatus.notPurchased,
-        purchaseId: '',
-      );
+      return const UserSubscription.free();
     }
 
     const testing = bool.fromEnvironment('TESTING', defaultValue: kIsTestingDefault);
 
     if (kIsWeb || Platform.isWindows || testing) {
-      return UserSubscription(
-        plan: SubscriptionPlan.proPurchase,
-        status: AppPurchaseStatus.purchased,
-        purchaseId: '123456',
-        purchaseDate: DateTime.now(),
-      );
+      return const UserSubscription.unlocked();
     }
 
     final service = ref.watch(subscriptionServiceProvider);
@@ -49,10 +39,6 @@ class SubscriptionState extends _$SubscriptionState {
     if (!service.isInitialized) {
       service.initialize();
     }
-
-    ref.listenSelf((previous, next) {
-      if (previous?.plan != next.plan || previous?.status != next.status) {}
-    });
 
     ref.listen(subscriptionStreamProvider, (previous, next) {
       if (next.valueOrNull != null) {
@@ -63,18 +49,18 @@ class SubscriptionState extends _$SubscriptionState {
     return service.currentSubscription;
   }
 
-  Future<void> purchasePro() async {
+  Future<void> purchase(String productId) async {
     final service = ref.read(subscriptionServiceProvider);
 
     try {
-      final productDetails = service.getProProductDetails();
+      final productDetails = service.getProductDetails(productId);
       if (productDetails != null) {
-        await service.purchasePro(productDetails);
+        await service.purchase(productDetails);
       } else {
-        throw Exception('Pro purchase not available');
+        throw Exception('Product $productId is not available');
       }
     } catch (e, s) {
-      print('Error purchasing pro: $e');
+      print('Error purchasing $productId: $e');
       print(s);
       rethrow;
     }
@@ -154,44 +140,38 @@ bool isFeatureLocked(IsFeatureLockedRef ref, SubscriptionFeature feature) {
 @riverpod
 List<PurchaseOffer> purchaseOffers(PurchaseOffersRef ref) {
   final service = ref.watch(subscriptionServiceProvider);
-  final products = service.products;
+  // Recompute once store products finish loading.
+  ref.watch(productsStreamProvider);
+  final plan = ref.watch(subscriptionStateProvider).plan;
 
-  final List<PurchaseOffer> offers = [
-    const PurchaseOffer(
-      plan: SubscriptionPlan.free,
-      title: 'Free',
-      description: 'Basic pixel art creation',
-      price: 'Free',
-      features: [
-        '10 projects',
-        'Basic tools',
-        'Canvas up to 64x64 pixels',
-        'PNG & JPEG export',
-        'Watch ads for temporary Pro access',
-      ],
-    ),
+  final offers = <PurchaseOffer>[
+    if (plan == SubscriptionPlan.free) const PurchaseOffer(plan: SubscriptionPlan.free),
   ];
 
-  final proProduct = products.firstWhereOrNull((product) => product.id == SubscriptionProductIds.proPurchase);
-
-  if (proProduct != null) {
+  final proProduct = service.getProductDetails(SubscriptionProductIds.pro);
+  if (proProduct != null && plan == SubscriptionPlan.free) {
     offers.add(
       PurchaseOffer(
-        plan: SubscriptionPlan.proPurchase,
-        title: 'Pro (One-time Purchase)',
-        description: 'Unlock everything forever',
+        plan: SubscriptionPlan.pro,
+        productId: proProduct.id,
         price: proProduct.price,
+      ),
+    );
+  }
+
+  // Pro owners see the discounted upgrade instead of the full price.
+  final isUpgrade = plan == SubscriptionPlan.pro;
+  final ultimateProduct = service.getProductDetails(
+    isUpgrade ? SubscriptionProductIds.ultimateUpgrade : SubscriptionProductIds.ultimate,
+  );
+  if (ultimateProduct != null && plan != SubscriptionPlan.ultimate) {
+    offers.add(
+      PurchaseOffer(
+        plan: SubscriptionPlan.ultimate,
+        productId: ultimateProduct.id,
+        price: ultimateProduct.price,
         isMostPopular: true,
-        features: const [
-          'Unlimited projects',
-          'Advanced tools & effects & templates',
-          'Canvas up to 1024x1024 pixels',
-          'Export to all formats including video',
-          'Cloud backup',
-          'Priority support',
-          'No ads',
-          'No watermarks',
-        ],
+        isUpgrade: isUpgrade,
       ),
     );
   }

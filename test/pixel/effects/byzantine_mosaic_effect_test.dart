@@ -9,7 +9,6 @@ void main() {
       final effect = ByzantineMosaicEffect();
       expect(effect.type, equals(EffectType.byzantineMosaic));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['tesseraeSize'], equals(6.0));
       expect(effect.parameters['groutThickness'], equals(1.0));
       expect(effect.parameters['groutColor'], equals('darkMortar'));
