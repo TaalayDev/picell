@@ -23,12 +23,12 @@ final subscriptionStreamProvider =
 );
 
 typedef SubscriptionStreamRef = AutoDisposeStreamProviderRef<UserSubscription>;
-String _$productsStreamHash() => r'59fefd0bb131aeb26260ae0aa0b0c762d04969d8';
+String _$productsStreamHash() => r'4fe8dd166afc091f586b9068418161a1aa425656';
 
 /// See also [productsStream].
 @ProviderFor(productsStream)
 final productsStreamProvider =
-    AutoDisposeStreamProvider<List<ProductDetails>>.internal(
+    AutoDisposeStreamProvider<List<StoreProduct>>.internal(
   productsStream,
   name: r'productsStreamProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -38,25 +38,24 @@ final productsStreamProvider =
   allTransitiveDependencies: null,
 );
 
-typedef ProductsStreamRef = AutoDisposeStreamProviderRef<List<ProductDetails>>;
-String _$purchaseUpdatesStreamHash() =>
-    r'63a79d171e85458592c847aa2cb0ea46164f2d34';
+typedef ProductsStreamRef = AutoDisposeStreamProviderRef<List<StoreProduct>>;
+String _$purchaseEventsStreamHash() =>
+    r'da781783aee621145be991e65912fce5213054eb';
 
-/// See also [purchaseUpdatesStream].
-@ProviderFor(purchaseUpdatesStream)
-final purchaseUpdatesStreamProvider =
-    AutoDisposeStreamProvider<List<PurchaseDetails>>.internal(
-  purchaseUpdatesStream,
-  name: r'purchaseUpdatesStreamProvider',
+/// See also [purchaseEventsStream].
+@ProviderFor(purchaseEventsStream)
+final purchaseEventsStreamProvider =
+    AutoDisposeStreamProvider<PurchaseEvent>.internal(
+  purchaseEventsStream,
+  name: r'purchaseEventsStreamProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$purchaseUpdatesStreamHash,
+      : _$purchaseEventsStreamHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef PurchaseUpdatesStreamRef
-    = AutoDisposeStreamProviderRef<List<PurchaseDetails>>;
+typedef PurchaseEventsStreamRef = AutoDisposeStreamProviderRef<PurchaseEvent>;
 String _$subscriptionErrorsStreamHash() =>
     r'b7a0d1d1915dd5f96aa3a778bcd86e89e9500ae4';
 
@@ -224,7 +223,7 @@ class _IsFeatureLockedProviderElement extends AutoDisposeProviderElement<bool>
       (origin as IsFeatureLockedProvider).feature;
 }
 
-String _$purchaseOffersHash() => r'de59c6bb84530923bd7a0ad39c77153da05813d5';
+String _$purchaseOffersHash() => r'5963730b075f4867aedb25cd79fa5a1876b1b314';
 
 /// See also [purchaseOffers].
 @ProviderFor(purchaseOffers)

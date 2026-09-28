@@ -64,7 +64,7 @@ class QuickEffectsToolbar extends StatelessWidget {
         message: name,
         child: InkWell(
           key: ValueKey('quick-effects-workspace-${workspace.name}'),
-          onTap: () => showDialog<void>(
+          onTap: () => EffectSelectorDialog.present(
             context: context,
             builder: (context) => EffectSelectorDialog(
               initialWorkspace: workspace,

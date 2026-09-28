@@ -9,8 +9,8 @@
             "request": "launch",
             "type": "dart",
             "args": [
-                // "--dart-define=TESTING=true"
-                "--dart-define=IS_DEMO=true"
+                "--dart-define=TESTING=false"
+                // "--dart-define=IS_DEMO=true"
             ]
         },
         {

@@ -1602,5 +1602,6 @@
     "questAnimationExported": "导出一个动画",
     "questProjectImported": "导入一个项目",
     "questProjectPublished": "向社区发布 {count} 个项目",
-    "gemsReward": "+{count} 宝石"
+    "gemsReward": "+{count} 宝石",
+    "managePurchases": "管理购买"
 }

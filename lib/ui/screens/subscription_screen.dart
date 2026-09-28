@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
+import '../../core/services/subscription_service.dart';
 import 'package:picell/config/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -25,6 +25,10 @@ class SubscriptionOfferScreen extends ConsumerStatefulWidget {
     bool isPostCreation = false,
     SubscriptionFeature? featurePrompt,
   }) {
+    // The dashboard can switch the current offering to a RevenueCat Paywall.
+    final service = ProviderScope.containerOf(context, listen: false).read(subscriptionServiceProvider);
+    if (service.usesRevenueCatPaywall) return service.presentPaywall();
+
     final size = MediaQuery.sizeOf(context);
     if (size.width < 600) {
       return Navigator.of(context).push<bool>(
@@ -124,24 +128,30 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
     final subscription = ref.watch(subscriptionStateProvider);
     final rewardAdState = ref.watch(rewardVideoAdProvider);
 
-    // Rebuild the UI when we get purchase updates
-    ref.listen(purchaseUpdatesStreamProvider, (previous, next) {
-      final purchases = next.valueOrNull ?? [];
-      if (purchases.isEmpty) return;
+    // Rebuild the UI when a purchase or restore finishes
+    ref.listen(purchaseEventsStreamProvider, (previous, next) {
+      final event = next.valueOrNull;
+      if (event == null) return;
 
-      for (final purchase in purchases) {
-        if (purchase.status == PurchaseStatus.pending) {
-          setState(() => _isLoading = true);
-        } else if (purchase.status == PurchaseStatus.error) {
+      switch (event.outcome) {
+        case PurchaseOutcome.failed:
           setState(() {
             _isLoading = false;
-            _errorMessage = purchase.error?.message ?? Strings.of(context).purchaseFailed;
+            _errorMessage = event.message ?? Strings.of(context).purchaseFailed;
           });
-        } else if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
+        case PurchaseOutcome.cancelled:
           setState(() {
             _isLoading = false;
             _errorMessage = null;
           });
+        case PurchaseOutcome.purchased:
+        case PurchaseOutcome.restored:
+          setState(() {
+            _isLoading = false;
+            _errorMessage = null;
+          });
+          // A restore that found nothing is not worth celebrating.
+          if (event.outcome == PurchaseOutcome.restored && !ref.read(subscriptionStateProvider).plan.isPaid) return;
 
           // Show success animation
           _confettiController.play();
@@ -150,12 +160,6 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
           Future.delayed(const Duration(seconds: 3), () {
             if (mounted) Navigator.of(context).pop(true);
           });
-        } else if (purchase.status == PurchaseStatus.canceled) {
-          setState(() {
-            _isLoading = false;
-            _errorMessage = null;
-          });
-        }
       }
     });
 
@@ -163,6 +167,13 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
       appBar: AppBar(
         title: Text(Strings.of(context).plansTitle),
         actions: [
+          if (subscription.plan.isPaid && !kIsWeb)
+            IconButton(
+              key: const ValueKey('open-customer-center'),
+              tooltip: Strings.of(context).managePurchases,
+              icon: const Icon(Icons.manage_accounts_outlined),
+              onPressed: () => ref.read(subscriptionServiceProvider).presentCustomerCenter(),
+            ),
           if (!_isLoading && !kIsWeb)
             TextButton(
               onPressed: () {

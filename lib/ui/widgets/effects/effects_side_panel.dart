@@ -151,7 +151,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
   }
 
   void _addEffect() {
-    showDialog(
+    EffectSelectorDialog.present(
       context: context,
       builder: (context) => EffectSelectorDialog(
         initialWorkspace: widget.workspace,

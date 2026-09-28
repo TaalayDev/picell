@@ -27,11 +27,13 @@ void main() {
     test('sells every paid pack under a unique product id', () {
       final paidPacks = EffectPackId.values.where((id) => id != EffectPackId.free);
       final ids = paidPacks.map(SubscriptionProductIds.pack).toSet();
+      expect(ids, isNot(contains(null)));
       expect(ids.length, paidPacks.length);
+      expect(SubscriptionProductIds.pack(EffectPackId.free), isNull);
       expect(ProductCatalog.allProductIds, containsAll(ids));
       expect(
         SubscriptionProductIds.pack(EffectPackId.lightingDistortion),
-        'com.pixelverse.app.pack.lighting_distortion',
+        'com.pixelverse.app.pack.lightigdistortions',
       );
     });
 
@@ -70,7 +72,7 @@ void main() {
 
     test('a pack purchase alone does not unlock pro features', () {
       final packOnly = UserSubscription(
-        ownedProductIds: {SubscriptionProductIds.pack(EffectPackId.artistic)},
+        ownedProductIds: {SubscriptionProductIds.pack(EffectPackId.artistic)!},
       );
       expect(packOnly.plan, SubscriptionPlan.free);
       expect(packOnly.isPro, isFalse);

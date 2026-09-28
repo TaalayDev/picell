@@ -3278,4 +3278,7 @@ class StringsRu extends Strings {
   String gemsReward(int count) {
     return '+$count крист.';
   }
+
+  @override
+  String get managePurchases => 'Управление покупками';
 }

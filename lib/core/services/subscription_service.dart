@@ -1,115 +1,245 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:collection/collection.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/models/subscription_model.dart';
 
+/// RevenueCat project settings. SDK keys are public, but live in `.env` so
+/// test and production projects can be swapped without code changes.
+class RevenueCatConfig {
+  RevenueCatConfig._();
+
+  /// Entitlement granted by Pro and Ultimate in the RevenueCat dashboard.
+  static const String proEntitlement = 'picell_pixel_art_editor_pro';
+
+  /// Offering metadata key that switches the paywall to RevenueCat Paywalls.
+  static const String useRevenueCatPaywallKey = 'use_revenuecat_paywall';
+
+  static String? get apiKey {
+    String? read(String name) {
+      final value = dotenv.maybeGet(name);
+      return value == null || value.isEmpty ? null : value;
+    }
+
+    final platformKey = Platform.isIOS || Platform.isMacOS
+        ? read('REVENUECAT_APPLE_API_KEY')
+        : Platform.isAndroid
+            ? read('REVENUECAT_GOOGLE_API_KEY')
+            : null;
+    if (platformKey != null) return platformKey;
+
+    // Test Store keys simulate purchases and must never ship to users.
+    return kReleaseMode ? null : read('REVENUECAT_TEST_API_KEY');
+  }
+}
+
+enum PurchaseOutcome { purchased, restored, cancelled, failed }
+
+/// Result of a purchase or restore started by the user.
+class PurchaseEvent {
+  const PurchaseEvent(this.outcome, {this.productId, this.message});
+
+  final PurchaseOutcome outcome;
+  final String? productId;
+  final String? message;
+}
+
+/// Purchases through RevenueCat. Owned products are read from RevenueCat's
+/// [CustomerInfo] and mapped to entitlements locally by [ProductCatalog].
 class SubscriptionService {
   // Singleton instance
   static final SubscriptionService _instance = SubscriptionService._internal();
   factory SubscriptionService() => _instance;
   SubscriptionService._internal();
 
-  // In-App Purchase plugin
-  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
+  static const _storageKey = 'user_subscription';
+
+  /// Set once purchases made before RevenueCat were synced to it.
+  static const _storeSyncedKey = 'revenuecat_store_synced';
 
   // Stream controllers
   final _subscriptionController = StreamController<UserSubscription>.broadcast();
-  final _productsController = StreamController<List<ProductDetails>>.broadcast();
-  final _purchaseUpdatedController = StreamController<List<PurchaseDetails>>.broadcast();
+  final _productsController = StreamController<List<StoreProduct>>.broadcast();
+  final _purchaseEventsController = StreamController<PurchaseEvent>.broadcast();
   final _errorController = StreamController<String>.broadcast();
 
-  // Stream subscriptions
-  StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
   Timer? _temporaryAccessTimer;
 
   // State
   bool _isInitialized = false;
+  bool _isConfigured = false;
+
+  /// Until the first sync with the store succeeds, RevenueCat may not know
+  /// the original Pro bought through the old in-app purchase flow, so a
+  /// cached one is kept alongside what it reports.
+  bool _storeSynced = false;
   UserSubscription _currentSubscription = const UserSubscription.free();
-  List<ProductDetails> _products = [];
+  Map<String, StoreProduct> _products = {};
+  Offerings? _offerings;
 
   // Streams
   Stream<UserSubscription> get subscriptionStream => _subscriptionController.stream;
-  Stream<List<ProductDetails>> get productsStream => _productsController.stream;
-  Stream<List<PurchaseDetails>> get purchaseUpdatedStream => _purchaseUpdatedController.stream;
+  Stream<List<StoreProduct>> get productsStream => _productsController.stream;
+  Stream<PurchaseEvent> get purchaseEvents => _purchaseEventsController.stream;
   Stream<String> get errorStream => _errorController.stream;
 
   // Getters
   bool get isInitialized => _isInitialized;
   UserSubscription get currentSubscription => _currentSubscription;
-  List<ProductDetails> get products => _products;
+  List<StoreProduct> get products => _products.values.toList();
   bool get isProUser => _currentSubscription.isPro;
 
-  // Initialize the service
   Future<void> initialize() async {
     if (_isInitialized) return;
+    _isInitialized = true;
+
+    // Cached state keeps purchases usable offline and holds temporary access.
+    await _loadSubscriptionData();
+    _startTemporaryAccessTimer();
+
+    final apiKey = RevenueCatConfig.apiKey;
+    if (apiKey == null) {
+      _errorController.add('In-app purchases are not configured for this platform.');
+      return;
+    }
 
     try {
-      // Load saved subscription data
-      await _loadSubscriptionData();
+      await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.warn);
+      await Purchases.configure(PurchasesConfiguration(apiKey));
+      _isConfigured = true;
 
-      // Start timer to check temporary access expiry
-      _startTemporaryAccessTimer();
-
-      // Initialize the IAP plugin
-      final isAvailable = await _inAppPurchase.isAvailable();
-      if (!isAvailable) {
-        _errorController.add('In-app purchases are not available on this device.');
-        return;
-      }
-
-      // Set up purchase listener
-      _purchaseSubscription = _inAppPurchase.purchaseStream.listen(
-        _handlePurchaseUpdates,
-        onError: (error) {
-          _errorController.add('Purchase error: $error');
-        },
-      );
-
-      // Fetch available products
+      await _syncExistingPurchasesOnce();
+      Purchases.addCustomerInfoUpdateListener(_applyCustomerInfo);
+      _applyCustomerInfo(await Purchases.getCustomerInfo());
       await loadProducts();
-
-      // Verify existing purchases
-      await _verifyPreviousPurchases();
-
-      _isInitialized = true;
+    } on PlatformException catch (e) {
+      _errorController.add('Purchases unavailable: ${_describe(e)}');
     } catch (e) {
       _errorController.add('Initialization error: $e');
     }
   }
 
-  // Load products from the store
-  Future<void> loadProducts() async {
+  /// Sends purchases made before the RevenueCat integration (such as the
+  /// original Pro, now Ultimate) to RevenueCat. Silent: no store sign-in.
+  Future<void> _syncExistingPurchasesOnce() async {
+    final prefs = await SharedPreferences.getInstance();
+    _storeSynced = prefs.getBool(_storeSyncedKey) ?? false;
+    if (_storeSynced) return;
     try {
-      final response = await _inAppPurchase.queryProductDetails(ProductCatalog.allProductIds);
-      if (response.error != null) {
-        _errorController.add('Error loading products: ${response.error}');
-        return;
-      }
-
-      _products = response.productDetails;
-      _productsController.add(_products);
-    } catch (e) {
-      _errorController.add('Error loading products: $e');
+      await Purchases.syncPurchases();
+      _storeSynced = true;
+      await prefs.setBool(_storeSyncedKey, true);
+    } on PlatformException catch (e) {
+      // Retried on the next launch; cached purchases stay unlocked meanwhile.
+      _errorController.add('Could not sync existing purchases: ${_describe(e)}');
     }
   }
 
-  // Purchase a one-time product (tier, add-on or effect pack)
-  Future<void> purchase(ProductDetails product) async {
+  /// Loads prices for every product in [ProductCatalog]: offerings first, so
+  /// purchases are attributed to the offering that showed them, then any
+  /// product not placed in an offering.
+  Future<void> loadProducts() async {
+    if (!_isConfigured) return;
     try {
-      final purchaseParam = PurchaseParam(
-        productDetails: product,
-        applicationUserName: null,
+      final products = <String, StoreProduct>{};
+      final offerings = await Purchases.getOfferings();
+      _offerings = offerings;
+      for (final offering in offerings.all.values) {
+        for (final package in offering.availablePackages) {
+          products.putIfAbsent(package.storeProduct.identifier, () => package.storeProduct);
+        }
+      }
+
+      final missing = ProductCatalog.allProductIds.difference(products.keys.toSet()).toList();
+      if (missing.isNotEmpty) {
+        final fetched = await Purchases.getProducts(missing, productCategory: ProductCategory.nonSubscription);
+        for (final product in fetched) {
+          products[product.identifier] = product;
+        }
+      }
+
+      _products = products;
+      _productsController.add(this.products);
+    } on PlatformException catch (e) {
+      _errorController.add('Error loading products: ${_describe(e)}');
+    }
+  }
+
+  /// Buys a one-time product (tier, upgrade, add-on or effect pack).
+  Future<void> purchase(StoreProduct product) async {
+    _updateSubscription(_currentSubscription.copyWith(isPurchasePending: true));
+    try {
+      // Buying through the package keeps offering attribution for analytics.
+      final package = _packageFor(product.identifier);
+      final result = await Purchases.purchase(
+        package != null ? PurchaseParams.package(package) : PurchaseParams.storeProduct(product),
       );
+      _applyCustomerInfo(result.customerInfo);
+      _purchaseEventsController.add(PurchaseEvent(PurchaseOutcome.purchased, productId: product.identifier));
+    } on PlatformException catch (e) {
+      switch (PurchasesErrorHelper.getErrorCode(e)) {
+        case PurchasesErrorCode.purchaseCancelledError:
+          _purchaseEventsController.add(PurchaseEvent(PurchaseOutcome.cancelled, productId: product.identifier));
+        case PurchasesErrorCode.productAlreadyPurchasedError:
+          // Already owned on this store account: sync it instead of failing.
+          await restorePurchases();
+        default:
+          _purchaseEventsController.add(
+            PurchaseEvent(PurchaseOutcome.failed, productId: product.identifier, message: _describe(e)),
+          );
+          _errorController.add('Purchase error: ${_describe(e)}');
+      }
+    } finally {
+      _updateSubscription(_currentSubscription.copyWith(isPurchasePending: false));
+    }
+  }
 
-      // Start the purchase flow
-      await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+  Future<void> restorePurchases() async {
+    if (!_isConfigured) return;
+    try {
+      _applyCustomerInfo(await Purchases.restorePurchases());
+      _purchaseEventsController.add(const PurchaseEvent(PurchaseOutcome.restored));
+    } on PlatformException catch (e) {
+      _purchaseEventsController.add(PurchaseEvent(PurchaseOutcome.failed, message: _describe(e)));
+      _errorController.add('Restore error: ${_describe(e)}');
+    }
+  }
 
-      _updateSubscription(_currentSubscription.copyWith(isPurchasePending: true));
-    } catch (e) {
-      _errorController.add('Purchase error: $e');
+  /// Whether the dashboard asks for RevenueCat Paywalls instead of the
+  /// built-in paywall, through metadata on the current offering.
+  bool get usesRevenueCatPaywall {
+    final value = _offerings?.current?.metadata[RevenueCatConfig.useRevenueCatPaywallKey];
+    return _isConfigured && (value == true || value == 'true');
+  }
+
+  /// Shows the paywall designed in the RevenueCat dashboard for the current
+  /// offering. Returns true if the user bought or restored something.
+  Future<bool> presentPaywall() async {
+    if (!_isConfigured) return false;
+    try {
+      final result = await RevenueCatUI.presentPaywall(displayCloseButton: true);
+      // Purchases made in the paywall also reach the customer info listener.
+      return result == PaywallResult.purchased || result == PaywallResult.restored;
+    } on PlatformException catch (e) {
+      _errorController.add('Paywall error: ${_describe(e)}');
+      return false;
+    }
+  }
+
+  /// RevenueCat Customer Center: restore, refund requests and support.
+  Future<void> presentCustomerCenter() async {
+    if (!_isConfigured) return;
+    try {
+      await RevenueCatUI.presentCustomerCenter();
+    } on PlatformException catch (e) {
+      _errorController.add('Customer Center error: ${_describe(e)}');
     }
   }
 
@@ -131,6 +261,54 @@ class SubscriptionService {
     _updateSubscription(_currentSubscription.copyWith(clearTemporaryProAccess: true));
   }
 
+  StoreProduct? getProductDetails(String productId) => _products[productId];
+
+  Package? _packageFor(String productId) {
+    final offerings = _offerings;
+    if (offerings == null) return null;
+    final current = offerings.current;
+    final ordered = [
+      if (current != null) current,
+      ...offerings.all.values.where((offering) => offering.identifier != current?.identifier),
+    ];
+    for (final offering in ordered) {
+      final package = offering.availablePackages.firstWhereOrNull(
+        (package) => package.storeProduct.identifier == productId,
+      );
+      if (package != null) return package;
+    }
+    return null;
+  }
+
+  /// RevenueCat is the source of truth for purchases; known products become
+  /// entitlements through [ProductCatalog].
+  void _applyCustomerInfo(CustomerInfo info) {
+    final owned = info.allPurchasedProductIdentifiers.where(ProductCatalog.isKnownProduct).toSet();
+
+    // Before the first sync, keep only what the old flow could have sold
+    // (the original Pro, now Ultimate); everything else comes from RevenueCat.
+    if (!_storeSynced && _currentSubscription.ownedProductIds.contains(SubscriptionProductIds.ultimate)) {
+      owned.add(SubscriptionProductIds.ultimate);
+    }
+
+    // The Pro entitlement unlocks Pro only when granted from the dashboard
+    // (promotional grants, products outside the catalog). Catalog products,
+    // such as effect packs attached to it by mistake, unlock only what the
+    // catalog says.
+    final proEntitlement = info.entitlements.active[RevenueCatConfig.proEntitlement];
+    final grantedOutsideCatalog =
+        proEntitlement != null && !ProductCatalog.isKnownProduct(proEntitlement.productIdentifier);
+    final ownsProProduct = ProductCatalog.entitlementsFor(owned).contains(Entitlement.pro);
+    if (grantedOutsideCatalog && !ownsProProduct) owned.add(SubscriptionProductIds.pro);
+
+    _updateSubscription(_currentSubscription.copyWith(ownedProductIds: owned));
+  }
+
+  String _describe(PlatformException e) {
+    final code = PurchasesErrorHelper.getErrorCode(e);
+    return '${code.name}: ${e.message ?? e.code}';
+  }
+
   // Start timer to monitor temporary access expiry
   void _startTemporaryAccessTimer() {
     _temporaryAccessTimer?.cancel();
@@ -150,71 +328,9 @@ class SubscriptionService {
     }
   }
 
-  // Restore purchases
-  Future<void> restorePurchases() async {
-    try {
-      await _inAppPurchase.restorePurchases();
-    } catch (e) {
-      _errorController.add('Restore error: $e');
-    }
-  }
-
-  // Process purchase updates from the store
-  void _handlePurchaseUpdates(List<PurchaseDetails> purchaseDetailsList) {
-    _purchaseUpdatedController.add(purchaseDetailsList);
-
-    for (final purchaseDetails in purchaseDetailsList) {
-      if (purchaseDetails.status == PurchaseStatus.pending) {
-        _updateSubscription(_currentSubscription.copyWith(isPurchasePending: true));
-      } else {
-        if (purchaseDetails.status == PurchaseStatus.error) {
-          _updateSubscription(_currentSubscription.copyWith(isPurchasePending: false));
-          _errorController.add('Purchase error: ${purchaseDetails.error?.message}');
-        } else if (purchaseDetails.status == PurchaseStatus.purchased ||
-            purchaseDetails.status == PurchaseStatus.restored) {
-          // Grant entitlement to user
-          _handleSuccessfulPurchase(purchaseDetails);
-        } else if (purchaseDetails.status == PurchaseStatus.canceled) {
-          _updateSubscription(_currentSubscription.copyWith(isPurchasePending: false));
-        }
-
-        // Complete the purchase
-        if (purchaseDetails.pendingCompletePurchase) {
-          _inAppPurchase.completePurchase(purchaseDetails);
-        }
-      }
-    }
-  }
-
-  // Process a successful purchase
-  Future<void> _handleSuccessfulPurchase(PurchaseDetails purchaseDetails) async {
-    // Verify the purchase on server (simplified for example)
-    final bool isValidPurchase = _verifyPurchase(purchaseDetails);
-
-    if (isValidPurchase && ProductCatalog.isKnownProduct(purchaseDetails.productID)) {
-      _updateSubscription(_currentSubscription.withProduct(purchaseDetails.productID));
-    } else {
-      _errorController.add('Invalid purchase');
-    }
-  }
-
-  // Simple verification (replace with real verification logic)
-  bool _verifyPurchase(PurchaseDetails purchaseDetails) {
-    // In a real app, verify with server and store's API
-    return purchaseDetails.status == PurchaseStatus.purchased || purchaseDetails.status == PurchaseStatus.restored;
-  }
-
-  // Verify previous purchases on startup
-  Future<void> _verifyPreviousPurchases() async {
-    try {
-      await _inAppPurchase.restorePurchases();
-    } catch (e) {
-      _errorController.add('Error verifying purchases: $e');
-    }
-  }
-
   // Update subscription and save data
   void _updateSubscription(UserSubscription subscription) {
+    if (subscription == _currentSubscription) return;
     _currentSubscription = subscription;
     _subscriptionController.add(_currentSubscription);
     _saveSubscriptionData();
@@ -224,7 +340,7 @@ class SubscriptionService {
   Future<void> _loadSubscriptionData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonData = prefs.getString('user_subscription');
+      final jsonData = prefs.getString(_storageKey);
 
       if (jsonData != null) {
         _currentSubscription = UserSubscription.fromJson(jsonDecode(jsonData) as Map<String, dynamic>);
@@ -239,10 +355,7 @@ class SubscriptionService {
   Future<void> _saveSubscriptionData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
-      final data = _currentSubscription.toJson();
-
-      await prefs.setString('user_subscription', jsonEncode(data));
+      await prefs.setString(_storageKey, jsonEncode(_currentSubscription.toJson()));
     } catch (e) {
       _errorController.add('Error saving subscription data: $e');
     }
@@ -250,15 +363,11 @@ class SubscriptionService {
 
   // Clean up resources
   void dispose() {
-    _purchaseSubscription?.cancel();
+    if (_isConfigured) Purchases.removeCustomerInfoUpdateListener(_applyCustomerInfo);
     _temporaryAccessTimer?.cancel();
     _subscriptionController.close();
     _productsController.close();
-    _purchaseUpdatedController.close();
+    _purchaseEventsController.close();
     _errorController.close();
-  }
-
-  ProductDetails? getProductDetails(String productId) {
-    return _products.firstWhereOrNull((product) => product.id == productId);
   }
 }

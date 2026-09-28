@@ -3087,4 +3087,7 @@ class StringsZh extends Strings {
   String gemsReward(int count) {
     return '+$count 宝石';
   }
+
+  @override
+  String get managePurchases => '管理购买';
 }

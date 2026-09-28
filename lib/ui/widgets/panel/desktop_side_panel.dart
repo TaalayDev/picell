@@ -119,7 +119,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
       });
     }
 
-    showDialog<void>(
+    EffectSelectorDialog.present(
       context: context,
       builder: (context) => EffectSelectorDialog(
         layer: widget.notifier.currentLayer,

@@ -1557,5 +1557,6 @@
     "questAnimationExported": "Анимация экспорттоңуз",
     "questProjectImported": "Долбоор импорттоңуз",
     "questProjectPublished": "{count} долбоорду жарыялаңыз",
-    "gemsReward": "+{count} кристалл"
+    "gemsReward": "+{count} кристалл",
+    "managePurchases": "Сатып алууларды башкаруу"
 }

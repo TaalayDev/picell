@@ -39,6 +39,31 @@ class EffectSelectorDialog extends ConsumerStatefulWidget {
     this.layer,
   });
 
+  /// Width below which the selector opens as a bottom sheet.
+  static const double bottomSheetBreakpoint = 600;
+
+  /// Shows the selector as a bottom sheet on small screens and as a dialog
+  /// otherwise. [builder] returns the [EffectSelectorDialog].
+  static Future<void> present({
+    required BuildContext context,
+    required WidgetBuilder builder,
+  }) {
+    final size = MediaQuery.sizeOf(context);
+    if (size.width >= bottomSheetBreakpoint) {
+      return showDialog<void>(context: context, builder: builder);
+    }
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.9,
+        child: builder(context),
+      ),
+    );
+  }
+
   @override
   ConsumerState<EffectSelectorDialog> createState() =>
       _EffectSelectorDialogState();
@@ -304,6 +329,236 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     final stackState =
         widget.layer == null ? null : EffectStackService.inspect(widget.layer!);
 
+    final body = AnimatedBackground(
+      child: Container(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Header
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                Expanded(
+                  child: Text(
+                    _dialogTitle(context),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                IconButton(
+                  key: const ValueKey('open-effect-store'),
+                  tooltip: Strings.of(context).effectStoreTitle,
+                  icon: const Icon(Icons.storefront_outlined),
+                  onPressed: () {
+                    final navigator = Navigator.of(context);
+                    navigator.pop();
+                    navigator.push(EffectStoreScreen.route());
+                  },
+                ),
+              ],
+            ),
+
+            const Divider(),
+
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: _searchHint(context),
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+              ),
+            ),
+
+            if (!widget.lockWorkspace)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: SizedBox(
+                  height: 40,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _workspaces.length,
+                    itemBuilder: (context, index) {
+                      final workspace = _workspaces[index];
+                      final isSelected = _selectedWorkspace == workspace;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ChoiceChip(
+                          label: Text(
+                            _workspaceLabel(context, workspace),
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() {
+                                _selectedWorkspace = workspace;
+                                _selectedFilterKind = null;
+                                _selectedAnimationKind = null;
+                              });
+                            }
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+
+            if (_selectedWorkspace == EffectWorkspace.filters &&
+                !widget.lockFilterKind)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  height: 40,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      for (final filterKind in <FilterKind?>[
+                        null,
+                        ...FilterKind.values,
+                      ])
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            key: ValueKey(
+                              'filter-kind-${filterKind?.name ?? 'all'}',
+                            ),
+                            label: Text(
+                              _filterKindLabel(context, filterKind),
+                            ),
+                            selected: _selectedFilterKind == filterKind,
+                            onSelected: (selected) {
+                              if (!selected) return;
+                              setState(() {
+                                _selectedFilterKind = filterKind;
+                              });
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+            if (_selectedWorkspace == EffectWorkspace.animation &&
+                !widget.lockAnimationKind)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  height: 40,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      for (final animationKind in <AnimationKind?>[
+                        null,
+                        ...AnimationKind.values,
+                      ])
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            key: ValueKey(
+                              'animation-kind-${animationKind?.name ?? 'all'}',
+                            ),
+                            label: Text(
+                              _animationKindLabel(context, animationKind),
+                            ),
+                            selected: _selectedAnimationKind == animationKind,
+                            onSelected: (selected) {
+                              if (!selected) return;
+                              setState(() {
+                                _selectedAnimationKind = animationKind;
+                              });
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // Effects grid
+            Expanded(
+              child: _filteredEffects.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.filter_list_off,
+                            size: 48,
+                            color: Theme.of(context).disabledColor,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(Strings.of(context).noEffectsMatch),
+                        ],
+                      ),
+                    )
+                  : GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: isMobile ? 2 : 3,
+                        childAspectRatio: 1.2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        mainAxisExtent: 220,
+                      ),
+                      itemCount: _filteredEffects.length,
+                      itemBuilder: (context, index) {
+                        final effectType = _filteredEffects[index];
+                        final effect = EffectsManager.createEffect(effectType);
+                        final name = effect.getName(context);
+                        final isLocked =
+                            !ref.read(effectAccessProvider(effectType));
+                        final descriptor = EffectCatalog.forType(effectType);
+                        final validation = (stackState == null ||
+                                descriptor.workspace ==
+                                    EffectWorkspace.generators ||
+                                descriptor.workspace ==
+                                    EffectWorkspace.animation)
+                            ? const EffectStackAddValidation.allowed()
+                            : EffectStackService.validateAddToState(
+                                stackState,
+                                effect,
+                              );
+
+                        return _buildEffectCard(
+                          context,
+                          name,
+                          effectType,
+                          effect,
+                          isLocked,
+                          validation,
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (ModalRoute.of(context) is ModalBottomSheetRoute) {
+      return ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        child: Material(type: MaterialType.transparency, child: body),
+      );
+    }
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       backgroundColor: Colors.transparent,
@@ -311,235 +566,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
       child: SizedBox(
         width: isMobile ? double.infinity : 600,
         height: isMobile ? double.infinity : 500,
-        child: AnimatedBackground(
-          child: Container(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Header
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    Expanded(
-                      child: Text(
-                        _dialogTitle(context),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    IconButton(
-                      key: const ValueKey('open-effect-store'),
-                      tooltip: Strings.of(context).effectStoreTitle,
-                      icon: const Icon(Icons.storefront_outlined),
-                      onPressed: () {
-                        final navigator = Navigator.of(context);
-                        navigator.pop();
-                        navigator.push(EffectStoreScreen.route());
-                      },
-                    ),
-                  ],
-                ),
-
-                const Divider(),
-
-                // Search bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: _searchHint(context),
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                  ),
-                ),
-
-                if (!widget.lockWorkspace)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: SizedBox(
-                      height: 40,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _workspaces.length,
-                        itemBuilder: (context, index) {
-                          final workspace = _workspaces[index];
-                          final isSelected = _selectedWorkspace == workspace;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: ChoiceChip(
-                              label: Text(
-                                _workspaceLabel(context, workspace),
-                              ),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  setState(() {
-                                    _selectedWorkspace = workspace;
-                                    _selectedFilterKind = null;
-                                    _selectedAnimationKind = null;
-                                  });
-                                }
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-
-                if (_selectedWorkspace == EffectWorkspace.filters &&
-                    !widget.lockFilterKind)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: SizedBox(
-                      height: 40,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          for (final filterKind in <FilterKind?>[
-                            null,
-                            ...FilterKind.values,
-                          ])
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                key: ValueKey(
-                                  'filter-kind-${filterKind?.name ?? 'all'}',
-                                ),
-                                label: Text(
-                                  _filterKindLabel(context, filterKind),
-                                ),
-                                selected: _selectedFilterKind == filterKind,
-                                onSelected: (selected) {
-                                  if (!selected) return;
-                                  setState(() {
-                                    _selectedFilterKind = filterKind;
-                                  });
-                                },
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                if (_selectedWorkspace == EffectWorkspace.animation &&
-                    !widget.lockAnimationKind)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: SizedBox(
-                      height: 40,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          for (final animationKind in <AnimationKind?>[
-                            null,
-                            ...AnimationKind.values,
-                          ])
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                key: ValueKey(
-                                  'animation-kind-${animationKind?.name ?? 'all'}',
-                                ),
-                                label: Text(
-                                  _animationKindLabel(context, animationKind),
-                                ),
-                                selected:
-                                    _selectedAnimationKind == animationKind,
-                                onSelected: (selected) {
-                                  if (!selected) return;
-                                  setState(() {
-                                    _selectedAnimationKind = animationKind;
-                                  });
-                                },
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                // Effects grid
-                Expanded(
-                  child: _filteredEffects.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.filter_list_off,
-                                size: 48,
-                                color: Theme.of(context).disabledColor,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(Strings.of(context).noEffectsMatch),
-                            ],
-                          ),
-                        )
-                      : GridView.builder(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: isMobile ? 2 : 3,
-                            childAspectRatio: 1.2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            mainAxisExtent: 220,
-                          ),
-                          itemCount: _filteredEffects.length,
-                          itemBuilder: (context, index) {
-                            final effectType = _filteredEffects[index];
-                            final effect =
-                                EffectsManager.createEffect(effectType);
-                            final name = effect.getName(context);
-                            final isLocked =
-                                !ref.read(effectAccessProvider(effectType));
-                            final descriptor =
-                                EffectCatalog.forType(effectType);
-                            final validation = (stackState == null ||
-                                    descriptor.workspace ==
-                                        EffectWorkspace.generators ||
-                                    descriptor.workspace ==
-                                        EffectWorkspace.animation)
-                                ? const EffectStackAddValidation.allowed()
-                                : EffectStackService.validateAddToState(
-                                    stackState,
-                                    effect,
-                                  );
-
-                            return _buildEffectCard(
-                              context,
-                              name,
-                              effectType,
-                              effect,
-                              isLocked,
-                              validation,
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        child: body,
       ),
     );
   }
@@ -552,7 +579,6 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     bool isLocked,
     EffectStackAddValidation validation,
   ) {
-
     final content = Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -575,7 +601,9 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
             _showUpgradePrompt(context, type);
           } else {
             Navigator.of(context).pop();
-            ref.read(progressionProvider.notifier).record(ProgressionEvent.effectAdded);
+            ref
+                .read(progressionProvider.notifier)
+                .record(ProgressionEvent.effectAdded);
             widget.onEffectSelected(effect);
           }
         },

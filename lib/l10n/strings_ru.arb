@@ -1546,5 +1546,6 @@
     "questAnimationExported": "Экспортируйте анимацию",
     "questProjectImported": "Импортируйте проект",
     "questProjectPublished": "{count, plural, one{Опубликуйте {count} проект} few{Опубликуйте {count} проекта} many{Опубликуйте {count} проектов} other{Опубликуйте {count} проекта}}",
-    "gemsReward": "+{count} крист."
+    "gemsReward": "+{count} крист.",
+    "managePurchases": "Управление покупками"
 }

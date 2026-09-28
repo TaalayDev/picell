@@ -3256,4 +3256,7 @@ class StringsEn extends Strings {
   String gemsReward(int count) {
     return '+$count gems';
   }
+
+  @override
+  String get managePurchases => 'Manage purchases';
 }
