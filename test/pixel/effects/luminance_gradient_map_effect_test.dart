@@ -9,7 +9,6 @@ void main() {
       final effect = LuminanceGradientMapEffect();
       expect(effect.type, equals(EffectType.luminanceGradientMap));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['palette'], equals('cyberpunkNeon'));
       expect(effect.parameters['contrastBoost'], equals(1.0));
       expect(effect.parameters['ditherBands'], isTrue);

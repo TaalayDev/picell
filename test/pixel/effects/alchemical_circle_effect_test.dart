@@ -9,7 +9,6 @@ void main() {
       final effect = AlchemicalCircleEffect();
       expect(effect.type, equals(EffectType.alchemicalCircle));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['circleRadius'], equals(12.0));
       expect(effect.parameters['polygonSides'], equals('hexagram6'));
       expect(effect.parameters['spokeRays'], isTrue);

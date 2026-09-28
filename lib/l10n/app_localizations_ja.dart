@@ -2790,4 +2790,332 @@ class StringsJa extends Strings {
 
   @override
   String get upgradePromptPrioritySupportSubtitle => 'あらゆる問題に迅速なサポートを';
+
+  @override
+  String get plansTitle => 'プラン';
+
+  @override
+  String get planPro => 'Pro';
+
+  @override
+  String get planUltimate => 'Ultimate';
+
+  @override
+  String get freePlanDescription => '基本的なピクセルアート制作';
+
+  @override
+  String get proPlanDescription => 'すべてのツールと機能、買い切り';
+
+  @override
+  String get ultimatePlanDescription => '将来のエフェクトパックを含め、すべてを永久に';
+
+  @override
+  String get ultimateUpgradeDescription => 'Proをアップグレードして、すべてを永久に解放';
+
+  @override
+  String get offerStarterEffects => '全カテゴリーのスターターエフェクト';
+
+  @override
+  String get offerAllToolsTemplates => 'すべてのツールとテンプレート';
+
+  @override
+  String get offerBasicFiltersPack => '「ベーシックフィルター」エフェクトパック';
+
+  @override
+  String get offerNoWatermarks => '透かしなし';
+
+  @override
+  String get offerEverythingInPro => 'Proのすべての機能';
+
+  @override
+  String get offerAllEffectPacks => '現在と将来のすべてのエフェクトパック';
+
+  @override
+  String get offerCloudSync => 'クラウド同期とバックアップ';
+
+  @override
+  String getPlan(String plan) {
+    return '$planを入手';
+  }
+
+  @override
+  String get upgradeToUltimate => 'Ultimateにアップグレード';
+
+  @override
+  String currentPlan(String plan) {
+    return '現在のプラン：$plan';
+  }
+
+  @override
+  String get ultimateOwnedSubtitle => 'すべて解放済みです。ご支援ありがとうございます！';
+
+  @override
+  String get proOwnedSubtitle =>
+      'Ultimateにアップグレードすると、すべてのエフェクトパックとクラウド同期が使えます。';
+
+  @override
+  String get planComparisonTitle => 'プラン比較';
+
+  @override
+  String get featureEffectPacks => 'エフェクトパック';
+
+  @override
+  String get effectsStarterSet => 'スターターセット';
+
+  @override
+  String get effectsPlusBasicFilters => '+ ベーシックフィルター';
+
+  @override
+  String get effectsAllIncludingFuture => '将来の分も含めすべて';
+
+  @override
+  String get cloudAddonAvailable => 'アドオン';
+
+  @override
+  String get effectIncludedInPro => 'このエフェクトはProとUltimateに含まれています。';
+
+  @override
+  String get effectIncludedInUltimate =>
+      'このエフェクトはプレミアムパックの一部です。Ultimateなら将来のパックも含めすべて解放されます。';
+
+  @override
+  String get viewPlans => 'プランを見る';
+
+  @override
+  String get promoBannerSubtitle => 'すべてのツール、無制限のプロジェクト、エフェクトパックを解放';
+
+  @override
+  String get effectStoreTitle => 'エフェクトストア';
+
+  @override
+  String get effectPackOwned => '購入済み';
+
+  @override
+  String get effectPackIncludedInPro => 'Proに含む';
+
+  @override
+  String effectPackBuyFor(String price) {
+    return '$priceで購入';
+  }
+
+  @override
+  String get effectPackUnavailable => 'まだ購入できません';
+
+  @override
+  String get effectStoreUltimateTitle => 'Ultimateですべてのパックを入手';
+
+  @override
+  String get effectStoreUltimateSubtitle => '将来のパック、クラウド同期、Proの全機能を含む';
+
+  @override
+  String get effectStoreAllUnlocked => 'すべてのエフェクトパックが解放されています';
+
+  @override
+  String effectPackPurchased(String pack) {
+    return '「$pack」を解放しました！';
+  }
+
+  @override
+  String get getPack => 'パックを入手';
+
+  @override
+  String get browseEffectPacks => 'または個別のエフェクトパックを購入';
+
+  @override
+  String effectLockedTooltip(String pack) {
+    return 'ロック中：編集するには「$pack」パックを入手';
+  }
+
+  @override
+  String get packNameFree => '無料エッセンシャル';
+
+  @override
+  String get packDescFree => '全カテゴリーのお試しセット';
+
+  @override
+  String get packNameBasicFilters => 'ベーシックフィルター';
+
+  @override
+  String get packDescBasicFilters => 'ぼかし、シャープ、ディザリング、パレット、レトロ画面';
+
+  @override
+  String get packNameArtistic => 'アートスタイル';
+
+  @override
+  String get packDescArtistic => '水彩、油彩、木版画、コミック、版画技法';
+
+  @override
+  String get packNameMaterials => 'マテリアル＆テクスチャ';
+
+  @override
+  String get packDescMaterials => '木、金属、石、氷、錆などの質感';
+
+  @override
+  String get packNameWorldGenerators => 'ワールドジェネレーター';
+
+  @override
+  String get packDescWorldGenerators => '山、森、海、街、ダンジョンをワンタップで';
+
+  @override
+  String get packNameLightingDistortion => 'ライティング＆ディストーション';
+
+  @override
+  String get packDescLightingDistortion => '光線、オーロラ、光輪、グリッチ、モーションブラー';
+
+  @override
+  String get packNameMotion => 'モーション';
+
+  @override
+  String get packDescMotion => 'パルス、波、浮遊、揺れ、ディゾルブなどのアニメーション';
+
+  @override
+  String get packNameVfxNature => 'VFX：自然と天候';
+
+  @override
+  String get packDescVfxNature => '炎、雨、雪、滝、ホタル、スライム';
+
+  @override
+  String get packNameVfxMagic => 'VFX：魔法とダークファンタジー';
+
+  @override
+  String get packDescVfxMagic => 'オーラ、ポータル、ルーン、霊、異形の恐怖';
+
+  @override
+  String get packNameVfxAction => 'VFX：アクションとSF';
+
+  @override
+  String get packDescVfxAction => '爆発、稲妻、シールド、スラスター、ヒットエフェクト';
+
+  @override
+  String get storeTabPacks => 'パック';
+
+  @override
+  String get storeTabQuests => 'クエスト';
+
+  @override
+  String get dailyQuestsTitle => 'デイリークエスト';
+
+  @override
+  String get starterQuestsTitle => 'はじめの一歩';
+
+  @override
+  String get questClaim => '受け取る';
+
+  @override
+  String get questClaimed => '完了';
+
+  @override
+  String questRewardEffect(String effect) {
+    return '+ $effect';
+  }
+
+  @override
+  String streakTitle(int days) {
+    return '$days日連続';
+  }
+
+  @override
+  String streakNextReward(int days, int coins) {
+    return '$days日目の報酬：+$coins ジェム';
+  }
+
+  @override
+  String watchAdForCoins(int coins) {
+    return '広告を見る：+$coins ジェム';
+  }
+
+  @override
+  String adsLeftToday(int count) {
+    return '本日残り $count 回';
+  }
+
+  @override
+  String unlockForCoins(int coins) {
+    return '$coinsジェムで解放';
+  }
+
+  @override
+  String get notEnoughCoins => 'ジェムが足りません。クエストで獲得しましょう。';
+
+  @override
+  String unlockEffectConfirm(String effect, int coins) {
+    return '「$effect」を$coinsジェムで解放しますか？';
+  }
+
+  @override
+  String get tryPackForAnHour => '1時間お試し（広告）';
+
+  @override
+  String get packTrialActive => 'お試し中';
+
+  @override
+  String questCompletedToast(String quest) {
+    return 'クエスト達成：$quest';
+  }
+
+  @override
+  String streakRewardToast(int days, int coins) {
+    return '$days日連続！+$coins ジェム';
+  }
+
+  @override
+  String effectUnlocked(String effect) {
+    return '「$effect」を解放しました！';
+  }
+
+  @override
+  String get openAction => '開く';
+
+  @override
+  String get unlockAction => '解放';
+
+  @override
+  String get walletTooltip => 'あなたのジェム — クエストで獲得できます';
+
+  @override
+  String questProjectCreated(int count) {
+    return 'プロジェクトを$count個作成';
+  }
+
+  @override
+  String questStrokeCompleted(int count) {
+    return '$count回ストロークを描く';
+  }
+
+  @override
+  String questLayerAdded(int count) {
+    return 'レイヤーを$count枚追加';
+  }
+
+  @override
+  String questFrameAdded(int count) {
+    return 'アニメーションフレームを$count枚追加';
+  }
+
+  @override
+  String questEffectAdded(int count) {
+    return 'エフェクトを$count個適用';
+  }
+
+  @override
+  String get questAnimationGenerated => 'エフェクトアニメーションを生成';
+
+  @override
+  String get questImageExported => '画像をエクスポート';
+
+  @override
+  String get questAnimationExported => 'アニメーションをエクスポート';
+
+  @override
+  String get questProjectImported => 'プロジェクトをインポート';
+
+  @override
+  String questProjectPublished(int count) {
+    return 'コミュニティにプロジェクトを$count個公開';
+  }
+
+  @override
+  String gemsReward(int count) {
+    return '+$countジェム';
+  }
 }

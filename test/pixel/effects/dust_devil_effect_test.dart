@@ -9,7 +9,6 @@ void main() {
       final effect = DustDevilEffect();
       expect(effect.type, equals(EffectType.dustDevil));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['vortexRadius'], equals(0.32));
       expect(effect.parameters['sandstormDensity'], equals(0.7));
       expect(effect.parameters['orbitSpeed'], equals(2.0));

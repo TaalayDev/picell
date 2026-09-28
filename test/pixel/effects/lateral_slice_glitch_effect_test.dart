@@ -9,7 +9,6 @@ void main() {
       final effect = LateralSliceGlitchEffect();
       expect(effect.type, equals(EffectType.lateralSliceGlitch));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['sliceCount'], equals(12.0));
       expect(effect.parameters['maxShift'], equals(5.0));
       expect(effect.parameters['shiftProbability'], equals(0.65));

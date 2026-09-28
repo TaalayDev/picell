@@ -9,7 +9,6 @@ void main() {
       final effect = PetrifiedAgateEffect();
       expect(effect.type, equals(EffectType.petrifiedAgate));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['ringFrequency'], equals(6.0));
       expect(effect.parameters['agateBanding'], equals(0.75));
       expect(effect.parameters['druseCavityScale'], equals(0.4));

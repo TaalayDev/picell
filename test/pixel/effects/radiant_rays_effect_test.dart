@@ -9,7 +9,6 @@ void main() {
       final effect = RadiantRaysEffect();
       expect(effect.type, equals(EffectType.radiantRays));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['beamCount'], equals(4));
       expect(effect.parameters['rayIntensity'], equals(0.6));
       expect(effect.parameters['dustDensity'], equals(0.5));

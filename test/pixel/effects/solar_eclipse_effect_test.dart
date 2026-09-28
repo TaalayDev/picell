@@ -9,7 +9,6 @@ void main() {
       final effect = SolarEclipseEffect();
       expect(effect.type, equals(EffectType.solarEclipse));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['coronaRadius'], equals(0.25));
       expect(effect.parameters['flareTurbulence'], equals(0.5));
       expect(effect.parameters['eclipsePhase'], equals(0.0));

@@ -9,7 +9,6 @@ void main() {
       final effect = BanyanMangroveEffect();
       expect(effect.type, equals(EffectType.banyanMangrove));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['rootDensity'], equals(8));
       expect(effect.parameters['tangleTwist'], equals(0.45));
       expect(effect.parameters['waterlineTideMark'], equals(0.65));

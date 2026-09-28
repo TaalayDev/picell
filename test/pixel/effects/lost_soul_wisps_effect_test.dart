@@ -9,7 +9,6 @@ void main() {
       final effect = LostSoulWispsEffect();
       expect(effect.type, equals(EffectType.lostSoulWisps));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['soulCount'], equals(4));
       expect(effect.parameters['wispDistance'], equals(9.0));
       expect(effect.parameters['tailLength'], equals(6.0));

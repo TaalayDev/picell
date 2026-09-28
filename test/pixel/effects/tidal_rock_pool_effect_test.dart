@@ -9,7 +9,6 @@ void main() {
       final effect = TidalRockPoolEffect();
       expect(effect.type, equals(EffectType.tidalRockPool));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['poolDepth'], equals(0.65));
       expect(effect.parameters['causticShimmer'], equals(0.7));
       expect(effect.parameters['kelpWaveSpeed'], equals(1.4));

@@ -9,7 +9,6 @@ void main() {
       final effect = CircuitBoardEffect();
       expect(effect.type, equals(EffectType.circuitBoard));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['traceDensity'], equals(6));
       expect(effect.parameters['substrateColor'], equals('cyberEmerald'));
       expect(effect.parameters['solderPadRatio'], equals(0.5));

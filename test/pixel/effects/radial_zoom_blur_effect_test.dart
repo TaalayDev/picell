@@ -9,7 +9,6 @@ void main() {
       final effect = RadialZoomBlurEffect();
       expect(effect.type, equals(EffectType.radialZoomBlur));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['focalCenterX'], equals(0.5));
       expect(effect.parameters['focalCenterY'], equals(0.5));
       expect(effect.parameters['zoomStrength'], equals(0.45));

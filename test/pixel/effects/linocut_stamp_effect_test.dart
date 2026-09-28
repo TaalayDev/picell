@@ -9,7 +9,6 @@ void main() {
       final effect = LinocutStampEffect();
       expect(effect.type, equals(EffectType.linocutStamp));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['chiselGougeAngle'], equals(45.0));
       expect(effect.parameters['inkPressure'], equals(1.0));
       expect(effect.parameters['chatterNoise'], equals(0.4));

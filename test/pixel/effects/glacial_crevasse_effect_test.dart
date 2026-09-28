@@ -9,7 +9,6 @@ void main() {
       final effect = GlacialCrevasseEffect();
       expect(effect.type, equals(EffectType.glacialCrevasse));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['crevasseDepth'], equals(0.7));
       expect(effect.parameters['iceTurquoiseGlow'], equals(0.75));
       expect(effect.parameters['snowCorniceThickness'], equals(3.5));

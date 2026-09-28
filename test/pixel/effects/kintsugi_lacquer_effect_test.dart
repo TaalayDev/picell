@@ -9,7 +9,6 @@ void main() {
       final effect = KintsugiLacquerEffect();
       expect(effect.type, equals(EffectType.kintsugiLacquer));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['fractureDensity'], equals(0.5));
       expect(effect.parameters['goldSeamWidth'], equals(2.0));
       expect(effect.parameters['seamImpastoRelief'], equals(0.7));

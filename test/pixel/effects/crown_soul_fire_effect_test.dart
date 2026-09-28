@@ -9,7 +9,6 @@ void main() {
       final effect = CrownSoulFireEffect();
       expect(effect.type, equals(EffectType.crownSoulFire));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['fireHeight'], equals(12.0));
       expect(effect.parameters['flameTurbulence'], equals(0.5));
       expect(effect.parameters['firePalette'], equals('hellfireCrimson'));

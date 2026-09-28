@@ -9,7 +9,6 @@ void main() {
       final effect = BeamTeleportEffect();
       expect(effect.type, equals(EffectType.beamTeleport));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['teleportMode'], equals('beamDown'));
       expect(effect.parameters['beamWidth'], equals(6));
       expect(effect.parameters['laserColor'], equals(0xFF00E5FF));

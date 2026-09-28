@@ -9,7 +9,6 @@ void main() {
       final effect = PortalVortexEffect();
       expect(effect.type, equals(EffectType.portalVortex));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['spinSpeed'], equals(1.5));
       expect(effect.parameters['swirlTwist'], equals(1.5));
       expect(effect.parameters['coreRadius'], equals(0.25));

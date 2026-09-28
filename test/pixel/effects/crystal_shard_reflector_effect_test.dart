@@ -9,7 +9,6 @@ void main() {
       final effect = CrystalShardReflectorEffect();
       expect(effect.type, equals(EffectType.crystalShardReflector));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['shardCount'], equals(7));
       expect(effect.parameters['orbitDistance'], equals(4.0));
       expect(effect.parameters['shardSize'], equals(4.0));

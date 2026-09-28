@@ -41,6 +41,7 @@ class Auth extends _$Auth {
   @override
   AuthState build() {
     _googleSignIn = GoogleSignIn(
+      serverClientId: '609784996081-iajntrguv1shj44an71mjml59a17igdi.apps.googleusercontent.com',
       scopes: [
         'email',
         'profile',

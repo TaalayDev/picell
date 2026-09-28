@@ -5214,6 +5214,570 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Get faster support for any issues'**
   String get upgradePromptPrioritySupportSubtitle;
+
+  /// No description provided for @plansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans'**
+  String get plansTitle;
+
+  /// No description provided for @planPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get planPro;
+
+  /// No description provided for @planUltimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ultimate'**
+  String get planUltimate;
+
+  /// No description provided for @freePlanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic pixel art creation'**
+  String get freePlanDescription;
+
+  /// No description provided for @proPlanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'All tools and features, one-time purchase'**
+  String get proPlanDescription;
+
+  /// No description provided for @ultimatePlanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything forever, including future effect packs'**
+  String get ultimatePlanDescription;
+
+  /// No description provided for @ultimateUpgradeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade your Pro and unlock everything forever'**
+  String get ultimateUpgradeDescription;
+
+  /// No description provided for @offerStarterEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Starter effects from every category'**
+  String get offerStarterEffects;
+
+  /// No description provided for @offerAllToolsTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'All tools & templates'**
+  String get offerAllToolsTemplates;
+
+  /// No description provided for @offerBasicFiltersPack.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Filters effect pack'**
+  String get offerBasicFiltersPack;
+
+  /// No description provided for @offerNoWatermarks.
+  ///
+  /// In en, this message translates to:
+  /// **'No watermarks'**
+  String get offerNoWatermarks;
+
+  /// No description provided for @offerEverythingInPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in Pro'**
+  String get offerEverythingInPro;
+
+  /// No description provided for @offerAllEffectPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'All effect packs, current and future'**
+  String get offerAllEffectPacks;
+
+  /// No description provided for @offerCloudSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync & backup'**
+  String get offerCloudSync;
+
+  /// No description provided for @getPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Get {plan}'**
+  String getPlan(String plan);
+
+  /// No description provided for @upgradeToUltimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Ultimate'**
+  String get upgradeToUltimate;
+
+  /// No description provided for @currentPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan: {plan}'**
+  String currentPlan(String plan);
+
+  /// No description provided for @ultimateOwnedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is unlocked. Thank you for your support!'**
+  String get ultimateOwnedSubtitle;
+
+  /// No description provided for @proOwnedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Ultimate to get every effect pack and cloud sync.'**
+  String get proOwnedSubtitle;
+
+  /// No description provided for @planComparisonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare Plans'**
+  String get planComparisonTitle;
+
+  /// No description provided for @featureEffectPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect packs'**
+  String get featureEffectPacks;
+
+  /// No description provided for @effectsStarterSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Starter set'**
+  String get effectsStarterSet;
+
+  /// No description provided for @effectsPlusBasicFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Basic Filters'**
+  String get effectsPlusBasicFilters;
+
+  /// No description provided for @effectsAllIncludingFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'All, including future'**
+  String get effectsAllIncludingFuture;
+
+  /// No description provided for @cloudAddonAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Add-on'**
+  String get cloudAddonAvailable;
+
+  /// No description provided for @effectIncludedInPro.
+  ///
+  /// In en, this message translates to:
+  /// **'This effect is included in Pro and Ultimate.'**
+  String get effectIncludedInPro;
+
+  /// No description provided for @effectIncludedInUltimate.
+  ///
+  /// In en, this message translates to:
+  /// **'This effect is part of a premium effect pack. Ultimate unlocks every pack, including future ones.'**
+  String get effectIncludedInUltimate;
+
+  /// No description provided for @viewPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'View plans'**
+  String get viewPlans;
+
+  /// No description provided for @promoBannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock all tools, unlimited projects and effect packs'**
+  String get promoBannerSubtitle;
+
+  /// No description provided for @effectStoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect Store'**
+  String get effectStoreTitle;
+
+  /// No description provided for @effectPackOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned'**
+  String get effectPackOwned;
+
+  /// No description provided for @effectPackIncludedInPro.
+  ///
+  /// In en, this message translates to:
+  /// **'In Pro'**
+  String get effectPackIncludedInPro;
+
+  /// No description provided for @effectPackBuyFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy for {price}'**
+  String effectPackBuyFor(String price);
+
+  /// No description provided for @effectPackUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available yet'**
+  String get effectPackUnavailable;
+
+  /// No description provided for @effectStoreUltimateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get every pack with Ultimate'**
+  String get effectStoreUltimateTitle;
+
+  /// No description provided for @effectStoreUltimateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes future packs, cloud sync and all Pro features'**
+  String get effectStoreUltimateSubtitle;
+
+  /// No description provided for @effectStoreAllUnlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'All effect packs are unlocked'**
+  String get effectStoreAllUnlocked;
+
+  /// No description provided for @effectPackPurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'{pack} unlocked!'**
+  String effectPackPurchased(String pack);
+
+  /// No description provided for @getPack.
+  ///
+  /// In en, this message translates to:
+  /// **'Get pack'**
+  String get getPack;
+
+  /// No description provided for @browseEffectPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Or buy individual effect packs'**
+  String get browseEffectPacks;
+
+  /// No description provided for @effectLockedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked: get the {pack} pack to edit'**
+  String effectLockedTooltip(String pack);
+
+  /// No description provided for @packNameFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Essentials'**
+  String get packNameFree;
+
+  /// No description provided for @packDescFree.
+  ///
+  /// In en, this message translates to:
+  /// **'A taste of every category'**
+  String get packDescFree;
+
+  /// No description provided for @packNameBasicFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Filters'**
+  String get packNameBasicFilters;
+
+  /// No description provided for @packDescBasicFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Blur, sharpen, dithering, palettes and retro screens'**
+  String get packDescBasicFilters;
+
+  /// No description provided for @packNameArtistic.
+  ///
+  /// In en, this message translates to:
+  /// **'Artistic Styles'**
+  String get packNameArtistic;
+
+  /// No description provided for @packDescArtistic.
+  ///
+  /// In en, this message translates to:
+  /// **'Watercolor, oil, woodblock, comics and print techniques'**
+  String get packDescArtistic;
+
+  /// No description provided for @packNameMaterials.
+  ///
+  /// In en, this message translates to:
+  /// **'Materials & Textures'**
+  String get packNameMaterials;
+
+  /// No description provided for @packDescMaterials.
+  ///
+  /// In en, this message translates to:
+  /// **'Wood, metal, stone, ice, rust and more surfaces'**
+  String get packDescMaterials;
+
+  /// No description provided for @packNameWorldGenerators.
+  ///
+  /// In en, this message translates to:
+  /// **'World Generators'**
+  String get packNameWorldGenerators;
+
+  /// No description provided for @packDescWorldGenerators.
+  ///
+  /// In en, this message translates to:
+  /// **'Mountains, forests, oceans, cities and dungeons in one tap'**
+  String get packDescWorldGenerators;
+
+  /// No description provided for @packNameLightingDistortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Lighting & Distortion'**
+  String get packNameLightingDistortion;
+
+  /// No description provided for @packDescLightingDistortion.
+  ///
+  /// In en, this message translates to:
+  /// **'God rays, auroras, halos, glitches and motion blur'**
+  String get packDescLightingDistortion;
+
+  /// No description provided for @packNameMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Motion'**
+  String get packNameMotion;
+
+  /// No description provided for @packDescMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulse, wave, float, shake, dissolve and more animations'**
+  String get packDescMotion;
+
+  /// No description provided for @packNameVfxNature.
+  ///
+  /// In en, this message translates to:
+  /// **'VFX: Nature & Weather'**
+  String get packNameVfxNature;
+
+  /// No description provided for @packDescVfxNature.
+  ///
+  /// In en, this message translates to:
+  /// **'Fire, rain, snow, waterfalls, fireflies and slime'**
+  String get packDescVfxNature;
+
+  /// No description provided for @packNameVfxMagic.
+  ///
+  /// In en, this message translates to:
+  /// **'VFX: Magic & Dark Fantasy'**
+  String get packNameVfxMagic;
+
+  /// No description provided for @packDescVfxMagic.
+  ///
+  /// In en, this message translates to:
+  /// **'Auras, portals, runes, spirits and eldritch horrors'**
+  String get packDescVfxMagic;
+
+  /// No description provided for @packNameVfxAction.
+  ///
+  /// In en, this message translates to:
+  /// **'VFX: Action & Sci-Fi'**
+  String get packNameVfxAction;
+
+  /// No description provided for @packDescVfxAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Explosions, lightning, shields, thrusters and hit effects'**
+  String get packDescVfxAction;
+
+  /// No description provided for @storeTabPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Packs'**
+  String get storeTabPacks;
+
+  /// No description provided for @storeTabQuests.
+  ///
+  /// In en, this message translates to:
+  /// **'Quests'**
+  String get storeTabQuests;
+
+  /// No description provided for @dailyQuestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily quests'**
+  String get dailyQuestsTitle;
+
+  /// No description provided for @starterQuestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting started'**
+  String get starterQuestsTitle;
+
+  /// No description provided for @questClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim'**
+  String get questClaim;
+
+  /// No description provided for @questClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get questClaimed;
+
+  /// No description provided for @questRewardEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {effect}'**
+  String questRewardEffect(String effect);
+
+  /// No description provided for @streakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1-day streak} other{{days}-day streak}}'**
+  String streakTitle(int days);
+
+  /// No description provided for @streakNextReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Next reward on day {days}: +{coins} gems'**
+  String streakNextReward(int days, int coins);
+
+  /// No description provided for @watchAdForCoins.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch an ad: +{coins} gems'**
+  String watchAdForCoins(int coins);
+
+  /// No description provided for @adsLeftToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} left today'**
+  String adsLeftToday(int count);
+
+  /// No description provided for @unlockForCoins.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock for {coins} gems'**
+  String unlockForCoins(int coins);
+
+  /// No description provided for @notEnoughCoins.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough gems. Complete quests to earn more.'**
+  String get notEnoughCoins;
+
+  /// No description provided for @unlockEffectConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock {effect} for {coins} gems?'**
+  String unlockEffectConfirm(String effect, int coins);
+
+  /// No description provided for @tryPackForAnHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Try for 1 hour (ad)'**
+  String get tryPackForAnHour;
+
+  /// No description provided for @packTrialActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Trial active'**
+  String get packTrialActive;
+
+  /// No description provided for @questCompletedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Quest complete: {quest}'**
+  String questCompletedToast(String quest);
+
+  /// No description provided for @streakRewardToast.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}-day streak! +{coins} gems'**
+  String streakRewardToast(int days, int coins);
+
+  /// No description provided for @effectUnlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{effect} unlocked!'**
+  String effectUnlocked(String effect);
+
+  /// No description provided for @openAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openAction;
+
+  /// No description provided for @unlockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get unlockAction;
+
+  /// No description provided for @walletTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Your gems — earn them by completing quests'**
+  String get walletTooltip;
+
+  /// No description provided for @questProjectCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Create a project} other{Create {count} projects}}'**
+  String questProjectCreated(int count);
+
+  /// No description provided for @questStrokeCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Draw a stroke} other{Draw {count} strokes}}'**
+  String questStrokeCompleted(int count);
+
+  /// No description provided for @questLayerAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add a layer} other{Add {count} layers}}'**
+  String questLayerAdded(int count);
+
+  /// No description provided for @questFrameAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add an animation frame} other{Add {count} animation frames}}'**
+  String questFrameAdded(int count);
+
+  /// No description provided for @questEffectAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Apply an effect} other{Apply {count} effects}}'**
+  String questEffectAdded(int count);
+
+  /// No description provided for @questAnimationGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate an effect animation'**
+  String get questAnimationGenerated;
+
+  /// No description provided for @questImageExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Export an image'**
+  String get questImageExported;
+
+  /// No description provided for @questAnimationExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Export an animation'**
+  String get questAnimationExported;
+
+  /// No description provided for @questProjectImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a project'**
+  String get questProjectImported;
+
+  /// No description provided for @questProjectPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Publish a project to the community} other{Publish {count} projects}}'**
+  String questProjectPublished(int count);
+
+  /// No description provided for @gemsReward.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} gems'**
+  String gemsReward(int count);
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

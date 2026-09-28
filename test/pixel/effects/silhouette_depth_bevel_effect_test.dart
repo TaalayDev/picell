@@ -9,7 +9,6 @@ void main() {
       final effect = SilhouetteDepthBevelEffect();
       expect(effect.type, equals(EffectType.silhouetteDepthBevel));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['bevelDepth'], equals(3.0));
       expect(effect.parameters['lightAngle'], equals(315.0));
       expect(effect.parameters['bevelProfile'], equals('smoothCurved'));

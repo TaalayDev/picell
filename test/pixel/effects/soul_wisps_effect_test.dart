@@ -9,7 +9,6 @@ void main() {
       final effect = SoulWispsEffect();
       expect(effect.type, equals(EffectType.soulWisps));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['soulCount'], equals(3));
       expect(effect.parameters['orbitRadius'], equals(0.38));
       expect(effect.parameters['orbitSpeed'], equals(1.2));

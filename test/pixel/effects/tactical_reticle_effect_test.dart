@@ -9,7 +9,6 @@ void main() {
       final effect = TacticalReticleEffect();
       expect(effect.type, equals(EffectType.tacticalReticle));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['bracketPadding'], equals(3.0));
       expect(effect.parameters['bracketLength'], equals(6.0));
       expect(effect.parameters['showCrosshairs'], isTrue);

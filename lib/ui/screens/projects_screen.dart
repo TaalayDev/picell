@@ -24,6 +24,7 @@ import '../../providers/project_upload_provider.dart';
 import '../../providers/projects_provider.dart';
 import '../../providers/community_projects_providers.dart';
 import '../../providers/providers.dart';
+import '../../providers/progression_provider.dart';
 import '../../providers/subscription_provider.dart';
 import '../widgets/dialogs/auth_dialog.dart';
 import '../widgets/animated_pro_button.dart';
@@ -40,6 +41,7 @@ import '../widgets/theme_selector.dart';
 import '../widgets.dart';
 import '../widgets/theme_selector_sheet.dart';
 import 'feedback_screen.dart';
+import 'effect_store_screen.dart';
 import 'subscription_screen.dart';
 import 'about_screen.dart';
 import 'effect_icon_generator_screen.dart';
@@ -58,6 +60,7 @@ class ProjectsScreen extends HookConsumerWidget {
 
     final showBadge = useState(false);
     final subscription = ref.watch(subscriptionStateProvider);
+    final claimableQuests = ref.watch(progressionProvider.select((state) => state.claimableCount));
 
     final reviewService = ref.watch(inAppReviewProvider);
 
@@ -148,11 +151,6 @@ class ProjectsScreen extends HookConsumerWidget {
                     ),
                   ),
                   onTheme: () => ThemeSelectorBottomSheet.show(context),
-                  onEffectIcons: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const EffectIconGeneratorScreen(),
-                    ),
-                  ),
                   onPro: () => _showSubscriptionScreen(context),
                 ),
                 Expanded(
@@ -219,9 +217,11 @@ class ProjectsScreen extends HookConsumerWidget {
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    minimumSize: const Size(44, 40),
+                    padding: EdgeInsets.zero,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 TextButton.icon(
                   label: const Icon(Feather.info),
                   onPressed: () {
@@ -251,20 +251,25 @@ class ProjectsScreen extends HookConsumerWidget {
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    minimumSize: const Size(44, 40),
+                    padding: EdgeInsets.zero,
                   ),
                 ),
               ],
             ),
-            leadingWidth: 200,
+            leadingWidth: 120,
             actions: [
               IconButton(
-                key: const ValueKey('open-effect-icon-generator'),
-                tooltip: Strings.of(context).effectIconGeneratorTitle,
-                icon: const Icon(Icons.auto_awesome_mosaic_outlined),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const EffectIconGeneratorScreen(),
-                  ),
+                key: const ValueKey('open-effect-store'),
+                tooltip: Strings.of(context).effectStoreTitle,
+                icon: Badge(
+                  isLabelVisible: claimableQuests > 0,
+                  label: Text('$claimableQuests'),
+                  child: const Icon(Icons.storefront_outlined),
+                ),
+                onPressed: () => EffectStoreScreen.show(
+                  context,
+                  tab: claimableQuests > 0 ? EffectStoreTab.quests : EffectStoreTab.packs,
                 ),
               ),
               if (!subscription.isPro && !showBadge.value) ...[
@@ -806,7 +811,6 @@ class _DesktopSidebar extends StatelessWidget {
   final VoidCallback onFeedback;
   final VoidCallback onAbout;
   final VoidCallback onTheme;
-  final VoidCallback onEffectIcons;
   final VoidCallback onPro;
 
   const _DesktopSidebar({
@@ -825,7 +829,6 @@ class _DesktopSidebar extends StatelessWidget {
     required this.onFeedback,
     required this.onAbout,
     required this.onTheme,
-    required this.onEffectIcons,
     required this.onPro,
   });
 
@@ -905,12 +908,12 @@ class _DesktopSidebar extends StatelessWidget {
                   onTap: onTheme,
                 ),
                 _NavItem(
-                  icon: Icons.auto_awesome_mosaic_outlined,
-                  label: Strings.of(context).effectIconGeneratorTitle,
+                  icon: Icons.storefront_outlined,
+                  label: Strings.of(context).effectStoreTitle,
                   selected: false,
                   theme: theme,
                   flagship: flagship,
-                  onTap: onEffectIcons,
+                  onTap: () => EffectStoreScreen.show(context),
                 ),
                 _NavItem(
                   icon: Feather.info,

@@ -9,7 +9,6 @@ void main() {
       final effect = KiFlareAuraEffect();
       expect(effect.type, equals(EffectType.kiFlareAura));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['auraRadius'], equals(6.0));
       expect(effect.parameters['flameSway'], equals(0.6));
       expect(effect.parameters['auraPalette'], equals('superSaiyanGold'));

@@ -9,7 +9,6 @@ void main() {
       final effect = DragonAuraEffect();
       expect(effect.type, equals(EffectType.dragonAura));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['auraColor'], equals(0xFFFFD600));
       expect(effect.parameters['spikiness'], equals(0.7));
       expect(effect.parameters['riseSpeed'], equals(1.5));

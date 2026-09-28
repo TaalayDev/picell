@@ -9,7 +9,6 @@ void main() {
       final effect = ViscousSlimeEffect();
       expect(effect.type, equals(EffectType.viscousSlime));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['slimeViscosity'], equals(0.6));
       expect(effect.parameters['dripFrequency'], equals(0.5));
       expect(effect.parameters['slimeHeight'], equals(3.5));

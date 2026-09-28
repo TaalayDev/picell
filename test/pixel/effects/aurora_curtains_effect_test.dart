@@ -9,7 +9,6 @@ void main() {
       final effect = AuroraCurtainsEffect();
       expect(effect.type, equals(EffectType.auroraCurtains));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['curtainWaveSpeed'], equals(1.5));
       expect(effect.parameters['auroraBrightness'], equals(0.8));
       expect(effect.parameters['verticalRayDetail'], equals(0.65));

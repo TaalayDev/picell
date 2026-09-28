@@ -9,7 +9,6 @@ void main() {
       final effect = ZodiacConstellationEffect();
       expect(effect.type, equals(EffectType.zodiacConstellation));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['starScale'], equals(14.0));
       expect(effect.parameters['constellationPattern'], equals('orionHunter'));
       expect(effect.parameters['crossGlints'], isTrue);

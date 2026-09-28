@@ -223,7 +223,7 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                     ),
                     RadioListTile(
                       title: Text(Strings.of(context).spriteSheet),
-                      subtitle: subscription.plan == SubscriptionPlan.proPurchase
+                      subtitle: subscription.isPro
                           ? null
                           : Text(
                               Strings.of(context).proPlanRequired,
@@ -231,7 +231,7 @@ class _SaveImageBottomSheetState extends State<SaveImageBottomSheet> {
                             ),
                       value: 'sprite-sheet',
                       groupValue: format,
-                      onChanged: subscription.plan == SubscriptionPlan.proPurchase
+                      onChanged: subscription.isPro
                           ? (String? value) => setState(() => format = value!)
                           : null,
                       contentPadding: EdgeInsets.zero,
@@ -652,7 +652,7 @@ class _SaveImageDesktopState extends State<SaveImageDesktop> {
                             _buildFormatOption(
                               'sprite-sheet',
                               Strings.of(context).spriteSheet,
-                              subscription.plan == SubscriptionPlan.proPurchase
+                              subscription.isPro
                                   ? null
                                   : Strings.of(context).proPlanRequired,
                             ),
@@ -1102,7 +1102,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                             ),
                             RadioListTile(
                               title: Text(Strings.of(context).spriteSheet),
-                              subtitle: subscription.plan == SubscriptionPlan.proPurchase
+                              subtitle: subscription.isPro
                                   ? null
                                   : Text(
                                       Strings.of(context).proPlanRequired,
@@ -1110,7 +1110,7 @@ class _SaveImageTabletState extends State<SaveImageTablet> {
                                     ),
                               value: 'sprite-sheet',
                               groupValue: format,
-                              onChanged: subscription.plan == SubscriptionPlan.proPurchase
+                              onChanged: subscription.isPro
                                   ? (String? value) => setState(() => format = value!)
                                   : null,
                               contentPadding: EdgeInsets.zero,

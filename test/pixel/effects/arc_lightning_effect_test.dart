@@ -9,7 +9,6 @@ void main() {
       final effect = ArcLightningEffect();
       expect(effect.type, equals(EffectType.arcLightning));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['arcDensity'], equals(0.6));
       expect(effect.parameters['boltThickness'], equals(1.5));
       expect(effect.parameters['branchingProbability'], equals(0.35));

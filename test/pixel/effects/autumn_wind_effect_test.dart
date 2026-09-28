@@ -9,7 +9,6 @@ void main() {
       final effect = AutumnWindEffect();
       expect(effect.type, equals(EffectType.autumnWind));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['foliageType'], equals('maple'));
       expect(effect.parameters['leafCount'], equals(25));
       expect(effect.parameters['windStrength'], equals(1.2));

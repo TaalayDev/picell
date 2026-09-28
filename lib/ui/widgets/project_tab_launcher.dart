@@ -184,7 +184,7 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher>
     final strings = Strings.of(context);
     final subscription = ref.watch(subscriptionStateProvider);
     final maxCanvasSize =
-        SubscriptionFeatureConfig.maxCanvasSize[subscription.plan] ?? 64;
+        subscription.getFeatureLimit<int>(SubscriptionFeature.maxCanvasSize);
 
     String? validateDimension(String? value, bool width) {
       if (value == null || value.isEmpty) {

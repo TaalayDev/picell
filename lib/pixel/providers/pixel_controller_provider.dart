@@ -19,7 +19,9 @@ import '../../providers/background_image_provider.dart';
 import '../../providers/editor_settings_provider.dart';
 import '../../providers/editor_workspace_provider.dart';
 import '../../providers/imported_palette_provider.dart';
+import '../../providers/progression_provider.dart';
 import '../../providers/project_upload_provider.dart';
+import '../../data/models/progression_model.dart';
 import '../effects/effects.dart';
 import '../services/animation_service.dart';
 import '../services/clipboard_placement_service.dart';
@@ -304,6 +306,7 @@ class PixelDrawController extends _$PixelDrawController {
     if (_activeBuffer != null) {
       _updateCurrentLayerPixels(_activeBuffer!);
       _activeBuffer = null;
+      _recordProgress(ProgressionEvent.strokeCompleted);
     }
     _isBatching = false;
   }
@@ -381,6 +384,7 @@ class PixelDrawController extends _$PixelDrawController {
     );
 
     _updateCurrentLayerPixels(newPixels);
+    _recordProgress(ProgressionEvent.strokeCompleted);
   }
 
   void clearCanvas() {
@@ -690,6 +694,7 @@ class PixelDrawController extends _$PixelDrawController {
     _updateCurrentFrame(updatedFrame);
 
     state = state.copyWith(currentLayerIndex: updatedLayers.length - 1);
+    _recordProgress(ProgressionEvent.layerAdded);
   }
 
   /// Add a layer with pre-existing pixels (for import operations)
@@ -1059,6 +1064,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentLayerIndex: _safeLayerIndex(newFrame),
     );
     _persistEditorSelection();
+    _recordProgress(ProgressionEvent.frameAdded);
   }
 
   /// Append generated animation frames to the source frame's animation state.
@@ -1120,6 +1126,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentLayerIndex: layerIndex,
     );
     _updateProject();
+    _recordProgress(ProgressionEvent.animationGenerated);
   }
 
   Future<void> removeFrame(int index) async {
@@ -1889,6 +1896,7 @@ class PixelDrawController extends _$PixelDrawController {
       exportWidth: exportWidth,
       exportHeight: exportHeight,
     );
+    _recordProgress(ProgressionEvent.imageExported);
   }
 
   Future<void> shareProject(BuildContext context) async {
@@ -1914,6 +1922,7 @@ class PixelDrawController extends _$PixelDrawController {
       exportWidth: exportWidth,
       exportHeight: exportHeight,
     );
+    _recordProgress(ProgressionEvent.animationExported);
   }
 
   Future<void> exportSpriteSheet({
@@ -1941,6 +1950,12 @@ class PixelDrawController extends _$PixelDrawController {
       exportWidth: exportWidth,
       exportHeight: exportHeight,
     );
+    _recordProgress(ProgressionEvent.imageExported);
+  }
+
+  /// Counts an action toward quests. In-memory only, safe on hot paths.
+  void _recordProgress(ProgressionEvent event) {
+    ref.read(progressionProvider.notifier).record(event);
   }
 
   Future<void> importImageAsBackground(BuildContext context) async {

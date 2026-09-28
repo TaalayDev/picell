@@ -9,7 +9,6 @@ void main() {
       final effect = FireflySwarmEffect();
       expect(effect.type, equals(EffectType.fireflySwarm));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['fireflyCount'], equals(25));
       expect(effect.parameters['blinkFrequency'], equals(1.5));
       expect(effect.parameters['glowRadius'], equals(2.5));

@@ -9,7 +9,6 @@ void main() {
       final effect = RisingBubblesEffect();
       expect(effect.type, equals(EffectType.risingBubbles));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['bubbleCount'], equals(20));
       expect(effect.parameters['bubbleSize'], equals('mixed'));
       expect(effect.parameters['wobbleSpeed'], equals(1.5));

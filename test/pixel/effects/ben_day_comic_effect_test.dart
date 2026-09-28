@@ -9,7 +9,6 @@ void main() {
       final effect = BenDayComicEffect();
       expect(effect.type, equals(EffectType.benDayComic));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['dotPitch'], equals(4.0));
       expect(effect.parameters['misregistrationShift'], equals(1.2));
       expect(effect.parameters['newsprintYellowing'], equals(0.4));

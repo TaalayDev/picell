@@ -9,7 +9,6 @@ void main() {
       final effect = DitheredFrostedBlurEffect();
       expect(effect.type, equals(EffectType.ditheredFrostedBlur));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['diffusionRadius'], equals(3.0));
       expect(effect.parameters['ditherPattern'], equals('bayer4x4'));
       expect(effect.parameters['colorQuantization'], equals(8.0));

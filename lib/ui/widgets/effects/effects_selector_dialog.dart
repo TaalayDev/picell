@@ -4,8 +4,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../data/models/layer.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../pixel/services/effect_stack_service.dart';
+import '../../../pixel/effects/effect_pack_catalog.dart';
 import '../../../pixel/effects/effects.dart';
+import '../../../data/models/progression_model.dart';
+import '../../../providers/progression_provider.dart';
 import '../../../providers/subscription_provider.dart';
+import '../../screens/effect_store_screen.dart';
 import '../../screens/subscription_screen.dart';
 import '../animated_background.dart';
 import '../subscription/feature_gate.dart';
@@ -294,7 +298,9 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
-    final subscriptionState = ref.watch(subscriptionStateProvider);
+    // Rebuild when purchases or earned unlocks change.
+    ref.watch(subscriptionStateProvider);
+    ref.watch(progressionProvider);
     final stackState =
         widget.layer == null ? null : EffectStackService.inspect(widget.layer!);
 
@@ -330,7 +336,16 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    const SizedBox(width: 48), // Balance the close button
+                    IconButton(
+                      key: const ValueKey('open-effect-store'),
+                      tooltip: Strings.of(context).effectStoreTitle,
+                      icon: const Icon(Icons.storefront_outlined),
+                      onPressed: () {
+                        final navigator = Navigator.of(context);
+                        navigator.pop();
+                        navigator.push(EffectStoreScreen.route());
+                      },
+                    ),
                   ],
                 ),
 
@@ -495,9 +510,8 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                             final effect =
                                 EffectsManager.createEffect(effectType);
                             final name = effect.getName(context);
-                            final hasProAccess =
-                                subscriptionState.hasFeatureAccess(
-                                    SubscriptionFeature.advancedTools);
+                            final isLocked =
+                                !ref.read(effectAccessProvider(effectType));
                             final descriptor =
                                 EffectCatalog.forType(effectType);
                             final validation = (stackState == null ||
@@ -516,7 +530,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                               name,
                               effectType,
                               effect,
-                              hasProAccess,
+                              isLocked,
                               validation,
                             );
                           },
@@ -535,11 +549,9 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     String name,
     EffectType type,
     Effect effect,
-    bool hasProAccess,
+    bool isLocked,
     EffectStackAddValidation validation,
   ) {
-    final isPremium = effect.isPremium;
-    final isLocked = isPremium && !hasProAccess;
 
     final content = Card(
       elevation: 2,
@@ -560,9 +572,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
             return;
           }
           if (isLocked) {
-            _showUpgradePrompt(context);
+            _showUpgradePrompt(context, type);
           } else {
             Navigator.of(context).pop();
+            ref.read(progressionProvider.notifier).record(ProgressionEvent.effectAdded);
             widget.onEffectSelected(effect);
           }
         },
@@ -638,8 +651,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     };
   }
 
-  void _showUpgradePrompt(BuildContext context) {
+  void _showUpgradePrompt(BuildContext context, EffectType type) {
     final s = Strings.of(context);
+    final pack = EffectPackCatalog.packIdOf(type);
+    final inPro = pack == EffectPackId.basicFilters;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -655,21 +670,15 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              s.proVersionStatus,
+              inPro ? s.effectIncludedInPro : s.effectIncludedInUltimate,
               style: const TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 12),
-            Text(
-              s.proFeaturesInclude,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(s.featureBullet(s.featureAdvancedEffects)),
-            Text(s.featureBullet(s.featureUnlimitedProjects)),
-            Text(s.featureBullet(s.featureCloudBackup)),
-            Text(s.featureBullet(s.featurePrioritySupport)),
+            if (!inPro) ...[
+              const SizedBox(height: 12),
+              Text(s.featureBullet(s.offerAllEffectPacks)),
+              Text(s.featureBullet(s.offerEverythingInPro)),
+              Text(s.featureBullet(s.offerCloudSync)),
+            ],
           ],
         ),
         actions: [
@@ -677,17 +686,27 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
             onPressed: () => Navigator.of(context).pop(),
             child: Text(s.maybeLater),
           ),
-          FilledButton.icon(
+          TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop(); // Close the effects dialog too
               SubscriptionOfferScreen.show(
                 context,
-                featurePrompt: SubscriptionFeature.advancedTools,
+                featurePrompt: SubscriptionFeature.effects,
               );
             },
-            icon: const Icon(Icons.upgrade),
-            label: Text(s.upgradeToPro),
+            child: Text(s.viewPlans),
+          ),
+          FilledButton.icon(
+            key: const ValueKey('open-locked-effect-pack'),
+            onPressed: () {
+              final navigator = Navigator.of(context);
+              navigator.pop();
+              navigator.pop(); // Close the effects dialog too
+              navigator.push(EffectStoreScreen.route(pack: pack));
+            },
+            icon: const Icon(Icons.storefront_outlined),
+            label: Text(s.getPack),
           ),
         ],
       ),

@@ -9,7 +9,6 @@ void main() {
       final effect = StarfieldEffect();
       expect(effect.type, equals(EffectType.starfield));
       expect(effect.isAnimation, isTrue);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['starDensity'], equals(0.5));
       expect(effect.parameters['twinkleSpeed'], equals(1.5));
       expect(effect.parameters['nebulaIntensity'], equals(0.4));

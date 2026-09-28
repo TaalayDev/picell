@@ -8,9 +8,10 @@
             "name": "Picell",
             "request": "launch",
             "type": "dart",
-            // "args": [
-            //     "--dart-define=TESTING=true"
-            // ]
+            "args": [
+                // "--dart-define=TESTING=true"
+                "--dart-define=IS_DEMO=true"
+            ]
         },
         {
             "name": "Picell (profile mode)",

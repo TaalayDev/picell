@@ -5,8 +5,10 @@ import 'package:picell/ui/widgets/ad_wrapper.dart';
 import '../core/utils/locale_manager.dart';
 import '../providers/providers.dart';
 import '../l10n/strings.dart';
+import '../providers/progression_provider.dart';
 import '../providers/subscription_provider.dart';
 import '../ui/screens.dart';
+import '../ui/widgets/progression/progression_notifications.dart';
 import '../ui/widgets/theme_selector.dart';
 
 class PixelVerseApp extends ConsumerStatefulWidget {
@@ -35,6 +37,7 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _incrementSessionCount();
+      ref.read(progressionProvider.notifier).checkIn();
     }
   }
 
@@ -61,7 +64,7 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
         supportedLocales: Strings.supportedLocales,
         localizationsDelegates: Strings.localizationsDelegates,
         locale: _getLocale(ref),
-        home: const ProjectsScreen(),
+        home: const ProgressionNotifications(child: ProjectsScreen()),
         builder: (context, child) {
           return AdWrapper(child: child!);
         },

@@ -18,9 +18,6 @@ class FeatureGate extends ConsumerWidget {
   /// The feature that this gate controls
   final SubscriptionFeature feature;
 
-  /// The minimum plan required to access this feature
-  final SubscriptionPlan minimumPlan;
-
   /// The child widget to display
   final Widget child;
 
@@ -39,7 +36,6 @@ class FeatureGate extends ConsumerWidget {
   const FeatureGate({
     super.key,
     required this.feature,
-    required this.minimumPlan,
     required this.child,
     this.showPremiumBadge = true,
     this.blurWhenLocked = true,
@@ -49,8 +45,7 @@ class FeatureGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final subscriptionState = ref.watch(subscriptionStateProvider);
-    final hasAccess = _hasFeatureAccess(subscriptionState.plan);
+    final hasAccess = ref.watch(subscriptionStateProvider).hasFeatureAccess(feature);
 
     if (hasAccess) {
       return _buildUnlockedContent(context);
@@ -60,7 +55,7 @@ class FeatureGate extends ConsumerWidget {
   }
 
   Widget _buildUnlockedContent(BuildContext context) {
-    if (!showPremiumBadge || minimumPlan == SubscriptionPlan.free) {
+    if (!showPremiumBadge) {
       return child;
     }
 
@@ -205,12 +200,6 @@ class FeatureGate extends ConsumerWidget {
         );
   }
 
-  /// Helper method to determine if the feature is accessible
-  bool _hasFeatureAccess(SubscriptionPlan currentPlan) {
-    // Compare enum ordinals to determine if user has sufficient plan level
-    return currentPlan.index >= minimumPlan.index;
-  }
-
   /// Show the upgrade dialog
   void _showUpgradeDialog(BuildContext context) {
     SubscriptionOfferScreen.show(
@@ -225,9 +214,6 @@ class FeatureSwitch extends ConsumerWidget {
   /// The feature that this gate controls
   final SubscriptionFeature feature;
 
-  /// The minimum plan required to access this feature
-  final SubscriptionPlan minimumPlan;
-
   /// The widget to display if the feature is available
   final Widget whenAvailable;
 
@@ -240,7 +226,6 @@ class FeatureSwitch extends ConsumerWidget {
   const FeatureSwitch({
     super.key,
     required this.feature,
-    required this.minimumPlan,
     required this.whenAvailable,
     this.whenUnavailable,
     this.onUnavailableTap,
@@ -248,8 +233,7 @@ class FeatureSwitch extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final subscriptionState = ref.watch(subscriptionStateProvider);
-    final hasAccess = _hasFeatureAccess(subscriptionState.plan);
+    final hasAccess = ref.watch(subscriptionStateProvider).hasFeatureAccess(feature);
 
     if (hasAccess) {
       return whenAvailable;
@@ -268,12 +252,6 @@ class FeatureSwitch extends ConsumerWidget {
       // Return an empty box if no unavailable widget is provided
       return const SizedBox.shrink();
     }
-  }
-
-  /// Helper method to determine if the feature is accessible
-  bool _hasFeatureAccess(SubscriptionPlan currentPlan) {
-    // Compare enum ordinals to determine if user has sufficient plan level
-    return currentPlan.index >= minimumPlan.index;
   }
 
   /// Show the upgrade dialog
@@ -357,13 +335,11 @@ class ProBadge extends StatelessWidget {
 /// A widget that shows a prompt to upgrade when a feature is locked
 class UpgradePrompt extends StatelessWidget {
   final SubscriptionFeature feature;
-  final SubscriptionPlan minimumTier;
   final VoidCallback? onUpgradePressed;
 
   const UpgradePrompt({
     super.key,
     required this.feature,
-    required this.minimumTier,
     this.onUpgradePressed,
   });
 
@@ -388,7 +364,7 @@ class UpgradePrompt extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'This feature requires ${minimumTier.name}',
+            'This feature requires Pro',
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -418,7 +394,6 @@ class UpgradePrompt extends StatelessWidget {
 /// A button that checks feature access before executing an action
 class FeatureButton extends ConsumerWidget {
   final SubscriptionFeature feature;
-  final SubscriptionPlan minimumTier;
   final VoidCallback onPressed;
   final Widget child;
   final ButtonStyle? style;
@@ -426,7 +401,6 @@ class FeatureButton extends ConsumerWidget {
   const FeatureButton({
     super.key,
     required this.feature,
-    required this.minimumTier,
     required this.onPressed,
     required this.child,
     this.style,
@@ -447,11 +421,8 @@ class FeatureButton extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${minimumTier.name} Feature'),
-        content: Text(
-          'The ${feature.name} feature is available in the '
-          '${minimumTier.name} subscription.',
-        ),
+        title: const Text('Pro Feature'),
+        content: Text('The ${feature.name} feature requires an upgrade.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

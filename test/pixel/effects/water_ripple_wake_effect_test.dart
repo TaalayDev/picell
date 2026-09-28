@@ -9,7 +9,6 @@ void main() {
       final effect = WaterRippleWakeEffect();
       expect(effect.type, equals(EffectType.waterRippleWake));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['rippleRadius'], equals(12.0));
       expect(effect.parameters['waveCount'], equals(3));
       expect(effect.parameters['reflectionDepth'], equals(4.0));

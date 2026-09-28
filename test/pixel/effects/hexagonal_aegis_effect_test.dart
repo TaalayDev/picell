@@ -9,7 +9,6 @@ void main() {
       final effect = HexagonalAegisEffect();
       expect(effect.type, equals(EffectType.hexagonalAegis));
       expect(effect.isAnimation, isFalse);
-      expect(effect.isPremium, isFalse);
       expect(effect.parameters['barrierOffset'], equals(3.0));
       expect(effect.parameters['hexRadius'], equals(4.0));
       expect(effect.parameters['shieldCoverage'], equals('fullBubble'));
