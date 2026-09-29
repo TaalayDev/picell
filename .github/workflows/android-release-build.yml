@@ -5,7 +5,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # Creates the release tag and uploads the APK and AAB to its GitHub Release.
+  contents: write
 
 concurrency:
   group: android-release-${{ github.ref }}
@@ -95,18 +96,40 @@ jobs:
           --build-name=${{ steps.android_version.outputs.name }}
           --build-number=${{ steps.android_version.outputs.number }}
 
-      - name: Upload Android APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: error
-          retention-days: 14
+      - name: Publish GitHub release (draft)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION_NAME: ${{ steps.android_version.outputs.name }}
+          VERSION_NUMBER: ${{ steps.android_version.outputs.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="android-v${VERSION_NAME}-${VERSION_NUMBER}"
+          title="Android ${VERSION_NAME} (${VERSION_NUMBER})"
 
-      - name: Upload Android App Bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release-aab
-          path: build/app/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 14
+          # A draft release only creates its git tag when it is published, so
+          # a name is taken if either the tag or a release (draft included)
+          # already uses it.
+          taken() {
+            git ls-remote --exit-code --tags origin "refs/tags/$1" >/dev/null 2>&1 ||
+              gh release view "$1" >/dev/null 2>&1
+          }
+
+          tag="$base"
+          if taken "$tag"; then
+            stamp=$(date -u +%Y%m%d-%H%M%S)
+            tag="${base}-${stamp}"
+            title="${title} · $(date -u '+%Y-%m-%d %H:%M') UTC"
+          fi
+
+          mkdir -p release
+          cp build/app/outputs/flutter-apk/app-release.apk "release/picell-${VERSION_NAME}-${VERSION_NUMBER}.apk"
+          cp build/app/outputs/bundle/release/app-release.aab "release/picell-${VERSION_NAME}-${VERSION_NUMBER}.aab"
+
+          # Drafts are visible to collaborators only until published by hand.
+          gh release create "$tag" release/* \
+            --draft \
+            --target "$GITHUB_SHA" \
+            --title "$title" \
+            --generate-notes
+          echo "Draft release ${tag}: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases" >> "$GITHUB_STEP_SUMMARY"
