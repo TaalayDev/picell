@@ -253,7 +253,7 @@ class PixelCanvasController extends ChangeNotifier {
     // raw pixels, just as Layer.processedPixels does after the stroke commits.
     final basePixels = _previewEffectsEnabled
         ? currentLayer.pixels
-        : currentLayer.processedPixels;
+        : currentLayer.processedPixels(width, height);
     final mergedPixels = _mergePixelsWithPoints(basePixels, _previewPixels);
 
     if (!_previewEffectsEnabled || currentLayer.effects.isEmpty) {
@@ -304,7 +304,7 @@ class PixelCanvasController extends ChangeNotifier {
         continue;
       }
 
-      final processedPixels = layer.processedPixels;
+      final processedPixels = layer.processedPixels(width, height);
       _cachedPixels = _mergePixels(_cachedPixels, processedPixels);
 
       if (i == _currentLayerIndex || cacheAll) {
@@ -468,7 +468,7 @@ class PixelCanvasController extends ChangeNotifier {
   void _updateCurrentLayerCache() {
     if (_currentLayerIndex < _layers.length) {
       final layer = _layers[_currentLayerIndex];
-      final processedPixels = layer.processedPixels;
+      final processedPixels = layer.processedPixels(width, height);
       cacheManager.updateLayer(layer.layerId, processedPixels, width, height);
     }
   }

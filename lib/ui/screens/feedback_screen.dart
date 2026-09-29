@@ -1,13 +1,40 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../data/models/feedback_models.dart';
+import '../../providers/feedback_chat_provider.dart';
 import '../../providers/feedback_providers.dart';
 import '../../l10n/strings.dart';
+import '../widgets/feedback/feedback_chat_view.dart';
 import '../widgets/notifications/app_notification.dart';
 
-class FeedbackScreen extends ConsumerWidget {
+/// The feedback survey, and afterwards the conversation about it: once a
+/// feedback is sent this screen opens on its chat, where the team replies.
+class FeedbackScreen extends HookConsumerWidget {
   const FeedbackScreen({super.key});
+
+  /// A dialog on web and desktop, a full page on phones.
+  static Future<void> show(BuildContext context) {
+    final desktop = defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.windows;
+    if (kIsWeb || desktop) {
+      return showDialog<void>(
+        context: context,
+        builder: (context) => Dialog(
+          child: ClipRRect(
+            clipBehavior: Clip.antiAlias,
+            borderRadius: BorderRadius.circular(16),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: const FeedbackScreen(),
+            ),
+          ),
+        ),
+      );
+    }
+    return Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) => const FeedbackScreen()));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -15,8 +42,31 @@ class FeedbackScreen extends ConsumerWidget {
     final notifier = ref.read(feedbackNotifierProvider.notifier);
     final theme = Theme.of(context);
     final s = Strings.of(context);
+    final latestThread = ref.watch(feedbackThreadsProvider.select((threads) => threads.isEmpty ? null : threads.last));
+    // With a conversation already going, open on it; "New feedback" switches
+    // to the survey.
+    final writingNew = useState(false);
 
     final feedbackQuestions = _getFeedbackQuestions(context);
+
+    if (latestThread != null && (state.isSubmitted || !writingNew.value)) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(s.feedback_chat_title),
+          actions: [
+            TextButton.icon(
+              onPressed: () {
+                notifier.reset();
+                writingNew.value = true;
+              },
+              icon: const Icon(Icons.add_comment_outlined, size: 18),
+              label: Text(s.feedback_chat_new_feedback),
+            ),
+          ],
+        ),
+        body: FeedbackChatView(key: ValueKey(latestThread.id), thread: latestThread),
+      );
+    }
 
     if (state.isSubmitted) {
       return Scaffold(
@@ -258,29 +308,6 @@ class FeedbackScreen extends ConsumerWidget {
           s.feedback_q_price_5_to_10,
           s.feedback_q_price_10_to_20,
           s.feedback_q_price_more_20,
-        ],
-      ),
-      FeedbackQuestion(
-        id: 'patreon_support',
-        question: s.feedback_q_patreon_support,
-        type: QuestionType.singleChoice,
-        options: [
-          s.feedback_q_patreon_definitely,
-          s.feedback_q_patreon_if_exclusive,
-          s.feedback_q_patreon_if_reasonable,
-          s.feedback_q_patreon_probably_not,
-          s.feedback_q_patreon_no,
-        ],
-        isRequired: true,
-      ),
-      FeedbackQuestion(
-        id: 'patreon_tier',
-        question: s.feedback_q_patreon_tier,
-        type: QuestionType.singleChoice,
-        options: [
-          s.feedback_q_patreon_tier_3,
-          s.feedback_q_patreon_tier_5,
-          s.feedback_q_patreon_tier_10,
         ],
       ),
       FeedbackQuestion(

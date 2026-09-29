@@ -18,23 +18,8 @@ class AnimationFrame extends Equatable {
   /// Composite of all visible layers, using the same convention as
   /// [PixelUtils.mergeLayersPixels]: the last layer in the list is on top
   /// and per-layer opacity is applied.
-  Uint32List get pixels {
-    final visible = layers.where((l) => l.isVisible && l.opacity > 0).toList();
-    if (visible.isEmpty) {
-      return Uint32List(layers.isEmpty ? 0 : layers.first.pixels.length);
-    }
-
-    final merged = Uint32List(visible.first.processedPixels.length);
-    for (final layer in visible.reversed) {
-      final src = layer.processedPixels;
-      for (int i = 0; i < merged.length; i++) {
-        if (merged[i] == 0) {
-          merged[i] = PixelUtils.applyAlpha(src[i], layer.opacity);
-        }
-      }
-    }
-    return merged;
-  }
+  Uint32List pixels(int width, int height) =>
+      PixelUtils.mergeLayersPixels(width: width, height: height, layers: layers);
 
   AnimationFrame({
     required this.id,

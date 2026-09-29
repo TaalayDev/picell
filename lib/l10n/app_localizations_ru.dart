@@ -331,42 +331,6 @@ class StringsRu extends Strings {
   String get feedback_q_price_more_20 => 'Больше \$20';
 
   @override
-  String get feedback_q_patreon_support =>
-      'Будете ли вы поддерживать проект на Patreon?';
-
-  @override
-  String get feedback_q_patreon_definitely => 'Да, обязательно';
-
-  @override
-  String get feedback_q_patreon_if_exclusive =>
-      'Возможно, если будут эксклюзивные функции';
-
-  @override
-  String get feedback_q_patreon_if_reasonable =>
-      'Возможно, если цена будет разумной';
-
-  @override
-  String get feedback_q_patreon_probably_not => 'Скорее нет';
-
-  @override
-  String get feedback_q_patreon_no => 'Нет, не планирую';
-
-  @override
-  String get feedback_q_patreon_tier =>
-      'Какой уровень поддержки на Patreon вам интересен?';
-
-  @override
-  String get feedback_q_patreon_tier_3 =>
-      '\$3/месяц - Ранний доступ к функциям';
-
-  @override
-  String get feedback_q_patreon_tier_5 => '\$5/месяц - + Эксклюзивные темы';
-
-  @override
-  String get feedback_q_patreon_tier_10 =>
-      '\$10/месяц - + Влияние на разработку';
-
-  @override
   String get feedback_q_usage_frequency =>
       'Как часто вы используете приложение?';
 
@@ -3250,16 +3214,56 @@ class StringsRu extends Strings {
   }
 
   @override
-  String get questAnimationGenerated => 'Сгенерируйте анимацию эффекта';
+  String questAnimationGenerated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Сгенерируйте $count анимации эффектов',
+      many: 'Сгенерируйте $count анимаций эффектов',
+      few: 'Сгенерируйте $count анимации эффектов',
+      one: 'Сгенерируйте $count анимацию эффекта',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get questImageExported => 'Экспортируйте изображение';
+  String questImageExported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Экспортируйте $count изображения',
+      many: 'Экспортируйте $count изображений',
+      few: 'Экспортируйте $count изображения',
+      one: 'Экспортируйте $count изображение',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get questAnimationExported => 'Экспортируйте анимацию';
+  String questAnimationExported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Экспортируйте $count анимации',
+      many: 'Экспортируйте $count анимаций',
+      few: 'Экспортируйте $count анимации',
+      one: 'Экспортируйте $count анимацию',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get questProjectImported => 'Импортируйте проект';
+  String questProjectImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Импортируйте $count проекта',
+      many: 'Импортируйте $count проектов',
+      few: 'Импортируйте $count проекта',
+      one: 'Импортируйте $count проект',
+    );
+    return '$_temp0';
+  }
 
   @override
   String questProjectPublished(int count) {
@@ -3281,4 +3285,380 @@ class StringsRu extends Strings {
 
   @override
   String get managePurchases => 'Управление покупками';
+
+  @override
+  String get achievementsTitle => 'Достижения';
+
+  @override
+  String questTemplateUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Используйте $count шаблона',
+      many: 'Используйте $count шаблонов',
+      few: 'Используйте $count шаблона',
+      one: 'Используйте $count шаблон',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questImageImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Импортируйте $count изображения',
+      many: 'Импортируйте $count изображений',
+      few: 'Импортируйте $count изображения',
+      one: 'Импортируйте $count изображение',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questAnimationStateAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Создайте $count состояния анимации',
+      many: 'Создайте $count состояний анимации',
+      few: 'Создайте $count состояния анимации',
+      one: 'Создайте $count состояние анимации',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get challengesTitle => 'Челленджи';
+
+  @override
+  String get challengeCadenceDaily => 'Ежедневный';
+
+  @override
+  String get challengeCadenceWeekly => 'Еженедельный';
+
+  @override
+  String get challengeCadenceMonthly => 'Ежемесячный';
+
+  @override
+  String get challengeCadenceSeasonal => 'Сезонный';
+
+  @override
+  String challengeEndsIn(String time) {
+    return 'До конца: $time';
+  }
+
+  @override
+  String durationDaysHours(int days, int hours) {
+    return '$days д $hours ч';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours ч $minutes мин';
+  }
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes мин';
+  }
+
+  @override
+  String challengeEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count работы',
+      many: '$count работ',
+      few: '$count работы',
+      one: '$count работа',
+      zero: 'Пока нет работ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get challengeJoined => 'Вы участвуете';
+
+  @override
+  String get challengeTopPrize => 'Главный приз';
+
+  @override
+  String get challengeHowToJoin => 'Как участвовать';
+
+  @override
+  String get challengeJoinSteps =>
+      'Нарисуйте работу на тему и опубликуйте её в сообществе с этим тегом.';
+
+  @override
+  String get challengeCopyTag => 'Скопировать тег';
+
+  @override
+  String get challengeTagCopied => 'Тег скопирован';
+
+  @override
+  String get challengeRewards => 'Награды';
+
+  @override
+  String get challengeParticipationReward => 'За участие';
+
+  @override
+  String challengePlace(int place) {
+    return '$place место';
+  }
+
+  @override
+  String get challengeEffectPackReward => '+ пак эффектов';
+
+  @override
+  String get challengeStartDrawing => 'Начать рисовать';
+
+  @override
+  String get challengeTagsLabel => 'Участвовать в челлендже';
+
+  @override
+  String get challengeEntryPublicOnly =>
+      'Участвовать в челленджах могут только публичные проекты.';
+
+  @override
+  String get challengeEntryOldProjectHint =>
+      'Проекты, впервые опубликованные до начала челленджа, в нём не участвуют.';
+
+  @override
+  String challengeStartsIn(String time) {
+    return 'Начало через $time';
+  }
+
+  @override
+  String get challengeStatusJudging => 'Выбираем победителей';
+
+  @override
+  String challengeResultsBy(String date) {
+    return 'Итоги до $date';
+  }
+
+  @override
+  String get challengeStatusCompleted => 'Завершён';
+
+  @override
+  String get challengeStatusCancelled => 'Отменён';
+
+  @override
+  String get challengeRulesTitle => 'Правила';
+
+  @override
+  String challengeRuleMaxEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'До $count работ на человека',
+      many: 'До $count работ на человека',
+      few: 'До $count работ на человека',
+      one: 'До $count работы на человека',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get challengeRuleStartsAfter =>
+      'Только проекты, впервые опубликованные после начала челленджа';
+
+  @override
+  String challengeRuleRequiredPack(String pack) {
+    return 'Используйте хотя бы один эффект из пака «$pack»';
+  }
+
+  @override
+  String get challengeYourEntries => 'Ваши работы';
+
+  @override
+  String challengeEntryNumber(int number) {
+    return 'Работа $number';
+  }
+
+  @override
+  String get challengeEntryPending => 'На проверке';
+
+  @override
+  String get challengeEntryAccepted => 'Принята';
+
+  @override
+  String get challengeEntryRejected => 'Отклонена';
+
+  @override
+  String get challengeEntryWithdrawn => 'Отозвана';
+
+  @override
+  String get challengeEntryWinner => 'Победитель';
+
+  @override
+  String get challengeWinnersTitle => 'Победители';
+
+  @override
+  String get challengeMention => 'Почётное упоминание';
+
+  @override
+  String get challengeEntriesTitle => 'Работы участников';
+
+  @override
+  String get challengeSortRecent => 'Новые';
+
+  @override
+  String get challengeNoEntriesYet => 'Работ пока нет. Будьте первым!';
+
+  @override
+  String get challengeLoadFailed => 'Не удалось загрузить челлендж';
+
+  @override
+  String get challengeEntriesLoadFailed => 'Не удалось загрузить работы';
+
+  @override
+  String challengeEnteredToast(String tags) {
+    return 'Вы участвуете в $tags! Рисунок появится в галерее после быстрой проверки.';
+  }
+
+  @override
+  String challengeWarningNotActive(String tag) {
+    return '$tag сейчас не принимает работы.';
+  }
+
+  @override
+  String challengeWarningNotPublic(String tag) {
+    return 'Сделайте проект публичным, чтобы участвовать в $tag.';
+  }
+
+  @override
+  String challengeWarningBeforeStart(String tag) {
+    return 'В $tag участвуют только рисунки, опубликованные после его начала. Опубликуйте новый рисунок.';
+  }
+
+  @override
+  String challengeWarningLimit(String tag) {
+    return 'Вы достигли лимита работ для $tag.';
+  }
+
+  @override
+  String get challengeWarningNotEligible =>
+      'Ваш аккаунт сейчас не может участвовать в челленджах.';
+
+  @override
+  String serverRewardGems(int gems) {
+    return '+$gems самоцветов';
+  }
+
+  @override
+  String serverRewardParticipationTitle(String challenge) {
+    return 'Спасибо за участие в $challenge!';
+  }
+
+  @override
+  String serverRewardPlacementTitle(String challenge) {
+    return 'Вы заняли место в $challenge!';
+  }
+
+  @override
+  String serverRewardMentionTitle(String challenge) {
+    return 'Почётное упоминание в $challenge!';
+  }
+
+  @override
+  String get serverRewardGiftTitle => 'Вы получили награду';
+
+  @override
+  String get myChallengeEntriesEmpty =>
+      'Вы ещё не участвовали в челленджах. Добавьте тег челленджа при публикации рисунка.';
+
+  @override
+  String get myChallengeEntriesLoadFailed => 'Не удалось загрузить ваши работы';
+
+  @override
+  String get challengeCompetition => 'Соревнование';
+
+  @override
+  String get challengeRuleCompetition =>
+      'Соревнование: победителей выберут после окончания';
+
+  @override
+  String get challengeRuleNoWinners =>
+      'Без победителей: награду получает каждая принятая работа';
+
+  @override
+  String get challengeRuleJustForFun =>
+      'Без победителей и наград, просто для удовольствия';
+
+  @override
+  String get challengeAcceptedEntryReward => 'За принятую работу';
+
+  @override
+  String get challengeYourReward => 'Ваша награда';
+
+  @override
+  String get challengeClaimReward => 'Забрать';
+
+  @override
+  String get challengeRewardClaimed => 'Получено';
+
+  @override
+  String get challengeRewardPrize => 'Приз';
+
+  @override
+  String get challengeRewardAfterReview =>
+      'Вы получите её, когда работу примут';
+
+  @override
+  String get challengeRewardAfterResults =>
+      'Начислим, когда объявят победителей';
+
+  @override
+  String get challengeRewardSoon => 'Уже в пути, загляните через минуту';
+
+  @override
+  String get challengeRewardClaimFailed =>
+      'Не удалось забрать награду. Попробуйте ещё раз.';
+
+  @override
+  String get feedback_chat_title => 'Ваш отзыв';
+
+  @override
+  String get feedback_chat_new_feedback => 'Новый отзыв';
+
+  @override
+  String get feedback_chat_submitted => 'Отзыв отправлен';
+
+  @override
+  String get feedback_chat_intro =>
+      'Спасибо! Хотите что-то добавить? Пишите здесь. Мы читаем каждое сообщение и отвечаем в этом чате.';
+
+  @override
+  String get feedback_chat_hint => 'Напишите сообщение…';
+
+  @override
+  String get feedback_chat_send => 'Отправить';
+
+  @override
+  String get feedback_chat_closed =>
+      'Этот разговор закрыт. Новое сообщение откроет его снова.';
+
+  @override
+  String get feedback_chat_load_failed => 'Не удалось загрузить сообщения';
+
+  @override
+  String get feedback_chat_send_failed =>
+      'Не удалось отправить сообщение. Попробуйте ещё раз.';
+
+  @override
+  String get feedback_chat_team => 'Команда Picell';
+
+  @override
+  String get feedback_reply_toast => 'Новый ответ на ваш отзыв';
+
+  @override
+  String get feedback_reply_open => 'Открыть';
+
+  @override
+  String get deleteAlsoFromCloud => 'Удалить и из сообщества';
+
+  @override
+  String get deleteAlsoFromCloudHint =>
+      'Опубликованная версия будет удалена вместе с лайками и комментариями.';
 }

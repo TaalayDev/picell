@@ -15,8 +15,8 @@ import '../../../providers/discovery_slides_provider.dart';
 import '../../../providers/providers.dart';
 import '../../screens/project_detail_screen.dart';
 
-/// Auto-advancing carousel cycling through cross-promo app ads, featured
-/// projects, news, and trending "community highlight" projects. Purely
+/// Auto-advancing carousel cycling through cross-promo app ads, projects
+/// marked as featured in the admin panel, and news. Purely
 /// decorative/discovery — disappears silently rather than showing an error
 /// or empty box if its data source fails or is empty.
 class DiscoveryCarousel extends HookConsumerWidget {
@@ -44,6 +44,11 @@ class DiscoveryCarousel extends HookConsumerWidget {
   }
 }
 
+/// Desktop layout: a small slide on each side of the focused one.
+const List<int> _flexWeights = [2, 5, 2];
+final int _flexWeightTotal = _flexWeights.reduce((a, b) => a + b);
+final int _prominentWeightIndex = _flexWeights.indexOf(_flexWeights.reduce((a, b) => a > b ? a : b));
+
 class _CarouselBody extends HookConsumerWidget {
   final List<DiscoverySlide> slides;
   final double height;
@@ -58,13 +63,13 @@ class _CarouselBody extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final loopedItemCount = slides.length == 1 ? 1 : slides.length * 10000;
-    final initialVirtualIndex =
-        slides.length == 1 ? 0 : (loopedItemCount ~/ 2) - ((loopedItemCount ~/ 2) % slides.length);
+    final initialVirtualIndex = slides.length == 1 ? 0 : slides.length * 5000 + (slides.length ~/ 2);
     final carouselController = useMemoized(
       () => CarouselController(initialItem: initialVirtualIndex),
       [slides.length],
     );
-    final currentPage = useState(0);
+    // The slide shown first is initialVirtualIndex, not slide 0.
+    final currentPage = useState(initialVirtualIndex % slides.length);
     final currentVirtualIndex = useState(initialVirtualIndex);
     final timerRef = useRef<Timer?>(null);
     final recordedPromoIds = useRef(<int>{});
@@ -130,15 +135,20 @@ class _CarouselBody extends HookConsumerWidget {
                   final isWide = MediaQuery.sizeOf(context).width >= 780;
                   final itemExtent = _carouselItemExtent(constraints.maxWidth);
 
+                  // The slide in focus, computed exactly as CarouselView lays
+                  // items out and as animateToItem targets them, so arrows,
+                  // auto-advance and swipes always move by one slide.
                   int virtualIndexFor(ScrollMetrics metrics) {
                     if (!isWide) {
                       return (metrics.pixels / itemExtent).round().clamp(0, loopedItemCount - 1);
                     }
 
-                    const totalWeight = 8;
-                    const prominentItemOffset = 1;
-                    final step = constraints.maxWidth / totalWeight;
-                    return ((metrics.pixels / step).round() + prominentItemOffset).clamp(0, loopedItemCount - 1);
+                    // Weighted layout: scrolling one item moves by the first
+                    // (small) item's share of the viewport, and the focused
+                    // item sits at the biggest weight's position.
+                    final step = metrics.viewportDimension * _flexWeights.first / _flexWeightTotal;
+                    if (step <= 0) return currentVirtualIndex.value;
+                    return ((metrics.pixels / step).round() + _prominentWeightIndex).clamp(0, loopedItemCount - 1);
                   }
 
                   Widget buildSlide(BuildContext context, int virtualIndex) {
@@ -155,7 +165,7 @@ class _CarouselBody extends HookConsumerWidget {
                   final carousel = isWide && slides.length > 1
                       ? CarouselView.weightedBuilder(
                           controller: carouselController,
-                          flexWeights: const [2, 4, 2],
+                          flexWeights: _flexWeights,
                           consumeMaxWeight: false,
                           itemCount: loopedItemCount,
                           itemBuilder: buildSlide,
@@ -337,13 +347,6 @@ class _SlideCard extends ConsumerWidget {
             unawaited(ref.read(projectAPIRepoProvider).recordFeaturedClick(project.id));
             _openProject(context, project);
           },
-        ),
-      CommunityHighlightSlide(:final project) => _ImageSlide(
-          imageUrl: project.thumbnailUrl,
-          badgeLabel: 'COMMUNITY',
-          title: project.title,
-          subtitle: project.displayName ?? project.username,
-          onTap: () => _openProject(context, project),
         ),
       NewsSlide(:final news) => _NewsSlideContent(news: news, theme: theme),
     };

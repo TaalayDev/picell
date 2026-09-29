@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -700,10 +701,32 @@ class _SubmenuTopBarMenuItemState<T> extends State<_SubmenuTopBarMenuItem<T>> {
     final size = renderBox.size;
     final position = renderBox.localToGlobal(Offset.zero);
     final screenSize = MediaQuery.sizeOf(context);
+    final safe = MediaQuery.paddingOf(context);
 
-    const submenuWidth = 230.0;
-    final openLeft = (position.dx + size.width + submenuWidth + 10) > screenSize.width;
-    final offset = openLeft ? const Offset(-submenuWidth, -4) : Offset(size.width, -4);
+    const margin = 8.0;
+    const rowHeight = 38.0;
+    final submenuWidth = math.min(230.0, screenSize.width - margin * 2);
+    final submenuHeight = widget.items.length * rowHeight + 8;
+
+    // Beside the item when there is room (desktop), otherwise below it,
+    // overlapping the parent menu: on phones the menu is nearly as wide as
+    // the screen and a side submenu ended up off-screen.
+    double left;
+    double top;
+    if (position.dx + size.width + submenuWidth + margin <= screenSize.width) {
+      left = position.dx + size.width;
+      top = position.dy - 4;
+    } else if (position.dx - submenuWidth >= margin) {
+      left = position.dx - submenuWidth;
+      top = position.dy - 4;
+    } else {
+      left = position.dx + 24;
+      top = position.dy + size.height - 4;
+    }
+    left = left.clamp(margin, math.max(margin, screenSize.width - submenuWidth - margin));
+    final maxTop = screenSize.height - safe.bottom - submenuHeight - margin;
+    top = top.clamp(safe.top + margin, math.max(safe.top + margin, maxTop));
+    final offset = Offset(left - position.dx, top - position.dy);
 
     final parentRoute = ModalRoute.of(context);
 

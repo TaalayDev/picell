@@ -44,7 +44,7 @@ class PixelCanvasState with _$PixelCanvasState {
   List<Uint32List> get pixels => currentFrame.layers.fold(
         [],
         (List<Uint32List> acc, layer) {
-          acc.add(layer.processedPixels);
+          acc.add(layer.processedPixels(width, height));
           return acc;
         },
       );

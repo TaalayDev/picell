@@ -23,7 +23,7 @@ class SmartSelectionTool extends Tool {
 
   @override
   void onStart(PixelDrawDetails details) {
-    final pixels = details.currentLayer.processedPixels;
+    final pixels = details.currentLayer.processedPixels(details.width, details.height);
     final pixelPosition = details.pixelPosition;
 
     if (pixelPosition.x < 0 || pixelPosition.x >= details.width ||

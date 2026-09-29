@@ -3,7 +3,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:universal_io/io.dart';
 
+import '../data/models/feedback_chat_models.dart';
 import '../data/models/feedback_models.dart';
+import 'feedback_chat_provider.dart';
 import 'providers.dart';
 
 part 'feedback_providers.g.dart';
@@ -78,6 +80,11 @@ class FeedbackNotifier extends _$FeedbackNotifier {
       if (response.error != null) {
         throw Exception(response.error);
       }
+
+      // The conversation about this feedback opens right after sending.
+      final data = response.data;
+      final thread = data == null ? null : FeedbackThreadRef.tryParse({'id': data['id'], 'token': data['thread_token']});
+      if (thread != null) ref.read(feedbackThreadsProvider.notifier).add(thread);
 
       ref.read(localStorageProvider).feedbackPromptNeverAskAgain = true;
 

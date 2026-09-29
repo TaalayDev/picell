@@ -75,8 +75,23 @@ class Projects extends _$Projects {
     }
   }
 
+  /// Loads a full project for the editor, with layer effects already
+  /// applied in a background isolate so the editor opens without a freeze.
   Future<Project?> getProject(int projectId) async {
-    return ref.read(projectRepo).fetchProject(projectId);
+    final project = await ref.read(projectRepo).fetchProject(projectId);
+    if (project != null) {
+      try {
+        await Layer.prepareProcessedPixels(
+          project.frames.expand((frame) => frame.layers),
+          project.width,
+          project.height,
+        );
+      } catch (e) {
+        // The editor still applies effects itself, just on the UI thread.
+        debugPrint('Failed to prepare layer effects: $e');
+      }
+    }
+    return project;
   }
 
   Future<void> renameProject(int projectId, String name) async {

@@ -210,7 +210,7 @@ class PixelCanvasPaintDelegate {
 
   void _drawLayerPixels(
       Canvas canvas, Layer layer, double pixelWidth, double pixelHeight) {
-    final processedPixels = layer.processedPixels;
+    final processedPixels = layer.processedPixels(width, height);
     quadVerticesBuffer.reset();
 
     for (int y = 0; y < height; y++) {

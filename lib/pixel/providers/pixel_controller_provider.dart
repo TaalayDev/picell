@@ -1334,6 +1334,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentLayerIndex: 0,
     );
     _persistEditorSelection();
+    _recordProgress(ProgressionEvent.animationStateAdded);
   }
 
   Future<void> copyAnimationState(int sourceStateId) async {
@@ -1454,6 +1455,7 @@ class PixelDrawController extends _$PixelDrawController {
     state = state.copyWith(currentLayerIndex: updatedLayers.length - 1);
 
     _updateProject();
+    _recordProgress(ProgressionEvent.templateUsed);
   }
 
   void selectAnimationState(int stateId) {
@@ -1973,6 +1975,7 @@ class PixelDrawController extends _$PixelDrawController {
             PixelArtConverter.extractPaletteFromImage(decoded, maxColors: 32);
         ref.read(importedPaletteProvider.notifier).set(palette);
       }
+      _recordProgress(ProgressionEvent.imageImported);
     }
   }
 
@@ -2013,6 +2016,7 @@ class PixelDrawController extends _$PixelDrawController {
         maxColors: 64,
       );
       ref.read(importedPaletteProvider.notifier).set(palette);
+      _recordProgress(ProgressionEvent.imageImported);
     }
   }
 

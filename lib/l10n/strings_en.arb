@@ -139,16 +139,6 @@
     "feedback_q_price_5_to_10": "$5 - $10",
     "feedback_q_price_10_to_20": "$10 - $20",
     "feedback_q_price_more_20": "More than $20",
-    "feedback_q_patreon_support": "Will you support the project on Patreon?",
-    "feedback_q_patreon_definitely": "Yes, definitely",
-    "feedback_q_patreon_if_exclusive": "Maybe, if there are exclusive features",
-    "feedback_q_patreon_if_reasonable": "Maybe, if the price is reasonable",
-    "feedback_q_patreon_probably_not": "Probably not",
-    "feedback_q_patreon_no": "No, not planning to",
-    "feedback_q_patreon_tier": "Which Patreon support tier interests you?",
-    "feedback_q_patreon_tier_3": "$3/month - Early access to features",
-    "feedback_q_patreon_tier_5": "$5/month - + Exclusive themes",
-    "feedback_q_patreon_tier_10": "$10/month - + Influence on development",
     "feedback_q_usage_frequency": "How often do you use the app?",
     "feedback_q_usage_daily": "Every day",
     "feedback_q_usage_several_week": "Several times a week",
@@ -1662,10 +1652,38 @@
             }
         }
     },
-    "questAnimationGenerated": "Generate an effect animation",
-    "questImageExported": "Export an image",
-    "questAnimationExported": "Export an animation",
-    "questProjectImported": "Import a project",
+    "questAnimationGenerated": "{count, plural, =1{Generate an effect animation} other{Generate {count} effect animations}}",
+    "@questAnimationGenerated": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questImageExported": "{count, plural, =1{Export an image} other{Export {count} images}}",
+    "@questImageExported": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questAnimationExported": "{count, plural, =1{Export an animation} other{Export {count} animations}}",
+    "@questAnimationExported": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questProjectImported": "{count, plural, =1{Import a project} other{Import {count} projects}}",
+    "@questProjectImported": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "questProjectPublished": "{count, plural, =1{Publish a project to the community} other{Publish {count} projects}}",
     "@questProjectPublished": {
         "placeholders": {
@@ -1682,5 +1700,263 @@
             }
         }
     },
-    "managePurchases": "Manage purchases"
+    "managePurchases": "Manage purchases",
+    "achievementsTitle": "Achievements",
+    "questTemplateUsed": "{count, plural, =1{Start from a template} other{Use {count} templates}}",
+    "@questTemplateUsed": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questImageImported": "{count, plural, =1{Import an image} other{Import {count} images}}",
+    "@questImageImported": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "questAnimationStateAdded": "{count, plural, =1{Create an animation state} other{Create {count} animation states}}",
+    "@questAnimationStateAdded": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "challengesTitle": "Challenges",
+    "challengeCadenceDaily": "Daily",
+    "challengeCadenceWeekly": "Weekly",
+    "challengeCadenceMonthly": "Monthly",
+    "challengeCadenceSeasonal": "Seasonal",
+    "challengeEndsIn": "Ends in {time}",
+    "@challengeEndsIn": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "durationDaysHours": "{days}d {hours}h",
+    "@durationDaysHours": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            },
+            "hours": {
+                "type": "int"
+            }
+        }
+    },
+    "durationHoursMinutes": "{hours}h {minutes}m",
+    "@durationHoursMinutes": {
+        "placeholders": {
+            "hours": {
+                "type": "int"
+            },
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "durationMinutes": "{minutes}m",
+    "@durationMinutes": {
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "challengeEntries": "{count, plural, =0{No entries yet} =1{1 entry} other{{count} entries}}",
+    "@challengeEntries": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "challengeJoined": "You're in",
+    "challengeTopPrize": "Top prize",
+    "challengeHowToJoin": "How to join",
+    "challengeJoinSteps": "Draw something on the theme, then publish it to the community with this tag.",
+    "challengeCopyTag": "Copy tag",
+    "challengeTagCopied": "Tag copied",
+    "challengeRewards": "Rewards",
+    "challengeParticipationReward": "For taking part",
+    "challengePlace": "Place {place}",
+    "@challengePlace": {
+        "placeholders": {
+            "place": {
+                "type": "int"
+            }
+        }
+    },
+    "challengeEffectPackReward": "+ effect pack",
+    "challengeStartDrawing": "Start drawing",
+    "challengeTagsLabel": "Enter a challenge",
+    "challengeEntryPublicOnly": "Only public projects can enter challenges.",
+    "challengeEntryOldProjectHint": "Projects first published before a challenge started can't enter it.",
+    "challengeStartsIn": "Starts in {time}",
+    "@challengeStartsIn": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "challengeStatusJudging": "Picking winners",
+    "challengeResultsBy": "Results by {date}",
+    "@challengeResultsBy": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "challengeStatusCompleted": "Finished",
+    "challengeStatusCancelled": "Cancelled",
+    "challengeRulesTitle": "Rules",
+    "challengeRuleMaxEntries": "{count, plural, =1{One entry per person} other{Up to {count} entries per person}}",
+    "@challengeRuleMaxEntries": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "challengeRuleStartsAfter": "Only projects first published after the challenge starts",
+    "challengeRuleRequiredPack": "Use at least one effect from {pack}",
+    "@challengeRuleRequiredPack": {
+        "placeholders": {
+            "pack": {
+                "type": "String"
+            }
+        }
+    },
+    "challengeYourEntries": "Your entries",
+    "challengeEntryNumber": "Entry {number}",
+    "@challengeEntryNumber": {
+        "placeholders": {
+            "number": {
+                "type": "int"
+            }
+        }
+    },
+    "challengeEntryPending": "Under review",
+    "challengeEntryAccepted": "Accepted",
+    "challengeEntryRejected": "Rejected",
+    "challengeEntryWithdrawn": "Withdrawn",
+    "challengeEntryWinner": "Winner",
+    "challengeWinnersTitle": "Winners",
+    "challengeMention": "Honorable mention",
+    "challengeEntriesTitle": "Entries",
+    "challengeSortRecent": "Newest",
+    "challengeNoEntriesYet": "No entries yet. Be the first!",
+    "challengeLoadFailed": "Couldn't load this challenge",
+    "challengeEntriesLoadFailed": "Couldn't load entries",
+    "challengeEnteredToast": "Entered {tags}! Your drawing shows up in the gallery after a quick review.",
+    "@challengeEnteredToast": {
+        "placeholders": {
+            "tags": {
+                "type": "String"
+            }
+        }
+    },
+    "challengeWarningNotActive": "{tag} isn't open for entries right now.",
+    "@challengeWarningNotActive": {
+        "placeholders": {
+            "tag": {
+                "type": "String"
+            }
+        }
+    },
+    "challengeWarningNotPublic": "Make the project public to enter {tag}.",
+    "@challengeWarningNotPublic": {
+        "placeholders": {
+            "tag": {
+                "type": "String"
+            }
+        }
+    },
+    "challengeWarningBeforeStart": "Only drawings published after {tag} started can enter. Publish a new drawing to join.",
+    "@challengeWarningBeforeStart": {
+        "placeholders": {
+            "tag": {
+                "type": "String"
+            }
+        }
+    },
+    "challengeWarningLimit": "You've reached the entry limit for {tag}.",
+    "@challengeWarningLimit": {
+        "placeholders": {
+            "tag": {
+                "type": "String"
+            }
+        }
+    },
+    "challengeWarningNotEligible": "Your account can't enter challenges right now.",
+    "serverRewardGems": "+{gems} gems",
+    "@serverRewardGems": {
+        "placeholders": {
+            "gems": {
+                "type": "int"
+            }
+        }
+    },
+    "serverRewardParticipationTitle": "Thanks for joining {challenge}!",
+    "@serverRewardParticipationTitle": {
+        "placeholders": {
+            "challenge": {
+                "type": "String"
+            }
+        }
+    },
+    "serverRewardPlacementTitle": "You placed in {challenge}!",
+    "@serverRewardPlacementTitle": {
+        "placeholders": {
+            "challenge": {
+                "type": "String"
+            }
+        }
+    },
+    "serverRewardMentionTitle": "Honorable mention in {challenge}!",
+    "@serverRewardMentionTitle": {
+        "placeholders": {
+            "challenge": {
+                "type": "String"
+            }
+        }
+    },
+    "serverRewardGiftTitle": "You received a reward",
+    "myChallengeEntriesEmpty": "You haven't entered a challenge yet. Add a challenge tag when you publish a drawing to join.",
+    "myChallengeEntriesLoadFailed": "Couldn't load your entries",
+    "challengeCompetition": "Competition",
+    "challengeRuleCompetition": "Competition: winners are picked after it ends",
+    "challengeRuleNoWinners": "No winners: every accepted entry gets the reward",
+    "challengeRuleJustForFun": "No winners and no prizes, just for fun",
+    "challengeAcceptedEntryReward": "For an accepted entry",
+    "challengeYourReward": "Your reward",
+    "challengeClaimReward": "Claim",
+    "challengeRewardClaimed": "Received",
+    "challengeRewardPrize": "Prize",
+    "challengeRewardAfterReview": "You'll get it once your entry is accepted",
+    "challengeRewardAfterResults": "Paid when the winners are announced",
+    "challengeRewardSoon": "On its way, check back in a minute",
+    "challengeRewardClaimFailed": "Couldn't claim the reward. Try again.",
+    "feedback_chat_title": "Your feedback",
+    "feedback_chat_new_feedback": "New feedback",
+    "feedback_chat_submitted": "Feedback sent",
+    "feedback_chat_intro": "Thanks! Want to add something? Write here. We read every message and reply in this chat.",
+    "feedback_chat_hint": "Write a message…",
+    "feedback_chat_send": "Send",
+    "feedback_chat_closed": "This conversation was closed. Writing a message opens it again.",
+    "feedback_chat_load_failed": "Couldn't load messages",
+    "feedback_chat_send_failed": "Couldn't send the message. Try again.",
+    "feedback_chat_team": "Picell team",
+    "feedback_reply_toast": "New reply to your feedback",
+    "feedback_reply_open": "Open",
+    "deleteAlsoFromCloud": "Also delete from the community",
+    "deleteAlsoFromCloudHint": "Removes the published version with its likes and comments."
 }

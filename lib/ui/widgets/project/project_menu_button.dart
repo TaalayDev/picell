@@ -148,7 +148,9 @@ class ProjectMenuButton extends StatelessWidget {
         );
         break;
       case 'delete':
-        _showDeleteConfirmation(context);
+        // The screen confirms (DeleteProjectDialog), so every project card
+        // theme asks the same way.
+        onDeleteProject?.call(project);
         break;
       case 'upload':
         onUploadProject?.call(project);
@@ -160,76 +162,6 @@ class ProjectMenuButton extends StatelessWidget {
         _showDeleteCloudConfirmation(context);
         break;
     }
-  }
-
-  void _showDeleteConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          Strings.of(context).deleteProject,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Theme.of(context).colorScheme.error,
-              ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              Strings.of(context).areYouSureWantToDeleteProject,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-            ),
-            if (project.isCloudSynced) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border:
-                      Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Feather.alert_triangle,
-                        color: Colors.orange, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        Strings.of(context).syncedCloudDeleteWarning,
-                        style: TextStyle(
-                          color: Colors.orange.shade700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(Strings.of(context).cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              onDeleteProject?.call(project);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(Strings.of(context).delete),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showDeleteCloudConfirmation(BuildContext context) {
