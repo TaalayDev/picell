@@ -343,8 +343,8 @@ class _EffectPackCard extends ConsumerWidget {
                   const SizedBox(width: 8),
                   _PackStatusChip(
                     label: owned ? (pack.isFree ? s.free : s.effectPackOwned) : (onTrial ? s.packTrialActive : price),
-                    // Without a store price, show what the pack costs in gems.
-                    coins: owned || onTrial || price != null ? null : CoinPrices.pack(packId),
+                    // Without a store price, show what the pack costs this user in gems.
+                    coins: owned || onTrial || price != null ? null : ref.watch(progressionProvider).packPrice(packId),
                     owned: owned || onTrial,
                   ),
                 ],
@@ -746,9 +746,16 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
 
   List<Widget> _buildPurchaseActions(BuildContext context, String? price) {
     final s = Strings.of(context);
-    final coinPrice = CoinPrices.pack(widget.packId);
+    final progression = ref.watch(progressionProvider);
+    // Owned effects of this pack and the first-pack discount lower it.
+    final coinPrice = progression.packPrice(widget.packId);
+    final basePrice = CoinPrices.pack(widget.packId);
+    final credit = progression.packCredit(widget.packId);
+    final isGoal = progression.goalPack == widget.packId;
     final onTrial = ref.watch(effectPackAccessProvider(widget.packId));
     final adReady = ref.watch(rewardVideoAdProvider);
+    final colors = Theme.of(context).colorScheme;
+    final noteStyle = Theme.of(context).textTheme.labelSmall?.copyWith(color: colors.primary, fontWeight: FontWeight.w600);
 
     return [
       FilledButton(
@@ -766,7 +773,32 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
         style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
         child: Text(s.unlockForCoins(coinPrice)),
       ),
+      if (coinPrice < basePrice) ...[
+        const SizedBox(height: 6),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 4,
+          children: [
+            Text(
+              s.unlockForCoins(basePrice),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    decoration: TextDecoration.lineThrough,
+                    color: colors.onSurface.withValues(alpha: 0.5),
+                  ),
+            ),
+            if (progression.firstPackDiscountAvailable) Text(s.packFirstDiscount, style: noteStyle),
+            if (credit > 0) Text(s.packPriceCredit(credit), style: noteStyle),
+          ],
+        ),
+      ],
       const SizedBox(height: 4),
+      TextButton.icon(
+        key: const ValueKey('toggle-savings-goal'),
+        onPressed: () => ref.read(progressionProvider.notifier).setGoal(isGoal ? null : widget.packId),
+        icon: Icon(isGoal ? Icons.savings : Icons.savings_outlined),
+        label: Text(isGoal ? s.savingsGoalActive : s.savingsGoalSet),
+      ),
       // Secondary links share a line when there is room.
       Wrap(
         alignment: WrapAlignment.center,
