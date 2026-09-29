@@ -3543,7 +3543,7 @@ class StringsRu extends Strings {
 
   @override
   String serverRewardGems(int gems) {
-    return '+$gems самоцветов';
+    return '+$gems крист.';
   }
 
   @override
@@ -3661,4 +3661,196 @@ class StringsRu extends Strings {
   @override
   String get deleteAlsoFromCloudHint =>
       'Опубликованная версия будет удалена вместе с лайками и комментариями.';
+
+  @override
+  String questFillUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Используйте заливку $count раза',
+      many: 'Используйте заливку $count раз',
+      few: 'Используйте заливку $count раза',
+      one: 'Используйте заливку $count раз',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questShapeDrawn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Нарисуйте $count фигуры',
+      many: 'Нарисуйте $count фигур',
+      few: 'Нарисуйте $count фигуры',
+      one: 'Нарисуйте $count фигуру',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questProjectLiked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Поставьте лайк $count проекта в сообществе',
+      many: 'Поставьте лайк $count проектам в сообществе',
+      few: 'Поставьте лайк $count проектам в сообществе',
+      one: 'Поставьте лайк $count проекту в сообществе',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questChallengeEntered(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Примите участие в $count челленджа',
+      many: 'Примите участие в $count челленджах',
+      few: 'Примите участие в $count челленджах',
+      one: 'Примите участие в $count челлендже',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questOldProjectStroke(int count) {
+    return 'Вернитесь к проекту старше недели: $count штрихов';
+  }
+
+  @override
+  String get questTierEasy => 'Лёгкое';
+
+  @override
+  String get questTierMedium => 'Среднее';
+
+  @override
+  String get questTierHard => 'Сложное';
+
+  @override
+  String get questBonusTitle => 'Бонусное задание';
+
+  @override
+  String get questBonusHint =>
+      'Необязательно: немного больше усилий — немного больше награды';
+
+  @override
+  String get dailyBonusTitle => 'Все три выполнены';
+
+  @override
+  String get dailyBonusHint => 'Заберите все три задания дня и получите бонус';
+
+  @override
+  String get questReroll => 'Заменить задание';
+
+  @override
+  String questRerollsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Осталось $count замены на сегодня',
+      many: 'Осталось $count замен на сегодня',
+      few: 'Осталось $count замены на сегодня',
+      one: 'Осталась $count замена на сегодня',
+      zero: 'Замен на сегодня не осталось',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String loginCycleTomorrow(int coins) {
+    return 'Завтра: +$coins крист.';
+  }
+
+  @override
+  String get loginCycleGrace =>
+      'Пропустили день? Один пропуск в неделю не прервёт серию.';
+
+  @override
+  String questDailyQuestClaimed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Выполните $count задания дня',
+      many: 'Выполните $count заданий дня',
+      few: 'Выполните $count задания дня',
+      one: 'Выполните $count задание дня',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get weeklyQuestsTitle => 'Задания недели';
+
+  @override
+  String weeklyResetsIn(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Новые задания через $days дня',
+      many: 'Новые задания через $days дней',
+      few: 'Новые задания через $days дня',
+      one: 'Новые задания через $days день',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get weeklyBonusTitle => 'Все задания недели выполнены';
+
+  @override
+  String get weeklyBonusHint =>
+      'Заберите все три задания недели и получите бонус';
+
+  @override
+  String get welcomeBackTitle => 'С возвращением!';
+
+  @override
+  String get welcomeBackHint => 'Сегодня задания дня дают вдвое больше.';
+
+  @override
+  String savingsGoalTitle(String pack) {
+    return 'Копите на $pack';
+  }
+
+  @override
+  String savingsGoalEta(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '≈ $days дня в вашем темпе',
+      many: '≈ $days дней в вашем темпе',
+      few: '≈ $days дня в вашем темпе',
+      one: '≈ $days день в вашем темпе',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get savingsGoalReady => 'Хватает — открывайте!';
+
+  @override
+  String get savingsGoalNoPace =>
+      'Выполните несколько заданий, чтобы увидеть срок';
+
+  @override
+  String get savingsGoalPick => 'Выберите пак, на который копить';
+
+  @override
+  String get savingsGoalPickAction => 'Выбрать';
+
+  @override
+  String get savingsGoalSet => 'Копить на этот пак';
+
+  @override
+  String get savingsGoalActive => 'Ваша цель накопления';
+
+  @override
+  String packPriceCredit(int coins) {
+    return '−$coins за эффекты, которые у вас есть';
+  }
+
+  @override
+  String get packFirstDiscount => 'Первый пак −40%';
 }

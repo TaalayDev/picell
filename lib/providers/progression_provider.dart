@@ -9,6 +9,9 @@ import '../data/models/progression_model.dart';
 import '../data/storage/local_storage.dart';
 import '../pixel/effects/effect_pack_catalog.dart';
 import '../pixel/effects/effects.dart';
+import 'auth_provider.dart';
+import 'challenges_provider.dart';
+import 'projects_provider.dart';
 import 'subscription_provider.dart';
 
 /// Something the user should be told about right away.
@@ -63,7 +66,7 @@ class ProgressionNotifier extends Notifier<ProgressionState> {
     });
 
     final loaded = _load();
-    final current = loaded.rollDay(DateTime.now());
+    final current = loaded.rollDay(DateTime.now(), context: _dailyContext());
     if (current != loaded) {
       // Listeners subscribe right after the first read, so announce later.
       scheduleMicrotask(() => _announceStreak(loaded, current));
@@ -76,7 +79,7 @@ class ProgressionNotifier extends Notifier<ProgressionState> {
   /// Moves to today when the app comes back: resets dailies, extends streaks.
   void checkIn() {
     final before = state;
-    final next = before.rollDay(DateTime.now());
+    final next = before.rollDay(DateTime.now(), context: _dailyContext());
     if (identical(next, before)) return;
     _update(next);
     _announceStreak(before, next);
@@ -84,7 +87,7 @@ class ProgressionNotifier extends Notifier<ProgressionState> {
 
   void record(ProgressionEvent event, {int count = 1}) {
     final before = state;
-    final (next, completed) = before.record(event, DateTime.now(), count: count);
+    final (next, completed) = before.record(event, DateTime.now(), count: count, context: _dailyContext());
     if (identical(next, before)) return;
     _update(next);
     _announceStreak(before, next);
@@ -97,6 +100,24 @@ class ProgressionNotifier extends Notifier<ProgressionState> {
     final multiplier = ref.read(subscriptionStateProvider).isPermanentPro ? CoinPrices.proMultiplier : 1.0;
     return _apply(state.claim(quest, DateTime.now(), multiplier: multiplier));
   }
+
+  /// Pays the bonus for claiming all three main daily quests.
+  bool claimDailyBonus() {
+    final multiplier = ref.read(subscriptionStateProvider).isPermanentPro ? CoinPrices.proMultiplier : 1.0;
+    return _apply(state.claimDailyBonus(DateTime.now(), multiplier: multiplier));
+  }
+
+  /// Pays the bonus for claiming all three weekly quests.
+  bool claimWeeklyBonus() {
+    final multiplier = ref.read(subscriptionStateProvider).isPermanentPro ? CoinPrices.proMultiplier : 1.0;
+    return _apply(state.claimWeeklyBonus(DateTime.now(), multiplier: multiplier));
+  }
+
+  /// Picks the pack to save for; null stops saving.
+  void setGoal(EffectPackId? pack) => _update(state.setGoal(pack));
+
+  /// Swaps a daily quest for another one of its slot.
+  bool rerollDaily(Quest quest) => _apply(state.rerollDaily(quest, context: _dailyContext()));
 
   bool buyEffect(EffectType type) => _apply(state.buyEffect(type, DateTime.now()));
 
@@ -143,10 +164,39 @@ class ProgressionNotifier extends Notifier<ProgressionState> {
     _scheduleSave();
   }
 
+  /// Announces the login reward paid when a new day starts.
   void _announceStreak(ProgressionState before, ProgressionState after) {
-    for (final days in after.claimedStreakDays.difference(before.claimedStreakDays)) {
-      _notices.add(StreakRewardNotice(days, StreakRewards.coinsByDay[days] ?? 0));
-    }
+    if (before.dayKey == after.dayKey || after.loginRewardToday <= 0) return;
+    _notices.add(StreakRewardNotice(after.streakDays, after.loginRewardToday));
+  }
+
+  /// What decides which daily quests can be offered today. Reads other
+  /// providers without watching them: quests are chosen once per day.
+  DailyContext _dailyContext() {
+    var signedIn = false;
+    var challengeRunning = false;
+    var hasOldProject = false;
+    var seed = '';
+    try {
+      signedIn = ref.read(authProvider).isSignedIn;
+    } catch (_) {}
+    try {
+      challengeRunning = ref.read(currentChallengesProvider).valueOrNull?.running().isNotEmpty ?? false;
+    } catch (_) {}
+    try {
+      final weekAgo = DateTime.now().subtract(const Duration(days: 7));
+      hasOldProject =
+          ref.read(projectsProvider).valueOrNull?.any((project) => project.createdAt.isBefore(weekAgo)) ?? false;
+    } catch (_) {}
+    try {
+      seed = LocalStorage.instance.installationId;
+    } catch (_) {}
+    return DailyContext(
+      signedIn: signedIn,
+      challengeRunning: challengeRunning,
+      hasOldProject: hasOldProject,
+      seed: seed,
+    );
   }
 
   /// Rebuilds dependents when the earliest trial ends, so access is revoked.

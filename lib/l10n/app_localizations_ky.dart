@@ -3420,7 +3420,7 @@ class StringsKy extends Strings {
 
   @override
   String serverRewardGems(int gems) {
-    return '+$gems асыл таш';
+    return '+$gems кристалл';
   }
 
   @override
@@ -3539,4 +3539,130 @@ class StringsKy extends Strings {
   @override
   String get deleteAlsoFromCloudHint =>
       'Жарыяланган версия лайктары жана комментарийлери менен кошо өчүрүлөт.';
+
+  @override
+  String questFillUsed(int count) {
+    return 'Толтуруу куралын $count жолу колдонуңуз';
+  }
+
+  @override
+  String questShapeDrawn(int count) {
+    return '$count фигура тартыңыз';
+  }
+
+  @override
+  String questProjectLiked(int count) {
+    return 'Коомчулукта $count долбоорго лайк басыңыз';
+  }
+
+  @override
+  String questChallengeEntered(int count) {
+    return '$count челленджге катышыңыз';
+  }
+
+  @override
+  String questOldProjectStroke(int count) {
+    return 'Бир жумадан эски долбоорго кайтыңыз: $count сызык';
+  }
+
+  @override
+  String get questTierEasy => 'Жеңил';
+
+  @override
+  String get questTierMedium => 'Орточо';
+
+  @override
+  String get questTierHard => 'Кыйын';
+
+  @override
+  String get questBonusTitle => 'Бонус тапшырма';
+
+  @override
+  String get questBonusHint =>
+      'Милдеттүү эмес: бир аз көбүрөөк аракет — бир аз көбүрөөк сыйлык';
+
+  @override
+  String get dailyBonusTitle => 'Үчөө тең аткарылды';
+
+  @override
+  String get dailyBonusHint => 'Күндүн үч тапшырмасын алып, бонус алыңыз';
+
+  @override
+  String get questReroll => 'Тапшырманы алмаштыруу';
+
+  @override
+  String questRerollsLeft(int count) {
+    return 'Бүгүн $count алмаштыруу калды';
+  }
+
+  @override
+  String loginCycleTomorrow(int coins) {
+    return 'Эртең: +$coins кристалл';
+  }
+
+  @override
+  String get loginCycleGrace =>
+      'Бир күн өткөрүп жибердиңизби? Жумасына бир жолу катар үзүлбөйт.';
+
+  @override
+  String questDailyQuestClaimed(int count) {
+    return 'Күндүн $count тапшырмасын аткарыңыз';
+  }
+
+  @override
+  String get weeklyQuestsTitle => 'Жуманын тапшырмалары';
+
+  @override
+  String weeklyResetsIn(int days) {
+    return 'Жаңы тапшырмалар $days күндөн кийин';
+  }
+
+  @override
+  String get weeklyBonusTitle => 'Жуманын бардык тапшырмалары аткарылды';
+
+  @override
+  String get weeklyBonusHint => 'Жуманын үч тапшырмасын алып, бонус алыңыз';
+
+  @override
+  String get welcomeBackTitle => 'Кайра кош келиңиз!';
+
+  @override
+  String get welcomeBackHint => 'Бүгүн күндүн тапшырмалары эки эсе көп берет.';
+
+  @override
+  String savingsGoalTitle(String pack) {
+    return '$pack үчүн топтоп жатасыз';
+  }
+
+  @override
+  String savingsGoalEta(int days) {
+    return 'Сиздин темп менен ≈ $days күн';
+  }
+
+  @override
+  String get savingsGoalReady => 'Жетиштүү — ачыңыз!';
+
+  @override
+  String get savingsGoalNoPace =>
+      'Мөөнөттү көрүү үчүн бир нече тапшырма аткарыңыз';
+
+  @override
+  String get savingsGoalPick => 'Топтой турган пакты тандаңыз';
+
+  @override
+  String get savingsGoalPickAction => 'Тандоо';
+
+  @override
+  String get savingsGoalSet => 'Бул пак үчүн топтоо';
+
+  @override
+  String get savingsGoalActive => 'Сиздин топтоо максатыңыз';
+
+  @override
+  String packPriceCredit(int coins) {
+    return 'Сизде бар эффекттер үчүн −$coins';
+  }
+
+  @override
+  String get packFirstDiscount => 'Биринчи пак −40%';
 }

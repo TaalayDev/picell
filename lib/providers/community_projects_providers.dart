@@ -6,6 +6,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../data/models/project_api_models.dart';
 import '../providers/providers.dart';
+import '../data/models/progression_model.dart';
+import 'progression_provider.dart';
 
 part 'community_projects_providers.freezed.dart';
 part 'community_projects_providers.g.dart';
@@ -164,6 +166,7 @@ class CommunityProjects extends _$CommunityProjects {
 
       if (response.success && response.data != null) {
         final isLiked = response.data!.liked;
+        if (isLiked) ref.read(progressionProvider.notifier).record(ProgressionEvent.projectLiked);
         final newLikeCount = isLiked ? project.likeCount + 1 : project.likeCount - 1;
 
         // Update the project in our local state

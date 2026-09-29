@@ -6270,6 +6270,204 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Removes the published version with its likes and comments.'**
   String get deleteAlsoFromCloudHint;
+
+  /// No description provided for @questFillUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Use the fill tool} other{Use the fill tool {count} times}}'**
+  String questFillUsed(int count);
+
+  /// No description provided for @questShapeDrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Draw a shape} other{Draw {count} shapes}}'**
+  String questShapeDrawn(int count);
+
+  /// No description provided for @questProjectLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Like a project in the community} other{Like {count} community projects}}'**
+  String questProjectLiked(int count);
+
+  /// No description provided for @questChallengeEntered.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Enter a challenge} other{Enter {count} challenges}}'**
+  String questChallengeEntered(int count);
+
+  /// No description provided for @questOldProjectStroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Come back to a project older than a week: {count} strokes'**
+  String questOldProjectStroke(int count);
+
+  /// No description provided for @questTierEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get questTierEasy;
+
+  /// No description provided for @questTierMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get questTierMedium;
+
+  /// No description provided for @questTierHard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get questTierHard;
+
+  /// No description provided for @questBonusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus quest'**
+  String get questBonusTitle;
+
+  /// No description provided for @questBonusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: a little extra for a little more'**
+  String get questBonusHint;
+
+  /// No description provided for @dailyBonusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All three done'**
+  String get dailyBonusTitle;
+
+  /// No description provided for @dailyBonusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim all three daily quests for a bonus'**
+  String get dailyBonusHint;
+
+  /// No description provided for @questReroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap quest'**
+  String get questReroll;
+
+  /// No description provided for @questRerollsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No swaps left today} =1{1 swap left today} other{{count} swaps left today}}'**
+  String questRerollsLeft(int count);
+
+  /// No description provided for @loginCycleTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow: +{coins} gems'**
+  String loginCycleTomorrow(int coins);
+
+  /// No description provided for @loginCycleGrace.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed a day? One per week won\'t break your streak.'**
+  String get loginCycleGrace;
+
+  /// No description provided for @questDailyQuestClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Complete a daily quest} other{Complete {count} daily quests}}'**
+  String questDailyQuestClaimed(int count);
+
+  /// No description provided for @weeklyQuestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly quests'**
+  String get weeklyQuestsTitle;
+
+  /// No description provided for @weeklyResetsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{New quests tomorrow} other{New quests in {days} days}}'**
+  String weeklyResetsIn(int days);
+
+  /// No description provided for @weeklyBonusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All weekly quests done'**
+  String get weeklyBonusTitle;
+
+  /// No description provided for @weeklyBonusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim all three weekly quests for a bonus'**
+  String get weeklyBonusHint;
+
+  /// No description provided for @welcomeBackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back!'**
+  String get welcomeBackTitle;
+
+  /// No description provided for @welcomeBackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily quests pay double today.'**
+  String get welcomeBackHint;
+
+  /// No description provided for @savingsGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving for {pack}'**
+  String savingsGoalTitle(String pack);
+
+  /// No description provided for @savingsGoalEta.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{≈ 1 day at your pace} other{≈ {days} days at your pace}}'**
+  String savingsGoalEta(int days);
+
+  /// No description provided for @savingsGoalReady.
+  ///
+  /// In en, this message translates to:
+  /// **'You have enough — unlock it!'**
+  String get savingsGoalReady;
+
+  /// No description provided for @savingsGoalNoPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Do a few quests to see how long it will take'**
+  String get savingsGoalNoPace;
+
+  /// No description provided for @savingsGoalPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a pack to save for'**
+  String get savingsGoalPick;
+
+  /// No description provided for @savingsGoalPickAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get savingsGoalPickAction;
+
+  /// No description provided for @savingsGoalSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Save for this pack'**
+  String get savingsGoalSet;
+
+  /// No description provided for @savingsGoalActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Your savings goal'**
+  String get savingsGoalActive;
+
+  /// No description provided for @packPriceCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'−{coins} for effects you own'**
+  String packPriceCredit(int coins);
+
+  /// No description provided for @packFirstDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'First pack −40%'**
+  String get packFirstDiscount;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

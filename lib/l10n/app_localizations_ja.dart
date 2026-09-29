@@ -3426,4 +3426,127 @@ class StringsJa extends Strings {
 
   @override
   String get deleteAlsoFromCloudHint => '公開中のバージョンを、いいねやコメントと一緒に削除します。';
+
+  @override
+  String questFillUsed(int count) {
+    return '塗りつぶしツールを$count回使う';
+  }
+
+  @override
+  String questShapeDrawn(int count) {
+    return '図形を$count個描く';
+  }
+
+  @override
+  String questProjectLiked(int count) {
+    return 'コミュニティのプロジェクトに$count回いいねする';
+  }
+
+  @override
+  String questChallengeEntered(int count) {
+    return 'チャレンジに$count回参加する';
+  }
+
+  @override
+  String questOldProjectStroke(int count) {
+    return '1週間以上前のプロジェクトに戻る：$countストローク';
+  }
+
+  @override
+  String get questTierEasy => 'かんたん';
+
+  @override
+  String get questTierMedium => 'ふつう';
+
+  @override
+  String get questTierHard => 'むずかしい';
+
+  @override
+  String get questBonusTitle => 'ボーナス任務';
+
+  @override
+  String get questBonusHint => '任意：もう少し頑張ってもう少し報酬';
+
+  @override
+  String get dailyBonusTitle => '3つすべて達成';
+
+  @override
+  String get dailyBonusHint => '今日のクエストを3つすべて受け取るとボーナス';
+
+  @override
+  String get questReroll => 'クエストを入れ替える';
+
+  @override
+  String questRerollsLeft(int count) {
+    return '今日の入れ替え残り$count回';
+  }
+
+  @override
+  String loginCycleTomorrow(int coins) {
+    return '明日：+$coins ジェム';
+  }
+
+  @override
+  String get loginCycleGrace => '1日休んでも大丈夫。週に1回まで連続記録は途切れません。';
+
+  @override
+  String questDailyQuestClaimed(int count) {
+    return 'デイリークエストを$count個達成する';
+  }
+
+  @override
+  String get weeklyQuestsTitle => 'ウィークリークエスト';
+
+  @override
+  String weeklyResetsIn(int days) {
+    return '新しいクエストまであと$days日';
+  }
+
+  @override
+  String get weeklyBonusTitle => 'ウィークリークエストをすべて達成';
+
+  @override
+  String get weeklyBonusHint => '今週のクエストを3つすべて受け取るとボーナス';
+
+  @override
+  String get welcomeBackTitle => 'おかえりなさい！';
+
+  @override
+  String get welcomeBackHint => '今日はデイリークエストの報酬が2倍です。';
+
+  @override
+  String savingsGoalTitle(String pack) {
+    return '$packのために貯金中';
+  }
+
+  @override
+  String savingsGoalEta(int days) {
+    return '今のペースで約$days日';
+  }
+
+  @override
+  String get savingsGoalReady => '足りています — 解放しましょう！';
+
+  @override
+  String get savingsGoalNoPace => 'クエストをいくつか達成すると目安が表示されます';
+
+  @override
+  String get savingsGoalPick => '貯金するパックを選ぶ';
+
+  @override
+  String get savingsGoalPickAction => '選ぶ';
+
+  @override
+  String get savingsGoalSet => 'このパックのために貯金';
+
+  @override
+  String get savingsGoalActive => '貯金の目標';
+
+  @override
+  String packPriceCredit(int coins) {
+    return '所持エフェクト分 −$coins';
+  }
+
+  @override
+  String get packFirstDiscount => '初めてのパック −40%';
 }

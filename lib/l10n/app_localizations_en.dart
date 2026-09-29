@@ -3621,4 +3621,178 @@ class StringsEn extends Strings {
   @override
   String get deleteAlsoFromCloudHint =>
       'Removes the published version with its likes and comments.';
+
+  @override
+  String questFillUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Use the fill tool $count times',
+      one: 'Use the fill tool',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questShapeDrawn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Draw $count shapes',
+      one: 'Draw a shape',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questProjectLiked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Like $count community projects',
+      one: 'Like a project in the community',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questChallengeEntered(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Enter $count challenges',
+      one: 'Enter a challenge',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questOldProjectStroke(int count) {
+    return 'Come back to a project older than a week: $count strokes';
+  }
+
+  @override
+  String get questTierEasy => 'Easy';
+
+  @override
+  String get questTierMedium => 'Medium';
+
+  @override
+  String get questTierHard => 'Hard';
+
+  @override
+  String get questBonusTitle => 'Bonus quest';
+
+  @override
+  String get questBonusHint => 'Optional: a little extra for a little more';
+
+  @override
+  String get dailyBonusTitle => 'All three done';
+
+  @override
+  String get dailyBonusHint => 'Claim all three daily quests for a bonus';
+
+  @override
+  String get questReroll => 'Swap quest';
+
+  @override
+  String questRerollsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count swaps left today',
+      one: '1 swap left today',
+      zero: 'No swaps left today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String loginCycleTomorrow(int coins) {
+    return 'Tomorrow: +$coins gems';
+  }
+
+  @override
+  String get loginCycleGrace =>
+      'Missed a day? One per week won\'t break your streak.';
+
+  @override
+  String questDailyQuestClaimed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Complete $count daily quests',
+      one: 'Complete a daily quest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get weeklyQuestsTitle => 'Weekly quests';
+
+  @override
+  String weeklyResetsIn(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'New quests in $days days',
+      one: 'New quests tomorrow',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get weeklyBonusTitle => 'All weekly quests done';
+
+  @override
+  String get weeklyBonusHint => 'Claim all three weekly quests for a bonus';
+
+  @override
+  String get welcomeBackTitle => 'Welcome back!';
+
+  @override
+  String get welcomeBackHint => 'Daily quests pay double today.';
+
+  @override
+  String savingsGoalTitle(String pack) {
+    return 'Saving for $pack';
+  }
+
+  @override
+  String savingsGoalEta(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '≈ $days days at your pace',
+      one: '≈ 1 day at your pace',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get savingsGoalReady => 'You have enough — unlock it!';
+
+  @override
+  String get savingsGoalNoPace =>
+      'Do a few quests to see how long it will take';
+
+  @override
+  String get savingsGoalPick => 'Pick a pack to save for';
+
+  @override
+  String get savingsGoalPickAction => 'Choose';
+
+  @override
+  String get savingsGoalSet => 'Save for this pack';
+
+  @override
+  String get savingsGoalActive => 'Your savings goal';
+
+  @override
+  String packPriceCredit(int coins) {
+    return '−$coins for effects you own';
+  }
+
+  @override
+  String get packFirstDiscount => 'First pack −40%';
 }

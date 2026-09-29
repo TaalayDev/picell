@@ -111,6 +111,11 @@ class ProjectUpload extends _$ProjectUpload {
         if (!isUpdate) {
           await ref.read(projectRepo).markProjectAsSynced(localProject.id, response.data!.id);
           ref.read(progressionProvider.notifier).record(ProgressionEvent.projectPublished);
+          // Only new projects count, so re-uploading can't farm the quest.
+          final entered = ref.read(challengeSubmissionProvider)?.enteredTags.length ?? 0;
+          if (entered > 0) {
+            ref.read(progressionProvider.notifier).record(ProgressionEvent.challengeEntered, count: entered);
+          }
         }
 
         state = state.copyWith(

@@ -3393,4 +3393,127 @@ class StringsZh extends Strings {
 
   @override
   String get deleteAlsoFromCloudHint => '已发布的版本及其点赞和评论将一并删除。';
+
+  @override
+  String questFillUsed(int count) {
+    return '使用填充工具 $count 次';
+  }
+
+  @override
+  String questShapeDrawn(int count) {
+    return '绘制 $count 个形状';
+  }
+
+  @override
+  String questProjectLiked(int count) {
+    return '为社区中的 $count 个项目点赞';
+  }
+
+  @override
+  String questChallengeEntered(int count) {
+    return '参加 $count 个挑战';
+  }
+
+  @override
+  String questOldProjectStroke(int count) {
+    return '回到一周前的项目：绘制 $count 笔';
+  }
+
+  @override
+  String get questTierEasy => '简单';
+
+  @override
+  String get questTierMedium => '中等';
+
+  @override
+  String get questTierHard => '困难';
+
+  @override
+  String get questBonusTitle => '奖励任务';
+
+  @override
+  String get questBonusHint => '可选：多一点努力，多一点奖励';
+
+  @override
+  String get dailyBonusTitle => '三项全部完成';
+
+  @override
+  String get dailyBonusHint => '领取当天全部三个任务即可获得奖励';
+
+  @override
+  String get questReroll => '更换任务';
+
+  @override
+  String questRerollsLeft(int count) {
+    return '今天还可更换 $count 次';
+  }
+
+  @override
+  String loginCycleTomorrow(int coins) {
+    return '明天：+$coins 宝石';
+  }
+
+  @override
+  String get loginCycleGrace => '错过一天？每周一次不会中断连续记录。';
+
+  @override
+  String questDailyQuestClaimed(int count) {
+    return '完成 $count 个每日任务';
+  }
+
+  @override
+  String get weeklyQuestsTitle => '每周任务';
+
+  @override
+  String weeklyResetsIn(int days) {
+    return '$days 天后刷新任务';
+  }
+
+  @override
+  String get weeklyBonusTitle => '每周任务全部完成';
+
+  @override
+  String get weeklyBonusHint => '领取本周全部三个任务即可获得奖励';
+
+  @override
+  String get welcomeBackTitle => '欢迎回来！';
+
+  @override
+  String get welcomeBackHint => '今天每日任务奖励翻倍。';
+
+  @override
+  String savingsGoalTitle(String pack) {
+    return '正在为 $pack 攒宝石';
+  }
+
+  @override
+  String savingsGoalEta(int days) {
+    return '按你的速度约 $days 天';
+  }
+
+  @override
+  String get savingsGoalReady => '宝石够了——去解锁吧！';
+
+  @override
+  String get savingsGoalNoPace => '完成几个任务即可看到预计时间';
+
+  @override
+  String get savingsGoalPick => '选择一个要攒的扩展包';
+
+  @override
+  String get savingsGoalPickAction => '选择';
+
+  @override
+  String get savingsGoalSet => '为这个扩展包攒宝石';
+
+  @override
+  String get savingsGoalActive => '你的攒钱目标';
+
+  @override
+  String packPriceCredit(int coins) {
+    return '已拥有的效果抵扣 −$coins';
+  }
+
+  @override
+  String get packFirstDiscount => '首个扩展包 −40%';
 }

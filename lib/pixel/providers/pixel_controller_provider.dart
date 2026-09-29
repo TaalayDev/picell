@@ -367,6 +367,8 @@ class PixelDrawController extends _$PixelDrawController {
     );
 
     _updateCurrentLayerPixels(newPixels);
+    // Shape tools (line, rectangle, circle, ...) commit through here.
+    _recordProgress(ProgressionEvent.shapeDrawn);
   }
 
   void floodFill(int x, int y) {
@@ -385,6 +387,7 @@ class PixelDrawController extends _$PixelDrawController {
 
     _updateCurrentLayerPixels(newPixels);
     _recordProgress(ProgressionEvent.strokeCompleted);
+    _recordProgress(ProgressionEvent.fillUsed);
   }
 
   void clearCanvas() {
@@ -1957,7 +1960,13 @@ class PixelDrawController extends _$PixelDrawController {
 
   /// Counts an action toward quests. In-memory only, safe on hot paths.
   void _recordProgress(ProgressionEvent event) {
-    ref.read(progressionProvider.notifier).record(event);
+    final progression = ref.read(progressionProvider.notifier);
+    progression.record(event);
+    // Coming back to an older piece counts for the "old project" bonus quest.
+    if (event == ProgressionEvent.strokeCompleted &&
+        project.createdAt.isBefore(DateTime.now().subtract(const Duration(days: 7)))) {
+      progression.record(ProgressionEvent.oldProjectStroke);
+    }
   }
 
   Future<void> importImageAsBackground(BuildContext context) async {

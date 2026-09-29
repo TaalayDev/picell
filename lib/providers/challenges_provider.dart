@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../data/models/challenge_models.dart';
+import '../data/models/progression_model.dart';
 import '../data/models/project_api_models.dart';
 import '../data/storage/local_storage.dart';
 import 'progression_provider.dart';
@@ -212,6 +213,7 @@ class ChallengeEntriesNotifier extends AutoDisposeFamilyNotifier<ChallengeEntrie
       final response = await ref.read(projectAPIRepoProvider).toggleLike(project.id);
       final result = response.data;
       if (!response.success || result == null || _disposed) return;
+      if (result.liked) ref.read(progressionProvider.notifier).record(ProgressionEvent.projectLiked);
       state = state.copyWith(
         projects: [
           for (final p in state.projects)
