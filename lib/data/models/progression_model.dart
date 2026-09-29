@@ -17,9 +17,14 @@ enum ProgressionEvent {
   animationExported,
   projectImported,
   projectPublished,
+  templateUsed,
+  imageImported,
+  animationStateAdded,
 }
 
-enum QuestKind { starter, daily }
+/// Starter quests teach the basics once; achievements are tiered goals;
+/// dailies reset every day.
+enum QuestKind { starter, achievement, daily }
 
 class Quest extends Equatable {
   const Quest({
@@ -29,6 +34,7 @@ class Quest extends Equatable {
     required this.target,
     required this.coins,
     this.rewardEffect,
+    this.requires,
   });
 
   final String id;
@@ -39,6 +45,10 @@ class Quest extends Equatable {
 
   /// An effect unlocked for free when the quest is claimed.
   final EffectType? rewardEffect;
+
+  /// Id of the quest that must be claimed before this one shows up. Progress
+  /// counts from the start, so the next tier may already be done.
+  final String? requires;
 
   @override
   List<Object?> get props => [id];
@@ -63,6 +73,15 @@ class QuestCatalog {
       coins: 100,
       rewardEffect: EffectType.float,
     ),
+    Quest(
+      id: 'first_animation_state',
+      kind: QuestKind.starter,
+      event: ProgressionEvent.animationStateAdded,
+      target: 1,
+      coins: 75,
+    ),
+    Quest(id: 'first_template', kind: QuestKind.starter, event: ProgressionEvent.templateUsed, target: 1, coins: 50),
+    Quest(id: 'first_image_import', kind: QuestKind.starter, event: ProgressionEvent.imageImported, target: 1, coins: 50),
     Quest(id: 'first_export', kind: QuestKind.starter, event: ProgressionEvent.imageExported, target: 1, coins: 50),
     Quest(
       id: 'first_animation_export',
@@ -88,9 +107,196 @@ class QuestCatalog {
       coins: 150,
       rewardEffect: EffectType.fire,
     ),
-    Quest(id: 'publish_5', kind: QuestKind.starter, event: ProgressionEvent.projectPublished, target: 5, coins: 300),
   ];
 
+  /// Tiered goals. Each tier appears once the previous one is claimed, and
+  /// the higher tiers pay out effects from paid packs.
+  static const List<Quest> achievements = [
+    // Drawing
+    Quest(
+      id: 'strokes_500',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.strokeCompleted,
+      target: 500,
+      coins: 150,
+      requires: 'strokes_100',
+    ),
+    Quest(
+      id: 'strokes_2000',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.strokeCompleted,
+      target: 2000,
+      coins: 300,
+      rewardEffect: EffectType.watercolor,
+      requires: 'strokes_500',
+    ),
+    Quest(
+      id: 'strokes_10000',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.strokeCompleted,
+      target: 10000,
+      coins: 600,
+      rewardEffect: EffectType.rimLight,
+      requires: 'strokes_2000',
+    ),
+    // Projects
+    Quest(
+      id: 'projects_5',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.projectCreated,
+      target: 5,
+      coins: 100,
+      requires: 'first_project',
+    ),
+    Quest(
+      id: 'projects_20',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.projectCreated,
+      target: 20,
+      coins: 250,
+      rewardEffect: EffectType.mountainRange,
+      requires: 'projects_5',
+    ),
+    // Layers
+    Quest(
+      id: 'layers_15',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.layerAdded,
+      target: 15,
+      coins: 100,
+      requires: 'layers_3',
+    ),
+    Quest(
+      id: 'layers_50',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.layerAdded,
+      target: 50,
+      coins: 250,
+      rewardEffect: EffectType.wood,
+      requires: 'layers_15',
+    ),
+    // Effects
+    Quest(
+      id: 'effects_15',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.effectAdded,
+      target: 15,
+      coins: 150,
+      requires: 'effects_3',
+    ),
+    Quest(
+      id: 'effects_50',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.effectAdded,
+      target: 50,
+      coins: 300,
+      rewardEffect: EffectType.auroraCurtains,
+      requires: 'effects_15',
+    ),
+    // Animation
+    Quest(
+      id: 'frames_30',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.frameAdded,
+      target: 30,
+      coins: 150,
+      requires: 'frames_8',
+    ),
+    Quest(
+      id: 'frames_100',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.frameAdded,
+      target: 100,
+      coins: 300,
+      rewardEffect: EffectType.explosion,
+      requires: 'frames_30',
+    ),
+    Quest(
+      id: 'animation_states_5',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.animationStateAdded,
+      target: 5,
+      coins: 150,
+      rewardEffect: EffectType.jello,
+      requires: 'first_animation_state',
+    ),
+    Quest(
+      id: 'generated_animations_5',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.animationGenerated,
+      target: 5,
+      coins: 200,
+      rewardEffect: EffectType.soulWisps,
+      requires: 'first_generated_animation',
+    ),
+    // Templates
+    Quest(
+      id: 'templates_5',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.templateUsed,
+      target: 5,
+      coins: 100,
+      requires: 'first_template',
+    ),
+    // Exports
+    Quest(
+      id: 'exports_10',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.imageExported,
+      target: 10,
+      coins: 150,
+      requires: 'first_export',
+    ),
+    Quest(
+      id: 'exports_50',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.imageExported,
+      target: 50,
+      coins: 400,
+      rewardEffect: EffectType.halftone,
+      requires: 'exports_10',
+    ),
+    Quest(
+      id: 'animation_exports_5',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.animationExported,
+      target: 5,
+      coins: 200,
+      requires: 'first_animation_export',
+    ),
+    Quest(
+      id: 'animation_exports_25',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.animationExported,
+      target: 25,
+      coins: 400,
+      rewardEffect: EffectType.fireflySwarm,
+      requires: 'animation_exports_5',
+    ),
+    // Community
+    Quest(
+      id: 'publish_5',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.projectPublished,
+      target: 5,
+      coins: 300,
+      requires: 'first_publish',
+    ),
+    Quest(
+      id: 'publish_20',
+      kind: QuestKind.achievement,
+      event: ProgressionEvent.projectPublished,
+      target: 20,
+      coins: 600,
+      rewardEffect: EffectType.starfield,
+      requires: 'publish_5',
+    ),
+  ];
+
+  /// Every quest that is completed once, in display order.
+  static const List<Quest> oneTime = [...starter, ...achievements];
+
+  /// One quest per kind of action, so a day's three quests never overlap.
   static const List<Quest> dailyPool = [
     Quest(id: 'daily_strokes', kind: QuestKind.daily, event: ProgressionEvent.strokeCompleted, target: 50, coins: 20),
     Quest(id: 'daily_effects', kind: QuestKind.daily, event: ProgressionEvent.effectAdded, target: 2, coins: 20),
@@ -105,10 +311,33 @@ class QuestCatalog {
       target: 1,
       coins: 30,
     ),
+    Quest(id: 'daily_template', kind: QuestKind.daily, event: ProgressionEvent.templateUsed, target: 1, coins: 20),
+    Quest(
+      id: 'daily_generated_animation',
+      kind: QuestKind.daily,
+      event: ProgressionEvent.animationGenerated,
+      target: 1,
+      coins: 30,
+    ),
+    Quest(
+      id: 'daily_animation_state',
+      kind: QuestKind.daily,
+      event: ProgressionEvent.animationStateAdded,
+      target: 1,
+      coins: 25,
+    ),
+    Quest(id: 'daily_image_import', kind: QuestKind.daily, event: ProgressionEvent.imageImported, target: 1, coins: 20),
+    Quest(id: 'daily_publish', kind: QuestKind.daily, event: ProgressionEvent.projectPublished, target: 1, coins: 40),
   ];
 
   static final Map<String, Quest> byId = {
-    for (final quest in [...starter, ...dailyPool]) quest.id: quest,
+    for (final quest in [...oneTime, ...dailyPool]) quest.id: quest,
+  };
+
+  /// The quest unlocked by claiming the given one, if any.
+  static final Map<String, Quest> nextTier = {
+    for (final quest in oneTime)
+      if (quest.requires != null) quest.requires!: quest,
   };
 
   /// The same three daily quests for everyone on a given day.
@@ -167,7 +396,7 @@ class CoinPrices {
   }
 }
 
-enum WalletReason { quest, streak, ad, effectPurchase, packPurchase }
+enum WalletReason { quest, streak, ad, effectPurchase, packPurchase, serverReward }
 
 class WalletEntry extends Equatable {
   const WalletEntry({required this.amount, required this.reason, required this.at, this.detail});
@@ -186,7 +415,8 @@ class WalletEntry extends Equatable {
 
   factory WalletEntry.fromJson(Map<String, dynamic> json) => WalletEntry(
         amount: json['amount'] as int,
-        reason: WalletReason.values.byName(json['reason'] as String),
+        // Unknown reasons come from a newer app version; keep the amount.
+        reason: WalletReason.values.asNameMap()[json['reason']] ?? WalletReason.serverReward,
         at: DateTime.parse(json['at'] as String),
         detail: json['detail'] as String?,
       );
@@ -205,6 +435,7 @@ String dayKeyOf(DateTime time) {
 /// All transitions are pure so they can be tested without storage or UI.
 class ProgressionState extends Equatable {
   static const int _maxLedgerEntries = 100;
+  static const int _maxClaimedGrants = 300;
 
   const ProgressionState({
     this.coins = 0,
@@ -218,6 +449,7 @@ class ProgressionState extends Equatable {
     this.earnedEffects = const {},
     this.earnedPacks = const {},
     this.packTrials = const {},
+    this.claimedGrants = const [],
   });
 
   final int coins;
@@ -236,6 +468,10 @@ class ProgressionState extends Equatable {
   final Set<EffectPackId> earnedPacks;
   final Map<EffectPackId, DateTime> packTrials;
 
+  /// Ids of server reward grants already added to the wallet, newest first,
+  /// so a grant is never paid twice.
+  final List<String> claimedGrants;
+
   static String dailyProgressKey(Quest quest) => 'daily:${quest.id}';
 
   List<Quest> get dailyQuests => QuestCatalog.dailyFor(dayKey ?? dayKeyOf(DateTime.now()));
@@ -252,9 +488,12 @@ class ProgressionState extends Equatable {
     return claimedQuests.contains(key);
   }
 
-  bool canClaim(Quest quest) => isComplete(quest) && !isClaimed(quest);
+  /// Whether the quest is shown: its prerequisite, if any, was claimed.
+  bool isUnlocked(Quest quest) => quest.requires == null || claimedQuests.contains(quest.requires);
 
-  int get claimableCount => [...QuestCatalog.starter, ...dailyQuests].where(canClaim).length;
+  bool canClaim(Quest quest) => isUnlocked(quest) && isComplete(quest) && !isClaimed(quest);
+
+  int get claimableCount => [...QuestCatalog.oneTime, ...dailyQuests].where(canClaim).length;
 
   bool hasPackTrial(EffectPackId pack, DateTime now) => packTrials[pack]?.isAfter(now) ?? false;
 
@@ -277,6 +516,7 @@ class ProgressionState extends Equatable {
     Set<EffectType>? earnedEffects,
     Set<EffectPackId>? earnedPacks,
     Map<EffectPackId, DateTime>? packTrials,
+    List<String>? claimedGrants,
   }) {
     return ProgressionState(
       coins: coins ?? this.coins,
@@ -290,6 +530,7 @@ class ProgressionState extends Equatable {
       earnedEffects: earnedEffects ?? this.earnedEffects,
       earnedPacks: earnedPacks ?? this.earnedPacks,
       packTrials: packTrials ?? this.packTrials,
+      claimedGrants: claimedGrants ?? this.claimedGrants,
     );
   }
 
@@ -339,7 +580,7 @@ class ProgressionState extends Equatable {
   (ProgressionState, List<Quest>) record(ProgressionEvent event, DateTime now, {int count = 1}) {
     final current = rollDay(now);
     final quests = [
-      ...QuestCatalog.starter.where((quest) => quest.event == event),
+      ...QuestCatalog.oneTime.where((quest) => quest.event == event),
       ...current.dailyQuests.where((quest) => quest.event == event),
     ];
     if (quests.isEmpty) return (current, const []);
@@ -353,7 +594,8 @@ class ProgressionState extends Equatable {
       final after = before + count;
       // Stop counting past the target so progress maps stay small.
       progress[key] = min(after, quest.target);
-      if (after >= quest.target) completed.add(quest);
+      // Hidden tiers keep counting but are announced once they appear.
+      if (after >= quest.target && current.isUnlocked(quest)) completed.add(quest);
     }
     return (current.copyWith(progress: progress), completed);
   }
@@ -391,6 +633,21 @@ class ProgressionState extends Equatable {
         .copyWith(adsWatchedToday: current.adsWatchedToday + 1);
   }
 
+  bool hasClaimedGrant(String grantId) => claimedGrants.contains(grantId);
+
+  /// Adds a server reward (gems and optionally a pack) once per [grantId].
+  /// Returns null when it was already added.
+  ProgressionState? applyServerGrant(String grantId, {required int gems, EffectPackId? pack, required DateTime now, String? detail}) {
+    if (hasClaimedGrant(grantId)) return null;
+    final ids = [grantId, ...claimedGrants];
+    var next = copyWith(
+      claimedGrants: ids.length > _maxClaimedGrants ? ids.sublist(0, _maxClaimedGrants) : ids,
+      earnedPacks: pack == null || pack == EffectPackId.free ? null : {...earnedPacks, pack},
+    );
+    if (gems > 0) next = next._withCoins(gems, WalletReason.serverReward, now, detail: detail);
+    return next;
+  }
+
   ProgressionState startPackTrial(EffectPackId pack, DateTime now) {
     return copyWith(
       packTrials: {
@@ -413,6 +670,7 @@ class ProgressionState extends Equatable {
         'earnedEffects': [for (final type in earnedEffects) type.name],
         'earnedPacks': [for (final pack in earnedPacks) pack.name],
         'packTrials': {for (final entry in packTrials.entries) entry.key.name: entry.value.toIso8601String()},
+        'claimedGrants': claimedGrants,
       };
 
   factory ProgressionState.fromJson(Map<String, dynamic> json) {
@@ -446,6 +704,7 @@ class ProgressionState extends Equatable {
         for (final entry in (json['packTrials'] as Map<String, dynamic>? ?? const {}).entries)
           if (byName(EffectPackId.values, entry.key) case final pack?) pack: DateTime.parse(entry.value as String),
       },
+      claimedGrants: (json['claimedGrants'] as List? ?? const []).cast<String>(),
     );
   }
 
@@ -462,5 +721,6 @@ class ProgressionState extends Equatable {
         earnedEffects,
         earnedPacks,
         packTrials,
+        claimedGrants,
       ];
 }

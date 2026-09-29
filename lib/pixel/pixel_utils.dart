@@ -16,7 +16,7 @@ abstract final class PixelUtils {
     final layersPixels = layers.reversed
         .where((l) => l.isVisible && l.opacity > 0)
         .map(
-          (l) => (pixels: l.processedPixels, opacity: l.opacity),
+          (l) => (pixels: l.processedPixels(width, height), opacity: l.opacity),
         )
         .toList();
 

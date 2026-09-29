@@ -319,36 +319,6 @@ class StringsJa extends Strings {
   String get feedback_q_price_more_20 => '\$20以上';
 
   @override
-  String get feedback_q_patreon_support => 'Patreonでプロジェクトをサポートしますか？';
-
-  @override
-  String get feedback_q_patreon_definitely => 'はい、必ず';
-
-  @override
-  String get feedback_q_patreon_if_exclusive => '限定機能があれば';
-
-  @override
-  String get feedback_q_patreon_if_reasonable => '価格が妥当であれば';
-
-  @override
-  String get feedback_q_patreon_probably_not => 'おそらくしない';
-
-  @override
-  String get feedback_q_patreon_no => 'いいえ、予定なし';
-
-  @override
-  String get feedback_q_patreon_tier => 'どのPatreonサポート層に興味がありますか？';
-
-  @override
-  String get feedback_q_patreon_tier_3 => '\$3/月 - 機能への早期アクセス';
-
-  @override
-  String get feedback_q_patreon_tier_5 => '\$5/月 - + 限定テーマ';
-
-  @override
-  String get feedback_q_patreon_tier_10 => '\$10/月 - + 開発への影響力';
-
-  @override
   String get feedback_q_usage_frequency => 'アプリをどのくらいの頻度で使用しますか？';
 
   @override
@@ -3098,16 +3068,24 @@ class StringsJa extends Strings {
   }
 
   @override
-  String get questAnimationGenerated => 'エフェクトアニメーションを生成';
+  String questAnimationGenerated(int count) {
+    return 'エフェクトアニメーションを$count個生成';
+  }
 
   @override
-  String get questImageExported => '画像をエクスポート';
+  String questImageExported(int count) {
+    return '画像を$count枚エクスポート';
+  }
 
   @override
-  String get questAnimationExported => 'アニメーションをエクスポート';
+  String questAnimationExported(int count) {
+    return 'アニメーションを$count本エクスポート';
+  }
 
   @override
-  String get questProjectImported => 'プロジェクトをインポート';
+  String questProjectImported(int count) {
+    return 'プロジェクトを$count個インポート';
+  }
 
   @override
   String questProjectPublished(int count) {
@@ -3121,4 +3099,331 @@ class StringsJa extends Strings {
 
   @override
   String get managePurchases => '購入の管理';
+
+  @override
+  String get achievementsTitle => '実績';
+
+  @override
+  String questTemplateUsed(int count) {
+    return 'テンプレートを$count回使う';
+  }
+
+  @override
+  String questImageImported(int count) {
+    return '画像を$count枚インポート';
+  }
+
+  @override
+  String questAnimationStateAdded(int count) {
+    return 'アニメーションステートを$count個作成';
+  }
+
+  @override
+  String get challengesTitle => 'チャレンジ';
+
+  @override
+  String get challengeCadenceDaily => 'デイリー';
+
+  @override
+  String get challengeCadenceWeekly => 'ウィークリー';
+
+  @override
+  String get challengeCadenceMonthly => 'マンスリー';
+
+  @override
+  String get challengeCadenceSeasonal => 'シーズン';
+
+  @override
+  String challengeEndsIn(String time) {
+    return '残り $time';
+  }
+
+  @override
+  String durationDaysHours(int days, int hours) {
+    return '$days日$hours時間';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours時間$minutes分';
+  }
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes分';
+  }
+
+  @override
+  String challengeEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の作品',
+      zero: 'まだ作品はありません',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get challengeJoined => '参加中';
+
+  @override
+  String get challengeTopPrize => '最高賞';
+
+  @override
+  String get challengeHowToJoin => '参加方法';
+
+  @override
+  String get challengeJoinSteps => 'テーマに沿って描き、このタグを付けてコミュニティに公開しましょう。';
+
+  @override
+  String get challengeCopyTag => 'タグをコピー';
+
+  @override
+  String get challengeTagCopied => 'タグをコピーしました';
+
+  @override
+  String get challengeRewards => '報酬';
+
+  @override
+  String get challengeParticipationReward => '参加賞';
+
+  @override
+  String challengePlace(int place) {
+    return '$place位';
+  }
+
+  @override
+  String get challengeEffectPackReward => '+ エフェクトパック';
+
+  @override
+  String get challengeStartDrawing => '描き始める';
+
+  @override
+  String get challengeTagsLabel => 'チャレンジに参加';
+
+  @override
+  String get challengeEntryPublicOnly => 'チャレンジに参加できるのは公開プロジェクトのみです。';
+
+  @override
+  String get challengeEntryOldProjectHint => 'チャレンジ開始前に初めて公開されたプロジェクトは参加できません。';
+
+  @override
+  String challengeStartsIn(String time) {
+    return '開始まで $time';
+  }
+
+  @override
+  String get challengeStatusJudging => '受賞者を選考中';
+
+  @override
+  String challengeResultsBy(String date) {
+    return '結果発表：$dateまで';
+  }
+
+  @override
+  String get challengeStatusCompleted => '終了';
+
+  @override
+  String get challengeStatusCancelled => '中止';
+
+  @override
+  String get challengeRulesTitle => 'ルール';
+
+  @override
+  String challengeRuleMaxEntries(int count) {
+    return '1人$count作品まで';
+  }
+
+  @override
+  String get challengeRuleStartsAfter => 'チャレンジ開始後に初めて公開されたプロジェクトのみ';
+
+  @override
+  String challengeRuleRequiredPack(String pack) {
+    return '「$pack」のエフェクトを1つ以上使う';
+  }
+
+  @override
+  String get challengeYourEntries => 'あなたの作品';
+
+  @override
+  String challengeEntryNumber(int number) {
+    return '作品$number';
+  }
+
+  @override
+  String get challengeEntryPending => '審査中';
+
+  @override
+  String get challengeEntryAccepted => '承認済み';
+
+  @override
+  String get challengeEntryRejected => '却下';
+
+  @override
+  String get challengeEntryWithdrawn => '取り下げ';
+
+  @override
+  String get challengeEntryWinner => '受賞';
+
+  @override
+  String get challengeWinnersTitle => '受賞作品';
+
+  @override
+  String get challengeMention => '佳作';
+
+  @override
+  String get challengeEntriesTitle => '参加作品';
+
+  @override
+  String get challengeSortRecent => '新着';
+
+  @override
+  String get challengeNoEntriesYet => 'まだ作品がありません。最初の1人になりましょう！';
+
+  @override
+  String get challengeLoadFailed => 'チャレンジを読み込めませんでした';
+
+  @override
+  String get challengeEntriesLoadFailed => '作品を読み込めませんでした';
+
+  @override
+  String challengeEnteredToast(String tags) {
+    return '$tags にエントリーしました！簡単な確認の後、ギャラリーに表示されます。';
+  }
+
+  @override
+  String challengeWarningNotActive(String tag) {
+    return '$tag は現在エントリーを受け付けていません。';
+  }
+
+  @override
+  String challengeWarningNotPublic(String tag) {
+    return '$tag に参加するにはプロジェクトを公開してください。';
+  }
+
+  @override
+  String challengeWarningBeforeStart(String tag) {
+    return '$tag には開始後に公開された作品のみ参加できます。新しい作品を公開してください。';
+  }
+
+  @override
+  String challengeWarningLimit(String tag) {
+    return '$tag のエントリー上限に達しました。';
+  }
+
+  @override
+  String get challengeWarningNotEligible => 'このアカウントは現在チャレンジに参加できません。';
+
+  @override
+  String serverRewardGems(int gems) {
+    return '+$gems ジェム';
+  }
+
+  @override
+  String serverRewardParticipationTitle(String challenge) {
+    return '$challenge へのご参加ありがとうございます！';
+  }
+
+  @override
+  String serverRewardPlacementTitle(String challenge) {
+    return '$challenge で入賞しました！';
+  }
+
+  @override
+  String serverRewardMentionTitle(String challenge) {
+    return '$challenge で佳作に選ばれました！';
+  }
+
+  @override
+  String get serverRewardGiftTitle => '報酬を受け取りました';
+
+  @override
+  String get myChallengeEntriesEmpty =>
+      'まだチャレンジに参加していません。作品を公開するときにチャレンジのタグを追加すると参加できます。';
+
+  @override
+  String get myChallengeEntriesLoadFailed => 'エントリーを読み込めませんでした';
+
+  @override
+  String get challengeCompetition => 'コンテスト';
+
+  @override
+  String get challengeRuleCompetition => 'コンテスト：終了後に入賞者が選ばれます';
+
+  @override
+  String get challengeRuleNoWinners => '順位なし：承認された作品はすべて報酬がもらえます';
+
+  @override
+  String get challengeRuleJustForFun => '順位も報酬もなし。気軽に楽しもう';
+
+  @override
+  String get challengeAcceptedEntryReward => '承認された作品ごと';
+
+  @override
+  String get challengeYourReward => 'あなたの報酬';
+
+  @override
+  String get challengeClaimReward => '受け取る';
+
+  @override
+  String get challengeRewardClaimed => '受け取り済み';
+
+  @override
+  String get challengeRewardPrize => '賞品';
+
+  @override
+  String get challengeRewardAfterReview => '作品が承認されると受け取れます';
+
+  @override
+  String get challengeRewardAfterResults => '入賞者の発表後に付与されます';
+
+  @override
+  String get challengeRewardSoon => '準備中です。少し後にもう一度確認してください';
+
+  @override
+  String get challengeRewardClaimFailed => '報酬を受け取れませんでした。もう一度お試しください。';
+
+  @override
+  String get feedback_chat_title => 'あなたのフィードバック';
+
+  @override
+  String get feedback_chat_new_feedback => '新しいフィードバック';
+
+  @override
+  String get feedback_chat_submitted => 'フィードバックを送信しました';
+
+  @override
+  String get feedback_chat_intro =>
+      'ありがとうございます！追加したいことがあればここに書いてください。すべてのメッセージを読み、このチャットで返信します。';
+
+  @override
+  String get feedback_chat_hint => 'メッセージを入力…';
+
+  @override
+  String get feedback_chat_send => '送信';
+
+  @override
+  String get feedback_chat_closed => 'この会話は終了しました。メッセージを送ると再開されます。';
+
+  @override
+  String get feedback_chat_load_failed => 'メッセージを読み込めませんでした';
+
+  @override
+  String get feedback_chat_send_failed => 'メッセージを送信できませんでした。もう一度お試しください。';
+
+  @override
+  String get feedback_chat_team => 'Picell チーム';
+
+  @override
+  String get feedback_reply_toast => 'フィードバックに新しい返信があります';
+
+  @override
+  String get feedback_reply_open => '開く';
+
+  @override
+  String get deleteAlsoFromCloud => 'コミュニティからも削除';
+
+  @override
+  String get deleteAlsoFromCloudHint => '公開中のバージョンを、いいねやコメントと一緒に削除します。';
 }

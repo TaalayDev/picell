@@ -697,66 +697,6 @@ abstract class Strings {
   /// **'More than \$20'**
   String get feedback_q_price_more_20;
 
-  /// No description provided for @feedback_q_patreon_support.
-  ///
-  /// In en, this message translates to:
-  /// **'Will you support the project on Patreon?'**
-  String get feedback_q_patreon_support;
-
-  /// No description provided for @feedback_q_patreon_definitely.
-  ///
-  /// In en, this message translates to:
-  /// **'Yes, definitely'**
-  String get feedback_q_patreon_definitely;
-
-  /// No description provided for @feedback_q_patreon_if_exclusive.
-  ///
-  /// In en, this message translates to:
-  /// **'Maybe, if there are exclusive features'**
-  String get feedback_q_patreon_if_exclusive;
-
-  /// No description provided for @feedback_q_patreon_if_reasonable.
-  ///
-  /// In en, this message translates to:
-  /// **'Maybe, if the price is reasonable'**
-  String get feedback_q_patreon_if_reasonable;
-
-  /// No description provided for @feedback_q_patreon_probably_not.
-  ///
-  /// In en, this message translates to:
-  /// **'Probably not'**
-  String get feedback_q_patreon_probably_not;
-
-  /// No description provided for @feedback_q_patreon_no.
-  ///
-  /// In en, this message translates to:
-  /// **'No, not planning to'**
-  String get feedback_q_patreon_no;
-
-  /// No description provided for @feedback_q_patreon_tier.
-  ///
-  /// In en, this message translates to:
-  /// **'Which Patreon support tier interests you?'**
-  String get feedback_q_patreon_tier;
-
-  /// No description provided for @feedback_q_patreon_tier_3.
-  ///
-  /// In en, this message translates to:
-  /// **'\$3/month - Early access to features'**
-  String get feedback_q_patreon_tier_3;
-
-  /// No description provided for @feedback_q_patreon_tier_5.
-  ///
-  /// In en, this message translates to:
-  /// **'\$5/month - + Exclusive themes'**
-  String get feedback_q_patreon_tier_5;
-
-  /// No description provided for @feedback_q_patreon_tier_10.
-  ///
-  /// In en, this message translates to:
-  /// **'\$10/month - + Influence on development'**
-  String get feedback_q_patreon_tier_10;
-
   /// No description provided for @feedback_q_usage_frequency.
   ///
   /// In en, this message translates to:
@@ -5746,26 +5686,26 @@ abstract class Strings {
   /// No description provided for @questAnimationGenerated.
   ///
   /// In en, this message translates to:
-  /// **'Generate an effect animation'**
-  String get questAnimationGenerated;
+  /// **'{count, plural, =1{Generate an effect animation} other{Generate {count} effect animations}}'**
+  String questAnimationGenerated(int count);
 
   /// No description provided for @questImageExported.
   ///
   /// In en, this message translates to:
-  /// **'Export an image'**
-  String get questImageExported;
+  /// **'{count, plural, =1{Export an image} other{Export {count} images}}'**
+  String questImageExported(int count);
 
   /// No description provided for @questAnimationExported.
   ///
   /// In en, this message translates to:
-  /// **'Export an animation'**
-  String get questAnimationExported;
+  /// **'{count, plural, =1{Export an animation} other{Export {count} animations}}'**
+  String questAnimationExported(int count);
 
   /// No description provided for @questProjectImported.
   ///
   /// In en, this message translates to:
-  /// **'Import a project'**
-  String get questProjectImported;
+  /// **'{count, plural, =1{Import a project} other{Import {count} projects}}'**
+  String questProjectImported(int count);
 
   /// No description provided for @questProjectPublished.
   ///
@@ -5784,6 +5724,552 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Manage purchases'**
   String get managePurchases;
+
+  /// No description provided for @achievementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements'**
+  String get achievementsTitle;
+
+  /// No description provided for @questTemplateUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Start from a template} other{Use {count} templates}}'**
+  String questTemplateUsed(int count);
+
+  /// No description provided for @questImageImported.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Import an image} other{Import {count} images}}'**
+  String questImageImported(int count);
+
+  /// No description provided for @questAnimationStateAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Create an animation state} other{Create {count} animation states}}'**
+  String questAnimationStateAdded(int count);
+
+  /// No description provided for @challengesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenges'**
+  String get challengesTitle;
+
+  /// No description provided for @challengeCadenceDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get challengeCadenceDaily;
+
+  /// No description provided for @challengeCadenceWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get challengeCadenceWeekly;
+
+  /// No description provided for @challengeCadenceMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get challengeCadenceMonthly;
+
+  /// No description provided for @challengeCadenceSeasonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal'**
+  String get challengeCadenceSeasonal;
+
+  /// No description provided for @challengeEndsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends in {time}'**
+  String challengeEndsIn(String time);
+
+  /// No description provided for @durationDaysHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h'**
+  String durationDaysHours(int days, int hours);
+
+  /// No description provided for @durationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String durationHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @durationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m'**
+  String durationMinutes(int minutes);
+
+  /// No description provided for @challengeEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No entries yet} =1{1 entry} other{{count} entries}}'**
+  String challengeEntries(int count);
+
+  /// No description provided for @challengeJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re in'**
+  String get challengeJoined;
+
+  /// No description provided for @challengeTopPrize.
+  ///
+  /// In en, this message translates to:
+  /// **'Top prize'**
+  String get challengeTopPrize;
+
+  /// No description provided for @challengeHowToJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'How to join'**
+  String get challengeHowToJoin;
+
+  /// No description provided for @challengeJoinSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw something on the theme, then publish it to the community with this tag.'**
+  String get challengeJoinSteps;
+
+  /// No description provided for @challengeCopyTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy tag'**
+  String get challengeCopyTag;
+
+  /// No description provided for @challengeTagCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag copied'**
+  String get challengeTagCopied;
+
+  /// No description provided for @challengeRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards'**
+  String get challengeRewards;
+
+  /// No description provided for @challengeParticipationReward.
+  ///
+  /// In en, this message translates to:
+  /// **'For taking part'**
+  String get challengeParticipationReward;
+
+  /// No description provided for @challengePlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Place {place}'**
+  String challengePlace(int place);
+
+  /// No description provided for @challengeEffectPackReward.
+  ///
+  /// In en, this message translates to:
+  /// **'+ effect pack'**
+  String get challengeEffectPackReward;
+
+  /// No description provided for @challengeStartDrawing.
+  ///
+  /// In en, this message translates to:
+  /// **'Start drawing'**
+  String get challengeStartDrawing;
+
+  /// No description provided for @challengeTagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a challenge'**
+  String get challengeTagsLabel;
+
+  /// No description provided for @challengeEntryPublicOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only public projects can enter challenges.'**
+  String get challengeEntryPublicOnly;
+
+  /// No description provided for @challengeEntryOldProjectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects first published before a challenge started can\'t enter it.'**
+  String get challengeEntryOldProjectHint;
+
+  /// No description provided for @challengeStartsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts in {time}'**
+  String challengeStartsIn(String time);
+
+  /// No description provided for @challengeStatusJudging.
+  ///
+  /// In en, this message translates to:
+  /// **'Picking winners'**
+  String get challengeStatusJudging;
+
+  /// No description provided for @challengeResultsBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Results by {date}'**
+  String challengeResultsBy(String date);
+
+  /// No description provided for @challengeStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get challengeStatusCompleted;
+
+  /// No description provided for @challengeStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get challengeStatusCancelled;
+
+  /// No description provided for @challengeRulesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get challengeRulesTitle;
+
+  /// No description provided for @challengeRuleMaxEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One entry per person} other{Up to {count} entries per person}}'**
+  String challengeRuleMaxEntries(int count);
+
+  /// No description provided for @challengeRuleStartsAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Only projects first published after the challenge starts'**
+  String get challengeRuleStartsAfter;
+
+  /// No description provided for @challengeRuleRequiredPack.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least one effect from {pack}'**
+  String challengeRuleRequiredPack(String pack);
+
+  /// No description provided for @challengeYourEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Your entries'**
+  String get challengeYourEntries;
+
+  /// No description provided for @challengeEntryNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry {number}'**
+  String challengeEntryNumber(int number);
+
+  /// No description provided for @challengeEntryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get challengeEntryPending;
+
+  /// No description provided for @challengeEntryAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get challengeEntryAccepted;
+
+  /// No description provided for @challengeEntryRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get challengeEntryRejected;
+
+  /// No description provided for @challengeEntryWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get challengeEntryWithdrawn;
+
+  /// No description provided for @challengeEntryWinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner'**
+  String get challengeEntryWinner;
+
+  /// No description provided for @challengeWinnersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Winners'**
+  String get challengeWinnersTitle;
+
+  /// No description provided for @challengeMention.
+  ///
+  /// In en, this message translates to:
+  /// **'Honorable mention'**
+  String get challengeMention;
+
+  /// No description provided for @challengeEntriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get challengeEntriesTitle;
+
+  /// No description provided for @challengeSortRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get challengeSortRecent;
+
+  /// No description provided for @challengeNoEntriesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries yet. Be the first!'**
+  String get challengeNoEntriesYet;
+
+  /// No description provided for @challengeLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load this challenge'**
+  String get challengeLoadFailed;
+
+  /// No description provided for @challengeEntriesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load entries'**
+  String get challengeEntriesLoadFailed;
+
+  /// No description provided for @challengeEnteredToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Entered {tags}! Your drawing shows up in the gallery after a quick review.'**
+  String challengeEnteredToast(String tags);
+
+  /// No description provided for @challengeWarningNotActive.
+  ///
+  /// In en, this message translates to:
+  /// **'{tag} isn\'t open for entries right now.'**
+  String challengeWarningNotActive(String tag);
+
+  /// No description provided for @challengeWarningNotPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the project public to enter {tag}.'**
+  String challengeWarningNotPublic(String tag);
+
+  /// No description provided for @challengeWarningBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Only drawings published after {tag} started can enter. Publish a new drawing to join.'**
+  String challengeWarningBeforeStart(String tag);
+
+  /// No description provided for @challengeWarningLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve reached the entry limit for {tag}.'**
+  String challengeWarningLimit(String tag);
+
+  /// No description provided for @challengeWarningNotEligible.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account can\'t enter challenges right now.'**
+  String get challengeWarningNotEligible;
+
+  /// No description provided for @serverRewardGems.
+  ///
+  /// In en, this message translates to:
+  /// **'+{gems} gems'**
+  String serverRewardGems(int gems);
+
+  /// No description provided for @serverRewardParticipationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for joining {challenge}!'**
+  String serverRewardParticipationTitle(String challenge);
+
+  /// No description provided for @serverRewardPlacementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You placed in {challenge}!'**
+  String serverRewardPlacementTitle(String challenge);
+
+  /// No description provided for @serverRewardMentionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Honorable mention in {challenge}!'**
+  String serverRewardMentionTitle(String challenge);
+
+  /// No description provided for @serverRewardGiftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You received a reward'**
+  String get serverRewardGiftTitle;
+
+  /// No description provided for @myChallengeEntriesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t entered a challenge yet. Add a challenge tag when you publish a drawing to join.'**
+  String get myChallengeEntriesEmpty;
+
+  /// No description provided for @myChallengeEntriesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your entries'**
+  String get myChallengeEntriesLoadFailed;
+
+  /// No description provided for @challengeCompetition.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition'**
+  String get challengeCompetition;
+
+  /// No description provided for @challengeRuleCompetition.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition: winners are picked after it ends'**
+  String get challengeRuleCompetition;
+
+  /// No description provided for @challengeRuleNoWinners.
+  ///
+  /// In en, this message translates to:
+  /// **'No winners: every accepted entry gets the reward'**
+  String get challengeRuleNoWinners;
+
+  /// No description provided for @challengeRuleJustForFun.
+  ///
+  /// In en, this message translates to:
+  /// **'No winners and no prizes, just for fun'**
+  String get challengeRuleJustForFun;
+
+  /// No description provided for @challengeAcceptedEntryReward.
+  ///
+  /// In en, this message translates to:
+  /// **'For an accepted entry'**
+  String get challengeAcceptedEntryReward;
+
+  /// No description provided for @challengeYourReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reward'**
+  String get challengeYourReward;
+
+  /// No description provided for @challengeClaimReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim'**
+  String get challengeClaimReward;
+
+  /// No description provided for @challengeRewardClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get challengeRewardClaimed;
+
+  /// No description provided for @challengeRewardPrize.
+  ///
+  /// In en, this message translates to:
+  /// **'Prize'**
+  String get challengeRewardPrize;
+
+  /// No description provided for @challengeRewardAfterReview.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll get it once your entry is accepted'**
+  String get challengeRewardAfterReview;
+
+  /// No description provided for @challengeRewardAfterResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid when the winners are announced'**
+  String get challengeRewardAfterResults;
+
+  /// No description provided for @challengeRewardSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'On its way, check back in a minute'**
+  String get challengeRewardSoon;
+
+  /// No description provided for @challengeRewardClaimFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t claim the reward. Try again.'**
+  String get challengeRewardClaimFailed;
+
+  /// No description provided for @feedback_chat_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feedback'**
+  String get feedback_chat_title;
+
+  /// No description provided for @feedback_chat_new_feedback.
+  ///
+  /// In en, this message translates to:
+  /// **'New feedback'**
+  String get feedback_chat_new_feedback;
+
+  /// No description provided for @feedback_chat_submitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback sent'**
+  String get feedback_chat_submitted;
+
+  /// No description provided for @feedback_chat_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks! Want to add something? Write here. We read every message and reply in this chat.'**
+  String get feedback_chat_intro;
+
+  /// No description provided for @feedback_chat_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message…'**
+  String get feedback_chat_hint;
+
+  /// No description provided for @feedback_chat_send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get feedback_chat_send;
+
+  /// No description provided for @feedback_chat_closed.
+  ///
+  /// In en, this message translates to:
+  /// **'This conversation was closed. Writing a message opens it again.'**
+  String get feedback_chat_closed;
+
+  /// No description provided for @feedback_chat_load_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load messages'**
+  String get feedback_chat_load_failed;
+
+  /// No description provided for @feedback_chat_send_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the message. Try again.'**
+  String get feedback_chat_send_failed;
+
+  /// No description provided for @feedback_chat_team.
+  ///
+  /// In en, this message translates to:
+  /// **'Picell team'**
+  String get feedback_chat_team;
+
+  /// No description provided for @feedback_reply_toast.
+  ///
+  /// In en, this message translates to:
+  /// **'New reply to your feedback'**
+  String get feedback_reply_toast;
+
+  /// No description provided for @feedback_reply_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get feedback_reply_open;
+
+  /// No description provided for @deleteAlsoFromCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Also delete from the community'**
+  String get deleteAlsoFromCloud;
+
+  /// No description provided for @deleteAlsoFromCloudHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes the published version with its likes and comments.'**
+  String get deleteAlsoFromCloudHint;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

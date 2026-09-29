@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../data/models/challenge_models.dart';
 import '../data/models/progression_model.dart';
 import '../data/storage/local_storage.dart';
 import '../pixel/effects/effect_pack_catalog.dart';
@@ -26,6 +27,14 @@ class StreakRewardNotice extends ProgressionNotice {
 
   final int days;
   final int coins;
+}
+
+/// A reward from the server (a challenge or support) reached the wallet.
+class ServerRewardNotice extends ProgressionNotice {
+  const ServerRewardNotice(this.grant, this.pack);
+
+  final RewardGrant grant;
+  final EffectPackId? pack;
 }
 
 final progressionProvider = NotifierProvider<ProgressionNotifier, ProgressionState>(ProgressionNotifier.new);
@@ -95,6 +104,27 @@ class ProgressionNotifier extends Notifier<ProgressionState> {
 
   /// Pays for a watched rewarded ad; false once today's limit is reached.
   bool rewardAd() => _apply(state.rewardAd(DateTime.now()));
+
+  bool hasClaimedGrant(String grantId) => state.hasClaimedGrant(grantId);
+
+  /// Adds a claimed server grant to the wallet once and announces it.
+  /// Saves right away: the server already counts the grant as claimed.
+  bool applyServerGrant(RewardGrant grant) {
+    final pack = EffectPackId.values.asNameMap()[grant.effectPack];
+    final next = state.applyServerGrant(
+      grant.id,
+      gems: grant.gems,
+      pack: pack,
+      now: DateTime.now(),
+      detail: grant.challengeTag ?? grant.reason.name,
+    );
+    if (next == null) return false;
+    state = next;
+    _saveTimer?.cancel();
+    _save();
+    _notices.add(ServerRewardNotice(grant, pack));
+    return true;
+  }
 
   void startPackTrial(EffectPackId pack) {
     final next = state.startPackTrial(pack, DateTime.now());

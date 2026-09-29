@@ -5,6 +5,8 @@ import 'package:picell/ui/widgets/ad_wrapper.dart';
 import '../core/utils/locale_manager.dart';
 import '../providers/providers.dart';
 import '../l10n/strings.dart';
+import '../providers/challenges_provider.dart';
+import '../providers/feedback_chat_provider.dart';
 import '../providers/progression_provider.dart';
 import '../providers/subscription_provider.dart';
 import '../ui/screens.dart';
@@ -38,6 +40,8 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
     if (state == AppLifecycleState.resumed) {
       _incrementSessionCount();
       ref.read(progressionProvider.notifier).checkIn();
+      ref.read(serverRewardsProvider).sync();
+      ref.read(feedbackRepliesProvider.notifier).check();
     }
   }
 

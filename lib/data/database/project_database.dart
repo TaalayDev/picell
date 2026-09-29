@@ -303,115 +303,92 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  Future<Project?> getProject(int projectId) async {
-    final query = select(projectsTable).join([
-      leftOuterJoin(
-        animationStateTable,
-        animationStateTable.projectId.equalsExp(projectsTable.id),
-      ),
-      leftOuterJoin(
-        framesTable,
-        framesTable.projectId.equalsExp(projectsTable.id),
-      ),
-      leftOuterJoin(
-        layersTable,
-        layersTable.projectId.equalsExp(projectsTable.id),
-      ),
-    ])
-      ..orderBy([
-        OrderingTerm(
-          expression: animationStateTable.id,
-          mode: OrderingMode.asc,
-        ),
-        OrderingTerm(expression: framesTable.order, mode: OrderingMode.asc),
-        OrderingTerm(expression: layersTable.order, mode: OrderingMode.asc),
-      ])
-      ..where(projectsTable.id.equals(projectId));
+  /// Loads a project with every state, frame and layer.
+  ///
+  /// Four simple queries instead of one join: joining states, frames and
+  /// layers on the project multiplies the rows (states × frames × layers), and
+  /// every row re-reads a layer's pixel blob, so larger projects took seconds
+  /// to open.
+  Future<Project?> getProject(int projectId) {
+    return transaction(() async {
+      final project = await (select(projectsTable)..where((tbl) => tbl.id.equals(projectId))).getSingleOrNull();
+      if (project == null) return null;
 
-    final rows = await query.get();
+      final stateRows = await (select(animationStateTable)
+            ..where((tbl) => tbl.projectId.equals(projectId))
+            ..orderBy([(tbl) => OrderingTerm(expression: tbl.id)]))
+          .get();
+      final frameRows = await (select(framesTable)
+            ..where((tbl) => tbl.projectId.equals(projectId))
+            ..orderBy([
+              (tbl) => OrderingTerm(expression: tbl.order),
+              (tbl) => OrderingTerm(expression: tbl.id),
+            ]))
+          .get();
+      final layerRows = await (select(layersTable)
+            ..where((tbl) => tbl.projectId.equals(projectId))
+            ..orderBy([
+              (tbl) => OrderingTerm(expression: tbl.order),
+              (tbl) => OrderingTerm(expression: tbl.id),
+            ]))
+          .get();
 
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    final projectMap = <int, Project>{};
-    final frameMap = <int, AnimationFrame>{};
-    final stateMap = <int, AnimationStateModel>{};
-
-    for (final row in rows) {
-      final project = row.readTable(projectsTable);
-      final state = row.readTableOrNull(animationStateTable);
-      final frame = row.readTableOrNull(framesTable);
-      final layer = row.readTableOrNull(layersTable);
-
-      if (!projectMap.containsKey(project.id)) {
-        projectMap[project.id] = Project(
-          id: project.id,
-          name: project.name,
-          width: project.width,
-          height: project.height,
-          thumbnail: project.thumbnail,
-          createdAt: project.createdAt,
-          editedAt: project.editedAt,
-          isCloudSynced: project.isCloudSynced,
-          remoteId: project.remoteId,
-          forkedFromId: project.forkedFromId,
-          selectedFrameId: project.selectedFrameId,
-          selectedLayerId: project.selectedLayerId,
-          type: _parseProjectType(project.projectType),
-          tileWidth: project.tileWidth,
-          tileHeight: project.tileHeight,
-          gridColumns: project.gridColumns,
-          gridRows: project.gridRows,
-          tilemapData: project.tilemapData,
-          states: [],
-          frames: [],
-        );
+      final layersByFrame = <int, List<Layer>>{};
+      for (final layer in layerRows) {
+        layersByFrame.putIfAbsent(layer.frameId, () => []).add(Layer(
+              layerId: layer.id,
+              id: layer.layerId,
+              name: layer.name,
+              pixels: layer.pixels.buffer.asUint32List(),
+              isVisible: layer.isVisible,
+              isLocked: layer.isLocked,
+              opacity: layer.opacity,
+              order: layer.order,
+              effects: _decodeEffects(layer.effects),
+            ));
       }
 
-      if (state != null && !stateMap.containsKey(state.id)) {
-        stateMap[state.id] = AnimationStateModel(
-          id: state.id,
-          name: state.name,
-          frameRate: state.frameRate,
-        );
-        projectMap[project.id]!.states.add(stateMap[state.id]!);
-      }
-
-      if (frame != null) {
-        if (!frameMap.containsKey(frame.id)) {
-          frameMap[frame.id] = AnimationFrame(
-            id: frame.id,
-            stateId: frame.stateId,
-            name: frame.name,
-            duration: frame.duration,
-            createdAt: frame.createdAt,
-            editedAt: frame.editedAt,
-            layers: List<Layer>.empty(growable: true),
-          );
-          projectMap[project.id]!.frames.add(frameMap[frame.id]!);
-        }
-
-        final containsLayer = frameMap[frame.id]!
-            .layers
-            .any((element) => element.layerId == layer?.id);
-        if (layer != null && layer.frameId == frame.id && !containsLayer) {
-          frameMap[frame.id]!.layers.add(Layer(
-                layerId: layer.id,
-                id: layer.layerId,
-                name: layer.name,
-                pixels: layer.pixels.buffer.asUint32List(),
-                isVisible: layer.isVisible,
-                isLocked: layer.isLocked,
-                opacity: layer.opacity,
-                order: layer.order,
-                effects: _decodeEffects(layer.effects),
-              ));
-        }
-      }
-    }
-
-    return projectMap[projectId];
+      return Project(
+        id: project.id,
+        name: project.name,
+        width: project.width,
+        height: project.height,
+        thumbnail: project.thumbnail,
+        createdAt: project.createdAt,
+        editedAt: project.editedAt,
+        isCloudSynced: project.isCloudSynced,
+        remoteId: project.remoteId,
+        forkedFromId: project.forkedFromId,
+        selectedFrameId: project.selectedFrameId,
+        selectedLayerId: project.selectedLayerId,
+        type: _parseProjectType(project.projectType),
+        tileWidth: project.tileWidth,
+        tileHeight: project.tileHeight,
+        gridColumns: project.gridColumns,
+        gridRows: project.gridRows,
+        tilemapData: project.tilemapData,
+        states: [
+          for (final state in stateRows)
+            AnimationStateModel(
+              id: state.id,
+              name: state.name,
+              frameRate: state.frameRate,
+            ),
+        ],
+        frames: [
+          for (final frame in frameRows)
+            AnimationFrame(
+              id: frame.id,
+              stateId: frame.stateId,
+              name: frame.name,
+              duration: frame.duration,
+              createdAt: frame.createdAt,
+              editedAt: frame.editedAt,
+              layers: layersByFrame[frame.id] ?? List<Layer>.empty(growable: true),
+            ),
+        ],
+      );
+    });
   }
 
   Future<Project> getProjectByRemoteId(int remoteId) async {

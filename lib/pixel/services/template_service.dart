@@ -57,7 +57,7 @@ class TemplateService {
       name: templateName,
       width: width,
       height: height,
-      pixels: Uint32List.fromList(layer.processedPixels),
+      pixels: Uint32List.fromList(layer.processedPixels(width, height)),
       isLocal: true,
     );
   }

@@ -5,10 +5,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:image/image.dart' as img;
 
 import '../data/models/api_models.dart';
+import '../data/models/challenge_models.dart';
 import '../data/models/project_api_models.dart';
 import '../data.dart';
 import '../core/utils.dart';
 import '../data/models/progression_model.dart';
+import '../providers/challenges_provider.dart';
 import '../providers/progression_provider.dart';
 import '../providers/providers.dart';
 
@@ -74,6 +76,7 @@ class ProjectUpload extends _$ProjectUpload {
 
       // Step 3: Upload to API (70% progress)
       state = state.copyWith(uploadProgress: 0.7);
+      ref.read(challengeSubmissionProvider.notifier).state = null;
       ApiResponse<ApiProject> response;
       if (isUpdate) {
         response = await ref.read(projectAPIRepoProvider).updateProject(
@@ -84,6 +87,8 @@ class ProjectUpload extends _$ProjectUpload {
               isPublic: isPublic,
               tags: tags,
               thumbnailBytes: thumbnailBytes,
+              installationId: _installationId(),
+              onChallengeSubmission: _reportChallenges,
             );
       } else {
         response = await ref.read(projectAPIRepoProvider).createProject(
@@ -96,6 +101,8 @@ class ProjectUpload extends _$ProjectUpload {
               tags: tags,
               thumbnailBytes: thumbnailBytes,
               parentProjectId: localProject.forkedFromId,
+              installationId: _installationId(),
+              onChallengeSubmission: _reportChallenges,
             );
       }
 
@@ -112,6 +119,8 @@ class ProjectUpload extends _$ProjectUpload {
           isUploading: false,
           uploadedProject: response.data,
         );
+        // A challenge tag on the project may have entered it into a challenge.
+        ref.invalidate(currentChallengesProvider);
 
         ref.read(analyticsProvider).logEvent(
           name: isUpdate ? 'project_update_success' : 'project_upload_success',
@@ -166,6 +175,8 @@ class ProjectUpload extends _$ProjectUpload {
           isPublic: isPublic,
           tags: tags,
           thumbnailBytes: localProject.thumbnail,
+          installationId: _installationId(),
+          onChallengeSubmission: _reportChallenges,
         );
 
     if (response.success && response.data != null) {
@@ -336,7 +347,10 @@ class ProjectUpload extends _$ProjectUpload {
       final response = await ref.read(projectAPIRepoProvider).updateProject(
         projectId: localProject.remoteId!,
         isPublic: isPublic,
+        installationId: _installationId(),
       );
+      // Hiding a project withdraws it from running challenges.
+      ref.invalidate(currentChallengesProvider);
 
       if (response.success && response.data != null) {
         state = state.copyWith(
@@ -360,6 +374,18 @@ class ProjectUpload extends _$ProjectUpload {
         error: e.toString(),
       );
     }
+  }
+
+  String? _installationId() {
+    try {
+      return ref.read(localStorageProvider).installationId;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _reportChallenges(ChallengeSubmission submission) {
+    ref.read(challengeSubmissionProvider.notifier).state = submission.isEmpty ? null : submission;
   }
 
   void resetState() {

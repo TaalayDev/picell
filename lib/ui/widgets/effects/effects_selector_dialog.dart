@@ -65,8 +65,7 @@ class EffectSelectorDialog extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<EffectSelectorDialog> createState() =>
-      _EffectSelectorDialogState();
+  ConsumerState<EffectSelectorDialog> createState() => _EffectSelectorDialogState();
 }
 
 class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
@@ -120,9 +119,8 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     };
   }
 
-  List<EffectWorkspace?> get _workspaces => widget.lockWorkspace
-      ? [widget.initialWorkspace]
-      : [null, ...EffectWorkspace.values];
+  List<EffectWorkspace?> get _workspaces =>
+      widget.lockWorkspace ? [widget.initialWorkspace] : [null, ...EffectWorkspace.values];
 
   String _workspaceLabel(BuildContext context, EffectWorkspace? workspace) {
     final strings = Strings.of(context);
@@ -287,8 +285,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   List<EffectType> get _filteredEffects {
     final workspaceFiltered = EffectType.values.where((type) {
       final descriptor = EffectCatalog.forType(type);
-      if (_selectedWorkspace != null &&
-          descriptor.workspace != _selectedWorkspace) {
+      if (_selectedWorkspace != null && descriptor.workspace != _selectedWorkspace) {
         return false;
       }
       if (_selectedWorkspace == EffectWorkspace.filters &&
@@ -309,13 +306,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     }
 
     return workspaceFiltered.where((type) {
-      final query =
-          _searchQuery.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final query = _searchQuery.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
       final enumName = type.name.toLowerCase();
-      final displayName = EffectsManager.createEffect(type)
-          .getName(context)
-          .toLowerCase()
-          .replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final displayName =
+          EffectsManager.createEffect(type).getName(context).toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
       return enumName.contains(query) || displayName.contains(query);
     }).toList();
   }
@@ -326,8 +320,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     // Rebuild when purchases or earned unlocks change.
     ref.watch(subscriptionStateProvider);
     ref.watch(progressionProvider);
-    final stackState =
-        widget.layer == null ? null : EffectStackService.inspect(widget.layer!);
+    final stackState = widget.layer == null ? null : EffectStackService.inspect(widget.layer!);
 
     final body = AnimatedBackground(
       child: Container(
@@ -420,8 +413,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                 ),
               ),
 
-            if (_selectedWorkspace == EffectWorkspace.filters &&
-                !widget.lockFilterKind)
+            if (_selectedWorkspace == EffectWorkspace.filters && !widget.lockFilterKind)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: SizedBox(
@@ -456,8 +448,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                 ),
               ),
 
-            if (_selectedWorkspace == EffectWorkspace.animation &&
-                !widget.lockAnimationKind)
+            if (_selectedWorkspace == EffectWorkspace.animation && !widget.lockAnimationKind)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: SizedBox(
@@ -522,14 +513,11 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                         final effectType = _filteredEffects[index];
                         final effect = EffectsManager.createEffect(effectType);
                         final name = effect.getName(context);
-                        final isLocked =
-                            !ref.read(effectAccessProvider(effectType));
+                        final isLocked = !ref.read(effectAccessProvider(effectType));
                         final descriptor = EffectCatalog.forType(effectType);
                         final validation = (stackState == null ||
-                                descriptor.workspace ==
-                                    EffectWorkspace.generators ||
-                                descriptor.workspace ==
-                                    EffectWorkspace.animation)
+                                descriptor.workspace == EffectWorkspace.generators ||
+                                descriptor.workspace == EffectWorkspace.animation)
                             ? const EffectStackAddValidation.allowed()
                             : EffectStackService.validateAddToState(
                                 stackState,
@@ -601,9 +589,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
             _showUpgradePrompt(context, type);
           } else {
             Navigator.of(context).pop();
-            ref
-                .read(progressionProvider.notifier)
-                .record(ProgressionEvent.effectAdded);
+            ref.read(progressionProvider.notifier).record(ProgressionEvent.effectAdded);
             widget.onEffectSelected(effect);
           }
         },
@@ -635,10 +621,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
               Text(
                 effect.getDescription(context),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -671,10 +654,8 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     final strings = Strings.of(context);
     return switch (validation.failure) {
       EffectStackAddFailure.requiresPixels => strings.effectRequiresPixels,
-      EffectStackAddFailure.requiresEmptyLayer =>
-        strings.effectRequiresEmptyLayer,
-      EffectStackAddFailure.generatorAlreadyExists =>
-        strings.effectGeneratorAlreadyAdded,
+      EffectStackAddFailure.requiresEmptyLayer => strings.effectRequiresEmptyLayer,
+      EffectStackAddFailure.generatorAlreadyExists => strings.effectGeneratorAlreadyAdded,
       null => '',
     };
   }
@@ -690,7 +671,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           children: [
             const Icon(Icons.star, color: Colors.amber),
             const SizedBox(width: 8),
-            Text(s.premiumEffect),
+            Text(
+              s.premiumEffect,
+              style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+            ),
           ],
         ),
         content: Column(

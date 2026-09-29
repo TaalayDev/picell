@@ -31,8 +31,10 @@ import '../widgets/animated_pro_button.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/community_project_card.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/delete_account_dialog.dart';
+import '../widgets/dialogs/delete_project_dialog.dart';
 import '../widgets/dialogs/project_upload_dialog.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/feedback_prompt_dialog.dart';
+import '../widgets/challenges/challenges_banner.dart';
 import '../widgets/discovery/discovery_carousel.dart';
 import '../widgets/drop_target_overlay.dart';
 import '../widgets/project/sidebar_project_list_item.dart';
@@ -119,7 +121,7 @@ class ProjectsScreen extends HookConsumerWidget {
                   subscription: subscription,
                   projects: projects,
                   onTapProject: (project) => _openProject(context, ref, project, overlayLoader),
-                  onDeleteProject: (project) => ref.read(projectsProvider.notifier).deleteProject(project),
+                  onDeleteProject: (project) => _onDeleteProject(context, ref, project, authState),
                   onEditProject: (project) =>
                       ref.read(projectsProvider.notifier).renameProject(project.id, project.name),
                   onUploadProject: (project) => _onUploadProject(context, ref, project, authState),
@@ -160,14 +162,29 @@ class ProjectsScreen extends HookConsumerWidget {
                       if (!subscription.isPro && showBadge.value)
                         SubscriptionPromoBanner(onDismiss: () => showBadge.value = false),
                       Expanded(
-                        child: CloudProjectsView(
-                          theme: theme,
-                          subscription: subscription,
-                          leadingSlivers: const [
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                                child: DiscoveryCarousel(height: 220),
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: CloudProjectsView(
+                                theme: theme,
+                                subscription: subscription,
+                                leadingSlivers: const [
+                                  SliverToBoxAdapter(
+                                    child: Padding(
+                                      padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                      child: DiscoveryCarousel(height: 220),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Running challenges float over the feed and can
+                            // be closed until a new challenge starts.
+                            Positioned(
+                              right: 24,
+                              bottom: 24,
+                              child: ChallengesFloatingPanel(
+                                onStartDrawing: () => _navigateToNewProject(context, ref, subscription),
                               ),
                             ),
                           ],
@@ -273,6 +290,7 @@ class ProjectsScreen extends HookConsumerWidget {
                 ),
               ),
               if (!subscription.isPro && !showBadge.value) ...[
+                const SizedBox(width: 8),
                 AnimatedProButton(
                   onTap: () => _showSubscriptionScreen(context),
                   theme: theme,
@@ -426,7 +444,7 @@ class ProjectsScreen extends HookConsumerWidget {
                           projects: projects,
                           onCreateNew: () => _navigateToNewProject(context, ref, subscription),
                           onTapProject: (project) => _openProject(context, ref, project, overlayLoader),
-                          onDeleteProject: (project) => ref.read(projectsProvider.notifier).deleteProject(project),
+                          onDeleteProject: (project) => _onDeleteProject(context, ref, project, authState),
                           onEditProject: (project) =>
                               ref.read(projectsProvider.notifier).renameProject(project.id, project.name),
                           onUploadProject: (project) => _onUploadProject(context, ref, project, authState),
@@ -435,6 +453,12 @@ class ProjectsScreen extends HookConsumerWidget {
                           onRetry: () => ref.refresh(projectsProvider),
                           showNewButton: true,
                         ),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: ChallengesBanner(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                        onStartDrawing: () => _navigateToNewProject(context, ref, subscription),
                       ),
                     ),
                     const SliverToBoxAdapter(
@@ -543,29 +567,7 @@ class ProjectsScreen extends HookConsumerWidget {
   }
 
   void _navigateToFeedback(BuildContext context, WidgetRef ref) {
-    if (kIsWeb || Platform.isMacOS || Platform.isWindows) {
-      showDialog(
-        context: context,
-        builder: (context) => Dialog(
-          child: ClipRRect(
-            clipBehavior: Clip.antiAlias,
-            borderRadius: BorderRadius.circular(16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: const FeedbackScreen(),
-            ),
-          ),
-        ),
-      );
-
-      return;
-    }
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const FeedbackScreen(),
-      ),
-    );
+    FeedbackScreen.show(context);
   }
 
   void _navigateToNewProject(
@@ -743,18 +745,39 @@ class ProjectsScreen extends HookConsumerWidget {
     ProjectUploadDialog.show(context, fullProject, isUpdate: true);
   }
 
-  Future<void> _onDeleteCloudProject(
+  /// Confirms, then deletes the project locally and, if the user ticked it,
+  /// in the cloud first. A failed cloud delete keeps the local project, so
+  /// nothing is lost and the user can try again.
+  Future<void> _onDeleteProject(
     BuildContext context,
     WidgetRef ref,
     Project project,
     AuthState authState,
   ) async {
+    final choice = await DeleteProjectDialog.show(context, project);
+    if (choice == null || !context.mounted) return;
+
+    if (choice.deleteCloud) {
+      final removed = await _onDeleteCloudProject(context, ref, project, authState, announce: false);
+      if (!removed) return;
+    }
+    await ref.read(projectsProvider.notifier).deleteProject(project);
+  }
+
+  /// Returns whether the cloud copy was removed.
+  Future<bool> _onDeleteCloudProject(
+    BuildContext context,
+    WidgetRef ref,
+    Project project,
+    AuthState authState, {
+    bool announce = true,
+  }) async {
     if (!authState.isSignedIn) {
       showTopFlushbar(
         context,
         message: Text(Strings.of(context).pleaseSignInToRemoveCloudProjects),
       );
-      return;
+      return false;
     }
 
     if (!project.isCloudSynced || project.remoteId == null) {
@@ -762,26 +785,24 @@ class ProjectsScreen extends HookConsumerWidget {
         context,
         message: Text(Strings.of(context).projectNotSyncedToCloud),
       );
-      return;
+      return false;
     }
 
+    final loader = showLoader(
+      context,
+      loadingText: Strings.of(context).removingFromCloud,
+    );
     try {
-      final loader = showLoader(
-        context,
-        loadingText: Strings.of(context).removingFromCloud,
-      );
-
       await ref.read(projectUploadProvider.notifier).deleteCloudProject(
             localProject: project,
           );
-
-      if (context.mounted) {
-        loader.remove();
+      if (announce && context.mounted) {
         showTopFlushbar(
           context,
           message: Text(Strings.of(context).projectRemovedFromCloudSuccessfully),
         );
       }
+      return true;
     } catch (e) {
       if (context.mounted) {
         showTopFlushbar(
@@ -789,6 +810,10 @@ class ProjectsScreen extends HookConsumerWidget {
           message: Text(Strings.of(context).failedToRemoveFromCloud(e.toString())),
         );
       }
+      return false;
+    } finally {
+      // Removed on failure too; it used to stay on screen after an error.
+      loader.remove();
     }
   }
 }
@@ -914,14 +939,6 @@ class _DesktopSidebar extends StatelessWidget {
                   theme: theme,
                   flagship: flagship,
                   onTap: () => EffectStoreScreen.show(context),
-                ),
-                _NavItem(
-                  icon: Feather.info,
-                  label: Strings.of(context).about,
-                  selected: false,
-                  theme: theme,
-                  flagship: flagship,
-                  onTap: onAbout,
                 ),
                 if (!subscription.isPro)
                   _NavItem(

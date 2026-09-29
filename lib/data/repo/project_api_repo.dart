@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 
 import '../../core/utils/api_client.dart';
 import '../models/api_models.dart';
+import '../models/challenge_models.dart';
 import '../models/project_api_models.dart';
 
 class ProjectAPIRepo {
@@ -26,6 +27,11 @@ class ProjectAPIRepo {
     // Set when uploading a project downloaded from someone else — records
     // fork lineage server-side instead of silently creating an orphan copy.
     int? parentProjectId,
+    // Sent as X-Installation-Id so moderators can spot one device entering
+    // a challenge under several accounts.
+    String? installationId,
+    // Receives the challenges the project entered (or why it could not).
+    void Function(ChallengeSubmission submission)? onChallengeSubmission,
   }) async {
     try {
       final formData = FormData();
@@ -64,12 +70,13 @@ class ProjectAPIRepo {
         '/api/v1/projects',
         data: formData,
         converter: (data) {
-          print('Project created: ${data} ${data['project']}');
+          _reportChallenges(data, onChallengeSubmission);
           return ProjectConverters.project(data['project']);
         },
         options: Options(
           headers: {
             'Content-Type': 'multipart/form-data',
+            if (installationId != null) 'X-Installation-Id': installationId,
           },
         ),
       );
@@ -87,6 +94,8 @@ class ProjectAPIRepo {
     bool? isPublic,
     List<String>? tags,
     Uint8List? thumbnailBytes,
+    String? installationId,
+    void Function(ChallengeSubmission submission)? onChallengeSubmission,
   }) async {
     try {
       final formData = FormData();
@@ -113,13 +122,19 @@ class ProjectAPIRepo {
         ));
       }
 
-      return _apiClient.put<ApiProject>(
+      // POST, not PUT: PHP only parses multipart bodies for POST, so a PUT
+      // reached the server empty ("No valid fields to update").
+      return _apiClient.post<ApiProject>(
         '/api/v1/projects/$projectId',
         data: formData,
-        converter: (data) => ProjectConverters.project(data['project']),
+        converter: (data) {
+          _reportChallenges(data, onChallengeSubmission);
+          return ProjectConverters.project(data['project']);
+        },
         options: Options(
           headers: {
             'Content-Type': 'multipart/form-data',
+            if (installationId != null) 'X-Installation-Id': installationId,
           },
         ),
       );
@@ -127,6 +142,12 @@ class ProjectAPIRepo {
       _logger.severe('Error updating project $projectId: $e');
       rethrow;
     }
+  }
+
+  void _reportChallenges(dynamic data, void Function(ChallengeSubmission submission)? onChallengeSubmission) {
+    if (onChallengeSubmission == null) return;
+    final submission = ChallengeSubmission.tryParse(data);
+    if (submission != null) onChallengeSubmission(submission);
   }
 
   /// Delete a project

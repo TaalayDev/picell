@@ -328,40 +328,6 @@ class StringsKy extends Strings {
   String get feedback_q_price_more_20 => '\$20дан көп';
 
   @override
-  String get feedback_q_patreon_support => 'Patreonдо долбоорду колдойсузбу?';
-
-  @override
-  String get feedback_q_patreon_definitely => 'Ооба, сөзсүз';
-
-  @override
-  String get feedback_q_patreon_if_exclusive =>
-      'Мүмкүн, эксклюзивдүү функциялар болсо';
-
-  @override
-  String get feedback_q_patreon_if_reasonable =>
-      'Мүмкүн, баасы акылга сыярлык болсо';
-
-  @override
-  String get feedback_q_patreon_probably_not => 'Кыязы жок';
-
-  @override
-  String get feedback_q_patreon_no => 'Жок, пландабайм';
-
-  @override
-  String get feedback_q_patreon_tier =>
-      'Patreonдун кайсы колдоо деңгээли кызыктырат?';
-
-  @override
-  String get feedback_q_patreon_tier_3 => '\$3/ай - Функцияларга эрте жетүү';
-
-  @override
-  String get feedback_q_patreon_tier_5 => '\$5/ай - + Эксклюзивдүү темалар';
-
-  @override
-  String get feedback_q_patreon_tier_10 =>
-      '\$10/ай - + Иштеп чыгууга таасир этүү';
-
-  @override
   String get feedback_q_usage_frequency => 'Тиркемени канча жолу колдоносуз?';
 
   @override
@@ -3200,16 +3166,24 @@ class StringsKy extends Strings {
   }
 
   @override
-  String get questAnimationGenerated => 'Эффект анимациясын түзүңүз';
+  String questAnimationGenerated(int count) {
+    return '$count эффект анимациясын түзүңүз';
+  }
 
   @override
-  String get questImageExported => 'Сүрөт экспорттоңуз';
+  String questImageExported(int count) {
+    return '$count сүрөт экспорттоңуз';
+  }
 
   @override
-  String get questAnimationExported => 'Анимация экспорттоңуз';
+  String questAnimationExported(int count) {
+    return '$count анимация экспорттоңуз';
+  }
 
   @override
-  String get questProjectImported => 'Долбоор импорттоңуз';
+  String questProjectImported(int count) {
+    return '$count долбоор импорттоңуз';
+  }
 
   @override
   String questProjectPublished(int count) {
@@ -3223,4 +3197,346 @@ class StringsKy extends Strings {
 
   @override
   String get managePurchases => 'Сатып алууларды башкаруу';
+
+  @override
+  String get achievementsTitle => 'Жетишкендиктер';
+
+  @override
+  String questTemplateUsed(int count) {
+    return '$count шаблон колдонуңуз';
+  }
+
+  @override
+  String questImageImported(int count) {
+    return '$count сүрөт импорттоңуз';
+  }
+
+  @override
+  String questAnimationStateAdded(int count) {
+    return '$count анимация абалын түзүңүз';
+  }
+
+  @override
+  String get challengesTitle => 'Челлендждер';
+
+  @override
+  String get challengeCadenceDaily => 'Күнүмдүк';
+
+  @override
+  String get challengeCadenceWeekly => 'Жумалык';
+
+  @override
+  String get challengeCadenceMonthly => 'Айлык';
+
+  @override
+  String get challengeCadenceSeasonal => 'Сезондук';
+
+  @override
+  String challengeEndsIn(String time) {
+    return 'Бүтүшүнө: $time';
+  }
+
+  @override
+  String durationDaysHours(int days, int hours) {
+    return '$days к $hours с';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours с $minutes мүн';
+  }
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes мүн';
+  }
+
+  @override
+  String challengeEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count иш',
+      zero: 'Азырынча иштер жок',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get challengeJoined => 'Сиз катышып жатасыз';
+
+  @override
+  String get challengeTopPrize => 'Башкы сыйлык';
+
+  @override
+  String get challengeHowToJoin => 'Кантип катышуу керек';
+
+  @override
+  String get challengeJoinSteps =>
+      'Темага ылайык сүрөт тартып, аны ушул тег менен коомчулукка жарыялаңыз.';
+
+  @override
+  String get challengeCopyTag => 'Тегди көчүрүү';
+
+  @override
+  String get challengeTagCopied => 'Тег көчүрүлдү';
+
+  @override
+  String get challengeRewards => 'Сыйлыктар';
+
+  @override
+  String get challengeParticipationReward => 'Катышканы үчүн';
+
+  @override
+  String challengePlace(int place) {
+    return '$place-орун';
+  }
+
+  @override
+  String get challengeEffectPackReward => '+ эффект пакети';
+
+  @override
+  String get challengeStartDrawing => 'Тартууну баштоо';
+
+  @override
+  String get challengeTagsLabel => 'Челленджге катышуу';
+
+  @override
+  String get challengeEntryPublicOnly =>
+      'Челлендждерге ачык долбоорлор гана катыша алат.';
+
+  @override
+  String get challengeEntryOldProjectHint =>
+      'Челлендж башталганга чейин биринчи жолу жарыяланган долбоорлор ага катыша албайт.';
+
+  @override
+  String challengeStartsIn(String time) {
+    return '$time кийин башталат';
+  }
+
+  @override
+  String get challengeStatusJudging => 'Жеңүүчүлөрдү тандоодо';
+
+  @override
+  String challengeResultsBy(String date) {
+    return 'Жыйынтыктар $date чейин';
+  }
+
+  @override
+  String get challengeStatusCompleted => 'Аяктады';
+
+  @override
+  String get challengeStatusCancelled => 'Жокко чыгарылды';
+
+  @override
+  String get challengeRulesTitle => 'Эрежелер';
+
+  @override
+  String challengeRuleMaxEntries(int count) {
+    return 'Бир кишиге $count ишке чейин';
+  }
+
+  @override
+  String get challengeRuleStartsAfter =>
+      'Челлендж башталгандан кийин биринчи жолу жарыяланган долбоорлор гана';
+
+  @override
+  String challengeRuleRequiredPack(String pack) {
+    return '«$pack» пакетинен жок дегенде бир эффект колдонуңуз';
+  }
+
+  @override
+  String get challengeYourEntries => 'Сиздин иштериңиз';
+
+  @override
+  String challengeEntryNumber(int number) {
+    return '$number-иш';
+  }
+
+  @override
+  String get challengeEntryPending => 'Текшерүүдө';
+
+  @override
+  String get challengeEntryAccepted => 'Кабыл алынды';
+
+  @override
+  String get challengeEntryRejected => 'Четке кагылды';
+
+  @override
+  String get challengeEntryWithdrawn => 'Кайтарылды';
+
+  @override
+  String get challengeEntryWinner => 'Жеңүүчү';
+
+  @override
+  String get challengeWinnersTitle => 'Жеңүүчүлөр';
+
+  @override
+  String get challengeMention => 'Ардактуу эскерүү';
+
+  @override
+  String get challengeEntriesTitle => 'Катышуучулардын иштери';
+
+  @override
+  String get challengeSortRecent => 'Жаңылар';
+
+  @override
+  String get challengeNoEntriesYet => 'Азырынча иштер жок. Биринчи болуңуз!';
+
+  @override
+  String get challengeLoadFailed => 'Челленджди жүктөө мүмкүн болгон жок';
+
+  @override
+  String get challengeEntriesLoadFailed => 'Иштерди жүктөө мүмкүн болгон жок';
+
+  @override
+  String challengeEnteredToast(String tags) {
+    return 'Сиз $tags катышасыз! Сүрөт кыска текшерүүдөн кийин галереяда чыгат.';
+  }
+
+  @override
+  String challengeWarningNotActive(String tag) {
+    return '$tag азыр иштерди кабыл албайт.';
+  }
+
+  @override
+  String challengeWarningNotPublic(String tag) {
+    return '$tag катышуу үчүн долбоорду ачык кылыңыз.';
+  }
+
+  @override
+  String challengeWarningBeforeStart(String tag) {
+    return '$tag башталгандан кийин жарыяланган сүрөттөр гана катыша алат. Жаңы сүрөт жарыялаңыз.';
+  }
+
+  @override
+  String challengeWarningLimit(String tag) {
+    return '$tag үчүн иштердин чегине жеттиңиз.';
+  }
+
+  @override
+  String get challengeWarningNotEligible =>
+      'Аккаунтуңуз азыр челлендждерге катыша албайт.';
+
+  @override
+  String serverRewardGems(int gems) {
+    return '+$gems асыл таш';
+  }
+
+  @override
+  String serverRewardParticipationTitle(String challenge) {
+    return '$challenge катышканыңыз үчүн рахмат!';
+  }
+
+  @override
+  String serverRewardPlacementTitle(String challenge) {
+    return 'Сиз $challenge байге алдыңыз!';
+  }
+
+  @override
+  String serverRewardMentionTitle(String challenge) {
+    return '$challenge ардактуу белги!';
+  }
+
+  @override
+  String get serverRewardGiftTitle => 'Сиз сыйлык алдыңыз';
+
+  @override
+  String get myChallengeEntriesEmpty =>
+      'Сиз азырынча челленджге катыша элексиз. Сүрөт жарыялаганда челлендж тегин кошуңуз.';
+
+  @override
+  String get myChallengeEntriesLoadFailed =>
+      'Иштериңизди жүктөө мүмкүн болгон жок';
+
+  @override
+  String get challengeCompetition => 'Мелдеш';
+
+  @override
+  String get challengeRuleCompetition =>
+      'Мелдеш: жеңүүчүлөр бүткөндөн кийин тандалат';
+
+  @override
+  String get challengeRuleNoWinners =>
+      'Жеңүүчүлөр жок: кабыл алынган ар бир иш сыйлык алат';
+
+  @override
+  String get challengeRuleJustForFun =>
+      'Жеңүүчүлөр да, сыйлыктар да жок, жөн гана кызык үчүн';
+
+  @override
+  String get challengeAcceptedEntryReward => 'Кабыл алынган иш үчүн';
+
+  @override
+  String get challengeYourReward => 'Сиздин сыйлык';
+
+  @override
+  String get challengeClaimReward => 'Алуу';
+
+  @override
+  String get challengeRewardClaimed => 'Алынды';
+
+  @override
+  String get challengeRewardPrize => 'Байге';
+
+  @override
+  String get challengeRewardAfterReview => 'Ишиңиз кабыл алынганда аласыз';
+
+  @override
+  String get challengeRewardAfterResults =>
+      'Жеңүүчүлөр жарыялангандан кийин берилет';
+
+  @override
+  String get challengeRewardSoon => 'Жолдо, бир мүнөттөн кийин кайра караңыз';
+
+  @override
+  String get challengeRewardClaimFailed =>
+      'Сыйлыкты алуу мүмкүн болгон жок. Кайра аракет кылыңыз.';
+
+  @override
+  String get feedback_chat_title => 'Сиздин пикир';
+
+  @override
+  String get feedback_chat_new_feedback => 'Жаңы пикир';
+
+  @override
+  String get feedback_chat_submitted => 'Пикир жөнөтүлдү';
+
+  @override
+  String get feedback_chat_intro =>
+      'Рахмат! Бир нерсе кошкуңуз келеби? Ушул жерге жазыңыз. Биз ар бир билдирүүнү окуп, ушул чатта жооп беребиз.';
+
+  @override
+  String get feedback_chat_hint => 'Билдирүү жазыңыз…';
+
+  @override
+  String get feedback_chat_send => 'Жөнөтүү';
+
+  @override
+  String get feedback_chat_closed =>
+      'Бул сүйлөшүү жабылды. Жаңы билдирүү аны кайра ачат.';
+
+  @override
+  String get feedback_chat_load_failed =>
+      'Билдирүүлөрдү жүктөө мүмкүн болгон жок';
+
+  @override
+  String get feedback_chat_send_failed =>
+      'Билдирүүнү жөнөтүү мүмкүн болгон жок. Кайра аракет кылыңыз.';
+
+  @override
+  String get feedback_chat_team => 'Picell командасы';
+
+  @override
+  String get feedback_reply_toast => 'Пикириңизге жаңы жооп';
+
+  @override
+  String get feedback_reply_open => 'Ачуу';
+
+  @override
+  String get deleteAlsoFromCloud => 'Коомчулуктан да өчүрүү';
+
+  @override
+  String get deleteAlsoFromCloudHint =>
+      'Жарыяланган версия лайктары жана комментарийлери менен кошо өчүрүлөт.';
 }

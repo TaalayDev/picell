@@ -758,6 +758,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
                                 feature.title,
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                       fontWeight: FontWeight.bold,
+                                      color: theme.textSecondary,
                                     ),
                               ),
                             ),
@@ -1147,19 +1148,17 @@ class _PurchaseOfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color:
-              isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08) : Theme.of(context).cardColor,
+          color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.08) : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).dividerColor.withValues(alpha: 0.3),
+            color: isSelected ? theme.colorScheme.primary : theme.dividerColor.withValues(alpha: 0.3),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
@@ -1186,15 +1185,15 @@ class _PurchaseOfferCard extends StatelessWidget {
                           children: [
                             Text(
                               title,
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: isSelected ? Theme.of(context).colorScheme.primary : null,
-                                  ),
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               description,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: theme.textTheme.bodyMedium,
                             ),
                           ],
                         ),
@@ -1202,12 +1201,10 @@ class _PurchaseOfferCard extends StatelessWidget {
                       if (offer.price != null)
                         Text(
                           offer.price!,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).colorScheme.onSurface,
-                              ),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                          ),
                         ),
                     ],
                   ),
@@ -1215,25 +1212,29 @@ class _PurchaseOfferCard extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // Feature list
-                  ...features.map((feature) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle_outline,
-                              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.green,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                feature,
-                                style: Theme.of(context).textTheme.bodyMedium,
+                  ...features.map(
+                    (feature) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            color: isSelected ? theme.colorScheme.primary : Colors.green,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              feature,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
                               ),
                             ),
-                          ],
-                        ),
-                      )),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1249,7 +1250,7 @@ class _PurchaseOfferCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: theme.colorScheme.primary,
                     borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(8),
                       topRight: Radius.circular(15),
@@ -1257,10 +1258,10 @@ class _PurchaseOfferCard extends StatelessWidget {
                   ),
                   child: Text(
                     Strings.of(context).bestValue,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

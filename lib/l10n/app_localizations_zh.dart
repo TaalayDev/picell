@@ -318,36 +318,6 @@ class StringsZh extends Strings {
   String get feedback_q_price_more_20 => '超过\$20';
 
   @override
-  String get feedback_q_patreon_support => '您会在Patreon上支持该项目吗？';
-
-  @override
-  String get feedback_q_patreon_definitely => '是的，一定会';
-
-  @override
-  String get feedback_q_patreon_if_exclusive => '可能，如果有独家功能';
-
-  @override
-  String get feedback_q_patreon_if_reasonable => '可能，如果价格合理';
-
-  @override
-  String get feedback_q_patreon_probably_not => '可能不会';
-
-  @override
-  String get feedback_q_patreon_no => '不，不打算';
-
-  @override
-  String get feedback_q_patreon_tier => '您对Patreon的哪个支持级别感兴趣？';
-
-  @override
-  String get feedback_q_patreon_tier_3 => '\$3/月 - 提前使用功能';
-
-  @override
-  String get feedback_q_patreon_tier_5 => '\$5/月 - + 独家主题';
-
-  @override
-  String get feedback_q_patreon_tier_10 => '\$10/月 - + 影响开发';
-
-  @override
   String get feedback_q_usage_frequency => '您多久使用一次应用？';
 
   @override
@@ -3067,16 +3037,24 @@ class StringsZh extends Strings {
   }
 
   @override
-  String get questAnimationGenerated => '生成特效动画';
+  String questAnimationGenerated(int count) {
+    return '生成 $count 个特效动画';
+  }
 
   @override
-  String get questImageExported => '导出一张图片';
+  String questImageExported(int count) {
+    return '导出 $count 张图片';
+  }
 
   @override
-  String get questAnimationExported => '导出一个动画';
+  String questAnimationExported(int count) {
+    return '导出 $count 个动画';
+  }
 
   @override
-  String get questProjectImported => '导入一个项目';
+  String questProjectImported(int count) {
+    return '导入 $count 个项目';
+  }
 
   @override
   String questProjectPublished(int count) {
@@ -3090,4 +3068,329 @@ class StringsZh extends Strings {
 
   @override
   String get managePurchases => '管理购买';
+
+  @override
+  String get achievementsTitle => '成就';
+
+  @override
+  String questTemplateUsed(int count) {
+    return '使用 $count 次模板';
+  }
+
+  @override
+  String questImageImported(int count) {
+    return '导入 $count 张图片';
+  }
+
+  @override
+  String questAnimationStateAdded(int count) {
+    return '创建 $count 个动画状态';
+  }
+
+  @override
+  String get challengesTitle => '挑战';
+
+  @override
+  String get challengeCadenceDaily => '每日';
+
+  @override
+  String get challengeCadenceWeekly => '每周';
+
+  @override
+  String get challengeCadenceMonthly => '每月';
+
+  @override
+  String get challengeCadenceSeasonal => '季节';
+
+  @override
+  String challengeEndsIn(String time) {
+    return '剩余 $time';
+  }
+
+  @override
+  String durationDaysHours(int days, int hours) {
+    return '$days天$hours小时';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours小时$minutes分钟';
+  }
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes分钟';
+  }
+
+  @override
+  String challengeEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个作品',
+      zero: '暂无作品',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get challengeJoined => '已参加';
+
+  @override
+  String get challengeTopPrize => '最高奖励';
+
+  @override
+  String get challengeHowToJoin => '如何参加';
+
+  @override
+  String get challengeJoinSteps => '按主题创作，然后带上此标签发布到社区。';
+
+  @override
+  String get challengeCopyTag => '复制标签';
+
+  @override
+  String get challengeTagCopied => '标签已复制';
+
+  @override
+  String get challengeRewards => '奖励';
+
+  @override
+  String get challengeParticipationReward => '参与奖励';
+
+  @override
+  String challengePlace(int place) {
+    return '第$place名';
+  }
+
+  @override
+  String get challengeEffectPackReward => '+ 特效包';
+
+  @override
+  String get challengeStartDrawing => '开始创作';
+
+  @override
+  String get challengeTagsLabel => '参加挑战';
+
+  @override
+  String get challengeEntryPublicOnly => '只有公开项目可以参加挑战。';
+
+  @override
+  String get challengeEntryOldProjectHint => '在挑战开始前首次发布的项目无法参加。';
+
+  @override
+  String challengeStartsIn(String time) {
+    return '$time 后开始';
+  }
+
+  @override
+  String get challengeStatusJudging => '正在评选';
+
+  @override
+  String challengeResultsBy(String date) {
+    return '$date 前公布结果';
+  }
+
+  @override
+  String get challengeStatusCompleted => '已结束';
+
+  @override
+  String get challengeStatusCancelled => '已取消';
+
+  @override
+  String get challengeRulesTitle => '规则';
+
+  @override
+  String challengeRuleMaxEntries(int count) {
+    return '每人最多 $count 个作品';
+  }
+
+  @override
+  String get challengeRuleStartsAfter => '仅限挑战开始后首次发布的项目';
+
+  @override
+  String challengeRuleRequiredPack(String pack) {
+    return '至少使用一个“$pack”特效';
+  }
+
+  @override
+  String get challengeYourEntries => '你的作品';
+
+  @override
+  String challengeEntryNumber(int number) {
+    return '作品 $number';
+  }
+
+  @override
+  String get challengeEntryPending => '审核中';
+
+  @override
+  String get challengeEntryAccepted => '已通过';
+
+  @override
+  String get challengeEntryRejected => '未通过';
+
+  @override
+  String get challengeEntryWithdrawn => '已撤回';
+
+  @override
+  String get challengeEntryWinner => '获奖';
+
+  @override
+  String get challengeWinnersTitle => '获奖作品';
+
+  @override
+  String get challengeMention => '荣誉提名';
+
+  @override
+  String get challengeEntriesTitle => '参赛作品';
+
+  @override
+  String get challengeSortRecent => '最新';
+
+  @override
+  String get challengeNoEntriesYet => '还没有作品，来做第一个吧！';
+
+  @override
+  String get challengeLoadFailed => '无法加载挑战';
+
+  @override
+  String get challengeEntriesLoadFailed => '无法加载作品';
+
+  @override
+  String challengeEnteredToast(String tags) {
+    return '已参加 $tags！作品经过简单审核后会出现在画廊中。';
+  }
+
+  @override
+  String challengeWarningNotActive(String tag) {
+    return '$tag 目前不接受投稿。';
+  }
+
+  @override
+  String challengeWarningNotPublic(String tag) {
+    return '请将项目设为公开以参加 $tag。';
+  }
+
+  @override
+  String challengeWarningBeforeStart(String tag) {
+    return '只有在 $tag 开始后发布的作品才能参加。请发布一幅新作品。';
+  }
+
+  @override
+  String challengeWarningLimit(String tag) {
+    return '你已达到 $tag 的投稿上限。';
+  }
+
+  @override
+  String get challengeWarningNotEligible => '你的账号目前无法参加挑战。';
+
+  @override
+  String serverRewardGems(int gems) {
+    return '+$gems 宝石';
+  }
+
+  @override
+  String serverRewardParticipationTitle(String challenge) {
+    return '感谢参加 $challenge！';
+  }
+
+  @override
+  String serverRewardPlacementTitle(String challenge) {
+    return '你在 $challenge 中获奖了！';
+  }
+
+  @override
+  String serverRewardMentionTitle(String challenge) {
+    return '你在 $challenge 中获得荣誉提名！';
+  }
+
+  @override
+  String get serverRewardGiftTitle => '你收到了一份奖励';
+
+  @override
+  String get myChallengeEntriesEmpty => '你还没有参加任何挑战。发布作品时添加挑战标签即可参加。';
+
+  @override
+  String get myChallengeEntriesLoadFailed => '无法加载你的投稿';
+
+  @override
+  String get challengeCompetition => '比赛';
+
+  @override
+  String get challengeRuleCompetition => '比赛：结束后评选获奖者';
+
+  @override
+  String get challengeRuleNoWinners => '不设名次：每幅通过审核的作品都能获得奖励';
+
+  @override
+  String get challengeRuleJustForFun => '不设名次也没有奖励，纯属娱乐';
+
+  @override
+  String get challengeAcceptedEntryReward => '每幅通过审核的作品';
+
+  @override
+  String get challengeYourReward => '你的奖励';
+
+  @override
+  String get challengeClaimReward => '领取';
+
+  @override
+  String get challengeRewardClaimed => '已领取';
+
+  @override
+  String get challengeRewardPrize => '奖品';
+
+  @override
+  String get challengeRewardAfterReview => '作品通过审核后即可获得';
+
+  @override
+  String get challengeRewardAfterResults => '公布获奖者后发放';
+
+  @override
+  String get challengeRewardSoon => '正在发放，请一分钟后再来看看';
+
+  @override
+  String get challengeRewardClaimFailed => '领取奖励失败，请重试。';
+
+  @override
+  String get feedback_chat_title => '你的反馈';
+
+  @override
+  String get feedback_chat_new_feedback => '新反馈';
+
+  @override
+  String get feedback_chat_submitted => '反馈已发送';
+
+  @override
+  String get feedback_chat_intro => '谢谢！还想补充什么吗？请在这里留言。我们会阅读每条消息并在此聊天中回复。';
+
+  @override
+  String get feedback_chat_hint => '输入消息…';
+
+  @override
+  String get feedback_chat_send => '发送';
+
+  @override
+  String get feedback_chat_closed => '此对话已关闭。发送新消息会重新打开它。';
+
+  @override
+  String get feedback_chat_load_failed => '无法加载消息';
+
+  @override
+  String get feedback_chat_send_failed => '无法发送消息，请重试。';
+
+  @override
+  String get feedback_chat_team => 'Picell 团队';
+
+  @override
+  String get feedback_reply_toast => '你的反馈有新回复';
+
+  @override
+  String get feedback_reply_open => '打开';
+
+  @override
+  String get deleteAlsoFromCloud => '同时从社区删除';
+
+  @override
+  String get deleteAlsoFromCloudHint => '已发布的版本及其点赞和评论将一并删除。';
 }

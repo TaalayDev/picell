@@ -4,8 +4,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../../data.dart';
+import '../../../data/models/challenge_models.dart';
 import '../../../l10n/strings.dart';
+import '../../../providers/challenges_provider.dart';
 import '../../../providers/project_upload_provider.dart';
+import '../challenges/challenges_banner.dart';
 import '../notifications/app_notification.dart';
 import '../project/project_thumbnail.dart';
 
@@ -46,6 +49,9 @@ class ProjectUploadDialog extends HookConsumerWidget {
 
     final uploadState = ref.watch(projectUploadProvider);
     final popularTags = ref.watch(popularProjectTagsProvider);
+    final currentChallenges = ref.watch(currentChallengesProvider).valueOrNull;
+    final challenges = currentChallenges?.running() ?? const <Challenge>[];
+    final picksChallenge = challenges.any((challenge) => selectedTags.value.contains(challenge.tag));
 
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -54,6 +60,7 @@ class ProjectUploadDialog extends HookConsumerWidget {
       if (uploadState.isSuccess && !isUploading.value) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
+            _announceChallenges(context, ref);
             Navigator.of(context).pop(true);
           }
         });
@@ -166,7 +173,7 @@ class ProjectUploadDialog extends HookConsumerWidget {
                         _SectionLabel(Strings.of(context).tags, theme: theme),
                         const SizedBox(width: 6),
                         Text(
-                          '(${selectedTags.value.length}/5)',
+                          '(${selectedTags.value.length}/$_maxTags)',
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: cs.onSurface.withValues(alpha: 0.5),
                           ),
@@ -174,6 +181,26 @@ class ProjectUploadDialog extends HookConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
+                    // Running challenges first: their tags may not be popular yet,
+                    // and adding one is how a project enters a challenge.
+                    if (challenges.isNotEmpty) ...[
+                      _ChallengeTagSuggestions(
+                        challenges: challenges,
+                        serverNow: currentChallenges!.serverNow(),
+                        selectedTags: selectedTags,
+                        cs: cs,
+                        theme: theme,
+                      ),
+                      if (picksChallenge && !isPublic.value)
+                        _ChallengeHint(text: Strings.of(context).challengeEntryPublicOnly, color: cs.error, theme: theme),
+                      if (picksChallenge && isUpdate)
+                        _ChallengeHint(
+                          text: Strings.of(context).challengeEntryOldProjectHint,
+                          color: cs.onSurface.withValues(alpha: 0.6),
+                          theme: theme,
+                        ),
+                      const SizedBox(height: 12),
+                    ],
                     TextField(
                       controller: tagSearchController,
                       decoration: InputDecoration(
@@ -635,29 +662,214 @@ class _TagsGrid extends StatelessWidget {
       runSpacing: 6,
       children: displayTags.map((tag) {
         final name = tag.name as String;
-        final isSelected = selectedTags.value.contains(name);
         return _TagChip(
           name: name,
-          isSelected: isSelected,
-          onTap: () {
-            if (isSelected) {
-              selectedTags.value = selectedTags.value.where((t) => t != name).toList();
-            } else {
-              if (selectedTags.value.length >= 5) {
-                AppNotification.warning(
-                  context,
-                  Strings.of(context).maximumTagsAllowed,
-                  duration: const Duration(seconds: 2),
-                );
-                return;
-              }
-              selectedTags.value = [...selectedTags.value, name];
-            }
-          },
+          isSelected: selectedTags.value.contains(name),
+          onTap: () => _toggleTag(context, selectedTags, name),
           cs: cs,
           theme: theme,
         );
       }).toList(),
+    );
+  }
+}
+
+/// Tells the user which challenges the project entered, or why a
+/// challenge tag did not count.
+void _announceChallenges(BuildContext context, WidgetRef ref) {
+  final submission = ref.read(challengeSubmissionProvider);
+  if (submission == null) return;
+  ref.read(challengeSubmissionProvider.notifier).state = null;
+
+  final s = Strings.of(context);
+  if (submission.enteredTags.isNotEmpty) {
+    AppNotification.success(
+      context,
+      s.challengeEnteredToast(submission.enteredTags.map((tag) => '#$tag').join(', ')),
+      duration: const Duration(seconds: 5),
+    );
+  }
+  for (final warning in submission.warnings) {
+    final tag = '#${warning.tag}';
+    final message = switch (warning.code) {
+      ChallengeWarningCode.challengeNotActive => s.challengeWarningNotActive(tag),
+      ChallengeWarningCode.projectNotPublic => s.challengeWarningNotPublic(tag),
+      ChallengeWarningCode.publishedBeforeStart => s.challengeWarningBeforeStart(tag),
+      ChallengeWarningCode.entryLimitReached => s.challengeWarningLimit(tag),
+      ChallengeWarningCode.accountNotEligible => s.challengeWarningNotEligible,
+      ChallengeWarningCode.unknown => null,
+    };
+    if (message != null) {
+      AppNotification.warning(context, message, duration: const Duration(seconds: 6));
+    }
+  }
+}
+
+const _maxTags = 5;
+
+/// Adds or removes [name], keeping at most [_maxTags] tags.
+void _toggleTag(BuildContext context, ValueNotifier<List<String>> selectedTags, String name) {
+  if (selectedTags.value.contains(name)) {
+    selectedTags.value = selectedTags.value.where((t) => t != name).toList();
+    return;
+  }
+  if (selectedTags.value.length >= _maxTags) {
+    AppNotification.warning(
+      context,
+      Strings.of(context).maximumTagsAllowed,
+      duration: const Duration(seconds: 2),
+    );
+    return;
+  }
+  selectedTags.value = [...selectedTags.value, name];
+}
+
+/// One row per running challenge; tapping adds its tag to the project.
+class _ChallengeTagSuggestions extends StatelessWidget {
+  final List<Challenge> challenges;
+  final DateTime serverNow;
+  final ValueNotifier<List<String>> selectedTags;
+  final ColorScheme cs;
+  final ThemeData theme;
+
+  const _ChallengeTagSuggestions({
+    required this.challenges,
+    required this.serverNow,
+    required this.selectedTags,
+    required this.cs,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.emoji_events_outlined, size: 14, color: cs.primary),
+            const SizedBox(width: 4),
+            Text(
+              s.challengeTagsLabel,
+              style: theme.textTheme.labelMedium?.copyWith(color: cs.primary, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        for (final challenge in challenges)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: _ChallengeTagRow(
+              key: ValueKey('challenge-tag-${challenge.tag}'),
+              challenge: challenge,
+              remaining: challenge.endsAt.difference(serverNow),
+              isSelected: selectedTags.value.contains(challenge.tag),
+              onTap: () => _toggleTag(context, selectedTags, challenge.tag),
+              cs: cs,
+              theme: theme,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _ChallengeTagRow extends StatelessWidget {
+  final Challenge challenge;
+  final Duration remaining;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final ColorScheme cs;
+  final ThemeData theme;
+
+  const _ChallengeTagRow({
+    super.key,
+    required this.challenge,
+    required this.remaining,
+    required this.isSelected,
+    required this.onTap,
+    required this.cs,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final foreground = isSelected ? cs.onPrimary : cs.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? cs.primary : cs.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? cs.primary : cs.primary.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '#${challenge.tag}',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: isSelected ? cs.onPrimary : cs.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    [
+                      challenge.title,
+                      challengeCadenceLabel(context, challenge.cadence),
+                      s.challengeEndsIn(formatChallengeRemaining(context, remaining)),
+                    ].join('  ·  '),
+                    style: theme.textTheme.labelSmall?.copyWith(color: foreground.withValues(alpha: 0.75)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              isSelected ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+              size: 20,
+              color: isSelected ? cs.onPrimary : cs.primary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChallengeHint extends StatelessWidget {
+  final String text;
+  final Color color;
+  final ThemeData theme;
+
+  const _ChallengeHint({required this.text, required this.color, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2, bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline_rounded, size: 14, color: color),
+          const SizedBox(width: 6),
+          Expanded(child: Text(text, style: theme.textTheme.labelSmall?.copyWith(color: color))),
+        ],
+      ),
     );
   }
 }

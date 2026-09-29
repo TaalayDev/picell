@@ -328,42 +328,6 @@ class StringsEn extends Strings {
   String get feedback_q_price_more_20 => 'More than \$20';
 
   @override
-  String get feedback_q_patreon_support =>
-      'Will you support the project on Patreon?';
-
-  @override
-  String get feedback_q_patreon_definitely => 'Yes, definitely';
-
-  @override
-  String get feedback_q_patreon_if_exclusive =>
-      'Maybe, if there are exclusive features';
-
-  @override
-  String get feedback_q_patreon_if_reasonable =>
-      'Maybe, if the price is reasonable';
-
-  @override
-  String get feedback_q_patreon_probably_not => 'Probably not';
-
-  @override
-  String get feedback_q_patreon_no => 'No, not planning to';
-
-  @override
-  String get feedback_q_patreon_tier =>
-      'Which Patreon support tier interests you?';
-
-  @override
-  String get feedback_q_patreon_tier_3 =>
-      '\$3/month - Early access to features';
-
-  @override
-  String get feedback_q_patreon_tier_5 => '\$5/month - + Exclusive themes';
-
-  @override
-  String get feedback_q_patreon_tier_10 =>
-      '\$10/month - + Influence on development';
-
-  @override
   String get feedback_q_usage_frequency => 'How often do you use the app?';
 
   @override
@@ -3230,16 +3194,48 @@ class StringsEn extends Strings {
   }
 
   @override
-  String get questAnimationGenerated => 'Generate an effect animation';
+  String questAnimationGenerated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Generate $count effect animations',
+      one: 'Generate an effect animation',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get questImageExported => 'Export an image';
+  String questImageExported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Export $count images',
+      one: 'Export an image',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get questAnimationExported => 'Export an animation';
+  String questAnimationExported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Export $count animations',
+      one: 'Export an animation',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get questProjectImported => 'Import a project';
+  String questProjectImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count projects',
+      one: 'Import a project',
+    );
+    return '$_temp0';
+  }
 
   @override
   String questProjectPublished(int count) {
@@ -3259,4 +3255,370 @@ class StringsEn extends Strings {
 
   @override
   String get managePurchases => 'Manage purchases';
+
+  @override
+  String get achievementsTitle => 'Achievements';
+
+  @override
+  String questTemplateUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Use $count templates',
+      one: 'Start from a template',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questImageImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count images',
+      one: 'Import an image',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String questAnimationStateAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Create $count animation states',
+      one: 'Create an animation state',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get challengesTitle => 'Challenges';
+
+  @override
+  String get challengeCadenceDaily => 'Daily';
+
+  @override
+  String get challengeCadenceWeekly => 'Weekly';
+
+  @override
+  String get challengeCadenceMonthly => 'Monthly';
+
+  @override
+  String get challengeCadenceSeasonal => 'Seasonal';
+
+  @override
+  String challengeEndsIn(String time) {
+    return 'Ends in $time';
+  }
+
+  @override
+  String durationDaysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String durationMinutes(int minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String challengeEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+      zero: 'No entries yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get challengeJoined => 'You\'re in';
+
+  @override
+  String get challengeTopPrize => 'Top prize';
+
+  @override
+  String get challengeHowToJoin => 'How to join';
+
+  @override
+  String get challengeJoinSteps =>
+      'Draw something on the theme, then publish it to the community with this tag.';
+
+  @override
+  String get challengeCopyTag => 'Copy tag';
+
+  @override
+  String get challengeTagCopied => 'Tag copied';
+
+  @override
+  String get challengeRewards => 'Rewards';
+
+  @override
+  String get challengeParticipationReward => 'For taking part';
+
+  @override
+  String challengePlace(int place) {
+    return 'Place $place';
+  }
+
+  @override
+  String get challengeEffectPackReward => '+ effect pack';
+
+  @override
+  String get challengeStartDrawing => 'Start drawing';
+
+  @override
+  String get challengeTagsLabel => 'Enter a challenge';
+
+  @override
+  String get challengeEntryPublicOnly =>
+      'Only public projects can enter challenges.';
+
+  @override
+  String get challengeEntryOldProjectHint =>
+      'Projects first published before a challenge started can\'t enter it.';
+
+  @override
+  String challengeStartsIn(String time) {
+    return 'Starts in $time';
+  }
+
+  @override
+  String get challengeStatusJudging => 'Picking winners';
+
+  @override
+  String challengeResultsBy(String date) {
+    return 'Results by $date';
+  }
+
+  @override
+  String get challengeStatusCompleted => 'Finished';
+
+  @override
+  String get challengeStatusCancelled => 'Cancelled';
+
+  @override
+  String get challengeRulesTitle => 'Rules';
+
+  @override
+  String challengeRuleMaxEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Up to $count entries per person',
+      one: 'One entry per person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get challengeRuleStartsAfter =>
+      'Only projects first published after the challenge starts';
+
+  @override
+  String challengeRuleRequiredPack(String pack) {
+    return 'Use at least one effect from $pack';
+  }
+
+  @override
+  String get challengeYourEntries => 'Your entries';
+
+  @override
+  String challengeEntryNumber(int number) {
+    return 'Entry $number';
+  }
+
+  @override
+  String get challengeEntryPending => 'Under review';
+
+  @override
+  String get challengeEntryAccepted => 'Accepted';
+
+  @override
+  String get challengeEntryRejected => 'Rejected';
+
+  @override
+  String get challengeEntryWithdrawn => 'Withdrawn';
+
+  @override
+  String get challengeEntryWinner => 'Winner';
+
+  @override
+  String get challengeWinnersTitle => 'Winners';
+
+  @override
+  String get challengeMention => 'Honorable mention';
+
+  @override
+  String get challengeEntriesTitle => 'Entries';
+
+  @override
+  String get challengeSortRecent => 'Newest';
+
+  @override
+  String get challengeNoEntriesYet => 'No entries yet. Be the first!';
+
+  @override
+  String get challengeLoadFailed => 'Couldn\'t load this challenge';
+
+  @override
+  String get challengeEntriesLoadFailed => 'Couldn\'t load entries';
+
+  @override
+  String challengeEnteredToast(String tags) {
+    return 'Entered $tags! Your drawing shows up in the gallery after a quick review.';
+  }
+
+  @override
+  String challengeWarningNotActive(String tag) {
+    return '$tag isn\'t open for entries right now.';
+  }
+
+  @override
+  String challengeWarningNotPublic(String tag) {
+    return 'Make the project public to enter $tag.';
+  }
+
+  @override
+  String challengeWarningBeforeStart(String tag) {
+    return 'Only drawings published after $tag started can enter. Publish a new drawing to join.';
+  }
+
+  @override
+  String challengeWarningLimit(String tag) {
+    return 'You\'ve reached the entry limit for $tag.';
+  }
+
+  @override
+  String get challengeWarningNotEligible =>
+      'Your account can\'t enter challenges right now.';
+
+  @override
+  String serverRewardGems(int gems) {
+    return '+$gems gems';
+  }
+
+  @override
+  String serverRewardParticipationTitle(String challenge) {
+    return 'Thanks for joining $challenge!';
+  }
+
+  @override
+  String serverRewardPlacementTitle(String challenge) {
+    return 'You placed in $challenge!';
+  }
+
+  @override
+  String serverRewardMentionTitle(String challenge) {
+    return 'Honorable mention in $challenge!';
+  }
+
+  @override
+  String get serverRewardGiftTitle => 'You received a reward';
+
+  @override
+  String get myChallengeEntriesEmpty =>
+      'You haven\'t entered a challenge yet. Add a challenge tag when you publish a drawing to join.';
+
+  @override
+  String get myChallengeEntriesLoadFailed => 'Couldn\'t load your entries';
+
+  @override
+  String get challengeCompetition => 'Competition';
+
+  @override
+  String get challengeRuleCompetition =>
+      'Competition: winners are picked after it ends';
+
+  @override
+  String get challengeRuleNoWinners =>
+      'No winners: every accepted entry gets the reward';
+
+  @override
+  String get challengeRuleJustForFun =>
+      'No winners and no prizes, just for fun';
+
+  @override
+  String get challengeAcceptedEntryReward => 'For an accepted entry';
+
+  @override
+  String get challengeYourReward => 'Your reward';
+
+  @override
+  String get challengeClaimReward => 'Claim';
+
+  @override
+  String get challengeRewardClaimed => 'Received';
+
+  @override
+  String get challengeRewardPrize => 'Prize';
+
+  @override
+  String get challengeRewardAfterReview =>
+      'You\'ll get it once your entry is accepted';
+
+  @override
+  String get challengeRewardAfterResults =>
+      'Paid when the winners are announced';
+
+  @override
+  String get challengeRewardSoon => 'On its way, check back in a minute';
+
+  @override
+  String get challengeRewardClaimFailed =>
+      'Couldn\'t claim the reward. Try again.';
+
+  @override
+  String get feedback_chat_title => 'Your feedback';
+
+  @override
+  String get feedback_chat_new_feedback => 'New feedback';
+
+  @override
+  String get feedback_chat_submitted => 'Feedback sent';
+
+  @override
+  String get feedback_chat_intro =>
+      'Thanks! Want to add something? Write here. We read every message and reply in this chat.';
+
+  @override
+  String get feedback_chat_hint => 'Write a message…';
+
+  @override
+  String get feedback_chat_send => 'Send';
+
+  @override
+  String get feedback_chat_closed =>
+      'This conversation was closed. Writing a message opens it again.';
+
+  @override
+  String get feedback_chat_load_failed => 'Couldn\'t load messages';
+
+  @override
+  String get feedback_chat_send_failed =>
+      'Couldn\'t send the message. Try again.';
+
+  @override
+  String get feedback_chat_team => 'Picell team';
+
+  @override
+  String get feedback_reply_toast => 'New reply to your feedback';
+
+  @override
+  String get feedback_reply_open => 'Open';
+
+  @override
+  String get deleteAlsoFromCloud => 'Also delete from the community';
+
+  @override
+  String get deleteAlsoFromCloudHint =>
+      'Removes the published version with its likes and comments.';
 }

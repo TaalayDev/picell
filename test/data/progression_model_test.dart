@@ -60,6 +60,56 @@ void main() {
     });
   });
 
+  group('catalog', () {
+    test('quest ids are unique', () {
+      final ids = [...QuestCatalog.oneTime, ...QuestCatalog.dailyPool].map((quest) => quest.id).toList();
+      expect(ids.toSet().length, ids.length);
+    });
+
+    test('each tier requires an easier one-time quest for the same action', () {
+      for (final quest in QuestCatalog.oneTime.where((quest) => quest.requires != null)) {
+        final previous = QuestCatalog.byId[quest.requires];
+        expect(previous, isNotNull, reason: quest.id);
+        expect(previous!.kind, isNot(QuestKind.daily), reason: quest.id);
+        expect(previous.event, quest.event, reason: quest.id);
+        expect(previous.target, lessThan(quest.target), reason: quest.id);
+      }
+    });
+
+    test('reward effects come from paid packs', () {
+      for (final quest in QuestCatalog.oneTime.where((quest) => quest.rewardEffect != null)) {
+        expect(EffectPackCatalog.isFree(quest.rewardEffect!), isFalse, reason: quest.id);
+      }
+    });
+
+    test('daily quests never repeat an action on the same day', () {
+      final events = QuestCatalog.dailyPool.map((quest) => quest.event).toList();
+      expect(events.toSet().length, events.length);
+    });
+  });
+
+  group('achievement tiers', () {
+    test('stay hidden and unannounced until the previous tier is claimed', () {
+      final tier = QuestCatalog.byId['projects_5']!;
+      var state = const ProgressionState().rollDay(day1);
+      final completed = <Quest>[];
+      for (var i = 0; i < tier.target; i++) {
+        final (next, done) = state.record(ProgressionEvent.projectCreated, day1);
+        state = next;
+        completed.addAll(done);
+      }
+
+      expect(state.isComplete(tier), isTrue);
+      expect(state.isUnlocked(tier), isFalse);
+      expect(state.canClaim(tier), isFalse);
+      expect(completed, isNot(contains(tier)));
+
+      state = state.claim(starter('first_project'), day1)!;
+      expect(state.isUnlocked(tier), isTrue);
+      expect(state.canClaim(tier), isTrue);
+    });
+  });
+
   group('streaks', () {
     test('grows on consecutive days, pays milestones and breaks after a gap', () {
       var state = const ProgressionState();
@@ -137,5 +187,19 @@ void main() {
 
     final json = state.toJson()..['earnedEffects'] = ['watercolor', 'removedEffect'];
     expect(ProgressionState.fromJson(json).earnedEffects, {EffectType.watercolor});
+  });
+
+  test('server grants are added once and survive a restart', () {
+    const state = ProgressionState(coins: 10);
+    final paid = state.applyServerGrant('grant-1', gems: 500, pack: EffectPackId.vfxMagic, now: day1, detail: 'dragons')!;
+
+    expect(paid.coins, 510);
+    expect(paid.earnedPacks, {EffectPackId.vfxMagic});
+    expect(paid.ledger.first.reason, WalletReason.serverReward);
+    expect(paid.applyServerGrant('grant-1', gems: 500, now: day1), isNull);
+
+    final restored = ProgressionState.fromJson(paid.toJson());
+    expect(restored.hasClaimedGrant('grant-1'), isTrue);
+    expect(restored.applyServerGrant('grant-1', gems: 500, now: day2), isNull);
   });
 }

@@ -8,6 +8,7 @@ import '../core/utils/api_client.dart';
 import '../core/services/in_app_review_service.dart';
 import '../data.dart';
 import '../data/repo/auth_api_repo.dart';
+import '../data/repo/challenge_api_repo.dart';
 import '../data/repo/discovery_api_repo.dart';
 import '../data/repo/project_api_repo.dart';
 import '../data/repo/template_api_repo.dart';
@@ -55,6 +56,10 @@ final templateAPIRepoProvider = Provider<TemplateAPIRepo>((ref) {
 
 final discoveryAPIRepoProvider = Provider<DiscoveryAPIRepo>((ref) {
   return DiscoveryAPIRepo(ref.read(apiClientProvider));
+});
+
+final challengeAPIRepoProvider = Provider<ChallengeAPIRepo>((ref) {
+  return ChallengeAPIRepo(ref.read(apiClientProvider));
 });
 
 final templateServiceProvider = Provider<TemplateService>((ref) {

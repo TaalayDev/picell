@@ -1,8 +1,8 @@
-import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../pixel/effects/effects.dart';
 
@@ -57,21 +57,57 @@ class Layer with EquatableMixin {
     );
   }
 
-  // Get pixels with all effects applied. Computed once per Layer instance:
+  // Pixels with all effects applied. Computed once per Layer instance:
   // Layer is immutable (copyWith creates a new instance whenever pixels or
   // effects change), and effect application is a full-buffer pass that gets
   // requested repeatedly by the cache manager, painter, and merge helpers.
-  late final Uint32List processedPixels = _computeProcessedPixels();
+  // [prepareProcessedPixels] can fill the cache from a background isolate.
+  //
+  // Effects need the canvas size (a layer only holds a flat buffer), so every
+  // read passes it. A layer always belongs to one canvas, so the first size
+  // is the only size and the cache is never stale.
+  Uint32List? _processedPixels;
 
-  Uint32List _computeProcessedPixels() {
+  /// [pixels] with every effect applied, for a [width] × [height] canvas.
+  Uint32List processedPixels(int width, int height) =>
+      _processedPixels ??= _computeProcessedPixels(pixels, effects, width, height);
+
+  /// Whether reading [processedPixels] would run effects on this thread.
+  bool get needsEffectProcessing => effects.isEmpty ? false : _processedPixels == null;
+
+  static Uint32List _computeProcessedPixels(Uint32List pixels, List<Effect> effects, int width, int height) {
     if (effects.isEmpty) return pixels;
-
-    // Calculate square root to get width/height (assuming square or known dimensions)
-    final size = pixels.length;
-    final width = sqrt(size).floor();
-    final height = width;
-
+    assert(width * height == pixels.length, 'Layer is not $width×$height');
     return EffectsManager.applyMultipleEffects(pixels, width, height, effects);
+  }
+
+  /// Applies effects of every layer that has any in one background isolate,
+  /// so opening a project with effects doesn't freeze the UI while the
+  /// canvas, timeline and layer previews read [processedPixels]. Produces
+  /// exactly what [processedPixels] would.
+  static Future<void> prepareProcessedPixels(Iterable<Layer> layers, int width, int height) async {
+    final pending = layers.where((layer) => layer.needsEffectProcessing).toList();
+    if (pending.isEmpty) return;
+
+    final results = await compute(
+      _computeProcessedPixelsBatch,
+      (
+        width: width,
+        height: height,
+        layers: [for (final layer in pending) (pixels: layer.pixels, effects: layer.effects)],
+      ),
+    );
+    for (var i = 0; i < pending.length; i++) {
+      pending[i]._processedPixels ??= results[i];
+    }
+  }
+
+  static List<Uint32List> _computeProcessedPixelsBatch(
+    ({int width, int height, List<({Uint32List pixels, List<Effect> effects})> layers}) args,
+  ) {
+    return [
+      for (final layer in args.layers) _computeProcessedPixels(layer.pixels, layer.effects, args.width, args.height),
+    ];
   }
 
   Map<String, dynamic> toJson() {

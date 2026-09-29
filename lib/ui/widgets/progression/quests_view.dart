@@ -1,11 +1,22 @@
+import 'dart:math' as math;
+
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../data/models/challenge_models.dart';
 import '../../../data/models/progression_model.dart';
 import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
 import '../../../providers/ad/reward_video_ad_controller.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/challenges_provider.dart';
 import '../../../providers/progression_provider.dart';
+import '../../screens/challenge_screen.dart';
+import '../../screens/my_challenge_entries_screen.dart';
+import '../challenges/challenges_banner.dart';
 import '../notifications/app_notification.dart';
 
 extension QuestPresentation on Quest {
@@ -17,11 +28,14 @@ extension QuestPresentation on Quest {
       ProgressionEvent.layerAdded => s.questLayerAdded(target),
       ProgressionEvent.frameAdded => s.questFrameAdded(target),
       ProgressionEvent.effectAdded => s.questEffectAdded(target),
-      ProgressionEvent.animationGenerated => s.questAnimationGenerated,
-      ProgressionEvent.imageExported => s.questImageExported,
-      ProgressionEvent.animationExported => s.questAnimationExported,
-      ProgressionEvent.projectImported => s.questProjectImported,
+      ProgressionEvent.animationGenerated => s.questAnimationGenerated(target),
+      ProgressionEvent.imageExported => s.questImageExported(target),
+      ProgressionEvent.animationExported => s.questAnimationExported(target),
+      ProgressionEvent.projectImported => s.questProjectImported(target),
       ProgressionEvent.projectPublished => s.questProjectPublished(target),
+      ProgressionEvent.templateUsed => s.questTemplateUsed(target),
+      ProgressionEvent.imageImported => s.questImageImported(target),
+      ProgressionEvent.animationStateAdded => s.questAnimationStateAdded(target),
     };
   }
 }
@@ -87,28 +101,72 @@ class WalletChip extends ConsumerWidget {
 class QuestsView extends ConsumerWidget {
   const QuestsView({super.key});
 
+  static const double _twoColumnBreakpoint = 900;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = Strings.of(context);
     final state = ref.watch(progressionProvider);
-    final starter = [
-      ...QuestCatalog.starter.where((quest) => !state.isClaimed(quest)),
-      ...QuestCatalog.starter.where(state.isClaimed),
+    // Open quests first, finished ones dimmed at the end.
+    List<Quest> openFirst(Iterable<Quest> quests) => [
+          ...quests.where((quest) => !state.isClaimed(quest)),
+          ...quests.where(state.isClaimed),
+        ];
+
+    final starter = openFirst(QuestCatalog.starter);
+    // One tier per chain: claimed tiers give way to the tier they unlock.
+    final achievements = openFirst(
+      QuestCatalog.achievements.where(
+        (quest) =>
+            state.isUnlocked(quest) && !(state.isClaimed(quest) && QuestCatalog.nextTier.containsKey(quest.id)),
+      ),
+    );
+
+    final today = [
+      _StreakCard(streakDays: state.streakDays),
+      const SizedBox(height: 12),
+      const _AdRewardCard(),
+      const SizedBox(height: 20),
+      const _ChallengesSection(),
+      _SectionTitle(s.dailyQuestsTitle),
+      for (final quest in state.dailyQuests) _QuestTile(quest: quest),
+    ];
+    final gettingStarted = [
+      _SectionTitle(s.starterQuestsTitle),
+      for (final quest in starter) _QuestTile(quest: quest),
+      if (achievements.isNotEmpty) ...[
+        const SizedBox(height: 20),
+        _SectionTitle(s.achievementsTitle),
+        for (final quest in achievements) _QuestTile(quest: quest),
+      ],
     ];
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      children: [
-        _StreakCard(streakDays: state.streakDays),
-        const SizedBox(height: 12),
-        const _AdRewardCard(),
-        const SizedBox(height: 20),
-        _SectionTitle(s.dailyQuestsTitle),
-        for (final quest in state.dailyQuests) _QuestTile(quest: quest),
-        const SizedBox(height: 20),
-        _SectionTitle(s.starterQuestsTitle),
-        for (final quest in starter) _QuestTile(quest: quest),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Two columns on wide screens; a single readable column otherwise.
+        final twoColumns = constraints.maxWidth >= _twoColumnBreakpoint;
+        final maxWidth = twoColumns ? 1100.0 : 720.0;
+        final horizontal = math.max(16.0, (constraints.maxWidth - maxWidth) / 2);
+        final padding = EdgeInsets.fromLTRB(horizontal, 16, horizontal, 24);
+
+        if (!twoColumns) {
+          return ListView(
+            padding: padding,
+            children: [...today, const SizedBox(height: 20), ...gettingStarted],
+          );
+        }
+        return SingleChildScrollView(
+          padding: padding,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: today)),
+              const SizedBox(width: 24),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: gettingStarted)),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -126,6 +184,59 @@ class _SectionTitle extends StatelessWidget {
         text,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
       ),
+    );
+  }
+}
+
+/// Running challenges, so challenges and quests live in one place. Hidden
+/// when none are running or they cannot be loaded.
+class _ChallengesSection extends HookConsumerWidget {
+  const _ChallengesSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(currentChallengesProvider).valueOrNull;
+
+    // Countdowns show minutes, so a redraw every 30 seconds is enough.
+    final tick = useState(0);
+    useEffect(() {
+      final timer = Timer.periodic(const Duration(seconds: 30), (_) => tick.value++);
+      return timer.cancel;
+    }, const []);
+
+    final s = Strings.of(context);
+    final signedIn = ref.watch(authProvider.select((auth) => auth.isSignedIn));
+    final challenges = current?.running() ?? const <Challenge>[];
+    // Signed-in users keep the section for "Your entries" between challenges.
+    if (challenges.isEmpty && !signedIn) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(child: _SectionTitle(s.challengesTitle)),
+            if (signedIn)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: TextButton.icon(
+                  onPressed: () => MyChallengeEntriesScreen.show(context),
+                  icon: const Icon(Icons.collections_outlined, size: 18),
+                  label: Text(s.challengeYourEntries),
+                ),
+              ),
+          ],
+        ),
+        if (current != null)
+          for (final challenge in challenges)
+            ChallengeTile(
+              key: ValueKey('quests-challenge-${challenge.id}'),
+              challenge: challenge,
+              remaining: challenge.endsAt.difference(current.serverNow()),
+              onTap: () => ChallengeScreen.show(context, challenge: challenge, serverNow: current.serverNow),
+            ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }
