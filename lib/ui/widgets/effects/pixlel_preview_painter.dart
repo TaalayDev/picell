@@ -68,3 +68,33 @@ class PixelPreviewPainter extends CustomPainter {
     return !listEquals(oldDelegate.pixels, pixels) || oldDelegate.width != width || oldDelegate.height != height;
   }
 }
+
+class CheckerboardPainter extends CustomPainter {
+  const CheckerboardPainter({this.squares = 10});
+
+  final int squares;
+
+  static final _checkerPaint1 = Paint()..color = Colors.grey.shade200;
+  static final _checkerPaint2 = Paint()..color = Colors.grey.shade100;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final checkerSize = size.width / squares;
+    for (int y = 0; y < squares; y++) {
+      for (int x = 0; x < squares; x++) {
+        canvas.drawRect(
+          Rect.fromLTWH(
+            x * checkerSize,
+            y * checkerSize,
+            checkerSize,
+            checkerSize,
+          ),
+          (x + y) % 2 == 0 ? _checkerPaint1 : _checkerPaint2,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}

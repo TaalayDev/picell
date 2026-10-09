@@ -339,6 +339,7 @@ class EffectCatalog {
   };
 
   static const Set<EffectType> _animationSpecialEffects = {
+    EffectType.glowPulse,
     EffectType.hologramGlitch,
     EffectType.fire,
     EffectType.fog,
@@ -462,6 +463,7 @@ class EffectCatalog {
     EffectType.colorCycling,
     EffectType.squashStretch,
     EffectType.breathing,
+    EffectType.glowPulse,
     EffectType.windSway,
     EffectType.hitFlash,
     EffectType.ghostTrail,

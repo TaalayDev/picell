@@ -80,6 +80,7 @@ part 'color_cycling_effect.dart';
 part 'rim_light_effect.dart';
 part 'squash_stretch_effect.dart';
 part 'breathing_effect.dart';
+part 'glow_pulse_effect.dart';
 part 'wind_sway_effect.dart';
 part 'hit_flash_effect.dart';
 part 'ghost_trail_effect.dart';
@@ -385,6 +386,7 @@ enum EffectType {
   orbitingMoons,
   zodiacConstellation,
   breathing,
+  glowPulse,
 }
 
 /// Base abstract class for all effects
@@ -604,6 +606,7 @@ abstract class Effect {
         EffectType.orbitingMoons => 'Orbiting Satellite Moons',
         EffectType.zodiacConstellation => 'Zodiac Constellation Map',
         EffectType.breathing => 'Smart Breathing (Idle)',
+        EffectType.glowPulse => 'Glow Pulse',
       };
 
   String getDescription(BuildContext context) => switch (type) {
@@ -934,6 +937,7 @@ abstract class Effect {
           'Gravitational satellite system with spherical shaded moons and inclined orbital guide tracks',
         EffectType.zodiacConstellation =>
           'Astronomical star chart with major constellation asterisms, 4-point cross glints, and background stardust',
+        EffectType.glowPulse => 'A soft halo that gently brightens and fades around the sprite',
         EffectType.breathing =>
           'Sprite-aware idle breathing with planted feet, rigid head, chest expansion, and pixel-snapped poses',
       };
@@ -1247,6 +1251,7 @@ abstract class Effect {
         Icon(Icons.public, size: size, color: color),
       EffectType.zodiacConstellation =>
         Icon(Icons.flare, size: size, color: color),
+      EffectType.glowPulse => Icon(Icons.flare, size: size, color: color),
       EffectType.breathing => Icon(Icons.air, size: size, color: color),
     };
   }
@@ -1539,6 +1544,7 @@ abstract class Effect {
         const Color(0xFF80D8FF), // Celestial azure
       EffectType.zodiacConstellation =>
         const Color(0xFFE040FB), // Cosmic amethyst
+      EffectType.glowPulse => const Color(0xFFFFD54F),
       EffectType.breathing => const Color(0xFF4DD0E1), // Calm breath aqua
     };
   }
@@ -2115,6 +2121,8 @@ class EffectsManager {
         return OrbitingMoonsEffect(params);
       case EffectType.zodiacConstellation:
         return ZodiacConstellationEffect(params);
+      case EffectType.glowPulse:
+        return GlowPulseEffect(params);
       case EffectType.breathing:
         return BreathingEffect(params);
     }

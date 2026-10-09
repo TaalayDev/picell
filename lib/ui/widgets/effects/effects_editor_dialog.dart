@@ -762,6 +762,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
         widget.effect.type == EffectType.rimLight ||
         widget.effect.type == EffectType.squashStretch ||
         widget.effect.type == EffectType.breathing ||
+        widget.effect.type == EffectType.glowPulse ||
         widget.effect.type == EffectType.windSway ||
         widget.effect.type == EffectType.hitFlash ||
         widget.effect.type == EffectType.ghostTrail ||

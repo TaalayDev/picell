@@ -231,6 +231,7 @@ class EffectPackCatalog {
       EffectType.colorCycling,
       EffectType.kaleidoscope,
       EffectType.breathing,
+      EffectType.glowPulse,
     },
     EffectPackId.vfxNature: {
       EffectType.fire,

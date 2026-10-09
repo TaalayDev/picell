@@ -58,7 +58,11 @@ class _AdBannerState extends State<AdBanner> {
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (_) {
+        onAdLoaded: (ad) {
+          if (!mounted) {
+            ad.dispose();
+            return;
+          }
           setState(() {
             _isAdLoaded = true;
           });
@@ -80,7 +84,7 @@ class _AdBannerState extends State<AdBanner> {
       return const SizedBox();
     }
     if (_bannerAd == null || !_isAdLoaded) {
-      return SizedBox(height: widget.height);
+      return const SizedBox.shrink();
     }
 
     return Container(

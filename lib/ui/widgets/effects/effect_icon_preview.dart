@@ -4,13 +4,19 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../../pixel/effects/effects.dart';
-import '../../../pixel/services/effect_icon_export_service.dart';
+import '../../../pixel/services/effect_preview_cache.dart';
 import 'pixlel_preview_painter.dart';
 
-/// Renders the same 64×64 smiley/generator frame used by the icon exporter.
+/// Renders a rasterized preview image of the effect.
 ///
-/// For animated effects, a sequence of raw preview frames is cycled smoothly
-/// with an AnimationController without requiring full GIF encoding.
+/// Previews are rendered and cached as images:
+/// - Static effects render a single frame image (PNG) and save to cache.
+/// - Animated effects render and display their first frame immediately
+///   while the animated GIF is generated in the background, then save
+///   and display the animated image.
+///
+/// Rendering as raster images avoids expensive per-frame custom paint
+/// iterations and AnimationControllers, ensuring smooth scrolling and dialog loading.
 class EffectIconPreview extends StatefulWidget {
   const EffectIconPreview({
     super.key,
@@ -23,13 +29,11 @@ class EffectIconPreview extends StatefulWidget {
   State<EffectIconPreview> createState() => _EffectIconPreviewState();
 }
 
-class _EffectIconPreviewState extends State<EffectIconPreview>
-    with SingleTickerProviderStateMixin {
-  static const _service = EffectIconExportService();
-  static final Map<String, Future<List<Uint32List>>> _cache = {};
-  static const int _maxCachedAssets = 256;
-  late Future<List<Uint32List>> _frames;
-  AnimationController? _controller;
+class _EffectIconPreviewState extends State<EffectIconPreview> {
+  Uint8List? _firstFrameBytes;
+  Uint8List? _animatedBytes;
+  Object? _error;
+  bool _isLoading = true;
 
   bool get _isAnimated {
     final descriptor = EffectCatalog.forType(widget.effect.type);
@@ -40,126 +44,131 @@ class _EffectIconPreviewState extends State<EffectIconPreview>
   @override
   void initState() {
     super.initState();
-    _initControllerIfNeeded();
-    _frames = _renderFrames();
-  }
-
-  void _initControllerIfNeeded() {
-    if (_isAnimated) {
-      _controller ??= AnimationController(
-        vsync: this,
-        duration: Duration(
-          milliseconds: (1000 / EffectIconExportService.animationFps *
-                  EffectIconExportService.animationFrameCount)
-              .round(),
-        ),
-      )..repeat();
-    } else {
-      _controller?.stop();
-    }
+    _loadPreview();
   }
 
   @override
   void didUpdateWidget(covariant EffectIconPreview oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _initControllerIfNeeded();
     if (oldWidget.effect.type != widget.effect.type ||
         jsonEncode(oldWidget.effect.parameters) !=
             jsonEncode(widget.effect.parameters)) {
-      _frames = _renderFrames();
+      _loadPreview();
     }
   }
 
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
+  void _loadPreview() {
+    final cache = EffectPreviewCache.instance;
+    final effect = widget.effect;
+    final isAnim = _isAnimated;
 
-  Future<List<Uint32List>> _renderFrames() {
-    final key =
-        '${widget.effect.type.name}:${jsonEncode(widget.effect.parameters)}';
-    final cached = _cache[key];
-    if (cached != null) return cached;
-
-    if (_cache.length >= _maxCachedAssets) {
-      _cache.remove(_cache.keys.first);
+    // Check synchronous cache first for instant presentation
+    if (isAnim) {
+      final cachedAnim = cache.getCachedAnimated(effect);
+      if (cachedAnim != null) {
+        setState(() {
+          _animatedBytes = cachedAnim;
+          _firstFrameBytes = null;
+          _isLoading = false;
+          _error = null;
+        });
+        return;
+      }
     }
-    final future = _service.renderPreviewFrames(widget.effect).then(
-      (frames) => frames,
-      onError: (Object error, StackTrace stackTrace) {
-        _cache.remove(key);
-        Error.throwWithStackTrace(error, stackTrace);
-      },
-    );
-    _cache[key] = future;
-    return future;
+
+    final cachedFirst = cache.getCachedFirstFrame(effect);
+    if (cachedFirst != null) {
+      _firstFrameBytes = cachedFirst;
+      _isLoading = false;
+    } else {
+      _firstFrameBytes = null;
+      _isLoading = true;
+    }
+    _animatedBytes = null;
+    _error = null;
+
+    if (cachedFirst == null) {
+      cache.getFirstFrameImage(effect).then((bytes) {
+        if (!mounted || widget.effect != effect) return;
+        setState(() {
+          _firstFrameBytes = bytes;
+          _isLoading = false;
+        });
+      }, onError: (Object err) {
+        if (!mounted || widget.effect != effect) return;
+        setState(() {
+          _error = err;
+          _isLoading = false;
+        });
+      });
+    }
+
+    if (isAnim) {
+      cache.getAnimatedImage(effect).then((bytes) {
+        if (!mounted || widget.effect != effect) return;
+        setState(() {
+          _animatedBytes = bytes;
+        });
+      }, onError: (Object err) {
+        if (!mounted || widget.effect != effect) return;
+        if (_firstFrameBytes == null) {
+          setState(() {
+            _error = err;
+          });
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return FutureBuilder<List<Uint32List>>(
-      future: _frames,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Tooltip(
-            message: snapshot.error.toString(),
-            child: ColoredBox(
-              color: colors.errorContainer,
-              child: Center(
-                child: Icon(
-                  Icons.broken_image_outlined,
-                  color: colors.onErrorContainer,
-                ),
-              ),
-            ),
-          );
-        }
-        if (!snapshot.hasData) {
-          return ColoredBox(
-            color: colors.surfaceContainerHighest,
-            child: const Center(
-              child: SizedBox.square(
-                dimension: 22,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          );
-        }
 
-        final frames = snapshot.data!;
-        if (frames.isEmpty) {
-          return const SizedBox.shrink();
-        }
+    if (_error != null && _firstFrameBytes == null && _animatedBytes == null) {
+      return Tooltip(
+        message: _error.toString(),
+        child: ColoredBox(
+          color: colors.errorContainer,
+          child: Center(
+            child: Icon(
+              Icons.broken_image_outlined,
+              color: colors.onErrorContainer,
+            ),
+          ),
+        ),
+      );
+    }
 
-        if (!_isAnimated || frames.length <= 1 || _controller == null) {
-          return CustomPaint(
+    final displayBytes = _animatedBytes ?? _firstFrameBytes;
+
+    if (displayBytes == null || (_isLoading && _firstFrameBytes == null)) {
+      return ColoredBox(
+        color: colors.surfaceContainerHighest,
+        child: const Center(
+          child: SizedBox.square(
+            dimension: 22,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    return RepaintBoundary(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const CustomPaint(
+            painter: CheckerboardPainter(),
+          ),
+          Image.memory(
+            displayBytes,
             key: ValueKey('effect-icon-preview-${widget.effect.type.name}'),
-            painter: PixelPreviewPainter(
-              pixels: frames.first,
-              width: EffectIconExportService.canvasSize,
-              height: EffectIconExportService.canvasSize,
-            ),
-          );
-        }
-
-        return AnimatedBuilder(
-          animation: _controller!,
-          builder: (context, _) {
-            final frameIndex =
-                (_controller!.value * frames.length).floor() % frames.length;
-            return CustomPaint(
-              key: ValueKey('effect-icon-preview-${widget.effect.type.name}'),
-              painter: PixelPreviewPainter(
-                pixels: frames[frameIndex],
-                width: EffectIconExportService.canvasSize,
-                height: EffectIconExportService.canvasSize,
-              ),
-            );
-          },
-        );
-      },
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.none,
+            gaplessPlayback: true,
+          ),
+        ],
+      ),
     );
   }
 }

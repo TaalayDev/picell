@@ -371,6 +371,12 @@ class SubscriptionService {
     }
   }
 
+  Future<void> testGrantTemporaryProAccess({Duration duration = const Duration(minutes: 3)}) async {
+    final service = this;
+    service.grantTemporaryProAccess(duration: duration);
+    await _saveSubscriptionData();
+  }
+
   Future<void> testUnsubscribe() async {
     final service = this;
     _updateSubscription(const UserSubscription.free());

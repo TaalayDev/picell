@@ -21,7 +21,7 @@ void main() {
       expect(_count(EffectWorkspace.filters), 57);
       expect(_count(EffectWorkspace.materials), 17);
       expect(_count(EffectWorkspace.generators), 18);
-      expect(_count(EffectWorkspace.animation), 78);
+      expect(_count(EffectWorkspace.animation), 80);
       expect(_count(EffectWorkspace.lighting), 16);
     });
 
@@ -87,8 +87,8 @@ void main() {
       final specialEffects = animation
           .where((item) => item.animationKind == AnimationKind.specialEffect);
 
-      expect(transformers.length, 18);
-      expect(specialEffects.length, 60);
+      expect(transformers.length, 19);
+      expect(specialEffects.length, 61);
       expect(
         animation.every((item) => item.animationKind != null),
         isTrue,

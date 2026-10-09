@@ -3,6 +3,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:picell/ui/widgets/ad_wrapper.dart';
 
 import '../core/utils/locale_manager.dart';
+import '../core/services/push_notification_service.dart';
+import '../providers/app_settings_provider.dart';
+import '../providers/push_notifications_provider.dart';
+import '../ui/widgets/notifications/push_notifications.dart';
 import '../providers/providers.dart';
 import '../l10n/strings.dart';
 import '../providers/challenges_provider.dart';
@@ -39,6 +43,10 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _incrementSessionCount();
+      if (PushNotificationService.supported) {
+        ref.read(appSettingsProvider.notifier).refresh();
+        ref.read(pushNotificationsProvider).refresh();
+      }
       ref.read(progressionProvider.notifier).checkIn();
       ref.read(serverRewardsProvider).sync();
       ref.read(feedbackRepliesProvider.notifier).check();
@@ -68,7 +76,7 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
         supportedLocales: Strings.supportedLocales,
         localizationsDelegates: Strings.localizationsDelegates,
         locale: _getLocale(ref),
-        home: const ProgressionNotifications(child: ProjectsScreen()),
+        home: const PushNotifications(child: ProgressionNotifications(child: ProjectsScreen())),
         builder: (context, child) {
           return AdWrapper(child: child!);
         },
