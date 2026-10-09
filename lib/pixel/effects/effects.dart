@@ -199,6 +199,9 @@ part 'zodiac_constellation_effect.dart';
 part 'shimmer_effect.dart';
 part 'color_shift_effect.dart';
 part 'outline_shine_effect.dart';
+part 'smart_shading_effect.dart';
+part 'selective_outline_effect.dart';
+part 'anti_jaggies_effect.dart';
 part 'effect_catalog.dart';
 
 enum EffectType {
@@ -393,6 +396,9 @@ enum EffectType {
   shimmer,
   colorShift,
   outlineShine,
+  smartShading,
+  selectiveOutline,
+  antiJaggies,
 }
 
 /// Base abstract class for all effects
@@ -616,6 +622,9 @@ abstract class Effect {
         EffectType.shimmer => 'Specular Shimmer',
         EffectType.colorShift => 'Color Shift',
         EffectType.outlineShine => 'Smart Outline & Shine',
+        EffectType.smartShading => 'Smart Shading',
+        EffectType.selectiveOutline => 'Selective Outline',
+        EffectType.antiJaggies => 'Anti-Jaggies Cleanup',
       };
 
   String getDescription(BuildContext context) => switch (type) {
@@ -953,6 +962,12 @@ abstract class Effect {
           'A radiant sweeping light gleam, metallic sheen, or holographic rainbow prism across the sprite',
         EffectType.colorShift =>
           'Rotates hues, creates flowing color waves, RGB channel splits, and stylized palette color shifting',
+        EffectType.smartShading =>
+          'Adds highlights on edges facing the light and shadows on the far side, in clean tone bands with optional hue shift',
+        EffectType.selectiveOutline =>
+          'Outlines the sprite with a darker shade of the color it touches instead of one flat color',
+        EffectType.antiJaggies =>
+          'Removes stray pixels, fills pinholes and makes one-pixel lines pixel-perfect',
         EffectType.outlineShine =>
           'Outlines only the transparent borders of a sprite and adds a light-facing shine to its edges',
       };
@@ -1271,6 +1286,9 @@ abstract class Effect {
       EffectType.shimmer => Icon(Icons.auto_awesome, size: size, color: color),
       EffectType.colorShift => Icon(Icons.palette_outlined, size: size, color: color),
       EffectType.outlineShine => Icon(Icons.border_style, size: size, color: color),
+      EffectType.smartShading => Icon(Icons.brightness_medium, size: size, color: color),
+      EffectType.selectiveOutline => Icon(Icons.border_outer, size: size, color: color),
+      EffectType.antiJaggies => Icon(Icons.cleaning_services, size: size, color: color),
     };
   }
 
@@ -1567,6 +1585,9 @@ abstract class Effect {
       EffectType.shimmer => const Color(0xFFFFD54F), // Radiant shimmer gold
       EffectType.colorShift => const Color(0xFFE040FB), // Vibrant color shift magenta
       EffectType.outlineShine => const Color(0xFFFFC107), // Shine gold
+      EffectType.smartShading => const Color(0xFF7E57C2), // Shade violet
+      EffectType.selectiveOutline => const Color(0xFF6D4C41), // Sel-out brown
+      EffectType.antiJaggies => const Color(0xFF26A69A), // Clean teal
     };
   }
 
@@ -2152,6 +2173,12 @@ class EffectsManager {
         return ColorShiftEffect(params);
       case EffectType.outlineShine:
         return OutlineShineEffect(params);
+      case EffectType.smartShading:
+        return SmartShadingEffect(params);
+      case EffectType.selectiveOutline:
+        return SelectiveOutlineEffect(params);
+      case EffectType.antiJaggies:
+        return AntiJaggiesEffect(params);
     }
   }
 

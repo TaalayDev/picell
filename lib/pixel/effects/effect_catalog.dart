@@ -116,7 +116,7 @@ class EffectCatalog {
           type: type,
           workspace: workspace,
           role: role,
-          inputPolicy: _inputPolicyOverrides[type] ?? inputPolicy,
+          inputPolicy: _inputPolicyFor(type, workspace, inputPolicy),
           filterKind: filterKind,
           animationKind: animationKind,
           tags: Set.unmodifiable(_tagsFor(type)),
@@ -185,6 +185,24 @@ class EffectCatalog {
     return result;
   }
 
+  /// Only animations (and generators) care about the layer's content; filters,
+  /// materials and lighting can always be added, even to an empty layer.
+  static EffectInputPolicy _inputPolicyFor(
+    EffectType type,
+    EffectWorkspace workspace,
+    EffectInputPolicy workspaceDefault,
+  ) {
+    switch (workspace) {
+      case EffectWorkspace.filters:
+      case EffectWorkspace.materials:
+      case EffectWorkspace.lighting:
+        return EffectInputPolicy.anyLayer;
+      case EffectWorkspace.animation:
+      case EffectWorkspace.generators:
+        return _inputPolicyOverrides[type] ?? workspaceDefault;
+    }
+  }
+
   static Set<EffectTag> _tagsFor(EffectType type) {
     final tags = <EffectTag>{};
     if (_particleTypes.contains(type)) tags.add(EffectTag.particles);
@@ -241,6 +259,8 @@ class EffectCatalog {
     EffectType.colorBalance,
     EffectType.dithering,
     EffectType.outline,
+    EffectType.selectiveOutline,
+    EffectType.antiJaggies,
     EffectType.paletteReduction,
     EffectType.watercolor,
     EffectType.halftone,
@@ -408,6 +428,7 @@ class EffectCatalog {
     EffectType.glow,
     EffectType.dropShadow,
     EffectType.rimLight,
+    EffectType.smartShading,
     EffectType.radiantRays,
     EffectType.underwaterCaustics,
     EffectType.solarEclipse,

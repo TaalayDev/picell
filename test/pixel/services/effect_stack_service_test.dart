@@ -17,17 +17,31 @@ void main() {
       );
     });
 
-    test('requires visible source pixels for modifiers', () {
+    test('only animations require visible source pixels', () {
       final emptyLayer = _layer([0x00000000]);
       final paintedLayer = _layer([0x01000000]);
 
+      // Filters, materials and lighting work on an empty layer.
+      for (final effect in [
+        BrightnessEffect(),
+        EffectsManager.createEffect(EffectType.wood),
+        EffectsManager.createEffect(EffectType.glow),
+      ]) {
+        expect(
+          EffectStackService.validateAdd(emptyLayer, effect).isAllowed,
+          isTrue,
+          reason: effect.type.name,
+        );
+      }
+
+      // Animation transformers still need something to animate.
+      final animation = EffectsManager.createEffect(EffectType.breathing);
       expect(
-        EffectStackService.validateAdd(emptyLayer, BrightnessEffect()).failure,
+        EffectStackService.validateAdd(emptyLayer, animation).failure,
         EffectStackAddFailure.requiresPixels,
       );
       expect(
-        EffectStackService.validateAdd(paintedLayer, BrightnessEffect())
-            .isAllowed,
+        EffectStackService.validateAdd(paintedLayer, animation).isAllowed,
         isTrue,
       );
     });
@@ -88,7 +102,7 @@ void main() {
     test('rejected additions preserve the original layer', () {
       final layer = _layer([0x00000000]);
 
-      final result = EffectStackService.addEffect(layer, WoodEffect());
+      final result = EffectStackService.addEffect(layer, EffectsManager.createEffect(EffectType.breathing));
 
       expect(result.didAdd, isFalse);
       expect(result.layer, same(layer));

@@ -398,24 +398,24 @@ class UIFieldBuilder {
                           description: field.description!,
                         ),
                       ],
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: value
-                              ? colorScheme.primary.withValues(alpha: 0.15)
-                              : colorScheme.onSurface.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          value ? s.uiFieldEnabled : s.uiFieldDisabled,
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w600,
-                            color: value ? colorScheme.primary : colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ),
+                      // const SizedBox(width: 8),
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      //   decoration: BoxDecoration(
+                      //     color: value
+                      //         ? colorScheme.primary.withValues(alpha: 0.15)
+                      //         : colorScheme.onSurface.withValues(alpha: 0.08),
+                      //     borderRadius: BorderRadius.circular(4),
+                      //   ),
+                      //   child: Text(
+                      //     value ? s.uiFieldEnabled : s.uiFieldDisabled,
+                      //     style: TextStyle(
+                      //       fontSize: 9.5,
+                      //       fontWeight: FontWeight.w600,
+                      //       color: value ? colorScheme.primary : colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),

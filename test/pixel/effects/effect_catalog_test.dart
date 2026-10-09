@@ -18,11 +18,11 @@ void main() {
     });
 
     test('matches the approved workspace inventory', () {
-      expect(_count(EffectWorkspace.filters), 58);
+      expect(_count(EffectWorkspace.filters), 60);
       expect(_count(EffectWorkspace.materials), 18);
       expect(_count(EffectWorkspace.generators), 18);
       expect(_count(EffectWorkspace.animation), 80);
-      expect(_count(EffectWorkspace.lighting), 17);
+      expect(_count(EffectWorkspace.lighting), 18);
     });
 
     test('all generators have an empty-layer policy and generator role', () {

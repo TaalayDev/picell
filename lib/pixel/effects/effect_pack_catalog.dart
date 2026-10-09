@@ -111,6 +111,9 @@ class EffectPackCatalog {
       EffectType.glow,
       EffectType.dropShadow,
       EffectType.outlineShine,
+      EffectType.smartShading,
+      EffectType.selectiveOutline,
+      EffectType.antiJaggies,
       EffectType.glitch,
     },
     // Included with Pro.
