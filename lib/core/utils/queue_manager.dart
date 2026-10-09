@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import '../services/error_report_service.dart';
 
 class _QueueEntry {
   _QueueEntry(this.task, {this.key});
@@ -59,6 +60,8 @@ class QueueManager {
         await entry.task();
         entry.completer.complete();
       } catch (e, st) {
+        ErrorReportService.instance.report(e, st,
+            operation: 'editor.${entry.key?.split(':').first ?? 'queue'}');
         debugPrint('QueueManager task failed: $e\n$st');
         // Complete normally: callers rarely await these futures, and an
         // unawaited error future would surface as an unhandled zone error.

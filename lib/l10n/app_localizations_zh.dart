@@ -2440,6 +2440,23 @@ class StringsZh extends Strings {
   String get importAsLayer => '作为图层导入';
 
   @override
+  String get dropImageTitle => 'Import Image';
+
+  @override
+  String dropImageMessage(String fileName) {
+    return 'What do you want to do with \"$fileName\"?';
+  }
+
+  @override
+  String get dropImageNewLayer => 'Create New Layer';
+
+  @override
+  String get dropImageThisLayer => 'Import to This Layer';
+
+  @override
+  String get dropImageNewProject => 'Create New Project';
+
+  @override
   String get openAsProject => '作为项目打开';
 
   @override

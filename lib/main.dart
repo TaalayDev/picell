@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app/bootstrap_app.dart';
+import 'core/services/error_report_service.dart';
 import 'core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  ErrorReportService.instance.installHandlers();
   await initWindowManager();
   setupLogger();
   runApp(const BootstrapApp());

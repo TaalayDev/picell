@@ -467,6 +467,8 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                             },
                             onLayersOpacityChanged:
                                 widget.notifier.setLayersOpacity,
+                            onLayersTransformed:
+                                widget.notifier.transformLayers,
                             onLayerEffectsChanged: widget.notifier.updateLayer,
                             onLayerToTemplate: (layer) {
                               Navigator.of(context).pop();

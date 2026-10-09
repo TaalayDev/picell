@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import 'package:image/image.dart' as img;
 
 import '../../core.dart';
+import '../../core/services/error_report_service.dart';
 import '../../data/models/selection_region.dart';
 import '../../data/models/selection_state.dart';
 import '../../data/models/template.dart';
@@ -31,6 +32,7 @@ import '../services/effect_stack_service.dart';
 import '../services/frame_service.dart';
 import '../services/import_export_service.dart';
 import '../services/layer_service.dart';
+import '../services/pixel_transform_service.dart';
 import '../services/selection_service.dart';
 import '../services/template_service.dart';
 import '../services/undo_redo_service.dart';
@@ -248,7 +250,9 @@ class PixelDrawController extends _$PixelDrawController {
         workspace.setUnsavedChanges(project.id, false);
       }
       return true;
-    } catch (_) {
+    } catch (error, stack) {
+      ErrorReportService.instance
+          .report(error, stack, operation: 'editor.saveProject');
       workspace.setUnsavedChanges(project.id, true);
       return false;
     }
@@ -395,6 +399,21 @@ class PixelDrawController extends _$PixelDrawController {
 
     final newPixels = _drawingService.clearPixels(state.width, state.height);
     _updateCurrentLayerPixels(newPixels);
+  }
+
+  /// Draws imported [source] pixels onto the current layer. Transparent
+  /// source pixels leave the existing content untouched.
+  void importPixelsToCurrentLayer(Uint32List source) {
+    final current = currentLayer.pixels;
+    if (source.length != current.length) return;
+
+    _beginPixelUndo();
+
+    final merged = Uint32List.fromList(current);
+    for (var i = 0; i < merged.length; i++) {
+      if ((source[i] >> 24) != 0) merged[i] = source[i];
+    }
+    _updateCurrentLayerPixels(merged);
   }
 
   Color getPixelColor(int x, int y) {
@@ -677,6 +696,20 @@ class PixelDrawController extends _$PixelDrawController {
     }
   }
 
+  /// Inserts [layer] directly above the selected layer, renumbers `order` to
+  /// match list positions, and selects it.
+  void _insertLayerAboveCurrent(Layer layer) {
+    final layers = List<Layer>.from(currentFrame.layers);
+    final insertIndex = (state.currentLayerIndex + 1).clamp(0, layers.length);
+    layers.insert(insertIndex, layer);
+
+    final ordered = [
+      for (final (index, l) in layers.indexed) l.copyWith(order: index),
+    ];
+    _updateCurrentFrame(currentFrame.copyWith(layers: ordered));
+    state = state.copyWith(currentLayerIndex: insertIndex);
+  }
+
   // Layer operations
   Future<void> addLayer(String name) async {
     final order = _layerService.calculateNextLayerOrder(currentFrame.layers);
@@ -690,13 +723,8 @@ class PixelDrawController extends _$PixelDrawController {
       order: order,
     );
 
-    final updatedLayers = [...currentFrame.layers, newLayer]
-      ..sort((a, b) => a.order.compareTo(b.order));
-
-    final updatedFrame = currentFrame.copyWith(layers: updatedLayers);
-    _updateCurrentFrame(updatedFrame);
-
-    state = state.copyWith(currentLayerIndex: updatedLayers.length - 1);
+    _insertLayerAboveCurrent(newLayer);
+    _updateProject();
     _recordProgress(ProgressionEvent.layerAdded);
   }
 
@@ -716,11 +744,7 @@ class PixelDrawController extends _$PixelDrawController {
 
     final layerWithPixels = newLayer.copyWith(pixels: layer.pixels);
 
-    final updatedLayers = [...currentFrame.layers, layerWithPixels];
-    final updatedFrame = currentFrame.copyWith(layers: updatedLayers);
-    _updateCurrentFrame(updatedFrame);
-
-    state = state.copyWith(currentLayerIndex: updatedLayers.length - 1);
+    _insertLayerAboveCurrent(layerWithPixels);
     _updateProject();
   }
 
@@ -1449,13 +1473,7 @@ class PixelDrawController extends _$PixelDrawController {
 
     newLayer = newLayer.copyWith(pixels: pixels);
 
-    final updatedLayers = [...currentFrame.layers, newLayer]
-      ..sort((a, b) => a.order.compareTo(b.order));
-
-    final updatedFrame = currentFrame.copyWith(layers: updatedLayers);
-    _updateCurrentFrame(updatedFrame);
-
-    state = state.copyWith(currentLayerIndex: updatedLayers.length - 1);
+    _insertLayerAboveCurrent(newLayer);
 
     _updateProject();
     _recordProgress(ProgressionEvent.templateUsed);
@@ -1831,17 +1849,79 @@ class PixelDrawController extends _$PixelDrawController {
     }
   }
 
-  void flipSelectionPixels({required bool horizontal}) {
-    final sel = state.selectionState;
-    if (sel == null) return;
+  void flipSelectionPixels({required bool horizontal}) => transformSelection(
+        horizontal ? PixelTransform.flipHorizontal : PixelTransform.flipVertical,
+      );
 
-    _beginPixelUndo();
-    final newPixels = _selectionService.flipSelectedPixels(
-      region: sel.region,
+  /// Flips or quarter-turns the selected pixels together with the selection
+  /// shape. Records a full snapshot because the selection changes as well as
+  /// the pixels.
+  void transformSelection(PixelTransform transform) {
+    if (state.selectionState == null || currentLayerIsProcedural) return;
+
+    _detachSelectionFromLayer();
+    final region = state.selectionState?.region;
+    if (region == null) return;
+
+    final result = PixelTransformService.transformSelection(
       layerPixels: currentLayer.pixels,
-      horizontal: horizontal,
+      canvasWidth: state.width,
+      canvasHeight: state.height,
+      region: region,
+      transform: transform,
     );
-    _updateCurrentLayerPixels(newPixels);
+    if (result == null) return;
+
+    _saveState();
+    _updateCurrentLayerPixels(result.pixels);
+    setSelection(result.region);
+  }
+
+  /// Flips or rotates whole layers about the canvas centre in the current
+  /// frame. Locked and procedural (effect-generated) layers are skipped.
+  Future<void> transformLayers(
+    Iterable<int> indices,
+    PixelTransform transform,
+  ) async {
+    final targets = indices
+        .where((i) => i >= 0 && i < currentFrame.layers.length)
+        .where((i) {
+      final layer = currentFrame.layers[i];
+      return !layer.isLocked && !EffectStackService.isProcedural(layer);
+    }).toSet();
+    if (targets.isEmpty) return;
+
+    _detachSelectionFromLayer();
+    _saveState();
+
+    final updated = List<Layer>.from(currentFrame.layers);
+    for (final index in targets) {
+      final layer = updated[index];
+      final anchor = layer.anchorPoint;
+      updated[index] = layer.copyWith(
+        pixels: PixelTransformService.transformLayerPixels(
+          pixels: layer.pixels,
+          width: state.width,
+          height: state.height,
+          transform: transform,
+        ),
+        anchorPoint: anchor == null
+            ? null
+            : () => PixelTransformService.transformPoint(
+                  point: anchor,
+                  width: state.width,
+                  height: state.height,
+                  transform: transform,
+                ),
+      );
+    }
+    _updateCurrentFrame(currentFrame.copyWith(layers: updated));
+    await Future.wait(targets.map((index) => _layerService.updateLayer(
+          projectId: project.id,
+          frameId: currentFrame.id,
+          layer: updated[index],
+        )));
+    _updateProject();
   }
 
   void clearSelection() {
@@ -1964,7 +2044,8 @@ class PixelDrawController extends _$PixelDrawController {
     progression.record(event);
     // Coming back to an older piece counts for the "old project" bonus quest.
     if (event == ProgressionEvent.strokeCompleted &&
-        project.createdAt.isBefore(DateTime.now().subtract(const Duration(days: 7)))) {
+        project.createdAt
+            .isBefore(DateTime.now().subtract(const Duration(days: 7)))) {
       progression.record(ProgressionEvent.oldProjectStroke);
     }
   }

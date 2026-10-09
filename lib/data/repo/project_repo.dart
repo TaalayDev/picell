@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../core/utils.dart';
+import '../../core/services/error_report_service.dart';
 import '../../data.dart';
 
 abstract class ProjectRepo {
@@ -57,9 +58,11 @@ class ProjectLocalRepo extends ProjectRepo {
   @override
   Stream<List<Project>> fetchProjects() => db.getAllProjects();
   @override
-  Future<Project?> fetchProject(int projectId) => db.getProject(projectId);
+  Future<Project?> fetchProject(int projectId) => ErrorReportService.instance
+      .guard('project.open', () => db.getProject(projectId));
   @override
-  Future<Project> createProject(Project project) => db.insertProject(project);
+  Future<Project> createProject(Project project) => ErrorReportService.instance
+      .guard('project.create', () => db.insertProject(project));
   @override
   Future<void> updateProject(Project project) {
     // Latest-wins: a burst of saves for the same project collapses into one
@@ -125,8 +128,14 @@ class ProjectLocalRepo extends ProjectRepo {
   Future<Layer> createLayer(int projectId, int frameId, Layer layer) {
     final completer = Completer<Layer>();
     queueManager.add(() async {
-      final newLayer = await db.insertLayer(projectId, frameId, layer);
-      completer.complete(newLayer);
+      try {
+        final newLayer = await db.insertLayer(projectId, frameId, layer);
+        completer.complete(newLayer);
+      } catch (error, stack) {
+        ErrorReportService.instance
+            .report(error, stack, operation: 'editor.createLayer');
+        completer.completeError(error, stack);
+      }
     });
     return completer.future;
   }
@@ -149,8 +158,14 @@ class ProjectLocalRepo extends ProjectRepo {
   Future<AnimationFrame> createFrame(int projectId, AnimationFrame frame) {
     final completer = Completer<AnimationFrame>();
     queueManager.add(() async {
-      final newFrame = await db.insertFrame(projectId, frame);
-      completer.complete(newFrame);
+      try {
+        final newFrame = await db.insertFrame(projectId, frame);
+        completer.complete(newFrame);
+      } catch (error, stack) {
+        ErrorReportService.instance
+            .report(error, stack, operation: 'editor.createFrame');
+        completer.completeError(error, stack);
+      }
     });
     return completer.future;
   }
@@ -172,8 +187,14 @@ class ProjectLocalRepo extends ProjectRepo {
   ) {
     final completer = Completer<AnimationStateModel>();
     queueManager.add(() async {
-      final newState = await db.insertState(projectId, state);
-      completer.complete(newState);
+      try {
+        final newState = await db.insertState(projectId, state);
+        completer.complete(newState);
+      } catch (error, stack) {
+        ErrorReportService.instance
+            .report(error, stack, operation: 'editor.createState');
+        completer.completeError(error, stack);
+      }
     });
     return completer.future;
   }
@@ -195,7 +216,9 @@ class ProjectLocalRepo extends ProjectRepo {
       try {
         final project = await db.getProjectByRemoteId(remoteId);
         completer.complete(project);
-      } catch (e) {
+      } catch (e, stack) {
+        ErrorReportService.instance
+            .report(e, stack, operation: 'project.lookup');
         completer.complete(null);
       }
     });
@@ -209,7 +232,9 @@ class ProjectLocalRepo extends ProjectRepo {
       try {
         final project = await db.getProjectByOrigin(communityProjectId);
         completer.complete(project);
-      } catch (e) {
+      } catch (e, stack) {
+        ErrorReportService.instance
+            .report(e, stack, operation: 'project.lookup');
         completer.complete(null);
       }
     });

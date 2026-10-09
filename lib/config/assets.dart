@@ -9,7 +9,6 @@ class Assets {
   );
 
   static const data = (
-    templates: 'assets/data/templates.json',
     textures: 'assets/data/textures.json',
   );
 

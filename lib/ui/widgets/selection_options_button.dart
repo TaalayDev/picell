@@ -218,20 +218,20 @@ class SelectionOptionsButton extends ConsumerWidget {
         PopupMenuDivider(color: theme.divider),
         PopupMenuItem<String>(
           value: 'rotate90',
-          child: item(Icons.rotate_90_degrees_ccw, s.rotate90),
+          child: item(Icons.rotate_90_degrees_ccw, s.rotate90, shortcut: 'Shift + R'),
         ),
       ],
       if (onRotate180 != null) ...[
         PopupMenuItem<String>(
           value: 'rotate180',
-          child: item(Icons.rotate_left, s.rotate180),
+          child: item(Icons.rotate_left, s.rotate180, shortcut: 'Shift + X'),
         ),
         PopupMenuDivider(color: theme.divider),
       ],
       if (onFlipHorizontal != null)
         PopupMenuItem<String>(
           value: 'flipH',
-          child: item(Icons.flip, s.flipHorizontal),
+          child: item(Icons.flip, s.flipHorizontal, shortcut: 'Shift + H'),
         ),
       if (onFlipVertical != null) ...[
         PopupMenuItem<String>(
@@ -245,6 +245,11 @@ class SelectionOptionsButton extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(s.flipVertical, style: TextStyle(color: theme.textPrimary)),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Shift + V',
+                style: TextStyle(color: theme.textPrimary.withValues(alpha: 0.5), fontSize: 12),
               ),
             ],
           ),

@@ -2466,6 +2466,23 @@ class StringsJa extends Strings {
   String get importAsLayer => 'レイヤーとしてインポート';
 
   @override
+  String get dropImageTitle => 'Import Image';
+
+  @override
+  String dropImageMessage(String fileName) {
+    return 'What do you want to do with \"$fileName\"?';
+  }
+
+  @override
+  String get dropImageNewLayer => 'Create New Layer';
+
+  @override
+  String get dropImageThisLayer => 'Import to This Layer';
+
+  @override
+  String get dropImageNewProject => 'Create New Project';
+
+  @override
   String get openAsProject => 'プロジェクトとして開く';
 
   @override

@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core.dart';
+import '../../core/services/error_report_service.dart';
 import '../../data.dart';
 import '../../gifencoder/gifencoder.dart' as gifencoder;
 
@@ -25,7 +26,8 @@ Uint8List _encodeGifAnimation(
     int fps,
   }) args,
 ) {
-  final needsResize = args.outputWidth != args.width || args.outputHeight != args.height;
+  final needsResize =
+      args.outputWidth != args.width || args.outputHeight != args.height;
   final gb = gifencoder.GifBuffer(args.outputWidth, args.outputHeight);
 
   for (final layers in args.frameLayers) {
@@ -254,7 +256,8 @@ class ImportExportService {
 
       final projectData = jsonDecode(contents);
       return Project.fromJson(projectData);
-    } catch (e) {
+    } catch (e, stack) {
+      ErrorReportService.instance.report(e, stack, operation: 'project.import');
       debugPrint('Error importing project: $e');
       return null;
     }
@@ -373,7 +376,8 @@ class ImportExportService {
     }
 
     if (exportWidth != null && exportHeight != null) {
-      final resizedTotalWidth = (exportWidth * columns) + (spacing * (columns - 1));
+      final resizedTotalWidth =
+          (exportWidth * columns) + (spacing * (columns - 1));
       final resizedTotalHeight = (exportHeight * rows) + (spacing * (rows - 1));
 
       spriteSheet = img.copyResize(

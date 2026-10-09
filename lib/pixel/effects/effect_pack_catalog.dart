@@ -110,6 +110,7 @@ class EffectPackCatalog {
       EffectType.ghostTrail,
       EffectType.glow,
       EffectType.dropShadow,
+      EffectType.outlineShine,
       EffectType.glitch,
     },
     // Included with Pro.
@@ -212,6 +213,7 @@ class EffectPackCatalog {
       EffectType.radialZoomBlur,
       EffectType.holoScanlineGlitch,
       EffectType.nanotechCircuit,
+      EffectType.shimmer,
     },
     EffectPackId.motion: {
       EffectType.pulse,
@@ -232,6 +234,7 @@ class EffectPackCatalog {
       EffectType.kaleidoscope,
       EffectType.breathing,
       EffectType.glowPulse,
+      EffectType.colorShift,
     },
     EffectPackId.vfxNature: {
       EffectType.fire,

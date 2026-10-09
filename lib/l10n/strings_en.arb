@@ -1264,6 +1264,18 @@
         }
     },
     "importAsLayer": "Import as Layer",
+    "dropImageTitle": "Import Image",
+    "dropImageMessage": "What do you want to do with \"{fileName}\"?",
+    "@dropImageMessage": {
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "dropImageNewLayer": "Create New Layer",
+    "dropImageThisLayer": "Import to This Layer",
+    "dropImageNewProject": "Create New Project",
     "openAsProject": "Open as Project",
     "copyFrame": "Copy Frame",
     "addFrame": "Add Frame",

@@ -196,6 +196,9 @@ part 'sacred_geometry_halo_effect.dart';
 part 'supernova_corona_effect.dart';
 part 'orbiting_moons_effect.dart';
 part 'zodiac_constellation_effect.dart';
+part 'shimmer_effect.dart';
+part 'color_shift_effect.dart';
+part 'outline_shine_effect.dart';
 part 'effect_catalog.dart';
 
 enum EffectType {
@@ -387,6 +390,9 @@ enum EffectType {
   zodiacConstellation,
   breathing,
   glowPulse,
+  shimmer,
+  colorShift,
+  outlineShine,
 }
 
 /// Base abstract class for all effects
@@ -607,6 +613,9 @@ abstract class Effect {
         EffectType.zodiacConstellation => 'Zodiac Constellation Map',
         EffectType.breathing => 'Smart Breathing (Idle)',
         EffectType.glowPulse => 'Glow Pulse',
+        EffectType.shimmer => 'Specular Shimmer',
+        EffectType.colorShift => 'Color Shift',
+        EffectType.outlineShine => 'Smart Outline & Shine',
       };
 
   String getDescription(BuildContext context) => switch (type) {
@@ -940,6 +949,12 @@ abstract class Effect {
         EffectType.glowPulse => 'A soft halo that gently brightens and fades around the sprite',
         EffectType.breathing =>
           'Sprite-aware idle breathing with planted feet, rigid head, chest expansion, and pixel-snapped poses',
+        EffectType.shimmer =>
+          'A radiant sweeping light gleam, metallic sheen, or holographic rainbow prism across the sprite',
+        EffectType.colorShift =>
+          'Rotates hues, creates flowing color waves, RGB channel splits, and stylized palette color shifting',
+        EffectType.outlineShine =>
+          'Outlines only the transparent borders of a sprite and adds a light-facing shine to its edges',
       };
 
   bool get isAnimation => EffectCatalog.forType(type).isAnimated;
@@ -1253,6 +1268,9 @@ abstract class Effect {
         Icon(Icons.flare, size: size, color: color),
       EffectType.glowPulse => Icon(Icons.flare, size: size, color: color),
       EffectType.breathing => Icon(Icons.air, size: size, color: color),
+      EffectType.shimmer => Icon(Icons.auto_awesome, size: size, color: color),
+      EffectType.colorShift => Icon(Icons.palette_outlined, size: size, color: color),
+      EffectType.outlineShine => Icon(Icons.border_style, size: size, color: color),
     };
   }
 
@@ -1546,6 +1564,9 @@ abstract class Effect {
         const Color(0xFFE040FB), // Cosmic amethyst
       EffectType.glowPulse => const Color(0xFFFFD54F),
       EffectType.breathing => const Color(0xFF4DD0E1), // Calm breath aqua
+      EffectType.shimmer => const Color(0xFFFFD54F), // Radiant shimmer gold
+      EffectType.colorShift => const Color(0xFFE040FB), // Vibrant color shift magenta
+      EffectType.outlineShine => const Color(0xFFFFC107), // Shine gold
     };
   }
 
@@ -2125,6 +2146,12 @@ class EffectsManager {
         return GlowPulseEffect(params);
       case EffectType.breathing:
         return BreathingEffect(params);
+      case EffectType.shimmer:
+        return ShimmerEffect(params);
+      case EffectType.colorShift:
+        return ColorShiftEffect(params);
+      case EffectType.outlineShine:
+        return OutlineShineEffect(params);
     }
   }
 

@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 
 import '../../core.dart';
+import '../../core/services/error_report_service.dart';
 
 /// Manages caching of layer images for efficient rendering
 class LayerCacheManager extends ChangeNotifier {
@@ -97,7 +98,9 @@ class LayerCacheManager extends ChangeNotifier {
         return;
       }
       _updateLayerImage(layerId, image);
-    } catch (e) {
+    } catch (e, stack) {
+      ErrorReportService.instance
+          .report(e, stack, operation: 'editor.renderLayer');
       debugPrint('Error creating image for layer $layerId: $e');
     }
   }

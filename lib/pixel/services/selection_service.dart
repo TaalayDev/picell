@@ -444,52 +444,6 @@ class SelectionService {
     return result;
   }
 
-  /// Flip selected pixels
-  Uint32List flipSelectedPixels({
-    required SelectionRegion region,
-    required Uint32List layerPixels,
-    required bool horizontal,
-  }) {
-    final indices = region.getSelectedPixelIndices(width, height);
-    final bounds = region.bounds;
-    final minX = bounds.left.floor();
-    final minY = bounds.top.floor();
-    final maxX = bounds.right.ceil() - 1;
-    final maxY = bounds.bottom.ceil() - 1;
-
-    final result = Uint32List.fromList(layerPixels);
-
-    // Collect selected pixels
-    final selectedEntries = <_PixelEntry>[];
-    for (final idx in indices) {
-      if (idx >= 0 && idx < layerPixels.length && layerPixels[idx] != 0) {
-        selectedEntries.add(_PixelEntry(idx % width, idx ~/ width, layerPixels[idx]));
-      }
-    }
-
-    // Clear originals
-    for (final idx in indices) {
-      if (idx >= 0 && idx < result.length) result[idx] = 0;
-    }
-
-    // Place flipped
-    for (final entry in selectedEntries) {
-      int nx, ny;
-      if (horizontal) {
-        nx = maxX - (entry.x - minX);
-        ny = entry.y;
-      } else {
-        nx = entry.x;
-        ny = maxY - (entry.y - minY);
-      }
-      if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-        result[ny * width + nx] = entry.color;
-      }
-    }
-
-    return result;
-  }
-
   /// Copy pixels in selection to clipboard buffer
   Uint32List copySelectedPixels(SelectionRegion region, Uint32List source) {
     final indices = region.getSelectedPixelIndices(width, height);

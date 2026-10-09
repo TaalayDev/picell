@@ -273,6 +273,7 @@ class EffectCatalog {
     EffectType.normalMap,
     EffectType.vignette,
     EffectType.platformer,
+    EffectType.colorShift,
   };
 
   static const Set<EffectType> _materials = {
@@ -293,6 +294,7 @@ class EffectCatalog {
     EffectType.romanTravertine,
     EffectType.perlinWorms,
     EffectType.voronoi,
+    EffectType.outlineShine,
   };
 
   static const Set<EffectType> _generators = {
@@ -419,6 +421,7 @@ class EffectCatalog {
     EffectType.sacredGeometryHalo,
     EffectType.floatingSigils,
     EffectType.alchemicalCircle,
+    EffectType.shimmer,
   };
 
   static const Set<EffectType> _distortions = {
@@ -517,6 +520,8 @@ class EffectCatalog {
     EffectType.sandDunes,
     EffectType.tidalRockPool,
     EffectType.kaleidoscope,
+    EffectType.shimmer,
+    EffectType.colorShift,
   };
 
   static const Set<EffectType> _natureTypes = {

@@ -4603,6 +4603,36 @@ abstract class Strings {
   /// **'Import as Layer'**
   String get importAsLayer;
 
+  /// No description provided for @dropImageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Image'**
+  String get dropImageTitle;
+
+  /// No description provided for @dropImageMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to do with \"{fileName}\"?'**
+  String dropImageMessage(String fileName);
+
+  /// No description provided for @dropImageNewLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Layer'**
+  String get dropImageNewLayer;
+
+  /// No description provided for @dropImageThisLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Import to This Layer'**
+  String get dropImageThisLayer;
+
+  /// No description provided for @dropImageNewProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Project'**
+  String get dropImageNewProject;
+
   /// No description provided for @openAsProject.
   ///
   /// In en, this message translates to:

@@ -62,7 +62,10 @@ class _DropTargetOverlayState extends State<DropTargetOverlay> {
       return widget.child;
     }
 
+    // Screens kept alive underneath another route must not react to drops.
+    // Toggling `enable` (rather than the tree shape) keeps child state intact.
     return DropTarget(
+      enable: ModalRoute.of(context)?.isCurrent ?? true,
       onDragEntered: (details) {
         setState(() => _isDragging = true);
       },
@@ -259,7 +262,10 @@ class _CanvasDropTargetState extends State<CanvasDropTarget> {
       return widget.child;
     }
 
+    // Screens kept alive underneath another route must not react to drops.
+    // Toggling `enable` (rather than the tree shape) keeps child state intact.
     return DropTarget(
+      enable: ModalRoute.of(context)?.isCurrent ?? true,
       onDragEntered: (details) {
         setState(() => _isDragging = true);
       },

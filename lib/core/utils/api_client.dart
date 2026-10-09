@@ -3,6 +3,7 @@ import 'package:logging/logging.dart';
 import 'package:tf_dio_cache/tf_dio_cache.dart';
 
 import '../../data.dart';
+import '../services/error_report_service.dart';
 import '../../data/models/api_models.dart';
 
 class ApiClient {
@@ -142,19 +143,29 @@ class ApiClient {
           data: converter?.call(responseData['data']),
           error: null,
           details: null,
-          timestamp: responseData['timestamp'] ?? DateTime.now().millisecondsSinceEpoch,
+          timestamp: responseData['timestamp'] ??
+              DateTime.now().millisecondsSinceEpoch,
         );
       } else {
+        _reportProjectError(url, method,
+            responseData['error'] ?? 'Server error', StackTrace.current);
         return ApiResponse<T>(
           success: false,
           data: null,
           error: responseData['error']?.toString() ?? 'Unknown error',
           details: responseData['details'],
-          timestamp: responseData['timestamp'] ?? DateTime.now().millisecondsSinceEpoch,
+          timestamp: responseData['timestamp'] ??
+              DateTime.now().millisecondsSinceEpoch,
         );
       }
-    } on DioException catch (e) {
-      _logger.warning('Request failed: $method $url - ${e.response?.statusCode}');
+    } on DioException catch (e, stack) {
+      _reportProjectError(
+          url,
+          method,
+          'Request failed (${e.type.name}, HTTP ${e.response?.statusCode ?? 'none'})',
+          stack);
+      _logger
+          .warning('Request failed: $method $url - ${e.response?.statusCode}');
       _logger.warning('Error data: ${e.response?.data}');
 
       final statusCode = e.response?.statusCode;
@@ -167,7 +178,9 @@ class ApiClient {
 
       if (e.response?.data is Map<String, dynamic>) {
         final errorData = e.response!.data as Map<String, dynamic>;
-        errorMessage = errorData['error']?.toString() ?? errorData['message']?.toString() ?? 'Server error';
+        errorMessage = errorData['error']?.toString() ??
+            errorData['message']?.toString() ??
+            'Server error';
         details = errorData['details'];
       } else if (e.message != null) {
         errorMessage = e.message!;
@@ -181,6 +194,7 @@ class ApiClient {
         timestamp: DateTime.now().millisecondsSinceEpoch,
       );
     } catch (e, trace) {
+      _reportProjectError(url, method, e, trace);
       _logger.severe('Unexpected error: $method $url', e, trace);
 
       return ApiResponse<T>(
@@ -190,6 +204,14 @@ class ApiClient {
         details: null,
         timestamp: DateTime.now().millisecondsSinceEpoch,
       );
+    }
+  }
+
+  void _reportProjectError(
+      String url, String method, Object error, StackTrace stack) {
+    if (url.startsWith('/api/v1/projects')) {
+      ErrorReportService.instance.report(error, stack,
+          operation: 'project.api.${method.toLowerCase()}');
     }
   }
 

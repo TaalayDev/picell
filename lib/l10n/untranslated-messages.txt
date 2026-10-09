@@ -1,1 +1,33 @@
-{}
+{
+  "ja": [
+    "dropImageTitle",
+    "dropImageMessage",
+    "dropImageNewLayer",
+    "dropImageThisLayer",
+    "dropImageNewProject"
+  ],
+
+  "ky": [
+    "dropImageTitle",
+    "dropImageMessage",
+    "dropImageNewLayer",
+    "dropImageThisLayer",
+    "dropImageNewProject"
+  ],
+
+  "ru": [
+    "dropImageTitle",
+    "dropImageMessage",
+    "dropImageNewLayer",
+    "dropImageThisLayer",
+    "dropImageNewProject"
+  ],
+
+  "zh": [
+    "dropImageTitle",
+    "dropImageMessage",
+    "dropImageNewLayer",
+    "dropImageThisLayer",
+    "dropImageNewProject"
+  ]
+}

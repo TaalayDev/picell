@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:picell/pixel/effects/effects.dart';
@@ -6,8 +8,19 @@ import 'package:picell/pixel/services/effect_preview_cache.dart';
 import 'package:picell/ui/widgets/effects/effect_icon_preview.dart';
 
 void main() {
-  setUp(() {
-    EffectPreviewCache.instance.clear();
+  late Directory tempTestDir;
+
+  setUp(() async {
+    tempTestDir = await Directory.systemTemp.createTemp('effect_cache_test_');
+    EffectPreviewCache.instance.setCustomCacheDirectory(tempTestDir);
+    await EffectPreviewCache.instance.clear(deleteFiles: true);
+  });
+
+  tearDown(() async {
+    await EffectPreviewCache.instance.clear(deleteFiles: true);
+    if (tempTestDir.existsSync()) {
+      await tempTestDir.delete(recursive: true);
+    }
   });
 
   group('EffectIconExportService', () {
@@ -29,7 +42,7 @@ void main() {
   });
 
   group('EffectPreviewCache', () {
-    test('getFirstFrameImage renders and caches image bytes', () async {
+    test('getFirstFrameImage renders, caches in memory, and saves to file for reuse', () async {
       final cache = EffectPreviewCache.instance;
       final effect = BrightnessEffect();
 
@@ -38,12 +51,25 @@ void main() {
       expect(bytes, isNotEmpty);
       expect(cache.getCachedFirstFrame(effect), equals(bytes));
 
-      // Subsequent call should return cached bytes directly
-      final cachedAgain = await cache.getFirstFrameImage(effect);
-      expect(identical(bytes, cachedAgain), isTrue);
+      // Verify file was written to disk
+      final file = await cache.getFirstFrameFile(effect);
+      expect(file, isNotNull);
+      expect(await file!.exists(), isTrue);
+      final fileBytes = await file.readAsBytes();
+      expect(fileBytes, equals(bytes));
+
+      // Clear memory cache only (simulating app restart)
+      await cache.clear(deleteFiles: false);
+      expect(cache.getCachedFirstFrame(effect), isNull);
+      expect(await file.exists(), isTrue);
+
+      // Next call should load directly from the saved file on disk
+      final reusedBytes = await cache.getFirstFrameImage(effect);
+      expect(reusedBytes, equals(fileBytes));
+      expect(cache.getCachedFirstFrame(effect), equals(reusedBytes));
     });
 
-    test('getAnimatedImage renders and caches animated GIF bytes', () async {
+    test('getAnimatedImage renders, caches in memory, and saves to file for reuse', () async {
       final cache = EffectPreviewCache.instance;
       final effect = FireEffect();
 
@@ -52,9 +78,34 @@ void main() {
       expect(bytes, isNotEmpty);
       expect(cache.getCachedAnimated(effect), equals(bytes));
 
-      // Subsequent call should return cached bytes directly
-      final cachedAgain = await cache.getAnimatedImage(effect);
-      expect(identical(bytes, cachedAgain), isTrue);
+      // Verify animated GIF file was written to disk
+      final file = await cache.getAnimatedFile(effect);
+      expect(file, isNotNull);
+      expect(await file!.exists(), isTrue);
+      final fileBytes = await file.readAsBytes();
+      expect(fileBytes, equals(bytes));
+
+      // Clear memory cache only (simulating app restart)
+      await cache.clear(deleteFiles: false);
+      expect(cache.getCachedAnimated(effect), isNull);
+      expect(await file.exists(), isTrue);
+
+      // Next call should load directly from the saved GIF file on disk
+      final reusedBytes = await cache.getAnimatedImage(effect);
+      expect(reusedBytes, equals(fileBytes));
+      expect(cache.getCachedAnimated(effect), equals(reusedBytes));
+    });
+
+    test('clear(deleteFiles: true) deletes cached files from disk', () async {
+      final cache = EffectPreviewCache.instance;
+      final effect = BrightnessEffect();
+      await cache.getFirstFrameImage(effect);
+
+      final file = await cache.getFirstFrameFile(effect);
+      expect(await file!.exists(), isTrue);
+
+      await cache.clear(deleteFiles: true);
+      expect(await file.exists(), isFalse);
     });
   });
 

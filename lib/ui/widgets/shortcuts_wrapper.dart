@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../pixel/services/pixel_transform_service.dart';
 import '../../pixel/tools.dart';
 
 class ShortcutsWrapper extends StatefulWidget {
@@ -43,6 +44,7 @@ class ShortcutsWrapper extends StatefulWidget {
     this.onCut,
     this.onDuplicate,
     this.onCtrlEnter,
+    this.onTransform,
     this.currentBrushSize = 1,
     this.maxBrushSize = 10,
     this.maxLayers = 10,
@@ -102,6 +104,9 @@ class ShortcutsWrapper extends StatefulWidget {
   final VoidCallback? onCut;
   final VoidCallback? onDuplicate;
   final VoidCallback? onCtrlEnter;
+
+  // Flip / rotate the selection, or the current layer when nothing is selected
+  final void Function(PixelTransform transform)? onTransform;
 
   // State
   final int currentBrushSize;
@@ -319,6 +324,18 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           const ShrinkSelectionIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.enter):
           CallbackIntent(widget.onCtrlEnter ?? () {}),
+
+      // Transforms
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyH):
+          const TransformIntent(PixelTransform.flipHorizontal),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyV):
+          const TransformIntent(PixelTransform.flipVertical),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyR):
+          const TransformIntent(PixelTransform.rotate90Clockwise),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyL):
+          const TransformIntent(PixelTransform.rotate90CounterClockwise),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyX):
+          const TransformIntent(PixelTransform.rotate180),
     };
   }
 
@@ -432,6 +449,9 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       ),
       ShrinkSelectionIntent: CallbackAction<ShrinkSelectionIntent>(
         onInvoke: (intent) => widget.onShrinkSelection?.call(),
+      ),
+      TransformIntent: CallbackAction<TransformIntent>(
+        onInvoke: (intent) => widget.onTransform?.call(intent.transform),
       ),
       CallbackIntent: CallbackAction<CallbackIntent>(
           onInvoke: (intent) => intent.callback()),
@@ -565,6 +585,11 @@ class GrowSelectionIntent extends Intent {
 
 class ShrinkSelectionIntent extends Intent {
   const ShrinkSelectionIntent();
+}
+
+class TransformIntent extends Intent {
+  const TransformIntent(this.transform);
+  final PixelTransform transform;
 }
 
 class CallbackIntent extends Intent {

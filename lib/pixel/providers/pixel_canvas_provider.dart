@@ -12,6 +12,7 @@ import '../pixel_point.dart';
 import '../effects/effects.dart';
 import '../pixel_canvas_state.dart';
 import '../services/effect_stack_service.dart';
+import '../services/pixel_transform_service.dart';
 import '../tools.dart';
 import 'pixel_controller_provider.dart';
 
@@ -60,6 +61,8 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
       _controller.batchFillPixels(points);
   void fill(int x, int y) => _controller.floodFill(x, y);
   void clear() => _controller.clearCanvas();
+  void importPixelsToCurrentLayer(Uint32List pixels) =>
+      _controller.importPixelsToCurrentLayer(pixels);
   Color getPixelColor(int x, int y) => _controller.getPixelColor(x, y);
   void applyGradient(List<Color> gradientColors) =>
       _controller.applyGradient(gradientColors);
@@ -197,6 +200,11 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   void persistAnchorPoint() => _controller.persistAnchorPoint();
   void flipSelection({required bool horizontal}) =>
       _controller.flipSelectionPixels(horizontal: horizontal);
+  Future<void> transformLayers(
+          Iterable<int> indices, PixelTransform transform) =>
+      _controller.transformLayers(indices, transform);
+  void transformSelection(PixelTransform transform) =>
+      _controller.transformSelection(transform);
 
   void addTemplate(Template template) => _controller.addTemplate(template);
 

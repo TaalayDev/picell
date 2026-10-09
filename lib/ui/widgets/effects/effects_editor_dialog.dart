@@ -862,7 +862,10 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
         widget.effect.type == EffectType.sacredGeometryHalo ||
         widget.effect.type == EffectType.supernovaCorona ||
         widget.effect.type == EffectType.orbitingMoons ||
-        widget.effect.type == EffectType.zodiacConstellation;
+        widget.effect.type == EffectType.zodiacConstellation ||
+        widget.effect.type == EffectType.shimmer ||
+        widget.effect.type == EffectType.colorShift ||
+        widget.effect.type == EffectType.outlineShine;
   }
 
   List<Widget> _buildPresetButtons() {
@@ -1286,6 +1289,179 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
             'easing': 'organic',
             'hold': 0.2,
             'cycles': 1,
+          },
+        };
+      case EffectType.shimmer:
+        return {
+          'Diamond Glint': {
+            'shimmerColor': 0xFFFFFFFF,
+            'intensity': 0.9,
+            'width': 6.0,
+            'angle': 45.0,
+            'mode': 'specular',
+            'sparkles': true,
+            'sparkleDensity': 0.4,
+            'holdDuration': 0.25,
+            'cycles': 1,
+            'preserveAlpha': true,
+          },
+          'Golden Sheen': {
+            'shimmerColor': 0xFFFFD700,
+            'intensity': 0.85,
+            'width': 8.0,
+            'angle': 45.0,
+            'mode': 'metallic',
+            'sparkles': true,
+            'sparkleDensity': 0.3,
+            'holdDuration': 0.2,
+            'cycles': 1,
+            'preserveAlpha': true,
+          },
+          'Prismatic Hologram': {
+            'shimmerColor': 0xFFFFFFFF,
+            'intensity': 0.95,
+            'width': 10.0,
+            'angle': 60.0,
+            'mode': 'rainbow',
+            'sparkles': true,
+            'sparkleDensity': 0.5,
+            'holdDuration': 0.15,
+            'cycles': 1,
+            'preserveAlpha': true,
+          },
+          'Cyber Cyan': {
+            'shimmerColor': 0xFF00E5FF,
+            'intensity': 0.8,
+            'width': 5.0,
+            'angle': 135.0,
+            'mode': 'dodge',
+            'sparkles': false,
+            'sparkleDensity': 0.0,
+            'holdDuration': 0.3,
+            'cycles': 1,
+            'preserveAlpha': true,
+          },
+        };
+      case EffectType.outlineShine:
+        return {
+          'Classic Black': {
+            'outlineEnabled': true,
+            'outlineColor': 0xFF000000,
+            'outlineThickness': 1,
+            'shineEnabled': true,
+            'autoShineColor': true,
+            'shineLighten': 0.5,
+            'shineIntensity': 0.85,
+            'shineDepth': 2,
+            'lightAngle': 135.0,
+          },
+          'Glossy Sticker': {
+            'outlineEnabled': true,
+            'outlineColor': 0xFFFFFFFF,
+            'outlineThickness': 2,
+            'shineEnabled': true,
+            'autoShineColor': true,
+            'shineLighten': 0.7,
+            'shineIntensity': 1.0,
+            'shineDepth': 3,
+            'glint': true,
+          },
+          'Flat Cartoon': {
+            'outlineEnabled': true,
+            'outlineColor': 0xFF000000,
+            'outlineThickness': 1,
+            'shineEnabled': true,
+            'shineStyle': 'flat',
+            'autoShineColor': true,
+            'shineLighten': 0.35,
+            'shineIntensity': 1.0,
+            'shineDepth': 1,
+            'lightAngle': 135.0,
+            'glint': false,
+          },
+          'Bold Shine': {
+            'outlineEnabled': true,
+            'outlineColor': 0xFF000000,
+            'outlineThickness': 1,
+            'shineEnabled': true,
+            'shineStyle': 'bold',
+            'autoShineColor': true,
+            'shineLighten': 0.45,
+            'shineIntensity': 1.0,
+            'shineDepth': 3,
+            'lightAngle': 135.0,
+          },
+          'Gloss Streak': {
+            'outlineEnabled': true,
+            'outlineColor': 0xFF000000,
+            'outlineThickness': 1,
+            'shineEnabled': true,
+            'shineStyle': 'gloss',
+            'glossPosition': 0.3,
+            'glossWidth': 2,
+            'autoShineColor': true,
+            'shineLighten': 0.6,
+            'shineIntensity': 0.8,
+            'lightAngle': 135.0,
+          },
+          'Outline Only': {
+            'outlineEnabled': true,
+            'outlineColor': 0xFF000000,
+            'outlineThickness': 1,
+            'shineEnabled': false,
+          },
+          'Shine Only': {
+            'outlineEnabled': false,
+            'shineEnabled': true,
+            'autoShineColor': true,
+            'shineLighten': 0.6,
+            'shineIntensity': 0.9,
+            'shineDepth': 2,
+          },
+        };
+      case EffectType.colorShift:
+        return {
+          'Rainbow Cycle': {
+            'shiftMode': 'cycle',
+            'hueShift': 0.0,
+            'saturation': 1.1,
+            'brightness': 1.0,
+            'channelSplit': 0.0,
+            'tintAmount': 0.5,
+            'preserveAlpha': true,
+          },
+          'Prism Split': {
+            'shiftMode': 'channelSplit',
+            'hueShift': 45.0,
+            'saturation': 1.2,
+            'brightness': 1.05,
+            'channelSplit': 2.0,
+            'preserveAlpha': true,
+          },
+          'Neon Wave': {
+            'shiftMode': 'wave',
+            'hueShift': 90.0,
+            'saturation': 1.3,
+            'brightness': 1.0,
+            'waveDirection': 'diagonal',
+            'waveFrequency': 2.0,
+            'preserveAlpha': true,
+          },
+          'Retro 8-Bit': {
+            'shiftMode': 'paletteStep',
+            'hueShift': 60.0,
+            'saturation': 1.0,
+            'brightness': 1.0,
+            'paletteSteps': 8,
+            'preserveAlpha': true,
+          },
+          'Bubblegum Tint': {
+            'shiftMode': 'tint',
+            'tintColor': 0xFFFF4081,
+            'tintAmount': 0.65,
+            'saturation': 1.2,
+            'brightness': 1.0,
+            'preserveAlpha': true,
           },
         };
       case EffectType.windSway:

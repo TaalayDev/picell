@@ -9,6 +9,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../core/services/analytics_service.dart';
+import '../core/services/error_report_service.dart';
+import '../core/services/error_report_observer.dart';
 import '../core/utils/cursor_manager.dart';
 import '../data/storage/local_storage.dart';
 import '../firebase_options.dart';
@@ -53,9 +55,9 @@ class _BootstrapAppState extends State<BootstrapApp> {
         LocalStorage.init(),
       ]);
 
-      if (!kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.android ||
-              defaultTargetPlatform == TargetPlatform.iOS)) {
+      await ErrorReportService.instance.initialize(LocalStorage());
+
+      if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)) {
         unawaited(MobileAds.instance.initialize());
       }
 
@@ -66,10 +68,7 @@ class _BootstrapAppState extends State<BootstrapApp> {
       }
 
       final analytics = AnalyticsService(FirebaseAnalytics.instance);
-      await Future.wait([
-        analytics.initializeAmplitude(dotenv.env['AMPLITUDE_API_KEY']),
-        CursorManager.instance.init(),
-      ]);
+      await CursorManager.instance.init();
 
       if (!mounted) return;
       setState(() {
@@ -77,6 +76,7 @@ class _BootstrapAppState extends State<BootstrapApp> {
         _loading = false;
       });
     } catch (error, stackTrace) {
+      ErrorReportService.instance.report(error, stackTrace, operation: 'app.bootstrap');
       debugPrint('Application bootstrap failed: $error\n$stackTrace');
       if (!mounted) return;
       setState(() {
@@ -91,6 +91,7 @@ class _BootstrapAppState extends State<BootstrapApp> {
     final analytics = _analytics;
     if (!_loading && analytics != null) {
       return ProviderScope(
+        observers: [ErrorReportObserver()],
         overrides: [analyticsProvider.overrideWithValue(analytics)],
         child: const PixelVerseApp(),
       );
@@ -124,8 +125,7 @@ class _BootstrapSplash extends StatefulWidget {
   State<_BootstrapSplash> createState() => _BootstrapSplashState();
 }
 
-class _BootstrapSplashState extends State<_BootstrapSplash>
-    with SingleTickerProviderStateMixin {
+class _BootstrapSplashState extends State<_BootstrapSplash> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override

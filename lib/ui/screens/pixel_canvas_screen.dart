@@ -11,6 +11,7 @@ import '../../core.dart';
 import '../../data/models/selection_region.dart';
 import '../../l10n/strings.dart';
 import '../../pixel/pixel_canvas_state.dart';
+import '../../pixel/services/pixel_transform_service.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/animation_frame_controller.dart' hide AnimationController;
 import '../../pixel/canvas/pixel_viewport_controller.dart';
@@ -43,6 +44,8 @@ import '../widgets/tool_bar.dart';
 import '../widgets/tool_menu.dart';
 import '../widgets/tools_bottom_bar.dart';
 import '../widgets/wand_options_bar.dart';
+
+enum _DroppedImageAction { newLayer, thisLayer, newProject }
 
 class PixelCanvasScreen extends StatefulHookConsumerWidget {
   const PixelCanvasScreen({
@@ -187,22 +190,56 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     return ImportDialog.show(context);
   }
 
-  void _handleDroppedImage(DroppedFileResult result, PixelCanvasNotifier notifier) {
-    if (result.image == null) return;
+  Future<void> _handleDroppedImage(DroppedFileResult result, PixelCanvasNotifier notifier) async {
+    final image = result.image;
+    if (image == null) return;
+
+    final strings = Strings.of(context);
+    final action = await showDialog<_DroppedImageAction>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(strings.dropImageTitle),
+        content: Text(strings.dropImageMessage(result.fileName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(strings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, _DroppedImageAction.thisLayer),
+            child: Text(strings.dropImageThisLayer),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, _DroppedImageAction.newLayer),
+            child: Text(strings.dropImageNewLayer),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, _DroppedImageAction.newProject),
+            child: Text(strings.dropImageNewProject),
+          ),
+        ],
+      ),
+    );
+    if (action == null || !mounted) return;
 
     final dropHandler = DropHandlerService();
-    final layer = dropHandler.imageToLayer(
-      result.image!,
-      project.width,
-      project.height,
-      layerName: result.fileName.replaceAll(RegExp(r'\.[^.]+$'), ''),
-    );
+    final layerName = result.fileName.replaceAll(RegExp(r'\.[^.]+$'), '');
 
-    notifier.addLayerWithPixels(layer);
+    switch (action) {
+      case _DroppedImageAction.newProject:
+        widget.onOpenProject?.call(dropHandler.imageToProject(image, result.fileName));
+        return;
+      case _DroppedImageAction.newLayer:
+        final layer = dropHandler.imageToLayer(image, project.width, project.height, layerName: layerName);
+        notifier.addLayerWithPixels(layer);
+      case _DroppedImageAction.thisLayer:
+        final layer = dropHandler.imageToLayer(image, project.width, project.height, layerName: layerName);
+        notifier.importPixelsToCurrentLayer(layer.pixels);
+    }
 
     AppNotification.info(
       context,
-      Strings.of(context).importedFileAsNewLayer(result.fileName),
+      strings.importedFileAsNewLayer(result.fileName),
       duration: const Duration(seconds: 2),
     );
   }
@@ -501,6 +538,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                       Expanded(
                         child: ClipRect(
                           child: CanvasDropTarget(
+                            enabled: widget.isActive,
                             onImageDropped: (result) => _handleDroppedImage(result, notifier),
                             onAsepriteDropped: (result) => _handleDroppedAseprite(context, result),
                             child: PixelViewportGestureLayer(
@@ -608,6 +646,10 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                                 onInvert: () => notifier.invertSelection(),
                                                 onGrow: () => notifier.growSelection(),
                                                 onShrink: () => notifier.shrinkSelection(),
+                                                onRotate90: () => notifier.transformSelection(PixelTransform.rotate90Clockwise),
+                                                onRotate180: () => notifier.transformSelection(PixelTransform.rotate180),
+                                                onFlipHorizontal: () => notifier.flipSelection(horizontal: true),
+                                                onFlipVertical: () => notifier.flipSelection(horizontal: false),
                                               ),
                                       ),
                                   ],

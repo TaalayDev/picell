@@ -7,6 +7,7 @@ import 'package:animated_reorderable_list/animated_reorderable_list.dart';
 
 import '../../data.dart';
 import '../../l10n/strings.dart';
+import '../../pixel/services/pixel_transform_service.dart';
 import '../../providers/background_image_provider.dart';
 import '../utils/multi_selection.dart';
 import 'fancy_slider.dart';
@@ -25,6 +26,7 @@ class LayersPanel extends HookConsumerWidget {
   final Function(List<int>) onLayersDuplicated;
   final Function(int oldIndex, int newIndex) onLayerReordered;
   final Function(List<int>, double) onLayersOpacityChanged;
+  final Function(List<int>, PixelTransform)? onLayersTransformed;
   final Function(Layer)? onLayerEffectsChanged;
   final Function(Layer) onLayerUpdated;
   final Function(Layer) onLayerToTemplate;
@@ -46,6 +48,7 @@ class LayersPanel extends HookConsumerWidget {
     required this.onLayersDuplicated,
     required this.onLayerReordered,
     required this.onLayersOpacityChanged,
+    this.onLayersTransformed,
     required this.onLayerUpdated,
     required this.onLayerToTemplate,
     this.onAutoSelect,
@@ -103,6 +106,8 @@ class LayersPanel extends HookConsumerWidget {
       onLayerSelected(layers.indexWhere((layer) => layer.id == result.active));
     }
 
+    final reversedLayers = layers.reversed.toList();
+
     return PanelSelectAllRegion(
       onSelectAll: () {
         selectedIds.value = availableIds;
@@ -122,6 +127,7 @@ class LayersPanel extends HookConsumerWidget {
             onLayersDeleted: onLayersDeleted,
             onLayersDuplicated: onLayersDuplicated,
             onLayersOpacityChanged: onLayersOpacityChanged,
+            onLayersTransformed: onLayersTransformed,
             onLayerUpdated: onLayerUpdated,
             onLayerToTemplate: onLayerToTemplate,
             onAutoSelect: onAutoSelect,
@@ -130,7 +136,10 @@ class LayersPanel extends HookConsumerWidget {
           const SizedBox(height: 4),
           Expanded(
             child: AnimatedReorderableListView(
-              items: layers,
+              // Display order (top layer first). The list must be what the
+              // package diffs, otherwise removal animations target the wrong
+              // rows and multi-delete crashes with a null check.
+              items: reversedLayers,
               controller: scrollController,
               onReorder: (oldIndex, newIndex) {
                 final reversedLength = layers.length;
@@ -139,7 +148,6 @@ class LayersPanel extends HookConsumerWidget {
                 onLayerReordered(actualNewIndex, actualOldIndex);
               },
               itemBuilder: (context, index) {
-                final reversedLayers = layers.reversed.toList();
                 final layer = reversedLayers[index];
                 final actualIndex = layers.length - 1 - index;
                 return _LayerTile(
@@ -187,6 +195,7 @@ class _ActionButtonsBar extends StatelessWidget {
   final Function(List<int>) onLayersDeleted;
   final Function(List<int>) onLayersDuplicated;
   final Function(List<int>, double) onLayersOpacityChanged;
+  final Function(List<int>, PixelTransform)? onLayersTransformed;
   final Function(Layer) onLayerUpdated;
   final Function(Layer) onLayerToTemplate;
   final VoidCallback? onAutoSelect;
@@ -199,6 +208,7 @@ class _ActionButtonsBar extends StatelessWidget {
     required this.onLayersDeleted,
     required this.onLayersDuplicated,
     required this.onLayersOpacityChanged,
+    this.onLayersTransformed,
     required this.onLayerUpdated,
     required this.onLayerToTemplate,
     this.onAutoSelect,
@@ -329,6 +339,27 @@ class _ActionButtonsBar extends StatelessWidget {
                                 );
                               },
                             ),
+                            if (onLayersTransformed != null)
+                              for (final (icon, label, transform) in [
+                                (Icons.flip, s.flipHorizontal, PixelTransform.flipHorizontal),
+                                (Icons.flip, s.flipVertical, PixelTransform.flipVertical),
+                                (Icons.rotate_90_degrees_cw, s.rotate90, PixelTransform.rotate90Clockwise),
+                                (Icons.rotate_left, s.rotate180, PixelTransform.rotate180),
+                              ])
+                                ListTile(
+                                  leading: transform == PixelTransform.flipVertical
+                                      ? RotatedBox(
+                                          quarterTurns: 1,
+                                          child: Icon(icon, color: Colors.deepPurple, size: 18),
+                                        )
+                                      : Icon(icon, color: Colors.deepPurple, size: 18),
+                                  title: Text(label, style: const TextStyle(fontSize: 14)),
+                                  contentPadding: EdgeInsets.zero,
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    onLayersTransformed!(selectedLayerIndices, transform);
+                                  },
+                                ),
                             ListTile(
                               leading: const Icon(Icons.checklist_outlined, color: Colors.green, size: 18),
                               title: Text(s.addToTemplate, style: const TextStyle(fontSize: 14)),

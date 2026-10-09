@@ -13,6 +13,7 @@ import '../../config/assets.dart';
 import '../../data/models/subscription_model.dart';
 import '../../data/models/selection_region.dart';
 import '../../pixel/effects/effects.dart';
+import '../../pixel/services/pixel_transform_service.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/tools.dart';
 import '../../pixel/tools/texture_brush_tool.dart';
@@ -588,6 +589,10 @@ class ToolBar extends ConsumerWidget {
                           onInvert: () => notifier.invertSelection(),
                           onGrow: () => notifier.growSelection(),
                           onShrink: () => notifier.shrinkSelection(),
+                          onRotate90: () => notifier.transformSelection(PixelTransform.rotate90Clockwise),
+                          onRotate180: () => notifier.transformSelection(PixelTransform.rotate180),
+                          onFlipHorizontal: () => notifier.flipSelection(horizontal: true),
+                          onFlipVertical: () => notifier.flipSelection(horizontal: false),
                         ),
                     ],
                   );

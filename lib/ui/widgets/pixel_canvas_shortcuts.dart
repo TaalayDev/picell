@@ -203,6 +203,13 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
           notifier.duplicateLayer(state.currentLayerIndex);
         }
       },
+      onTransform: (transform) {
+        if (state.selectionState != null) {
+          notifier.transformSelection(transform);
+        } else {
+          notifier.transformLayers([state.currentLayerIndex], transform);
+        }
+      },
       onCtrlEnter: () {
         if (currentTool.value == PixelTool.pen) {
           notifier.pushEvent(const ClosePenPathEvent());
