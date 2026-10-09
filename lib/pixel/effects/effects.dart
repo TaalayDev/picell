@@ -79,6 +79,7 @@ part 'normal_map_effect.dart';
 part 'color_cycling_effect.dart';
 part 'rim_light_effect.dart';
 part 'squash_stretch_effect.dart';
+part 'breathing_effect.dart';
 part 'wind_sway_effect.dart';
 part 'hit_flash_effect.dart';
 part 'ghost_trail_effect.dart';
@@ -383,6 +384,7 @@ enum EffectType {
   supernovaCorona,
   orbitingMoons,
   zodiacConstellation,
+  breathing,
 }
 
 /// Base abstract class for all effects
@@ -403,6 +405,14 @@ abstract class Effect {
   /// parameters.  Override in subclasses for full control; the default
   /// implementation converts the legacy [getMetadata()] map automatically.
   List<UIField> getFields() => _fieldsFromMetadata(getMetadata());
+
+  /// Number of frames this effect wants when generating an animation, or
+  /// `null` to let the generator derive it from duration × FPS.
+  int? get preferredFrameCount => null;
+
+  /// Whether the animation is a seamless loop (progress 1.0 equals 0.0).
+  /// Generators then sample progress in `[0, 1)` to avoid a duplicated frame.
+  bool get isSeamlessLoop => false;
 
   String getName(BuildContext context) => switch (type) {
         EffectType.brightness => Strings.of(context).effectBrightness,
@@ -593,6 +603,7 @@ abstract class Effect {
         EffectType.supernovaCorona => 'Supernova Corona Flare',
         EffectType.orbitingMoons => 'Orbiting Satellite Moons',
         EffectType.zodiacConstellation => 'Zodiac Constellation Map',
+        EffectType.breathing => 'Smart Breathing (Idle)',
       };
 
   String getDescription(BuildContext context) => switch (type) {
@@ -923,6 +934,8 @@ abstract class Effect {
           'Gravitational satellite system with spherical shaded moons and inclined orbital guide tracks',
         EffectType.zodiacConstellation =>
           'Astronomical star chart with major constellation asterisms, 4-point cross glints, and background stardust',
+        EffectType.breathing =>
+          'Sprite-aware idle breathing with planted feet, rigid head, chest expansion, and pixel-snapped poses',
       };
 
   bool get isAnimation => EffectCatalog.forType(type).isAnimated;
@@ -1234,6 +1247,7 @@ abstract class Effect {
         Icon(Icons.public, size: size, color: color),
       EffectType.zodiacConstellation =>
         Icon(Icons.flare, size: size, color: color),
+      EffectType.breathing => Icon(Icons.air, size: size, color: color),
     };
   }
 
@@ -1525,6 +1539,7 @@ abstract class Effect {
         const Color(0xFF80D8FF), // Celestial azure
       EffectType.zodiacConstellation =>
         const Color(0xFFE040FB), // Cosmic amethyst
+      EffectType.breathing => const Color(0xFF4DD0E1), // Calm breath aqua
     };
   }
 
@@ -2100,6 +2115,8 @@ class EffectsManager {
         return OrbitingMoonsEffect(params);
       case EffectType.zodiacConstellation:
         return ZodiacConstellationEffect(params);
+      case EffectType.breathing:
+        return BreathingEffect(params);
     }
   }
 

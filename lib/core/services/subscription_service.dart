@@ -149,12 +149,20 @@ class SubscriptionService {
     if (!_isConfigured) return;
     try {
       final products = <String, StoreProduct>{};
-      final offerings = await Purchases.getOfferings();
-      _offerings = offerings;
-      for (final offering in offerings.all.values) {
-        for (final package in offering.availablePackages) {
-          products.putIfAbsent(package.storeProduct.identifier, () => package.storeProduct);
+      try {
+        final offerings = await Purchases.getOfferings();
+        _offerings = offerings;
+        for (final offering in offerings.all.values) {
+          for (final package in offering.availablePackages) {
+            products.putIfAbsent(package.storeProduct.identifier, () => package.storeProduct);
+          }
         }
+      } on PlatformException catch (e) {
+        if (PurchasesErrorHelper.getErrorCode(e) != PurchasesErrorCode.configurationError) rethrow;
+        // Offerings are optional for the custom store. Keep loading known
+        // product IDs directly when the dashboard has no configured offering.
+        _offerings = null;
+        print('RevenueCat offerings unavailable; loading store products directly: ${_describe(e)}');
       }
 
       final missing = ProductCatalog.allProductIds.difference(products.keys.toSet()).toList();
@@ -167,7 +175,9 @@ class SubscriptionService {
 
       _products = products;
       _productsController.add(this.products);
+      print('Loaded ${products.length} products from RevenueCat: ${products.keys.join(', ')}');
     } on PlatformException catch (e) {
+      print('Error loading products: ${_describe(e)}');
       _errorController.add('Error loading products: ${_describe(e)}');
     }
   }
@@ -359,6 +369,13 @@ class SubscriptionService {
     } catch (e) {
       _errorController.add('Error saving subscription data: $e');
     }
+  }
+
+  Future<void> testUnsubscribe() async {
+    final service = this;
+    _updateSubscription(const UserSubscription.free());
+    await _saveSubscriptionData();
+    await service.loadProducts();
   }
 
   // Clean up resources

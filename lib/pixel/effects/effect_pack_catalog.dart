@@ -230,6 +230,7 @@ class EffectPackCatalog {
       EffectType.wipe,
       EffectType.colorCycling,
       EffectType.kaleidoscope,
+      EffectType.breathing,
     },
     EffectPackId.vfxNature: {
       EffectType.fire,

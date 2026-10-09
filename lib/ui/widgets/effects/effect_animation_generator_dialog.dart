@@ -213,6 +213,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
   void _onParameterChanged(String key, dynamic value) {
     setState(() {
       _parameters[key] = value;
+      _updateFrameCount();
     });
     _parameterDebounceTimer?.cancel();
     _parameterDebounceTimer = Timer(const Duration(milliseconds: 150), () {
@@ -222,8 +223,15 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     });
   }
 
+  /// Effect instance reflecting the current (edited) parameters.
+  Effect get _currentEffect => EffectsManager.createEffect(widget.effect.type, _parameters);
+
+  /// Frame count dictated by the effect itself (e.g. Breathing), if any.
+  int? get _effectFrameCount => _currentEffect.preferredFrameCount;
+
   void _updateFrameCount() {
-    _frameCount = (_duration * _fps).round();
+    final preferred = _effectFrameCount;
+    _frameCount = preferred ?? (_duration * _fps).round();
     if (_frameCount < 2) _frameCount = 2;
     if (_frameCount > 120) _frameCount = 120; // Reasonable limit
   }
@@ -242,10 +250,14 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
 
       final frames = <Uint32List>[];
       final effects = List<Effect>.from(widget.effects);
-      effects[widget.effectIndex] = EffectsManager.createEffect(widget.effect.type, _parameters);
+      final animatedEffect = _currentEffect;
+      effects[widget.effectIndex] = animatedEffect;
+      final seamless = animatedEffect.isSeamlessLoop;
+      final frameCount = _frameCount;
 
-      for (int i = 0; i < _frameCount; i++) {
-        final t = i / (_frameCount - 1);
+      for (int i = 0; i < frameCount; i++) {
+        // Seamless loops sample [0, 1) so frame N doesn't repeat frame 0.
+        final t = seamless ? i / frameCount : i / (frameCount - 1);
         frames.add(await EffectAnimationRenderer.renderFrame(
           pixels: widget.layerPixels,
           width: widget.layerWidth,
@@ -595,6 +607,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
 
   Widget _buildAnimationSettings() {
     final s = Strings.of(context);
+    final effectDrivesFrames = _effectFrameCount != null;
 
     return Card(
       child: Padding(
@@ -611,6 +624,25 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
             // Duration
             Row(
               children: [
+                if (effectDrivesFrames)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(s.durationSeconds),
+                        const SizedBox(height: 12),
+                        Text(
+                          '${(_frameCount / _fps).toStringAsFixed(2)}s',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Set by the effect\'s Frame Count',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  )
+                else
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

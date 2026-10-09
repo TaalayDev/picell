@@ -14,14 +14,12 @@ import '../data/repo/project_api_repo.dart';
 import '../data/repo/template_api_repo.dart';
 import '../pixel/services/template_service.dart';
 
-final analyticsProvider =
-    Provider((ref) => AnalyticsService(FirebaseAnalytics.instance));
+final analyticsProvider = Provider((ref) => AnalyticsService(FirebaseAnalytics.instance));
 final databaseProvider = Provider((ref) => AppDatabase());
 final queueManagerProvider = Provider((ref) => QueueManager());
-final projectRepo = Provider<ProjectRepo>((ref) => ProjectLocalRepo(
-      ref.read(databaseProvider),
-      ref.read(queueManagerProvider),
-    ));
+final projectRepo = Provider<ProjectRepo>(
+  (ref) => ProjectLocalRepo(ref.read(databaseProvider), ref.read(queueManagerProvider)),
+);
 
 final inAppReviewProvider = Provider<InAppReviewService>((ref) {
   return InAppReviewService();
@@ -40,10 +38,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 });
 
 final authAPIRepoProvider = Provider<AuthAPIRepo>((ref) {
-  return AuthAPIRepo(
-    ref.read(apiClientProvider),
-    ref.read(localStorageProvider),
-  );
+  return AuthAPIRepo(ref.read(apiClientProvider), ref.read(localStorageProvider));
 });
 
 final projectAPIRepoProvider = Provider<ProjectAPIRepo>((ref) {

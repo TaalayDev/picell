@@ -333,6 +333,7 @@ class EffectCatalog {
     EffectType.wipe,
     EffectType.colorCycling,
     EffectType.squashStretch,
+    EffectType.breathing,
     EffectType.windSway,
     EffectType.kaleidoscope,
   };
@@ -460,6 +461,7 @@ class EffectCatalog {
     EffectType.sky,
     EffectType.colorCycling,
     EffectType.squashStretch,
+    EffectType.breathing,
     EffectType.windSway,
     EffectType.hitFlash,
     EffectType.ghostTrail,

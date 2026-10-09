@@ -761,6 +761,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
         widget.effect.type == EffectType.colorCycling ||
         widget.effect.type == EffectType.rimLight ||
         widget.effect.type == EffectType.squashStretch ||
+        widget.effect.type == EffectType.breathing ||
         widget.effect.type == EffectType.windSway ||
         widget.effect.type == EffectType.hitFlash ||
         widget.effect.type == EffectType.ghostTrail ||
@@ -1212,6 +1213,78 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
             'phase': 0.0,
             'anchor': 'bottom',
             'preserveAlpha': true,
+          },
+        };
+      case EffectType.breathing:
+        return {
+          'Classic 2-Frame Idle': {
+            'frames': 2,
+            'style': 'bob',
+            'anchor': 'bottom',
+            'depth': 1,
+            'plantedRatio': 0.4,
+            'chestExpand': 0,
+            'easing': 'step',
+            'hold': 0.0,
+            'cycles': 1,
+          },
+          'Calm Hero': {
+            'frames': 8,
+            'style': 'chest',
+            'anchor': 'bottom',
+            'depth': 0,
+            'plantedRatio': 0.35,
+            'rigidRatio': 0.3,
+            'chestExpand': 0,
+            'easing': 'organic',
+            'hold': 0.15,
+            'cycles': 1,
+          },
+          'Heavy Brute': {
+            'frames': 10,
+            'style': 'chest',
+            'anchor': 'bottom',
+            'depth': 2,
+            'plantedRatio': 0.3,
+            'rigidRatio': 0.25,
+            'chestExpand': 1,
+            'easing': 'organic',
+            'hold': 0.1,
+            'cycles': 1,
+          },
+          'Panting / Tired': {
+            'frames': 8,
+            'style': 'chest',
+            'anchor': 'bottom',
+            'depth': 1,
+            'plantedRatio': 0.4,
+            'rigidRatio': 0.3,
+            'chestExpand': 0,
+            'easing': 'smooth',
+            'hold': 0.0,
+            'cycles': 2,
+          },
+          'Floating Spirit': {
+            'frames': 12,
+            'style': 'scale',
+            'anchor': 'center',
+            'depth': 2,
+            'chestExpand': 1,
+            'easing': 'smooth',
+            'hold': 0.0,
+            'cycles': 1,
+          },
+          'Hanging Bat': {
+            'frames': 8,
+            'style': 'chest',
+            'anchor': 'top',
+            'depth': 1,
+            'plantedRatio': 0.2,
+            'rigidRatio': 0.35,
+            'chestExpand': 1,
+            'easing': 'organic',
+            'hold': 0.2,
+            'cycles': 1,
           },
         };
       case EffectType.windSway:
