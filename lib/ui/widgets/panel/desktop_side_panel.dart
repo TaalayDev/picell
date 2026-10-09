@@ -125,7 +125,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
         layer: widget.notifier.currentLayer,
         onEffectSelected: (effect) {
           final descriptor = EffectCatalog.forType(effect.type);
-          if (descriptor.workspace == EffectWorkspace.animation) {
+          if (descriptor.workspace == EffectWorkspace.animation && effect.isAnimation) {
             final sourceFrame = widget.notifier.currentFrame;
             final sourceLayer = widget.notifier.currentLayer;
             EffectAnimationGeneratorDialog.showEffectAnimationGenerator(

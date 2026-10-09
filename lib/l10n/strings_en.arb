@@ -208,6 +208,8 @@
     "proceduralLayerConverted": "The procedural layer is now editable pixels.",
     "editorSettings": "Editor Settings",
     "resetToDefaults": "Reset to defaults",
+    "revertChanges": "Revert changes",
+    "effectResultLabel": "Result",
     "input": "Input",
     "display": "Display",
     "showGrid": "Show Grid",

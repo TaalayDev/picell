@@ -70,6 +70,7 @@ class EffectSelectorDialog extends ConsumerStatefulWidget {
 
 class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   String _searchQuery = '';
+  final _searchController = TextEditingController();
   EffectWorkspace? _selectedWorkspace;
   FilterKind? _selectedFilterKind;
   AnimationKind? _selectedAnimationKind;
@@ -95,7 +96,14 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
       _selectedFilterKind = widget.initialFilterKind;
       _selectedAnimationKind = widget.initialAnimationKind;
       _searchQuery = '';
+      _searchController.clear();
     }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   String _animationKindLabel(
@@ -316,7 +324,9 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final screen = MediaQuery.sizeOf(context);
+    final isMobile = screen.width < 600;
+    final filteredEffects = _filteredEffects;
     // Rebuild when purchases or earned unlocks change.
     ref.watch(subscriptionStateProvider);
     ref.watch(progressionProvider);
@@ -325,7 +335,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     final body = AnimatedBackground(
       child: Container(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Column(
           children: [
             // Header
@@ -363,11 +373,24 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: TextField(
+                controller: _searchController,
                 decoration: InputDecoration(
                   hintText: _searchHint(context),
                   prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surface,
+                  suffixIcon: _searchQuery.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 ),
@@ -483,9 +506,20 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                 ),
               ),
 
+            // if (!isMobile)
+            //   Padding(
+            //     padding: const EdgeInsets.only(bottom: 12),
+            //     child: Row(children: [
+            //       const Spacer(),
+            //       Chip(
+            //           avatar: const Icon(Icons.grid_view, size: 16),
+            //           label: Text('${filteredEffects.length}'),
+            //           visualDensity: VisualDensity.compact),
+            //     ]),
+            //   ),
             // Effects grid
             Expanded(
-              child: _filteredEffects.isEmpty
+              child: filteredEffects.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -501,16 +535,14 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
                       ),
                     )
                   : GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: isMobile ? 2 : 3,
-                        childAspectRatio: 1.2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        mainAxisExtent: 220,
-                      ),
-                      itemCount: _filteredEffects.length,
+                      gridDelegate: isMobile
+                          ? const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, mainAxisExtent: 220, crossAxisSpacing: 12, mainAxisSpacing: 12)
+                          : const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 270, mainAxisExtent: 270, crossAxisSpacing: 16, mainAxisSpacing: 16),
+                      itemCount: filteredEffects.length,
                       itemBuilder: (context, index) {
-                        final effectType = _filteredEffects[index];
+                        final effectType = filteredEffects[index];
                         final effect = EffectsManager.createEffect(effectType);
                         final name = effect.getName(context);
                         final isLocked = !ref.read(effectAccessProvider(effectType));
@@ -548,12 +580,14 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     }
 
     return Dialog(
+      insetPadding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 24, vertical: isMobile ? 20 : 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       backgroundColor: Colors.transparent,
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
-        width: isMobile ? double.infinity : 600,
-        height: isMobile ? double.infinity : 500,
+        key: const ValueKey('effect-selector-content'),
+        width: isMobile ? double.infinity : (screen.width - 48).clamp(0.0, 1280.0),
+        height: isMobile ? double.infinity : (screen.height - 48).clamp(0.0, 940.0),
         child: body,
       ),
     );
@@ -568,7 +602,8 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     EffectStackAddValidation validation,
   ) {
     final content = Card(
-      elevation: 2,
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(

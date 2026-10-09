@@ -26,8 +26,7 @@ class SelectionModeToggle extends StatelessWidget {
           decoration: BoxDecoration(
             color: accentColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-                color: accentColor.withValues(alpha: 0.25), width: 1),
+            border: Border.all(color: accentColor.withValues(alpha: 0.25), width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -71,14 +70,13 @@ class SelectionModeToggle extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color:
-            selected ? accentColor.withValues(alpha: 0.35) : Colors.transparent,
+        color: selected ? accentColor.withValues(alpha: 0.35) : Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Icon(icon, size: 16, color: accentColor),
           ),
         ),

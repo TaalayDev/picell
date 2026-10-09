@@ -11,6 +11,11 @@ class PixelViewportController extends ChangeNotifier {
   double _scale;
   Offset _offset;
 
+  /// Where the untransformed canvas' top-left corner sits inside the gesture
+  /// layer. The canvas is scaled about that corner, so zoom gestures must
+  /// anchor on the focal point relative to it. Set by the screen's layout.
+  Offset origin = Offset.zero;
+
   double get scale => _scale;
   Offset get offset => _offset;
 

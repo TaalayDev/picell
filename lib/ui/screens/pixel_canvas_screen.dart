@@ -560,6 +560,14 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                           canvasWidth = canvasHeight * width / height;
                                         }
 
+                                        // The canvas is centred and scaled about its own
+                                        // top-left corner; tell the gesture layer where
+                                        // that corner is so pinch zoom anchors correctly.
+                                        viewportController.origin = Offset(
+                                          (viewportWidth - canvasWidth) / 2,
+                                          (viewportHeight - canvasHeight) / 2,
+                                        );
+
                                         return Center(
                                           child: OverflowBox(
                                             minWidth: 0,
@@ -646,8 +654,10 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                                 onInvert: () => notifier.invertSelection(),
                                                 onGrow: () => notifier.growSelection(),
                                                 onShrink: () => notifier.shrinkSelection(),
-                                                onRotate90: () => notifier.transformSelection(PixelTransform.rotate90Clockwise),
-                                                onRotate180: () => notifier.transformSelection(PixelTransform.rotate180),
+                                                onRotate90: () =>
+                                                    notifier.transformSelection(PixelTransform.rotate90Clockwise),
+                                                onRotate180: () =>
+                                                    notifier.transformSelection(PixelTransform.rotate180),
                                                 onFlipHorizontal: () => notifier.flipSelection(horizontal: true),
                                                 onFlipVertical: () => notifier.flipSelection(horizontal: false),
                                               ),

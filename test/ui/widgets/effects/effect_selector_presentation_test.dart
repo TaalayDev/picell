@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:picell/data/storage/local_storage.dart';
 import 'package:picell/l10n/strings.dart';
+import 'package:picell/providers/challenges_provider.dart';
+import 'package:picell/data/models/challenge_models.dart';
 import 'package:picell/ui/widgets/effects/effects_selector_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +15,7 @@ Future<void> _open(WidgetTester tester, Size size) async {
 
   await tester.pumpWidget(
     ProviderScope(
+      overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
       key: UniqueKey(),
       child: MaterialApp(
         localizationsDelegates: Strings.localizationsDelegates,
@@ -22,7 +25,8 @@ Future<void> _open(WidgetTester tester, Size size) async {
             builder: (context) => TextButton(
               onPressed: () => EffectSelectorDialog.present(
                 context: context,
-                builder: (context) => EffectSelectorDialog(onEffectSelected: (_) {}),
+                builder: (context) =>
+                    EffectSelectorDialog(onEffectSelected: (_) {}),
               ),
               child: const Text('open'),
             ),
@@ -63,4 +67,9 @@ void main() {
     expect(find.byType(Dialog), findsOneWidget);
     expect(find.byType(BottomSheet), findsNothing);
   });
+}
+
+class _NoChallenges extends CurrentChallengesNotifier {
+  @override
+  Future<CurrentChallenges?> build() async => null;
 }

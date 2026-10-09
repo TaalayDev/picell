@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart';
 
 import '../../../core/extensions/primitive_extensions.dart';
@@ -41,18 +42,26 @@ class EffectEditorDialog extends StatefulWidget {
     String? title,
     String? applyButtonText,
   }) {
-    return showDialog(
-      context: context,
-      builder: (context) => EffectEditorDialog(
-        effect: effect,
-        layerWidth: layerWidth,
-        layerHeight: layerHeight,
-        layerPixels: layerPixels,
-        onEffectUpdated: onApply,
-        title: title,
-        applyButtonText: applyButtonText,
-      ),
-    );
+    Widget builder(BuildContext context) => EffectEditorDialog(
+          effect: effect,
+          layerWidth: layerWidth,
+          layerHeight: layerHeight,
+          layerPixels: layerPixels,
+          onEffectUpdated: onApply,
+          title: title,
+          applyButtonText: applyButtonText,
+        );
+    if (MediaQuery.sizeOf(context).width < 600) {
+      return showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) =>
+            FractionallySizedBox(heightFactor: .94, child: builder(context)),
+      );
+    }
+    return showDialog<void>(context: context, builder: builder);
   }
 
   @override
@@ -61,6 +70,9 @@ class EffectEditorDialog extends StatefulWidget {
 
 class _EffectEditorDialogState extends State<EffectEditorDialog> {
   late Map<String, dynamic> _parameters;
+  late final Map<String, dynamic> _initialParameters;
+  bool _showOriginal = false;
+  bool _compareEnabled = false;
   late Map<String, dynamic> _metadata;
   Uint32List? _previewPixels;
   bool _isProcessing = false;
@@ -70,6 +82,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
   void initState() {
     super.initState();
     _parameters = Map<String, dynamic>.from(widget.effect.parameters);
+    _initialParameters = Map<String, dynamic>.from(widget.effect.parameters);
     _metadata = widget.effect.getMetadata();
     _updatePreview();
   }
@@ -87,15 +100,14 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     while (mounted) {
       _needsUpdate = false;
       final currentParams = Map<String, dynamic>.from(_parameters);
-      final preview = await Future.microtask(() {
-        final effect =
-            EffectsManager.createEffect(widget.effect.type, currentParams);
-        return effect.apply(
-          widget.layerPixels,
-          widget.layerWidth,
-          widget.layerHeight,
-        );
-      });
+      // Large canvases are processed off the main thread so dragging a slider
+      // never freezes the dialog.
+      final preview = await EffectsManager.applyMultipleEffectsAsync(
+        widget.layerPixels,
+        widget.layerWidth,
+        widget.layerHeight,
+        [EffectsManager.createEffect(widget.effect.type, currentParams)],
+      );
 
       if (!mounted) break;
       _previewPixels = preview;
@@ -115,110 +127,160 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     final isMobile = MediaQuery.of(context).size.width < 600;
     final effectName = widget.effect.getName(context);
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        width: isMobile ? double.infinity : 700,
-        height: isMobile ? double.infinity : 600,
-        child: AnimatedBackground(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color:
-                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                // Header
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    Expanded(
-                      child: Text(
-                        widget.title ?? Strings.of(context).editEffect(effectName),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                        textAlign: TextAlign.center,
+    final screen = MediaQuery.sizeOf(context);
+    final content = SizedBox(
+      key: const ValueKey('effect-editor-content'),
+      width:
+          isMobile ? double.infinity : (screen.width - 48).clamp(0.0, 1280.0),
+      height:
+          isMobile ? double.infinity : (screen.height - 48).clamp(0.0, 940.0),
+      child: AnimatedBackground(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              // Header
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  Expanded(
+                    child: Text(
+                      widget.title ??
+                          Strings.of(context).editEffect(effectName),
+                      style: (isMobile
+                              ? Theme.of(context).textTheme.titleMedium
+                              : Theme.of(context).textTheme.headlineSmall)
+                          ?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
+                      maxLines: isMobile ? 2 : null,
+                      overflow: isMobile ? TextOverflow.ellipsis : null,
+                      textAlign: TextAlign.center,
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.refresh),
-                      onPressed: _resetToDefaults,
-                      tooltip: Strings.of(context).resetToDefaults,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.undo),
+                    onPressed: _hasChanges ? _revertChanges : null,
+                    tooltip: Strings.of(context).revertChanges,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: _resetToDefaults,
+                    tooltip: Strings.of(context).resetToDefaults,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    onPressed: () {
+                      AppNotification.info(
+                        context,
+                        widget.effect.getDescription(context),
+                      );
+                    },
+                  ),
+                ],
+              ),
+
+              const Divider(),
+
+              // Content - Different layouts for mobile and desktop
+              Expanded(
+                child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+              ),
+
+              // Action buttons
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(Strings.of(context).cancel),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.help_outline),
-                      onPressed: () {
-                        AppNotification.info(
-                          context,
-                          widget.effect.getDescription(context),
-                        );
-                      },
+                    ElevatedButton(
+                      onPressed: _applyChanges,
+                      child: Text(
+                        widget.applyButtonText ??
+                            Strings.of(context).applyChanges,
+                      ),
                     ),
                   ],
                 ),
-
-                const Divider(),
-
-                // Content - Different layouts for mobile and desktop
-                Expanded(
-                  child:
-                      isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
-                ),
-
-                // Action buttons
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(Strings.of(context).cancel),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: _applyChanges,
-                        child: Text(
-                          widget.applyButtonText ??
-                              Strings.of(context).applyChanges,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+    if (ModalRoute.of(context) is ModalBottomSheetRoute) {
+      return ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: Material(child: SafeArea(top: false, child: content)),
+      );
+    }
+    return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 12 : 24, vertical: isMobile ? 20 : 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+      child: content,
     );
   }
 
   Widget _buildMobileLayout() {
     return Column(
       children: [
-        // Preview
-        Container(
-          constraints: const BoxConstraints(maxHeight: 200),
-          clipBehavior: Clip.hardEdge,
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: _buildPreview(),
+        LayoutBuilder(
+            builder: (context, constraints) => SizedBox(
+                  height: (MediaQuery.sizeOf(context).height * .25)
+                      .clamp(140.0, 240.0),
+                  child: _compareEnabled
+                      ? Row(children: [
+                          Expanded(child: _buildComparisonPane(original: true)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                              child: _buildComparisonPane(original: false)),
+                        ])
+                      : Center(child: _buildPreviewCard(maxHeight: 240)),
+                )),
+        SwitchListTile.adaptive(
+          key: const ValueKey('effect-mobile-compare-switch'),
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          title: Text(
+              '${Strings.of(context).original} / ${Strings.of(context).effectResultLabel}'),
+          secondary: const Icon(Icons.compare_outlined),
+          value: _compareEnabled,
+          onChanged: (value) => setState(() => _compareEnabled = value),
         ),
+        if (!_compareEnabled) _buildCompareToggle(),
+        if (_hasPresets()) ...[
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                for (final button in _buildPresetButtons())
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: button,
+                  ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
 
         // Parameters
         Expanded(
@@ -230,82 +292,159 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     );
   }
 
+  bool get _hasChanges => !mapEquals(_parameters, _initialParameters);
+
+  void _revertChanges() {
+    setState(() {
+      _parameters = Map<String, dynamic>.from(_initialParameters);
+    });
+    _updatePreview();
+  }
+
+  /// Original / Result switch for comparing the effect against the source.
+  Widget _buildCompareToggle() {
+    final strings = Strings.of(context);
+    return SegmentedButton<bool>(
+      showSelectedIcon: false,
+      style: const ButtonStyle(visualDensity: VisualDensity.compact),
+      segments: [
+        ButtonSegment(value: false, label: Text(strings.effectResultLabel)),
+        ButtonSegment(value: true, label: Text(strings.original)),
+      ],
+      selected: {_showOriginal},
+      onSelectionChanged: (value) =>
+          setState(() => _showOriginal = value.first),
+    );
+  }
+
+  Widget _buildPreviewCard({required double maxHeight}) {
+    return Container(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: _buildPreview(),
+    );
+  }
+
   Widget _buildDesktopLayout() {
+    final colors = Theme.of(context).colorScheme;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Left side - Preview
         Expanded(
-          flex: 2,
+          flex: 7,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                Strings.of(context).preview,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              Container(
-                constraints: const BoxConstraints(maxHeight: 200),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+              Text(Strings.of(context).preview,
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 12),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: _buildComparisonPane(original: true)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildComparisonPane(original: false)),
+                  ],
                 ),
-                child: _buildPreview(),
               ),
-
-              const SizedBox(height: 16),
-
-              // Quick presets section
               if (_hasPresets()) ...[
-                Text(
-                  Strings.of(context).quickPresets,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
+                const SizedBox(height: 16),
+                Text(Strings.of(context).quickPresets,
+                    style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _buildPresetButtons(),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 100),
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _buildPresetButtons()),
+                  ),
                 ),
               ],
             ],
           ),
         ),
-
-        const SizedBox(width: 16),
-
-        // Right side - Parameters
+        const SizedBox(width: 20),
         Expanded(
-          flex: 3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                Strings.of(context).parameters,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: _buildParameterWidgets(),
-                  ),
-                ),
-              ),
-            ],
+          flex: 4,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colors.surface.withValues(alpha: .85),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colors.outlineVariant),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(Strings.of(context).parameters,
+                    style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 16),
+                Expanded(child: ListView(children: _buildParameterWidgets())),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildPreview() {
-    if (_previewPixels == null && _isProcessing) {
+  Widget _buildComparisonPane({required bool original}) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key:
+          ValueKey(original ? 'effect-before-preview' : 'effect-after-preview'),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: original ? colors.outlineVariant : colors.primary),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(children: [
+              Icon(original ? Icons.image_outlined : Icons.auto_awesome,
+                  size: 18,
+                  color: original ? colors.onSurfaceVariant : colors.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: Text(
+                      original
+                          ? Strings.of(context).original
+                          : Strings.of(context).effectResultLabel,
+                      style: Theme.of(context).textTheme.titleSmall)),
+            ]),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Center(child: _buildPreview(original: original)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreview({bool? original}) {
+    final showOriginal = original ?? _showOriginal;
+    final shown = showOriginal ? widget.layerPixels : _previewPixels;
+    if (shown == null && _isProcessing) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_previewPixels == null) {
+    if (shown == null) {
       return Center(child: Text(Strings.of(context).previewNotAvailable));
     }
 
@@ -317,12 +456,12 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
           CustomPaint(
             size: Size.infinite,
             painter: PixelPreviewPainter(
-              pixels: _previewPixels!,
+              pixels: shown,
               width: widget.layerWidth,
               height: widget.layerHeight,
             ),
           ),
-          if (_isProcessing)
+          if (_isProcessing && !showOriginal)
             const Positioned(
               top: 8,
               right: 8,

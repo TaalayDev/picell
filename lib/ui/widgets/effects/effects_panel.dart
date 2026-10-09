@@ -86,7 +86,7 @@ class _EffectsPanelState extends State<EffectsPanel> {
         layer: widget.layer.copyWith(effects: _effects),
         onEffectSelected: (effect) {
           final descriptor = EffectCatalog.forType(effect.type);
-          if (descriptor.workspace == EffectWorkspace.animation) {
+          if (descriptor.workspace == EffectWorkspace.animation && effect.isAnimation) {
             if (widget.onAnimate != null) {
               widget.onAnimate!(
                 effect,

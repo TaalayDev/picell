@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -43,6 +45,8 @@ class CanvasGestureHandler {
 
   int _pointerCount = 0;
   Offset? _panStartPosition;
+  // Move-tool drag distance since the pointer went down, in canvas pixels.
+  Offset _pixelDragDelta = Offset.zero;
   Offset? _twoFingerStartFocalPoint;
   int? _twoFingerStartTimeMs;
   double? _initialTwoFingerScale;
@@ -234,8 +238,9 @@ class CanvasGestureHandler {
   void _handleSingleFingerStart(ScaleStartDetails details,
       PixelTool currentTool, PixelDrawDetails drawDetails) {
     if (currentTool == PixelTool.drag) {
-      _panStartPosition = details.localFocalPoint - controller.offset;
-      onStartPixelDrag?.call(controller.offset);
+      _panStartPosition = details.localFocalPoint;
+      _pixelDragDelta = Offset.zero;
+      onStartPixelDrag?.call(Offset.zero);
     } else if (_isSelectionTool(currentTool) && !_isDrawingActive) {
       toolManager.startDrawing(currentTool, drawDetails);
       _isDrawingActive = true;
@@ -249,9 +254,8 @@ class CanvasGestureHandler {
   void _handleSingleFingerUpdate(ScaleUpdateDetails details,
       PixelTool currentTool, PixelDrawDetails drawDetails) {
     if (currentTool == PixelTool.drag) {
-      final newOffset = details.localFocalPoint - _panStartPosition!;
-      controller.setOffset(newOffset);
-      onPixelDrag?.call(newOffset);
+      _pixelDragDelta = (details.localFocalPoint - _panStartPosition!) / _pixelSize(drawDetails);
+      onPixelDrag?.call(_pixelDragDelta);
     } else if (currentTool == PixelTool.curve) {
       if (toolManager.isCurveDefining) {
         toolManager.handleCurveMove(drawDetails, controller);
@@ -265,7 +269,7 @@ class CanvasGestureHandler {
       PixelTool currentTool, PixelDrawDetails drawDetails) {
     _flushPendingMove();
     if (currentTool == PixelTool.drag) {
-      onPixelDragEnd?.call(controller.offset);
+      onPixelDragEnd?.call(_pixelDragDelta);
     } else if (_isSelectionTool(currentTool) && _isDrawingActive) {
       toolManager.endDrawing(currentTool, drawDetails);
     } else if (_isDrawingActive) {
@@ -352,6 +356,12 @@ class CanvasGestureHandler {
     _initialTwoPointerDistance = 0.0;
   }
 
+  /// Size of one canvas pixel in the canvas widget's local coordinates.
+  double _pixelSize(PixelDrawDetails details) {
+    final size = details.size.width / math.max(details.width, 1);
+    return size <= 0 ? 1.0 : size;
+  }
+
   bool _shouldHandleDirectTap(PixelTool tool) {
     return tool == PixelTool.fill || tool == PixelTool.eyedropper;
   }
@@ -409,7 +419,8 @@ class CanvasGestureHandler {
     if (shouldNavigate || currentTool == PixelTool.drag) {
       _panStartPosition = event.position;
       if (currentTool == PixelTool.drag) {
-        onStartPixelDrag?.call(controller.offset);
+        _pixelDragDelta = Offset.zero;
+        onStartPixelDrag?.call(Offset.zero);
       }
       return;
     }
@@ -447,9 +458,8 @@ class CanvasGestureHandler {
     }
 
     if (currentTool == PixelTool.drag && _panStartPosition != null) {
-      final newOffset = controller.offset + event.delta;
-      controller.setOffset(newOffset);
-      onPixelDrag?.call(newOffset);
+      _pixelDragDelta += event.localDelta / _pixelSize(drawDetails);
+      onPixelDrag?.call(_pixelDragDelta);
     } else if (currentTool == PixelTool.curve) {
       if (toolManager.isCurveDefining) {
         toolManager.handleCurveMove(drawDetails, controller);
@@ -556,7 +566,7 @@ class CanvasGestureHandler {
     _flushPendingMove();
 
     if (currentTool == PixelTool.drag) {
-      onPixelDragEnd?.call(controller.offset);
+      onPixelDragEnd?.call(_pixelDragDelta);
     } else if (_isSelectionDrawingActive) {
       toolManager.endDrawing(currentTool, drawDetails);
       _isSelectionDrawingActive = false;

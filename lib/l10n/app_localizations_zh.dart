@@ -526,6 +526,12 @@ class StringsZh extends Strings {
   String get resetToDefaults => '重置为默认值';
 
   @override
+  String get revertChanges => 'Revert changes';
+
+  @override
+  String get effectResultLabel => 'Result';
+
+  @override
   String get input => '输入';
 
   @override

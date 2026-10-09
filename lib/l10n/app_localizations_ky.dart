@@ -552,6 +552,12 @@ class StringsKy extends Strings {
   String get resetToDefaults => 'Баштапкыга кайтаруу';
 
   @override
+  String get revertChanges => 'Revert changes';
+
+  @override
+  String get effectResultLabel => 'Result';
+
+  @override
   String get input => 'Киргизүү';
 
   @override

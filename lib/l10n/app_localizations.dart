@@ -1111,6 +1111,18 @@ abstract class Strings {
   /// **'Reset to defaults'**
   String get resetToDefaults;
 
+  /// No description provided for @revertChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert changes'**
+  String get revertChanges;
+
+  /// No description provided for @effectResultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get effectResultLabel;
+
   /// No description provided for @input.
   ///
   /// In en, this message translates to:

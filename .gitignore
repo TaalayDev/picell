@@ -71,3 +71,4 @@ lib/firebase_options.dart
 
 .env
 backend/
+studio/

@@ -546,6 +546,12 @@ class StringsEn extends Strings {
   String get resetToDefaults => 'Reset to defaults';
 
   @override
+  String get revertChanges => 'Revert changes';
+
+  @override
+  String get effectResultLabel => 'Result';
+
+  @override
   String get input => 'Input';
 
   @override

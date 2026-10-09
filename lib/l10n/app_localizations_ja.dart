@@ -531,6 +531,12 @@ class StringsJa extends Strings {
   String get resetToDefaults => 'デフォルトにリセット';
 
   @override
+  String get revertChanges => 'Revert changes';
+
+  @override
+  String get effectResultLabel => 'Result';
+
+  @override
   String get input => '入力';
 
   @override

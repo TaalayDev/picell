@@ -6,6 +6,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:picell/data/models/layer.dart';
 import 'package:picell/data/storage/local_storage.dart';
 import 'package:picell/l10n/strings.dart';
+import 'package:picell/providers/challenges_provider.dart';
+import 'package:picell/data/models/challenge_models.dart';
 import 'package:picell/pixel/effects/effects.dart';
 import 'package:picell/ui/widgets/effects/effects_selector_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +29,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
         child: MaterialApp(
           localizationsDelegates: Strings.localizationsDelegates,
           supportedLocales: Strings.supportedLocales,
@@ -104,6 +107,9 @@ void main() {
     for (final entry in cases) {
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            currentChallengesProvider.overrideWith(_NoChallenges.new)
+          ],
           child: MaterialApp(
             localizationsDelegates: Strings.localizationsDelegates,
             supportedLocales: Strings.supportedLocales,
@@ -148,6 +154,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
         child: MaterialApp(
           localizationsDelegates: Strings.localizationsDelegates,
           supportedLocales: Strings.supportedLocales,
@@ -226,6 +233,7 @@ void main() {
     // Verify not in materials
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
         child: MaterialApp(
           localizationsDelegates: Strings.localizationsDelegates,
           supportedLocales: Strings.supportedLocales,
@@ -253,6 +261,7 @@ void main() {
     // Verify in animation special effects
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
         child: MaterialApp(
           localizationsDelegates: Strings.localizationsDelegates,
           supportedLocales: Strings.supportedLocales,
@@ -281,8 +290,7 @@ void main() {
     );
   });
 
-  testWidgets('explains why an effect cannot be added to the current layer',
-      (tester) async {
+  testWidgets('filters can be selected for an empty layer', (tester) async {
     tester.view.physicalSize = const Size(1200, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(() {
@@ -300,6 +308,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
         child: MaterialApp(
           localizationsDelegates: Strings.localizationsDelegates,
           supportedLocales: Strings.supportedLocales,
@@ -326,11 +335,50 @@ void main() {
     );
     await tester.pump();
 
-    expect(selected, isFalse);
+    expect(selected, isTrue);
     expect(
       find.text(
           'This effect needs visible pixels or a generator on the layer.'),
-      findsOneWidget,
+      findsNothing,
     );
   });
+  testWidgets('desktop filter selector is large and search can be cleared',
+      (tester) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ProviderScope(
+        overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
+        child: MaterialApp(
+          localizationsDelegates: Strings.localizationsDelegates,
+          supportedLocales: Strings.supportedLocales,
+          home: Scaffold(
+              body: EffectSelectorDialog(
+            initialWorkspace: EffectWorkspace.filters,
+            lockWorkspace: true,
+            onEffectSelected: (_) {},
+          )),
+        )));
+    await tester.pump(const Duration(milliseconds: 300));
+    final size =
+        tester.getSize(find.byKey(const ValueKey('effect-selector-content')));
+    expect(size.width, 1280);
+    expect(size.height, 852);
+    expect(tester.widget<GridView>(find.byType(GridView)).gridDelegate,
+        isA<SliverGridDelegateWithMaxCrossAxisExtent>());
+    await tester.enterText(find.byType(TextField), 'no-filter-matches-this');
+    await tester.pump();
+    expect(find.byType(GridView), findsNothing);
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.clear));
+    await tester.pump();
+    expect(find.byType(GridView), findsOneWidget);
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+}
+
+class _NoChallenges extends CurrentChallengesNotifier {
+  @override
+  Future<CurrentChallenges?> build() async => null;
 }

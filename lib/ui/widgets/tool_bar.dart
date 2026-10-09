@@ -141,7 +141,7 @@ class ToolBar extends ConsumerWidget {
           layer: notifier.currentLayer,
           onEffectSelected: (effect) {
             final descriptor = EffectCatalog.forType(effect.type);
-            if (descriptor.workspace == EffectWorkspace.animation) {
+            if (descriptor.workspace == EffectWorkspace.animation && effect.isAnimation) {
               final sourceFrame = notifier.currentFrame;
               final sourceLayer = notifier.currentLayer;
               EffectAnimationGeneratorDialog.showEffectAnimationGenerator(

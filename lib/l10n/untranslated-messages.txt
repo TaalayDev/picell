@@ -1,5 +1,7 @@
 {
   "ja": [
+    "revertChanges",
+    "effectResultLabel",
     "dropImageTitle",
     "dropImageMessage",
     "dropImageNewLayer",
@@ -8,6 +10,8 @@
   ],
 
   "ky": [
+    "revertChanges",
+    "effectResultLabel",
     "dropImageTitle",
     "dropImageMessage",
     "dropImageNewLayer",
@@ -16,6 +20,8 @@
   ],
 
   "ru": [
+    "revertChanges",
+    "effectResultLabel",
     "dropImageTitle",
     "dropImageMessage",
     "dropImageNewLayer",
@@ -24,6 +30,8 @@
   ],
 
   "zh": [
+    "revertChanges",
+    "effectResultLabel",
     "dropImageTitle",
     "dropImageMessage",
     "dropImageNewLayer",

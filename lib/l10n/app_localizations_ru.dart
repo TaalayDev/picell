@@ -552,6 +552,12 @@ class StringsRu extends Strings {
   String get resetToDefaults => 'Сбросить по умолчанию';
 
   @override
+  String get revertChanges => 'Revert changes';
+
+  @override
+  String get effectResultLabel => 'Result';
+
+  @override
   String get input => 'Ввод';
 
   @override

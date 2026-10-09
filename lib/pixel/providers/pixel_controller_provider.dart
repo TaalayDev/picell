@@ -456,30 +456,23 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   // Drag operations
-  Offset? _dragStartOffset;
   Uint32List? _originalPixels;
 
   void startDrag() {
     if (currentLayerIsProcedural) return;
     _saveState();
-    _dragStartOffset = null;
-    _originalPixels = null;
+    // One copy per drag; every move re-offsets this original.
+    _originalPixels = Uint32List.fromList(currentLayer.pixels);
   }
 
-  void dragPixels(Offset offset) {
-    if (_dragStartOffset == null) {
-      // First time, store the starting offset and original pixels
-      _dragStartOffset = offset;
-      _originalPixels = Uint32List.fromList(currentLayer.pixels);
-      return;
-    }
+  /// Moves the current layer's pixels by [delta], measured in canvas pixels
+  /// from where the drag started.
+  void dragPixels(Offset delta) {
+    final original = _originalPixels;
+    if (original == null) return;
 
-    // Calculate the delta offset from the starting offset
-    final delta = offset - _dragStartOffset!;
-
-    // Use the drawing service to drag pixels
     final newPixels = _drawingService.dragPixels(
-      originalPixels: _originalPixels!,
+      originalPixels: original,
       currentPixels: currentLayer.pixels,
       width: state.width,
       height: state.height,
@@ -490,7 +483,6 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void endDrag() {
-    _dragStartOffset = null;
     _originalPixels = null;
   }
 

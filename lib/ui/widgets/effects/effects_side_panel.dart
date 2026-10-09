@@ -163,7 +163,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
         layer: widget.layer.copyWith(effects: _effects),
         onEffectSelected: (effect) {
           final descriptor = EffectCatalog.forType(effect.type);
-          if (descriptor.workspace == EffectWorkspace.animation) {
+          if (descriptor.workspace == EffectWorkspace.animation && effect.isAnimation) {
             if (widget.onAnimate != null) {
               widget.onAnimate!(
                 effect,
