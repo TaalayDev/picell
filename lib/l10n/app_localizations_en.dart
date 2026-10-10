@@ -127,8 +127,7 @@ class StringsEn extends Strings {
   String get deleteProject => 'Delete Project';
 
   @override
-  String get areYouSureWantToDeleteProject =>
-      'Are you sure you want to delete this project?';
+  String get areYouSureWantToDeleteProject => 'Are you sure you want to delete this project?';
 
   @override
   String get renameProject => 'Rename Project';
@@ -176,8 +175,7 @@ class StringsEn extends Strings {
   String get deleteLayer => 'Delete Layer';
 
   @override
-  String get areYouSureWantToDeleteLayer =>
-      'Are you sure you want to delete this layer?';
+  String get areYouSureWantToDeleteLayer => 'Are you sure you want to delete this layer?';
 
   @override
   String get newProject => 'New Project';
@@ -240,8 +238,7 @@ class StringsEn extends Strings {
   String get feedback_thank_you => 'Thank you for your feedback!';
 
   @override
-  String get feedback_thank_you_message =>
-      'Your opinion is very important to us and will help make the app better.';
+  String get feedback_thank_you_message => 'Your opinion is very important to us and will help make the app better.';
 
   @override
   String get feedback_return => 'Return';
@@ -268,8 +265,7 @@ class StringsEn extends Strings {
   String get feedback_send => 'Send';
 
   @override
-  String get feedback_validation_error =>
-      'Please answer all required questions';
+  String get feedback_validation_error => 'Please answer all required questions';
 
   @override
   String get feedback_very_poor => 'Very poor';
@@ -293,24 +289,19 @@ class StringsEn extends Strings {
   String get feedback_q_missing_features => 'What features are you missing?';
 
   @override
-  String get feedback_q_missing_features_placeholder =>
-      'Describe the features you would like to see...';
+  String get feedback_q_missing_features_placeholder => 'Describe the features you would like to see...';
 
   @override
-  String get feedback_q_bug_reports =>
-      'Have you encountered any errors or crashes?';
+  String get feedback_q_bug_reports => 'Have you encountered any errors or crashes?';
 
   @override
-  String get feedback_q_bug_reports_placeholder =>
-      'Describe the problems you encountered...';
+  String get feedback_q_bug_reports_placeholder => 'Describe the problems you encountered...';
 
   @override
-  String get feedback_q_price_satisfaction =>
-      'Are you satisfied with the current app price?';
+  String get feedback_q_price_satisfaction => 'Are you satisfied with the current app price?';
 
   @override
-  String get feedback_q_price_feedback =>
-      'If not, what price do you consider fair?';
+  String get feedback_q_price_feedback => 'If not, what price do you consider fair?';
 
   @override
   String get feedback_q_price_free => 'Free';
@@ -367,12 +358,10 @@ class StringsEn extends Strings {
   String get feedback_q_use_learning => 'Learning';
 
   @override
-  String get feedback_q_additional_feedback =>
-      'Additional comments and suggestions';
+  String get feedback_q_additional_feedback => 'Additional comments and suggestions';
 
   @override
-  String get feedback_q_additional_feedback_placeholder =>
-      'Share your thoughts about the app...';
+  String get feedback_q_additional_feedback_placeholder => 'Share your thoughts about the app...';
 
   @override
   String get feedback_q_recommend => 'Would you recommend this app to friends?';
@@ -451,8 +440,7 @@ class StringsEn extends Strings {
   String get addToCustomPalette => 'Add to custom palette';
 
   @override
-  String get noCustomColors =>
-      'No custom colors added yet.\nAdd colors using the + button above.';
+  String get noCustomColors => 'No custom colors added yet.\nAdd colors using the + button above.';
 
   @override
   String get effects => 'Effects';
@@ -510,16 +498,13 @@ class StringsEn extends Strings {
   String get effectIconOutputSize => 'Output size';
 
   @override
-  String get effectRequiresPixels =>
-      'This effect needs visible pixels or a generator on the layer.';
+  String get effectRequiresPixels => 'This effect needs visible pixels or a generator on the layer.';
 
   @override
-  String get effectRequiresEmptyLayer =>
-      'Generators can only be added to an empty layer.';
+  String get effectRequiresEmptyLayer => 'Generators can only be added to an empty layer.';
 
   @override
-  String get effectGeneratorAlreadyAdded =>
-      'This layer already has a generator.';
+  String get effectGeneratorAlreadyAdded => 'This layer already has a generator.';
 
   @override
   String get convertToPixels => 'Convert to pixels';
@@ -532,12 +517,10 @@ class StringsEn extends Strings {
       'This bakes the generator and all following effects into editable pixels. You can undo this action.';
 
   @override
-  String get proceduralLayerDrawingBlocked =>
-      'Convert this procedural layer to pixels before drawing.';
+  String get proceduralLayerDrawingBlocked => 'Convert this procedural layer to pixels before drawing.';
 
   @override
-  String get proceduralLayerConverted =>
-      'The procedural layer is now editable pixels.';
+  String get proceduralLayerConverted => 'The procedural layer is now editable pixels.';
 
   @override
   String get editorSettings => 'Editor Settings';
@@ -579,8 +562,7 @@ class StringsEn extends Strings {
   String get transformInterpolation => 'Interpolation';
 
   @override
-  String get transformInterpolationSubtitle =>
-      'Sampling used when resizing and rotating selections';
+  String get transformInterpolationSubtitle => 'Sampling used when resizing and rotating selections';
 
   @override
   String get nearestNeighbor => 'Nearest';
@@ -619,8 +601,7 @@ class StringsEn extends Strings {
   String get stylusMode => 'Stylus Mode';
 
   @override
-  String get stylusModeSubtitleOn =>
-      'Draw with stylus only • Touch for navigation';
+  String get stylusModeSubtitleOn => 'Draw with stylus only • Touch for navigation';
 
   @override
   String get stylusModeSubtitleOff => 'Draw with both touch and stylus';
@@ -642,8 +623,7 @@ class StringsEn extends Strings {
   String get importAsBackground => 'Import as Background';
 
   @override
-  String get importAsBackgroundDescription =>
-      'Import the image as-is and use it as a reference background layer.';
+  String get importAsBackgroundDescription => 'Import the image as-is and use it as a reference background layer.';
 
   @override
   String get conversionSettings => 'Conversion Settings';
@@ -943,8 +923,7 @@ class StringsEn extends Strings {
   String get effectsPanelClearAllEffectsTitle => 'Clear All Effects';
 
   @override
-  String get effectsPanelClearAllEffectsMessage =>
-      'Are you sure you want to remove all effects from this layer?';
+  String get effectsPanelClearAllEffectsMessage => 'Are you sure you want to remove all effects from this layer?';
 
   @override
   String get effectsPanelClearAll => 'Clear All';
@@ -979,8 +958,7 @@ class StringsEn extends Strings {
   String get autoSelectLayer => 'Auto-Select';
 
   @override
-  String get autoSelectLayerTooltip =>
-      'Select all non-empty pixels in the current layer';
+  String get autoSelectLayerTooltip => 'Select all non-empty pixels in the current layer';
 
   @override
   String get selectionAnchor => 'Selection Anchor';
@@ -1017,26 +995,22 @@ class StringsEn extends Strings {
   }
 
   @override
-  String get pleaseSignInToUploadProjects =>
-      'Please sign in to upload projects';
+  String get pleaseSignInToUploadProjects => 'Please sign in to upload projects';
 
   @override
-  String get pleaseSignInToUpdateProjects =>
-      'Please sign in to update projects';
+  String get pleaseSignInToUpdateProjects => 'Please sign in to update projects';
 
   @override
   String get projectNotSyncedToCloud => 'Project is not synced to cloud';
 
   @override
-  String get pleaseSignInToRemoveCloudProjects =>
-      'Please sign in to remove cloud projects';
+  String get pleaseSignInToRemoveCloudProjects => 'Please sign in to remove cloud projects';
 
   @override
   String get removingFromCloud => 'Removing from cloud...';
 
   @override
-  String get projectRemovedFromCloudSuccessfully =>
-      'Project removed from cloud successfully';
+  String get projectRemovedFromCloudSuccessfully => 'Project removed from cloud successfully';
 
   @override
   String failedToRemoveFromCloud(String error) {
@@ -1208,8 +1182,7 @@ class StringsEn extends Strings {
   String get thisWillPermanentlyDelete => 'This will permanently delete:';
 
   @override
-  String get deleteProjectConsequences =>
-      '• Project data and artwork\n• All comments and likes\n• Download statistics';
+  String get deleteProjectConsequences => '• Project data and artwork\n• All comments and likes\n• Download statistics';
 
   @override
   String typeProjectTitleToConfirmDeletion(String title) {
@@ -1244,26 +1217,22 @@ class StringsEn extends Strings {
       'Are you sure you want to report this project? Please only report content that violates our community guidelines.';
 
   @override
-  String get reportThanks =>
-      'Thank you for your report. We will review it shortly.';
+  String get reportThanks => 'Thank you for your report. We will review it shortly.';
 
   @override
   String get report => 'Report';
 
   @override
-  String get premiumRequiredToDownloadProjects =>
-      'Premium subscription required to download projects';
+  String get premiumRequiredToDownloadProjects => 'Premium subscription required to download projects';
 
   @override
   String get upgrade => 'Upgrade';
 
   @override
-  String get downloadProjectRewardSubtitle =>
-      'To download this project, you can either:';
+  String get downloadProjectRewardSubtitle => 'To download this project, you can either:';
 
   @override
-  String get thankYouWatchingDownloadStarting =>
-      'Thank you for watching! Your download is starting...';
+  String get thankYouWatchingDownloadStarting => 'Thank you for watching! Your download is starting...';
 
   @override
   String get pleaseSignInToAddComments => 'Please sign in to add comments';
@@ -1333,8 +1302,7 @@ class StringsEn extends Strings {
   String get detailedAnalytics => 'Detailed Analytics';
 
   @override
-  String get advancedAnalyticsSoon =>
-      'Advanced analytics features will be available soon.';
+  String get advancedAnalyticsSoon => 'Advanced analytics features will be available soon.';
 
   @override
   String get details => 'Details';
@@ -1349,8 +1317,7 @@ class StringsEn extends Strings {
   String get description => 'Description';
 
   @override
-  String get projectDescriptionHint =>
-      'Tell the community about this project (optional)';
+  String get projectDescriptionHint => 'Tell the community about this project (optional)';
 
   @override
   String get visibility => 'Visibility';
@@ -1544,8 +1511,7 @@ class StringsEn extends Strings {
   String get privateCloudStorage => 'Private cloud storage';
 
   @override
-  String get otherUsersCanDiscoverTemplate =>
-      'Other users can discover and use this template';
+  String get otherUsersCanDiscoverTemplate => 'Other users can discover and use this template';
 
   @override
   String get onlyYouCanAccessTemplate => 'Only you can access this template';
@@ -1560,19 +1526,16 @@ class StringsEn extends Strings {
   String get signInToUploadTemplates => 'Sign in to upload templates';
 
   @override
-  String get shareTemplatesWithCommunity =>
-      'Share your templates with the community';
+  String get shareTemplatesWithCommunity => 'Share your templates with the community';
 
   @override
-  String get failedToConvertLayerToTemplate =>
-      'Failed to convert layer to template';
+  String get failedToConvertLayerToTemplate => 'Failed to convert layer to template';
 
   @override
   String get failedToSaveTemplateLocally => 'Failed to save template locally';
 
   @override
-  String get failedToUploadTemplateToServer =>
-      'Failed to upload template to server';
+  String get failedToUploadTemplateToServer => 'Failed to upload template to server';
 
   @override
   String errorCreatingTemplate(String error) {
@@ -1589,12 +1552,10 @@ class StringsEn extends Strings {
   String get templateSavedAndUploaded => 'Template saved locally and uploaded!';
 
   @override
-  String get templateSavedUploadFailed =>
-      'Template saved locally (upload failed)';
+  String get templateSavedUploadFailed => 'Template saved locally (upload failed)';
 
   @override
-  String get templateUploadedLocalSaveFailed =>
-      'Template uploaded (local save failed)';
+  String get templateUploadedLocalSaveFailed => 'Template uploaded (local save failed)';
 
   @override
   String get templateCreationFailed => 'Template creation failed';
@@ -1612,8 +1573,7 @@ class StringsEn extends Strings {
   String get community => 'Community';
 
   @override
-  String get failedTemplateDetailsCached =>
-      'Failed to load template details. Using cached data.';
+  String get failedTemplateDetailsCached => 'Failed to load template details. Using cached data.';
 
   @override
   String errorLoadingTemplate(String error) {
@@ -1632,12 +1592,10 @@ class StringsEn extends Strings {
   }
 
   @override
-  String get deleteLocalTemplateWarning =>
-      'This template will be permanently removed from your local storage.';
+  String get deleteLocalTemplateWarning => 'This template will be permanently removed from your local storage.';
 
   @override
-  String get deleteCloudTemplateWarning =>
-      'This template will be removed from the cloud and can\'t be recovered.';
+  String get deleteCloudTemplateWarning => 'This template will be removed from the cloud and can\'t be recovered.';
 
   @override
   String templateDeletedSuccessfully(String name) {
@@ -1659,8 +1617,7 @@ class StringsEn extends Strings {
   String get premiumTemplate => 'Premium Template';
 
   @override
-  String get templateAvailableInPro =>
-      'This template is available in the Pro version.';
+  String get templateAvailableInPro => 'This template is available in the Pro version.';
 
   @override
   String get premiumTemplatesFeature => '• Premium templates';
@@ -1678,20 +1635,17 @@ class StringsEn extends Strings {
   String get prioritySupportFeature => '• Priority support';
 
   @override
-  String get noLocalTemplates =>
-      'No local templates found.\nCreate your first template from a layer!';
+  String get noLocalTemplates => 'No local templates found.\nCreate your first template from a layer!';
 
   @override
-  String get noCommunityTemplates =>
-      'No community templates found.\nTry adjusting your search or filters.';
+  String get noCommunityTemplates => 'No community templates found.\nTry adjusting your search or filters.';
 
   @override
   String get noUploadedTemplates =>
       'You haven\'t uploaded any templates yet.\nShare your creations with the community!';
 
   @override
-  String get noTemplatesFoundAdjust =>
-      'No templates found.\nTry adjusting your search or filters.';
+  String get noTemplatesFoundAdjust => 'No templates found.\nTry adjusting your search or filters.';
 
   @override
   String showingTemplates(int displayed, String total) {
@@ -1718,8 +1672,7 @@ class StringsEn extends Strings {
   String get signInToUploadTemplatesTitle => 'Sign in to Upload Templates';
 
   @override
-  String get signInToUploadTemplatesSubtitle =>
-      'Create an account to share your templates with the community.';
+  String get signInToUploadTemplatesSubtitle => 'Create an account to share your templates with the community.';
 
   @override
   String get myTemplates => 'My Templates';
@@ -1858,12 +1811,10 @@ class StringsEn extends Strings {
   String get deleteAccountCannotBeUndone => 'This action cannot be undone';
 
   @override
-  String get deleteAccountPermanentDataWarning =>
-      'Deleting your account will permanently remove all your data.';
+  String get deleteAccountPermanentDataWarning => 'Deleting your account will permanently remove all your data.';
 
   @override
-  String get deleteAccountItemsIntro =>
-      'The following will be permanently deleted:';
+  String get deleteAccountItemsIntro => 'The following will be permanently deleted:';
 
   @override
   String get deleteAccountPreferencesTitle => 'App Preferences';
@@ -1884,12 +1835,10 @@ class StringsEn extends Strings {
   String get deleteAccountTypeHint => 'Type DELETE here...';
 
   @override
-  String get deleteAccountIrreversibleImmediate =>
-      'This action is irreversible and will take effect immediately.';
+  String get deleteAccountIrreversibleImmediate => 'This action is irreversible and will take effect immediately.';
 
   @override
-  String get deleteAccountQuickConfirm =>
-      'Are you sure you want to permanently delete your account?';
+  String get deleteAccountQuickConfirm => 'Are you sure you want to permanently delete your account?';
 
   @override
   String get deleteAccountQuickWarningList =>
@@ -1919,12 +1868,10 @@ class StringsEn extends Strings {
   String get tryProOneHour => 'Try Pro for 1 Hour';
 
   @override
-  String get rewardAdReadyBullets =>
-      '• Watch a short video ad\n• Get 1 hour of Pro access';
+  String get rewardAdReadyBullets => '• Watch a short video ad\n• Get 1 hour of Pro access';
 
   @override
-  String get rewardAdLoadingBullets =>
-      '• Video ad is loading...\n• Please try again in a moment';
+  String get rewardAdLoadingBullets => '• Video ad is loading...\n• Please try again in a moment';
 
   @override
   String get watchAd => 'Watch ad';
@@ -1939,8 +1886,7 @@ class StringsEn extends Strings {
   String get proAccessGrantedOneHour => '🎉 Pro access granted for 1 hour!';
 
   @override
-  String get videoAdNotCompleted =>
-      'Video ad was not completed. Please try again.';
+  String get videoAdNotCompleted => 'Video ad was not completed. Please try again.';
 
   @override
   String failedToLoadVideoAd(String error) {
@@ -2051,8 +1997,7 @@ class StringsEn extends Strings {
   String get magicWand => 'Magic Wand';
 
   @override
-  String get effectsPanelAllAppliedMessage =>
-      'All effects applied to layer and removed from effects list';
+  String get effectsPanelAllAppliedMessage => 'All effects applied to layer and removed from effects list';
 
   @override
   String effectsForLayer(String layerName) {
@@ -2117,8 +2062,7 @@ class StringsEn extends Strings {
   String get effectsAppliedInOrder => 'Effects are applied in order';
 
   @override
-  String get effectsReorderHint =>
-      'Effects are applied from top to bottom. Drag to reorder.';
+  String get effectsReorderHint => 'Effects are applied from top to bottom. Drag to reorder.';
 
   @override
   String get addYourFirstEffect => 'Add your first effect';
@@ -2239,8 +2183,7 @@ class StringsEn extends Strings {
   String get generateNewFrames => 'Generate New Frames';
 
   @override
-  String get createNewFramesForAnimation =>
-      'Create new frames for this animation';
+  String get createNewFramesForAnimation => 'Create new frames for this animation';
 
   @override
   String get insertIntoTimeline => 'Insert Into Timeline';
@@ -2263,8 +2206,7 @@ class StringsEn extends Strings {
   String get editParameters => 'Edit Parameters';
 
   @override
-  String get effectParametersBaseNote =>
-      'Current effect settings will be used as the base for animation';
+  String get effectParametersBaseNote => 'Current effect settings will be used as the base for animation';
 
   @override
   String get editBaseParameters => 'Edit Base Parameters';
@@ -2280,16 +2222,13 @@ class StringsEn extends Strings {
       'This tool generates multiple animation frames by applying the selected effect with different time parameters.\n';
 
   @override
-  String get animationHelpDuration =>
-      '• Duration: Total length of the animation in seconds';
+  String get animationHelpDuration => '• Duration: Total length of the animation in seconds';
 
   @override
-  String get animationHelpFps =>
-      '• FPS: Frames per second (higher = smoother but more frames)';
+  String get animationHelpFps => '• FPS: Frames per second (higher = smoother but more frames)';
 
   @override
-  String get animationHelpPingPong =>
-      '• Ping-Pong: Makes animation play forward then backward';
+  String get animationHelpPingPong => '• Ping-Pong: Makes animation play forward then backward';
 
   @override
   String get animationHelpInterpolation =>
@@ -2302,12 +2241,10 @@ class StringsEn extends Strings {
   String get animationTipLowerFps => '• Start with lower FPS for testing';
 
   @override
-  String get animationTipUsePreview =>
-      '• Use Preview to see the animation before generating';
+  String get animationTipUsePreview => '• Use Preview to see the animation before generating';
 
   @override
-  String get animationTipLongerDurations =>
-      '• Longer durations work better for slower effects';
+  String get animationTipLongerDurations => '• Longer durations work better for slower effects';
 
   @override
   String effectFrameName(int index) {
@@ -2386,8 +2323,7 @@ class StringsEn extends Strings {
   String get removeBackgroundImage => 'Remove background image';
 
   @override
-  String get removeBackgroundImageMessage =>
-      'Are you sure you want to remove the background image?';
+  String get removeBackgroundImageMessage => 'Are you sure you want to remove the background image?';
 
   @override
   String get themeSelector => 'Theme Selector';
@@ -2597,8 +2533,7 @@ class StringsEn extends Strings {
   String get onionSkinTooltip => 'Onion Skin (long-press to set opacity)';
 
   @override
-  String get sprayPaintToolDescription =>
-      'Creates a spray effect with particles';
+  String get sprayPaintToolDescription => 'Creates a spray effect with particles';
 
   @override
   String get lineToolDescription => 'Draw straight lines between two points';
@@ -2681,8 +2616,7 @@ class StringsEn extends Strings {
   String get tryProForFreeExclaim => 'Try Pro for Free!';
 
   @override
-  String get watchAdUnlockProOneHour =>
-      'Watch ad to unlock Pro features for 1 hour. You choose when to start each ad.';
+  String get watchAdUnlockProOneHour => 'Watch ad to unlock Pro features for 1 hour. You choose when to start each ad.';
 
   @override
   String temporaryProAdsCompleted(int completed, int total) {
@@ -2707,8 +2641,7 @@ class StringsEn extends Strings {
   String get unlockPremiumPixelCreation => 'Unlock Premium Pixel Creation';
 
   @override
-  String get oneTimePurchaseTryAdsFirst =>
-      'One-time purchase • No recurring fees • Try with ads first';
+  String get oneTimePurchaseTryAdsFirst => 'One-time purchase • No recurring fees • Try with ads first';
 
   @override
   String get featureProjects => 'Projects';
@@ -2748,8 +2681,7 @@ class StringsEn extends Strings {
   String get basicTools => 'Basic tools';
 
   @override
-  String get advancedToolsEffectsTemplates =>
-      'Advanced tools & effects & templates';
+  String get advancedToolsEffectsTemplates => 'Advanced tools & effects & templates';
 
   @override
   String get pngJpegFormats => 'PNG, JPEG';
@@ -2782,8 +2714,7 @@ class StringsEn extends Strings {
   String get chooseYourPlan => 'Choose Your Plan';
 
   @override
-  String get agreeToTermsAndPrivacy =>
-      'By continuing, you agree to our Terms of Service and Privacy Policy.';
+  String get agreeToTermsAndPrivacy => 'By continuing, you agree to our Terms of Service and Privacy Policy.';
 
   @override
   String get termsOfService => 'Terms of Service';
@@ -2792,8 +2723,7 @@ class StringsEn extends Strings {
   String get privacyPolicy => 'Privacy Policy';
 
   @override
-  String get oneTimePurchaseLifetimeAccess =>
-      'One-time purchase • No recurring charges • Lifetime access';
+  String get oneTimePurchaseLifetimeAccess => 'One-time purchase • No recurring charges • Lifetime access';
 
   @override
   String get continueWithFree => 'Continue with Free';
@@ -2836,28 +2766,22 @@ class StringsEn extends Strings {
       'You\'ve reached your free plan project limit • Watch an ad for temporary access or buy Pro';
 
   @override
-  String get upgradePromptMaxCanvasSizeSubtitle =>
-      'Create pixel art at higher resolutions • Try with ads first';
+  String get upgradePromptMaxCanvasSizeSubtitle => 'Create pixel art at higher resolutions • Try with ads first';
 
   @override
-  String get upgradePromptExportFormatsSubtitle =>
-      'Export your art in more formats • Watch ad for temporary access';
+  String get upgradePromptExportFormatsSubtitle => 'Export your art in more formats • Watch ad for temporary access';
 
   @override
-  String get upgradePromptAdvancedToolsSubtitle =>
-      'Access premium tools and effects • Try with video ads';
+  String get upgradePromptAdvancedToolsSubtitle => 'Access premium tools and effects • Try with video ads';
 
   @override
-  String get upgradePromptCloudBackupSubtitle =>
-      'Never lose your pixel art creations';
+  String get upgradePromptCloudBackupSubtitle => 'Never lose your pixel art creations';
 
   @override
-  String get upgradePromptNoWatermarkSubtitle =>
-      'Export clean art without watermarks';
+  String get upgradePromptNoWatermarkSubtitle => 'Export clean art without watermarks';
 
   @override
-  String get upgradePromptPrioritySupportSubtitle =>
-      'Get faster support for any issues';
+  String get upgradePromptPrioritySupportSubtitle => 'Get faster support for any issues';
 
   @override
   String get plansTitle => 'Plans';
@@ -2875,12 +2799,10 @@ class StringsEn extends Strings {
   String get proPlanDescription => 'All tools and features, one-time purchase';
 
   @override
-  String get ultimatePlanDescription =>
-      'Everything forever, including future effect packs';
+  String get ultimatePlanDescription => 'Everything forever, including future effect packs';
 
   @override
-  String get ultimateUpgradeDescription =>
-      'Upgrade your Pro and unlock everything forever';
+  String get ultimateUpgradeDescription => 'Upgrade your Pro and unlock everything forever';
 
   @override
   String get offerStarterEffects => 'Starter effects from every category';
@@ -2917,12 +2839,10 @@ class StringsEn extends Strings {
   }
 
   @override
-  String get ultimateOwnedSubtitle =>
-      'Everything is unlocked. Thank you for your support!';
+  String get ultimateOwnedSubtitle => 'Everything is unlocked. Thank you for your support!';
 
   @override
-  String get proOwnedSubtitle =>
-      'Upgrade to Ultimate to get every effect pack and cloud sync.';
+  String get proOwnedSubtitle => 'Upgrade to Ultimate to get every effect pack and cloud sync.';
 
   @override
   String get planComparisonTitle => 'Compare Plans';
@@ -2943,8 +2863,7 @@ class StringsEn extends Strings {
   String get cloudAddonAvailable => 'Add-on';
 
   @override
-  String get effectIncludedInPro =>
-      'This effect is included in Pro and Ultimate.';
+  String get effectIncludedInPro => 'This effect is included in Pro and Ultimate.';
 
   @override
   String get effectIncludedInUltimate =>
@@ -2954,8 +2873,7 @@ class StringsEn extends Strings {
   String get viewPlans => 'View plans';
 
   @override
-  String get promoBannerSubtitle =>
-      'Unlock all tools, unlimited projects and effect packs';
+  String get promoBannerSubtitle => 'Unlock all tools, unlimited projects and effect packs';
 
   @override
   String get effectStoreTitle => 'Effect Store';
@@ -2978,8 +2896,7 @@ class StringsEn extends Strings {
   String get effectStoreUltimateTitle => 'Get every pack with Ultimate';
 
   @override
-  String get effectStoreUltimateSubtitle =>
-      'Includes future packs, cloud sync and all Pro features';
+  String get effectStoreUltimateSubtitle => 'Includes future packs, cloud sync and all Pro features';
 
   @override
   String get effectStoreAllUnlocked => 'All effect packs are unlocked';
@@ -3010,64 +2927,55 @@ class StringsEn extends Strings {
   String get packNameBasicFilters => 'Basic Filters';
 
   @override
-  String get packDescBasicFilters =>
-      'Blur, sharpen, dithering, palettes and retro screens';
+  String get packDescBasicFilters => 'Blur, sharpen, dithering, palettes and retro screens';
 
   @override
   String get packNameArtistic => 'Artistic Styles';
 
   @override
-  String get packDescArtistic =>
-      'Watercolor, oil, woodblock, comics and print techniques';
+  String get packDescArtistic => 'Watercolor, oil, woodblock, comics and print techniques';
 
   @override
   String get packNameMaterials => 'Materials & Textures';
 
   @override
-  String get packDescMaterials =>
-      'Wood, metal, stone, ice, rust and more surfaces';
+  String get packDescMaterials => 'Wood, metal, stone, ice, rust and more surfaces';
 
   @override
   String get packNameWorldGenerators => 'World Generators';
 
   @override
-  String get packDescWorldGenerators =>
-      'Mountains, forests, oceans, cities and dungeons in one tap';
+  String get packDescWorldGenerators => 'Mountains, forests, oceans, cities and dungeons in one tap';
 
   @override
   String get packNameLightingDistortion => 'Lighting & Distortion';
 
   @override
-  String get packDescLightingDistortion =>
-      'God rays, auroras, halos, glitches and motion blur';
+  String get packDescLightingDistortion => 'God rays, auroras, halos, glitches and motion blur';
 
   @override
   String get packNameMotion => 'Motion';
 
   @override
-  String get packDescMotion =>
-      'Pulse, wave, float, shake, dissolve and more animations';
+  String get packDescMotion => 'Pulse, wave, float, shake, dissolve and more animations';
 
   @override
   String get packNameVfxNature => 'VFX: Nature & Weather';
 
   @override
-  String get packDescVfxNature =>
-      'Fire, rain, snow, waterfalls, fireflies and slime';
+  String get packDescVfxNature => 'Fire, rain, snow, waterfalls, fireflies and slime';
 
   @override
   String get packNameVfxMagic => 'VFX: Magic & Dark Fantasy';
 
   @override
-  String get packDescVfxMagic =>
-      'Auras, portals, runes, spirits and eldritch horrors';
+  String get packDescVfxMagic => 'Auras, portals, runes, spirits and eldritch horrors';
 
   @override
   String get packNameVfxAction => 'VFX: Action & Sci-Fi';
 
   @override
-  String get packDescVfxAction =>
-      'Explosions, lightning, shields, thrusters and hit effects';
+  String get packDescVfxAction => 'Explosions, lightning, shields, thrusters and hit effects';
 
   @override
   String get storeTabPacks => 'Packs';
@@ -3372,8 +3280,7 @@ class StringsEn extends Strings {
   String get challengeHowToJoin => 'How to join';
 
   @override
-  String get challengeJoinSteps =>
-      'Draw something on the theme, then publish it to the community with this tag.';
+  String get challengeJoinSteps => 'Draw something on the theme, then publish it to the community with this tag.';
 
   @override
   String get challengeCopyTag => 'Copy tag';
@@ -3402,12 +3309,10 @@ class StringsEn extends Strings {
   String get challengeTagsLabel => 'Enter a challenge';
 
   @override
-  String get challengeEntryPublicOnly =>
-      'Only public projects can enter challenges.';
+  String get challengeEntryPublicOnly => 'Only public projects can enter challenges.';
 
   @override
-  String get challengeEntryOldProjectHint =>
-      'Projects first published before a challenge started can\'t enter it.';
+  String get challengeEntryOldProjectHint => 'Projects first published before a challenge started can\'t enter it.';
 
   @override
   String challengeStartsIn(String time) {
@@ -3443,8 +3348,7 @@ class StringsEn extends Strings {
   }
 
   @override
-  String get challengeRuleStartsAfter =>
-      'Only projects first published after the challenge starts';
+  String get challengeRuleStartsAfter => 'Only projects first published after the challenge starts';
 
   @override
   String challengeRuleRequiredPack(String pack) {
@@ -3521,8 +3425,7 @@ class StringsEn extends Strings {
   }
 
   @override
-  String get challengeWarningNotEligible =>
-      'Your account can\'t enter challenges right now.';
+  String get challengeWarningNotEligible => 'Your account can\'t enter challenges right now.';
 
   @override
   String serverRewardGems(int gems) {
@@ -3558,16 +3461,13 @@ class StringsEn extends Strings {
   String get challengeCompetition => 'Competition';
 
   @override
-  String get challengeRuleCompetition =>
-      'Competition: winners are picked after it ends';
+  String get challengeRuleCompetition => 'Competition: winners are picked after it ends';
 
   @override
-  String get challengeRuleNoWinners =>
-      'No winners: every accepted entry gets the reward';
+  String get challengeRuleNoWinners => 'No winners: every accepted entry gets the reward';
 
   @override
-  String get challengeRuleJustForFun =>
-      'No winners and no prizes, just for fun';
+  String get challengeRuleJustForFun => 'No winners and no prizes, just for fun';
 
   @override
   String get challengeAcceptedEntryReward => 'For an accepted entry';
@@ -3585,19 +3485,16 @@ class StringsEn extends Strings {
   String get challengeRewardPrize => 'Prize';
 
   @override
-  String get challengeRewardAfterReview =>
-      'You\'ll get it once your entry is accepted';
+  String get challengeRewardAfterReview => 'You\'ll get it once your entry is accepted';
 
   @override
-  String get challengeRewardAfterResults =>
-      'Paid when the winners are announced';
+  String get challengeRewardAfterResults => 'Paid when the winners are announced';
 
   @override
   String get challengeRewardSoon => 'On its way, check back in a minute';
 
   @override
-  String get challengeRewardClaimFailed =>
-      'Couldn\'t claim the reward. Try again.';
+  String get challengeRewardClaimFailed => 'Couldn\'t claim the reward. Try again.';
 
   @override
   String get feedback_chat_title => 'Your feedback';
@@ -3619,15 +3516,13 @@ class StringsEn extends Strings {
   String get feedback_chat_send => 'Send';
 
   @override
-  String get feedback_chat_closed =>
-      'This conversation was closed. Writing a message opens it again.';
+  String get feedback_chat_closed => 'This conversation was closed. Writing a message opens it again.';
 
   @override
   String get feedback_chat_load_failed => 'Couldn\'t load messages';
 
   @override
-  String get feedback_chat_send_failed =>
-      'Couldn\'t send the message. Try again.';
+  String get feedback_chat_send_failed => 'Couldn\'t send the message. Try again.';
 
   @override
   String get feedback_chat_team => 'Picell team';
@@ -3642,8 +3537,7 @@ class StringsEn extends Strings {
   String get deleteAlsoFromCloud => 'Also delete from the community';
 
   @override
-  String get deleteAlsoFromCloudHint =>
-      'Removes the published version with its likes and comments.';
+  String get deleteAlsoFromCloudHint => 'Removes the published version with its likes and comments.';
 
   @override
   String questFillUsed(int count) {
@@ -3736,8 +3630,7 @@ class StringsEn extends Strings {
   }
 
   @override
-  String get loginCycleGrace =>
-      'Missed a day? One per week won\'t break your streak.';
+  String get loginCycleGrace => 'Missed a day? One per week won\'t break your streak.';
 
   @override
   String questDailyQuestClaimed(int count) {
@@ -3796,8 +3689,7 @@ class StringsEn extends Strings {
   String get savingsGoalReady => 'You have enough — unlock it!';
 
   @override
-  String get savingsGoalNoPace =>
-      'Do a few quests to see how long it will take';
+  String get savingsGoalNoPace => 'Do a few quests to see how long it will take';
 
   @override
   String get savingsGoalPick => 'Pick a pack to save for';
@@ -3818,4 +3710,81 @@ class StringsEn extends Strings {
 
   @override
   String get packFirstDiscount => 'First pack −40%';
+
+  @override
+  String get featured => 'Featured';
+
+  @override
+  String get forks => 'Forks';
+
+  @override
+  String forksCount(int count) {
+    return 'Forks ($count)';
+  }
+
+  @override
+  String moreByUser(String username) {
+    return 'More by $username';
+  }
+
+  @override
+  String get unknownArtist => 'Unknown Artist';
+
+  @override
+  String shareProjectMessage(String title, String author) {
+    return 'Check out this amazing pixel art project: $title\nCreated by $author';
+  }
+
+  @override
+  String relativeMonthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months ago',
+      one: '1 month ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get remixProject => 'Remix';
+
+  @override
+  String get previousProject => 'Previous project';
+
+  @override
+  String get nextProject => 'Next project';
 }

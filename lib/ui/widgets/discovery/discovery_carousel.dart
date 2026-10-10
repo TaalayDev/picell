@@ -353,9 +353,7 @@ class _SlideCard extends ConsumerWidget {
   }
 
   void _openProject(BuildContext context, ApiProject project) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ProjectDetailScreen(project: project)),
-    );
+    ProjectDetailScreen.show(context, project);
   }
 
   Future<void> _openPromoApp(PromoAppItem app) async {

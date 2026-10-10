@@ -41,12 +41,12 @@ class ProjectMenuButton extends StatelessWidget {
         minimumSize: Size(buttonSize, buttonSize),
         iconSize: iconSize,
       ),
-      itemBuilder: (context) => _buildMenuItems(context),
-      onSelected: (value) => _handleMenuAction(context, value),
+      itemBuilder: (context) => buildMenuItems(context),
+      onSelected: (value) => handleMenuAction(context, value),
     );
   }
 
-  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context) {
+  List<PopupMenuEntry<String>> buildMenuItems(BuildContext context) {
     final items = <PopupMenuEntry<String>>[];
 
     // Rename option (always available)
@@ -130,7 +130,7 @@ class ProjectMenuButton extends StatelessWidget {
     return items;
   }
 
-  void _handleMenuAction(BuildContext context, String value) {
+  void handleMenuAction(BuildContext context, String value) {
     switch (value) {
       case 'edit':
         onTapProject?.call(project);
@@ -187,6 +187,65 @@ class ProjectMenuButton extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Opens the same actions as [ProjectMenuButton] at the pointer on
+/// right-click (secondary tap) — the desktop/web counterpart of the ⋮ button.
+class ProjectContextMenuRegion extends StatelessWidget {
+  final Project project;
+  final Function(Project)? onTapProject;
+  final Function(Project)? onDeleteProject;
+  final Function(Project)? onEditProject;
+  final Function(Project)? onUploadProject;
+  final Function(Project)? onUpdateProject;
+  final Function(Project)? onDeleteCloudProject;
+  final Widget child;
+
+  const ProjectContextMenuRegion({
+    super.key,
+    required this.project,
+    required this.child,
+    this.onTapProject,
+    this.onDeleteProject,
+    this.onEditProject,
+    this.onUploadProject,
+    this.onUpdateProject,
+    this.onDeleteCloudProject,
+  });
+
+  Future<void> _open(BuildContext context, Offset position) async {
+    final menu = ProjectMenuButton(
+      project: project,
+      onTapProject: onTapProject,
+      onDeleteProject: onDeleteProject,
+      onEditProject: onEditProject,
+      onUploadProject: onUploadProject,
+      onUpdateProject: onUpdateProject,
+      onDeleteCloudProject: onDeleteCloudProject,
+    );
+    final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+
+    final value = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromLTWH(position.dx, position.dy, 0, 0),
+        Offset.zero & overlay.size,
+      ),
+      items: menu.buildMenuItems(context),
+    );
+    if (value != null && context.mounted) {
+      menu.handleMenuAction(context, value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onSecondaryTapUp: (details) => _open(context, details.globalPosition),
+      child: child,
     );
   }
 }

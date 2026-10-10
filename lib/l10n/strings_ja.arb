@@ -1734,5 +1734,70 @@
     "savingsGoalSet": "このパックのために貯金",
     "savingsGoalActive": "貯金の目標",
     "packPriceCredit": "所持エフェクト分 −{coins}",
-    "packFirstDiscount": "初めてのパック −40%"
+    "packFirstDiscount": "初めてのパック −40%",
+    "featured": "注目",
+    "forks": "フォーク",
+    "forksCount": "フォーク ({count})",
+        "@forksCount": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "moreByUser": "{username}の他の作品",
+        "@moreByUser": {
+            "placeholders": {
+                "username": {
+                    "type": "String"
+                }
+            }
+        },
+    "unknownArtist": "不明なアーティスト",
+    "shareProjectMessage": "素晴らしいピクセルアート作品をチェック: {title}\n作者: {author}",
+        "@shareProjectMessage": {
+            "placeholders": {
+                "title": {
+                    "type": "String"
+                },
+                "author": {
+                    "type": "String"
+                }
+            }
+        },
+    "relativeMonthsAgo": "{count, plural, other{{count}か月前}}",
+        "@relativeMonthsAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "relativeDaysAgo": "{count, plural, other{{count}日前}}",
+        "@relativeDaysAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "relativeHoursAgo": "{count, plural, other{{count}時間前}}",
+        "@relativeHoursAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "relativeMinutesAgo": "{count, plural, other{{count}分前}}",
+        "@relativeMinutesAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "remixProject": "リミックス",
+    "previousProject": "前の作品",
+    "nextProject": "次の作品"
 }

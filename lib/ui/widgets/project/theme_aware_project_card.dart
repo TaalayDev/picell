@@ -4,6 +4,7 @@ import 'package:picell/data.dart';
 import '../../../app/theme/flagship/flagship_extensions.dart';
 import '../../../app/theme/flagship/project_card_data.dart';
 import 'project_card.dart';
+import 'project_menu_button.dart';
 
 /// Dispatcher: returns a flagship-specific card when the current theme
 /// provides one, otherwise falls back to the default [ProjectCard].
@@ -31,8 +32,19 @@ class ThemeAwareProjectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final flagship = context.flagship;
 
+    Widget withContextMenu(Widget card) => ProjectContextMenuRegion(
+          project: project,
+          onTapProject: onTapProject,
+          onDeleteProject: onDeleteProject,
+          onEditProject: onEditProject,
+          onUploadProject: onUploadProject,
+          onUpdateProject: onUpdateProject,
+          onDeleteCloudProject: onDeleteCloudProject,
+          child: card,
+        );
+
     if (flagship?.isFlagship == true && flagship?.cardBuilder != null) {
-      return flagship!.cardBuilder!(
+      return withContextMenu(flagship!.cardBuilder!(
         context,
         ProjectCardData(
           project: project,
@@ -43,10 +55,10 @@ class ThemeAwareProjectCard extends StatelessWidget {
           onUpdateProject: onUpdateProject,
           onDeleteCloudProject: onDeleteCloudProject,
         ),
-      );
+      ));
     }
 
-    return ProjectCard(
+    return withContextMenu(ProjectCard(
       project: project,
       onTapProject: onTapProject,
       onDeleteProject: onDeleteProject,
@@ -54,6 +66,6 @@ class ThemeAwareProjectCard extends StatelessWidget {
       onUploadProject: onUploadProject,
       onUpdateProject: onUpdateProject,
       onDeleteCloudProject: onDeleteCloudProject,
-    );
+    ));
   }
 }

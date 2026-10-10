@@ -18,3 +18,21 @@ String formatLastEdited(BuildContext context, DateTime lastEdited) {
     return Strings.of(context).justNow;
   }
 }
+
+/// Localized, spelled-out relative time ("3 days ago", "1 month ago").
+/// Prefer [formatLastEdited] for cramped card layouts.
+String formatRelativeDate(BuildContext context, DateTime dateTime) {
+  final s = Strings.of(context);
+  final difference = DateTime.now().difference(dateTime);
+
+  if (difference.inDays > 30) {
+    return s.relativeMonthsAgo(difference.inDays ~/ 30);
+  } else if (difference.inDays > 0) {
+    return s.relativeDaysAgo(difference.inDays);
+  } else if (difference.inHours > 0) {
+    return s.relativeHoursAgo(difference.inHours);
+  } else if (difference.inMinutes > 0) {
+    return s.relativeMinutesAgo(difference.inMinutes);
+  }
+  return s.justNow;
+}

@@ -18,8 +18,7 @@ class StringsZh extends Strings {
   String get welcome => '欢迎使用像素工房！';
 
   @override
-  String get aboutAppDescription =>
-      '像素工房是您创作像素艺术的理想工具。无论您是经验丰富的艺术家还是初学者，我们的应用都能为您提供所需的工具，帮助您将像素创意变为现实。';
+  String get aboutAppDescription => '像素工房是您创作像素艺术的理想工具。无论您是经验丰富的艺术家还是初学者，我们的应用都能为您提供所需的工具，帮助您将像素创意变为现实。';
 
   @override
   String version(String version) {
@@ -27,8 +26,7 @@ class StringsZh extends Strings {
   }
 
   @override
-  String get features =>
-      '直观的像素编辑工具\n自定义调色板\n图层支持复杂作品\n动画时间轴创建GIF\n多种格式导出\n社区分享功能';
+  String get features => '直观的像素编辑工具\n自定义调色板\n图层支持复杂作品\n动画时间轴创建GIF\n多种格式导出\n社区分享功能';
 
   @override
   String get featuresTitle => '主要功能：';
@@ -471,8 +469,7 @@ class StringsZh extends Strings {
   String get effectIconGeneratorTitle => '效果图标生成器';
 
   @override
-  String get effectIconGeneratorSubtitle =>
-      '普通效果使用笑脸输入，生成器使用空图层。静态资源导出为 JPG，动画资源导出为 GIF。';
+  String get effectIconGeneratorSubtitle => '普通效果使用笑脸输入，生成器使用空图层。静态资源导出为 JPG，动画资源导出为 GIF。';
 
   @override
   String get effectIconExportVisible => '导出可见项';
@@ -1817,8 +1814,7 @@ class StringsZh extends Strings {
   String get deleteAccountQuickConfirm => '确定要永久删除你的账号吗？';
 
   @override
-  String get deleteAccountQuickWarningList =>
-      '• 你的所有项目都会丢失\n• 云备份将被删除\n• 此操作无法撤销';
+  String get deleteAccountQuickWarningList => '• 你的所有项目都会丢失\n• 云备份将被删除\n• 此操作无法撤销';
 
   @override
   String failedToDeleteAccount(String error) {
@@ -2588,8 +2584,7 @@ class StringsZh extends Strings {
   String get tryProForFreeExclaim => '免费试用 Pro！';
 
   @override
-  String get watchAdUnlockProOneHour =>
-      '观看广告即可解锁 Pro 功能 1 小时。您可以自行选择何时开始观看每个广告。';
+  String get watchAdUnlockProOneHour => '观看广告即可解锁 Pro 功能 1 小时。您可以自行选择何时开始观看每个广告。';
 
   @override
   String temporaryProAdsCompleted(int completed, int total) {
@@ -2734,8 +2729,7 @@ class StringsZh extends Strings {
   String get unlockProTheme => '解锁 Pro 主题';
 
   @override
-  String get upgradePromptMaxProjectsSubtitle =>
-      '您已达到免费版的项目数量上限 • 观看广告获取临时权限，或购买 Pro';
+  String get upgradePromptMaxProjectsSubtitle => '您已达到免费版的项目数量上限 • 观看广告获取临时权限，或购买 Pro';
 
   @override
   String get upgradePromptMaxCanvasSizeSubtitle => '以更高分辨率创作像素画 • 先用广告试用';
@@ -3539,4 +3533,77 @@ class StringsZh extends Strings {
 
   @override
   String get packFirstDiscount => '首个扩展包 −40%';
+
+  @override
+  String get featured => '精选';
+
+  @override
+  String get forks => '分支';
+
+  @override
+  String forksCount(int count) {
+    return '分支 ($count)';
+  }
+
+  @override
+  String moreByUser(String username) {
+    return '$username 的更多作品';
+  }
+
+  @override
+  String get unknownArtist => '未知艺术家';
+
+  @override
+  String shareProjectMessage(String title, String author) {
+    return '快来看看这个精彩的像素画作品：$title\n作者：$author';
+  }
+
+  @override
+  String relativeMonthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个月前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 小时前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 分钟前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get remixProject => '改编';
+
+  @override
+  String get previousProject => '上一个作品';
+
+  @override
+  String get nextProject => '下一个作品';
 }

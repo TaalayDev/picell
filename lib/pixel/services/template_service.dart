@@ -271,7 +271,15 @@ class TemplateService {
   Future<List<TemplateCategory>> getTemplateCategories() async {
     try {
       final response = await _apiRepo.fetchCategories();
-      _categories = response.data!;
+      _categories = List<TemplateCategory>.from(response.data!);
+      if (!_categories.any((category) => category.slug == 'character-builder')) {
+        _categories.add(const TemplateCategory(
+          id: -1,
+          name: 'Character Builder',
+          slug: 'character-builder',
+          templateCount: 0,
+        ));
+      }
       return _categories;
     } catch (e) {
       _logger.warning('Error fetching categories from API: $e');
@@ -283,6 +291,7 @@ class TemplateService {
       const TemplateCategory(id: 3, name: 'Backgrounds', slug: 'backgrounds', templateCount: 0),
       const TemplateCategory(id: 4, name: 'UI Elements', slug: 'ui-elements', templateCount: 0),
       const TemplateCategory(id: 5, name: 'Tiles', slug: 'tiles', templateCount: 0),
+      const TemplateCategory(id: -1, name: 'Character Builder', slug: 'character-builder', templateCount: 0),
     ];
   }
 

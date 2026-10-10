@@ -76,8 +76,7 @@ class PixelDrawController extends _$PixelDrawController {
     _frameService = FrameService(ref.read(projectRepo));
     _animationService = AnimationService(ref.read(projectRepo));
     _drawingService = DrawingService();
-    _selectionService =
-        SelectionService(width: project.width, height: project.height);
+    _selectionService = SelectionService(width: project.width, height: project.height);
     _undoRedoService = UndoRedoService();
     _importExportService = ImportExportService();
     _templateService = TemplateService(ref.read(templateAPIRepoProvider));
@@ -99,9 +98,7 @@ class PixelDrawController extends _$PixelDrawController {
     final animationStates = project.states.isNotEmpty
         ? List<AnimationStateModel>.from(project.states)
         : [const AnimationStateModel(id: 0, name: 'Default', frameRate: 12)];
-    final frames = project.frames.isNotEmpty
-        ? List<AnimationFrame>.from(project.frames)
-        : _createDefaultFrame();
+    final frames = project.frames.isNotEmpty ? List<AnimationFrame>.from(project.frames) : _createDefaultFrame();
     final restoredSelection = restoreEditorSelection(
       project,
       animationStates,
@@ -147,8 +144,7 @@ class PixelDrawController extends _$PixelDrawController {
 
   AnimationFrame get currentFrame => state.currentFrame;
   Layer get currentLayer => state.currentLayer;
-  bool get currentLayerIsProcedural =>
-      EffectStackService.isProcedural(currentLayer);
+  bool get currentLayerIsProcedural => EffectStackService.isProcedural(currentLayer);
   bool get canUndo => _undoRedoService.canUndo;
   bool get canRedo => _undoRedoService.canRedo;
   int get undoStackSize => _undoRedoService.undoStackSize;
@@ -189,9 +185,7 @@ class PixelDrawController extends _$PixelDrawController {
     );
     _pendingProjectSave = updated;
     _projectSaveGeneration += 1;
-    ref
-        .read(editorWorkspaceProvider.notifier)
-        .setUnsavedChanges(project.id, true);
+    ref.read(editorWorkspaceProvider.notifier).setUnsavedChanges(project.id, true);
     _projectSaveTimer?.cancel();
     _projectSaveTimer = Timer(
       _localSaveDebounce,
@@ -251,8 +245,7 @@ class PixelDrawController extends _$PixelDrawController {
       }
       return true;
     } catch (error, stack) {
-      ErrorReportService.instance
-          .report(error, stack, operation: 'editor.saveProject');
+      ErrorReportService.instance.report(error, stack, operation: 'editor.saveProject');
       workspace.setUnsavedChanges(project.id, true);
       return false;
     }
@@ -512,8 +505,7 @@ class PixelDrawController extends _$PixelDrawController {
     final sel = state.selectionState?.region;
     if (sel == null || currentLayer.pixels.isEmpty) return null;
     _beginPixelUndo();
-    final copied =
-        _selectionService.copySelectedPixels(sel, currentLayer.pixels);
+    final copied = _selectionService.copySelectedPixels(sel, currentLayer.pixels);
     final cleared = _selectionService.clearPixelsInSelection(
       sel,
       currentLayer.pixels,
@@ -596,8 +588,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   Uint32List? _transformCachedPixels;
-  Uint32List?
-      _transformCachedLayerWithoutSelection; // layer pixels with selection cleared
+  Uint32List? _transformCachedLayerWithoutSelection; // layer pixels with selection cleared
   Rect? _transformCachedBounds;
   SelectionRegion? _transformCachedRegion;
   Offset? _transformCachedAnchor;
@@ -612,8 +603,7 @@ class PixelDrawController extends _$PixelDrawController {
 
     _saveState();
     _transformCachedRegion = region;
-    _transformCachedAnchor =
-        state.selectionState?.effectiveAnchor ?? region.bounds.center;
+    _transformCachedAnchor = state.selectionState?.effectiveAnchor ?? region.bounds.center;
 
     final cachedSelectionPixels = state.selectionState?.capturedPixels;
     final cachedSelectionBounds = state.selectionState?.capturedBounds;
@@ -677,8 +667,7 @@ class PixelDrawController extends _$PixelDrawController {
     }
     _resetSelectionTransformCache();
     final sel = state.selectionState;
-    if (sel != null &&
-        (sel.capturedPixels != null || sel.capturedBounds != null)) {
+    if (sel != null && (sel.capturedPixels != null || sel.capturedBounds != null)) {
       state = state.copyWith(
         selectionState: sel.copyWith(
           capturedPixels: () => null,
@@ -741,15 +730,10 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   List<Layer> copyLayers(Iterable<int> indices) {
-    final valid = indices
-        .where((index) => index >= 0 && index < currentFrame.layers.length)
-        .toSet()
-        .toList()
-      ..sort();
+    final valid = indices.where((index) => index >= 0 && index < currentFrame.layers.length).toSet().toList()..sort();
 
     return [
-      for (final index in valid)
-        Layer.fromJson(currentFrame.layers[index].toJson()),
+      for (final index in valid) Layer.fromJson(currentFrame.layers[index].toJson()),
     ];
   }
 
@@ -790,9 +774,7 @@ class PixelDrawController extends _$PixelDrawController {
         isVisible: source.isVisible,
         isLocked: source.isLocked,
         opacity: source.opacity,
-        anchorPoint: () => source.anchorPoint == null
-            ? null
-            : source.anchorPoint! + placement.offset,
+        anchorPoint: () => source.anchorPoint == null ? null : source.anchorPoint! + placement.offset,
       );
       layers.insert(insertIndex, pasted);
       insertIndex += 1;
@@ -804,8 +786,7 @@ class PixelDrawController extends _$PixelDrawController {
     ];
     _updateCurrentFrame(currentFrame.copyWith(layers: layers));
     state = state.copyWith(
-      currentLayerIndex:
-          layers.indexWhere((layer) => layer.id == lastCreatedId),
+      currentLayerIndex: layers.indexWhere((layer) => layer.id == lastCreatedId),
     );
     _updateProject();
   }
@@ -830,25 +811,20 @@ class PixelDrawController extends _$PixelDrawController {
     _detachSelectionFromLayer();
     _saveState();
     final activeLayerId = currentLayer.id;
-    await Future.wait(
-        requested.map((i) => _layerService.deleteLayer(layers[i].layerId)));
+    await Future.wait(requested.map((i) => _layerService.deleteLayer(layers[i].layerId)));
 
     final remaining = <Layer>[
       for (final (index, layer) in layers.indexed)
         if (!requested.contains(index)) layer,
     ];
     final reordered = [
-      for (final (index, layer) in remaining.indexed)
-        layer.copyWith(order: index),
+      for (final (index, layer) in remaining.indexed) layer.copyWith(order: index),
     ];
     _updateCurrentFrame(currentFrame.copyWith(layers: reordered));
 
-    var activeIndex =
-        reordered.indexWhere((layer) => layer.id == activeLayerId);
+    var activeIndex = reordered.indexWhere((layer) => layer.id == activeLayerId);
     if (activeIndex < 0) {
-      activeIndex = requested
-          .reduce((a, b) => a < b ? a : b)
-          .clamp(0, reordered.length - 1);
+      activeIndex = requested.reduce((a, b) => a < b ? a : b).clamp(0, reordered.length - 1);
     }
     state = state.copyWith(currentLayerIndex: activeIndex);
     _updateProject();
@@ -892,18 +868,12 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   Future<void> duplicateLayers(Iterable<int> indices) async {
-    final sourceIds = indices
-        .where((i) => i >= 0 && i < currentFrame.layers.length)
-        .toSet()
-        .toList()
-      ..sort();
+    final sourceIds = indices.where((i) => i >= 0 && i < currentFrame.layers.length).toSet().toList()..sort();
     if (sourceIds.isEmpty) return;
 
     _detachSelectionFromLayer();
     _saveState();
-    final originalIds = [
-      for (final index in sourceIds) currentFrame.layers[index].id
-    ];
+    final originalIds = [for (final index in sourceIds) currentFrame.layers[index].id];
     var layers = List<Layer>.from(currentFrame.layers);
     String? lastCreatedId;
 
@@ -930,13 +900,10 @@ class PixelDrawController extends _$PixelDrawController {
       lastCreatedId = copy.id;
     }
 
-    layers = [
-      for (final (index, layer) in layers.indexed) layer.copyWith(order: index)
-    ];
+    layers = [for (final (index, layer) in layers.indexed) layer.copyWith(order: index)];
     _updateCurrentFrame(currentFrame.copyWith(layers: layers));
     state = state.copyWith(
-      currentLayerIndex:
-          layers.indexWhere((layer) => layer.id == lastCreatedId),
+      currentLayerIndex: layers.indexWhere((layer) => layer.id == lastCreatedId),
     );
     _updateProject();
   }
@@ -948,15 +915,13 @@ class PixelDrawController extends _$PixelDrawController {
       _updateLayers(indices, (layer) => layer.copyWith(isLocked: locked));
 
   Future<void> setLayersOpacity(Iterable<int> indices, double opacity) =>
-      _updateLayers(
-          indices, (layer) => layer.copyWith(opacity: opacity.clamp(0.0, 1.0)));
+      _updateLayers(indices, (layer) => layer.copyWith(opacity: opacity.clamp(0.0, 1.0)));
 
   Future<void> _updateLayers(
     Iterable<int> indices,
     Layer Function(Layer layer) transform,
   ) async {
-    final valid =
-        indices.where((i) => i >= 0 && i < currentFrame.layers.length).toSet();
+    final valid = indices.where((i) => i >= 0 && i < currentFrame.layers.length).toSet();
     if (valid.isEmpty) return;
     _saveState();
     final updated = List<Layer>.from(currentFrame.layers);
@@ -998,9 +963,7 @@ class PixelDrawController extends _$PixelDrawController {
     final updatedFrame = currentFrame.copyWith(layers: reorderedLayers);
     _updateCurrentFrame(updatedFrame);
 
-    final newCurrentIndex = oldIndex == state.currentLayerIndex
-        ? newIndex
-        : state.currentLayerIndex;
+    final newCurrentIndex = oldIndex == state.currentLayerIndex ? newIndex : state.currentLayerIndex;
 
     state = state.copyWith(currentLayerIndex: newCurrentIndex);
     _updateProject();
@@ -1043,9 +1006,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   bool convertCurrentLayerToPixels({List<Effect>? effects}) {
-    final sourceLayer = effects == null
-        ? currentLayer
-        : currentLayer.copyWith(effects: List<Effect>.from(effects));
+    final sourceLayer = effects == null ? currentLayer : currentLayer.copyWith(effects: List<Effect>.from(effects));
     if (!EffectStackService.isProcedural(sourceLayer)) return false;
 
     _saveState();
@@ -1060,9 +1021,7 @@ class PixelDrawController extends _$PixelDrawController {
 
   // Frame operations
   Future<void> addFrame(String name, {int? copyFrameId, int? stateId}) async {
-    final copyFrame = copyFrameId != null
-        ? state.frames.firstWhere((f) => f.id == copyFrameId)
-        : null;
+    final copyFrame = copyFrameId != null ? state.frames.firstWhere((f) => f.id == copyFrameId) : null;
 
     final order = _frameService.calculateNextFrameOrder(state.frames);
 
@@ -1095,25 +1054,20 @@ class PixelDrawController extends _$PixelDrawController {
     required int sourceLayerId,
   }) async {
     if (generatedFrames.isEmpty) return;
-    final sourceIndex =
-        state.frames.indexWhere((frame) => frame.id == sourceFrameId);
+    final sourceIndex = state.frames.indexWhere((frame) => frame.id == sourceFrameId);
     if (sourceIndex < 0) throw StateError('Source frame no longer exists');
     final source = state.frames[sourceIndex];
-    final layerIndex =
-        source.layers.indexWhere((layer) => layer.layerId == sourceLayerId);
+    final layerIndex = source.layers.indexWhere((layer) => layer.layerId == sourceLayerId);
     if (layerIndex < 0) throw StateError('Source layer no longer exists');
-    final stateIndex =
-        state.animationStates.indexWhere((item) => item.id == source.stateId);
+    final stateIndex = state.animationStates.indexWhere((item) => item.id == source.stateId);
     if (stateIndex < 0) throw StateError('Animation state no longer exists');
     for (final generated in generatedFrames) {
-      if (generated.layers.length != 1 ||
-          generated.layers.single.pixels.length != state.width * state.height) {
+      if (generated.layers.length != 1 || generated.layers.single.pixels.length != state.width * state.height) {
         throw ArgumentError('Generated frame has invalid pixels');
       }
     }
 
-    final firstGeneratedIndex =
-        state.frames.where((frame) => frame.stateId == source.stateId).length;
+    final firstGeneratedIndex = state.frames.where((frame) => frame.stateId == source.stateId).length;
     var nextOrder = _frameService.calculateNextFrameOrder(state.frames);
     for (final generated in generatedFrames) {
       final renderedPixels = generated.layers.single.pixels;
@@ -1122,9 +1076,7 @@ class PixelDrawController extends _$PixelDrawController {
           layer.copyWith(
             id: const Uuid().v4(),
             layerId: 0,
-            pixels: index == layerIndex
-                ? Uint32List.fromList(renderedPixels)
-                : Uint32List.fromList(layer.pixels),
+            pixels: index == layerIndex ? Uint32List.fromList(renderedPixels) : Uint32List.fromList(layer.pixels),
             effects: index == layerIndex ? const [] : layer.effects,
           ),
       ];
@@ -1158,16 +1110,10 @@ class PixelDrawController extends _$PixelDrawController {
     if (frameIds.isEmpty) return;
     final removable = <int>{};
     for (final animationState in state.animationStates) {
-      final stateFrames =
-          state.frames.where((f) => f.stateId == animationState.id).toList();
-      final selected = stateFrames
-          .where((f) => frameIds.contains(f.id))
-          .map((f) => f.id)
-          .toSet();
+      final stateFrames = state.frames.where((f) => f.stateId == animationState.id).toList();
+      final selected = stateFrames.where((f) => frameIds.contains(f.id)).map((f) => f.id).toSet();
       if (selected.length == stateFrames.length && stateFrames.isNotEmpty) {
-        final keepId = animationState.id == state.currentAnimationState.id
-            ? currentFrame.id
-            : stateFrames.first.id;
+        final keepId = animationState.id == state.currentAnimationState.id ? currentFrame.id : stateFrames.first.id;
         selected.remove(keepId);
       }
       removable.addAll(selected);
@@ -1178,14 +1124,10 @@ class PixelDrawController extends _$PixelDrawController {
     _saveState();
     final oldCurrentFrames = state.currentFrames;
     final oldActiveId = currentFrame.id;
-    final firstRemovedIndex =
-        oldCurrentFrames.indexWhere((f) => removable.contains(f.id));
+    final firstRemovedIndex = oldCurrentFrames.indexWhere((f) => removable.contains(f.id));
     await Future.wait(removable.map(_frameService.deleteFrame));
-    final updatedFrames =
-        state.frames.where((f) => !removable.contains(f.id)).toList();
-    final newCurrentFrames = updatedFrames
-        .where((f) => f.stateId == state.currentAnimationState.id)
-        .toList();
+    final updatedFrames = state.frames.where((f) => !removable.contains(f.id)).toList();
+    final newCurrentFrames = updatedFrames.where((f) => f.stateId == state.currentAnimationState.id).toList();
     var activeIndex = newCurrentFrames.indexWhere((f) => f.id == oldActiveId);
     if (activeIndex < 0) {
       activeIndex = firstRemovedIndex.clamp(0, newCurrentFrames.length - 1);
@@ -1200,8 +1142,7 @@ class PixelDrawController extends _$PixelDrawController {
 
   Future<void> duplicateFramesByIds(Iterable<int> frameIds) async {
     final ids = frameIds.toSet();
-    final sources =
-        state.frames.where((frame) => ids.contains(frame.id)).toList();
+    final sources = state.frames.where((frame) => ids.contains(frame.id)).toList();
     if (sources.isEmpty) return;
     _saveState();
     final createdFrames = <AnimationFrame>[];
@@ -1213,8 +1154,7 @@ class PixelDrawController extends _$PixelDrawController {
         width: state.width,
         height: state.height,
         copyFromFrame: source,
-        order: _frameService
-            .calculateNextFrameOrder([...state.frames, ...createdFrames]),
+        order: _frameService.calculateNextFrameOrder([...state.frames, ...createdFrames]),
       );
       created = created.copyWith(duration: source.duration);
       await _frameService.updateFrame(projectId: project.id, frame: created);
@@ -1224,65 +1164,51 @@ class PixelDrawController extends _$PixelDrawController {
     _updateProject();
   }
 
-  Future<void> updateFramesDurationByIds(
-      Iterable<int> frameIds, int duration) async {
+  Future<void> updateFramesDurationByIds(Iterable<int> frameIds, int duration) async {
     final ids = frameIds.toSet();
     final updated = [
       for (final frame in state.frames)
-        if (ids.contains(frame.id))
-          frame.copyWith(duration: duration)
-        else
-          frame,
+        if (ids.contains(frame.id)) frame.copyWith(duration: duration) else frame,
     ];
-    await Future.wait(updated.where((frame) => ids.contains(frame.id)).map(
-        (frame) =>
-            _frameService.updateFrame(projectId: project.id, frame: frame)));
+    await Future.wait(updated
+        .where((frame) => ids.contains(frame.id))
+        .map((frame) => _frameService.updateFrame(projectId: project.id, frame: frame)));
     state = state.copyWith(frames: updated);
     _updateProject();
   }
 
   Future<void> reorderFramesByIds(Set<int> draggedIds, int targetId) async {
-    final targetIndexInAll =
-        state.frames.indexWhere((frame) => frame.id == targetId);
+    final targetIndexInAll = state.frames.indexWhere((frame) => frame.id == targetId);
     if (targetIndexInAll < 0) return;
     final target = state.frames[targetIndexInAll];
-    final stateFrames =
-        state.frames.where((f) => f.stateId == target.stateId).toList();
-    final dragged =
-        stateFrames.where((f) => draggedIds.contains(f.id)).toList();
+    final stateFrames = state.frames.where((f) => f.stateId == target.stateId).toList();
+    final dragged = stateFrames.where((f) => draggedIds.contains(f.id)).toList();
     if (dragged.isEmpty || draggedIds.contains(targetId)) return;
     final oldActiveId = currentFrame.id;
     final targetIndex = stateFrames.indexWhere((f) => f.id == targetId);
-    final firstDraggedIndex =
-        stateFrames.indexWhere((f) => draggedIds.contains(f.id));
-    final remaining =
-        stateFrames.where((f) => !draggedIds.contains(f.id)).toList();
+    final firstDraggedIndex = stateFrames.indexWhere((f) => draggedIds.contains(f.id));
+    final remaining = stateFrames.where((f) => !draggedIds.contains(f.id)).toList();
     var insertIndex = remaining.indexWhere((f) => f.id == targetId);
     if (firstDraggedIndex < targetIndex) insertIndex++;
     remaining.insertAll(insertIndex, dragged);
     final reordered = [
-      for (final (index, frame) in remaining.indexed)
-        frame.copyWith(order: index),
+      for (final (index, frame) in remaining.indexed) frame.copyWith(order: index),
     ];
     var cursor = 0;
     final allFrames = [
       for (final frame in state.frames)
         if (frame.stateId == target.stateId) reordered[cursor++] else frame,
     ];
-    final currentStateFrames = allFrames
-        .where((f) => f.stateId == state.currentAnimationState.id)
-        .toList();
+    final currentStateFrames = allFrames.where((f) => f.stateId == state.currentAnimationState.id).toList();
     state = state.copyWith(
       frames: allFrames,
-      currentFrameIndex:
-          currentStateFrames.indexWhere((f) => f.id == oldActiveId),
+      currentFrameIndex: currentStateFrames.indexWhere((f) => f.id == oldActiveId),
     );
     _updateProject();
   }
 
   void selectFrame(int frameId) {
-    final index =
-        state.currentFrames.indexWhere((frame) => frame.id == frameId);
+    final index = state.currentFrames.indexWhere((frame) => frame.id == frameId);
     if (index >= 0) {
       _detachSelectionFromLayer();
       final targetFrame = state.currentFrames[index];
@@ -1295,8 +1221,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void nextFrame() {
-    final nextIndex =
-        (state.currentFrameIndex + 1) % state.currentFrames.length;
+    final nextIndex = (state.currentFrameIndex + 1) % state.currentFrames.length;
     _detachSelectionFromLayer();
     final targetFrame = state.currentFrames[nextIndex];
     state = state.copyWith(
@@ -1307,9 +1232,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void previousFrame() {
-    final prevIndex =
-        (state.currentFrameIndex - 1 + state.currentFrames.length) %
-            state.currentFrames.length;
+    final prevIndex = (state.currentFrameIndex - 1 + state.currentFrames.length) % state.currentFrames.length;
     _detachSelectionFromLayer();
     final targetFrame = state.currentFrames[prevIndex];
     state = state.copyWith(
@@ -1333,8 +1256,7 @@ class PixelDrawController extends _$PixelDrawController {
     );
 
     // Copy the first frame of the current state as the starting frame
-    final currentFirstFrame =
-        state.currentFrames.isNotEmpty ? state.currentFrames.first : null;
+    final currentFirstFrame = state.currentFrames.isNotEmpty ? state.currentFrames.first : null;
     final defaultFrame = await _frameService.createFrame(
       projectId: project.id,
       name: 'Frame 1',
@@ -1358,8 +1280,7 @@ class PixelDrawController extends _$PixelDrawController {
 
   Future<void> copyAnimationState(int sourceStateId) async {
     // Find the source state
-    final sourceIndex =
-        _animationService.findStateIndex(state.animationStates, sourceStateId);
+    final sourceIndex = _animationService.findStateIndex(state.animationStates, sourceStateId);
     if (sourceIndex < 0) return;
     final sourceState = state.animationStates[sourceIndex];
 
@@ -1371,8 +1292,7 @@ class PixelDrawController extends _$PixelDrawController {
     );
 
     // Copy all frames belonging to the source state
-    final sourceFrames =
-        state.frames.where((f) => f.stateId == sourceStateId).toList();
+    final sourceFrames = state.frames.where((f) => f.stateId == sourceStateId).toList();
     final newFrames = <AnimationFrame>[];
     for (final frame in sourceFrames) {
       final copiedFrame = await _frameService.createFrame(
@@ -1414,14 +1334,12 @@ class PixelDrawController extends _$PixelDrawController {
   Future<void> removeAnimationState(int stateId) async {
     if (!_animationService.canDeleteState(state.animationStates)) return;
 
-    final stateIndex =
-        _animationService.findStateIndex(state.animationStates, stateId);
+    final stateIndex = _animationService.findStateIndex(state.animationStates, stateId);
     if (stateIndex < 0) return;
 
     await _animationService.deleteAnimationState(stateId);
 
-    final updatedStates = List<AnimationStateModel>.from(state.animationStates)
-      ..removeAt(stateIndex);
+    final updatedStates = List<AnimationStateModel>.from(state.animationStates)..removeAt(stateIndex);
 
     final updatedFrames = _animationService.removeFramesForState(
       state.frames,
@@ -1444,7 +1362,13 @@ class PixelDrawController extends _$PixelDrawController {
     _persistEditorSelection();
   }
 
-  void addTemplate(Template template) async {
+  Future<void> addTemplate(Template template) async {
+    if (template.builderParts.isNotEmpty) {
+      for (final part in template.builderParts) {
+        await addTemplate(part);
+      }
+      return;
+    }
     final order = _layerService.calculateNextLayerOrder(currentFrame.layers);
 
     var newLayer = await _layerService.createLayer(
@@ -1472,13 +1396,10 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void selectAnimationState(int stateId) {
-    final index =
-        _animationService.findStateIndex(state.animationStates, stateId);
+    final index = _animationService.findStateIndex(state.animationStates, stateId);
     if (index >= 0) {
-      final targetFrames =
-          state.frames.where((frame) => frame.stateId == stateId).toList();
-      final layerIndex =
-          targetFrames.isEmpty ? 0 : _safeLayerIndex(targetFrames.first);
+      final targetFrames = state.frames.where((frame) => frame.stateId == stateId).toList();
+      final layerIndex = targetFrames.isEmpty ? 0 : _safeLayerIndex(targetFrames.first);
       _detachSelectionFromLayer();
       state = state.copyWith(
         currentAnimationStateIndex: index,
@@ -1504,10 +1425,7 @@ class PixelDrawController extends _$PixelDrawController {
 
   Future<void> reorderFrames(int oldIndex, int newIndex) async {
     final current = state.currentFrames;
-    if (oldIndex < 0 ||
-        oldIndex >= current.length ||
-        newIndex < 0 ||
-        newIndex >= current.length) {
+    if (oldIndex < 0 || oldIndex >= current.length || newIndex < 0 || newIndex >= current.length) {
       return;
     }
     await reorderFramesByIds({current[oldIndex].id}, current[newIndex].id);
@@ -1538,10 +1456,7 @@ class PixelDrawController extends _$PixelDrawController {
     final cachedBounds = _transformCachedBounds;
     final cachedRegion = _transformCachedRegion;
 
-    if (cached == null ||
-        cachedLayer == null ||
-        cachedBounds == null ||
-        cachedRegion == null) {
+    if (cached == null || cachedLayer == null || cachedBounds == null || cachedRegion == null) {
       // Fallback when transform was not explicitly started (e.g. external call)
       _saveState();
       final newPixels = _selectionService.moveSelectedPixels(
@@ -1605,10 +1520,7 @@ class PixelDrawController extends _$PixelDrawController {
     final cachedLayer = _transformCachedLayerWithoutSelection;
     final cachedBounds = _transformCachedBounds;
     final cachedRegion = _transformCachedRegion;
-    if (cached == null ||
-        cachedLayer == null ||
-        cachedBounds == null ||
-        cachedRegion == null) {
+    if (cached == null || cachedLayer == null || cachedBounds == null || cachedRegion == null) {
       return;
     }
 
@@ -1621,8 +1533,7 @@ class PixelDrawController extends _$PixelDrawController {
       targetBounds.right.clamp(0.0, state.width.toDouble()),
       targetBounds.bottom.clamp(0.0, state.height.toDouble()),
     );
-    if (constrainedTargetBounds.width <= 0 ||
-        constrainedTargetBounds.height <= 0) {
+    if (constrainedTargetBounds.width <= 0 || constrainedTargetBounds.height <= 0) {
       return;
     }
 
@@ -1631,8 +1542,7 @@ class PixelDrawController extends _$PixelDrawController {
     // pixels per drag frame. (Overhang is squashed rather than clipped — an
     // acceptable trade for keeping the transform interactive.)
     final targetW = constrainedTargetBounds.width.round().clamp(1, state.width);
-    final targetH =
-        constrainedTargetBounds.height.round().clamp(1, state.height);
+    final targetH = constrainedTargetBounds.height.round().clamp(1, state.height);
 
     final transformedPixels = PixelUtils.resize(
       cached,
@@ -1776,8 +1686,7 @@ class PixelDrawController extends _$PixelDrawController {
   /// Persists the current anchor point to the database. Called once when an
   /// anchor-handle drag ends.
   void persistAnchorPoint() {
-    final anchor =
-        state.selectionState?.anchorPoint ?? currentLayer.anchorPoint;
+    final anchor = state.selectionState?.anchorPoint ?? currentLayer.anchorPoint;
     if (anchor == null) return;
 
     final layer = currentLayer.copyWith(anchorPoint: () => anchor);
@@ -1875,9 +1784,7 @@ class PixelDrawController extends _$PixelDrawController {
     Iterable<int> indices,
     PixelTransform transform,
   ) async {
-    final targets = indices
-        .where((i) => i >= 0 && i < currentFrame.layers.length)
-        .where((i) {
+    final targets = indices.where((i) => i >= 0 && i < currentFrame.layers.length).where((i) {
       final layer = currentFrame.layers[i];
       return !layer.isLocked && !EffectStackService.isProcedural(layer);
     }).toSet();
@@ -2012,8 +1919,7 @@ class PixelDrawController extends _$PixelDrawController {
     double? exportWidth,
     double? exportHeight,
   }) async {
-    final frames =
-        includeAllFrames ? state.currentFrames : [state.currentFrame];
+    final frames = includeAllFrames ? state.currentFrames : [state.currentFrame];
 
     await _importExportService.exportSpriteSheet(
       context: context,
@@ -2036,25 +1942,20 @@ class PixelDrawController extends _$PixelDrawController {
     progression.record(event);
     // Coming back to an older piece counts for the "old project" bonus quest.
     if (event == ProgressionEvent.strokeCompleted &&
-        project.createdAt
-            .isBefore(DateTime.now().subtract(const Duration(days: 7)))) {
+        project.createdAt.isBefore(DateTime.now().subtract(const Duration(days: 7)))) {
       progression.record(ProgressionEvent.oldProjectStroke);
     }
   }
 
   Future<void> importImageAsBackground(BuildContext context) async {
-    final imageBytes =
-        await _importExportService.importImageAsBackground(context: context);
+    final imageBytes = await _importExportService.importImageAsBackground(context: context);
     if (imageBytes != null) {
-      ref
-          .read(backgroundImageProvider.notifier)
-          .update((state) => state.copyWith(image: imageBytes));
+      ref.read(backgroundImageProvider.notifier).update((state) => state.copyWith(image: imageBytes));
 
       // Extract dominant colors and publish to palette panel
       final img.Image? decoded = img.decodeImage(imageBytes);
       if (decoded != null) {
-        final palette =
-            PixelArtConverter.extractPaletteFromImage(decoded, maxColors: 32);
+        final palette = PixelArtConverter.extractPaletteFromImage(decoded, maxColors: 32);
         ref.read(importedPaletteProvider.notifier).set(palette);
       }
       _recordProgress(ProgressionEvent.imageImported);
@@ -2104,9 +2005,7 @@ class PixelDrawController extends _$PixelDrawController {
 
   // Helper methods
   Color _getDrawingColor() {
-    return state.currentTool == PixelTool.eraser
-        ? Colors.transparent
-        : state.currentColor;
+    return state.currentTool == PixelTool.eraser ? Colors.transparent : state.currentColor;
   }
 
   void _updateCurrentLayerPixels(Uint32List newPixels) {
@@ -2178,13 +2077,11 @@ class PixelDrawController extends _$PixelDrawController {
 
   /// MARK: Selection Resizing & Rotation (legacy wrappers kept for overlay compatibility)
 
-  void resizeSelection(SelectionRegion region, SelectionRegion oldRegion,
-      Rect b, Offset? center) {
+  void resizeSelection(SelectionRegion region, SelectionRegion oldRegion, Rect b, Offset? center) {
     resizeSelectionNew(region.bounds, region: region);
   }
 
-  void rotateSelection(SelectionRegion region, SelectionRegion oldRegion,
-      double angle, Offset? center) {
+  void rotateSelection(SelectionRegion region, SelectionRegion oldRegion, double angle, Offset? center) {
     rotateSelectionNew(angle, pivot: center, region: region);
   }
 
@@ -2241,10 +2138,7 @@ class PixelDrawController extends _$PixelDrawController {
           final destX = targetX + x;
           final destY = targetY + y;
 
-          if (destX >= 0 &&
-              destX < state.width &&
-              destY >= 0 &&
-              destY < state.height) {
+          if (destX >= 0 && destX < state.width && destY >= 0 && destY < state.height) {
             final destIndex = destY * state.width + destX;
             if (destIndex >= 0 && destIndex < result.length) {
               result[destIndex] = pixel;
@@ -2320,12 +2214,8 @@ class PixelDrawController extends _$PixelDrawController {
     Rect sourceBounds,
     Rect targetBounds,
   ) {
-    final normalizedX = sourceBounds.width == 0
-        ? 0.5
-        : (anchor.dx - sourceBounds.left) / sourceBounds.width;
-    final normalizedY = sourceBounds.height == 0
-        ? 0.5
-        : (anchor.dy - sourceBounds.top) / sourceBounds.height;
+    final normalizedX = sourceBounds.width == 0 ? 0.5 : (anchor.dx - sourceBounds.left) / sourceBounds.width;
+    final normalizedY = sourceBounds.height == 0 ? 0.5 : (anchor.dy - sourceBounds.top) / sourceBounds.height;
 
     return Offset(
       targetBounds.left + normalizedX * targetBounds.width,
@@ -2344,10 +2234,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   int get _selectionTransformInterpolation {
-    return ref
-        .read(editorSettingsNotifierProvider)
-        .transformInterpolation
-        .pixelUtilsValue;
+    return ref.read(editorSettingsNotifierProvider).transformInterpolation.pixelUtilsValue;
   }
 }
 

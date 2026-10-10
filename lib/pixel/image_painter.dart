@@ -10,18 +10,45 @@ class ImagePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final src = Rect.fromLTWH(
+    var src = Rect.fromLTWH(
       0,
       0,
       image.width.toDouble(),
       image.height.toDouble(),
     );
-    final dst = fit == BoxFit.contain ? _containedRect(size) : Rect.fromLTWH(0, 0, size.width, size.height);
+    var dst = Rect.fromLTWH(0, 0, size.width, size.height);
+    switch (fit) {
+      case BoxFit.contain:
+        dst = _containedRect(size);
+      case BoxFit.cover:
+        src = _coveredSource(size);
+      default:
+        break;
+    }
     final paint = Paint();
     if (opacity != null) {
       paint.color = Color.fromRGBO(255, 255, 255, opacity!);
     }
     canvas.drawImageRect(image, src, dst, paint);
+  }
+
+  /// Centered sub-rect of the image that fills [size] at the box's aspect
+  /// ratio — the excess is cropped instead of the image being stretched.
+  Rect _coveredSource(Size size) {
+    final imageWidth = image.width.toDouble();
+    final imageHeight = image.height.toDouble();
+    if (imageWidth <= 0 || imageHeight <= 0 || size.isEmpty) {
+      return Rect.fromLTWH(0, 0, imageWidth, imageHeight);
+    }
+
+    final boxRatio = size.width / size.height;
+    final imageRatio = imageWidth / imageHeight;
+    if (imageRatio > boxRatio) {
+      final w = imageHeight * boxRatio;
+      return Rect.fromLTWH((imageWidth - w) / 2, 0, w, imageHeight);
+    }
+    final h = imageWidth / boxRatio;
+    return Rect.fromLTWH(0, (imageHeight - h) / 2, imageWidth, h);
   }
 
   /// Largest centered rect that preserves the image's aspect ratio within

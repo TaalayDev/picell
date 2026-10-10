@@ -1661,5 +1661,70 @@
     "savingsGoalSet": "Копить на этот пак",
     "savingsGoalActive": "Ваша цель накопления",
     "packPriceCredit": "−{coins} за эффекты, которые у вас есть",
-    "packFirstDiscount": "Первый пак −40%"
+    "packFirstDiscount": "Первый пак −40%",
+    "featured": "Избранное",
+    "forks": "Форки",
+    "forksCount": "Форки ({count})",
+        "@forksCount": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "moreByUser": "Ещё от {username}",
+        "@moreByUser": {
+            "placeholders": {
+                "username": {
+                    "type": "String"
+                }
+            }
+        },
+    "unknownArtist": "Неизвестный автор",
+    "shareProjectMessage": "Посмотрите этот потрясающий проект пиксель-арта: {title}\nАвтор: {author}",
+        "@shareProjectMessage": {
+            "placeholders": {
+                "title": {
+                    "type": "String"
+                },
+                "author": {
+                    "type": "String"
+                }
+            }
+        },
+    "relativeMonthsAgo": "{count, plural, one{{count} месяц назад} few{{count} месяца назад} many{{count} месяцев назад} other{{count} месяца назад}}",
+        "@relativeMonthsAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "relativeDaysAgo": "{count, plural, one{{count} день назад} few{{count} дня назад} many{{count} дней назад} other{{count} дня назад}}",
+        "@relativeDaysAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "relativeHoursAgo": "{count, plural, one{{count} час назад} few{{count} часа назад} many{{count} часов назад} other{{count} часа назад}}",
+        "@relativeHoursAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "relativeMinutesAgo": "{count, plural, one{{count} минуту назад} few{{count} минуты назад} many{{count} минут назад} other{{count} минуты назад}}",
+        "@relativeMinutesAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "remixProject": "Ремикс",
+    "previousProject": "Предыдущий проект",
+    "nextProject": "Следующий проект"
 }

@@ -263,6 +263,31 @@ class ProjectAPIRepo {
     }
   }
 
+  /// Reports a community project to the moderators. Goes through the
+  /// generic feedback endpoint, tagged so it can be filtered server-side.
+  Future<ApiResponse<Map<String, dynamic>>> reportProject(
+    int projectId, {
+    String? details,
+  }) async {
+    try {
+      return _apiClient.post<Map<String, dynamic>>(
+        '/api/v1/feedback',
+        data: {
+          'type': 'project_report',
+          'answers': {
+            'project_id': projectId,
+            if (details != null && details.isNotEmpty) 'details': details,
+          },
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+        converter: (data) => data as Map<String, dynamic>,
+      );
+    } catch (e) {
+      _logger.severe('Error reporting project $projectId: $e');
+      rethrow;
+    }
+  }
+
   // Comments
 
   /// Get comments for a project

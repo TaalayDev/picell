@@ -36,6 +36,9 @@ class Template extends Equatable {
   final String? createdBy;
   final bool isPro;
 
+  /// Ordered source parts of an assembled builder template (bottom to top).
+  final List<Template> builderParts;
+
   const Template({
     this.id,
     required this.name,
@@ -58,6 +61,7 @@ class Template extends Equatable {
     this.isLiked = false,
     this.createdBy,
     this.isPro = false,
+    this.builderParts = const [],
   });
 
   /// Create Template from JSON
@@ -165,6 +169,7 @@ class Template extends Equatable {
       downloadCount: downloadCount ?? this.downloadCount,
       isLiked: isLiked ?? this.isLiked,
       createdBy: createdBy ?? this.createdBy,
+      builderParts: builderParts,
     );
   }
 
@@ -369,6 +374,19 @@ class TemplateCollection extends Equatable {
 
   @override
   String toString() => 'TemplateCollection(${templates.length} templates)';
+}
+
+/// Canonical keys shared by asset and API template categories.
+String normalizeTemplateCategory(String category) {
+  final key = category.trim().toLowerCase().replaceAll(RegExp(r'[ _]+'), '-');
+  return const {
+        'character': 'characters',
+        'object': 'objects',
+        'background': 'backgrounds',
+        'tile': 'tiles',
+        'ui-element': 'ui-elements',
+      }[key] ??
+      key;
 }
 
 /// Template category for organizing templates

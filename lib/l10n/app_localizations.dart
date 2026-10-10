@@ -65,8 +65,7 @@ import 'app_localizations_zh.dart';
 /// be consistent with the languages listed in the Strings.supportedLocales
 /// property.
 abstract class Strings {
-  Strings(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  Strings(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,8 +85,7 @@ abstract class Strings {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -6510,6 +6508,84 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'First pack −40%'**
   String get packFirstDiscount;
+
+  /// No description provided for @featured.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured'**
+  String get featured;
+
+  /// No description provided for @forks.
+  ///
+  /// In en, this message translates to:
+  /// **'Forks'**
+  String get forks;
+
+  /// No description provided for @forksCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Forks ({count})'**
+  String forksCount(int count);
+
+  /// No description provided for @moreByUser.
+  ///
+  /// In en, this message translates to:
+  /// **'More by {username}'**
+  String moreByUser(String username);
+
+  /// No description provided for @unknownArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Artist'**
+  String get unknownArtist;
+
+  /// No description provided for @shareProjectMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out this amazing pixel art project: {title}\nCreated by {author}'**
+  String shareProjectMessage(String title, String author);
+
+  /// No description provided for @relativeMonthsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 month ago} other{{count} months ago}}'**
+  String relativeMonthsAgo(int count);
+
+  /// No description provided for @relativeDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
+  String relativeDaysAgo(int count);
+
+  /// No description provided for @relativeHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour ago} other{{count} hours ago}}'**
+  String relativeHoursAgo(int count);
+
+  /// No description provided for @relativeMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute ago} other{{count} minutes ago}}'**
+  String relativeMinutesAgo(int count);
+
+  /// No description provided for @remixProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Remix'**
+  String get remixProject;
+
+  /// No description provided for @previousProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous project'**
+  String get previousProject;
+
+  /// No description provided for @nextProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Next project'**
+  String get nextProject;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {
@@ -6521,8 +6597,7 @@ class _StringsDelegate extends LocalizationsDelegate<Strings> {
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'ja', 'ky', 'ru', 'zh'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'ja', 'ky', 'ru', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_StringsDelegate old) => false;
@@ -6543,8 +6618,7 @@ Strings lookupStrings(Locale locale) {
       return StringsZh();
   }
 
-  throw FlutterError(
-      'Strings.delegate failed to load unsupported locale "$locale". This is likely '
+  throw FlutterError('Strings.delegate failed to load unsupported locale "$locale". This is likely '
       'an issue with the localizations generation tool. Please file an issue '
       'on GitHub with a reproducible sample app and the gen-l10n configuration '
       'that was used.');

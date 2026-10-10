@@ -34,8 +34,7 @@ class StringsRu extends Strings {
   String get featuresTitle => 'Основные возможности:';
 
   @override
-  String get visitWebsite =>
-      'Посетите мой сайт для получения дополнительной информации:';
+  String get visitWebsite => 'Посетите мой сайт для получения дополнительной информации:';
 
   @override
   String get pickAColor => 'Выберите цвет';
@@ -128,8 +127,7 @@ class StringsRu extends Strings {
   String get deleteProject => 'Удалить проект';
 
   @override
-  String get areYouSureWantToDeleteProject =>
-      'Вы уверены, что хотите удалить этот проект?';
+  String get areYouSureWantToDeleteProject => 'Вы уверены, что хотите удалить этот проект?';
 
   @override
   String get renameProject => 'Переименовать проект';
@@ -177,8 +175,7 @@ class StringsRu extends Strings {
   String get deleteLayer => 'Удалить слой';
 
   @override
-  String get areYouSureWantToDeleteLayer =>
-      'Вы уверены, что хотите удалить этот слой?';
+  String get areYouSureWantToDeleteLayer => 'Вы уверены, что хотите удалить этот слой?';
 
   @override
   String get newProject => 'Новый проект';
@@ -217,8 +214,7 @@ class StringsRu extends Strings {
   String get signInToContinue => 'Войдите, чтобы продолжить';
 
   @override
-  String get signInToSyncProjects =>
-      'Войдите, чтобы синхронизировать ваши проекты.';
+  String get signInToSyncProjects => 'Войдите, чтобы синхронизировать ваши проекты.';
 
   @override
   String get signingIn => 'Вход...';
@@ -242,8 +238,7 @@ class StringsRu extends Strings {
   String get feedback_thank_you => 'Спасибо за ваш отзыв!';
 
   @override
-  String get feedback_thank_you_message =>
-      'Ваше мнение очень важно для нас и поможет сделать приложение лучше.';
+  String get feedback_thank_you_message => 'Ваше мнение очень важно для нас и поможет сделать приложение лучше.';
 
   @override
   String get feedback_return => 'Вернуться';
@@ -270,8 +265,7 @@ class StringsRu extends Strings {
   String get feedback_send => 'Отправить';
 
   @override
-  String get feedback_validation_error =>
-      'Пожалуйста, ответьте на все обязательные вопросы';
+  String get feedback_validation_error => 'Пожалуйста, ответьте на все обязательные вопросы';
 
   @override
   String get feedback_very_poor => 'Очень плохо';
@@ -292,28 +286,22 @@ class StringsRu extends Strings {
   String get feedback_q_satisfaction => 'Насколько вы довольны приложением?';
 
   @override
-  String get feedback_q_missing_features =>
-      'Какие функциональности вам не хватают?';
+  String get feedback_q_missing_features => 'Какие функциональности вам не хватают?';
 
   @override
-  String get feedback_q_missing_features_placeholder =>
-      'Опишите функции, которые вы хотели бы видеть...';
+  String get feedback_q_missing_features_placeholder => 'Опишите функции, которые вы хотели бы видеть...';
 
   @override
-  String get feedback_q_bug_reports =>
-      'Столкнулись ли вы с какими-либо ошибками или сбоями?';
+  String get feedback_q_bug_reports => 'Столкнулись ли вы с какими-либо ошибками или сбоями?';
 
   @override
-  String get feedback_q_bug_reports_placeholder =>
-      'Опишите проблемы, с которыми вы столкнулись...';
+  String get feedback_q_bug_reports_placeholder => 'Опишите проблемы, с которыми вы столкнулись...';
 
   @override
-  String get feedback_q_price_satisfaction =>
-      'Устраивает ли вас текущая цена приложения?';
+  String get feedback_q_price_satisfaction => 'Устраивает ли вас текущая цена приложения?';
 
   @override
-  String get feedback_q_price_feedback =>
-      'Если нет, какую цену вы считаете справедливой?';
+  String get feedback_q_price_feedback => 'Если нет, какую цену вы считаете справедливой?';
 
   @override
   String get feedback_q_price_free => 'Бесплатно';
@@ -331,8 +319,7 @@ class StringsRu extends Strings {
   String get feedback_q_price_more_20 => 'Больше \$20';
 
   @override
-  String get feedback_q_usage_frequency =>
-      'Как часто вы используете приложение?';
+  String get feedback_q_usage_frequency => 'Как часто вы используете приложение?';
 
   @override
   String get feedback_q_usage_daily => 'Каждый день';
@@ -350,8 +337,7 @@ class StringsRu extends Strings {
   String get feedback_q_usage_rarely => 'Реже';
 
   @override
-  String get feedback_q_main_use_case =>
-      'Для чего вы в основном используете приложение?';
+  String get feedback_q_main_use_case => 'Для чего вы в основном используете приложение?';
 
   @override
   String get feedback_q_use_pixel_art => 'Создание pixel art';
@@ -372,16 +358,13 @@ class StringsRu extends Strings {
   String get feedback_q_use_learning => 'Обучение';
 
   @override
-  String get feedback_q_additional_feedback =>
-      'Дополнительные комментарии и пожелания';
+  String get feedback_q_additional_feedback => 'Дополнительные комментарии и пожелания';
 
   @override
-  String get feedback_q_additional_feedback_placeholder =>
-      'Поделитесь своими мыслями о приложении...';
+  String get feedback_q_additional_feedback_placeholder => 'Поделитесь своими мыслями о приложении...';
 
   @override
-  String get feedback_q_recommend =>
-      'Порекомендуете ли вы это приложение друзьям?';
+  String get feedback_q_recommend => 'Порекомендуете ли вы это приложение друзьям?';
 
   @override
   String get firstFrame => 'Первый кадр';
@@ -415,8 +398,7 @@ class StringsRu extends Strings {
   String get feedback_dialog_benefit_2 => 'Сообщайте о багах и проблемах';
 
   @override
-  String get feedback_dialog_benefit_3 =>
-      'Помогайте формировать будущее приложения';
+  String get feedback_dialog_benefit_3 => 'Помогайте формировать будущее приложения';
 
   @override
   String get feedback_dialog_leave_feedback => 'Оставить отзыв';
@@ -458,8 +440,7 @@ class StringsRu extends Strings {
   String get addToCustomPalette => 'Добавить в пользовательскую палитру';
 
   @override
-  String get noCustomColors =>
-      'Пользовательские цвета еще не добавлены.\nДобавьте цвета с помощью кнопки + выше.';
+  String get noCustomColors => 'Пользовательские цвета еще не добавлены.\nДобавьте цвета с помощью кнопки + выше.';
 
   @override
   String get effects => 'Эффекты';
@@ -517,12 +498,10 @@ class StringsRu extends Strings {
   String get effectIconOutputSize => 'Размер результата';
 
   @override
-  String get effectRequiresPixels =>
-      'Для этого эффекта нужны видимые пиксели или генератор на слое.';
+  String get effectRequiresPixels => 'Для этого эффекта нужны видимые пиксели или генератор на слое.';
 
   @override
-  String get effectRequiresEmptyLayer =>
-      'Генератор можно добавить только на пустой слой.';
+  String get effectRequiresEmptyLayer => 'Генератор можно добавить только на пустой слой.';
 
   @override
   String get effectGeneratorAlreadyAdded => 'На этом слое уже есть генератор.';
@@ -538,12 +517,10 @@ class StringsRu extends Strings {
       'Генератор и все следующие эффекты будут запечены в редактируемые пиксели. Действие можно отменить.';
 
   @override
-  String get proceduralLayerDrawingBlocked =>
-      'Перед рисованием преобразуйте процедурный слой в пиксели.';
+  String get proceduralLayerDrawingBlocked => 'Перед рисованием преобразуйте процедурный слой в пиксели.';
 
   @override
-  String get proceduralLayerConverted =>
-      'Процедурный слой преобразован в редактируемые пиксели.';
+  String get proceduralLayerConverted => 'Процедурный слой преобразован в редактируемые пиксели.';
 
   @override
   String get editorSettings => 'Настройки редактора';
@@ -585,8 +562,7 @@ class StringsRu extends Strings {
   String get transformInterpolation => 'Интерполяция';
 
   @override
-  String get transformInterpolationSubtitle =>
-      'Используется при изменении размера и вращении выделения';
+  String get transformInterpolationSubtitle => 'Используется при изменении размера и вращении выделения';
 
   @override
   String get nearestNeighbor => 'Ближайший сосед';
@@ -601,8 +577,7 @@ class StringsRu extends Strings {
   String get zoomSensitivity => 'Чувствительность масштаба';
 
   @override
-  String get zoomSensitivitySubtitle =>
-      'Как быстро реагирует щипок для масштабирования';
+  String get zoomSensitivitySubtitle => 'Как быстро реагирует щипок для масштабирования';
 
   @override
   String get minZoom => 'Мин. масштаб';
@@ -617,8 +592,7 @@ class StringsRu extends Strings {
   String get twoFingerUndo => 'Отмена касанием двумя пальцами';
 
   @override
-  String get twoFingerUndoSubtitle =>
-      'Быстрое касание двумя пальцами для отмены';
+  String get twoFingerUndoSubtitle => 'Быстрое касание двумя пальцами для отмены';
 
   @override
   String get done => 'Готово';
@@ -627,8 +601,7 @@ class StringsRu extends Strings {
   String get stylusMode => 'Режим стилуса';
 
   @override
-  String get stylusModeSubtitleOn =>
-      'Рисование только стилусом • Касание для навигации';
+  String get stylusModeSubtitleOn => 'Рисование только стилусом • Касание для навигации';
 
   @override
   String get stylusModeSubtitleOff => 'Рисование и пальцем, и стилусом';
@@ -643,15 +616,13 @@ class StringsRu extends Strings {
   String get convertToPixelArt => 'Преобразовать в Pixel Art';
 
   @override
-  String get convertToPixelArtDescription =>
-      'Импорт и автоматическое преобразование в пиксельный стиль на новом слое.';
+  String get convertToPixelArtDescription => 'Импорт и автоматическое преобразование в пиксельный стиль на новом слое.';
 
   @override
   String get importAsBackground => 'Импортировать как фон';
 
   @override
-  String get importAsBackgroundDescription =>
-      'Импорт как есть для использования в качестве фонового слоя.';
+  String get importAsBackgroundDescription => 'Импорт как есть для использования в качестве фонового слоя.';
 
   @override
   String get conversionSettings => 'Настройки конвертации';
@@ -951,8 +922,7 @@ class StringsRu extends Strings {
   String get effectsPanelClearAllEffectsTitle => 'Очистить все эффекты';
 
   @override
-  String get effectsPanelClearAllEffectsMessage =>
-      'Вы уверены, что хотите удалить все эффекты с этого слоя?';
+  String get effectsPanelClearAllEffectsMessage => 'Вы уверены, что хотите удалить все эффекты с этого слоя?';
 
   @override
   String get effectsPanelClearAll => 'Очистить все';
@@ -987,8 +957,7 @@ class StringsRu extends Strings {
   String get autoSelectLayer => 'Авто-выделение';
 
   @override
-  String get autoSelectLayerTooltip =>
-      'Выделить все непустые пиксели текущего слоя';
+  String get autoSelectLayerTooltip => 'Выделить все непустые пиксели текущего слоя';
 
   @override
   String get selectionAnchor => 'Якорь выделения';
@@ -1034,15 +1003,13 @@ class StringsRu extends Strings {
   String get projectNotSyncedToCloud => 'Проект не синхронизирован с облаком';
 
   @override
-  String get pleaseSignInToRemoveCloudProjects =>
-      'Войдите, чтобы удалять проекты из облака';
+  String get pleaseSignInToRemoveCloudProjects => 'Войдите, чтобы удалять проекты из облака';
 
   @override
   String get removingFromCloud => 'Удаление из облака...';
 
   @override
-  String get projectRemovedFromCloudSuccessfully =>
-      'Проект успешно удалён из облака';
+  String get projectRemovedFromCloudSuccessfully => 'Проект успешно удалён из облака';
 
   @override
   String failedToRemoveFromCloud(String error) {
@@ -1180,8 +1147,7 @@ class StringsRu extends Strings {
       'Проект станет видимым для всего сообщества. Все смогут просматривать, лайкать и комментировать его.';
 
   @override
-  String get makeProjectPrivateMessage =>
-      'Проект будет скрыт от сообщества. Видеть его сможете только вы.';
+  String get makeProjectPrivateMessage => 'Проект будет скрыт от сообщества. Видеть его сможете только вы.';
 
   @override
   String get projectWillBePublic => 'Проект будет виден публично';
@@ -1207,15 +1173,13 @@ class StringsRu extends Strings {
   String get makePrivate => 'Сделать приватным';
 
   @override
-  String get deleteProjectCannotBeUndone =>
-      'Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.';
+  String get deleteProjectCannotBeUndone => 'Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.';
 
   @override
   String get thisWillPermanentlyDelete => 'Будет удалено навсегда:';
 
   @override
-  String get deleteProjectConsequences =>
-      '• Данные и арт проекта\n• Все комментарии и лайки\n• Статистика скачиваний';
+  String get deleteProjectConsequences => '• Данные и арт проекта\n• Все комментарии и лайки\n• Статистика скачиваний';
 
   @override
   String typeProjectTitleToConfirmDeletion(String title) {
@@ -1256,23 +1220,19 @@ class StringsRu extends Strings {
   String get report => 'Пожаловаться';
 
   @override
-  String get premiumRequiredToDownloadProjects =>
-      'Для скачивания проектов нужна Premium-подписка';
+  String get premiumRequiredToDownloadProjects => 'Для скачивания проектов нужна Premium-подписка';
 
   @override
   String get upgrade => 'Улучшить';
 
   @override
-  String get downloadProjectRewardSubtitle =>
-      'Чтобы скачать проект, вы можете:';
+  String get downloadProjectRewardSubtitle => 'Чтобы скачать проект, вы можете:';
 
   @override
-  String get thankYouWatchingDownloadStarting =>
-      'Спасибо за просмотр! Скачивание начинается...';
+  String get thankYouWatchingDownloadStarting => 'Спасибо за просмотр! Скачивание начинается...';
 
   @override
-  String get pleaseSignInToAddComments =>
-      'Войдите, чтобы добавлять комментарии';
+  String get pleaseSignInToAddComments => 'Войдите, чтобы добавлять комментарии';
 
   @override
   String get writeYourComment => 'Напишите комментарий...';
@@ -1339,8 +1299,7 @@ class StringsRu extends Strings {
   String get detailedAnalytics => 'Подробная аналитика';
 
   @override
-  String get advancedAnalyticsSoon =>
-      'Расширенная аналитика скоро будет доступна.';
+  String get advancedAnalyticsSoon => 'Расширенная аналитика скоро будет доступна.';
 
   @override
   String get details => 'Детали';
@@ -1355,8 +1314,7 @@ class StringsRu extends Strings {
   String get description => 'Описание';
 
   @override
-  String get projectDescriptionHint =>
-      'Расскажите сообществу об этом проекте (необязательно)';
+  String get projectDescriptionHint => 'Расскажите сообществу об этом проекте (необязательно)';
 
   @override
   String get visibility => 'Видимость';
@@ -1377,8 +1335,7 @@ class StringsRu extends Strings {
   String get removeFromCloudQuestion => 'Удалить из облака?';
 
   @override
-  String get removeFromCommunityMessage =>
-      'Проект будет удалён из сообщества. Локальная копия останется.';
+  String get removeFromCommunityMessage => 'Проект будет удалён из сообщества. Локальная копия останется.';
 
   @override
   String get remove => 'Удалить';
@@ -1538,12 +1495,10 @@ class StringsRu extends Strings {
   String get privateCloudStorage => 'Приватное облачное хранилище';
 
   @override
-  String get otherUsersCanDiscoverTemplate =>
-      'Другие пользователи смогут найти и использовать этот шаблон';
+  String get otherUsersCanDiscoverTemplate => 'Другие пользователи смогут найти и использовать этот шаблон';
 
   @override
-  String get onlyYouCanAccessTemplate =>
-      'Только вы сможете открыть этот шаблон';
+  String get onlyYouCanAccessTemplate => 'Только вы сможете открыть этот шаблон';
 
   @override
   String get saveLocallyAndUpload => 'Сохранить локально и загрузить';
@@ -1558,16 +1513,13 @@ class StringsRu extends Strings {
   String get shareTemplatesWithCommunity => 'Делитесь шаблонами с сообществом';
 
   @override
-  String get failedToConvertLayerToTemplate =>
-      'Не удалось преобразовать слой в шаблон';
+  String get failedToConvertLayerToTemplate => 'Не удалось преобразовать слой в шаблон';
 
   @override
-  String get failedToSaveTemplateLocally =>
-      'Не удалось сохранить шаблон локально';
+  String get failedToSaveTemplateLocally => 'Не удалось сохранить шаблон локально';
 
   @override
-  String get failedToUploadTemplateToServer =>
-      'Не удалось загрузить шаблон на сервер';
+  String get failedToUploadTemplateToServer => 'Не удалось загрузить шаблон на сервер';
 
   @override
   String errorCreatingTemplate(String error) {
@@ -1584,12 +1536,10 @@ class StringsRu extends Strings {
   String get templateSavedAndUploaded => 'Шаблон сохранён локально и загружен!';
 
   @override
-  String get templateSavedUploadFailed =>
-      'Шаблон сохранён локально (загрузка не удалась)';
+  String get templateSavedUploadFailed => 'Шаблон сохранён локально (загрузка не удалась)';
 
   @override
-  String get templateUploadedLocalSaveFailed =>
-      'Шаблон загружен (локальное сохранение не удалось)';
+  String get templateUploadedLocalSaveFailed => 'Шаблон загружен (локальное сохранение не удалось)';
 
   @override
   String get templateCreationFailed => 'Не удалось создать шаблон';
@@ -1607,8 +1557,7 @@ class StringsRu extends Strings {
   String get community => 'Сообщество';
 
   @override
-  String get failedTemplateDetailsCached =>
-      'Не удалось загрузить детали шаблона. Используются кэшированные данные.';
+  String get failedTemplateDetailsCached => 'Не удалось загрузить детали шаблона. Используются кэшированные данные.';
 
   @override
   String errorLoadingTemplate(String error) {
@@ -1627,12 +1576,10 @@ class StringsRu extends Strings {
   }
 
   @override
-  String get deleteLocalTemplateWarning =>
-      'Этот шаблон будет навсегда удалён из локального хранилища.';
+  String get deleteLocalTemplateWarning => 'Этот шаблон будет навсегда удалён из локального хранилища.';
 
   @override
-  String get deleteCloudTemplateWarning =>
-      'Этот шаблон будет удалён из облака без возможности восстановления.';
+  String get deleteCloudTemplateWarning => 'Этот шаблон будет удалён из облака без возможности восстановления.';
 
   @override
   String templateDeletedSuccessfully(String name) {
@@ -1660,8 +1607,7 @@ class StringsRu extends Strings {
   String get premiumTemplatesFeature => '• Premium-шаблоны';
 
   @override
-  String get advancedEffectsToolsFeature =>
-      '• Продвинутые эффекты и инструменты';
+  String get advancedEffectsToolsFeature => '• Продвинутые эффекты и инструменты';
 
   @override
   String get unlimitedProjectsFeature => '• Неограниченные проекты';
@@ -1673,20 +1619,16 @@ class StringsRu extends Strings {
   String get prioritySupportFeature => '• Приоритетная поддержка';
 
   @override
-  String get noLocalTemplates =>
-      'Локальные шаблоны не найдены.\nСоздайте первый шаблон из слоя!';
+  String get noLocalTemplates => 'Локальные шаблоны не найдены.\nСоздайте первый шаблон из слоя!';
 
   @override
-  String get noCommunityTemplates =>
-      'Шаблоны сообщества не найдены.\nПопробуйте изменить поиск или фильтры.';
+  String get noCommunityTemplates => 'Шаблоны сообщества не найдены.\nПопробуйте изменить поиск или фильтры.';
 
   @override
-  String get noUploadedTemplates =>
-      'Вы ещё не загрузили шаблоны.\nПоделитесь своими работами с сообществом!';
+  String get noUploadedTemplates => 'Вы ещё не загрузили шаблоны.\nПоделитесь своими работами с сообществом!';
 
   @override
-  String get noTemplatesFoundAdjust =>
-      'Шаблоны не найдены.\nПопробуйте изменить поиск или фильтры.';
+  String get noTemplatesFoundAdjust => 'Шаблоны не найдены.\nПопробуйте изменить поиск или фильтры.';
 
   @override
   String showingTemplates(int displayed, String total) {
@@ -1713,8 +1655,7 @@ class StringsRu extends Strings {
   String get signInToUploadTemplatesTitle => 'Войдите, чтобы загружать шаблоны';
 
   @override
-  String get signInToUploadTemplatesSubtitle =>
-      'Создайте аккаунт, чтобы делиться шаблонами с сообществом.';
+  String get signInToUploadTemplatesSubtitle => 'Создайте аккаунт, чтобы делиться шаблонами с сообществом.';
 
   @override
   String get myTemplates => 'Мои шаблоны';
@@ -1853,8 +1794,7 @@ class StringsRu extends Strings {
   String get deleteAccountCannotBeUndone => 'Это действие нельзя отменить';
 
   @override
-  String get deleteAccountPermanentDataWarning =>
-      'Удаление аккаунта навсегда удалит все ваши данные.';
+  String get deleteAccountPermanentDataWarning => 'Удаление аккаунта навсегда удалит все ваши данные.';
 
   @override
   String get deleteAccountItemsIntro => 'Будет навсегда удалено:';
@@ -1872,19 +1812,16 @@ class StringsRu extends Strings {
   String get deleteAccountInfoSubtitle => 'Профиль и данные входа';
 
   @override
-  String get deleteAccountTypeConfirm =>
-      'Введите \"DELETE\" для подтверждения:';
+  String get deleteAccountTypeConfirm => 'Введите \"DELETE\" для подтверждения:';
 
   @override
   String get deleteAccountTypeHint => 'Введите DELETE здесь...';
 
   @override
-  String get deleteAccountIrreversibleImmediate =>
-      'Это действие необратимо и вступит в силу сразу.';
+  String get deleteAccountIrreversibleImmediate => 'Это действие необратимо и вступит в силу сразу.';
 
   @override
-  String get deleteAccountQuickConfirm =>
-      'Вы уверены, что хотите навсегда удалить аккаунт?';
+  String get deleteAccountQuickConfirm => 'Вы уверены, что хотите навсегда удалить аккаунт?';
 
   @override
   String get deleteAccountQuickWarningList =>
@@ -1914,12 +1851,10 @@ class StringsRu extends Strings {
   String get tryProOneHour => 'Попробовать Pro на 1 час';
 
   @override
-  String get rewardAdReadyBullets =>
-      '• Посмотрите короткую видеорекламу\n• Получите 1 час Pro-доступа';
+  String get rewardAdReadyBullets => '• Посмотрите короткую видеорекламу\n• Получите 1 час Pro-доступа';
 
   @override
-  String get rewardAdLoadingBullets =>
-      '• Видеореклама загружается...\n• Попробуйте ещё раз через минуту';
+  String get rewardAdLoadingBullets => '• Видеореклама загружается...\n• Попробуйте ещё раз через минуту';
 
   @override
   String get watchAd => 'Смотреть рекламу';
@@ -1934,8 +1869,7 @@ class StringsRu extends Strings {
   String get proAccessGrantedOneHour => '🎉 Pro доступ предоставлен на 1 час!';
 
   @override
-  String get videoAdNotCompleted =>
-      'Видеореклама не была досмотрена. Попробуйте ещё раз.';
+  String get videoAdNotCompleted => 'Видеореклама не была досмотрена. Попробуйте ещё раз.';
 
   @override
   String failedToLoadVideoAd(String error) {
@@ -2046,8 +1980,7 @@ class StringsRu extends Strings {
   String get magicWand => 'Волшебная палочка';
 
   @override
-  String get effectsPanelAllAppliedMessage =>
-      'Все эффекты применены к слою и удалены из списка эффектов';
+  String get effectsPanelAllAppliedMessage => 'Все эффекты применены к слою и удалены из списка эффектов';
 
   @override
   String effectsForLayer(String layerName) {
@@ -2116,8 +2049,7 @@ class StringsRu extends Strings {
   String get effectsAppliedInOrder => 'Эффекты применяются по порядку';
 
   @override
-  String get effectsReorderHint =>
-      'Эффекты применяются сверху вниз. Перетащите, чтобы изменить порядок.';
+  String get effectsReorderHint => 'Эффекты применяются сверху вниз. Перетащите, чтобы изменить порядок.';
 
   @override
   String get addYourFirstEffect => 'Добавьте первый эффект';
@@ -2240,15 +2172,13 @@ class StringsRu extends Strings {
   String get generateNewFrames => 'Создать новые кадры';
 
   @override
-  String get createNewFramesForAnimation =>
-      'Создать новые кадры для этой анимации';
+  String get createNewFramesForAnimation => 'Создать новые кадры для этой анимации';
 
   @override
   String get insertIntoTimeline => 'Вставить в таймлайн';
 
   @override
-  String get addFramesToExistingTimeline =>
-      'Добавить кадры в существующий таймлайн';
+  String get addFramesToExistingTimeline => 'Добавить кадры в существующий таймлайн';
 
   @override
   String get insertPosition => 'Позиция вставки:';
@@ -2265,8 +2195,7 @@ class StringsRu extends Strings {
   String get editParameters => 'Редактировать параметры';
 
   @override
-  String get effectParametersBaseNote =>
-      'Текущие настройки эффекта будут использованы как основа анимации';
+  String get effectParametersBaseNote => 'Текущие настройки эффекта будут использованы как основа анимации';
 
   @override
   String get editBaseParameters => 'Редактировать базовые параметры';
@@ -2282,20 +2211,16 @@ class StringsRu extends Strings {
       'Этот инструмент создаёт несколько кадров анимации, применяя выбранный эффект с разными временными параметрами.\n';
 
   @override
-  String get animationHelpDuration =>
-      '• Длительность: общая длина анимации в секундах';
+  String get animationHelpDuration => '• Длительность: общая длина анимации в секундах';
 
   @override
-  String get animationHelpFps =>
-      '• FPS: кадров в секунду (выше = плавнее, но больше кадров)';
+  String get animationHelpFps => '• FPS: кадров в секунду (выше = плавнее, но больше кадров)';
 
   @override
-  String get animationHelpPingPong =>
-      '• Пинг-понг: воспроизводит вперёд, затем назад';
+  String get animationHelpPingPong => '• Пинг-понг: воспроизводит вперёд, затем назад';
 
   @override
-  String get animationHelpInterpolation =>
-      '• Параметры эффекта интерполируются во времени для плавной анимации';
+  String get animationHelpInterpolation => '• Параметры эффекта интерполируются во времени для плавной анимации';
 
   @override
   String get tips => 'Советы:';
@@ -2304,12 +2229,10 @@ class StringsRu extends Strings {
   String get animationTipLowerFps => '• Для тестов начинайте с меньшего FPS';
 
   @override
-  String get animationTipUsePreview =>
-      '• Используйте предпросмотр перед генерацией';
+  String get animationTipUsePreview => '• Используйте предпросмотр перед генерацией';
 
   @override
-  String get animationTipLongerDurations =>
-      '• Большая длительность лучше подходит для медленных эффектов';
+  String get animationTipLongerDurations => '• Большая длительность лучше подходит для медленных эффектов';
 
   @override
   String effectFrameName(int index) {
@@ -2390,8 +2313,7 @@ class StringsRu extends Strings {
   String get removeBackgroundImage => 'Удалить фоновое изображение';
 
   @override
-  String get removeBackgroundImageMessage =>
-      'Вы уверены, что хотите удалить фоновое изображение?';
+  String get removeBackgroundImageMessage => 'Вы уверены, что хотите удалить фоновое изображение?';
 
   @override
   String get themeSelector => 'Выбор темы';
@@ -2402,8 +2324,7 @@ class StringsRu extends Strings {
   }
 
   @override
-  String get watchAdToUnlockTheme =>
-      'Посмотрите видеорекламу, чтобы разблокировать эту тему.';
+  String get watchAdToUnlockTheme => 'Посмотрите видеорекламу, чтобы разблокировать эту тему.';
 
   @override
   String themeUnlocked(String themeName) {
@@ -2504,8 +2425,7 @@ class StringsRu extends Strings {
   String get unlockPremiumThemes => 'Разблокируйте премиум-темы';
 
   @override
-  String get getAccessToAllThemesWithPro =>
-      'Получите доступ ко всем темам с Pro';
+  String get getAccessToAllThemesWithPro => 'Получите доступ ко всем темам с Pro';
 
   @override
   String get flagship => 'Флагманские';
@@ -2594,8 +2514,7 @@ class StringsRu extends Strings {
   String get columns => 'Столбцы';
 
   @override
-  String get tileModeTooltip =>
-      'Режим плитки - предпросмотр бесшовного повтора';
+  String get tileModeTooltip => 'Режим плитки - предпросмотр бесшовного повтора';
 
   @override
   String get settingsStylusMode => 'Настройки (режим стилуса)';
@@ -2643,8 +2562,7 @@ class StringsRu extends Strings {
   String get cloudToolDescription => 'Рисует облака';
 
   @override
-  String get penToolDescription =>
-      'Продвинутый инструмент свободного рисования';
+  String get penToolDescription => 'Продвинутый инструмент свободного рисования';
 
   @override
   String get rectangleSelectToolDescription => 'Выделяет прямоугольную область';
@@ -2711,12 +2629,10 @@ class StringsRu extends Strings {
   }
 
   @override
-  String get unlockPremiumPixelCreation =>
-      'Откройте премиум-создание пиксель-арта';
+  String get unlockPremiumPixelCreation => 'Откройте премиум-создание пиксель-арта';
 
   @override
-  String get oneTimePurchaseTryAdsFirst =>
-      'Разовая покупка • Без подписки • Сначала попробуйте с рекламой';
+  String get oneTimePurchaseTryAdsFirst => 'Разовая покупка • Без подписки • Сначала попробуйте с рекламой';
 
   @override
   String get featureProjects => 'Проекты';
@@ -2756,8 +2672,7 @@ class StringsRu extends Strings {
   String get basicTools => 'Базовые инструменты';
 
   @override
-  String get advancedToolsEffectsTemplates =>
-      'Продвинутые инструменты, эффекты и шаблоны';
+  String get advancedToolsEffectsTemplates => 'Продвинутые инструменты, эффекты и шаблоны';
 
   @override
   String get pngJpegFormats => 'PNG, JPEG';
@@ -2766,8 +2681,7 @@ class StringsRu extends Strings {
   String get allFormatsVideoGif => 'Все форматы, включая видео и GIF';
 
   @override
-  String get watchAdsForTemporaryAccess =>
-      'Смотрите рекламу для временного доступа';
+  String get watchAdsForTemporaryAccess => 'Смотрите рекламу для временного доступа';
 
   @override
   String get unlimitedAccess => 'Неограниченный доступ';
@@ -2801,8 +2715,7 @@ class StringsRu extends Strings {
   String get privacyPolicy => 'Политика конфиденциальности';
 
   @override
-  String get oneTimePurchaseLifetimeAccess =>
-      'Разовая покупка • Без повторных списаний • Пожизненный доступ';
+  String get oneTimePurchaseLifetimeAccess => 'Разовая покупка • Без повторных списаний • Пожизненный доступ';
 
   @override
   String get continueWithFree => 'Продолжить бесплатно';
@@ -2857,16 +2770,13 @@ class StringsRu extends Strings {
       'Доступ к премиум-инструментам и эффектам • Попробуйте с видеорекламой';
 
   @override
-  String get upgradePromptCloudBackupSubtitle =>
-      'Никогда не теряйте свои пиксельные работы';
+  String get upgradePromptCloudBackupSubtitle => 'Никогда не теряйте свои пиксельные работы';
 
   @override
-  String get upgradePromptNoWatermarkSubtitle =>
-      'Экспортируйте чистые работы без водяных знаков';
+  String get upgradePromptNoWatermarkSubtitle => 'Экспортируйте чистые работы без водяных знаков';
 
   @override
-  String get upgradePromptPrioritySupportSubtitle =>
-      'Получайте более быструю поддержку по любым вопросам';
+  String get upgradePromptPrioritySupportSubtitle => 'Получайте более быструю поддержку по любым вопросам';
 
   @override
   String get plansTitle => 'Тарифы';
@@ -2884,12 +2794,10 @@ class StringsRu extends Strings {
   String get proPlanDescription => 'Все инструменты и функции, разовая покупка';
 
   @override
-  String get ultimatePlanDescription =>
-      'Всё навсегда, включая будущие паки эффектов';
+  String get ultimatePlanDescription => 'Всё навсегда, включая будущие паки эффектов';
 
   @override
-  String get ultimateUpgradeDescription =>
-      'Улучшите Pro и откройте всё навсегда';
+  String get ultimateUpgradeDescription => 'Улучшите Pro и откройте всё навсегда';
 
   @override
   String get offerStarterEffects => 'Стартовые эффекты из каждой категории';
@@ -2929,8 +2837,7 @@ class StringsRu extends Strings {
   String get ultimateOwnedSubtitle => 'Всё открыто. Спасибо за поддержку!';
 
   @override
-  String get proOwnedSubtitle =>
-      'Перейдите на Ultimate, чтобы получить все паки эффектов и облачную синхронизацию.';
+  String get proOwnedSubtitle => 'Перейдите на Ultimate, чтобы получить все паки эффектов и облачную синхронизацию.';
 
   @override
   String get planComparisonTitle => 'Сравнение тарифов';
@@ -2961,8 +2868,7 @@ class StringsRu extends Strings {
   String get viewPlans => 'Посмотреть тарифы';
 
   @override
-  String get promoBannerSubtitle =>
-      'Все инструменты, безлимитные проекты и паки эффектов';
+  String get promoBannerSubtitle => 'Все инструменты, безлимитные проекты и паки эффектов';
 
   @override
   String get effectStoreTitle => 'Магазин эффектов';
@@ -2985,8 +2891,7 @@ class StringsRu extends Strings {
   String get effectStoreUltimateTitle => 'Все паки сразу — в Ultimate';
 
   @override
-  String get effectStoreUltimateSubtitle =>
-      'Включая будущие паки, облачную синхронизацию и все функции Pro';
+  String get effectStoreUltimateSubtitle => 'Включая будущие паки, облачную синхронизацию и все функции Pro';
 
   @override
   String get effectStoreAllUnlocked => 'Все паки эффектов открыты';
@@ -3017,50 +2922,43 @@ class StringsRu extends Strings {
   String get packNameBasicFilters => 'Базовые фильтры';
 
   @override
-  String get packDescBasicFilters =>
-      'Размытие, резкость, дизеринг, палитры и ретро-экраны';
+  String get packDescBasicFilters => 'Размытие, резкость, дизеринг, палитры и ретро-экраны';
 
   @override
   String get packNameArtistic => 'Художественные стили';
 
   @override
-  String get packDescArtistic =>
-      'Акварель, масло, гравюра, комиксы и печатные техники';
+  String get packDescArtistic => 'Акварель, масло, гравюра, комиксы и печатные техники';
 
   @override
   String get packNameMaterials => 'Материалы и текстуры';
 
   @override
-  String get packDescMaterials =>
-      'Дерево, металл, камень, лёд, ржавчина и другие поверхности';
+  String get packDescMaterials => 'Дерево, металл, камень, лёд, ржавчина и другие поверхности';
 
   @override
   String get packNameWorldGenerators => 'Генераторы миров';
 
   @override
-  String get packDescWorldGenerators =>
-      'Горы, леса, океаны, города и подземелья в одно касание';
+  String get packDescWorldGenerators => 'Горы, леса, океаны, города и подземелья в одно касание';
 
   @override
   String get packNameLightingDistortion => 'Свет и искажения';
 
   @override
-  String get packDescLightingDistortion =>
-      'Лучи света, сияния, ореолы, глитчи и размытие движения';
+  String get packDescLightingDistortion => 'Лучи света, сияния, ореолы, глитчи и размытие движения';
 
   @override
   String get packNameMotion => 'Движение';
 
   @override
-  String get packDescMotion =>
-      'Пульсация, волна, парение, тряска, растворение и другие анимации';
+  String get packDescMotion => 'Пульсация, волна, парение, тряска, растворение и другие анимации';
 
   @override
   String get packNameVfxNature => 'VFX: природа и погода';
 
   @override
-  String get packDescVfxNature =>
-      'Огонь, дождь, снег, водопады, светлячки и слизь';
+  String get packDescVfxNature => 'Огонь, дождь, снег, водопады, светлячки и слизь';
 
   @override
   String get packNameVfxMagic => 'VFX: магия и тёмное фэнтези';
@@ -3072,8 +2970,7 @@ class StringsRu extends Strings {
   String get packNameVfxAction => 'VFX: экшен и фантастика';
 
   @override
-  String get packDescVfxAction =>
-      'Взрывы, молнии, щиты, двигатели и эффекты ударов';
+  String get packDescVfxAction => 'Взрывы, молнии, щиты, двигатели и эффекты ударов';
 
   @override
   String get storeTabPacks => 'Паки';
@@ -3132,8 +3029,7 @@ class StringsRu extends Strings {
   }
 
   @override
-  String get notEnoughCoins =>
-      'Недостаточно кристаллов. Выполняйте задания, чтобы заработать.';
+  String get notEnoughCoins => 'Недостаточно кристаллов. Выполняйте задания, чтобы заработать.';
 
   @override
   String unlockEffectConfirm(String effect, int coins) {
@@ -3168,8 +3064,7 @@ class StringsRu extends Strings {
   String get unlockAction => 'Открыть';
 
   @override
-  String get walletTooltip =>
-      'Ваши кристаллы — зарабатывайте их, выполняя задания';
+  String get walletTooltip => 'Ваши кристаллы — зарабатывайте их, выполняя задания';
 
   @override
   String questProjectCreated(int count) {
@@ -3410,8 +3305,7 @@ class StringsRu extends Strings {
   String get challengeHowToJoin => 'Как участвовать';
 
   @override
-  String get challengeJoinSteps =>
-      'Нарисуйте работу на тему и опубликуйте её в сообществе с этим тегом.';
+  String get challengeJoinSteps => 'Нарисуйте работу на тему и опубликуйте её в сообществе с этим тегом.';
 
   @override
   String get challengeCopyTag => 'Скопировать тег';
@@ -3440,12 +3334,10 @@ class StringsRu extends Strings {
   String get challengeTagsLabel => 'Участвовать в челлендже';
 
   @override
-  String get challengeEntryPublicOnly =>
-      'Участвовать в челленджах могут только публичные проекты.';
+  String get challengeEntryPublicOnly => 'Участвовать в челленджах могут только публичные проекты.';
 
   @override
-  String get challengeEntryOldProjectHint =>
-      'Проекты, впервые опубликованные до начала челленджа, в нём не участвуют.';
+  String get challengeEntryOldProjectHint => 'Проекты, впервые опубликованные до начала челленджа, в нём не участвуют.';
 
   @override
   String challengeStartsIn(String time) {
@@ -3483,8 +3375,7 @@ class StringsRu extends Strings {
   }
 
   @override
-  String get challengeRuleStartsAfter =>
-      'Только проекты, впервые опубликованные после начала челленджа';
+  String get challengeRuleStartsAfter => 'Только проекты, впервые опубликованные после начала челленджа';
 
   @override
   String challengeRuleRequiredPack(String pack) {
@@ -3561,8 +3452,7 @@ class StringsRu extends Strings {
   }
 
   @override
-  String get challengeWarningNotEligible =>
-      'Ваш аккаунт сейчас не может участвовать в челленджах.';
+  String get challengeWarningNotEligible => 'Ваш аккаунт сейчас не может участвовать в челленджах.';
 
   @override
   String serverRewardGems(int gems) {
@@ -3598,16 +3488,13 @@ class StringsRu extends Strings {
   String get challengeCompetition => 'Соревнование';
 
   @override
-  String get challengeRuleCompetition =>
-      'Соревнование: победителей выберут после окончания';
+  String get challengeRuleCompetition => 'Соревнование: победителей выберут после окончания';
 
   @override
-  String get challengeRuleNoWinners =>
-      'Без победителей: награду получает каждая принятая работа';
+  String get challengeRuleNoWinners => 'Без победителей: награду получает каждая принятая работа';
 
   @override
-  String get challengeRuleJustForFun =>
-      'Без победителей и наград, просто для удовольствия';
+  String get challengeRuleJustForFun => 'Без победителей и наград, просто для удовольствия';
 
   @override
   String get challengeAcceptedEntryReward => 'За принятую работу';
@@ -3625,19 +3512,16 @@ class StringsRu extends Strings {
   String get challengeRewardPrize => 'Приз';
 
   @override
-  String get challengeRewardAfterReview =>
-      'Вы получите её, когда работу примут';
+  String get challengeRewardAfterReview => 'Вы получите её, когда работу примут';
 
   @override
-  String get challengeRewardAfterResults =>
-      'Начислим, когда объявят победителей';
+  String get challengeRewardAfterResults => 'Начислим, когда объявят победителей';
 
   @override
   String get challengeRewardSoon => 'Уже в пути, загляните через минуту';
 
   @override
-  String get challengeRewardClaimFailed =>
-      'Не удалось забрать награду. Попробуйте ещё раз.';
+  String get challengeRewardClaimFailed => 'Не удалось забрать награду. Попробуйте ещё раз.';
 
   @override
   String get feedback_chat_title => 'Ваш отзыв';
@@ -3659,15 +3543,13 @@ class StringsRu extends Strings {
   String get feedback_chat_send => 'Отправить';
 
   @override
-  String get feedback_chat_closed =>
-      'Этот разговор закрыт. Новое сообщение откроет его снова.';
+  String get feedback_chat_closed => 'Этот разговор закрыт. Новое сообщение откроет его снова.';
 
   @override
   String get feedback_chat_load_failed => 'Не удалось загрузить сообщения';
 
   @override
-  String get feedback_chat_send_failed =>
-      'Не удалось отправить сообщение. Попробуйте ещё раз.';
+  String get feedback_chat_send_failed => 'Не удалось отправить сообщение. Попробуйте ещё раз.';
 
   @override
   String get feedback_chat_team => 'Команда Picell';
@@ -3682,8 +3564,7 @@ class StringsRu extends Strings {
   String get deleteAlsoFromCloud => 'Удалить и из сообщества';
 
   @override
-  String get deleteAlsoFromCloudHint =>
-      'Опубликованная версия будет удалена вместе с лайками и комментариями.';
+  String get deleteAlsoFromCloudHint => 'Опубликованная версия будет удалена вместе с лайками и комментариями.';
 
   @override
   String questFillUsed(int count) {
@@ -3755,8 +3636,7 @@ class StringsRu extends Strings {
   String get questBonusTitle => 'Бонусное задание';
 
   @override
-  String get questBonusHint =>
-      'Необязательно: немного больше усилий — немного больше награды';
+  String get questBonusHint => 'Необязательно: немного больше усилий — немного больше награды';
 
   @override
   String get dailyBonusTitle => 'Все три выполнены';
@@ -3787,8 +3667,7 @@ class StringsRu extends Strings {
   }
 
   @override
-  String get loginCycleGrace =>
-      'Пропустили день? Один пропуск в неделю не прервёт серию.';
+  String get loginCycleGrace => 'Пропустили день? Один пропуск в неделю не прервёт серию.';
 
   @override
   String questDailyQuestClaimed(int count) {
@@ -3823,8 +3702,7 @@ class StringsRu extends Strings {
   String get weeklyBonusTitle => 'Все задания недели выполнены';
 
   @override
-  String get weeklyBonusHint =>
-      'Заберите все три задания недели и получите бонус';
+  String get weeklyBonusHint => 'Заберите все три задания недели и получите бонус';
 
   @override
   String get welcomeBackTitle => 'С возвращением!';
@@ -3854,8 +3732,7 @@ class StringsRu extends Strings {
   String get savingsGoalReady => 'Хватает — открывайте!';
 
   @override
-  String get savingsGoalNoPace =>
-      'Выполните несколько заданий, чтобы увидеть срок';
+  String get savingsGoalNoPace => 'Выполните несколько заданий, чтобы увидеть срок';
 
   @override
   String get savingsGoalPick => 'Выберите пак, на который копить';
@@ -3876,4 +3753,89 @@ class StringsRu extends Strings {
 
   @override
   String get packFirstDiscount => 'Первый пак −40%';
+
+  @override
+  String get featured => 'Избранное';
+
+  @override
+  String get forks => 'Форки';
+
+  @override
+  String forksCount(int count) {
+    return 'Форки ($count)';
+  }
+
+  @override
+  String moreByUser(String username) {
+    return 'Ещё от $username';
+  }
+
+  @override
+  String get unknownArtist => 'Неизвестный автор';
+
+  @override
+  String shareProjectMessage(String title, String author) {
+    return 'Посмотрите этот потрясающий проект пиксель-арта: $title\nАвтор: $author';
+  }
+
+  @override
+  String relativeMonthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count месяца назад',
+      many: '$count месяцев назад',
+      few: '$count месяца назад',
+      one: '$count месяц назад',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count дня назад',
+      many: '$count дней назад',
+      few: '$count дня назад',
+      one: '$count день назад',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count часа назад',
+      many: '$count часов назад',
+      few: '$count часа назад',
+      one: '$count час назад',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count минуты назад',
+      many: '$count минут назад',
+      few: '$count минуты назад',
+      one: '$count минуту назад',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get remixProject => 'Ремикс';
+
+  @override
+  String get previousProject => 'Предыдущий проект';
+
+  @override
+  String get nextProject => 'Следующий проект';
 }

@@ -127,8 +127,7 @@ class StringsKy extends Strings {
   String get deleteProject => 'Проектти өчүрүү';
 
   @override
-  String get areYouSureWantToDeleteProject =>
-      'Бул проектти өчүрүүнү каалайсызбы?';
+  String get areYouSureWantToDeleteProject => 'Бул проектти өчүрүүнү каалайсызбы?';
 
   @override
   String get renameProject => 'Проекттин атын өзгөртүү';
@@ -176,8 +175,7 @@ class StringsKy extends Strings {
   String get deleteLayer => 'Катмарды өчүрүү';
 
   @override
-  String get areYouSureWantToDeleteLayer =>
-      'Бул катмарды өчүрүүнү каалайсызбы?';
+  String get areYouSureWantToDeleteLayer => 'Бул катмарды өчүрүүнү каалайсызбы?';
 
   @override
   String get newProject => 'Жаңы проект';
@@ -216,8 +214,7 @@ class StringsKy extends Strings {
   String get signInToContinue => 'Улантуу үчүн кириңиз';
 
   @override
-  String get signInToSyncProjects =>
-      'Проекттерди синхрондоштуруу үчүн кириңиз.';
+  String get signInToSyncProjects => 'Проекттерди синхрондоштуруу үчүн кириңиз.';
 
   @override
   String get signingIn => 'Кирүү...';
@@ -269,8 +266,7 @@ class StringsKy extends Strings {
   String get feedback_send => 'Жөнөтүү';
 
   @override
-  String get feedback_validation_error =>
-      'Сураныч, милдеттүү суроолорго жооп бериңиз';
+  String get feedback_validation_error => 'Сураныч, милдеттүү суроолорго жооп бериңиз';
 
   @override
   String get feedback_very_poor => 'Өтө начар';
@@ -294,23 +290,19 @@ class StringsKy extends Strings {
   String get feedback_q_missing_features => 'Кандай функциялар жетишпейт?';
 
   @override
-  String get feedback_q_missing_features_placeholder =>
-      'Көргүңүз келген функцияларды сүрөттөп бериңиз...';
+  String get feedback_q_missing_features_placeholder => 'Көргүңүз келген функцияларды сүрөттөп бериңиз...';
 
   @override
   String get feedback_q_bug_reports => 'Ката же үзгүлтүктөргө кабылдыңызбы?';
 
   @override
-  String get feedback_q_bug_reports_placeholder =>
-      'Кабылган көйгөйлөрдү сүрөттөп бериңиз...';
+  String get feedback_q_bug_reports_placeholder => 'Кабылган көйгөйлөрдү сүрөттөп бериңиз...';
 
   @override
-  String get feedback_q_price_satisfaction =>
-      'Учурдагы тиркеменин баасынан канааттанасызбы?';
+  String get feedback_q_price_satisfaction => 'Учурдагы тиркеменин баасынан канааттанасызбы?';
 
   @override
-  String get feedback_q_price_feedback =>
-      'Эгер жок болсо, кандай баа адилет деп ойлойсуз?';
+  String get feedback_q_price_feedback => 'Эгер жок болсо, кандай баа адилет деп ойлойсуз?';
 
   @override
   String get feedback_q_price_free => 'Акысыз';
@@ -346,8 +338,7 @@ class StringsKy extends Strings {
   String get feedback_q_usage_rarely => 'Сейрек';
 
   @override
-  String get feedback_q_main_use_case =>
-      'Тиркемени негизинен эмне үчүн колдоносуз?';
+  String get feedback_q_main_use_case => 'Тиркемени негизинен эмне үчүн колдоносуз?';
 
   @override
   String get feedback_q_use_pixel_art => 'Пиксель-арт түзүү';
@@ -368,16 +359,13 @@ class StringsKy extends Strings {
   String get feedback_q_use_learning => 'Окуу';
 
   @override
-  String get feedback_q_additional_feedback =>
-      'Кошумча комментарийлер жана каалоолор';
+  String get feedback_q_additional_feedback => 'Кошумча комментарийлер жана каалоолор';
 
   @override
-  String get feedback_q_additional_feedback_placeholder =>
-      'Тиркеме жөнүндө ойлоруңуз менен бөлүшүңүз...';
+  String get feedback_q_additional_feedback_placeholder => 'Тиркеме жөнүндө ойлоруңуз менен бөлүшүңүз...';
 
   @override
-  String get feedback_q_recommend =>
-      'Бул тиркемени досторуңузга сунуштайсызбы?';
+  String get feedback_q_recommend => 'Бул тиркемени досторуңузга сунуштайсызбы?';
 
   @override
   String get firstFrame => 'Биринчи кадр';
@@ -405,16 +393,13 @@ class StringsKy extends Strings {
       'Сиздин пикириңиз маанилүү! Ой-пикириңизди бөлүшүп, колдонмону жакшыртууга жардам бериңиз.';
 
   @override
-  String get feedback_dialog_benefit_1 =>
-      'Жаңы функциялар боюнча идеяларды бөлүшүңүз';
+  String get feedback_dialog_benefit_1 => 'Жаңы функциялар боюнча идеяларды бөлүшүңүз';
 
   @override
-  String get feedback_dialog_benefit_2 =>
-      'Каталарды жана көйгөйлөрдү билдириңиз';
+  String get feedback_dialog_benefit_2 => 'Каталарды жана көйгөйлөрдү билдириңиз';
 
   @override
-  String get feedback_dialog_benefit_3 =>
-      'Колдонмонун келечегин калыптандырууга жардам бериңиз';
+  String get feedback_dialog_benefit_3 => 'Колдонмонун келечегин калыптандырууга жардам бериңиз';
 
   @override
   String get feedback_dialog_leave_feedback => 'Пикир калтыруу';
@@ -456,8 +441,7 @@ class StringsKy extends Strings {
   String get addToCustomPalette => 'Өзгөчө палитрага кошуу';
 
   @override
-  String get noCustomColors =>
-      'Өзгөчө түстөр али кошула элек.\nЖогорудагы + баскычын колдонуп түстөрдү кошуңуз.';
+  String get noCustomColors => 'Өзгөчө түстөр али кошула элек.\nЖогорудагы + баскычын колдонуп түстөрдү кошуңуз.';
 
   @override
   String get effects => 'Эффекттер';
@@ -515,35 +499,29 @@ class StringsKy extends Strings {
   String get effectIconOutputSize => 'Натыйжа өлчөмү';
 
   @override
-  String get effectRequiresPixels =>
-      'Бул эффект үчүн катмарда көрүнгөн пикселдер же генератор болушу керек.';
+  String get effectRequiresPixels => 'Бул эффект үчүн катмарда көрүнгөн пикселдер же генератор болушу керек.';
 
   @override
-  String get effectRequiresEmptyLayer =>
-      'Генераторду бош катмарга гана кошууга болот.';
+  String get effectRequiresEmptyLayer => 'Генераторду бош катмарга гана кошууга болот.';
 
   @override
-  String get effectGeneratorAlreadyAdded =>
-      'Бул катмарда генератор мурунтан эле бар.';
+  String get effectGeneratorAlreadyAdded => 'Бул катмарда генератор мурунтан эле бар.';
 
   @override
   String get convertToPixels => 'Пикселдерге айландыруу';
 
   @override
-  String get convertProceduralLayerTitle =>
-      'Процедуралык катмар айландырылсынбы?';
+  String get convertProceduralLayerTitle => 'Процедуралык катмар айландырылсынбы?';
 
   @override
   String get convertProceduralLayerMessage =>
       'Генератор жана андан кийинки бардык эффекттер түзөтүлүүчү пикселдерге айландырылат. Бул аракетти артка кайтарууга болот.';
 
   @override
-  String get proceduralLayerDrawingBlocked =>
-      'Сүрөт тартуудан мурун процедуралык катмарды пикселдерге айландырыңыз.';
+  String get proceduralLayerDrawingBlocked => 'Сүрөт тартуудан мурун процедуралык катмарды пикселдерге айландырыңыз.';
 
   @override
-  String get proceduralLayerConverted =>
-      'Процедуралык катмар эми түзөтүлүүчү пикселдерге айланды.';
+  String get proceduralLayerConverted => 'Процедуралык катмар эми түзөтүлүүчү пикселдерге айланды.';
 
   @override
   String get editorSettings => 'Редактор жөндөөлөрү';
@@ -585,8 +563,7 @@ class StringsKy extends Strings {
   String get transformInterpolation => 'Интерполяция';
 
   @override
-  String get transformInterpolationSubtitle =>
-      'Тандоонун өлчөмүн өзгөртүүдө жана айлантууда колдонулат';
+  String get transformInterpolationSubtitle => 'Тандоонун өлчөмүн өзгөртүүдө жана айлантууда колдонулат';
 
   @override
   String get nearestNeighbor => 'Жакынкы коңшу';
@@ -616,8 +593,7 @@ class StringsKy extends Strings {
   String get twoFingerUndo => 'Эки манжа менен артка кайтаруу';
 
   @override
-  String get twoFingerUndoSubtitle =>
-      'Артка кайтаруу үчүн эки манжа менен тез тийүү';
+  String get twoFingerUndoSubtitle => 'Артка кайтаруу үчүн эки манжа менен тез тийүү';
 
   @override
   String get done => 'Даяр';
@@ -626,8 +602,7 @@ class StringsKy extends Strings {
   String get stylusMode => 'Стилус режими';
 
   @override
-  String get stylusModeSubtitleOn =>
-      'Стилус менен гана тартуу • Жылдыруу үчүн тийүү';
+  String get stylusModeSubtitleOn => 'Стилус менен гана тартуу • Жылдыруу үчүн тийүү';
 
   @override
   String get stylusModeSubtitleOff => 'Тийүү жана стилус менен тартуу';
@@ -950,8 +925,7 @@ class StringsKy extends Strings {
   String get effectsPanelClearAllEffectsTitle => 'Бардык эффекттерди тазалоо';
 
   @override
-  String get effectsPanelClearAllEffectsMessage =>
-      'Бул катмардан бардык эффекттерди алып салгыңыз келеби?';
+  String get effectsPanelClearAllEffectsMessage => 'Бул катмардан бардык эффекттерди алып салгыңыз келеби?';
 
   @override
   String get effectsPanelClearAll => 'Баарын тазалоо';
@@ -986,8 +960,7 @@ class StringsKy extends Strings {
   String get autoSelectLayer => 'Авто-тандоо';
 
   @override
-  String get autoSelectLayerTooltip =>
-      'Учурдагы катмардын бардык бош эмес пикселдерин тандоо';
+  String get autoSelectLayerTooltip => 'Учурдагы катмардын бардык бош эмес пикселдерин тандоо';
 
   @override
   String get selectionAnchor => 'Тандоо якору';
@@ -1033,15 +1006,13 @@ class StringsKy extends Strings {
   String get projectNotSyncedToCloud => 'Долбоор булут менен шайкештешкен эмес';
 
   @override
-  String get pleaseSignInToRemoveCloudProjects =>
-      'Булуттагы долбоорду өчүрүү үчүн кириңиз';
+  String get pleaseSignInToRemoveCloudProjects => 'Булуттагы долбоорду өчүрүү үчүн кириңиз';
 
   @override
   String get removingFromCloud => 'Булуттан өчүрүлүүдө...';
 
   @override
-  String get projectRemovedFromCloudSuccessfully =>
-      'Долбоор булуттан ийгиликтүү өчүрүлдү';
+  String get projectRemovedFromCloudSuccessfully => 'Долбоор булуттан ийгиликтүү өчүрүлдү';
 
   @override
   String failedToRemoveFromCloud(String error) {
@@ -1179,8 +1150,7 @@ class StringsKy extends Strings {
       'Долбооруңуз коомчулукка көрүнөт. Баары көрүп, жактырып жана комментарий бере алат.';
 
   @override
-  String get makeProjectPrivateMessage =>
-      'Долбоор коомчулуктан жашырылат. Аны сиз гана көрө аласыз.';
+  String get makeProjectPrivateMessage => 'Долбоор коомчулуктан жашырылат. Аны сиз гана көрө аласыз.';
 
   @override
   String get projectWillBePublic => 'Долбоор ачык көрүнөт';
@@ -1255,8 +1225,7 @@ class StringsKy extends Strings {
   String get report => 'Арыздануу';
 
   @override
-  String get premiumRequiredToDownloadProjects =>
-      'Долбоорлорду жүктөө үчүн Premium жазылуу керек';
+  String get premiumRequiredToDownloadProjects => 'Долбоорлорду жүктөө үчүн Premium жазылуу керек';
 
   @override
   String get upgrade => 'Жаңыртуу';
@@ -1265,8 +1234,7 @@ class StringsKy extends Strings {
   String get downloadProjectRewardSubtitle => 'Бул долбоорду жүктөө үчүн сиз:';
 
   @override
-  String get thankYouWatchingDownloadStarting =>
-      'Көргөнүңүз үчүн рахмат! Жүктөө башталууда...';
+  String get thankYouWatchingDownloadStarting => 'Көргөнүңүз үчүн рахмат! Жүктөө башталууда...';
 
   @override
   String get pleaseSignInToAddComments => 'Комментарий кошуу үчүн кириңиз';
@@ -1336,8 +1304,7 @@ class StringsKy extends Strings {
   String get detailedAnalytics => 'Толук аналитика';
 
   @override
-  String get advancedAnalyticsSoon =>
-      'Кеңейтилген аналитика жакында жеткиликтүү болот.';
+  String get advancedAnalyticsSoon => 'Кеңейтилген аналитика жакында жеткиликтүү болот.';
 
   @override
   String get details => 'Маалыматтар';
@@ -1352,8 +1319,7 @@ class StringsKy extends Strings {
   String get description => 'Сүрөттөмө';
 
   @override
-  String get projectDescriptionHint =>
-      'Бул долбоор тууралуу коомчулукка айтып бериңиз (милдеттүү эмес)';
+  String get projectDescriptionHint => 'Бул долбоор тууралуу коомчулукка айтып бериңиз (милдеттүү эмес)';
 
   @override
   String get visibility => 'Көрүнүмдүүлүк';
@@ -1374,8 +1340,7 @@ class StringsKy extends Strings {
   String get removeFromCloudQuestion => 'Булуттан өчүрүлсүнбү?';
 
   @override
-  String get removeFromCommunityMessage =>
-      'Бул долбоор коомчулуктан өчүрүлөт. Жергиликтүү көчүрмө калат.';
+  String get removeFromCommunityMessage => 'Бул долбоор коомчулуктан өчүрүлөт. Жергиликтүү көчүрмө калат.';
 
   @override
   String get remove => 'Өчүрүү';
@@ -1535,8 +1500,7 @@ class StringsKy extends Strings {
   String get privateCloudStorage => 'Жеке булут сактагычы';
 
   @override
-  String get otherUsersCanDiscoverTemplate =>
-      'Башка колдонуучулар бул шаблонду таап колдоно алышат';
+  String get otherUsersCanDiscoverTemplate => 'Башка колдонуучулар бул шаблонду таап колдоно алышат';
 
   @override
   String get onlyYouCanAccessTemplate => 'Бул шаблон сизге гана жеткиликтүү';
@@ -1551,20 +1515,16 @@ class StringsKy extends Strings {
   String get signInToUploadTemplates => 'Шаблон жүктөө үчүн кириңиз';
 
   @override
-  String get shareTemplatesWithCommunity =>
-      'Шаблондоруңузду коомчулук менен бөлүшүңүз';
+  String get shareTemplatesWithCommunity => 'Шаблондоруңузду коомчулук менен бөлүшүңүз';
 
   @override
-  String get failedToConvertLayerToTemplate =>
-      'Катмарды шаблонго айлантуу ишке ашкан жок';
+  String get failedToConvertLayerToTemplate => 'Катмарды шаблонго айлантуу ишке ашкан жок';
 
   @override
-  String get failedToSaveTemplateLocally =>
-      'Шаблонду жергиликтүү сактоо ишке ашкан жок';
+  String get failedToSaveTemplateLocally => 'Шаблонду жергиликтүү сактоо ишке ашкан жок';
 
   @override
-  String get failedToUploadTemplateToServer =>
-      'Шаблонду серверге жүктөө ишке ашкан жок';
+  String get failedToUploadTemplateToServer => 'Шаблонду серверге жүктөө ишке ашкан жок';
 
   @override
   String errorCreatingTemplate(String error) {
@@ -1578,16 +1538,13 @@ class StringsKy extends Strings {
   String get templateUploadedSuccessfully => 'Шаблон ийгиликтүү жүктөлдү!';
 
   @override
-  String get templateSavedAndUploaded =>
-      'Шаблон жергиликтүү сакталып, жүктөлдү!';
+  String get templateSavedAndUploaded => 'Шаблон жергиликтүү сакталып, жүктөлдү!';
 
   @override
-  String get templateSavedUploadFailed =>
-      'Шаблон жергиликтүү сакталды (жүктөө ишке ашкан жок)';
+  String get templateSavedUploadFailed => 'Шаблон жергиликтүү сакталды (жүктөө ишке ашкан жок)';
 
   @override
-  String get templateUploadedLocalSaveFailed =>
-      'Шаблон жүктөлдү (жергиликтүү сактоо ишке ашкан жок)';
+  String get templateUploadedLocalSaveFailed => 'Шаблон жүктөлдү (жергиликтүү сактоо ишке ашкан жок)';
 
   @override
   String get templateCreationFailed => 'Шаблон түзүү ишке ашкан жок';
@@ -1605,8 +1562,7 @@ class StringsKy extends Strings {
   String get community => 'Коомчулук';
 
   @override
-  String get failedTemplateDetailsCached =>
-      'Шаблон маалыматын жүктөө ишке ашкан жок. Кэштеги маалымат колдонулат.';
+  String get failedTemplateDetailsCached => 'Шаблон маалыматын жүктөө ишке ашкан жок. Кэштеги маалымат колдонулат.';
 
   @override
   String errorLoadingTemplate(String error) {
@@ -1625,12 +1581,10 @@ class StringsKy extends Strings {
   }
 
   @override
-  String get deleteLocalTemplateWarning =>
-      'Бул шаблон жергиликтүү сактагычтан түбөлүк өчүрүлөт.';
+  String get deleteLocalTemplateWarning => 'Бул шаблон жергиликтүү сактагычтан түбөлүк өчүрүлөт.';
 
   @override
-  String get deleteCloudTemplateWarning =>
-      'Бул шаблон булуттан өчүрүлүп, калыбына келтирилбейт.';
+  String get deleteCloudTemplateWarning => 'Бул шаблон булуттан өчүрүлүп, калыбына келтирилбейт.';
 
   @override
   String templateDeletedSuccessfully(String name) {
@@ -1652,15 +1606,13 @@ class StringsKy extends Strings {
   String get premiumTemplate => 'Premium шаблон';
 
   @override
-  String get templateAvailableInPro =>
-      'Бул шаблон Pro версиясында жеткиликтүү.';
+  String get templateAvailableInPro => 'Бул шаблон Pro версиясында жеткиликтүү.';
 
   @override
   String get premiumTemplatesFeature => '• Premium шаблондор';
 
   @override
-  String get advancedEffectsToolsFeature =>
-      '• Кеңейтилген эффекттер жана куралдар';
+  String get advancedEffectsToolsFeature => '• Кеңейтилген эффекттер жана куралдар';
 
   @override
   String get unlimitedProjectsFeature => '• Чексиз долбоорлор';
@@ -1672,20 +1624,16 @@ class StringsKy extends Strings {
   String get prioritySupportFeature => '• Артыкчылыктуу колдоо';
 
   @override
-  String get noLocalTemplates =>
-      'Жергиликтүү шаблондор табылган жок.\nБиринчи шаблонуңузду катмардан түзүңүз!';
+  String get noLocalTemplates => 'Жергиликтүү шаблондор табылган жок.\nБиринчи шаблонуңузду катмардан түзүңүз!';
 
   @override
-  String get noCommunityTemplates =>
-      'Коомчулук шаблондору табылган жок.\nИздөөнү же фильтрлерди өзгөртүп көрүңүз.';
+  String get noCommunityTemplates => 'Коомчулук шаблондору табылган жок.\nИздөөнү же фильтрлерди өзгөртүп көрүңүз.';
 
   @override
-  String get noUploadedTemplates =>
-      'Сиз азырынча шаблон жүктөгөн жоксуз.\nЖаратмаларыңызды коомчулук менен бөлүшүңүз!';
+  String get noUploadedTemplates => 'Сиз азырынча шаблон жүктөгөн жоксуз.\nЖаратмаларыңызды коомчулук менен бөлүшүңүз!';
 
   @override
-  String get noTemplatesFoundAdjust =>
-      'Шаблондор табылган жок.\nИздөөнү же фильтрлерди өзгөртүп көрүңүз.';
+  String get noTemplatesFoundAdjust => 'Шаблондор табылган жок.\nИздөөнү же фильтрлерди өзгөртүп көрүңүз.';
 
   @override
   String showingTemplates(int displayed, String total) {
@@ -1712,8 +1660,7 @@ class StringsKy extends Strings {
   String get signInToUploadTemplatesTitle => 'Шаблон жүктөө үчүн кириңиз';
 
   @override
-  String get signInToUploadTemplatesSubtitle =>
-      'Шаблондоруңузду коомчулук менен бөлүшүү үчүн аккаунт түзүңүз.';
+  String get signInToUploadTemplatesSubtitle => 'Шаблондоруңузду коомчулук менен бөлүшүү үчүн аккаунт түзүңүз.';
 
   @override
   String get myTemplates => 'Менин шаблондорум';
@@ -1849,12 +1796,10 @@ class StringsKy extends Strings {
   String get newLayer => 'Жаңы катмар';
 
   @override
-  String get deleteAccountCannotBeUndone =>
-      'Бул аракетти артка кайтарууга болбойт';
+  String get deleteAccountCannotBeUndone => 'Бул аракетти артка кайтарууга болбойт';
 
   @override
-  String get deleteAccountPermanentDataWarning =>
-      'Аккаунтту өчүрүү бардык маалыматыңызды биротоло жок кылат.';
+  String get deleteAccountPermanentDataWarning => 'Аккаунтту өчүрүү бардык маалыматыңызды биротоло жок кылат.';
 
   @override
   String get deleteAccountItemsIntro => 'Төмөнкүлөр биротоло өчүрүлөт:';
@@ -1863,8 +1808,7 @@ class StringsKy extends Strings {
   String get deleteAccountPreferencesTitle => 'Колдонмо жөндөөлөрү';
 
   @override
-  String get deleteAccountPreferencesSubtitle =>
-      'Жөндөөлөр жана ыңгайлаштыруулар';
+  String get deleteAccountPreferencesSubtitle => 'Жөндөөлөр жана ыңгайлаштыруулар';
 
   @override
   String get deleteAccountInfoTitle => 'Аккаунт маалыматы';
@@ -1879,12 +1823,10 @@ class StringsKy extends Strings {
   String get deleteAccountTypeHint => 'DELETE бул жерге жазыңыз...';
 
   @override
-  String get deleteAccountIrreversibleImmediate =>
-      'Бул аракет кайтарылгыс жана дароо күчүнө кирет.';
+  String get deleteAccountIrreversibleImmediate => 'Бул аракет кайтарылгыс жана дароо күчүнө кирет.';
 
   @override
-  String get deleteAccountQuickConfirm =>
-      'Аккаунтуңузду биротоло өчүргүңүз келеби?';
+  String get deleteAccountQuickConfirm => 'Аккаунтуңузду биротоло өчүргүңүз келеби?';
 
   @override
   String get deleteAccountQuickWarningList =>
@@ -1914,12 +1856,10 @@ class StringsKy extends Strings {
   String get tryProOneHour => 'Proну 1 саатка сынап көрүү';
 
   @override
-  String get rewardAdReadyBullets =>
-      '• Кыска видео жарнаманы көрүңүз\n• 1 саат Pro жеткиликтүүлүгүн алыңыз';
+  String get rewardAdReadyBullets => '• Кыска видео жарнаманы көрүңүз\n• 1 саат Pro жеткиликтүүлүгүн алыңыз';
 
   @override
-  String get rewardAdLoadingBullets =>
-      '• Видео жарнама жүктөлүүдө...\n• Бир аздан кийин кайра аракет кылыңыз';
+  String get rewardAdLoadingBullets => '• Видео жарнама жүктөлүүдө...\n• Бир аздан кийин кайра аракет кылыңыз';
 
   @override
   String get watchAd => 'Жарнаманы көрүү';
@@ -1934,8 +1874,7 @@ class StringsKy extends Strings {
   String get proAccessGrantedOneHour => '🎉 Pro мүмкүнчүлүгү 1 саатка берилди!';
 
   @override
-  String get videoAdNotCompleted =>
-      'Видео жарнама аягына чейин көрүлгөн жок. Кайра аракет кылыңыз.';
+  String get videoAdNotCompleted => 'Видео жарнама аягына чейин көрүлгөн жок. Кайра аракет кылыңыз.';
 
   @override
   String failedToLoadVideoAd(String error) {
@@ -2046,8 +1985,7 @@ class StringsKy extends Strings {
   String get magicWand => 'Сыйкырдуу таякча';
 
   @override
-  String get effectsPanelAllAppliedMessage =>
-      'Бардык эффекттер катмарга колдонулуп, эффекттер тизмесинен өчүрүлдү';
+  String get effectsPanelAllAppliedMessage => 'Бардык эффекттер катмарга колдонулуп, эффекттер тизмесинен өчүрүлдү';
 
   @override
   String effectsForLayer(String layerName) {
@@ -2112,8 +2050,7 @@ class StringsKy extends Strings {
   String get effectsAppliedInOrder => 'Эффекттер ирети менен колдонулат';
 
   @override
-  String get effectsReorderHint =>
-      'Эффекттер жогору жактан ылдый карай колдонулат. Иретин өзгөртүү үчүн сүйрөңүз.';
+  String get effectsReorderHint => 'Эффекттер жогору жактан ылдый карай колдонулат. Иретин өзгөртүү үчүн сүйрөңүз.';
 
   @override
   String get addYourFirstEffect => 'Биринчи эффекти кошуу';
@@ -2171,8 +2108,7 @@ class StringsKy extends Strings {
   }
 
   @override
-  String get generateAnimationTimelineNote =>
-      'Бул таймлайнга кошо турган бир нече анимация кадрын түзөт.';
+  String get generateAnimationTimelineNote => 'Бул таймлайнга кошо турган бир нече анимация кадрын түзөт.';
 
   @override
   String get generateAnimationFrames => 'Анимация кадрларын түзүү';
@@ -2234,15 +2170,13 @@ class StringsKy extends Strings {
   String get generateNewFrames => 'Жаңы кадрларды түзүү';
 
   @override
-  String get createNewFramesForAnimation =>
-      'Бул анимация үчүн жаңы кадрларды түзүү';
+  String get createNewFramesForAnimation => 'Бул анимация үчүн жаңы кадрларды түзүү';
 
   @override
   String get insertIntoTimeline => 'Таймлайнга киргизүү';
 
   @override
-  String get addFramesToExistingTimeline =>
-      'Кадрларды учурдагы таймлайнга кошуу';
+  String get addFramesToExistingTimeline => 'Кадрларды учурдагы таймлайнга кошуу';
 
   @override
   String get insertPosition => 'Киргизүү орду:';
@@ -2259,8 +2193,7 @@ class StringsKy extends Strings {
   String get editParameters => 'Параметрлерди түзөтүү';
 
   @override
-  String get effectParametersBaseNote =>
-      'Учурдагы эффект жөндөөлөрү анимация үчүн негиз катары колдонулат';
+  String get effectParametersBaseNote => 'Учурдагы эффект жөндөөлөрү анимация үчүн негиз катары колдонулат';
 
   @override
   String get editBaseParameters => 'Негизги параметрлерди түзөтүү';
@@ -2276,16 +2209,13 @@ class StringsKy extends Strings {
       'Бул курал тандалган эффектти ар башка убакыт параметрлери менен колдонуп, бир нече анимация кадрын түзөт.\n';
 
   @override
-  String get animationHelpDuration =>
-      '• Узактык: анимациянын жалпы узактыгы секунд менен';
+  String get animationHelpDuration => '• Узактык: анимациянын жалпы узактыгы секунд менен';
 
   @override
-  String get animationHelpFps =>
-      '• FPS: секундасына кадрлар (жогору болсо жылмакай, бирок кадр көп)';
+  String get animationHelpFps => '• FPS: секундасына кадрлар (жогору болсо жылмакай, бирок кадр көп)';
 
   @override
-  String get animationHelpPingPong =>
-      '• Пинг-понг: алдыга, андан кийин артка ойнойт';
+  String get animationHelpPingPong => '• Пинг-понг: алдыга, андан кийин артка ойнойт';
 
   @override
   String get animationHelpInterpolation =>
@@ -2298,12 +2228,10 @@ class StringsKy extends Strings {
   String get animationTipLowerFps => '• Сыноо үчүн төмөн FPS менен баштаңыз';
 
   @override
-  String get animationTipUsePreview =>
-      '• Түзүүдөн мурун алдын ала көрүүнү колдонуңуз';
+  String get animationTipUsePreview => '• Түзүүдөн мурун алдын ала көрүүнү колдонуңуз';
 
   @override
-  String get animationTipLongerDurations =>
-      '• Жай эффекттер үчүн узагыраак убакыт жакшы иштейт';
+  String get animationTipLongerDurations => '• Жай эффекттер үчүн узагыраак убакыт жакшы иштейт';
 
   @override
   String effectFrameName(int index) {
@@ -2382,8 +2310,7 @@ class StringsKy extends Strings {
   String get removeBackgroundImage => 'Фон сүрөтүн алып салуу';
 
   @override
-  String get removeBackgroundImageMessage =>
-      'Фон сүрөтүн алып салгыңыз келеби?';
+  String get removeBackgroundImageMessage => 'Фон сүрөтүн алып салгыңыз келеби?';
 
   @override
   String get themeSelector => 'Тема тандоо';
@@ -2394,8 +2321,7 @@ class StringsKy extends Strings {
   }
 
   @override
-  String get watchAdToUnlockTheme =>
-      'Бул теманы ачуу үчүн видео жарнаманы көрүңүз.';
+  String get watchAdToUnlockTheme => 'Бул теманы ачуу үчүн видео жарнаманы көрүңүз.';
 
   @override
   String themeUnlocked(String themeName) {
@@ -2496,8 +2422,7 @@ class StringsKy extends Strings {
   String get unlockPremiumThemes => 'Премиум темаларды ачуу';
 
   @override
-  String get getAccessToAllThemesWithPro =>
-      'Pro менен бардык темаларга жеткиликтүүлүк алыңыз';
+  String get getAccessToAllThemesWithPro => 'Pro менен бардык темаларга жеткиликтүүлүк алыңыз';
 
   @override
   String get flagship => 'Флагман';
@@ -2586,31 +2511,25 @@ class StringsKy extends Strings {
   String get columns => 'Мамычалар';
 
   @override
-  String get tileModeTooltip =>
-      'Плитка режими - үзгүлтүксүз кайталоону алдын ала көрүү';
+  String get tileModeTooltip => 'Плитка режими - үзгүлтүксүз кайталоону алдын ала көрүү';
 
   @override
   String get settingsStylusMode => 'Жөндөөлөр (стилус режими)';
 
   @override
-  String get onionSkinTooltip =>
-      'Onion Skin (тунуктукту коюу үчүн узак басыңыз)';
+  String get onionSkinTooltip => 'Onion Skin (тунуктукту коюу үчүн узак басыңыз)';
 
   @override
-  String get sprayPaintToolDescription =>
-      'Бөлүкчөлөр менен спрей эффектин түзөт';
+  String get sprayPaintToolDescription => 'Бөлүкчөлөр менен спрей эффектин түзөт';
 
   @override
-  String get lineToolDescription =>
-      'Эки чекиттин ортосунда түз сызыктарды тартат';
+  String get lineToolDescription => 'Эки чекиттин ортосунда түз сызыктарды тартат';
 
   @override
-  String get circleToolDescription =>
-      'Так тегеректерди жана эллипстерди тартат';
+  String get circleToolDescription => 'Так тегеректерди жана эллипстерди тартат';
 
   @override
-  String get rectangleToolDescription =>
-      'Тик бурчтуктарды жана квадраттарды тартат';
+  String get rectangleToolDescription => 'Тик бурчтуктарды жана квадраттарды тартат';
 
   @override
   String get triangleToolDescription => 'Үч бурчтуу формаларды тартат';
@@ -2652,8 +2571,7 @@ class StringsKy extends Strings {
   String get lassoToolDescription => 'Эркин тандоо куралы';
 
   @override
-  String get magicWandToolDescription =>
-      'Түстү боюнча чектеш пикселдерди тандайт';
+  String get magicWandToolDescription => 'Түстү боюнча чектеш пикселдерди тандайт';
 
   @override
   String get curve => 'Ийри сызык';
@@ -2752,8 +2670,7 @@ class StringsKy extends Strings {
   String get basicTools => 'Негизги куралдар';
 
   @override
-  String get advancedToolsEffectsTemplates =>
-      'Өркүндөтүлгөн куралдар, эффекттер жана шаблондор';
+  String get advancedToolsEffectsTemplates => 'Өркүндөтүлгөн куралдар, эффекттер жана шаблондор';
 
   @override
   String get pngJpegFormats => 'PNG, JPEG';
@@ -2762,8 +2679,7 @@ class StringsKy extends Strings {
   String get allFormatsVideoGif => 'Видео жана GIF кошкондо бардык форматтар';
 
   @override
-  String get watchAdsForTemporaryAccess =>
-      'Убактылуу мүмкүнчүлүк үчүн жарнама көрүңүз';
+  String get watchAdsForTemporaryAccess => 'Убактылуу мүмкүнчүлүк үчүн жарнама көрүңүз';
 
   @override
   String get unlimitedAccess => 'Чексиз мүмкүнчүлүк';
@@ -2797,8 +2713,7 @@ class StringsKy extends Strings {
   String get privacyPolicy => 'Купуялык саясаты';
 
   @override
-  String get oneTimePurchaseLifetimeAccess =>
-      'Бир жолку сатып алуу • Кайталанма төлөм жок • Өмүр бою мүмкүнчүлүк';
+  String get oneTimePurchaseLifetimeAccess => 'Бир жолку сатып алуу • Кайталанма төлөм жок • Өмүр бою мүмкүнчүлүк';
 
   @override
   String get continueWithFree => 'Акысыз версия менен улантуу';
@@ -2853,16 +2768,13 @@ class StringsKy extends Strings {
       'Премиум куралдарга жана эффекттерге мүмкүнчүлүк алыңыз • Видео жарнама менен сынап көрүңүз';
 
   @override
-  String get upgradePromptCloudBackupSubtitle =>
-      'Пиксель-арт чыгармаларыңызды эч качан жоготпоңуз';
+  String get upgradePromptCloudBackupSubtitle => 'Пиксель-арт чыгармаларыңызды эч качан жоготпоңуз';
 
   @override
-  String get upgradePromptNoWatermarkSubtitle =>
-      'Сутаңбасыз таза чыгармаларды экспорттоңуз';
+  String get upgradePromptNoWatermarkSubtitle => 'Сутаңбасыз таза чыгармаларды экспорттоңуз';
 
   @override
-  String get upgradePromptPrioritySupportSubtitle =>
-      'Каалаган маселе боюнча тезирээк колдоо алыңыз';
+  String get upgradePromptPrioritySupportSubtitle => 'Каалаган маселе боюнча тезирээк колдоо алыңыз';
 
   @override
   String get plansTitle => 'Тарифтер';
@@ -2877,16 +2789,13 @@ class StringsKy extends Strings {
   String get freePlanDescription => 'Негизги пиксель-арт түзүү';
 
   @override
-  String get proPlanDescription =>
-      'Бардык куралдар жана функциялар, бир жолку сатып алуу';
+  String get proPlanDescription => 'Бардык куралдар жана функциялар, бир жолку сатып алуу';
 
   @override
-  String get ultimatePlanDescription =>
-      'Баары түбөлүккө, келечектеги эффект пакеттерин кошо алганда';
+  String get ultimatePlanDescription => 'Баары түбөлүккө, келечектеги эффект пакеттерин кошо алганда';
 
   @override
-  String get ultimateUpgradeDescription =>
-      'Pro\'ңузду жаңыртып, баарын түбөлүккө ачыңыз';
+  String get ultimateUpgradeDescription => 'Pro\'ңузду жаңыртып, баарын түбөлүккө ачыңыз';
 
   @override
   String get offerStarterEffects => 'Ар бир категориядан баштапкы эффекттер';
@@ -2904,8 +2813,7 @@ class StringsKy extends Strings {
   String get offerEverythingInPro => 'Pro\'догу бардыгы';
 
   @override
-  String get offerAllEffectPacks =>
-      'Бардык эффект пакеттери — азыркы жана келечектеги';
+  String get offerAllEffectPacks => 'Бардык эффект пакеттери — азыркы жана келечектеги';
 
   @override
   String get offerCloudSync => 'Булут синхрондоо жана камдык көчүрмө';
@@ -2927,8 +2835,7 @@ class StringsKy extends Strings {
   String get ultimateOwnedSubtitle => 'Баары ачык. Колдооңуз үчүн рахмат!';
 
   @override
-  String get proOwnedSubtitle =>
-      'Бардык эффект пакеттерин жана булут синхрондоону алуу үчүн Ultimate\'ке өтүңүз.';
+  String get proOwnedSubtitle => 'Бардык эффект пакеттерин жана булут синхрондоону алуу үчүн Ultimate\'ке өтүңүз.';
 
   @override
   String get planComparisonTitle => 'Тарифтерди салыштыруу';
@@ -2949,8 +2856,7 @@ class StringsKy extends Strings {
   String get cloudAddonAvailable => 'Кошумча';
 
   @override
-  String get effectIncludedInPro =>
-      'Бул эффект Pro жана Ultimate тарифтерине кирет.';
+  String get effectIncludedInPro => 'Бул эффект Pro жана Ultimate тарифтерине кирет.';
 
   @override
   String get effectIncludedInUltimate =>
@@ -2960,8 +2866,7 @@ class StringsKy extends Strings {
   String get viewPlans => 'Тарифтерди көрүү';
 
   @override
-  String get promoBannerSubtitle =>
-      'Бардык куралдар, чексиз долбоорлор жана эффект пакеттери';
+  String get promoBannerSubtitle => 'Бардык куралдар, чексиз долбоорлор жана эффект пакеттери';
 
   @override
   String get effectStoreTitle => 'Эффекттер дүкөнү';
@@ -3016,64 +2921,55 @@ class StringsKy extends Strings {
   String get packNameBasicFilters => 'Негизги фильтрлер';
 
   @override
-  String get packDescBasicFilters =>
-      'Бүдөмүктөтүү, курчтук, дизеринг, палитралар жана ретро экрандар';
+  String get packDescBasicFilters => 'Бүдөмүктөтүү, курчтук, дизеринг, палитралар жана ретро экрандар';
 
   @override
   String get packNameArtistic => 'Көркөм стилдер';
 
   @override
-  String get packDescArtistic =>
-      'Акварель, май боёк, гравюра, комикс жана басма ыкмалары';
+  String get packDescArtistic => 'Акварель, май боёк, гравюра, комикс жана басма ыкмалары';
 
   @override
   String get packNameMaterials => 'Материалдар жана текстуралар';
 
   @override
-  String get packDescMaterials =>
-      'Жыгач, металл, таш, муз, дат жана башка беттер';
+  String get packDescMaterials => 'Жыгач, металл, таш, муз, дат жана башка беттер';
 
   @override
   String get packNameWorldGenerators => 'Дүйнө генераторлору';
 
   @override
-  String get packDescWorldGenerators =>
-      'Тоолор, токойлор, океандар, шаарлар жана зындандар бир басуу менен';
+  String get packDescWorldGenerators => 'Тоолор, токойлор, океандар, шаарлар жана зындандар бир басуу менен';
 
   @override
   String get packNameLightingDistortion => 'Жарык жана бурмалоо';
 
   @override
-  String get packDescLightingDistortion =>
-      'Жарык нурлары, түндүк жарыгы, ореолдор, глитчтер жана кыймыл бүдөмүгү';
+  String get packDescLightingDistortion => 'Жарык нурлары, түндүк жарыгы, ореолдор, глитчтер жана кыймыл бүдөмүгү';
 
   @override
   String get packNameMotion => 'Кыймыл';
 
   @override
-  String get packDescMotion =>
-      'Пульсация, толкун, калкуу, силкинүү, эрүү жана башка анимациялар';
+  String get packDescMotion => 'Пульсация, толкун, калкуу, силкинүү, эрүү жана башка анимациялар';
 
   @override
   String get packNameVfxNature => 'VFX: табият жана аба ырайы';
 
   @override
-  String get packDescVfxNature =>
-      'От, жамгыр, кар, шаркыратмалар, жаркылдактар жана былжыр';
+  String get packDescVfxNature => 'От, жамгыр, кар, шаркыратмалар, жаркылдактар жана былжыр';
 
   @override
   String get packNameVfxMagic => 'VFX: сыйкыр жана караңгы фэнтези';
 
   @override
-  String get packDescVfxMagic =>
-      'Ауралар, порталдар, руналар, рухтар жана байыркы коркунучтар';
+  String get packDescVfxMagic => 'Ауралар, порталдар, руналар, рухтар жана байыркы коркунучтар';
 
   @override
   String get packNameVfxAction => 'VFX: экшн жана илимий фантастика';
 
   @override
-  String get packDescVfxAction =>
-      'Жарылуулар, чагылган, калкандар, кыймылдаткычтар жана сокку эффекттери';
+  String get packDescVfxAction => 'Жарылуулар, чагылган, калкандар, кыймылдаткычтар жана сокку эффекттери';
 
   @override
   String get storeTabPacks => 'Пакеттер';
@@ -3124,8 +3020,7 @@ class StringsKy extends Strings {
   }
 
   @override
-  String get notEnoughCoins =>
-      'Кристаллдар жетишсиз. Көбүрөөк табуу үчүн тапшырмаларды аткарыңыз.';
+  String get notEnoughCoins => 'Кристаллдар жетишсиз. Көбүрөөк табуу үчүн тапшырмаларды аткарыңыз.';
 
   @override
   String unlockEffectConfirm(String effect, int coins) {
@@ -3160,8 +3055,7 @@ class StringsKy extends Strings {
   String get unlockAction => 'Ачуу';
 
   @override
-  String get walletTooltip =>
-      'Сиздин кристаллдар — аларды тапшырмаларды аткарып табыңыз';
+  String get walletTooltip => 'Сиздин кристаллдар — аларды тапшырмаларды аткарып табыңыз';
 
   @override
   String questProjectCreated(int count) {
@@ -3295,8 +3189,7 @@ class StringsKy extends Strings {
   String get challengeHowToJoin => 'Кантип катышуу керек';
 
   @override
-  String get challengeJoinSteps =>
-      'Темага ылайык сүрөт тартып, аны ушул тег менен коомчулукка жарыялаңыз.';
+  String get challengeJoinSteps => 'Темага ылайык сүрөт тартып, аны ушул тег менен коомчулукка жарыялаңыз.';
 
   @override
   String get challengeCopyTag => 'Тегди көчүрүү';
@@ -3325,8 +3218,7 @@ class StringsKy extends Strings {
   String get challengeTagsLabel => 'Челленджге катышуу';
 
   @override
-  String get challengeEntryPublicOnly =>
-      'Челлендждерге ачык долбоорлор гана катыша алат.';
+  String get challengeEntryPublicOnly => 'Челлендждерге ачык долбоорлор гана катыша алат.';
 
   @override
   String get challengeEntryOldProjectHint =>
@@ -3360,8 +3252,7 @@ class StringsKy extends Strings {
   }
 
   @override
-  String get challengeRuleStartsAfter =>
-      'Челлендж башталгандан кийин биринчи жолу жарыяланган долбоорлор гана';
+  String get challengeRuleStartsAfter => 'Челлендж башталгандан кийин биринчи жолу жарыяланган долбоорлор гана';
 
   @override
   String challengeRuleRequiredPack(String pack) {
@@ -3438,8 +3329,7 @@ class StringsKy extends Strings {
   }
 
   @override
-  String get challengeWarningNotEligible =>
-      'Аккаунтуңуз азыр челлендждерге катыша албайт.';
+  String get challengeWarningNotEligible => 'Аккаунтуңуз азыр челлендждерге катыша албайт.';
 
   @override
   String serverRewardGems(int gems) {
@@ -3469,23 +3359,19 @@ class StringsKy extends Strings {
       'Сиз азырынча челленджге катыша элексиз. Сүрөт жарыялаганда челлендж тегин кошуңуз.';
 
   @override
-  String get myChallengeEntriesLoadFailed =>
-      'Иштериңизди жүктөө мүмкүн болгон жок';
+  String get myChallengeEntriesLoadFailed => 'Иштериңизди жүктөө мүмкүн болгон жок';
 
   @override
   String get challengeCompetition => 'Мелдеш';
 
   @override
-  String get challengeRuleCompetition =>
-      'Мелдеш: жеңүүчүлөр бүткөндөн кийин тандалат';
+  String get challengeRuleCompetition => 'Мелдеш: жеңүүчүлөр бүткөндөн кийин тандалат';
 
   @override
-  String get challengeRuleNoWinners =>
-      'Жеңүүчүлөр жок: кабыл алынган ар бир иш сыйлык алат';
+  String get challengeRuleNoWinners => 'Жеңүүчүлөр жок: кабыл алынган ар бир иш сыйлык алат';
 
   @override
-  String get challengeRuleJustForFun =>
-      'Жеңүүчүлөр да, сыйлыктар да жок, жөн гана кызык үчүн';
+  String get challengeRuleJustForFun => 'Жеңүүчүлөр да, сыйлыктар да жок, жөн гана кызык үчүн';
 
   @override
   String get challengeAcceptedEntryReward => 'Кабыл алынган иш үчүн';
@@ -3506,15 +3392,13 @@ class StringsKy extends Strings {
   String get challengeRewardAfterReview => 'Ишиңиз кабыл алынганда аласыз';
 
   @override
-  String get challengeRewardAfterResults =>
-      'Жеңүүчүлөр жарыялангандан кийин берилет';
+  String get challengeRewardAfterResults => 'Жеңүүчүлөр жарыялангандан кийин берилет';
 
   @override
   String get challengeRewardSoon => 'Жолдо, бир мүнөттөн кийин кайра караңыз';
 
   @override
-  String get challengeRewardClaimFailed =>
-      'Сыйлыкты алуу мүмкүн болгон жок. Кайра аракет кылыңыз.';
+  String get challengeRewardClaimFailed => 'Сыйлыкты алуу мүмкүн болгон жок. Кайра аракет кылыңыз.';
 
   @override
   String get feedback_chat_title => 'Сиздин пикир';
@@ -3536,16 +3420,13 @@ class StringsKy extends Strings {
   String get feedback_chat_send => 'Жөнөтүү';
 
   @override
-  String get feedback_chat_closed =>
-      'Бул сүйлөшүү жабылды. Жаңы билдирүү аны кайра ачат.';
+  String get feedback_chat_closed => 'Бул сүйлөшүү жабылды. Жаңы билдирүү аны кайра ачат.';
 
   @override
-  String get feedback_chat_load_failed =>
-      'Билдирүүлөрдү жүктөө мүмкүн болгон жок';
+  String get feedback_chat_load_failed => 'Билдирүүлөрдү жүктөө мүмкүн болгон жок';
 
   @override
-  String get feedback_chat_send_failed =>
-      'Билдирүүнү жөнөтүү мүмкүн болгон жок. Кайра аракет кылыңыз.';
+  String get feedback_chat_send_failed => 'Билдирүүнү жөнөтүү мүмкүн болгон жок. Кайра аракет кылыңыз.';
 
   @override
   String get feedback_chat_team => 'Picell командасы';
@@ -3560,8 +3441,7 @@ class StringsKy extends Strings {
   String get deleteAlsoFromCloud => 'Коомчулуктан да өчүрүү';
 
   @override
-  String get deleteAlsoFromCloudHint =>
-      'Жарыяланган версия лайктары жана комментарийлери менен кошо өчүрүлөт.';
+  String get deleteAlsoFromCloudHint => 'Жарыяланган версия лайктары жана комментарийлери менен кошо өчүрүлөт.';
 
   @override
   String questFillUsed(int count) {
@@ -3601,8 +3481,7 @@ class StringsKy extends Strings {
   String get questBonusTitle => 'Бонус тапшырма';
 
   @override
-  String get questBonusHint =>
-      'Милдеттүү эмес: бир аз көбүрөөк аракет — бир аз көбүрөөк сыйлык';
+  String get questBonusHint => 'Милдеттүү эмес: бир аз көбүрөөк аракет — бир аз көбүрөөк сыйлык';
 
   @override
   String get dailyBonusTitle => 'Үчөө тең аткарылды';
@@ -3624,8 +3503,7 @@ class StringsKy extends Strings {
   }
 
   @override
-  String get loginCycleGrace =>
-      'Бир күн өткөрүп жибердиңизби? Жумасына бир жолу катар үзүлбөйт.';
+  String get loginCycleGrace => 'Бир күн өткөрүп жибердиңизби? Жумасына бир жолу катар үзүлбөйт.';
 
   @override
   String questDailyQuestClaimed(int count) {
@@ -3666,8 +3544,7 @@ class StringsKy extends Strings {
   String get savingsGoalReady => 'Жетиштүү — ачыңыз!';
 
   @override
-  String get savingsGoalNoPace =>
-      'Мөөнөттү көрүү үчүн бир нече тапшырма аткарыңыз';
+  String get savingsGoalNoPace => 'Мөөнөттү көрүү үчүн бир нече тапшырма аткарыңыз';
 
   @override
   String get savingsGoalPick => 'Топтой турган пакты тандаңыз';
@@ -3688,4 +3565,77 @@ class StringsKy extends Strings {
 
   @override
   String get packFirstDiscount => 'Биринчи пак −40%';
+
+  @override
+  String get featured => 'Тандалган';
+
+  @override
+  String get forks => 'Форктор';
+
+  @override
+  String forksCount(int count) {
+    return 'Форктор ($count)';
+  }
+
+  @override
+  String moreByUser(String username) {
+    return '$username дагы';
+  }
+
+  @override
+  String get unknownArtist => 'Белгисиз сүрөтчү';
+
+  @override
+  String shareProjectMessage(String title, String author) {
+    return 'Бул сонун пиксель-арт долбоорун көрүңүз: $title\nАвтору: $author';
+  }
+
+  @override
+  String relativeMonthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ай мурун',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count күн мурун',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count саат мурун',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count мүнөт мурун',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get remixProject => 'Ремикс';
+
+  @override
+  String get previousProject => 'Мурунку долбоор';
+
+  @override
+  String get nextProject => 'Кийинки долбоор';
 }

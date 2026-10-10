@@ -143,8 +143,8 @@ class ChallengeScreen extends HookConsumerWidget {
       await ref.read(challengeEntriesProvider(entriesKey).notifier).refresh();
     }
 
-    void openProject(ApiProject project) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProjectDetailScreen(project: project)));
+    void openProject(ApiProject project, [List<ApiProject> siblings = const []]) {
+      ProjectDetailScreen.show(context, project, siblings: siblings);
     }
 
     return Scaffold(
@@ -184,23 +184,23 @@ class ChallengeScreen extends HookConsumerWidget {
                     flexibleSpace: !challenge.hasCover
                         ? null
                         : FlexibleSpaceBar(
-                      background: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          ChallengeCover(url: challenge.coverImageUrl),
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.black.withValues(alpha: 0.35), Colors.transparent],
-                                stops: const [0, 0.4],
-                              ),
+                            background: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                ChallengeCover(url: challenge.coverImageUrl),
+                                DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [Colors.black.withValues(alpha: 0.35), Colors.transparent],
+                                      stops: const [0, 0.4],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
                   ),
                   padded(
                     SliverToBoxAdapter(child: _ChallengeHeader(challenge: challenge, serverNow: serverNow())),
@@ -271,7 +271,7 @@ class ChallengeScreen extends HookConsumerWidget {
                           return CommunityProjectCard(
                             key: ValueKey('entry-${project.id}'),
                             project: project,
-                            onTap: () => openProject(project),
+                            onTap: () => openProject(project, entries.projects),
                             onLike: (project) =>
                                 ref.read(challengeEntriesProvider(entriesKey).notifier).toggleLike(project),
                           );
@@ -610,7 +610,8 @@ class _MyRewardsState extends ConsumerState<_MyRewards> {
                     children: [
                       Icon(Icons.check_circle, size: 18, color: Colors.green.shade600),
                       const SizedBox(width: 4),
-                      Text(s.challengeRewardClaimed, style: textTheme.bodyMedium?.copyWith(color: Colors.green.shade700)),
+                      Text(s.challengeRewardClaimed,
+                          style: textTheme.bodyMedium?.copyWith(color: Colors.green.shade700)),
                     ],
                   ),
               ],

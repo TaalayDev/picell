@@ -238,8 +238,7 @@ class StringsJa extends Strings {
   String get feedback_thank_you => 'フィードバックありがとうございます！';
 
   @override
-  String get feedback_thank_you_message =>
-      'あなたのご意見は私たちにとって非常に重要であり、アプリの改善に役立ちます。';
+  String get feedback_thank_you_message => 'あなたのご意見は私たちにとって非常に重要であり、アプリの改善に役立ちます。';
 
   @override
   String get feedback_return => '戻る';
@@ -361,8 +360,7 @@ class StringsJa extends Strings {
   String get feedback_q_additional_feedback => '追加のコメントと提案';
 
   @override
-  String get feedback_q_additional_feedback_placeholder =>
-      'アプリについてのご意見をお聞かせください...';
+  String get feedback_q_additional_feedback_placeholder => 'アプリについてのご意見をお聞かせください...';
 
   @override
   String get feedback_q_recommend => 'このアプリを友達に勧めますか？';
@@ -389,8 +387,7 @@ class StringsJa extends Strings {
   String get feedback_dialog_title => 'ご意見をお聞かせください！';
 
   @override
-  String get feedback_dialog_description =>
-      'あなたのご意見は大切です。感想を共有してアプリの改善にご協力ください。';
+  String get feedback_dialog_description => 'あなたのご意見は大切です。感想を共有してアプリの改善にご協力ください。';
 
   @override
   String get feedback_dialog_benefit_1 => '新機能のアイデアを共有';
@@ -474,8 +471,7 @@ class StringsJa extends Strings {
   String get effectIconGeneratorTitle => 'エフェクトアイコン生成';
 
   @override
-  String get effectIconGeneratorSubtitle =>
-      'エフェクトにはスマイリー、ジェネレーターには空レイヤーを使用します。静止画はJPG、アニメーションはGIFで書き出します。';
+  String get effectIconGeneratorSubtitle => 'エフェクトにはスマイリー、ジェネレーターには空レイヤーを使用します。静止画はJPG、アニメーションはGIFで書き出します。';
 
   @override
   String get effectIconExportVisible => '表示中を書き出す';
@@ -514,12 +510,10 @@ class StringsJa extends Strings {
   String get convertProceduralLayerTitle => 'プロシージャルレイヤーを変換しますか？';
 
   @override
-  String get convertProceduralLayerMessage =>
-      'ジェネレーターと後続のすべてのエフェクトを編集可能なピクセルに焼き込みます。この操作は元に戻せます。';
+  String get convertProceduralLayerMessage => 'ジェネレーターと後続のすべてのエフェクトを編集可能なピクセルに焼き込みます。この操作は元に戻せます。';
 
   @override
-  String get proceduralLayerDrawingBlocked =>
-      '描画する前に、このプロシージャルレイヤーをピクセルに変換してください。';
+  String get proceduralLayerDrawingBlocked => '描画する前に、このプロシージャルレイヤーをピクセルに変換してください。';
 
   @override
   String get proceduralLayerConverted => 'プロシージャルレイヤーを編集可能なピクセルに変換しました。';
@@ -618,15 +612,13 @@ class StringsJa extends Strings {
   String get convertToPixelArt => 'ピクセルアートに変換';
 
   @override
-  String get convertToPixelArtDescription =>
-      '画像をインポートし、新しいレイヤーで自動的にピクセルアートスタイルに変換します。';
+  String get convertToPixelArtDescription => '画像をインポートし、新しいレイヤーで自動的にピクセルアートスタイルに変換します。';
 
   @override
   String get importAsBackground => '背景としてインポート';
 
   @override
-  String get importAsBackgroundDescription =>
-      '画像をそのままインポートし、参照用の背景レイヤーとして使用します。';
+  String get importAsBackgroundDescription => '画像をそのままインポートし、参照用の背景レイヤーとして使用します。';
 
   @override
   String get conversionSettings => '変換設定';
@@ -926,8 +918,7 @@ class StringsJa extends Strings {
   String get effectsPanelClearAllEffectsTitle => 'すべての効果をクリア';
 
   @override
-  String get effectsPanelClearAllEffectsMessage =>
-      'このレイヤーからすべての効果を削除してもよろしいですか？';
+  String get effectsPanelClearAllEffectsMessage => 'このレイヤーからすべての効果を削除してもよろしいですか？';
 
   @override
   String get effectsPanelClearAll => 'すべてクリア';
@@ -1008,8 +999,7 @@ class StringsJa extends Strings {
   String get projectNotSyncedToCloud => 'プロジェクトはクラウドと同期されていません';
 
   @override
-  String get pleaseSignInToRemoveCloudProjects =>
-      'クラウドプロジェクトを削除するにはサインインしてください';
+  String get pleaseSignInToRemoveCloudProjects => 'クラウドプロジェクトを削除するにはサインインしてください';
 
   @override
   String get removingFromCloud => 'クラウドから削除中...';
@@ -1149,12 +1139,10 @@ class StringsJa extends Strings {
   String get makeProjectPrivate => 'プロジェクトを非公開';
 
   @override
-  String get makeProjectPublicMessage =>
-      'プロジェクトがコミュニティ全体に表示されます。誰でも閲覧、いいね、コメントができます。';
+  String get makeProjectPublicMessage => 'プロジェクトがコミュニティ全体に表示されます。誰でも閲覧、いいね、コメントができます。';
 
   @override
-  String get makeProjectPrivateMessage =>
-      'プロジェクトは公開コミュニティから非表示になります。表示できるのはあなただけです。';
+  String get makeProjectPrivateMessage => 'プロジェクトは公開コミュニティから非表示になります。表示できるのはあなただけです。';
 
   @override
   String get projectWillBePublic => 'プロジェクトは公開されます';
@@ -1186,8 +1174,7 @@ class StringsJa extends Strings {
   String get thisWillPermanentlyDelete => '完全に削除されるもの:';
 
   @override
-  String get deleteProjectConsequences =>
-      '• プロジェクトデータとアートワーク\n• すべてのコメントといいね\n• ダウンロード統計';
+  String get deleteProjectConsequences => '• プロジェクトデータとアートワーク\n• すべてのコメントといいね\n• ダウンロード統計';
 
   @override
   String typeProjectTitleToConfirmDeletion(String title) {
@@ -1218,8 +1205,7 @@ class StringsJa extends Strings {
   String get reportProject => 'プロジェクトを報告';
 
   @override
-  String get reportProjectMessage =>
-      'このプロジェクトを報告しますか？コミュニティガイドラインに違反する内容のみ報告してください。';
+  String get reportProjectMessage => 'このプロジェクトを報告しますか？コミュニティガイドラインに違反する内容のみ報告してください。';
 
   @override
   String get reportThanks => '報告ありがとうございます。確認します。';
@@ -1228,8 +1214,7 @@ class StringsJa extends Strings {
   String get report => '報告';
 
   @override
-  String get premiumRequiredToDownloadProjects =>
-      'プロジェクトのダウンロードにはPremium登録が必要です';
+  String get premiumRequiredToDownloadProjects => 'プロジェクトのダウンロードにはPremium登録が必要です';
 
   @override
   String get upgrade => 'アップグレード';
@@ -1344,8 +1329,7 @@ class StringsJa extends Strings {
   String get removeFromCloudQuestion => 'クラウドから削除しますか？';
 
   @override
-  String get removeFromCommunityMessage =>
-      'プロジェクトはコミュニティから削除されます。ローカルコピーは残ります。';
+  String get removeFromCommunityMessage => 'プロジェクトはコミュニティから削除されます。ローカルコピーは残ります。';
 
   @override
   String get remove => '削除';
@@ -1444,12 +1428,10 @@ class StringsJa extends Strings {
   String get removeFromCloud => 'クラウドから削除';
 
   @override
-  String get removeFromCloudMessage =>
-      'プロジェクトはクラウドから削除され、ローカルのみになります。ローカルコピーは変更されません。よろしいですか？';
+  String get removeFromCloudMessage => 'プロジェクトはクラウドから削除され、ローカルのみになります。ローカルコピーは変更されません。よろしいですか？';
 
   @override
-  String get syncedCloudDeleteWarning =>
-      'このプロジェクトはクラウドと同期されています。ローカルで削除してもクラウド版には影響しません。';
+  String get syncedCloudDeleteWarning => 'このプロジェクトはクラウドと同期されています。ローカルで削除してもクラウド版には影響しません。';
 
   @override
   String get openLocalProject => 'ローカルプロジェクトを開く';
@@ -1567,8 +1549,7 @@ class StringsJa extends Strings {
   String get community => 'コミュニティ';
 
   @override
-  String get failedTemplateDetailsCached =>
-      'テンプレート詳細を読み込めませんでした。キャッシュデータを使用します。';
+  String get failedTemplateDetailsCached => 'テンプレート詳細を読み込めませんでした。キャッシュデータを使用します。';
 
   @override
   String errorLoadingTemplate(String error) {
@@ -1636,8 +1617,7 @@ class StringsJa extends Strings {
   String get noCommunityTemplates => 'コミュニティテンプレートがありません。\n検索やフィルターを調整してください。';
 
   @override
-  String get noUploadedTemplates =>
-      'まだテンプレートをアップロードしていません。\n作品をコミュニティに共有しましょう！';
+  String get noUploadedTemplates => 'まだテンプレートをアップロードしていません。\n作品をコミュニティに共有しましょう！';
 
   @override
   String get noTemplatesFoundAdjust => 'テンプレートが見つかりません。\n検索やフィルターを調整してください。';
@@ -1667,8 +1647,7 @@ class StringsJa extends Strings {
   String get signInToUploadTemplatesTitle => 'テンプレートをアップロードするにはサインイン';
 
   @override
-  String get signInToUploadTemplatesSubtitle =>
-      'テンプレートをコミュニティに共有するにはアカウントを作成してください。';
+  String get signInToUploadTemplatesSubtitle => 'テンプレートをコミュニティに共有するにはアカウントを作成してください。';
 
   @override
   String get myTemplates => 'マイテンプレート';
@@ -1807,8 +1786,7 @@ class StringsJa extends Strings {
   String get deleteAccountCannotBeUndone => 'この操作は元に戻せません';
 
   @override
-  String get deleteAccountPermanentDataWarning =>
-      'アカウントを削除すると、すべてのデータが完全に削除されます。';
+  String get deleteAccountPermanentDataWarning => 'アカウントを削除すると、すべてのデータが完全に削除されます。';
 
   @override
   String get deleteAccountItemsIntro => '以下が完全に削除されます:';
@@ -1838,8 +1816,7 @@ class StringsJa extends Strings {
   String get deleteAccountQuickConfirm => 'アカウントを完全に削除してもよろしいですか？';
 
   @override
-  String get deleteAccountQuickWarningList =>
-      '• すべてのプロジェクトが失われます\n• クラウドバックアップが削除されます\n• この操作は元に戻せません';
+  String get deleteAccountQuickWarningList => '• すべてのプロジェクトが失われます\n• クラウドバックアップが削除されます\n• この操作は元に戻せません';
 
   @override
   String failedToDeleteAccount(String error) {
@@ -1858,8 +1835,7 @@ class StringsJa extends Strings {
   String get buyPro => 'Proを購入';
 
   @override
-  String get rewardUpgradeBullets =>
-      '• すべての機能に無制限アクセス\n• 一度きりの購入\n• 広告なし\n• 優先サポート';
+  String get rewardUpgradeBullets => '• すべての機能に無制限アクセス\n• 一度きりの購入\n• 広告なし\n• 優先サポート';
 
   @override
   String get tryProOneHour => 'Proを1時間試す';
@@ -1994,8 +1970,7 @@ class StringsJa extends Strings {
   String get magicWand => '自動選択';
 
   @override
-  String get effectsPanelAllAppliedMessage =>
-      'すべてのエフェクトをレイヤーに適用し、エフェクト一覧から削除しました';
+  String get effectsPanelAllAppliedMessage => 'すべてのエフェクトをレイヤーに適用し、エフェクト一覧から削除しました';
 
   @override
   String effectsForLayer(String layerName) {
@@ -2118,8 +2093,7 @@ class StringsJa extends Strings {
   }
 
   @override
-  String get generateAnimationTimelineNote =>
-      'タイムラインに追加できる複数のアニメーションフレームを作成します。';
+  String get generateAnimationTimelineNote => 'タイムラインに追加できる複数のアニメーションフレームを作成します。';
 
   @override
   String get generateAnimationFrames => 'アニメーションフレームを生成';
@@ -2216,8 +2190,7 @@ class StringsJa extends Strings {
   String get animationFrameGenerator => 'アニメーションフレーム生成';
 
   @override
-  String get animationGeneratorHelpIntro =>
-      'このツールは、選択したエフェクトを異なる時間パラメータで適用して複数のアニメーションフレームを生成します。\n';
+  String get animationGeneratorHelpIntro => 'このツールは、選択したエフェクトを異なる時間パラメータで適用して複数のアニメーションフレームを生成します。\n';
 
   @override
   String get animationHelpDuration => '• 長さ: アニメーション全体の秒数';
@@ -2229,8 +2202,7 @@ class StringsJa extends Strings {
   String get animationHelpPingPong => '• ピンポン: 順方向のあと逆方向に再生します';
 
   @override
-  String get animationHelpInterpolation =>
-      '• 滑らかなアニメーションのため、エフェクトパラメータは時間に沿って補間されます';
+  String get animationHelpInterpolation => '• 滑らかなアニメーションのため、エフェクトパラメータは時間に沿って補間されます';
 
   @override
   String get tips => 'ヒント:';
@@ -2614,8 +2586,7 @@ class StringsJa extends Strings {
   String get tryProForFreeExclaim => 'Proを無料で試す！';
 
   @override
-  String get watchAdUnlockProOneHour =>
-      '広告を視聴してProの機能を1時間ロック解除。各広告を開始するタイミングはあなたが選べます。';
+  String get watchAdUnlockProOneHour => '広告を視聴してProの機能を1時間ロック解除。各広告を開始するタイミングはあなたが選べます。';
 
   @override
   String temporaryProAdsCompleted(int completed, int total) {
@@ -2760,20 +2731,16 @@ class StringsJa extends Strings {
   String get unlockProTheme => 'Proテーマをアンロック';
 
   @override
-  String get upgradePromptMaxProjectsSubtitle =>
-      '無料プランのプロジェクト上限に達しました • 広告を見て一時的にアクセスするか、Proを購入してください';
+  String get upgradePromptMaxProjectsSubtitle => '無料プランのプロジェクト上限に達しました • 広告を見て一時的にアクセスするか、Proを購入してください';
 
   @override
-  String get upgradePromptMaxCanvasSizeSubtitle =>
-      'より高い解像度でピクセルアートを作成 • まずは広告で試す';
+  String get upgradePromptMaxCanvasSizeSubtitle => 'より高い解像度でピクセルアートを作成 • まずは広告で試す';
 
   @override
-  String get upgradePromptExportFormatsSubtitle =>
-      'より多くの形式で作品をエクスポート • 広告を見て一時的にアクセス';
+  String get upgradePromptExportFormatsSubtitle => 'より多くの形式で作品をエクスポート • 広告を見て一時的にアクセス';
 
   @override
-  String get upgradePromptAdvancedToolsSubtitle =>
-      'プレミアムツールとエフェクトにアクセス • 動画広告で試す';
+  String get upgradePromptAdvancedToolsSubtitle => 'プレミアムツールとエフェクトにアクセス • 動画広告で試す';
 
   @override
   String get upgradePromptCloudBackupSubtitle => 'ピクセルアート作品を失わない';
@@ -2843,8 +2810,7 @@ class StringsJa extends Strings {
   String get ultimateOwnedSubtitle => 'すべて解放済みです。ご支援ありがとうございます！';
 
   @override
-  String get proOwnedSubtitle =>
-      'Ultimateにアップグレードすると、すべてのエフェクトパックとクラウド同期が使えます。';
+  String get proOwnedSubtitle => 'Ultimateにアップグレードすると、すべてのエフェクトパックとクラウド同期が使えます。';
 
   @override
   String get planComparisonTitle => 'プラン比較';
@@ -2868,8 +2834,7 @@ class StringsJa extends Strings {
   String get effectIncludedInPro => 'このエフェクトはProとUltimateに含まれています。';
 
   @override
-  String get effectIncludedInUltimate =>
-      'このエフェクトはプレミアムパックの一部です。Ultimateなら将来のパックも含めすべて解放されます。';
+  String get effectIncludedInUltimate => 'このエフェクトはプレミアムパックの一部です。Ultimateなら将来のパックも含めすべて解放されます。';
 
   @override
   String get viewPlans => 'プランを見る';
@@ -3362,8 +3327,7 @@ class StringsJa extends Strings {
   String get serverRewardGiftTitle => '報酬を受け取りました';
 
   @override
-  String get myChallengeEntriesEmpty =>
-      'まだチャレンジに参加していません。作品を公開するときにチャレンジのタグを追加すると参加できます。';
+  String get myChallengeEntriesEmpty => 'まだチャレンジに参加していません。作品を公開するときにチャレンジのタグを追加すると参加できます。';
 
   @override
   String get myChallengeEntriesLoadFailed => 'エントリーを読み込めませんでした';
@@ -3417,8 +3381,7 @@ class StringsJa extends Strings {
   String get feedback_chat_submitted => 'フィードバックを送信しました';
 
   @override
-  String get feedback_chat_intro =>
-      'ありがとうございます！追加したいことがあればここに書いてください。すべてのメッセージを読み、このチャットで返信します。';
+  String get feedback_chat_intro => 'ありがとうございます！追加したいことがあればここに書いてください。すべてのメッセージを読み、このチャットで返信します。';
 
   @override
   String get feedback_chat_hint => 'メッセージを入力…';
@@ -3572,4 +3535,77 @@ class StringsJa extends Strings {
 
   @override
   String get packFirstDiscount => '初めてのパック −40%';
+
+  @override
+  String get featured => '注目';
+
+  @override
+  String get forks => 'フォーク';
+
+  @override
+  String forksCount(int count) {
+    return 'フォーク ($count)';
+  }
+
+  @override
+  String moreByUser(String username) {
+    return '$usernameの他の作品';
+  }
+
+  @override
+  String get unknownArtist => '不明なアーティスト';
+
+  @override
+  String shareProjectMessage(String title, String author) {
+    return '素晴らしいピクセルアート作品をチェック: $title\n作者: $author';
+  }
+
+  @override
+  String relativeMonthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countか月前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count日前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count時間前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String relativeMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count分前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get remixProject => 'リミックス';
+
+  @override
+  String get previousProject => '前の作品';
+
+  @override
+  String get nextProject => '次の作品';
 }

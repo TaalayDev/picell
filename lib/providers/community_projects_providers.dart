@@ -158,33 +158,97 @@ class CommunityProjects extends _$CommunityProjects {
     }
   }
 
-  Future<void> toggleLike(ApiProject project) async {
+  final Set<int> _likeInFlight = {};
+
+  void _applyLike(int projectId, {required bool isLiked, required int likeCount}) {
+    state = state.copyWith(
+      projects: [
+        for (final p in state.projects)
+          if (p.id == projectId) p.copyWith(isLiked: isLiked, likeCount: likeCount) else p,
+      ],
+    );
+
+    // The detail screen reads its own provider, so mirror the like there too
+    // (only if it is alive — don't trigger a fetch).
+    for (final includeData in const [true, false]) {
+      final detail = communityProjectProvider(projectId, includeData: includeData);
+      if (ref.exists(detail)) {
+        ref.read(detail.notifier).applyLike(isLiked: isLiked, likeCount: likeCount);
+      }
+    }
+  }
+
+  /// Toggles the like optimistically: the UI flips immediately, the server
+  /// result reconciles it, and a failure rolls it back. Returns false when
+  /// the like could not be saved.
+  Future<bool> toggleLike(ApiProject project) async {
+    if (!_likeInFlight.add(project.id)) return true;
+
+    final wasLiked = project.isLiked == true;
+    final baseCount = project.likeCount;
+    final optimisticLiked = !wasLiked;
+    final optimisticCount = (baseCount + (optimisticLiked ? 1 : -1)).clamp(0, 1 << 31);
+    _applyLike(project.id, isLiked: optimisticLiked, likeCount: optimisticCount);
+
     try {
       ref.read(analyticsProvider).logEvent(name: 'community_project_like');
-
       final response = await ref.read(projectAPIRepoProvider).toggleLike(project.id);
 
       if (response.success && response.data != null) {
-        final isLiked = response.data!.liked;
-        if (isLiked) ref.read(progressionProvider.notifier).record(ProgressionEvent.projectLiked);
-        final newLikeCount = isLiked ? project.likeCount + 1 : project.likeCount - 1;
-
-        // Update the project in our local state
-        final updatedProjects = state.projects.map((p) {
-          if (p.id == project.id) {
-            return p.copyWith(
-              isLiked: isLiked,
-              likeCount: newLikeCount,
-            );
-          }
-          return p;
-        }).toList();
-
-        state = state.copyWith(projects: updatedProjects);
+        final liked = response.data!.liked;
+        if (liked) ref.read(progressionProvider.notifier).record(ProgressionEvent.projectLiked);
+        if (liked != optimisticLiked) {
+          // Server disagreed with our guess (e.g. liked from another device).
+          final count = (baseCount + (liked == wasLiked ? 0 : (liked ? 1 : -1))).clamp(0, 1 << 31);
+          _applyLike(project.id, isLiked: liked, likeCount: count);
+        }
+        return true;
       }
-    } catch (e) {
-      // Handle error silently or show a snackbar
+    } catch (_) {
+      // fall through to rollback
+    } finally {
+      _likeInFlight.remove(project.id);
     }
+
+    _applyLike(project.id, isLiked: wasLiked, likeCount: baseCount);
+    return false;
+  }
+
+  /// Saves edits to a project the user owns and mirrors them into the cached
+  /// list and the detail provider. Returns false when the server rejected the
+  /// update; network/parse errors propagate so callers can show them.
+  Future<bool> updateProjectInfo(
+    ApiProject project, {
+    String? title,
+    String? description,
+    List<String>? tags,
+    bool? isPublic,
+  }) async {
+    final response = await ref.read(projectAPIRepoProvider).updateProject(
+          projectId: project.id,
+          title: title,
+          description: description,
+          tags: tags,
+          isPublic: isPublic,
+        );
+    if (!response.success) return false;
+
+    final updated = response.data;
+    state = state.copyWith(
+      projects: state.projects.map((p) {
+        if (p.id != project.id) return p;
+        return p.copyWith(
+          title: updated?.title ?? title ?? p.title,
+          description: updated?.description ?? description ?? p.description,
+          tags: updated?.tags ?? tags ?? p.tags,
+          isPublic: updated?.isPublic ?? isPublic ?? p.isPublic,
+        );
+      }).toList(),
+    );
+
+    ref.invalidate(communityProjectProvider(project.id, includeData: true));
+    ref.invalidate(communityProjectProvider(project.id));
+    return true;
   }
 
   void refresh() {
@@ -243,6 +307,13 @@ class CommunityProject extends _$CommunityProject {
       return response.data!;
     }
     throw Exception(response.error ?? 'Failed to load project');
+  }
+
+  /// Applies a like toggle performed elsewhere without refetching.
+  void applyLike({required bool isLiked, required int likeCount}) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncData(current.copyWith(isLiked: isLiked, likeCount: likeCount));
   }
 }
 

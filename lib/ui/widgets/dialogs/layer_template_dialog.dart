@@ -67,6 +67,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
     // Available categories
     final categories = [
       'characters',
+      'character-builder',
       'objects',
       'backgrounds',
       'ui-elements',

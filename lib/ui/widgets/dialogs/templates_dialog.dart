@@ -11,6 +11,7 @@ import '../../../l10n/strings.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/subscription_provider.dart';
 import '../../../providers/template_provider.dart';
+import '../../../pixel/services/random_builder.dart';
 import '../../screens/subscription_screen.dart';
 import '../animated_background.dart';
 import '../app_icon.dart';
@@ -49,10 +50,8 @@ class TemplatesDialog extends ConsumerStatefulWidget {
             width: MediaQuery.of(context).size.width * 0.85,
             height: MediaQuery.of(context).size.height * 0.85,
             constraints: const BoxConstraints(
-              maxWidth: 900,
+              maxWidth: 1100,
               maxHeight: 700,
-              minWidth: 700,
-              minHeight: 500,
             ),
             child: TemplatesDialog(onTemplateSelected: onTemplateSelected),
           ),
@@ -119,15 +118,22 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
       currentUserId: authState.apiUser?.id.toString(),
     );
 
+    final available = templateState.categoriesForTab(currentTab, currentUserId: authState.apiUser?.id.toString());
+    if (selectedCategory != 'All' && !available.any((c) => c.slug == selectedCategory)) {
+      selectedCategory = 'All';
+    }
     final filtered = templateState.filterTemplates(
       baseTemplates,
       category: selectedCategory != 'All' ? selectedCategory : null,
       searchQuery: searchController.text.trim().isNotEmpty ? searchController.text.trim() : null,
     );
 
-    setState(() {
-      filteredTemplates = filtered;
-    });
+    if (filtered.length != filteredTemplates.length ||
+        !List.generate(filtered.length, (i) => filtered[i] == filteredTemplates[i]).every((same) => same)) {
+      setState(() {
+        filteredTemplates = filtered;
+      });
+    }
   }
 
   /// Handle template selection with cloud template fetching
@@ -200,7 +206,7 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
               _HeaderWidget(
                 onClose: () => Navigator.of(context).pop(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
 
               // Tab Bar
               _TabBarWidget(
@@ -209,6 +215,7 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
                 onTabChanged: (tab) {
                   setState(() {
                     currentTab = tab;
+                    selectedCategory = 'All';
                   });
                 },
               ),
@@ -216,7 +223,7 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
               // Search and Filters
               _SearchAndFiltersWidget(
                 searchController: searchController,
-                categories: templateState.categories,
+                categories: templateState.categoriesForTab(currentTab, currentUserId: authState.apiUser?.id.toString()),
                 selectedCategory: selectedCategory,
                 onChanged: () {
                   _updateFilteredTemplates();
@@ -227,6 +234,22 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
                   });
                 },
               ),
+
+              if (selectedCategory == 'character-builder' || selectedCategory == 'monster-builder')
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.shuffle, size: 18),
+                      label: Text(selectedCategory == 'character-builder' ? 'Random Character' : 'Random Monster'),
+                      onPressed: () {
+                        final generated = buildRandomCharacter(templateState.assetTemplates, selectedCategory!);
+                        if (generated != null) _handleTemplateSelection(generated);
+                      },
+                    ),
+                  ),
+                ),
 
               // Content
               Expanded(
@@ -406,7 +429,7 @@ class _TabBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
           _TabButton(
@@ -474,7 +497,7 @@ class _TabButton extends StatelessWidget {
         onTap: () => onTap(tab),
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
             color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
@@ -530,7 +553,7 @@ class _SearchAndFiltersWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Column(
         children: [
           // Search bar
@@ -539,6 +562,8 @@ class _SearchAndFiltersWidget extends StatelessWidget {
             onChanged: (_) => onChanged(),
             decoration: InputDecoration(
               hintText: Strings.of(context).searchTemplates,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               prefixIcon: const Icon(Icons.search),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(
@@ -557,7 +582,7 @@ class _SearchAndFiltersWidget extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
 
           // Category filter
           if (categories.isNotEmpty) ...[
@@ -614,6 +639,7 @@ class _CategoryChip extends StatelessWidget {
     final isSmallScreen = MediaQuery.sizeOf(context).width < 600;
 
     return FilterChip(
+      visualDensity: VisualDensity.compact,
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => onTap(),
@@ -658,8 +684,6 @@ class _ContentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSmallScreen = MediaQuery.sizeOf(context).width < 600;
-
     if (isLoading) {
       return Center(
         child: Column(
@@ -728,18 +752,18 @@ class _ContentWidget extends StatelessWidget {
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Consumer(builder: (context, ref, child) {
               final subscriptionState = ref.watch(subscriptionStateProvider);
               final hasTemplateAccess = subscriptionState.hasFeatureAccess(SubscriptionFeature.templates);
 
               return GridView.builder(
                 controller: scrollController,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: isSmallScreen ? 2 : 4,
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 180,
+                  mainAxisExtent: 208,
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
-                  childAspectRatio: 0.8,
                 ),
                 itemCount: templates.length + (isLoadingMore ? 4 : 0),
                 itemBuilder: (context, index) {
@@ -751,6 +775,7 @@ class _ContentWidget extends StatelessWidget {
                   final isLocked = template.isPro && !hasTemplateAccess;
 
                   return _TemplateCard(
+                    key: ValueKey(template.name),
                     template: template,
                     onTap: () => isLocked ? _showUpgradePrompt(context, ref) : onTemplateSelected(template),
                     onDelete: _canDeleteTemplate(template, currentUserId) ? () => onDeleteTemplate(template) : null,
@@ -871,8 +896,12 @@ class _LoadingPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2)),
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
@@ -899,7 +928,6 @@ class _FooterWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSmallScreen = MediaQuery.sizeOf(context).width < 600;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -947,6 +975,7 @@ class _TemplateCard extends StatefulWidget {
   final bool isLocked;
 
   const _TemplateCard({
+    super.key,
     required this.template,
     required this.onTap,
     this.onDelete,
@@ -1000,13 +1029,17 @@ class _TemplateCardState extends State<_TemplateCard> {
   @override
   Widget build(BuildContext context) {
     Widget cardContent = Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2)),
+      ),
       child: InkWell(
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -1181,7 +1214,7 @@ class _TemplateCardState extends State<_TemplateCard> {
               // Template info
               Text(
                 widget.template.name,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: widget.isLocked ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6) : null,
                     ),
@@ -1204,15 +1237,18 @@ class _TemplateCardState extends State<_TemplateCard> {
                         ),
                   ),
                   if (widget.template.category != null)
-                    Text(
+                    Flexible(
+                        child: Text(
                       widget.template.categoryDisplayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: widget.isLocked
                                 ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
                                 : Theme.of(context).colorScheme.primary,
                             fontSize: 10,
                           ),
-                    ),
+                    )),
                 ],
               ),
 
@@ -1292,7 +1328,8 @@ class _PreviewWidget extends StatelessWidget {
         painter: _CheckerboardPainter(),
         child: Image.network(
           template.thumbnailImageUrl!,
-          fit: BoxFit.cover,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.none,
           width: double.infinity,
           height: double.infinity,
         ),

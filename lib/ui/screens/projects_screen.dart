@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,6 +17,7 @@ import '../../config/constants.dart';
 import '../../data/models/subscription_model.dart';
 import '../../data/models/project_api_models.dart';
 import '../../data/models/project_model.dart';
+import '../../data/models/template.dart';
 import '../../l10n/strings.dart';
 import '../../data.dart';
 import '../../core.dart';
@@ -29,7 +32,7 @@ import '../../providers/subscription_provider.dart';
 import '../widgets/dialogs/auth_dialog.dart';
 import '../widgets/animated_pro_button.dart';
 import '../widgets/animated_background.dart';
-import '../widgets/community_project_card.dart' hide CheckerboardPainter;
+import '../widgets/community_project_card.dart';
 import '../widgets/dialogs/delete_account_dialog.dart';
 import '../widgets/dialogs/delete_project_dialog.dart';
 import '../widgets/dialogs/project_upload_dialog.dart' hide CheckerboardPainter;
@@ -49,7 +52,7 @@ import 'about_screen.dart';
 import 'effect_icon_generator_screen.dart';
 import '../../app/routing/flagship_page_route.dart';
 import 'editor_workspace_screen.dart';
-import 'project_detail_screen.dart' hide CheckerboardPainter;
+import 'project_detail_screen.dart';
 
 class ProjectsScreen extends HookConsumerWidget {
   const ProjectsScreen({super.key});
@@ -585,6 +588,7 @@ class ProjectsScreen extends HookConsumerWidget {
           int? tileHeight,
           int? gridColumns,
           int? gridRows,
+          Template? template,
         })>(
       context: context,
       builder: (BuildContext context) => NewProjectDialog(
@@ -593,6 +597,7 @@ class ProjectsScreen extends HookConsumerWidget {
     );
 
     if (result != null && context.mounted) {
+      final template = result.template;
       final project = Project(
         id: 0,
         name: result.name,
@@ -605,6 +610,30 @@ class ProjectsScreen extends HookConsumerWidget {
         gridRows: result.gridRows,
         createdAt: DateTime.now(),
         editedAt: DateTime.now(),
+        // Seed the first layer with the template; `addProject` persists
+        // projects that already carry states and frames as-is.
+        states: template == null ? const [] : const [AnimationStateModel(id: 0, name: 'Animation', frameRate: 24)],
+        frames: template == null
+            ? const []
+            : [
+                AnimationFrame(
+                  id: 0,
+                  stateId: 0,
+                  name: 'Frame 1',
+                  duration: 100,
+                  layers: [
+                    for (final (index, part)
+                        in (template.builderParts.isEmpty ? [template] : template.builderParts).indexed)
+                      Layer(
+                        layerId: 0,
+                        id: const Uuid().v4(),
+                        name: part.name,
+                        pixels: Uint32List.fromList(part.pixels),
+                        order: index,
+                      ),
+                  ],
+                ),
+              ],
       );
 
       final loader = showLoader(
@@ -1667,10 +1696,18 @@ class CloudProjectsView extends HookConsumerWidget {
                     child: CommunityProjectCard(
                       project: projects[index],
                       isFeatured: true,
+                      heroTag: 'featured-${projects[index].id}',
                       onTap: () {
                         final project = projects[index];
                         unawaited(ref.read(projectAPIRepoProvider).recordFeaturedClick(project.id));
-                        _openProjectDetail(context, ref, project, subscription);
+                        _openProjectDetail(
+                          context,
+                          ref,
+                          project,
+                          subscription,
+                          siblings: projects,
+                          heroTag: 'featured-${project.id}',
+                        );
                       },
                       onLike: (project) => ref.read(communityProjectsProvider.notifier).toggleLike(project),
                     ),
@@ -1820,7 +1857,15 @@ class CloudProjectsView extends HookConsumerWidget {
                 return CommunityProjectCard(
                   key: ValueKey(project.id),
                   project: project,
-                  onTap: () => _openProjectDetail(context, ref, project, subscription),
+                  heroTag: 'grid-${project.id}',
+                  onTap: () => _openProjectDetail(
+                    context,
+                    ref,
+                    project,
+                    subscription,
+                    siblings: state.projects,
+                    heroTag: 'grid-${project.id}',
+                  ),
                   onLike: (project) => ref.read(communityProjectsProvider.notifier).toggleLike(project),
                   onUserTap: (username) {
                     ref.read(communityProjectsProvider.notifier).filterByUser(username);
@@ -1838,16 +1883,14 @@ class CloudProjectsView extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     ApiProject project,
-    UserSubscription subscription,
-  ) async {
+    UserSubscription subscription, {
+    List<ApiProject> siblings = const [],
+    String? heroTag,
+  }) async {
     if (Random().nextInt(10) < 2 && !subscription.isPro) {
       await ref.read(interstitialAdProvider.notifier).showAdIfLoaded(() {});
     }
 
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ProjectDetailScreen(project: project),
-      ),
-    );
+    await ProjectDetailScreen.show(context, project, siblings: siblings, heroTag: heroTag);
   }
 }

@@ -33,75 +33,84 @@ class SidebarProjectListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                // Cover, not contain: at icon size a letterboxed non-square
-                // thumbnail would shrink to an illegible sliver — cropping
-                // reads better, the same tradeoff every OS file manager
-                // makes for list-view vs. grid-view icons.
-                child: ProjectThumbnailWidget(project: project, fit: BoxFit.cover),
+    return ProjectContextMenuRegion(
+      project: project,
+      onTapProject: onTap == null ? null : (_) => onTap!(),
+      onDeleteProject: onDeleteProject,
+      onEditProject: onEditProject,
+      onUploadProject: onUploadProject,
+      onUpdateProject: onUpdateProject,
+      onDeleteCloudProject: onDeleteCloudProject,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  // Cover, not contain: at icon size a letterboxed non-square
+                  // thumbnail would shrink to an illegible sliver — cropping
+                  // reads better, the same tradeoff every OS file manager
+                  // makes for list-view vs. grid-view icons.
+                  child: ProjectThumbnailWidget(project: project, fit: BoxFit.cover),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          project.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            project.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                          ),
                         ),
-                      ),
-                      if (project.isCloudSynced) ...[
-                        const SizedBox(width: 4),
-                        Icon(Feather.cloud, size: 12, color: theme.colorScheme.primary),
+                        if (project.isCloudSynced) ...[
+                          const SizedBox(width: 4),
+                          Icon(Feather.cloud, size: 12, color: theme.colorScheme.primary),
+                        ],
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${project.width}×${project.height} · ${formatLastEdited(context, project.editedAt)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      '${project.width}×${project.height} · ${formatLastEdited(context, project.editedAt)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(
-              width: 28,
-              height: 28,
-              child: ProjectMenuButton(
-                project: project,
-                onTapProject: onTap == null ? null : (_) => onTap!(),
-                onDeleteProject: onDeleteProject,
-                onEditProject: onEditProject,
-                onUploadProject: onUploadProject,
-                onUpdateProject: onUpdateProject,
-                onDeleteCloudProject: onDeleteCloudProject,
-                iconSize: 16,
-                buttonSize: 28,
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: ProjectMenuButton(
+                  project: project,
+                  onTapProject: onTap == null ? null : (_) => onTap!(),
+                  onDeleteProject: onDeleteProject,
+                  onEditProject: onEditProject,
+                  onUploadProject: onUploadProject,
+                  onUpdateProject: onUpdateProject,
+                  onDeleteCloudProject: onDeleteCloudProject,
+                  iconSize: 16,
+                  buttonSize: 28,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

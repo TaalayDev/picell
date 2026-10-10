@@ -1672,5 +1672,70 @@
     "savingsGoalSet": "Бул пак үчүн топтоо",
     "savingsGoalActive": "Сиздин топтоо максатыңыз",
     "packPriceCredit": "Сизде бар эффекттер үчүн −{coins}",
-    "packFirstDiscount": "Биринчи пак −40%"
+    "packFirstDiscount": "Биринчи пак −40%",
+    "featured": "Тандалган",
+    "forks": "Форктор",
+    "forksCount": "Форктор ({count})",
+        "@forksCount": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "moreByUser": "{username} дагы",
+        "@moreByUser": {
+            "placeholders": {
+                "username": {
+                    "type": "String"
+                }
+            }
+        },
+    "unknownArtist": "Белгисиз сүрөтчү",
+    "shareProjectMessage": "Бул сонун пиксель-арт долбоорун көрүңүз: {title}\nАвтору: {author}",
+        "@shareProjectMessage": {
+            "placeholders": {
+                "title": {
+                    "type": "String"
+                },
+                "author": {
+                    "type": "String"
+                }
+            }
+        },
+    "relativeMonthsAgo": "{count, plural, other{{count} ай мурун}}",
+        "@relativeMonthsAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "relativeDaysAgo": "{count, plural, other{{count} күн мурун}}",
+        "@relativeDaysAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "relativeHoursAgo": "{count, plural, other{{count} саат мурун}}",
+        "@relativeHoursAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "relativeMinutesAgo": "{count, plural, other{{count} мүнөт мурун}}",
+        "@relativeMinutesAgo": {
+            "placeholders": {
+                "count": {
+                    "type": "int"
+                }
+            }
+        },
+    "remixProject": "Ремикс",
+    "previousProject": "Мурунку долбоор",
+    "nextProject": "Кийинки долбоор"
 }

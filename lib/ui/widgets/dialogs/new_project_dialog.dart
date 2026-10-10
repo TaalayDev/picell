@@ -5,7 +5,9 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import '../../../config/constants.dart';
 import '../../../data/models/project_model.dart';
 import '../../../data/models/subscription_model.dart';
+import '../../../data/models/template.dart';
 import '../../../l10n/strings.dart';
+import 'templates_dialog.dart';
 
 const kMaxPixelWidth = 5024;
 const kMaxPixelHeight = 5024;
@@ -44,15 +46,11 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
   String _projectName = '';
   int _width = 16;
   int _height = 16;
-  ProjectType _projectType = ProjectType.pixelArt;
+  final _nameController = TextEditingController();
 
-  // Tile size for tile generator
-  int _tileWidth = 16;
-  int _tileHeight = 16;
-
-  // Tilemap canvas size (grid dimensions)
-  int _gridColumns = 16;
-  int _gridRows = 16;
+  /// Template the new project is seeded from, if one was picked.
+  Template? _template;
+  String? _templateError;
 
   final List<ProjectTemplate> _templates = [
     ProjectTemplate(
@@ -84,6 +82,114 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
 
   int _selectedTemplateIndex = 0;
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickTemplate() async {
+    await TemplatesDialog.show(context, (template) {
+      if (!mounted) return;
+      setState(() {
+        _template = template;
+        _templateError = null;
+        _width = template.width;
+        _height = template.height;
+        if (_nameController.text.trim().isEmpty) {
+          _nameController.text = template.name;
+        }
+      });
+    });
+  }
+
+  void _clearTemplate() {
+    setState(() {
+      _template = null;
+      _templateError = null;
+      if (_selectedTemplateIndex != _templates.length - 1) {
+        _width = _templates[_selectedTemplateIndex].width;
+        _height = _templates[_selectedTemplateIndex].height;
+      }
+    });
+  }
+
+  Widget _buildTemplatePicker(BuildContext context, int maxCanvasSize) {
+    final scheme = Theme.of(context).colorScheme;
+    final template = _template;
+
+    if (template == null) {
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: _pickTemplate,
+          icon: const Icon(Octicons.repo_template, size: 18),
+          label: Text(Strings.of(context).template),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+          decoration: BoxDecoration(
+            color: scheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _templateError != null ? scheme.error : scheme.primary.withValues(alpha: 0.4),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(Octicons.repo_template, size: 18, color: scheme.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      template.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '${template.width}x${template.height}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.swap_horiz, size: 18),
+                tooltip: Strings.of(context).template,
+                onPressed: _pickTemplate,
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+                onPressed: _clearTemplate,
+              ),
+            ],
+          ),
+        ),
+        if (_templateError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              _templateError!,
+              style: TextStyle(color: scheme.error, fontSize: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
   String _getTemplateName(BuildContext context, ProjectTemplate template) {
     final s = Strings.of(context);
     final String localizedName;
@@ -113,8 +219,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final maxCanvasSize =
-        widget.subscription.getFeatureLimit<int>(SubscriptionFeature.maxCanvasSize);
+    final maxCanvasSize = widget.subscription.getFeatureLimit<int>(SubscriptionFeature.maxCanvasSize);
 
     return AlertDialog(
       title: Text(
@@ -131,6 +236,7 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
             children: [
               const SizedBox(height: 16),
               TextFormField(
+                controller: _nameController,
                 decoration: InputDecoration(
                   labelText: Strings.of(context).projectName,
                   border: const OutlineInputBorder(),
@@ -145,7 +251,9 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                 onSaved: (value) => _projectName = value!,
               ),
               const SizedBox(height: 16),
-              _buildPixelArtOptions(context, maxCanvasSize),
+              // Canvas size comes from the template once one is chosen.
+              if (_template == null) _buildPixelArtOptions(context, maxCanvasSize),
+              _buildTemplatePicker(context, maxCanvasSize),
             ],
           ),
         ),
@@ -160,32 +268,23 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
-              if (_projectType == ProjectType.tileGenerator) {
-                // For tile generator, canvas size is grid * tile size
-                final canvasWidth = _gridColumns * _tileWidth;
-                final canvasHeight = _gridRows * _tileHeight;
-                Navigator.of(context).pop((
-                  name: _projectName,
-                  width: canvasWidth,
-                  height: canvasHeight,
-                  type: _projectType,
-                  tileWidth: _tileWidth,
-                  tileHeight: _tileHeight,
-                  gridColumns: _gridColumns,
-                  gridRows: _gridRows,
-                ));
-              } else {
-                Navigator.of(context).pop((
-                  name: _projectName,
-                  width: _width,
-                  height: _height,
-                  type: _projectType,
-                  tileWidth: null as int?,
-                  tileHeight: null as int?,
-                  gridColumns: null as int?,
-                  gridRows: null as int?,
-                ));
+              final template = _template;
+              if (template != null && !kIsDemo && (template.width > maxCanvasSize || template.height > maxCanvasSize)) {
+                setState(() => _templateError = Strings.of(context).planLimitError(maxCanvasSize));
+                return;
               }
+              Navigator.of(context).pop((
+                name: _projectName,
+                width: _width,
+                height: _height,
+                type: ProjectType.pixelArt,
+                // Tile-generator fields are not creatable from this dialog.
+                tileWidth: null as int?,
+                tileHeight: null as int?,
+                gridColumns: null as int?,
+                gridRows: null as int?,
+                template: template,
+              ));
             }
           },
         ),
@@ -215,9 +314,12 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
             if (value == null) {
               return Strings.of(context).templateRequired;
             }
+            // Use the preset's own size: `_width`/`_height` are only written
+            // on save, so they can be stale while validating.
+            final preset = _templates[value];
             if (!kIsDemo &&
-                value != _templates.length - 1 &&
-                (_width > maxCanvasSize || _height > maxCanvasSize)) {
+                preset.preset != ProjectTemplatePreset.custom &&
+                (preset.width > maxCanvasSize || preset.height > maxCanvasSize)) {
               return Strings.of(context).planLimitError(maxCanvasSize);
             }
             return null;
@@ -252,8 +354,10 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                     }
                     int? width = int.tryParse(value);
                     if (width == null || width < 1 || width > kMaxPixelWidth) {
-                      return Strings.of(context)
-                          .widthRangeError(kMaxPixelWidth);
+                      return Strings.of(context).widthRangeError(kMaxPixelWidth);
+                    }
+                    if (!kIsDemo && width > maxCanvasSize) {
+                      return Strings.of(context).planLimitError(maxCanvasSize);
                     }
                     return null;
                   },
@@ -276,11 +380,11 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
                       return Strings.of(context).heightRequired;
                     }
                     int? height = int.tryParse(value);
-                    if (height == null ||
-                        height < 1 ||
-                        height > kMaxPixelHeight) {
-                      return Strings.of(context)
-                          .heightRangeError(kMaxPixelHeight);
+                    if (height == null || height < 1 || height > kMaxPixelHeight) {
+                      return Strings.of(context).heightRangeError(kMaxPixelHeight);
+                    }
+                    if (!kIsDemo && height > maxCanvasSize) {
+                      return Strings.of(context).planLimitError(maxCanvasSize);
                     }
                     return null;
                   },

@@ -530,12 +530,16 @@ class _LayerTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  layer.name,
-                  style: TextStyle(
-                    color: contentColor,
-                    fontSize: 12,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                Expanded(
+                  child: Text(
+                    layer.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: contentColor,
+                      fontSize: 12,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                    ),
                   ),
                 ),
               ],
