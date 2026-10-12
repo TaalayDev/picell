@@ -35,7 +35,7 @@ build() {
   if [ $# -gt 0 ]; then
     buildType="$1"
   else
-    read -p "Enter build type (apk, appbundle, ipa, macos): " buildType
+    read -p "Enter build type (apk, appbundle, ipa, xcarchive, macos, macos-archive): " buildType
   fi
 
   # Normalize Build Type
@@ -47,9 +47,15 @@ build() {
   elif [ "$buildType" == "ios" ] || [ "$buildType" == "ipa" ]; then
     echo "Preparing iOS build..."
     buildType="ipa" # 'flutter build ipa' is usually preferred over 'ios' for distribution
+  elif [ "$buildType" == "xcarchive" ] || [ "$buildType" == "archive" ]; then
+    echo "Preparing Xcode archive (.xcarchive) build..."
+    buildType="xcarchive"
   elif [ "$buildType" == "macos" ]; then
     echo "Preparing macOS build..."
     buildType="macos"
+  elif [ "$buildType" == "macos-archive" ] || [ "$buildType" == "macos_archive" ]; then
+    echo "Preparing macOS Xcode archive (.xcarchive) build..."
+    buildType="macos-archive"
   else
     echo "Invalid build type: $buildType"
     exit 1
@@ -83,7 +89,7 @@ build() {
       # Try to fetch android_version
       versionRaw=$(get_yaml_value "android_version" "$pubspecYaml")
       if [ -n "$versionRaw" ]; then sourceKey="android_version"; fi
-  elif [[ "$buildType" == "ipa" || "$buildType" == "macos" ]]; then
+  elif [[ "$buildType" == "ipa" || "$buildType" == "xcarchive" || "$buildType" == "macos" || "$buildType" == "macos-archive" ]]; then
       # Try to fetch ios_version
       versionRaw=$(get_yaml_value "ios_version" "$pubspecYaml")
       if [ -n "$versionRaw" ]; then sourceKey="ios_version"; fi
@@ -118,56 +124,108 @@ build() {
 
   # Execute Build
   # We run this directly instead of eval/capture so you see the progress bar
-  flutter build "$buildType" --release \
-    --dart-define VERSION_NAME="$versionName" \
-    --dart-define VERSION_CODE="$versionCode" \
-    --build-name="$versionName" \
-    --build-number="$versionCode"
+  if [ "$buildType" == "xcarchive" ]; then
+    # There's no 'flutter build xcarchive' target: build the .app via
+    # 'flutter build ios', then let Xcode do the actual archiving.
+    flutter build ios --release --no-codesign \
+      --dart-define VERSION_NAME="$versionName" \
+      --dart-define VERSION_CODE="$versionCode" \
+      --build-name="$versionName" \
+      --build-number="$versionCode"
+    buildStatus=$?
 
-  if [ $? -eq 0 ]; then
+    if [ $buildStatus -eq 0 ]; then
+      archivePath="build/ios/archive/Runner.xcarchive"
+      mkdir -p "build/ios/archive"
+      echo "Archiving with xcodebuild..."
+      xcodebuild -workspace ios/Runner.xcworkspace \
+        -scheme Runner \
+        -configuration Release \
+        -archivePath "$archivePath" \
+        archive
+      buildStatus=$?
+    fi
+  elif [ "$buildType" == "macos-archive" ]; then
+    # Generate the current Flutter Release configuration without doing a
+    # duplicate ad-hoc build. xcodebuild below owns the real build/sign/archive.
+    flutter build macos --release --config-only \
+      --dart-define VERSION_NAME="$versionName" \
+      --dart-define VERSION_CODE="$versionCode" \
+      --build-name="$versionName" \
+      --build-number="$versionCode"
+    buildStatus=$?
+
+    if [ $buildStatus -eq 0 ]; then
+      archivePath="build/macos/archive/Runner.xcarchive"
+      mkdir -p "$(dirname "$archivePath")"
+      if [ -d "$archivePath" ]; then
+        echo "Removing previous macOS archive (it may contain stale signing metadata)..."
+        rm -rf "$archivePath"
+      fi
+
+      if ! security find-identity -v -p codesigning | grep -q 'Apple Development'; then
+        echo "⚠️  No Apple Development signing identity is currently installed."
+        echo "Xcode will try to download/create it using the signed-in account."
+        echo "If this fails, open Xcode → Settings → Accounts → Manage Certificates."
+      fi
+
+      echo "Archiving macOS app with xcodebuild..."
+      xcodebuild -workspace macos/Runner.xcworkspace \
+        -scheme Runner \
+        -configuration Release \
+        -archivePath "$archivePath" \
+        -allowProvisioningUpdates \
+        DEVELOPMENT_TEAM="R23G38C3KB" \
+        CODE_SIGN_STYLE="Automatic" \
+        CODE_SIGN_IDENTITY="Apple Development" \
+        MARKETING_VERSION="$versionName" \
+        CURRENT_PROJECT_VERSION="$versionCode" \
+        archive
+      buildStatus=$?
+
+      if [ $buildStatus -eq 0 ]; then
+        archiveTeam=$(/usr/libexec/PlistBuddy \
+          -c "Print :ApplicationProperties:Team" \
+          "$archivePath/Info.plist" 2>/dev/null)
+        archiveSigningIdentity=$(/usr/libexec/PlistBuddy \
+          -c "Print :ApplicationProperties:SigningIdentity" \
+          "$archivePath/Info.plist" 2>/dev/null)
+
+        if [ -z "$archiveTeam" ] || [ -z "$archiveSigningIdentity" ]; then
+          echo "❌ Archive was created without an Apple Development Team/signing identity."
+          echo "Open Xcode → Settings → Accounts, sign in, select team R23G38C3KB,"
+          echo "then Manage Certificates → + → Apple Development and run again."
+          buildStatus=1
+        else
+          echo "Archive team: $archiveTeam"
+          echo "Signing identity: $archiveSigningIdentity"
+        fi
+      fi
+    fi
+  else
+    flutter build "$buildType" --release \
+      --dart-define VERSION_NAME="$versionName" \
+      --dart-define VERSION_CODE="$versionCode" \
+      --build-name="$versionName" \
+      --build-number="$versionCode"
+    buildStatus=$?
+  fi
+
+  if [ $buildStatus -eq 0 ]; then
     echo "✅ Build success"
 
     if [ "$buildType" == "ipa" ]; then
       open "/Applications/Transporter.app"
       open_folder "build/ios/ipa"
+    elif [ "$buildType" == "xcarchive" ]; then
+      # Double-clicking a .xcarchive opens it straight in Xcode's Organizer
+      open "build/ios/archive/Runner.xcarchive"
     elif [ "$buildType" == "macos" ]; then
-      # Package the .app into a signed .pkg for App Store upload
-      releaseDir="build/macos/Build/Products/Release"
-      appPath=$(find "$releaseDir" -maxdepth 1 -name "*.app" | head -n 1)
-
-      if [ -z "$appPath" ]; then
-        echo "❌ No .app found in $releaseDir"
-        exit 1
-      fi
-
-      appName=$(basename "$appPath" .app)
-      pkgPath="$releaseDir/$appName-$versionName.pkg"
-
-      # Use the Mac App Store installer identity if available, otherwise
-      # produce an unsigned pkg (still useful for local testing).
-      installerIdentity=$(security find-identity -v -p basic 2>/dev/null \
-        | grep "3rd Party Mac Developer Installer" \
-        | head -n 1 \
-        | sed 's/.*"\(.*\)"/\1/')
-
-      echo "Packaging $appName.app -> $pkgPath"
-      if [ -n "$installerIdentity" ]; then
-        echo "Signing with: $installerIdentity"
-        productbuild --component "$appPath" /Applications \
-          --sign "$installerIdentity" "$pkgPath"
-      else
-        echo "⚠️  No '3rd Party Mac Developer Installer' identity found — building unsigned pkg"
-        productbuild --component "$appPath" /Applications "$pkgPath"
-      fi
-
-      if [ $? -ne 0 ]; then
-        echo "❌ pkg packaging failed"
-        exit 1
-      fi
-      echo "✅ Package created: $pkgPath"
-
       open "/Applications/Transporter.app"
-      open_folder "$releaseDir"
+      open_folder "build/macos/Build/Products/Release"
+    elif [ "$buildType" == "macos-archive" ]; then
+      echo "Opening macOS archive in Xcode Organizer for validation/upload..."
+      open -a Xcode "build/macos/archive/Runner.xcarchive"
     elif [ "$buildType" == "appbundle" ]; then
       open_folder "build/app/outputs/bundle/release"
       open "https://play.google.com/console"
@@ -246,6 +304,7 @@ makeModel() {
 
 if [ $# -eq 0 ]; then
   echo "Usage: $0 {build|start|make-model} [args...]"
+  echo "  build types: apk, appbundle, ipa, xcarchive, macos, macos-archive"
   exit 1
 fi
 

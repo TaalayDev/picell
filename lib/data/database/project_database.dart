@@ -104,63 +104,53 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration {
     return MigrationStrategy(
       onUpgrade: (migrator, from, to) async {
+        // Drift's alterTable copies every column of the *current* table
+        // definition that isn't listed in newColumns from the old table. So
+        // each table must be altered once, with all columns introduced after
+        // [from] listed together; altering step by step fails on columns that
+        // only a later step would add.
         if (from < 2) {
           await migrator.createTable(framesTable);
+        }
+
+        final layerColumns = <GeneratedColumn>[
+          if (from < 2) ...[layersTable.frameId, layersTable.order],
+          if (from < 4) layersTable.effects,
+        ];
+        if (layerColumns.isNotEmpty) {
           await migrator.alterTable(TableMigration(
             layersTable,
-            newColumns: [layersTable.frameId],
-          ));
-          await migrator.alterTable(TableMigration(
-            layersTable,
-            newColumns: [layersTable.order],
+            newColumns: layerColumns,
           ));
         }
+
         if (from < 3) {
           await _from2To3(migrator);
         }
-        if (from < 4) {
-          await migrator.alterTable(TableMigration(
-            layersTable,
-            newColumns: [layersTable.effects],
-          ));
-        }
-        if (from < 5) {
-          await migrator.alterTable(TableMigration(
-            projectsTable,
-            newColumns: [projectsTable.isCloudSynced, projectsTable.remoteId],
-          ));
-        }
-        if (from < 6) {
-          await migrator.alterTable(TableMigration(
-            projectsTable,
-            newColumns: [
-              projectsTable.projectType,
-              projectsTable.tileWidth,
-              projectsTable.tileHeight,
-              projectsTable.gridColumns,
-              projectsTable.gridRows,
-            ],
-          ));
-        }
-        if (from < 7) {
+
+        final projectColumns = <GeneratedColumn>[
+          if (from < 5) ...[
+            projectsTable.isCloudSynced,
+            projectsTable.remoteId,
+          ],
+          if (from < 6) ...[
+            projectsTable.projectType,
+            projectsTable.tileWidth,
+            projectsTable.tileHeight,
+            projectsTable.gridColumns,
+            projectsTable.gridRows,
+          ],
+          if (from < 7) projectsTable.tilemapData,
+          if (from < 8) projectsTable.forkedFromId,
+          if (from < 9) ...[
+            projectsTable.selectedFrameId,
+            projectsTable.selectedLayerId,
+          ],
+        ];
+        if (projectColumns.isNotEmpty) {
           await migrator.alterTable(TableMigration(
             projectsTable,
-            newColumns: [projectsTable.tilemapData],
-          ));
-        }
-        if (from < 8) {
-          await migrator.alterTable(TableMigration(
-            projectsTable,
-            newColumns: [projectsTable.forkedFromId],
-          ));
-        }
-        if (from < 9) {
-          await migrator.alterTable(TableMigration(
-            projectsTable,
-            newColumns: [
-              projectsTable.selectedFrameId,
-              projectsTable.selectedLayerId,
-            ],
+            newColumns: projectColumns,
           ));
         }
       },
@@ -191,11 +181,15 @@ class AppDatabase extends _$AppDatabase {
 
     final projectStates = <int, int>{};
 
-    final projects = await select(projectsTable).get();
-    for (final project in projects) {
+    // Only the id column: newer project columns don't exist yet.
+    final projectIds = await (selectOnly(projectsTable)
+          ..addColumns([projectsTable.id]))
+        .map((row) => row.read(projectsTable.id)!)
+        .get();
+    for (final projectId in projectIds) {
       final id = await into(animationStateTable).insert(
         AnimationStateTableCompanion(
-          projectId: Value(project.id),
+          projectId: Value(projectId),
           name: const Value('Animation'),
           frameRate: const Value(24),
           createdAt: Value(DateTime.now()),
@@ -203,7 +197,7 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
 
-      projectStates[project.id] = id;
+      projectStates[projectId] = id;
     }
 
     await customStatement('''
