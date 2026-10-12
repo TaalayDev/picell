@@ -130,15 +130,21 @@ class FileUtils {
       html.document.body!.children.add(input);
       input.click();
     } else {
+      // 'pxv' has no registered MIME type, so Android's file picker rejects it
+      // as a custom filter. Pick any file and validate the extension instead.
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pxv'],
+        type: FileType.any,
       );
 
-      if (result != null) {
-        final File file = File(result.files.single.path!);
-        final String contents = await file.readAsString();
-        completer.complete(contents);
+      final path = result?.files.single.path;
+      if (path == null) {
+        completer.complete(null);
+      } else if (!path.toLowerCase().endsWith('.pxv')) {
+        completer.completeError(
+          const FormatException('Please select a .pxv project file.'),
+        );
+      } else {
+        completer.complete(await File(path).readAsString());
       }
     }
 
