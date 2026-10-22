@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/services/analytics_features.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -9,6 +10,7 @@ class EditorSettingsDialog extends ConsumerWidget {
   const EditorSettingsDialog({super.key});
 
   static Future<void> show(BuildContext context) {
+    trackFeature(context, AnalyticsFeature.editorSettings);
     final isMobile =
         !kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android);
 

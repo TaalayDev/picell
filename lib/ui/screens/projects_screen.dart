@@ -506,7 +506,9 @@ class ProjectsScreen extends HookConsumerWidget {
             );
 
             try {
-              final newProject = await ref.read(projectsProvider.notifier).addProject(result.project!);
+              final newProject = await ref
+                  .read(projectsProvider.notifier)
+                  .addProject(result.project!, source: result.type == DroppedFileType.aseprite ? 'aseprite' : 'pxv');
               if (context.mounted) {
                 loader.remove();
                 showTopFlushbar(
@@ -535,7 +537,7 @@ class ProjectsScreen extends HookConsumerWidget {
             );
 
             try {
-              final newProject = await ref.read(projectsProvider.notifier).addProject(project);
+              final newProject = await ref.read(projectsProvider.notifier).addProject(project, source: 'image');
               if (context.mounted) {
                 loader.remove();
                 showTopFlushbar(
@@ -640,7 +642,9 @@ class ProjectsScreen extends HookConsumerWidget {
         context,
         loadingText: Strings.of(context).creatingProject,
       );
-      final newProject = await ref.read(projectsProvider.notifier).addProject(project);
+      final newProject = await ref
+          .read(projectsProvider.notifier)
+          .addProject(project, source: template == null ? 'blank' : 'template');
 
       if (context.mounted) {
         loader.remove();

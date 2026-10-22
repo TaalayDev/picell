@@ -57,6 +57,9 @@ class Project with EquatableMixin {
   /// JSON string containing tilemap state data (tiles, layers, grid)
   final String? tilemapData;
 
+  /// JSON document of the project's bone rigs (see `RigDocument`).
+  final String? rigData;
+
   Project({
     required this.id,
     required this.name,
@@ -78,6 +81,7 @@ class Project with EquatableMixin {
     this.gridColumns,
     this.gridRows,
     this.tilemapData,
+    this.rigData,
   });
 
   Project copyWith({
@@ -106,6 +110,8 @@ class Project with EquatableMixin {
     int? gridRows,
     String? tilemapData,
     bool clearTilemapData = false,
+    String? rigData,
+    bool clearRigData = false,
   }) {
     return Project(
       id: id ?? this.id,
@@ -133,6 +139,7 @@ class Project with EquatableMixin {
       gridColumns: gridColumns ?? this.gridColumns,
       gridRows: gridRows ?? this.gridRows,
       tilemapData: clearTilemapData ? null : (tilemapData ?? this.tilemapData),
+      rigData: clearRigData ? null : (rigData ?? this.rigData),
     );
   }
 
@@ -148,6 +155,7 @@ class Project with EquatableMixin {
       'gridColumns': gridColumns,
       'gridRows': gridRows,
       'tilemapData': tilemapData,
+      if (rigData != null) 'rigData': rigData,
       'states': states.map((state) => state.toJson()).toList(),
       'frames': frames.map((frame) => frame.toJson()).toList(),
       'thumbnail': thumbnail?.toList(),
@@ -178,6 +186,7 @@ class Project with EquatableMixin {
       gridColumns: json['gridColumns'] as int?,
       gridRows: json['gridRows'] as int?,
       tilemapData: json['tilemapData'] as String?,
+      rigData: json['rigData'] as String?,
       states: (json['states'] as List)
           .map(
             (state) =>
@@ -214,6 +223,7 @@ class Project with EquatableMixin {
         gridColumns,
         gridRows,
         tilemapData,
+        rigData,
         frames,
         states,
         selectedFrameId,

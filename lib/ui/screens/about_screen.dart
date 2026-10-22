@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../data/storage/local_storage.dart';
+import '../../providers/providers.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:picell/l10n/strings.dart';
 import 'package:picell/ui/widgets/version_text.dart';
@@ -165,6 +168,7 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
           ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
+          const _AnalyticsToggle(),
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -206,6 +210,31 @@ class AboutScreen extends StatelessWidget {
           ),
         ],
       ).animate().fadeIn(delay: 1000.ms, duration: 600.ms),
+    );
+  }
+}
+
+class _AnalyticsToggle extends ConsumerStatefulWidget {
+  const _AnalyticsToggle();
+
+  @override
+  ConsumerState<_AnalyticsToggle> createState() => _AnalyticsToggleState();
+}
+
+class _AnalyticsToggleState extends ConsumerState<_AnalyticsToggle> {
+  final _storage = LocalStorage();
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      dense: true,
+      title: const Text('Share anonymous usage data'),
+      subtitle: const Text('Helps improve Picell. No projects or personal data are sent.'),
+      value: _storage.analyticsEnabled,
+      onChanged: (value) {
+        setState(() => _storage.analyticsEnabled = value);
+        if (!value) ref.read(analyticsProvider).clear();
+      },
     );
   }
 }

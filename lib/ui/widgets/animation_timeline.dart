@@ -6,6 +6,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../pixel/animation_frame_controller.dart';
 import '../../pixel/image_painter.dart';
+import '../../pixel/rig/rig_bake.dart';
 import '../../data.dart';
 import '../../l10n/strings.dart';
 import '../utils/multi_selection.dart';
@@ -43,6 +44,8 @@ class AnimationTimeline extends HookWidget {
     required this.onDuplicateState,
     required this.onCopyState,
     required this.onSelectedStateChanged,
+    this.onOpenRig,
+    this.rigLocked = false,
   });
 
   final int width;
@@ -72,6 +75,13 @@ class AnimationTimeline extends HookWidget {
   final Function(int) onDuplicateState;
   final Function(int) onCopyState;
   final Function(int) onSelectedStateChanged;
+
+  /// Opens the bone rig editor for the selected animation; the button is
+  /// hidden when null.
+  final VoidCallback? onOpenRig;
+
+  /// Marks the rig button as a Pro feature.
+  final bool rigLocked;
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +173,21 @@ class AnimationTimeline extends HookWidget {
               width: 1,
               thickness: 1,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
+            if (onOpenRig != null)
+              Tooltip(
+                message: 'Bone rig',
+                child: IconButton(
+                  key: const ValueKey('open-rig-editor'),
+                  icon: Badge(
+                    isLabelVisible: rigLocked,
+                    smallSize: 6,
+                    child: const Icon(Icons.accessibility_new, size: 18),
+                  ),
+                  onPressed: onOpenRig,
+                ),
+              ),
+            const SizedBox(width: 8),
 
             const Spacer(),
 
@@ -722,6 +746,20 @@ class _FrameThumbnail extends StatelessWidget {
                 },
               ),
             ),
+            if (RigBakePlanner.isRigFrame(frame))
+              Positioned(
+                top: 2,
+                left: 2,
+                child: Container(
+                  key: ValueKey('rig-badge-${frame.id}'),
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Icon(Icons.accessibility_new, size: 10, color: Colors.white),
+                ),
+              ),
           ],
         ),
       ),

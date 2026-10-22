@@ -16,6 +16,7 @@ enum StorageKey {
   currentUser,
   hasBioAuth,
   feedbackPromptNeverAskAgain,
+  analyticsEnabled,
   // Editor settings
   editorInputMode,
   editorShowGrid,
@@ -87,6 +88,10 @@ abstract class LocalStorage {
     setString(StorageKey.installationId.name, generated);
     return generated;
   }
+
+  /// Anonymous usage analytics. On by default; the user can opt out in About.
+  bool get analyticsEnabled => getBool(StorageKey.analyticsEnabled.name) ?? true;
+  set analyticsEnabled(bool val) => setBool(StorageKey.analyticsEnabled.name, val);
 
   bool get firstRun => getBool(StorageKey.firstRun.name) ?? true;
 

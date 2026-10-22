@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import '../../../core/services/analytics_features.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -26,6 +27,7 @@ class TemplatesDialog extends ConsumerStatefulWidget {
   });
 
   static Future<void> show(BuildContext context, Function(Template template) onTemplateSelected) async {
+    trackFeature(context, AnalyticsFeature.templates);
     final isMobile = MediaQuery.sizeOf(context).width < 600;
     if (isMobile) {
       showModalBottomSheet(

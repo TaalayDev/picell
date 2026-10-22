@@ -295,4 +295,71 @@ void main() {
     await tester.tap(find.byIcon(Feather.copy).first);
     expect(copied, {1, 2, 3, 4});
   });
+
+  group('rig integration', () {
+    Widget timeline(List<AnimationFrame> frames, {VoidCallback? onOpenRig, bool rigLocked = false}) {
+      return buildTestableWidget(
+        AnimationTimeline(
+          width: 16,
+          height: 16,
+          isExpanded: true,
+          states: const [AnimationStateModel(id: 1, name: 'Walk', frameRate: 12)],
+          frames: frames,
+          selectedStateId: 1,
+          selectedFrameId: frames.first.id,
+          isPlaying: false,
+          settings: const AnimationSettings(),
+          onSelectFrame: (_) {},
+          onAddFrame: () {},
+          onDeleteFrame: (_) {},
+          onDurationChanged: (_, __) {},
+          onFrameReordered: (_, __) {},
+          onPlayPause: () {},
+          onStop: () {},
+          onNextFrame: () {},
+          onPreviousFrame: () {},
+          onSettingsChanged: (_) {},
+          onExpandChanged: () {},
+          copyFrame: (_) {},
+          onAddState: (_) {},
+          onRenameState: (_, __) {},
+          onDeleteState: (_) {},
+          onDuplicateState: (_) {},
+          onCopyState: (_) {},
+          onSelectedStateChanged: (_) {},
+          onOpenRig: onOpenRig,
+          rigLocked: rigLocked,
+        ),
+      );
+    }
+
+    testWidgets('the rig button opens the editor and is hidden without a handler', (tester) async {
+      var opened = 0;
+      await tester.pumpWidget(timeline(createSampleFrames(2), onOpenRig: () => opened++));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('open-rig-editor')));
+      expect(opened, 1);
+
+      await tester.pumpWidget(timeline(createSampleFrames(2)));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('open-rig-editor')), findsNothing);
+    });
+
+    testWidgets('only frames with a rig layer carry the rig badge', (tester) async {
+      final plain = createSampleFrames(2);
+      final rigged = plain[1].copyWith(layers: [
+        Layer(
+          layerId: 9,
+          id: 'rig',
+          name: 'Rig',
+          pixels: Uint32List(256),
+          stableKey: 'rig:output',
+        ),
+      ]);
+      await tester.pumpWidget(timeline([plain[0], rigged]));
+      await tester.pumpAndSettle();
+      expect(find.byKey(ValueKey('rig-badge-${plain[0].id}')), findsNothing);
+      expect(find.byKey(ValueKey('rig-badge-${rigged.id}')), findsOneWidget);
+    });
+  });
 }

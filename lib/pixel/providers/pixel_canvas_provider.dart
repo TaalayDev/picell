@@ -45,6 +45,15 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   List<String> get undoStackSummary => _controller.undoStackSummary;
   List<String> get redoStackSummary => _controller.redoStackSummary;
 
+  // Bone rigs
+  Rig? rigForState(int stateId) => _controller.rigForState(stateId);
+  ({Rig? rig, AnimationStateModel source, int restFrameIndex, List<AnimationFrame> frames}) prepareRigSession() =>
+      _controller.prepareRigSession();
+  List<AnimationFrame> prepareRigEditing(int stateId) => _controller.prepareRigEditing(stateId);
+  void saveRig(Rig rig) => _controller.saveRig(rig);
+  List<AnimationFrame> rigBakeLosses(Rig rig) => _controller.rigBakeLosses(rig);
+  Future<Rig> applyRig(Rig rig, {bool bake = true}) => _controller.applyRig(rig, bake: bake);
+
   // Tool and color operations
   set currentTool(PixelTool tool) => _controller.setCurrentTool(tool);
   PixelTool get currentTool => state.currentTool;

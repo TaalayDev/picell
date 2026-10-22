@@ -1,4 +1,3 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:picell/config/constants.dart';
 import 'package:picell/data/auth_interceptor.dart';
@@ -14,7 +13,7 @@ import '../data/repo/project_api_repo.dart';
 import '../data/repo/template_api_repo.dart';
 import '../pixel/services/template_service.dart';
 
-final analyticsProvider = Provider((ref) => AnalyticsService(FirebaseAnalytics.instance));
+final analyticsProvider = Provider<AnalyticsService>((ref) => AnalyticsService(LocalStorage()));
 final databaseProvider = Provider((ref) => AppDatabase());
 final queueManagerProvider = Provider((ref) => QueueManager());
 final projectRepo = Provider<ProjectRepo>(

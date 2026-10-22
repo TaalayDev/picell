@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show BuildContext;
 import 'package:image/image.dart' as img;
 import 'package:uuid/uuid.dart';
 
@@ -10,6 +11,7 @@ import '../../data/models/animation_frame_model.dart';
 import '../../data/models/layer.dart';
 import '../../data/models/project_model.dart';
 import '../../pixel/pixel_art_converter.dart';
+import '../utils/file_utils.dart';
 import '../utils/image_helper.dart';
 import 'aseprite_parser.dart';
 
@@ -99,12 +101,23 @@ class DropHandlerService {
   /// Process a single dropped file from path
   Future<DroppedFileResult> processDroppedFile(String filePath) async {
     final file = DroppedFile(filePath);
-    final fileName = file.name;
+    try {
+      return await processBytes(file.name, await file.readAsBytes());
+    } catch (e) {
+      debugPrint('Error processing dropped file: $e');
+      return DroppedFileResult(
+        type: getFileType(file.name),
+        fileName: file.name,
+        errorMessage: 'Failed to process file: $e',
+      );
+    }
+  }
+
+  /// Process already-loaded file contents (image, Aseprite or .pxv).
+  Future<DroppedFileResult> processBytes(String fileName, Uint8List bytes) async {
     final fileType = getFileType(fileName);
 
     try {
-      final bytes = await file.readAsBytes();
-
       switch (fileType) {
         case DroppedFileType.image:
           return await _processImageFile(bytes, fileName);
@@ -120,13 +133,34 @@ class DropHandlerService {
           );
       }
     } catch (e) {
-      debugPrint('Error processing dropped file: $e');
+      debugPrint('Error processing file: $e');
       return DroppedFileResult(
         type: fileType,
         fileName: fileName,
         errorMessage: 'Failed to process file: $e',
       );
     }
+  }
+
+  /// Lets the user pick a .pxv, Aseprite or image file and converts it to a
+  /// [Project]. Returns null if the picker was cancelled; throws a
+  /// [FormatException] if the file is unsupported or invalid.
+  Future<Project?> pickProject(BuildContext context) async {
+    final picked = await FileUtils(context).pickImportableFile();
+    if (picked == null) return null;
+
+    final result = await processBytes(picked.name, picked.bytes);
+    if (!result.isSuccess) {
+      throw FormatException(
+        result.type == DroppedFileType.unknown
+            ? 'Please select a .pxv, .aseprite or image file.'
+            : result.errorMessage ?? 'Failed to process ${picked.name}',
+      );
+    }
+    if (result.type == DroppedFileType.image) {
+      return imageToProject(result.image!, result.fileName);
+    }
+    return result.project;
   }
 
   /// Process multiple dropped files from paths

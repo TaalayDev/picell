@@ -151,6 +151,22 @@ class FileUtils {
     return completer.future;
   }
 
+  /// Picks any file (.pxv, Aseprite or image) and returns its name and bytes.
+  /// Extension filtering is left to the caller: 'pxv' has no registered MIME
+  /// type, so Android's picker rejects it as a custom filter.
+  Future<({String name, Uint8List bytes})?> pickImportableFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      withData: kIsWeb,
+    );
+    final file = result?.files.single;
+    if (file == null) return null;
+
+    final bytes = kIsWeb ? file.bytes : await File(file.path!).readAsBytes();
+    if (bytes == null) return null;
+    return (name: file.name, bytes: bytes);
+  }
+
   Future<img.Image?> pickImageFile() async {
     final completer = Completer<img.Image?>();
 

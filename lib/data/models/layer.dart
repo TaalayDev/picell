@@ -18,6 +18,12 @@ class Layer with EquatableMixin {
   final int order;
   final Offset? anchorPoint;
 
+  /// Identity that survives frame duplication, unlike [id] which is
+  /// regenerated for every copy. Layers sharing a key across frames are the
+  /// "same" layer, which is what lets a rig follow a part from frame to frame.
+  /// Null until a rig assigns one (see `StableLayerKeys.ensure`).
+  final String? stableKey;
+
   Layer({
     required this.layerId,
     required this.id,
@@ -29,6 +35,7 @@ class Layer with EquatableMixin {
     this.opacity = 1.0,
     this.order = 0,
     this.anchorPoint,
+    this.stableKey,
   });
 
   Layer copyWith({
@@ -42,6 +49,7 @@ class Layer with EquatableMixin {
     double? opacity,
     int? order,
     Offset? Function()? anchorPoint,
+    String? stableKey,
   }) {
     return Layer(
       layerId: layerId ?? this.layerId,
@@ -54,6 +62,7 @@ class Layer with EquatableMixin {
       opacity: opacity ?? this.opacity,
       order: order ?? this.order,
       anchorPoint: anchorPoint != null ? anchorPoint() : this.anchorPoint,
+      stableKey: stableKey ?? this.stableKey,
     );
   }
 
@@ -128,6 +137,7 @@ class Layer with EquatableMixin {
       'order': order,
       if (anchorPoint != null)
         'anchorPoint': {'dx': anchorPoint!.dx, 'dy': anchorPoint!.dy},
+      if (stableKey != null) 'stableKey': stableKey,
     };
   }
 
@@ -163,10 +173,11 @@ class Layer with EquatableMixin {
               (json['anchorPoint']['dy'] as num).toDouble(),
             )
           : null,
+      stableKey: json['stableKey'] as String?,
     );
   }
 
   @override
   List<Object?> get props =>
-      [id, layerId, name, pixels, isVisible, isLocked, opacity, order, effects, anchorPoint];
+      [id, layerId, name, pixels, isVisible, isLocked, opacity, order, effects, anchorPoint, stableKey];
 }

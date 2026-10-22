@@ -242,7 +242,7 @@ class ColorPalettePanel extends HookConsumerWidget {
                     ),
                     child: Center(
                       child: Text(
-                        '#${currentColor.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
+                        '#${currentColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase().substring(2)}',
                         style: TextStyle(
                           color: currentColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
                           fontWeight: FontWeight.bold,
@@ -338,7 +338,7 @@ class ColorPalettePanel extends HookConsumerWidget {
                         return Padding(
                           padding: const EdgeInsets.only(right: 3),
                           child: Tooltip(
-                            message: '#${c.toARGB32().toRadixString(16).toUpperCase().substring(2)}',
+                            message: '#${c.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase().substring(2)}',
                             child: GestureDetector(
                               onTap: () => trackRecentColor(c),
                               child: Container(

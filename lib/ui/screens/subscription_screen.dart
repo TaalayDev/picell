@@ -1,4 +1,5 @@
 import 'package:confetti/confetti.dart';
+import '../../providers/providers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -25,8 +26,13 @@ class SubscriptionOfferScreen extends ConsumerStatefulWidget {
     bool isPostCreation = false,
     SubscriptionFeature? featurePrompt,
   }) {
+    final container = ProviderScope.containerOf(context, listen: false);
+    container.read(analyticsProvider).logEvent(
+      name: 'paywall_shown',
+      parameters: {'feature': featurePrompt?.name ?? (isPostCreation ? 'post_creation' : 'menu')},
+    );
     // The dashboard can switch the current offering to a RevenueCat Paywall.
-    final service = ProviderScope.containerOf(context, listen: false).read(subscriptionServiceProvider);
+    final service = container.read(subscriptionServiceProvider);
     if (service.usesRevenueCatPaywall) return service.presentPaywall();
 
     final size = MediaQuery.sizeOf(context);

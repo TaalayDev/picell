@@ -1,11 +1,10 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-import '../core/utils.dart';
+import '../core/services/drop_handler_service.dart';
 import '../core/services/error_report_service.dart';
 import '../data.dart';
 import '../data/models/progression_model.dart';
@@ -21,10 +20,12 @@ class Projects extends _$Projects {
     return ref.read(projectRepo).fetchProjects();
   }
 
-  Future<Project> addProject(Project newProject) async {
-    ref.read(analyticsProvider).logEvent(name: 'add_project', parameters: {
-      'project_id': newProject.id,
-      'project_name': newProject.name,
+  /// [source] feeds analytics: blank, template, import, image, aseprite, pxv or community.
+  Future<Project> addProject(Project newProject, {String source = 'blank'}) async {
+    ref.read(analyticsProvider).logEvent(name: 'project_created', parameters: {
+      'width': newProject.width,
+      'height': newProject.height,
+      'source': source,
     });
     ref
         .read(progressionProvider.notifier)
@@ -143,11 +144,10 @@ class Projects extends _$Projects {
 
   Future<String?> importProject(BuildContext context) async {
     try {
-      final contents = await FileUtils(context).readProjectFileContents();
-      if (contents == null) return null;
-      final project = Project.fromJson(jsonDecode(contents));
+      final project = await DropHandlerService().pickProject(context);
+      if (project == null) return null;
 
-      await addProject(project);
+      await addProject(project, source: 'import');
       ref
           .read(progressionProvider.notifier)
           .record(ProgressionEvent.projectImported);

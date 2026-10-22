@@ -20,7 +20,7 @@ class _FakeProjects extends Projects {
   Stream<List<Project>> build() => Stream.value([existing]);
 
   @override
-  Future<Project> addProject(Project newProject) async {
+  Future<Project> addProject(Project newProject, {String source = 'blank'}) async {
     return newProject.copyWith(id: 99);
   }
 }

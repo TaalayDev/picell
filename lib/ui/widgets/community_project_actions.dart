@@ -152,7 +152,7 @@ Future<void> remixCommunityProject(
       ],
     );
 
-    final created = await ref.read(projectsProvider.notifier).addProject(copy);
+    final created = await ref.read(projectsProvider.notifier).addProject(copy, source: 'community');
     if (!context.mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => EditorWorkspaceScreen(initialProject: created)),

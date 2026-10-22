@@ -36,6 +36,8 @@ import '../services/pixel_transform_service.dart';
 import '../services/selection_service.dart';
 import '../services/template_service.dart';
 import '../services/undo_redo_service.dart';
+import '../rig/rig_bake.dart';
+import '../rig/stable_layer_keys.dart';
 import '../pixel_canvas_state.dart';
 import '../tools.dart';
 
@@ -52,6 +54,7 @@ class PixelDrawController extends _$PixelDrawController {
   late final UndoRedoService _undoRedoService;
   late final ImportExportService _importExportService;
   late final TemplateService _templateService;
+  late final RigBakeService _rigBakeService;
 
   bool _isBatching = false;
   Uint32List? _activeBuffer;
@@ -69,8 +72,13 @@ class PixelDrawController extends _$PixelDrawController {
   AppLifecycleListener? _lifecycleListener;
   late final ProjectRepo _projectRepo;
 
+  // Bone rigs of the project (see RigDocument). Kept here, not in the
+  // canvas state, because rig edits never touch frames or undo history.
+  String? _rigData;
+
   @override
   PixelCanvasState build(Project project) {
+    _rigData = project.rigData;
     // Initialize services
     _layerService = LayerService(ref.read(projectRepo));
     _frameService = FrameService(ref.read(projectRepo));
@@ -81,6 +89,7 @@ class PixelDrawController extends _$PixelDrawController {
     _importExportService = ImportExportService();
     _templateService = TemplateService(ref.read(templateAPIRepoProvider));
     _projectRepo = ref.read(projectRepo);
+    _rigBakeService = RigBakeService(_projectRepo);
 
     // Flush the pending save when the app is backgrounded or closing so the
     // debounce window can't drop the last edits.
@@ -181,6 +190,8 @@ class PixelDrawController extends _$PixelDrawController {
       states: state.animationStates,
       selectedFrameId: currentFrame.id,
       selectedLayerId: currentLayer.layerId,
+      rigData: _rigData,
+      clearRigData: _rigData == null,
       editedAt: DateTime.now(),
     );
     _pendingProjectSave = updated;
@@ -192,6 +203,120 @@ class PixelDrawController extends _$PixelDrawController {
       () => unawaited(flushPendingProjectSave()),
     );
     _scheduleCloudSync(updated);
+  }
+
+  /// The bone rig that [stateId] belongs to, if any: the animation holding its
+  /// rest pose, or the animation its baked frames live in.
+  Rig? rigForState(int stateId) {
+    for (final rig in RigDocument.decode(_rigData)) {
+      if (rig.stateId == stateId || rig.outputStateId == stateId) return rig;
+    }
+    return null;
+  }
+
+  /// Everything the rig editor needs, from what the editor is showing now.
+  ///
+  /// The rig is drawn against one frame of its rest-pose animation. Opened
+  /// from that animation, that is the frame being edited, so layers just
+  /// drawn or added there are what the rig sees. Opened from the baked
+  /// animation (whose frames are the rig's output, not its source), it is
+  /// the frame the rig was last set up on.
+  ({Rig? rig, AnimationStateModel source, int restFrameIndex, List<AnimationFrame> frames}) prepareRigSession() {
+    final current = state.currentAnimationState;
+    final existing = rigForState(current.id);
+    final sourceId = existing?.stateId ?? current.id;
+    final source = state.animationStates.firstWhere((s) => s.id == sourceId, orElse: () => current);
+
+    final frames = prepareRigEditing(source.id);
+    final wanted = current.id == source.id ? state.currentFrameIndex : (existing?.restFrameIndex ?? 0);
+    final index = frames.isEmpty ? 0 : wanted.clamp(0, frames.length - 1);
+    return (rig: existing, source: source, restFrameIndex: index, frames: frames);
+  }
+
+  /// Gets animation [stateId] ready for rig editing and returns its frames:
+  /// every layer gets a `Layer.stableKey` so a rig can follow it from frame
+  /// to frame. Only layer metadata changes (pixel buffers are shared), so
+  /// this is not an undo step; stamping is repeatable, so keys come back
+  /// identical if an undo restores frames from before it ran.
+  List<AnimationFrame> prepareRigEditing(int stateId) {
+    final stamped = StableLayerKeys.ensure(state.frames, stateId);
+    var changed = false;
+    for (var i = 0; i < stamped.length; i++) {
+      if (!identical(stamped[i], state.frames[i])) changed = true;
+    }
+    if (changed) {
+      _detachSelectionFromLayer();
+      state = state.copyWith(frames: stamped);
+      _updateProject();
+    }
+    return [
+      for (final f in state.frames)
+        if (f.stateId == stateId) f,
+    ];
+  }
+
+  /// Stores [rig] as the rig of its animation state, replacing the previous
+  /// one. Saved with the project like any other edit.
+  void saveRig(Rig rig) {
+    final rigs = [
+      for (final r in RigDocument.decode(_rigData))
+        if (r.stateId != rig.stateId) r,
+      rig,
+    ];
+    _rigData = RigDocument.encode(rigs);
+    _updateProject();
+  }
+
+  /// Frames that baking [rig] would delete although they hold hand-painted
+  /// pixels (a shorter clip drops its tail frames). Ask before going ahead.
+  List<AnimationFrame> rigBakeLosses(Rig rig) => RigBakePlanner.removalsWithEdits(rig: rig, frames: state.frames);
+
+  /// Saves [rig] and, when [bake] is set and it has keyframes, bakes its clip
+  /// into the rig's output animation. The bake is one undo step. The rest
+  /// pose is only read; frames already baked are refreshed in place, so hand
+  /// edits on their cleanup layers survive.
+  ///
+  /// Returns the rig as stored (it now knows its output animation). If the
+  /// bake fails the rig is still saved and the error is rethrown.
+  Future<Rig> applyRig(Rig rig, {bool bake = true}) async {
+    if (!bake || !RigBakeService.canBake(rig)) {
+      saveRig(rig);
+      return rig;
+    }
+
+    _detachSelectionFromLayer();
+    _saveState();
+    final RigBakeResult result;
+    try {
+      result = await _rigBakeService.bake(
+        projectId: project.id,
+        rig: rig,
+        states: state.animationStates,
+        frames: state.frames,
+        width: state.width,
+        height: state.height,
+      );
+    } catch (_) {
+      _undoRedoService.discardLastSavedState();
+      state = state.copyWith(canUndo: canUndo, canRedo: canRedo);
+      saveRig(rig);
+      rethrow;
+    }
+
+    // Show the result: its first frame, on the layer meant for touch-ups.
+    final outputIndex = result.states.indexWhere((s) => s.id == result.outputState.id);
+    final firstFrame = result.frames.firstWhere((f) => f.stateId == result.outputState.id);
+    final cleanupIndex = firstFrame.layers.indexWhere((l) => l.stableKey == RigLayerKeys.cleanup);
+    state = state.copyWith(
+      animationStates: result.states,
+      frames: result.frames,
+      currentAnimationStateIndex: outputIndex,
+      currentFrameIndex: 0,
+      currentLayerIndex: cleanupIndex < 0 ? 0 : cleanupIndex,
+    );
+    saveRig(result.rig);
+    _persistEditorSelection();
+    return result.rig;
   }
 
   void _persistEditorSelection() {
@@ -985,6 +1110,7 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void applyEffectToLayer(Effect effect) {
+    ref.read(analyticsProvider).logEvent(name: 'effect_applied', parameters: {'effect': effect.type.name});
     _saveState();
     final sourceLayer = currentLayer;
     final region = state.selectionState?.region;
@@ -1847,6 +1973,9 @@ class PixelDrawController extends _$PixelDrawController {
 
   // Tool and color operations
   void setCurrentTool(PixelTool tool) {
+    if (state.currentTool != tool) {
+      ref.read(analyticsProvider).logEvent(name: 'tool_used', parameters: {'tool': tool.name});
+    }
     state = state.copyWith(currentTool: tool);
   }
 
@@ -1864,6 +1993,7 @@ class PixelDrawController extends _$PixelDrawController {
       context: context,
       project: project,
     );
+    _logExport('pxv');
   }
 
   Future<void> exportImage({
@@ -1881,6 +2011,15 @@ class PixelDrawController extends _$PixelDrawController {
       exportHeight: exportHeight,
     );
     _recordProgress(ProgressionEvent.imageExported);
+    _logExport('png');
+  }
+
+  void _logExport(String format) {
+    ref.read(analyticsProvider).logEvent(name: 'export', parameters: {
+      'format': format,
+      'width': project.width,
+      'height': project.height,
+    });
   }
 
   Future<void> shareProject(BuildContext context) async {
@@ -1907,6 +2046,7 @@ class PixelDrawController extends _$PixelDrawController {
       exportHeight: exportHeight,
     );
     _recordProgress(ProgressionEvent.animationExported);
+    _logExport('gif');
   }
 
   Future<void> exportSpriteSheet({
@@ -1934,6 +2074,7 @@ class PixelDrawController extends _$PixelDrawController {
       exportHeight: exportHeight,
     );
     _recordProgress(ProgressionEvent.imageExported);
+    _logExport('spritesheet');
   }
 
   /// Counts an action toward quests. In-memory only, safe on hot paths.

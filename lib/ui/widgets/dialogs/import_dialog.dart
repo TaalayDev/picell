@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/services/analytics_features.dart';
 import '../../../l10n/strings.dart';
 import '../../../pixel/pixel_art_converter.dart';
 
@@ -18,6 +19,7 @@ class ImportDialog extends StatefulWidget {
   const ImportDialog({super.key});
 
   static Future<ImportDialogResult?> show(BuildContext context) {
+    trackFeature(context, AnalyticsFeature.importDialog);
     return showDialog<ImportDialogResult>(
       context: context,
       builder: (context) => const ImportDialog(),

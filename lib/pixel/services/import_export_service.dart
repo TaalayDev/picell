@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core.dart';
 import '../../core/services/error_report_service.dart';
+import '../../core/services/drop_handler_service.dart';
 import '../../data.dart';
 import '../../gifencoder/gifencoder.dart' as gifencoder;
 
@@ -251,11 +252,7 @@ class ImportExportService {
     required BuildContext context,
   }) async {
     try {
-      final contents = await FileUtils(context).readProjectFileContents();
-      if (contents == null) return null;
-
-      final projectData = jsonDecode(contents);
-      return Project.fromJson(projectData);
+      return await DropHandlerService().pickProject(context);
     } catch (e, stack) {
       ErrorReportService.instance.report(e, stack, operation: 'project.import');
       debugPrint('Error importing project: $e');

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../providers/providers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../data/models/project_model.dart';
@@ -154,6 +155,10 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
   }
 
   Future<void> _openProject(Project project) async {
+    ref.read(analyticsProvider).logEvent(
+      name: 'project_opened',
+      parameters: {'width': project.width, 'height': project.height},
+    );
     var projectToOpen = project;
     if (projectToOpen.id <= 0) {
       projectToOpen =

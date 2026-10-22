@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../../core/services/analytics_features.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -63,6 +64,7 @@ class EffectStoreScreen extends ConsumerWidget {
   }
 
   static Future<void> show(BuildContext context, {EffectPackId? pack, EffectStoreTab tab = EffectStoreTab.packs}) {
+    trackFeature(context, AnalyticsFeature.effectStore);
     return Navigator.of(context).push(route(pack: pack, tab: tab));
   }
 

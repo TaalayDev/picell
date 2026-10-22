@@ -36,10 +36,7 @@ class ErrorReportService {
     _storage = storage;
     try {
       final saved = jsonDecode(storage.getString(storageKey) ?? '[]') as List;
-      _pending.addAll(saved
-          .whereType<Map>()
-          .take(30)
-          .map((e) => Map<String, dynamic>.from(e)));
+      _pending.addAll(saved.whereType<Map>().take(30).map((e) => Map<String, dynamic>.from(e)));
     } catch (_) {}
     if (_pending.length > 30) {
       _pending.removeRange(0, _pending.length - 30);
@@ -49,8 +46,7 @@ class ErrorReportService {
       final info = await PackageInfo.fromPlatform();
       _version = '${info.version}+${info.buildNumber}';
     } catch (_) {}
-    _timer =
-        Timer.periodic(const Duration(minutes: 1), (_) => unawaited(flush()));
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) => unawaited(flush()));
     if (_pending.isNotEmpty) unawaited(flush());
   }
 
@@ -70,19 +66,15 @@ class ErrorReportService {
       report(error, stack, operation: 'app.uncaught');
       if (previousPlatform != null) return previousPlatform(error, stack);
       // Keep the error visible in logs even though it has been handled.
-      FlutterError.presentError(
-          FlutterErrorDetails(exception: error, stack: stack));
+      FlutterError.presentError(FlutterErrorDetails(exception: error, stack: stack));
       return true;
     };
   }
 
   static String sanitize(String text, int limit) {
     var value = text
-        .replaceAll(RegExp(r'Bearer\s+[^\s,;]+', caseSensitive: false),
-            'Bearer [redacted]')
-        .replaceAllMapped(
-            RegExp(r'(token|password|secret|api[_-]?key)\s*[:=]\s*[^\s,;]+',
-                caseSensitive: false),
+        .replaceAll(RegExp(r'Bearer\s+[^\s,;]+', caseSensitive: false), 'Bearer [redacted]')
+        .replaceAllMapped(RegExp(r'(token|password|secret|api[_-]?key)\s*[:=]\s*[^\s,;]+', caseSensitive: false),
             (match) => '${match[1]}=[redacted]')
         .replaceAll(RegExp(r'https?://[^\s]+'), '[url]')
         .replaceAll(RegExp(r'[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}'), '[email]')
@@ -90,17 +82,44 @@ class ErrorReportService {
     return String.fromCharCodes(value.runes.take(limit));
   }
 
+  /// Offline / connectivity failures and 401s are expected states, not bugs.
+  static bool shouldIgnore(Object error) {
+    if (error is DioException) {
+      if (error.response?.statusCode == 401) return true;
+      switch (error.type) {
+        case DioExceptionType.connectionError:
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return true;
+        default:
+          break;
+      }
+      return shouldIgnore(error.error ?? '');
+    }
+    final text = error.toString();
+    return text.contains('SocketException') ||
+        text.contains('ClientException') ||
+        text.contains('Failed host lookup') ||
+        text.contains('The connection errored') ||
+        RegExp(r'Request failed \((connectionError|connectionTimeout|sendTimeout|receiveTimeout)\b').hasMatch(text) ||
+        text.contains('HTTP 401') ||
+        text.contains('Network is unreachable') ||
+        text.contains('Connection refused') ||
+        text.contains('Connection reset') ||
+        RegExp(r'\b401\b').hasMatch(text) && text.contains('status');
+  }
+
   void report(Object error, StackTrace stack, {required String operation}) {
     try {
+      if (shouldIgnore(error)) return;
       final message = sanitize(error.toString(), 4000);
       final key = '$operation:$message';
       final now = DateTime.now();
-      if (_recent[key] != null &&
-          now.difference(_recent[key]!) < const Duration(minutes: 1)) {
+      if (_recent[key] != null && now.difference(_recent[key]!) < const Duration(minutes: 1)) {
         return;
       }
-      _recent.removeWhere(
-          (_, time) => now.difference(time) > const Duration(minutes: 1));
+      _recent.removeWhere((_, time) => now.difference(time) > const Duration(minutes: 1));
       if (_recent.length >= 100) return;
       _recent[key] = now;
       if (_pending.length >= 30) _pending.removeAt(0);
@@ -144,10 +163,7 @@ class ErrorReportService {
       try {
         final token = _storage?.token;
         final response = await _dio.post('/api/v1/error-reports',
-            data: report,
-            options: Options(headers: {
-              if (token != null) 'Authorization': 'Bearer $token'
-            }));
+            data: report, options: Options(headers: {if (token != null) 'Authorization': 'Bearer $token'}));
         if (response.data is! Map || response.data['success'] != true) break;
       } on DioException catch (error) {
         // Invalid payloads cannot succeed on retry; transient failures can.

@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../core/services/analytics_features.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -55,6 +56,7 @@ class ChallengeScreen extends HookConsumerWidget {
     DateTime Function()? serverNow,
     VoidCallback? onStartDrawing,
   }) {
+    trackFeature(context, AnalyticsFeature.challenges);
     return open(
       context,
       challengeId: challenge.id,

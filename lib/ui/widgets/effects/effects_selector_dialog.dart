@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../providers/providers.dart';
+import '../../../core/services/analytics_features.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../data/models/layer.dart';
@@ -78,6 +80,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   @override
   void initState() {
     super.initState();
+    ref.read(analyticsProvider).logEvent(
+      name: 'feature_opened',
+      parameters: {'feature': AnalyticsFeature.effectsBrowser},
+    );
     _selectedWorkspace = widget.initialWorkspace;
     _selectedFilterKind = widget.initialFilterKind;
     _selectedAnimationKind = widget.initialAnimationKind;
@@ -621,8 +627,10 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
             return;
           }
           if (isLocked) {
+            ref.read(analyticsProvider).logEvent(name: 'effect_locked_tapped', parameters: {'effect': type.name});
             _showUpgradePrompt(context, type);
           } else {
+            ref.read(analyticsProvider).logEvent(name: 'effect_selected', parameters: {'effect': type.name});
             Navigator.of(context).pop();
             ref.read(progressionProvider.notifier).record(ProgressionEvent.effectAdded);
             widget.onEffectSelected(effect);

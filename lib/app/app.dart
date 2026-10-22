@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/services/subscription_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:picell/ui/widgets/ad_wrapper.dart';
 
@@ -41,6 +42,7 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    ref.read(analyticsProvider).onLifecycle(state);
     if (state == AppLifecycleState.resumed) {
       _incrementSessionCount();
       if (PushNotificationService.supported) {
@@ -63,7 +65,17 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
     final themeManager = ref.watch(themeProvider);
     final appTheme = themeManager.theme;
 
-    ref.watch(subscriptionStateProvider);
+    final subscription = ref.watch(subscriptionStateProvider);
+    ref.read(analyticsProvider).plan = subscription.plan.name;
+    ref.listen(purchaseEventsStreamProvider, (_, next) {
+      final event = next.valueOrNull;
+      if (event?.outcome == PurchaseOutcome.purchased) {
+        ref.read(analyticsProvider).logEvent(
+          name: 'purchase',
+          parameters: {'product': event?.productId ?? 'unknown'},
+        );
+      }
+    });
 
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),

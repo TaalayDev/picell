@@ -126,6 +126,12 @@ class $ProjectsTableTable extends ProjectsTable
   late final GeneratedColumn<int> selectedLayerId = GeneratedColumn<int>(
       'selected_layer_id', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _rigDataMeta =
+      const VerificationMeta('rigData');
+  @override
+  late final GeneratedColumn<String> rigData = GeneratedColumn<String>(
+      'rig_data', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -145,7 +151,8 @@ class $ProjectsTableTable extends ProjectsTable
         tilemapData,
         forkedFromId,
         selectedFrameId,
-        selectedLayerId
+        selectedLayerId,
+        rigData
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -254,6 +261,10 @@ class $ProjectsTableTable extends ProjectsTable
           selectedLayerId.isAcceptableOrUnknown(
               data['selected_layer_id']!, _selectedLayerIdMeta));
     }
+    if (data.containsKey('rig_data')) {
+      context.handle(_rigDataMeta,
+          rigData.isAcceptableOrUnknown(data['rig_data']!, _rigDataMeta));
+    }
     return context;
   }
 
@@ -299,6 +310,8 @@ class $ProjectsTableTable extends ProjectsTable
           .read(DriftSqlType.int, data['${effectivePrefix}selected_frame_id']),
       selectedLayerId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}selected_layer_id']),
+      rigData: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}rig_data']),
     );
   }
 
@@ -328,6 +341,7 @@ class ProjectsTableData extends DataClass
   final int? forkedFromId;
   final int? selectedFrameId;
   final int? selectedLayerId;
+  final String? rigData;
   const ProjectsTableData(
       {required this.id,
       required this.name,
@@ -346,7 +360,8 @@ class ProjectsTableData extends DataClass
       this.tilemapData,
       this.forkedFromId,
       this.selectedFrameId,
-      this.selectedLayerId});
+      this.selectedLayerId,
+      this.rigData});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -387,6 +402,9 @@ class ProjectsTableData extends DataClass
     }
     if (!nullToAbsent || selectedLayerId != null) {
       map['selected_layer_id'] = Variable<int>(selectedLayerId);
+    }
+    if (!nullToAbsent || rigData != null) {
+      map['rig_data'] = Variable<String>(rigData);
     }
     return map;
   }
@@ -431,6 +449,9 @@ class ProjectsTableData extends DataClass
       selectedLayerId: selectedLayerId == null && nullToAbsent
           ? const Value.absent()
           : Value(selectedLayerId),
+      rigData: rigData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rigData),
     );
   }
 
@@ -456,6 +477,7 @@ class ProjectsTableData extends DataClass
       forkedFromId: serializer.fromJson<int?>(json['forkedFromId']),
       selectedFrameId: serializer.fromJson<int?>(json['selectedFrameId']),
       selectedLayerId: serializer.fromJson<int?>(json['selectedLayerId']),
+      rigData: serializer.fromJson<String?>(json['rigData']),
     );
   }
   @override
@@ -480,6 +502,7 @@ class ProjectsTableData extends DataClass
       'forkedFromId': serializer.toJson<int?>(forkedFromId),
       'selectedFrameId': serializer.toJson<int?>(selectedFrameId),
       'selectedLayerId': serializer.toJson<int?>(selectedLayerId),
+      'rigData': serializer.toJson<String?>(rigData),
     };
   }
 
@@ -501,7 +524,8 @@ class ProjectsTableData extends DataClass
           Value<String?> tilemapData = const Value.absent(),
           Value<int?> forkedFromId = const Value.absent(),
           Value<int?> selectedFrameId = const Value.absent(),
-          Value<int?> selectedLayerId = const Value.absent()}) =>
+          Value<int?> selectedLayerId = const Value.absent(),
+          Value<String?> rigData = const Value.absent()}) =>
       ProjectsTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -526,6 +550,7 @@ class ProjectsTableData extends DataClass
         selectedLayerId: selectedLayerId.present
             ? selectedLayerId.value
             : this.selectedLayerId,
+        rigData: rigData.present ? rigData.value : this.rigData,
       );
   ProjectsTableData copyWithCompanion(ProjectsTableCompanion data) {
     return ProjectsTableData(
@@ -559,6 +584,7 @@ class ProjectsTableData extends DataClass
       selectedLayerId: data.selectedLayerId.present
           ? data.selectedLayerId.value
           : this.selectedLayerId,
+      rigData: data.rigData.present ? data.rigData.value : this.rigData,
     );
   }
 
@@ -582,7 +608,8 @@ class ProjectsTableData extends DataClass
           ..write('tilemapData: $tilemapData, ')
           ..write('forkedFromId: $forkedFromId, ')
           ..write('selectedFrameId: $selectedFrameId, ')
-          ..write('selectedLayerId: $selectedLayerId')
+          ..write('selectedLayerId: $selectedLayerId, ')
+          ..write('rigData: $rigData')
           ..write(')'))
         .toString();
   }
@@ -606,7 +633,8 @@ class ProjectsTableData extends DataClass
       tilemapData,
       forkedFromId,
       selectedFrameId,
-      selectedLayerId);
+      selectedLayerId,
+      rigData);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -628,7 +656,8 @@ class ProjectsTableData extends DataClass
           other.tilemapData == this.tilemapData &&
           other.forkedFromId == this.forkedFromId &&
           other.selectedFrameId == this.selectedFrameId &&
-          other.selectedLayerId == this.selectedLayerId);
+          other.selectedLayerId == this.selectedLayerId &&
+          other.rigData == this.rigData);
 }
 
 class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
@@ -650,6 +679,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
   final Value<int?> forkedFromId;
   final Value<int?> selectedFrameId;
   final Value<int?> selectedLayerId;
+  final Value<String?> rigData;
   const ProjectsTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -669,6 +699,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.forkedFromId = const Value.absent(),
     this.selectedFrameId = const Value.absent(),
     this.selectedLayerId = const Value.absent(),
+    this.rigData = const Value.absent(),
   });
   ProjectsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -689,6 +720,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.forkedFromId = const Value.absent(),
     this.selectedFrameId = const Value.absent(),
     this.selectedLayerId = const Value.absent(),
+    this.rigData = const Value.absent(),
   })  : name = Value(name),
         width = Value(width),
         height = Value(height),
@@ -713,6 +745,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     Expression<int>? forkedFromId,
     Expression<int>? selectedFrameId,
     Expression<int>? selectedLayerId,
+    Expression<String>? rigData,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -733,6 +766,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       if (forkedFromId != null) 'forked_from_id': forkedFromId,
       if (selectedFrameId != null) 'selected_frame_id': selectedFrameId,
       if (selectedLayerId != null) 'selected_layer_id': selectedLayerId,
+      if (rigData != null) 'rig_data': rigData,
     });
   }
 
@@ -754,7 +788,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       Value<String?>? tilemapData,
       Value<int?>? forkedFromId,
       Value<int?>? selectedFrameId,
-      Value<int?>? selectedLayerId}) {
+      Value<int?>? selectedLayerId,
+      Value<String?>? rigData}) {
     return ProjectsTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -774,6 +809,7 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       forkedFromId: forkedFromId ?? this.forkedFromId,
       selectedFrameId: selectedFrameId ?? this.selectedFrameId,
       selectedLayerId: selectedLayerId ?? this.selectedLayerId,
+      rigData: rigData ?? this.rigData,
     );
   }
 
@@ -834,6 +870,9 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     if (selectedLayerId.present) {
       map['selected_layer_id'] = Variable<int>(selectedLayerId.value);
     }
+    if (rigData.present) {
+      map['rig_data'] = Variable<String>(rigData.value);
+    }
     return map;
   }
 
@@ -857,7 +896,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
           ..write('tilemapData: $tilemapData, ')
           ..write('forkedFromId: $forkedFromId, ')
           ..write('selectedFrameId: $selectedFrameId, ')
-          ..write('selectedLayerId: $selectedLayerId')
+          ..write('selectedLayerId: $selectedLayerId, ')
+          ..write('rigData: $rigData')
           ..write(')'))
         .toString();
   }
@@ -1721,6 +1761,24 @@ class $LayersTableTable extends LayersTable
   late final GeneratedColumn<String> effects = GeneratedColumn<String>(
       'effects', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _anchorXMeta =
+      const VerificationMeta('anchorX');
+  @override
+  late final GeneratedColumn<double> anchorX = GeneratedColumn<double>(
+      'anchor_x', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _anchorYMeta =
+      const VerificationMeta('anchorY');
+  @override
+  late final GeneratedColumn<double> anchorY = GeneratedColumn<double>(
+      'anchor_y', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _stableKeyMeta =
+      const VerificationMeta('stableKey');
+  @override
+  late final GeneratedColumn<String> stableKey = GeneratedColumn<String>(
+      'stable_key', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1733,7 +1791,10 @@ class $LayersTableTable extends LayersTable
         isLocked,
         opacity,
         order,
-        effects
+        effects,
+        anchorX,
+        anchorY,
+        stableKey
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1800,6 +1861,18 @@ class $LayersTableTable extends LayersTable
       context.handle(_effectsMeta,
           effects.isAcceptableOrUnknown(data['effects']!, _effectsMeta));
     }
+    if (data.containsKey('anchor_x')) {
+      context.handle(_anchorXMeta,
+          anchorX.isAcceptableOrUnknown(data['anchor_x']!, _anchorXMeta));
+    }
+    if (data.containsKey('anchor_y')) {
+      context.handle(_anchorYMeta,
+          anchorY.isAcceptableOrUnknown(data['anchor_y']!, _anchorYMeta));
+    }
+    if (data.containsKey('stable_key')) {
+      context.handle(_stableKeyMeta,
+          stableKey.isAcceptableOrUnknown(data['stable_key']!, _stableKeyMeta));
+    }
     return context;
   }
 
@@ -1831,6 +1904,12 @@ class $LayersTableTable extends LayersTable
           .read(DriftSqlType.int, data['${effectivePrefix}order'])!,
       effects: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}effects']),
+      anchorX: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}anchor_x']),
+      anchorY: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}anchor_y']),
+      stableKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}stable_key']),
     );
   }
 
@@ -1852,6 +1931,9 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
   final double opacity;
   final int order;
   final String? effects;
+  final double? anchorX;
+  final double? anchorY;
+  final String? stableKey;
   const LayersTableData(
       {required this.id,
       required this.projectId,
@@ -1863,7 +1945,10 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
       required this.isLocked,
       required this.opacity,
       required this.order,
-      this.effects});
+      this.effects,
+      this.anchorX,
+      this.anchorY,
+      this.stableKey});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1879,6 +1964,15 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
     map['order'] = Variable<int>(order);
     if (!nullToAbsent || effects != null) {
       map['effects'] = Variable<String>(effects);
+    }
+    if (!nullToAbsent || anchorX != null) {
+      map['anchor_x'] = Variable<double>(anchorX);
+    }
+    if (!nullToAbsent || anchorY != null) {
+      map['anchor_y'] = Variable<double>(anchorY);
+    }
+    if (!nullToAbsent || stableKey != null) {
+      map['stable_key'] = Variable<String>(stableKey);
     }
     return map;
   }
@@ -1898,6 +1992,15 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
       effects: effects == null && nullToAbsent
           ? const Value.absent()
           : Value(effects),
+      anchorX: anchorX == null && nullToAbsent
+          ? const Value.absent()
+          : Value(anchorX),
+      anchorY: anchorY == null && nullToAbsent
+          ? const Value.absent()
+          : Value(anchorY),
+      stableKey: stableKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stableKey),
     );
   }
 
@@ -1916,6 +2019,9 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
       opacity: serializer.fromJson<double>(json['opacity']),
       order: serializer.fromJson<int>(json['order']),
       effects: serializer.fromJson<String?>(json['effects']),
+      anchorX: serializer.fromJson<double?>(json['anchorX']),
+      anchorY: serializer.fromJson<double?>(json['anchorY']),
+      stableKey: serializer.fromJson<String?>(json['stableKey']),
     );
   }
   @override
@@ -1933,6 +2039,9 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
       'opacity': serializer.toJson<double>(opacity),
       'order': serializer.toJson<int>(order),
       'effects': serializer.toJson<String?>(effects),
+      'anchorX': serializer.toJson<double?>(anchorX),
+      'anchorY': serializer.toJson<double?>(anchorY),
+      'stableKey': serializer.toJson<String?>(stableKey),
     };
   }
 
@@ -1947,7 +2056,10 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
           bool? isLocked,
           double? opacity,
           int? order,
-          Value<String?> effects = const Value.absent()}) =>
+          Value<String?> effects = const Value.absent(),
+          Value<double?> anchorX = const Value.absent(),
+          Value<double?> anchorY = const Value.absent(),
+          Value<String?> stableKey = const Value.absent()}) =>
       LayersTableData(
         id: id ?? this.id,
         projectId: projectId ?? this.projectId,
@@ -1960,6 +2072,9 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
         opacity: opacity ?? this.opacity,
         order: order ?? this.order,
         effects: effects.present ? effects.value : this.effects,
+        anchorX: anchorX.present ? anchorX.value : this.anchorX,
+        anchorY: anchorY.present ? anchorY.value : this.anchorY,
+        stableKey: stableKey.present ? stableKey.value : this.stableKey,
       );
   LayersTableData copyWithCompanion(LayersTableCompanion data) {
     return LayersTableData(
@@ -1974,6 +2089,9 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
       opacity: data.opacity.present ? data.opacity.value : this.opacity,
       order: data.order.present ? data.order.value : this.order,
       effects: data.effects.present ? data.effects.value : this.effects,
+      anchorX: data.anchorX.present ? data.anchorX.value : this.anchorX,
+      anchorY: data.anchorY.present ? data.anchorY.value : this.anchorY,
+      stableKey: data.stableKey.present ? data.stableKey.value : this.stableKey,
     );
   }
 
@@ -1990,7 +2108,10 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
           ..write('isLocked: $isLocked, ')
           ..write('opacity: $opacity, ')
           ..write('order: $order, ')
-          ..write('effects: $effects')
+          ..write('effects: $effects, ')
+          ..write('anchorX: $anchorX, ')
+          ..write('anchorY: $anchorY, ')
+          ..write('stableKey: $stableKey')
           ..write(')'))
         .toString();
   }
@@ -2007,7 +2128,10 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
       isLocked,
       opacity,
       order,
-      effects);
+      effects,
+      anchorX,
+      anchorY,
+      stableKey);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2022,7 +2146,10 @@ class LayersTableData extends DataClass implements Insertable<LayersTableData> {
           other.isLocked == this.isLocked &&
           other.opacity == this.opacity &&
           other.order == this.order &&
-          other.effects == this.effects);
+          other.effects == this.effects &&
+          other.anchorX == this.anchorX &&
+          other.anchorY == this.anchorY &&
+          other.stableKey == this.stableKey);
 }
 
 class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
@@ -2037,6 +2164,9 @@ class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
   final Value<double> opacity;
   final Value<int> order;
   final Value<String?> effects;
+  final Value<double?> anchorX;
+  final Value<double?> anchorY;
+  final Value<String?> stableKey;
   const LayersTableCompanion({
     this.id = const Value.absent(),
     this.projectId = const Value.absent(),
@@ -2049,6 +2179,9 @@ class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
     this.opacity = const Value.absent(),
     this.order = const Value.absent(),
     this.effects = const Value.absent(),
+    this.anchorX = const Value.absent(),
+    this.anchorY = const Value.absent(),
+    this.stableKey = const Value.absent(),
   });
   LayersTableCompanion.insert({
     this.id = const Value.absent(),
@@ -2062,6 +2195,9 @@ class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
     this.opacity = const Value.absent(),
     required int order,
     this.effects = const Value.absent(),
+    this.anchorX = const Value.absent(),
+    this.anchorY = const Value.absent(),
+    this.stableKey = const Value.absent(),
   })  : projectId = Value(projectId),
         frameId = Value(frameId),
         layerId = Value(layerId),
@@ -2080,6 +2216,9 @@ class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
     Expression<double>? opacity,
     Expression<int>? order,
     Expression<String>? effects,
+    Expression<double>? anchorX,
+    Expression<double>? anchorY,
+    Expression<String>? stableKey,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2093,6 +2232,9 @@ class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
       if (opacity != null) 'opacity': opacity,
       if (order != null) 'order': order,
       if (effects != null) 'effects': effects,
+      if (anchorX != null) 'anchor_x': anchorX,
+      if (anchorY != null) 'anchor_y': anchorY,
+      if (stableKey != null) 'stable_key': stableKey,
     });
   }
 
@@ -2107,7 +2249,10 @@ class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
       Value<bool>? isLocked,
       Value<double>? opacity,
       Value<int>? order,
-      Value<String?>? effects}) {
+      Value<String?>? effects,
+      Value<double?>? anchorX,
+      Value<double?>? anchorY,
+      Value<String?>? stableKey}) {
     return LayersTableCompanion(
       id: id ?? this.id,
       projectId: projectId ?? this.projectId,
@@ -2120,6 +2265,9 @@ class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
       opacity: opacity ?? this.opacity,
       order: order ?? this.order,
       effects: effects ?? this.effects,
+      anchorX: anchorX ?? this.anchorX,
+      anchorY: anchorY ?? this.anchorY,
+      stableKey: stableKey ?? this.stableKey,
     );
   }
 
@@ -2159,6 +2307,15 @@ class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
     if (effects.present) {
       map['effects'] = Variable<String>(effects.value);
     }
+    if (anchorX.present) {
+      map['anchor_x'] = Variable<double>(anchorX.value);
+    }
+    if (anchorY.present) {
+      map['anchor_y'] = Variable<double>(anchorY.value);
+    }
+    if (stableKey.present) {
+      map['stable_key'] = Variable<String>(stableKey.value);
+    }
     return map;
   }
 
@@ -2175,7 +2332,10 @@ class LayersTableCompanion extends UpdateCompanion<LayersTableData> {
           ..write('isLocked: $isLocked, ')
           ..write('opacity: $opacity, ')
           ..write('order: $order, ')
-          ..write('effects: $effects')
+          ..write('effects: $effects, ')
+          ..write('anchorX: $anchorX, ')
+          ..write('anchorY: $anchorY, ')
+          ..write('stableKey: $stableKey')
           ..write(')'))
         .toString();
   }
@@ -2217,6 +2377,7 @@ typedef $$ProjectsTableTableCreateCompanionBuilder = ProjectsTableCompanion
   Value<int?> forkedFromId,
   Value<int?> selectedFrameId,
   Value<int?> selectedLayerId,
+  Value<String?> rigData,
 });
 typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
     Function({
@@ -2238,6 +2399,7 @@ typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
   Value<int?> forkedFromId,
   Value<int?> selectedFrameId,
   Value<int?> selectedLayerId,
+  Value<String?> rigData,
 });
 
 final class $$ProjectsTableTableReferences extends BaseReferences<_$AppDatabase,
@@ -2387,6 +2549,11 @@ class $$ProjectsTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<String> get rigData => $state.composableBuilder(
+      column: $state.table.rigData,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ComposableFilter animationStateTableRefs(
       ComposableFilter Function($$AnimationStateTableTableFilterComposer f) f) {
     final $$AnimationStateTableTableFilterComposer composer =
@@ -2523,6 +2690,11 @@ class $$ProjectsTableTableOrderingComposer
       column: $state.table.selectedLayerId,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get rigData => $state.composableBuilder(
+      column: $state.table.rigData,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
 class $$ProjectsTableTableTableManager extends RootTableManager<
@@ -2566,6 +2738,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> forkedFromId = const Value.absent(),
             Value<int?> selectedFrameId = const Value.absent(),
             Value<int?> selectedLayerId = const Value.absent(),
+            Value<String?> rigData = const Value.absent(),
           }) =>
               ProjectsTableCompanion(
             id: id,
@@ -2586,6 +2759,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             forkedFromId: forkedFromId,
             selectedFrameId: selectedFrameId,
             selectedLayerId: selectedLayerId,
+            rigData: rigData,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2606,6 +2780,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> forkedFromId = const Value.absent(),
             Value<int?> selectedFrameId = const Value.absent(),
             Value<int?> selectedLayerId = const Value.absent(),
+            Value<String?> rigData = const Value.absent(),
           }) =>
               ProjectsTableCompanion.insert(
             id: id,
@@ -2626,6 +2801,7 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             forkedFromId: forkedFromId,
             selectedFrameId: selectedFrameId,
             selectedLayerId: selectedLayerId,
+            rigData: rigData,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -3337,6 +3513,9 @@ typedef $$LayersTableTableCreateCompanionBuilder = LayersTableCompanion
   Value<double> opacity,
   required int order,
   Value<String?> effects,
+  Value<double?> anchorX,
+  Value<double?> anchorY,
+  Value<String?> stableKey,
 });
 typedef $$LayersTableTableUpdateCompanionBuilder = LayersTableCompanion
     Function({
@@ -3351,6 +3530,9 @@ typedef $$LayersTableTableUpdateCompanionBuilder = LayersTableCompanion
   Value<double> opacity,
   Value<int> order,
   Value<String?> effects,
+  Value<double?> anchorX,
+  Value<double?> anchorY,
+  Value<String?> stableKey,
 });
 
 final class $$LayersTableTableReferences
@@ -3434,6 +3616,21 @@ class $$LayersTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<double> get anchorX => $state.composableBuilder(
+      column: $state.table.anchorX,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get anchorY => $state.composableBuilder(
+      column: $state.table.anchorY,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get stableKey => $state.composableBuilder(
+      column: $state.table.stableKey,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   $$ProjectsTableTableFilterComposer get projectId {
     final $$ProjectsTableTableFilterComposer composer = $state.composerBuilder(
         composer: this,
@@ -3507,6 +3704,21 @@ class $$LayersTableTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
+  ColumnOrderings<double> get anchorX => $state.composableBuilder(
+      column: $state.table.anchorX,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get anchorY => $state.composableBuilder(
+      column: $state.table.anchorY,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get stableKey => $state.composableBuilder(
+      column: $state.table.stableKey,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
   $$ProjectsTableTableOrderingComposer get projectId {
     final $$ProjectsTableTableOrderingComposer composer =
         $state.composerBuilder(
@@ -3564,6 +3776,9 @@ class $$LayersTableTableTableManager extends RootTableManager<
             Value<double> opacity = const Value.absent(),
             Value<int> order = const Value.absent(),
             Value<String?> effects = const Value.absent(),
+            Value<double?> anchorX = const Value.absent(),
+            Value<double?> anchorY = const Value.absent(),
+            Value<String?> stableKey = const Value.absent(),
           }) =>
               LayersTableCompanion(
             id: id,
@@ -3577,6 +3792,9 @@ class $$LayersTableTableTableManager extends RootTableManager<
             opacity: opacity,
             order: order,
             effects: effects,
+            anchorX: anchorX,
+            anchorY: anchorY,
+            stableKey: stableKey,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -3590,6 +3808,9 @@ class $$LayersTableTableTableManager extends RootTableManager<
             Value<double> opacity = const Value.absent(),
             required int order,
             Value<String?> effects = const Value.absent(),
+            Value<double?> anchorX = const Value.absent(),
+            Value<double?> anchorY = const Value.absent(),
+            Value<String?> stableKey = const Value.absent(),
           }) =>
               LayersTableCompanion.insert(
             id: id,
@@ -3603,6 +3824,9 @@ class $$LayersTableTableTableManager extends RootTableManager<
             opacity: opacity,
             order: order,
             effects: effects,
+            anchorX: anchorX,
+            anchorY: anchorY,
+            stableKey: stableKey,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' show Offset;
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
@@ -41,6 +42,8 @@ class ProjectsTable extends Table {
   // version 9 - editor selection restored when reopening the project.
   IntColumn get selectedFrameId => integer().nullable()();
   IntColumn get selectedLayerId => integer().nullable()();
+  // version 10 - bone rigs, JSON (see RigDocument)
+  TextColumn get rigData => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -59,6 +62,10 @@ class LayersTable extends Table {
   IntColumn get order => integer()();
   // version 4
   TextColumn get effects => text().nullable()();
+  // version 10 - rotation pivot and cross-frame identity (see Layer)
+  RealColumn get anchorX => real().nullable()();
+  RealColumn get anchorY => real().nullable()();
+  TextColumn get stableKey => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -98,7 +105,7 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => instance;
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -116,6 +123,11 @@ class AppDatabase extends _$AppDatabase {
         final layerColumns = <GeneratedColumn>[
           if (from < 2) ...[layersTable.frameId, layersTable.order],
           if (from < 4) layersTable.effects,
+          if (from < 10) ...[
+            layersTable.anchorX,
+            layersTable.anchorY,
+            layersTable.stableKey,
+          ],
         ];
         if (layerColumns.isNotEmpty) {
           await migrator.alterTable(TableMigration(
@@ -146,6 +158,7 @@ class AppDatabase extends _$AppDatabase {
             projectsTable.selectedFrameId,
             projectsTable.selectedLayerId,
           ],
+          if (from < 10) projectsTable.rigData,
         ];
         if (projectColumns.isNotEmpty) {
           await migrator.alterTable(TableMigration(
@@ -269,6 +282,7 @@ class AppDatabase extends _$AppDatabase {
             gridColumns: projectRow.gridColumns,
             gridRows: projectRow.gridRows,
             tilemapData: projectRow.tilemapData,
+      rigData: projectRow.rigData,
             frames: [],
             states: [],
           );
@@ -339,6 +353,10 @@ class AppDatabase extends _$AppDatabase {
               opacity: layer.opacity,
               order: layer.order,
               effects: _decodeEffects(layer.effects),
+              anchorPoint: layer.anchorX == null || layer.anchorY == null
+                  ? null
+                  : Offset(layer.anchorX!, layer.anchorY!),
+              stableKey: layer.stableKey,
             ));
       }
 
@@ -361,6 +379,7 @@ class AppDatabase extends _$AppDatabase {
         gridColumns: project.gridColumns,
         gridRows: project.gridRows,
         tilemapData: project.tilemapData,
+        rigData: project.rigData,
         states: [
           for (final state in stateRows)
             AnimationStateModel(
@@ -413,6 +432,7 @@ class AppDatabase extends _$AppDatabase {
       gridColumns: projectRow.gridColumns,
       gridRows: projectRow.gridRows,
       tilemapData: projectRow.tilemapData,
+      rigData: projectRow.rigData,
     );
   }
 
@@ -449,6 +469,7 @@ class AppDatabase extends _$AppDatabase {
       gridColumns: projectRow.gridColumns,
       gridRows: projectRow.gridRows,
       tilemapData: projectRow.tilemapData,
+      rigData: projectRow.rigData,
     );
   }
 
@@ -471,6 +492,7 @@ class AppDatabase extends _$AppDatabase {
       gridColumns: Value(project.gridColumns),
       gridRows: Value(project.gridRows),
       tilemapData: Value(project.tilemapData),
+      rigData: const Value(null),
     ));
 
     final states = <AnimationStateModel>[];
@@ -488,6 +510,13 @@ class AppDatabase extends _$AppDatabase {
       states.add(state.copyWith(id: stateId));
       // Always map old state ID to new state ID (including when old ID is 0)
       stateIds[state.id] = stateId;
+    }
+
+    // Rigs reference states by id, which were just reassigned.
+    final rigData = RigDocument.remapStateIds(project.rigData, stateIds);
+    if (rigData != null) {
+      await (update(projectsTable)..where((tbl) => tbl.id.equals(projectId)))
+          .write(ProjectsTableCompanion(rigData: Value(rigData)));
     }
 
     final frames = <AnimationFrame>[];
@@ -521,6 +550,9 @@ class AppDatabase extends _$AppDatabase {
           isLocked: Value(layer.isLocked),
           opacity: Value(layer.opacity),
           order: Value(layer.order),
+          anchorX: Value(layer.anchorPoint?.dx),
+          anchorY: Value(layer.anchorPoint?.dy),
+          stableKey: Value(layer.stableKey),
           effects: Value(_encodeEffects(layer.effects)),
         ));
         if (isSelectedFrame && layer.layerId == project.selectedLayerId) {
@@ -545,6 +577,8 @@ class AppDatabase extends _$AppDatabase {
       id: projectId,
       states: states,
       frames: frames,
+      rigData: rigData,
+      clearRigData: rigData == null,
       selectedFrameId: selectedFrameId,
       clearSelectedFrameId: selectedFrameId == null,
       selectedLayerId: selectedLayerId,
@@ -574,6 +608,7 @@ class AppDatabase extends _$AppDatabase {
       gridColumns: Value(project.gridColumns),
       gridRows: Value(project.gridRows),
       tilemapData: Value(project.tilemapData),
+      rigData: Value(project.rigData),
     ));
 
     for (final state in project.states) {
@@ -619,6 +654,9 @@ class AppDatabase extends _$AppDatabase {
             isLocked: Value(layer.isLocked),
             opacity: Value(layer.opacity),
             order: Value(layer.order),
+            anchorX: Value(layer.anchorPoint?.dx),
+            anchorY: Value(layer.anchorPoint?.dy),
+            stableKey: Value(layer.stableKey),
             effects: Value(_encodeEffects(layer.effects)),
           ));
         }
@@ -646,6 +684,10 @@ class AppDatabase extends _$AppDatabase {
               isLocked: Value(layer.isLocked),
               opacity: Value(layer.opacity),
               order: Value(layer.order),
+              effects: Value(_encodeEffects(layer.effects)),
+              anchorX: Value(layer.anchorPoint?.dx),
+              anchorY: Value(layer.anchorPoint?.dy),
+              stableKey: Value(layer.stableKey),
             ));
           } else {
             await update(layersTable).replace(LayersTableCompanion(
@@ -659,6 +701,9 @@ class AppDatabase extends _$AppDatabase {
               isLocked: Value(layer.isLocked),
               opacity: Value(layer.opacity),
               order: Value(layer.order),
+              anchorX: Value(layer.anchorPoint?.dx),
+              anchorY: Value(layer.anchorPoint?.dy),
+              stableKey: Value(layer.stableKey),
               effects: Value(_encodeEffects(layer.effects)),
             ));
           }
@@ -776,6 +821,9 @@ class AppDatabase extends _$AppDatabase {
         isLocked: Value(layer.isLocked),
         opacity: Value(layer.opacity),
         order: Value(layer.order),
+        anchorX: Value(layer.anchorPoint?.dx),
+        anchorY: Value(layer.anchorPoint?.dy),
+        stableKey: Value(layer.stableKey),
         effects: Value(_encodeEffects(layer.effects)),
       ));
       layers.add(layer.copyWith(layerId: layerId));
@@ -808,6 +856,9 @@ class AppDatabase extends _$AppDatabase {
           isLocked: Value(layer.isLocked),
           opacity: Value(layer.opacity),
           order: Value(layer.order),
+          anchorX: Value(layer.anchorPoint?.dx),
+          anchorY: Value(layer.anchorPoint?.dy),
+          stableKey: Value(layer.stableKey),
           effects: Value(_encodeEffects(layer.effects)),
         ));
       } else {
@@ -822,6 +873,9 @@ class AppDatabase extends _$AppDatabase {
           isLocked: Value(layer.isLocked),
           opacity: Value(layer.opacity),
           order: Value(layer.order),
+          anchorX: Value(layer.anchorPoint?.dx),
+          anchorY: Value(layer.anchorPoint?.dy),
+          stableKey: Value(layer.stableKey),
           effects: Value(_encodeEffects(layer.effects)),
         ));
       }
@@ -845,6 +899,9 @@ class AppDatabase extends _$AppDatabase {
       isLocked: Value(layer.isLocked),
       opacity: Value(layer.opacity),
       order: Value(layer.order),
+      anchorX: Value(layer.anchorPoint?.dx),
+      anchorY: Value(layer.anchorPoint?.dy),
+      stableKey: Value(layer.stableKey),
       effects: Value(_encodeEffects(layer.effects)),
     ));
 
@@ -863,6 +920,9 @@ class AppDatabase extends _$AppDatabase {
       isLocked: Value(layer.isLocked),
       opacity: Value(layer.opacity),
       order: Value(layer.order),
+      anchorX: Value(layer.anchorPoint?.dx),
+      anchorY: Value(layer.anchorPoint?.dy),
+      stableKey: Value(layer.stableKey),
       effects: Value(_encodeEffects(layer.effects)),
     ));
   }

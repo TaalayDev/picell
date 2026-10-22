@@ -6,6 +6,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../core.dart';
 import '../../data/models/selection_region.dart';
@@ -17,6 +18,7 @@ import '../../pixel/animation_frame_controller.dart' hide AnimationController;
 import '../../pixel/canvas/pixel_viewport_controller.dart';
 import '../../pixel/tools.dart';
 import '../../data.dart';
+import '../../data/models/subscription_model.dart';
 import '../../providers/editor_settings_provider.dart';
 import '../../providers/pixel_clipboard_provider.dart';
 import '../../providers/subscription_provider.dart';
@@ -31,6 +33,8 @@ import '../widgets/panel/desktop_side_panel.dart';
 import '../widgets/pixel_canvas_shortcuts.dart';
 import '../widgets/dialogs/animation_preview_dialog.dart';
 import '../widgets/animation_timeline.dart';
+import 'rig_editor/rig_editor_screen.dart';
+import 'subscription_screen.dart';
 import '../widgets/effects/effects_panel.dart';
 import '../widgets/effects/effect_animation_generator_dialog.dart';
 import '../widgets/dialogs/save_image_window.dart';
@@ -725,6 +729,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   isPlaying: isPlaying.value,
                   settings: const AnimationSettings(),
                   onSettingsChanged: (settings) {},
+                  onOpenRig: () => _openRigEditor(context, notifier, state, subscription),
+                  rigLocked: !subscription.isPro,
                   isExpanded: isAnimationTimelineExpanded.value,
                   onExpandChanged: () {
                     isAnimationTimelineExpanded.value = !isAnimationTimelineExpanded.value;
@@ -769,6 +775,81 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
         ),
       ),
     );
+  }
+
+  /// Opens the bone rig editor for the selected animation, then bakes the
+  /// result into its rig animation. Works from either side of a rig: the
+  /// animation holding the rest pose, or the one the baked frames live in.
+  /// Pro only: free users are shown the upgrade offer instead.
+  Future<void> _openRigEditor(
+    BuildContext context,
+    PixelCanvasNotifier notifier,
+    PixelCanvasState state,
+    UserSubscription subscription,
+  ) async {
+    if (!subscription.hasFeatureAccess(SubscriptionFeature.advancedTools)) {
+      SubscriptionOfferScreen.show(context);
+      return;
+    }
+
+    final session = notifier.prepareRigSession();
+    if (session.frames.isEmpty) return;
+    final source = session.source;
+    final restFrame = session.frames[session.restFrameIndex];
+
+    final rig = await RigEditorScreen.show(
+      context,
+      rig: (session.rig ?? Rig(id: const Uuid().v4(), stateId: source.id, name: source.name))
+          .copyWith(restFrameIndex: session.restFrameIndex),
+      restLayers: restFrame.layers,
+      width: project.width,
+      height: project.height,
+      title: '${source.name} · ${restFrame.name}',
+      fps: source.frameRate,
+    );
+    if (rig == null || !context.mounted) return;
+
+    // A shorter clip drops its tail frames, and with them any touch-ups.
+    var bake = true;
+    final losses = notifier.rigBakeLosses(rig);
+    if (losses.isNotEmpty) {
+      bake = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Replace hand-edited frames?'),
+              content: Text(
+                'The shorter animation removes ${losses.length} frame${losses.length == 1 ? '' : 's'} '
+                'you touched up by hand.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Save rig only'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Remove them'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+    }
+
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    try {
+      final stored = await notifier.applyRig(rig, bake: bake);
+      if (bake && stored.outputStateId != null) {
+        messenger?.showSnackBar(SnackBar(
+          content: Text('Baked ${stored.clips.first.length} frames into ${source.name} (rig).'),
+        ));
+      }
+    } catch (error) {
+      messenger?.showSnackBar(const SnackBar(
+        content: Text('Couldn\'t bake the animation. Your rig was saved.'),
+      ));
+    }
   }
 
   void handleEffects(BuildContext context, PixelCanvasNotifier notifier, SelectionRegion? selectionRegion) {
