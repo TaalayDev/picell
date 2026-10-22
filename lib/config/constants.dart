@@ -1,3 +1,5 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class Constants {
   const Constants._();
 
@@ -16,3 +18,9 @@ class Constants {
 }
 
 const kIsDemo = bool.fromEnvironment('IS_DEMO', defaultValue: false);
+
+// Only enable the rig editor in debug mode for now, as it's still experimental.
+final kEnableRigEditor = dotenv.getBool(
+  'ENABLE_RIG_EDITOR',
+  fallback: false,
+);

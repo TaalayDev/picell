@@ -11,7 +11,7 @@ import 'core.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   ErrorReportService.instance.installHandlers();
-  await initWindowManager();
+  // await initWindowManager();
   setupLogger();
   runApp(const BootstrapApp());
 }

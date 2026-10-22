@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../config/constants.dart';
 import '../../core.dart';
 import '../../data/models/selection_region.dart';
 import '../../l10n/strings.dart';
@@ -682,7 +685,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                           currentTool: currentTool,
                           onLayerSelectionChanged: (indices) {
                             _selectedLayerIndices = indices;
-                      notifier.selectedLayerIndices = indices;
+                            notifier.selectedLayerIndices = indices;
                           },
                         ),
                     ],
@@ -730,7 +733,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   isPlaying: isPlaying.value,
                   settings: const AnimationSettings(),
                   onSettingsChanged: (settings) {},
-                  onOpenRig: () => _openRigEditor(context, notifier, state, subscription),
+                  onOpenRig: kEnableRigEditor ? () => _openRigEditor(context, notifier, state, subscription) : null,
                   rigLocked: !subscription.isPro,
                   isExpanded: isAnimationTimelineExpanded.value,
                   onExpandChanged: () {

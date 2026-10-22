@@ -88,10 +88,8 @@ class AnimationTimeline extends HookWidget {
     final activeFrame = frames.firstWhere((f) => f.id == selectedFrameId);
     final selectedIds = useState<Set<int>>({selectedFrameId});
     final anchor = useRef<int?>(selectedFrameId);
-    final stateFrameIds = frames
-        .where((frame) => frame.stateId == activeFrame.stateId)
-        .map((frame) => frame.id)
-        .toSet();
+    final stateFrameIds =
+        frames.where((frame) => frame.stateId == activeFrame.stateId).map((frame) => frame.id).toSet();
     var effectiveSelection = selectedIds.value.intersection(stateFrameIds);
     if (!effectiveSelection.contains(selectedFrameId)) {
       effectiveSelection = {selectedFrameId};
@@ -196,8 +194,7 @@ class AnimationTimeline extends HookWidget {
                 message: '${selectedFrameIds.length} frames selected',
                 child: Container(
                   key: const ValueKey('selected-frame-count'),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
@@ -214,8 +211,7 @@ class AnimationTimeline extends HookWidget {
                       Text(
                         '${selectedFrameIds.length}',
                         style: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
@@ -260,8 +256,7 @@ class AnimationTimeline extends HookWidget {
               children: [
                 IconButton(
                   icon: const Icon(Feather.copy, size: 16),
-                  onPressed:
-                      isExpanded ? () => copyFrame(selectedFrameIds) : null,
+                  onPressed: isExpanded ? () => copyFrame(selectedFrameIds) : null,
                   tooltip: Strings.of(context).copyFrame,
                 ),
                 IconButton(
@@ -288,15 +283,11 @@ class AnimationTimeline extends HookWidget {
             // Expand/collapse button
             IconButton(
               icon: Icon(
-                isExpanded
-                    ? Icons.keyboard_arrow_down
-                    : Icons.keyboard_arrow_up,
+                isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
                 size: 16,
               ),
               onPressed: onExpandChanged,
-              tooltip: isExpanded
-                  ? Strings.of(context).collapse
-                  : Strings.of(context).expand,
+              tooltip: isExpanded ? Strings.of(context).collapse : Strings.of(context).expand,
             ),
           ],
         ),
@@ -371,8 +362,7 @@ class _PlaybackControls extends StatelessWidget {
             size: 16,
           ),
           onPressed: onPlayPause,
-          tooltip:
-              isPlaying ? Strings.of(context).pause : Strings.of(context).play,
+          tooltip: isPlaying ? Strings.of(context).pause : Strings.of(context).play,
         ),
         if (MediaQuery.sizeOf(context).width > 600)
           IconButton(
@@ -435,9 +425,7 @@ class _StatesPanel extends StatelessWidget {
               return Container(
                 key: ValueKey(state.id),
                 height: 30,
-                color: state.id == selectedStateId
-                    ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
-                    : null,
+                color: state.id == selectedStateId ? Theme.of(context).primaryColor.withValues(alpha: 0.1) : null,
                 child: Row(
                   children: [
                     SizedBox(
@@ -466,13 +454,11 @@ class _StatesPanel extends StatelessWidget {
                           },
                         ),
                         onTap: () => onSelectedStateChanged(state.id),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 5),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                       ),
                     ),
                     VerticalDivider(
-                      color:
-                          Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                       width: 1,
                       thickness: 1,
                     ),
@@ -489,11 +475,7 @@ class _StatesPanel extends StatelessWidget {
                           if (state.id != selectedStateId) {
                             onSelectedStateChanged(state.id);
                           }
-                          onSelectFrame(
-                              frameId,
-                              frames
-                                  .where((f) => f.stateId == state.id)
-                                  .toList());
+                          onSelectFrame(frameId, frames.where((f) => f.stateId == state.id).toList());
                         },
                         onReorderFrame: onReorderFrame,
                         width: width,
@@ -516,15 +498,13 @@ class _StatesPanel extends StatelessWidget {
             children: [
               TextButton.icon(
                 icon: const Icon(Icons.add, size: 16),
-                label: Text(Strings.of(context).addState,
-                    style: const TextStyle(fontSize: 12)),
+                label: Text(Strings.of(context).addState, style: const TextStyle(fontSize: 12)),
                 onPressed: () => _showAddStateDialog(context),
               ),
               const SizedBox(width: 8),
               TextButton.icon(
                 icon: const Icon(Feather.copy, size: 16),
-                label: Text(Strings.of(context).copyState,
-                    style: const TextStyle(fontSize: 12)),
+                label: Text(Strings.of(context).copyState, style: const TextStyle(fontSize: 12)),
                 onPressed: () => onCopyState(selectedStateId),
               ),
             ],
@@ -591,8 +571,7 @@ class _FramesGrid extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final aspectRatio =
-        (width > 0 && height > 0) ? (width / height).clamp(0.5, 2.0) : 1.0;
+    final aspectRatio = (width > 0 && height > 0) ? (width / height).clamp(0.5, 2.0) : 1.0;
 
     return ListView.separated(
       scrollDirection: Axis.horizontal,
@@ -616,16 +595,13 @@ class _FramesGrid extends StatelessWidget {
           aspectRatio: aspectRatio,
           child: DragTarget<Set<int>>(
             key: ValueKey(frame.id),
-            onWillAcceptWithDetails: (details) =>
-                !details.data.contains(frame.id),
-            onAcceptWithDetails: (details) =>
-                onReorderFrame(details.data, frame.id),
+            onWillAcceptWithDetails: (details) => !details.data.contains(frame.id),
+            onAcceptWithDetails: (details) => onReorderFrame(details.data, frame.id),
             builder: (context, candidates, _) {
               final draggedIds = isSelected ? selectedFrameIds : {frame.id};
               return Draggable<Set<int>>(
                 data: draggedIds,
-                onDragStarted:
-                    isSelected ? null : () => onSelectFrame(frame.id),
+                onDragStarted: isSelected ? null : () => onSelectFrame(frame.id),
                 feedback: SizedBox(
                   width: (36 * aspectRatio).clamp(24.0, 72.0),
                   height: 36,
@@ -642,8 +618,7 @@ class _FramesGrid extends StatelessWidget {
                 ),
                 childWhenDragging: Opacity(opacity: 0.3, child: thumbnail),
                 child: Tooltip(
-                  message:
-                      '${frame.name.isNotEmpty ? frame.name : 'Frame ${index + 1}'} (${frame.duration}ms)',
+                  message: '${frame.name.isNotEmpty ? frame.name : 'Frame ${index + 1}'} (${frame.duration}ms)',
                   waitDuration: const Duration(milliseconds: 600),
                   child: InkWell(
                     onTap: () => onSelectFrame(frame.id),
@@ -705,8 +680,7 @@ class _FrameThumbnail extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color:
-                        primaryColor.withValues(alpha: isActive ? 0.38 : 0.2),
+                    color: primaryColor.withValues(alpha: isActive ? 0.38 : 0.2),
                     blurRadius: isActive ? 5 : 3,
                     spreadRadius: isActive ? 1 : 0,
                   ),
