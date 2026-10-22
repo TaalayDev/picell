@@ -1726,5 +1726,13 @@
         },
     "remixProject": "Ремикс",
     "previousProject": "Предыдущий проект",
-    "nextProject": "Следующий проект"
+    "nextProject": "Следующий проект",
+    "effectApplyingToLayers": "Применяется к слоям",
+    "effectAddLayer": "Добавить слой",
+    "effectLayersCombined": "Вместе",
+    "effectLayersSeparate": "Раздельно",
+    "effectLayersCombinedHint": "Слои преобразуются вместе как одно изображение. Результат объединяется на верхнем слое.",
+    "effectLayersSeparateHint": "Каждый слой преобразуется отдельно с одинаковыми настройками.",
+    "effectPrimaryLayerLocked": "Редактируемый слой нельзя убрать.",
+    "effectLayersCombinedKeepHint": "Слои двигаются вместе как одно изображение и остаются на своих слоях."
 }

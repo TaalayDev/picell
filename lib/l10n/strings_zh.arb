@@ -1782,5 +1782,13 @@
         },
     "remixProject": "改编",
     "previousProject": "上一个作品",
-    "nextProject": "下一个作品"
+    "nextProject": "下一个作品",
+    "effectApplyingToLayers": "应用到图层",
+    "effectAddLayer": "添加图层",
+    "effectLayersCombined": "合并",
+    "effectLayersSeparate": "分别",
+    "effectLayersCombinedHint": "将图层作为一张图像一起变换，结果会合并到最上层图层。",
+    "effectLayersSeparateHint": "每个图层使用相同设置单独变换。",
+    "effectPrimaryLayerLocked": "无法移除正在编辑的图层。",
+    "effectLayersCombinedKeepHint": "图层像一张图像一样一起运动，并保留在各自的图层上。"
 }

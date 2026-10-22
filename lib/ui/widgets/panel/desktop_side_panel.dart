@@ -126,21 +126,14 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
         onEffectSelected: (effect) {
           final descriptor = EffectCatalog.forType(effect.type);
           if (descriptor.workspace == EffectWorkspace.animation && effect.isAnimation) {
-            final sourceFrame = widget.notifier.currentFrame;
-            final sourceLayer = widget.notifier.currentLayer;
-            EffectAnimationGeneratorDialog.showEffectAnimationGenerator(
+            EffectAnimationGeneratorDialog.showForCanvas(
               context,
+              notifier: widget.notifier,
               effect: effect,
-              effects: [...sourceLayer.effects, effect],
-              effectIndex: sourceLayer.effects.length,
+              effects: [...widget.notifier.currentLayer.effects, effect],
+              effectIndex: widget.notifier.currentLayer.effects.length,
               layerWidth: widget.width,
               layerHeight: widget.height,
-              layerPixels: sourceLayer.pixels,
-              onFramesGenerated: (frames) => widget.notifier.addGeneratedEffectFrames(
-                frames,
-                sourceFrameId: sourceFrame.id,
-                sourceLayerId: sourceLayer.layerId,
-              ),
             );
             return;
           }
@@ -353,21 +346,14 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
       selectionRegion: widget.state.selectionState?.region,
       onLayerUpdated: widget.notifier.updateLayer,
       onAnimate: (effect, effects, effectIndex) {
-        final sourceFrame = widget.notifier.currentFrame;
-        final sourceLayer = widget.notifier.currentLayer;
-        EffectAnimationGeneratorDialog.showEffectAnimationGenerator(
+        EffectAnimationGeneratorDialog.showForCanvas(
           context,
+          notifier: widget.notifier,
           effect: effect,
           effects: effects,
           effectIndex: effectIndex,
           layerWidth: widget.width,
           layerHeight: widget.height,
-          layerPixels: sourceLayer.pixels,
-          onFramesGenerated: (frames) => widget.notifier.addGeneratedEffectFrames(
-            frames,
-            sourceFrameId: sourceFrame.id,
-            sourceLayerId: sourceLayer.layerId,
-          ),
         );
       },
     );

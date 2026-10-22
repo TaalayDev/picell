@@ -3608,4 +3608,28 @@ class StringsJa extends Strings {
 
   @override
   String get nextProject => '次の作品';
+
+  @override
+  String get effectApplyingToLayers => '適用先のレイヤー';
+
+  @override
+  String get effectAddLayer => 'レイヤーを追加';
+
+  @override
+  String get effectLayersCombined => '結合';
+
+  @override
+  String get effectLayersSeparate => '個別';
+
+  @override
+  String get effectLayersCombinedHint => 'レイヤーを1枚の画像として一緒に変形します。結果は最上位のレイヤーに統合されます。';
+
+  @override
+  String get effectLayersSeparateHint => '各レイヤーを同じ設定で個別に変形します。';
+
+  @override
+  String get effectPrimaryLayerLocked => '編集中のレイヤーは外せません。';
+
+  @override
+  String get effectLayersCombinedKeepHint => 'レイヤーは1枚の画像のように一緒に動き、それぞれのレイヤーに残ります。';
 }

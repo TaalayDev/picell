@@ -142,21 +142,14 @@ class ToolBar extends ConsumerWidget {
           onEffectSelected: (effect) {
             final descriptor = EffectCatalog.forType(effect.type);
             if (descriptor.workspace == EffectWorkspace.animation && effect.isAnimation) {
-              final sourceFrame = notifier.currentFrame;
-              final sourceLayer = notifier.currentLayer;
-              EffectAnimationGeneratorDialog.showEffectAnimationGenerator(
+              EffectAnimationGeneratorDialog.showForCanvas(
                 context,
+                notifier: notifier,
                 effect: effect,
-                effects: [...sourceLayer.effects, effect],
-                effectIndex: sourceLayer.effects.length,
+                effects: [...notifier.currentLayer.effects, effect],
+                effectIndex: notifier.currentLayer.effects.length,
                 layerWidth: project.width,
                 layerHeight: project.height,
-                layerPixels: sourceLayer.pixels,
-                onFramesGenerated: (frames) => notifier.addGeneratedEffectFrames(
-                  frames,
-                  sourceFrameId: sourceFrame.id,
-                  sourceLayerId: sourceLayer.layerId,
-                ),
               );
               return;
             }

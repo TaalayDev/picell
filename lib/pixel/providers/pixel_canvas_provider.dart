@@ -9,6 +9,7 @@ import '../../data/models/template.dart';
 import '../../data.dart';
 import '../pixel_art_converter.dart';
 import '../pixel_point.dart';
+import '../effects/effect_target.dart';
 import '../effects/effects.dart';
 import '../pixel_canvas_state.dart';
 import '../services/effect_stack_service.dart';
@@ -148,12 +149,54 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
   Future<void> addGeneratedEffectFrames(
     List<AnimationFrame> frames, {
     required int sourceFrameId,
-    required int sourceLayerId,
+    int? sourceLayerId,
+    List<int>? sourceLayerIds,
+    int? activeLayerId,
+    bool flattened = false,
   }) =>
       _controller.addGeneratedEffectFrames(
         frames,
         sourceFrameId: sourceFrameId,
         sourceLayerId: sourceLayerId,
+        sourceLayerIds: sourceLayerIds,
+        activeLayerId: activeLayerId,
+        flattened: flattened,
+      );
+
+  /// Layers multi-selected in the layers panel (frame indices). Reported by
+  /// the panel; use [effectLayerIndices] to read it safely.
+  List<int> selectedLayerIndices = const [];
+
+  /// The layers an effect should act on: the multi-selection when it is
+  /// valid for the current frame and contains the active layer, otherwise
+  /// only the active layer.
+  List<int> get effectLayerIndices => EffectTarget.resolveSelection(
+        selected: selectedLayerIndices,
+        activeIndex: state.currentLayerIndex,
+        layerCount: state.layers.length,
+      );
+
+  /// Snapshot of what an animated effect can be applied to right now.
+  ({AnimationFrame frame, int activeIndex, List<int> selectedIndices}) get effectLayerContext => (
+        frame: currentFrame,
+        activeIndex: state.currentLayerIndex,
+        selectedIndices: effectLayerIndices,
+      );
+
+  /// Builds the target for animating `effects[effectIndex]` of the active
+  /// layer across [effectLayerIndices].
+  EffectTarget buildEffectTarget({
+    required List<Effect> effects,
+    required int effectIndex,
+    EffectMultiLayerMode mode = EffectMultiLayerMode.merged,
+  }) =>
+      EffectTarget.fromFrame(
+        frameLayers: state.layers,
+        indices: effectLayerIndices,
+        primaryIndex: state.currentLayerIndex,
+        primaryEffects: effects,
+        primaryAnimatedIndex: effectIndex,
+        mode: mode,
       );
 
   // Animation state operations

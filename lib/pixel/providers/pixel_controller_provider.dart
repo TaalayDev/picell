@@ -1174,21 +1174,46 @@ class PixelDrawController extends _$PixelDrawController {
   /// Append generated animation frames to the source frame's animation state.
   /// Generated frames contain the rendered target layer; the remaining layers
   /// are copied from the source frame so the timeline keeps its composition.
+  /// Adds [generatedFrames] as new frames of the source state.
+  ///
+  /// Each generated frame holds one layer per entry of [sourceLayerIds], in
+  /// the same order; those layers of the source frame are replaced and every
+  /// other layer is copied unchanged. [activeLayerId] (default: the first
+  /// source layer) stays selected. [flattened] means opacity was baked into
+  /// the pixels, so layers that received content are reset to full opacity.
   Future<void> addGeneratedEffectFrames(
     List<AnimationFrame> generatedFrames, {
     required int sourceFrameId,
-    required int sourceLayerId,
+    int? sourceLayerId,
+    List<int>? sourceLayerIds,
+    int? activeLayerId,
+    bool flattened = false,
   }) async {
     if (generatedFrames.isEmpty) return;
+    final layerIds = sourceLayerIds ?? [if (sourceLayerId != null) sourceLayerId];
+    if (layerIds.isEmpty || layerIds.toSet().length != layerIds.length) {
+      throw ArgumentError('Generated frames need distinct source layers');
+    }
     final sourceIndex = state.frames.indexWhere((frame) => frame.id == sourceFrameId);
     if (sourceIndex < 0) throw StateError('Source frame no longer exists');
     final source = state.frames[sourceIndex];
-    final layerIndex = source.layers.indexWhere((layer) => layer.layerId == sourceLayerId);
-    if (layerIndex < 0) throw StateError('Source layer no longer exists');
+    final targetIndices = <int>[];
+    for (final id in layerIds) {
+      final index = source.layers.indexWhere((layer) => layer.layerId == id);
+      if (index < 0) throw StateError('Source layer no longer exists');
+      targetIndices.add(index);
+    }
+    final activeIndex = activeLayerId == null
+        ? targetIndices.first
+        : source.layers.indexWhere((layer) => layer.layerId == activeLayerId);
+    if (activeIndex < 0 || !targetIndices.contains(activeIndex)) {
+      throw StateError('Active layer is not part of the generated layers');
+    }
     final stateIndex = state.animationStates.indexWhere((item) => item.id == source.stateId);
     if (stateIndex < 0) throw StateError('Animation state no longer exists');
     for (final generated in generatedFrames) {
-      if (generated.layers.length != 1 || generated.layers.single.pixels.length != state.width * state.height) {
+      if (generated.layers.length != layerIds.length ||
+          generated.layers.any((layer) => layer.pixels.length != state.width * state.height)) {
         throw ArgumentError('Generated frame has invalid pixels');
       }
     }
@@ -1196,15 +1221,26 @@ class PixelDrawController extends _$PixelDrawController {
     final firstGeneratedIndex = state.frames.where((frame) => frame.stateId == source.stateId).length;
     var nextOrder = _frameService.calculateNextFrameOrder(state.frames);
     for (final generated in generatedFrames) {
-      final renderedPixels = generated.layers.single.pixels;
       final layers = <Layer>[
         for (final (index, layer) in source.layers.indexed)
-          layer.copyWith(
-            id: const Uuid().v4(),
-            layerId: 0,
-            pixels: index == layerIndex ? Uint32List.fromList(renderedPixels) : Uint32List.fromList(layer.pixels),
-            effects: index == layerIndex ? const [] : layer.effects,
-          ),
+          if (targetIndices.contains(index))
+            () {
+              final rendered = generated.layers[targetIndices.indexOf(index)].pixels;
+              final hasContent = rendered.any((pixel) => pixel != 0);
+              return layer.copyWith(
+                id: const Uuid().v4(),
+                layerId: 0,
+                pixels: Uint32List.fromList(rendered),
+                effects: const [],
+                opacity: flattened && hasContent ? 1.0 : layer.opacity,
+              );
+            }()
+          else
+            layer.copyWith(
+              id: const Uuid().v4(),
+              layerId: 0,
+              pixels: Uint32List.fromList(layer.pixels),
+            ),
       ];
       final frame = AnimationFrame(
         id: 0,
@@ -1220,7 +1256,7 @@ class PixelDrawController extends _$PixelDrawController {
     state = state.copyWith(
       currentAnimationStateIndex: stateIndex,
       currentFrameIndex: firstGeneratedIndex,
-      currentLayerIndex: layerIndex,
+      currentLayerIndex: activeIndex,
     );
     _updateProject();
     _recordProgress(ProgressionEvent.animationGenerated);

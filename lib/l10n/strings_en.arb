@@ -2082,5 +2082,13 @@
         },
     "remixProject": "Remix",
     "previousProject": "Previous project",
-    "nextProject": "Next project"
+    "nextProject": "Next project",
+    "effectApplyingToLayers": "Applying to layers",
+    "effectAddLayer": "Add layer",
+    "effectLayersCombined": "Combined",
+    "effectLayersSeparate": "Separate",
+    "effectLayersCombinedHint": "The layers are transformed together as one image. The result is flattened onto the top layer.",
+    "effectLayersSeparateHint": "Each layer is transformed on its own, using the same settings.",
+    "effectPrimaryLayerLocked": "The layer you are editing can't be removed.",
+    "effectLayersCombinedKeepHint": "The layers move together as one image and stay on their own layers."
 }

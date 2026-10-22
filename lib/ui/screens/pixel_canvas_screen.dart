@@ -682,6 +682,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                           currentTool: currentTool,
                           onLayerSelectionChanged: (indices) {
                             _selectedLayerIndices = indices;
+                      notifier.selectedLayerIndices = indices;
                           },
                         ),
                     ],
@@ -767,6 +768,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                     height: height,
                     onLayerSelectionChanged: (indices) {
                       _selectedLayerIndices = indices;
+                      notifier.selectedLayerIndices = indices;
                     },
                   ),
               ],
@@ -865,21 +867,14 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       },
       onConvertToPixels: (effects) => notifier.convertCurrentLayerToPixels(effects: effects),
       onAnimate: (effect, effects, effectIndex) {
-        final sourceFrame = notifier.currentFrame;
-        final sourceLayer = notifier.currentLayer;
-        EffectAnimationGeneratorDialog.showEffectAnimationGenerator(
+        EffectAnimationGeneratorDialog.showForCanvas(
           context,
+          notifier: notifier,
           effect: effect,
           effects: effects,
           effectIndex: effectIndex,
           layerWidth: project.width,
           layerHeight: project.height,
-          layerPixels: sourceLayer.pixels,
-          onFramesGenerated: (frames) => notifier.addGeneratedEffectFrames(
-            frames,
-            sourceFrameId: sourceFrame.id,
-            sourceLayerId: sourceLayer.layerId,
-          ),
         );
       },
     );

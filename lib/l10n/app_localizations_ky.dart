@@ -3638,4 +3638,29 @@ class StringsKy extends Strings {
 
   @override
   String get nextProject => 'Кийинки долбоор';
+
+  @override
+  String get effectApplyingToLayers => 'Катмарларга колдонулат';
+
+  @override
+  String get effectAddLayer => 'Катмар кошуу';
+
+  @override
+  String get effectLayersCombined => 'Бирге';
+
+  @override
+  String get effectLayersSeparate => 'Өзүнчө';
+
+  @override
+  String get effectLayersCombinedHint =>
+      'Катмарлар бир сүрөт катары чогуу өзгөртүлөт. Жыйынтык үстүнкү катмарга бириктирилет.';
+
+  @override
+  String get effectLayersSeparateHint => 'Ар бир катмар өзүнчө, бирдей жөндөөлөр менен өзгөртүлөт.';
+
+  @override
+  String get effectPrimaryLayerLocked => 'Түзөтүлүп жаткан катмарды алып салууга болбойт.';
+
+  @override
+  String get effectLayersCombinedKeepHint => 'Катмарлар бир сүрөт катары чогуу кыймылдайт жана өз катмарларында калат.';
 }

@@ -92,6 +92,35 @@ class EffectCatalog {
       descriptors.values
           .where((descriptor) => descriptor.workspace == workspace);
 
+  /// Animated effects whose result for a pixel depends only on its canvas
+  /// position and the parameters, never on what the other pixels contain.
+  ///
+  /// Such an effect gives the same picture whether it runs on the composite
+  /// of several layers or on each layer alone with the same parameters, so
+  /// "transform the layers together" can keep the layers separate. Effects
+  /// that look at the content (bounds, edges, neighbours) must stay out of
+  /// this set; `effect_target_test.dart` checks every member.
+  static const Set<EffectType> canvasSpaceTransforms = {
+    EffectType.pulse,
+    EffectType.wave,
+    EffectType.rotate,
+    EffectType.float,
+    EffectType.simpleFloat,
+    EffectType.physicsFloat,
+    EffectType.shake,
+    EffectType.quickShake,
+    EffectType.cameraShake,
+    EffectType.dissolve,
+    EffectType.fadeDissolve,
+    EffectType.jello,
+    EffectType.wipe,
+    EffectType.colorCycling,
+    EffectType.windSway,
+    EffectType.kaleidoscope,
+  };
+
+  static bool isCanvasSpaceTransform(EffectType type) => canvasSpaceTransforms.contains(type);
+
   static Map<EffectType, EffectDescriptor> _buildDescriptors() {
     final result = <EffectType, EffectDescriptor>{};
 

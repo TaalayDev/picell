@@ -3787,4 +3787,29 @@ class StringsEn extends Strings {
 
   @override
   String get nextProject => 'Next project';
+
+  @override
+  String get effectApplyingToLayers => 'Applying to layers';
+
+  @override
+  String get effectAddLayer => 'Add layer';
+
+  @override
+  String get effectLayersCombined => 'Combined';
+
+  @override
+  String get effectLayersSeparate => 'Separate';
+
+  @override
+  String get effectLayersCombinedHint =>
+      'The layers are transformed together as one image. The result is flattened onto the top layer.';
+
+  @override
+  String get effectLayersSeparateHint => 'Each layer is transformed on its own, using the same settings.';
+
+  @override
+  String get effectPrimaryLayerLocked => 'The layer you are editing can\'t be removed.';
+
+  @override
+  String get effectLayersCombinedKeepHint => 'The layers move together as one image and stay on their own layers.';
 }

@@ -1737,5 +1737,13 @@
         },
     "remixProject": "Ремикс",
     "previousProject": "Мурунку долбоор",
-    "nextProject": "Кийинки долбоор"
+    "nextProject": "Кийинки долбоор",
+    "effectApplyingToLayers": "Катмарларга колдонулат",
+    "effectAddLayer": "Катмар кошуу",
+    "effectLayersCombined": "Бирге",
+    "effectLayersSeparate": "Өзүнчө",
+    "effectLayersCombinedHint": "Катмарлар бир сүрөт катары чогуу өзгөртүлөт. Жыйынтык үстүнкү катмарга бириктирилет.",
+    "effectLayersSeparateHint": "Ар бир катмар өзүнчө, бирдей жөндөөлөр менен өзгөртүлөт.",
+    "effectPrimaryLayerLocked": "Түзөтүлүп жаткан катмарды алып салууга болбойт.",
+    "effectLayersCombinedKeepHint": "Катмарлар бир сүрөт катары чогуу кыймылдайт жана өз катмарларында калат."
 }

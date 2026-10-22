@@ -6586,6 +6586,54 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Next project'**
   String get nextProject;
+
+  /// No description provided for @effectApplyingToLayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying to layers'**
+  String get effectApplyingToLayers;
+
+  /// No description provided for @effectAddLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add layer'**
+  String get effectAddLayer;
+
+  /// No description provided for @effectLayersCombined.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined'**
+  String get effectLayersCombined;
+
+  /// No description provided for @effectLayersSeparate.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate'**
+  String get effectLayersSeparate;
+
+  /// No description provided for @effectLayersCombinedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The layers are transformed together as one image. The result is flattened onto the top layer.'**
+  String get effectLayersCombinedHint;
+
+  /// No description provided for @effectLayersSeparateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Each layer is transformed on its own, using the same settings.'**
+  String get effectLayersSeparateHint;
+
+  /// No description provided for @effectPrimaryLayerLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'The layer you are editing can\'t be removed.'**
+  String get effectPrimaryLayerLocked;
+
+  /// No description provided for @effectLayersCombinedKeepHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The layers move together as one image and stay on their own layers.'**
+  String get effectLayersCombinedKeepHint;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

@@ -1799,5 +1799,13 @@
         },
     "remixProject": "リミックス",
     "previousProject": "前の作品",
-    "nextProject": "次の作品"
+    "nextProject": "次の作品",
+    "effectApplyingToLayers": "適用先のレイヤー",
+    "effectAddLayer": "レイヤーを追加",
+    "effectLayersCombined": "結合",
+    "effectLayersSeparate": "個別",
+    "effectLayersCombinedHint": "レイヤーを1枚の画像として一緒に変形します。結果は最上位のレイヤーに統合されます。",
+    "effectLayersSeparateHint": "各レイヤーを同じ設定で個別に変形します。",
+    "effectPrimaryLayerLocked": "編集中のレイヤーは外せません。",
+    "effectLayersCombinedKeepHint": "レイヤーは1枚の画像のように一緒に動き、それぞれのレイヤーに残ります。"
 }

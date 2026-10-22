@@ -502,23 +502,14 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                               ? () => _confirmConvertToPixels(context)
                               : null,
                           onAnimate: (effect, effects, effectIndex) {
-                            final sourceFrame = widget.notifier.currentFrame;
-                            final sourceLayer = widget.notifier.currentLayer;
-                            EffectAnimationGeneratorDialog
-                                .showEffectAnimationGenerator(
+                            EffectAnimationGeneratorDialog.showForCanvas(
                               context,
+                              notifier: widget.notifier,
                               effect: effect,
-                              layerWidth: widget.width,
-                              layerHeight: widget.height,
-                              layerPixels: sourceLayer.pixels,
-                              onFramesGenerated: (frames) =>
-                                  widget.notifier.addGeneratedEffectFrames(
-                                frames,
-                                sourceFrameId: sourceFrame.id,
-                                sourceLayerId: sourceLayer.layerId,
-                              ),
                               effects: effects,
                               effectIndex: effectIndex,
+                              layerWidth: widget.width,
+                              layerHeight: widget.height,
                             );
                           },
                         )

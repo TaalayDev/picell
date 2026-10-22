@@ -3606,4 +3606,28 @@ class StringsZh extends Strings {
 
   @override
   String get nextProject => '下一个作品';
+
+  @override
+  String get effectApplyingToLayers => '应用到图层';
+
+  @override
+  String get effectAddLayer => '添加图层';
+
+  @override
+  String get effectLayersCombined => '合并';
+
+  @override
+  String get effectLayersSeparate => '分别';
+
+  @override
+  String get effectLayersCombinedHint => '将图层作为一张图像一起变换，结果会合并到最上层图层。';
+
+  @override
+  String get effectLayersSeparateHint => '每个图层使用相同设置单独变换。';
+
+  @override
+  String get effectPrimaryLayerLocked => '无法移除正在编辑的图层。';
+
+  @override
+  String get effectLayersCombinedKeepHint => '图层像一张图像一样一起运动，并保留在各自的图层上。';
 }

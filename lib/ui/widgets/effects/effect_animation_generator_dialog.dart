@@ -4,32 +4,82 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../../data.dart';
+import '../../../pixel/effects/effect_target.dart';
+import '../../../pixel/pixel_utils.dart';
+import '../../../pixel/providers/pixel_canvas_provider.dart';
 import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
-import '../../../pixel/effects/effect_animation_renderer.dart';
 import '../animated_background.dart';
 import '../fields/ui_field_builder.dart';
 import '../notifications/app_notification.dart';
 import 'pixlel_preview_painter.dart';
 
+typedef EffectFramesCallback = Future<void> Function(
+  List<AnimationFrame> frames,
+  EffectGenerationResult result,
+);
+
 class EffectAnimationGeneratorDialog extends StatefulWidget {
   final Effect effect;
   final int layerWidth;
   final int layerHeight;
-  final Uint32List layerPixels;
+
+  /// Layers of the frame being animated. Left empty for the single-layer form
+  /// (see [layerPixels]).
+  final List<Layer> frameLayers;
+  final int activeLayerIndex;
+  final List<int> initialLayerIndices;
+  final Uint32List? layerPixels;
   final List<Effect> effects;
   final int effectIndex;
-  final Future<void> Function(List<AnimationFrame>) onFramesGenerated;
+  final Future<void> Function(List<AnimationFrame>)? onFramesGenerated;
+  final EffectFramesCallback? onGenerated;
+
+  /// Animates [effect] across the layers selected on [notifier]'s canvas.
+  static Future<void> showForCanvas(
+    BuildContext context, {
+    required PixelCanvasNotifier notifier,
+    required Effect effect,
+    required List<Effect> effects,
+    required int effectIndex,
+    required int layerWidth,
+    required int layerHeight,
+  }) {
+    final snapshot = notifier.effectLayerContext;
+    final frame = snapshot.frame;
+    return showEffectAnimationGenerator(
+      context,
+      effect: effect,
+      effects: effects,
+      effectIndex: effectIndex,
+      layerWidth: layerWidth,
+      layerHeight: layerHeight,
+      frameLayers: frame.layers,
+      activeLayerIndex: snapshot.activeIndex,
+      initialLayerIndices: snapshot.selectedIndices,
+      onGenerated: (frames, result) => notifier.addGeneratedEffectFrames(
+        frames,
+        sourceFrameId: frame.id,
+        sourceLayerIds: result.layerIds,
+        activeLayerId: result.activeLayerId,
+        flattened: result.flattened,
+      ),
+    );
+  }
 
   static Future<void> showEffectAnimationGenerator(
     BuildContext context, {
     required Effect effect,
     required int layerWidth,
     required int layerHeight,
-    required Uint32List layerPixels,
+    Uint32List? layerPixels,
+    List<Layer> frameLayers = const [],
+    int activeLayerIndex = 0,
+    List<int> initialLayerIndices = const [],
     required List<Effect> effects,
     required int effectIndex,
-    required Future<void> Function(List<AnimationFrame>) onFramesGenerated,
+    Future<void> Function(List<AnimationFrame>)? onFramesGenerated,
+    EffectFramesCallback? onGenerated,
   }) async {
     if (!effect.isAnimation) {
       // Show error dialog for non-animation effects
@@ -66,9 +116,13 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
         layerWidth: layerWidth,
         layerHeight: layerHeight,
         layerPixels: layerPixels,
+        frameLayers: frameLayers,
+        activeLayerIndex: activeLayerIndex,
+        initialLayerIndices: initialLayerIndices,
         effects: effects,
         effectIndex: effectIndex,
         onFramesGenerated: onFramesGenerated,
+        onGenerated: onGenerated,
       ),
     );
   }
@@ -158,16 +212,23 @@ class EffectAnimationGeneratorDialog extends StatefulWidget {
     return result ?? false;
   }
 
-  const EffectAnimationGeneratorDialog({
+  EffectAnimationGeneratorDialog({
     super.key,
     required this.effect,
     required this.layerWidth,
     required this.layerHeight,
-    required this.layerPixels,
+    this.layerPixels,
+    this.frameLayers = const [],
+    this.activeLayerIndex = 0,
+    this.initialLayerIndices = const [],
     required this.effects,
     required this.effectIndex,
-    required this.onFramesGenerated,
-  });
+    this.onFramesGenerated,
+    this.onGenerated,
+  }) : assert(
+          frameLayers.isNotEmpty != (layerPixels != null),
+          'Pass either frameLayers or layerPixels',
+        );
 
   @override
   State<EffectAnimationGeneratorDialog> createState() => _EffectAnimationGeneratorDialogState();
@@ -185,8 +246,16 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
   double _duration = 2.5; // seconds
   bool _pingPong = false;
 
+  // Layers the effect is applied to
+  late final List<Layer> _frameLayers;
+  late final int _activeLayerIndex;
+  late Set<int> _layerIndices;
+  EffectMultiLayerMode _layerMode = EffectMultiLayerMode.merged;
+  EffectTarget? _lastTarget;
+
   // Preview state
   List<Uint32List> _generatedFrames = [];
+  List<EffectTargetFrame> _targetFrames = [];
   int _currentPreviewFrame = 0;
   bool _isGenerating = false;
   int _generationRevision = 0;
@@ -197,6 +266,19 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
   void initState() {
     super.initState();
     _parameters = Map<String, dynamic>.from(widget.effect.parameters);
+    if (widget.frameLayers.isNotEmpty) {
+      _frameLayers = widget.frameLayers;
+      _activeLayerIndex = widget.activeLayerIndex.clamp(0, _frameLayers.length - 1);
+    } else {
+      _frameLayers = [
+        Layer(layerId: 0, id: 'source', name: '', pixels: widget.layerPixels!),
+      ];
+      _activeLayerIndex = 0;
+    }
+    _layerIndices = {
+      ...widget.initialLayerIndices.where((i) => i >= 0 && i < _frameLayers.length),
+      _activeLayerIndex,
+    };
     _previewController = AnimationController(vsync: this);
     _updateFrameCount();
     _generateFrames();
@@ -236,41 +318,82 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     if (_frameCount > 120) _frameCount = 120; // Reasonable limit
   }
 
+  EffectTarget _buildTarget() {
+    final effects = List<Effect>.from(widget.effects);
+    effects[widget.effectIndex] = _currentEffect;
+    return EffectTarget.fromFrame(
+      frameLayers: _frameLayers,
+      indices: _layerIndices,
+      primaryIndex: _activeLayerIndex,
+      primaryEffects: effects,
+      primaryAnimatedIndex: widget.effectIndex,
+      mode: _layerMode,
+    );
+  }
+
+  /// What the user would see for [frame]: the target layers stacked with
+  /// their visibility and opacity (or the raw pixels for a single layer).
+  Uint32List _previewOf(EffectTarget target, EffectTargetFrame frame) {
+    if (target.layers.length == 1) return frame.pixels.single;
+    return PixelUtils.mergeLayersPixels(
+      width: widget.layerWidth,
+      height: widget.layerHeight,
+      layers: [
+        for (final (i, item) in target.layers.indexed)
+          item.layer.copyWith(
+            pixels: frame.pixels[i],
+            effects: const [],
+            opacity: frame.flattened && frame.pixels[i].any((p) => p != 0) ? 1.0 : item.layer.opacity,
+          ),
+      ],
+    );
+  }
+
+  void _onLayersChanged(void Function() change) {
+    setState(change);
+    _generateFrames();
+  }
+
   Future<void> _generateFrames() async {
     final revision = ++_generationRevision;
     if (_isGenerating) return;
 
     setState(() {
       _isGenerating = true;
-      _generatedFrames.clear();
+      _generatedFrames = [];
+      _targetFrames = [];
     });
 
     try {
       await Future.delayed(const Duration(milliseconds: 50)); // Allow UI to update
 
-      final frames = <Uint32List>[];
-      final effects = List<Effect>.from(widget.effects);
-      final animatedEffect = _currentEffect;
-      effects[widget.effectIndex] = animatedEffect;
-      final seamless = animatedEffect.isSeamlessLoop;
+      final previews = <Uint32List>[];
+      final targetFrames = <EffectTargetFrame>[];
+      final target = _buildTarget();
+      final seamless = _currentEffect.isSeamlessLoop;
       final frameCount = _frameCount;
 
       for (int i = 0; i < frameCount; i++) {
         // Seamless loops sample [0, 1) so frame N doesn't repeat frame 0.
         final t = seamless ? i / frameCount : i / (frameCount - 1);
-        frames.add(await EffectAnimationRenderer.renderFrame(
-          pixels: widget.layerPixels,
+        final frame = await EffectTargetRenderer.renderFrame(
+          target: target,
           width: widget.layerWidth,
           height: widget.layerHeight,
-          effects: effects,
-          animatedEffectIndex: widget.effectIndex,
           progress: t,
-        ));
+        );
+        targetFrames.add(frame);
+        previews.add(_previewOf(target, frame));
         if (revision != _generationRevision || !mounted) break;
       }
 
       if (mounted && revision == _generationRevision) {
-        setState(() => _generatedFrames = frames);
+        setState(() {
+          _generatedFrames = previews;
+          _targetFrames = targetFrames;
+          _lastTarget = target;
+          if (_currentPreviewFrame >= previews.length) _currentPreviewFrame = 0;
+        });
       }
     } catch (error) {
       if (mounted) {
@@ -477,6 +600,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
         children: [
           _buildPreviewSection(),
           const SizedBox(height: 20),
+          _buildLayersSection(),
           _buildAnimationSettings(),
           const SizedBox(height: 20),
           _buildFrameGenerationSettings(),
@@ -506,6 +630,7 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildLayersSection(),
                 _buildAnimationSettings(),
                 const SizedBox(height: 10),
                 _buildEffectParameters(),
@@ -601,6 +726,114 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
         pixels: currentFrame,
         width: widget.layerWidth,
         height: widget.layerHeight,
+      ),
+    );
+  }
+
+  Widget _buildLayersSection() {
+    if (_frameLayers.length < 2) return const SizedBox.shrink();
+    final s = Strings.of(context);
+    final theme = Theme.of(context);
+    final selected = _layerIndices.toList()..sort();
+    final available = [
+      for (var i = 0; i < _frameLayers.length; i++)
+        if (!_layerIndices.contains(i)) i,
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(s.effectApplyingToLayers, style: theme.textTheme.titleMedium),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  for (final index in selected)
+                    InputChip(
+                      avatar: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CustomPaint(
+                          painter: PixelPreviewPainter(
+                            pixels: _frameLayers[index].pixels,
+                            width: widget.layerWidth,
+                            height: widget.layerHeight,
+                          ),
+                        ),
+                      ),
+                      label: Text(
+                        _frameLayers[index].name.isEmpty ? '${index + 1}' : _frameLayers[index].name,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // The layer being edited owns the effect stack.
+                      tooltip: index == _activeLayerIndex ? s.effectPrimaryLayerLocked : null,
+                      onDeleted: index == _activeLayerIndex || selected.length < 2
+                          ? null
+                          : () => _onLayersChanged(() => _layerIndices.remove(index)),
+                    ),
+                  if (available.isNotEmpty)
+                    PopupMenuButton<int>(
+                      tooltip: s.effectAddLayer,
+                      onSelected: (index) => _onLayersChanged(() => _layerIndices.add(index)),
+                      itemBuilder: (context) => [
+                        // Top layer first, like the layers panel.
+                        for (final index in available.reversed)
+                          PopupMenuItem(
+                            value: index,
+                            child: Text(
+                              _frameLayers[index].name.isEmpty ? '${index + 1}' : _frameLayers[index].name,
+                            ),
+                          ),
+                      ],
+                      child: Chip(
+                        avatar: const Icon(Icons.add, size: 18),
+                        label: Text(s.effectAddLayer),
+                      ),
+                    ),
+                ],
+              ),
+              if (selected.length > 1) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<EffectMultiLayerMode>(
+                    showSelectedIcon: false,
+                    segments: [
+                      ButtonSegment(
+                        value: EffectMultiLayerMode.merged,
+                        icon: const Icon(Icons.layers_outlined),
+                        label: Text(s.effectLayersCombined),
+                      ),
+                      ButtonSegment(
+                        value: EffectMultiLayerMode.perLayer,
+                        icon: const Icon(Icons.view_agenda_outlined),
+                        label: Text(s.effectLayersSeparate),
+                      ),
+                    ],
+                    selected: {_layerMode},
+                    onSelectionChanged: (value) => _onLayersChanged(() => _layerMode = value.single),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _layerMode == EffectMultiLayerMode.perLayer
+                      ? s.effectLayersSeparateHint
+                      : EffectCatalog.isCanvasSpaceTransform(widget.effect.type)
+                          ? s.effectLayersCombinedKeepHint
+                          : s.effectLayersCombinedHint,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -842,29 +1075,35 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     if (_generatedFrames.isEmpty || _isApplying) return;
     setState(() => _isApplying = true);
 
+    final target = _lastTarget;
+    if (target == null || _targetFrames.length != _generatedFrames.length) {
+      setState(() => _isApplying = false);
+      return;
+    }
     final frames = <AnimationFrame>[];
     final frameDuration = (1000 / _fps).round();
 
-    for (int i = 0; i < _generatedFrames.length; i++) {
-      // Create a new layer with the effect-processed pixels
-      final layer = Layer(
-        layerId: i,
-        id: 'animated_effect_$i',
-        name: Strings.of(context).effectFrameName(i + 1),
-        pixels: _generatedFrames[i],
-        order: 0,
-      );
+    for (int i = 0; i < _targetFrames.length; i++) {
+      // One layer per target layer, holding the effect-processed pixels.
+      final layers = [
+        for (final (k, pixels) in _targetFrames[i].pixels.indexed)
+          Layer(
+            layerId: k,
+            id: 'animated_effect_${i}_$k',
+            name: Strings.of(context).effectFrameName(i + 1),
+            pixels: pixels,
+            order: 0,
+          ),
+      ];
 
-      final frame = AnimationFrame(
+      frames.add(AnimationFrame(
         id: i,
         stateId: 0,
         name: Strings.of(context).effectAnimationName(i + 1),
         duration: frameDuration,
-        layers: [layer],
+        layers: layers,
         order: i,
-      );
-
-      frames.add(frame);
+      ));
     }
 
     // If ping-pong, add reversed frames
@@ -884,7 +1123,19 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     }
 
     try {
-      await widget.onFramesGenerated(frames);
+      final onGenerated = widget.onGenerated;
+      if (onGenerated != null) {
+        await onGenerated(
+          frames,
+          EffectGenerationResult(
+            layerIds: target.layerIds,
+            activeLayerId: _frameLayers[_activeLayerIndex].layerId,
+            flattened: _targetFrames.first.flattened,
+          ),
+        );
+      } else {
+        await widget.onFramesGenerated!(frames);
+      }
     } catch (error) {
       if (mounted) {
         setState(() => _isApplying = false);

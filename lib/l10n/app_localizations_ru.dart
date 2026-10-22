@@ -3838,4 +3838,29 @@ class StringsRu extends Strings {
 
   @override
   String get nextProject => 'Следующий проект';
+
+  @override
+  String get effectApplyingToLayers => 'Применяется к слоям';
+
+  @override
+  String get effectAddLayer => 'Добавить слой';
+
+  @override
+  String get effectLayersCombined => 'Вместе';
+
+  @override
+  String get effectLayersSeparate => 'Раздельно';
+
+  @override
+  String get effectLayersCombinedHint =>
+      'Слои преобразуются вместе как одно изображение. Результат объединяется на верхнем слое.';
+
+  @override
+  String get effectLayersSeparateHint => 'Каждый слой преобразуется отдельно с одинаковыми настройками.';
+
+  @override
+  String get effectPrimaryLayerLocked => 'Редактируемый слой нельзя убрать.';
+
+  @override
+  String get effectLayersCombinedKeepHint => 'Слои двигаются вместе как одно изображение и остаются на своих слоях.';
 }
