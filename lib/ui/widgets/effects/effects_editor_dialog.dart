@@ -484,6 +484,9 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
         context: context,
         fields: fields,
         values: _parameters,
+        defaults: widget.effect.getDefaultParameters(),
+        collapsibleGroups: true,
+        segmentedSelects: true,
         onChanged: (key, value) {
           setState(() {
             _parameters[key] = value;

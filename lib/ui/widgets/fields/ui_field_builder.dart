@@ -26,34 +26,62 @@ class UIFieldBuilder {
   /// Build a list of widgets from [fields], reading current values from [values].
   ///
   /// [onChanged] is called whenever the user modifies a value.
+  ///
+  /// Optional niceties, all off by default:
+  /// * [defaults] — a field whose value differs from its default gets a small
+  ///   reset button.
+  /// * [collapsibleGroups] — fields that share a `group` are put in a section
+  ///   that can be folded away.
+  /// * [segmentedSelects] — selects with two or three short options are shown
+  ///   as a segmented control instead of a drop-down.
   static List<Widget> buildAll({
     required BuildContext context,
     required List<UIField> fields,
     required Map<String, dynamic> values,
     required void Function(String key, dynamic value) onChanged,
+    Map<String, dynamic>? defaults,
+    bool collapsibleGroups = false,
+    bool segmentedSelects = false,
   }) {
     final widgets = <Widget>[];
     String? currentGroup;
+    // The open group's children when groups are collapsible.
+    List<Widget>? groupChildren;
+
+    void closeGroup() {
+      final title = currentGroup;
+      final children = groupChildren;
+      if (children != null && title != null) {
+        widgets.add(_CollapsibleGroup(key: ValueKey('group:$title'), title: title, children: children));
+      }
+      groupChildren = null;
+    }
 
     for (final field in fields) {
-      // Group header
-      if (field.group != null && field.group != currentGroup) {
+      if (field.group != currentGroup) {
+        if (collapsibleGroups) closeGroup();
         currentGroup = field.group;
-        if (widgets.isNotEmpty) {
-          widgets.add(const SizedBox(height: 8));
+        if (field.group != null) {
+          if (collapsibleGroups) {
+            groupChildren = [];
+          } else {
+            if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 8));
+            widgets.add(_buildGroupHeader(context, field.group!));
+          }
         }
-        widgets.add(_buildGroupHeader(context, field.group!));
       }
 
-      widgets.add(
-        build(
-          context: context,
-          field: field,
-          values: values,
-          onChanged: onChanged,
-        ),
+      final built = build(
+        context: context,
+        field: field,
+        values: values,
+        onChanged: onChanged,
+        defaults: defaults,
+        segmentedSelects: segmentedSelects,
       );
+      (groupChildren ?? widgets).add(built);
     }
+    if (collapsibleGroups) closeGroup();
 
     return widgets;
   }
@@ -64,15 +92,33 @@ class UIFieldBuilder {
     required UIField field,
     required Map<String, dynamic> values,
     required void Function(String key, dynamic value) onChanged,
+    Map<String, dynamic>? defaults,
+    bool segmentedSelects = false,
   }) {
+    final reset = _resetFor(field, values, defaults, onChanged);
     return switch (field) {
-      SliderField f => _buildSlider(context, f, values, onChanged),
-      ColorField f => _buildColor(context, f, values, onChanged),
-      SelectField f => _buildSelect(context, f, values, onChanged),
+      SliderField f => _buildSlider(context, f, values, onChanged, reset),
+      ColorField f => _buildColor(context, f, values, onChanged, reset),
+      SelectField f => _buildSelect(context, f, values, onChanged, reset, segmentedSelects),
       BoolField f => _buildBool(context, f, values, onChanged),
-      TextField_ f => _buildText(context, f, values, onChanged),
+      TextField_ f => _buildText(context, f, values, onChanged, reset),
       SectionField f => _buildSection(context, f),
     };
+  }
+
+  /// A callback that puts [field] back to its default, or null when it already
+  /// is at its default (or no defaults were given).
+  static VoidCallback? _resetFor(
+    UIField field,
+    Map<String, dynamic> values,
+    Map<String, dynamic>? defaults,
+    void Function(String, dynamic) onChanged,
+  ) {
+    if (defaults == null || field.key.isEmpty || !defaults.containsKey(field.key)) return null;
+    final current = values[field.key];
+    final fallback = defaults[field.key];
+    final same = current is num && fallback is num ? (current - fallback).abs() < 1e-9 : current == fallback;
+    return same ? null : () => onChanged(field.key, fallback);
   }
 
   // ---------------------------------------------------------------------------
@@ -84,6 +130,7 @@ class UIFieldBuilder {
     SliderField field,
     Map<String, dynamic> values,
     void Function(String, dynamic) onChanged,
+    VoidCallback? onReset,
   ) {
     final raw = values[field.key];
     final doubleValue = (raw is int ? raw.toDouble() : (raw as double?) ?? field.min).clamp(field.min, field.max);
@@ -94,23 +141,29 @@ class UIFieldBuilder {
     return _FieldWrapper(
       label: field.label,
       description: field.description,
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
-        decoration: BoxDecoration(
-          color: colorScheme.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: colorScheme.primary.withValues(alpha: 0.25),
-            width: 1,
+      onReset: onReset,
+      // Tap the value to type an exact number.
+      trailing: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: () => _editSliderValue(context, field, doubleValue, onChanged),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: colorScheme.primary.withValues(alpha: 0.25),
+              width: 1,
+            ),
           ),
-        ),
-        child: Text(
-          field.formatLabel?.call(doubleValue) ?? _defaultFormat(doubleValue),
-          style: TextStyle(
-            color: colorScheme.primary,
-            fontFamily: 'monospace',
-            fontWeight: FontWeight.w600,
-            fontSize: 11,
+          child: Text(
+            field.formatLabel?.call(doubleValue) ?? _defaultFormat(doubleValue),
+            style: TextStyle(
+              color: colorScheme.primary,
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
           ),
         ),
       ),
@@ -169,6 +222,7 @@ class UIFieldBuilder {
     ColorField field,
     Map<String, dynamic> values,
     void Function(String, dynamic) onChanged,
+    VoidCallback? onReset,
   ) {
     final colorValue = values[field.key] as int? ?? 0xFF000000;
     final color = Color(colorValue);
@@ -185,6 +239,7 @@ class UIFieldBuilder {
     return _FieldWrapper(
       label: field.label,
       description: field.description,
+      onReset: onReset,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -275,17 +330,56 @@ class UIFieldBuilder {
     SelectField<T> field,
     Map<String, dynamic> values,
     void Function(String, dynamic) onChanged,
+    VoidCallback? onReset,
+    bool segmentedSelects,
   ) {
     final currentValue = values[field.key];
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final fitsSegments = field.options.length >= 2 &&
+        field.options.length <= 3 &&
+        field.options.values.every((label) => label.length <= 16);
+    if (segmentedSelects && fitsSegments) {
+      return _FieldWrapper(
+        label: field.label,
+        description: field.description,
+        onReset: onReset,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<T>(
+              showSelectedIcon: false,
+              emptySelectionAllowed: true,
+              style: ButtonStyle(
+                visualDensity: VisualDensity.compact,
+                textStyle: WidgetStatePropertyAll(const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500)),
+              ),
+              segments: [
+                for (final entry in field.options.entries)
+                  ButtonSegment<T>(
+                      value: entry.key, label: Text(entry.value, maxLines: 1, overflow: TextOverflow.ellipsis)),
+              ],
+              selected: currentValue is T && field.options.containsKey(currentValue) ? {currentValue} : <T>{},
+              onSelectionChanged: (selection) {
+                if (selection.isNotEmpty) onChanged(field.key, selection.first);
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
     return _FieldWrapper(
       label: field.label,
       description: field.description,
+      onReset: onReset,
       child: DropdownButtonFormField<T>(
         key: ValueKey(currentValue),
         initialValue: currentValue as T?,
+        // Long option names shorten with an ellipsis instead of overflowing.
+        isExpanded: true,
         icon: Icon(
           Icons.keyboard_arrow_down_rounded,
           size: 18,
@@ -326,6 +420,8 @@ class UIFieldBuilder {
             value: entry.key,
             child: Text(
               entry.value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
@@ -440,6 +536,7 @@ class UIFieldBuilder {
     TextField_ field,
     Map<String, dynamic> values,
     void Function(String, dynamic) onChanged,
+    VoidCallback? onReset,
   ) {
     final value = values[field.key]?.toString() ?? '';
     final theme = Theme.of(context);
@@ -448,6 +545,7 @@ class UIFieldBuilder {
     return _FieldWrapper(
       label: field.label,
       description: field.description,
+      onReset: onReset,
       child: TextFormField(
         initialValue: value,
         style: TextStyle(
@@ -567,6 +665,31 @@ class UIFieldBuilder {
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
+
+  /// Asks for an exact value for [field]; snaps it to the slider's steps.
+  static Future<void> _editSliderValue(
+    BuildContext context,
+    SliderField field,
+    double current,
+    void Function(String, dynamic) onChanged,
+  ) async {
+    final typed = await showDialog<double>(
+      context: context,
+      builder: (_) => _NumberEntryDialog(
+        title: field.label,
+        initial: _defaultFormat(current),
+        helper: '${_defaultFormat(field.min)} – ${_defaultFormat(field.max)}',
+      ),
+    );
+    if (typed == null) return;
+    var value = typed.clamp(field.min, field.max).toDouble();
+    final divisions = field.divisions;
+    if (divisions != null && divisions > 0) {
+      final step = (field.max - field.min) / divisions;
+      value = (field.min + ((value - field.min) / step).round() * step).clamp(field.min, field.max).toDouble();
+    }
+    onChanged(field.key, field.isInteger ? value.round() : value);
+  }
 
   static String _defaultFormat(double value) {
     if (value == value.roundToDouble()) return value.toInt().toString();
@@ -698,12 +821,14 @@ class _FieldWrapper extends StatelessWidget {
   final String label;
   final String? description;
   final Widget? trailing;
+  final VoidCallback? onReset;
   final Widget child;
 
   const _FieldWrapper({
     required this.label,
     this.description,
     this.trailing,
+    this.onReset,
     required this.child,
   });
 
@@ -752,12 +877,136 @@ class _FieldWrapper extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onReset != null)
+                IconButton(
+                  onPressed: onReset,
+                  tooltip: Strings.of(context).reset,
+                  icon: const Icon(Icons.restart_alt_rounded),
+                  iconSize: 15,
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(width: 24, height: 24),
+                ),
               if (trailing != null) trailing!,
             ],
           ),
           child,
         ],
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Collapsible group
+// ---------------------------------------------------------------------------
+
+/// A titled section of fields that can be folded away.
+class _CollapsibleGroup extends StatefulWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _CollapsibleGroup({super.key, required this.title, required this.children});
+
+  @override
+  State<_CollapsibleGroup> createState() => _CollapsibleGroupState();
+}
+
+class _CollapsibleGroupState extends State<_CollapsibleGroup> {
+  bool _open = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(6),
+            onTap: () => setState(() => _open = !_open),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Container(
+                    width: 3,
+                    height: 12,
+                    decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(2)),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    _open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                    size: 18,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_open) ...widget.children,
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Number entry dialog
+// ---------------------------------------------------------------------------
+
+/// Asks for one number and pops it (or nothing when cancelled).
+class _NumberEntryDialog extends StatefulWidget {
+  final String title;
+  final String initial;
+  final String helper;
+
+  const _NumberEntryDialog({required this.title, required this.initial, required this.helper});
+
+  @override
+  State<_NumberEntryDialog> createState() => _NumberEntryDialogState();
+}
+
+class _NumberEntryDialogState extends State<_NumberEntryDialog> {
+  late final TextEditingController _controller = TextEditingController(text: widget.initial)
+    ..selection = TextSelection(baseOffset: 0, extentOffset: widget.initial.length);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() => Navigator.of(context).pop(double.tryParse(_controller.text.trim().replaceAll(',', '.')));
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    return AlertDialog(
+      title: Text(widget.title),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+        decoration: InputDecoration(helperText: widget.helper),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(s.cancel)),
+        FilledButton(onPressed: _submit, child: Text(s.ok)),
+      ],
     );
   }
 }

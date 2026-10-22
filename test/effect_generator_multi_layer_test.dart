@@ -10,7 +10,17 @@ import 'package:picell/l10n/strings.dart';
 import 'package:picell/pixel/effects/effect_target.dart';
 import 'package:picell/pixel/effects/effects.dart';
 import 'package:picell/ui/widgets/effects/effect_animation_generator_dialog.dart';
+import 'package:picell/ui/widgets/effects/pixlel_preview_painter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// The big preview, not the thumbnails on the layer chips.
+Rect largestPreview(WidgetTester tester) {
+  final rects = find
+      .byWidgetPredicate((w) => w is CustomPaint && w.painter is PixelPreviewPainter)
+      .evaluate()
+      .map((e) => tester.getRect(find.byElementPredicate((x) => x == e)));
+  return rects.reduce((a, b) => a.width * a.height >= b.width * b.height ? a : b);
+}
 
 void main() {
   setUpAll(() async {
@@ -130,5 +140,61 @@ void main() {
     });
     expect(out.result!.layerIds, [1, 2, 3]);
     expect(find.text('Add layer'), findsNothing);
+  });
+
+  group('layout', () {
+    testWidgets('is full screen with the preview filling the left side', (tester) async {
+      await run(tester, interact: () async {
+        final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+        expect(tester.getSize(find.byType(Dialog)), screen);
+
+        final preview = largestPreview(tester);
+        final params = tester.getRect(find.text('Applying to layers'));
+        expect(preview.right, lessThan(params.left)); // preview left, properties right
+        expect(preview.height, greaterThan(screen.height * 0.6)); // fits the height
+        expect(preview.width, closeTo(preview.height, 1)); // keeps the image's shape
+        expect(tester.takeException(), isNull);
+      });
+    });
+
+    testWidgets('stacks the preview over the settings on a phone', (tester) async {
+      tester.view.physicalSize = const Size(390, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final effect = WipeEffect();
+      await tester.pumpWidget(ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: Strings.localizationsDelegates,
+          supportedLocales: Strings.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => EffectAnimationGeneratorDialog.showEffectAnimationGenerator(
+                  context,
+                  effect: effect,
+                  effects: [effect],
+                  effectIndex: 0,
+                  layerWidth: 2,
+                  layerHeight: 2,
+                  layerPixels: Uint32List.fromList(List.filled(4, 0xff808080)),
+                  onFramesGenerated: (_) async {},
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ));
+      await tester.tap(find.text('Open'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+      final preview = largestPreview(tester);
+      expect(preview.bottom, lessThan(tester.getRect(find.text('Animation Settings')).top));
+      expect(tester.takeException(), isNull);
+    });
   });
 }

@@ -450,114 +450,162 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
   @override
   Widget build(BuildContext context) {
     final s = Strings.of(context);
+    final theme = Theme.of(context);
     final isMobile = MediaQuery.of(context).size.width < 800;
     final effectName = widget.effect.getName(context);
 
-    return Dialog(
-      insetPadding: isMobile ? const EdgeInsets.all(8) : null,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        width: isMobile ? double.infinity : 900,
-        height: isMobile ? double.infinity : 700,
-        child: AnimatedBackground(
-          child: Container(
-            padding: EdgeInsets.all(isMobile ? 16 : 20),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(16),
-            ),
+    return Dialog.fullscreen(
+      child: AnimatedBackground(
+        child: Container(
+          color: theme.colorScheme.surface.withValues(alpha: 0.95),
+          child: SafeArea(
             child: Column(
               children: [
                 // Header
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            s.generateAnimationFrames,
-                            style: (isMobile
-                                    ? Theme.of(context).textTheme.titleLarge
-                                    : Theme.of(context).textTheme.headlineSmall)
-                                ?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            s.effectNameLabel(effectName),
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 4 : 12, vertical: 4),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.help_outline),
-                      onPressed: () => _showHelpDialog(),
-                    ),
-                  ],
-                ),
-
-                const Divider(),
-
-                // Content
-                Expanded(
-                  child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
-                ),
-
-                // Action buttons
-                SizedBox(
-                  width: double.infinity,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          s.framesGeneratedCount(_generatedFrames.length),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        if (isMobile) ...[
-                          _buildGenerateButton(s, compact: true),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text(s.cancel),
-                          ),
-                        ] else
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: Text(s.cancel),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              s.generateAnimationFrames,
+                              style: (isMobile ? theme.textTheme.titleMedium : theme.textTheme.titleLarge)?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
                               ),
-                              const SizedBox(width: 8),
-                              _buildGenerateButton(s),
-                            ],
-                          ),
-                      ],
-                    ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              s.effectNameLabel(effectName),
+                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.help_outline),
+                        onPressed: () => _showHelpDialog(),
+                      ),
+                    ],
                   ),
                 ),
+                const Divider(height: 1),
+                Expanded(child: isMobile ? _buildNarrowBody(s) : _buildWideBody(s)),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Preview on the left, filling the space; settings and the action bar on
+  /// the right.
+  Widget _buildWideBody(Strings s) {
+    final width = MediaQuery.of(context).size.width;
+    final panelWidth = (width * 0.34).clamp(360.0, 460.0);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: _buildPreviewSection(),
+          ),
+        ),
+        const VerticalDivider(width: 1),
+        SizedBox(
+          width: panelWidth,
+          child: Column(
+            children: [
+              Expanded(child: _buildPropertiesList()),
+              const Divider(height: 1),
+              _buildActionBar(s, compact: false),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// A short preview strip on top, settings below it.
+  Widget _buildNarrowBody(Strings s) {
+    final height = MediaQuery.of(context).size.height;
+    return Column(
+      children: [
+        SizedBox(
+          height: (height * 0.36).clamp(180.0, 340.0),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: _buildPreviewSection(),
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(child: _buildPropertiesList()),
+        const Divider(height: 1),
+        _buildActionBar(s, compact: true),
+      ],
+    );
+  }
+
+  /// Layers, timing and effect parameters, scrolling on their own.
+  Widget _buildPropertiesList() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLayersSection(),
+          _buildAnimationSettings(),
+          const SizedBox(height: 10),
+          _buildEffectParameters(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionBar(Strings s, {required bool compact}) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            s.framesGeneratedCount(_generatedFrames.length),
+            style: Theme.of(context).textTheme.bodyMedium,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          if (compact) ...[
+            _buildGenerateButton(s, compact: true),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(s.cancel),
+            ),
+          ] else
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(s.cancel),
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: _buildGenerateButton(s)),
+              ],
+            ),
+        ],
       ),
     );
   }
@@ -593,80 +641,30 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     );
   }
 
-  Widget _buildMobileLayout() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPreviewSection(),
-          const SizedBox(height: 20),
-          _buildLayersSection(),
-          _buildAnimationSettings(),
-          const SizedBox(height: 20),
-          _buildFrameGenerationSettings(),
-          const SizedBox(height: 20),
-          _buildEffectParameters(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopLayout() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Left side - Preview and playback controls
-        Expanded(
-          flex: 2,
-          child: _buildPreviewSection(),
-        ),
-
-        const SizedBox(width: 20),
-
-        // Right side - Settings
-        Expanded(
-          flex: 3,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildLayersSection(),
-                _buildAnimationSettings(),
-                const SizedBox(height: 10),
-                _buildEffectParameters(),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildPreviewSection() {
     final s = Strings.of(context);
 
     return Column(
       children: [
-        // Preview canvas
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final size = constraints.maxWidth < 300 ? constraints.maxWidth : 300.0;
-            return Center(
+        // Preview canvas: the largest box of the image's shape that fits.
+        Expanded(
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: widget.layerWidth / widget.layerHeight,
               child: Container(
-                width: size,
-                height: size,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
+                clipBehavior: Clip.antiAlias,
                 child: _buildPreview(),
               ),
-            );
-          },
+            ),
+          ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
 
         // Frame scrubber
         if (_generatedFrames.isNotEmpty) ...[
@@ -876,28 +874,28 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
                     ),
                   )
                 else
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(s.durationSeconds),
-                      Slider(
-                        value: _duration,
-                        min: 0.5,
-                        max: 10.0,
-                        divisions: 19,
-                        label: _duration.toStringAsFixed(1),
-                        onChanged: (value) {
-                          setState(() {
-                            _duration = value;
-                            _updateFrameCount();
-                          });
-                          _generateFrames();
-                        },
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(s.durationSeconds),
+                        Slider(
+                          value: _duration,
+                          min: 0.5,
+                          max: 10.0,
+                          divisions: 19,
+                          label: _duration.toStringAsFixed(1),
+                          onChanged: (value) {
+                            setState(() {
+                              _duration = value;
+                              _updateFrameCount();
+                            });
+                            _generateFrames();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -972,26 +970,6 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
     );
   }
 
-  Widget _buildFrameGenerationSettings() {
-    final s = Strings.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              s.frameGeneration,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            Text(s.addFramesToExistingTimeline),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildEffectParameters() {
     final s = Strings.of(context);
     final fields = widget.effect.getFields();
@@ -1020,6 +998,9 @@ class _EffectAnimationGeneratorDialogState extends State<EffectAnimationGenerato
                 fields: fields,
                 values: _parameters,
                 onChanged: _onParameterChanged,
+                defaults: widget.effect.getDefaultParameters(),
+                collapsibleGroups: true,
+                segmentedSelects: true,
               )
             else if (_parameters.isNotEmpty)
               ..._parameters.entries.map((entry) => Padding(
