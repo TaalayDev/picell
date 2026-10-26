@@ -1,9 +1,9 @@
-
 import 'dart:math' as math;
 import 'dart:ui';
 
 import '../../data/models/rig/rig.dart';
 import 'affine2.dart';
+import 'pose_interpolator.dart';
 
 /// The outcome of solving a rig with IK: where every bone ended up, and the
 /// poses that produce it (IK-driven bones have their rotations replaced).
@@ -18,6 +18,58 @@ class SolvedRig {
 /// canvas pixels to their posed positions: forward kinematics, plus an IK
 /// pass that bends chains of bones to reach a target.
 abstract final class RigSolver {
+  /// Socket transform from socket-local coordinates to canvas coordinates.
+  static Affine2 attachmentTransform(Rig rig, RigAttachment socket, Map<String, Affine2> world) {
+    final bone = rig.bones.where((b) => b.id == socket.boneId).firstOrNull;
+    if (bone == null) return Affine2.identity;
+    final origin = Affine2.rotation(bone.restAngle).apply(socket.offset) + bone.head;
+    return Affine2.rotation(bone.restAngle + socket.angle)
+        .thenTranslate(origin.dx, origin.dy)
+        .then(world[bone.id] ?? Affine2.identity);
+  }
+
+  static Offset? chainTipPoint(Rig rig, IkChain chain) {
+    final tip = rig.bones.where((b) => b.id == chain.tipBoneId).firstOrNull;
+    if (tip == null) return null;
+    final socket = rig.attachments.where((a) => a.id == chain.tipSocketId && a.boneId == tip.id).firstOrNull;
+    return socket == null ? tip.tail : attachmentTransform(rig, socket, const {}).apply(Offset.zero);
+  }
+
+  /// Shared evaluation for canvas, baking and GIFs. Frozen joints override
+  /// inherited motion and IK; their descendants follow the held world pose.
+  static SolvedRig solveClip(Rig rig, RigClip clip, double time) {
+    final solved = solveIk(
+        rig, PoseInterpolator.sample(clip, rig.bones, time), PoseInterpolator.sampleIk(clip, rig.ikChains, time));
+    if (clip.freezes.isEmpty) return solved;
+    final frame = (clip.loop && clip.length > 0
+            ? ((time % clip.length) + clip.length) % clip.length
+            : time.clamp(0.0, (clip.length - 1).toDouble()))
+        .floor();
+    final held = <String, Affine2>{};
+    for (final freeze in clip.freezes.where((f) => f.time == frame)) {
+      final m = freeze.matrix;
+      held[freeze.boneId] = Affine2(m[0], m[1], m[2], m[3], m[4], m[5]);
+    }
+    if (held.isEmpty) return solved;
+    final bones = {for (final b in rig.bones) b.id: b};
+    final world = <String, Affine2>{};
+    Affine2 resolve(Bone bone, Set<String> visiting) {
+      if (world.containsKey(bone.id)) return world[bone.id]!;
+      if (held.containsKey(bone.id)) return world[bone.id] = held[bone.id]!;
+      final local = localTransform(bone, solved.poses[bone.id] ?? BonePose.rest, rig.settings.snapAngleDegrees);
+      final parent = bones[bone.parentId];
+      if (parent == null || !visiting.add(bone.id)) return world[bone.id] = local;
+      final result = local.then(resolve(parent, visiting));
+      visiting.remove(bone.id);
+      return world[bone.id] = result;
+    }
+
+    for (final b in rig.bones) {
+      resolve(b, {});
+    }
+    return SolvedRig(world: world, poses: solved.poses);
+  }
+
   /// Iterations of the IK solver. Chains are short, so this is plenty; a
   /// chain that cannot reach its target stops as a straight line anyway.
   static const int _ikIterations = 32;
@@ -42,7 +94,7 @@ abstract final class RigSolver {
       final target = targets[chain.id];
       final bones = rig.chainBones(chain);
       if (target == null || bones.isEmpty) continue;
-      current = _solveChain(rig, current, bones, chain.bend, target);
+      current = _solveChain(rig, current, bones, chain.bend, target, chainTipPoint(rig, chain));
     }
     return SolvedRig(world: solve(rig, current), poses: current);
   }
@@ -53,16 +105,17 @@ abstract final class RigSolver {
     List<Bone> bones,
     int bend,
     Offset target,
+    Offset? endpoint,
   ) {
     // One and two bones have exact solutions (the two-bone one is the law of
     // cosines, and `bend` picks between its two mirror images). Longer chains
     // have many solutions and are searched for.
-    if (bones.length == 1) return _aim(rig, start, bones.first, target);
+    if (bones.length == 1) return _aim(rig, start, bones.first, target, endpoint);
     if (bones.length == 2) {
-      final solved = _solveTwoBones(rig, start, bones[0], bones[1], bend, target);
+      final solved = _solveTwoBones(rig, start, bones[0], bones[1], bend, target, endpoint);
       if (solved != null) return solved;
     }
-    return _searchChain(rig, start, bones, bend, target);
+    return _searchChain(rig, start, bones, bend, target, endpoint);
   }
 
   /// [angle] plus whole turns, whichever lands nearest [reference], so a
@@ -98,13 +151,13 @@ abstract final class RigSolver {
   static double _degrees(double radians) => radians * 180 / math.pi;
 
   /// One bone: turn it so its tail points at the target.
-  static Map<String, BonePose> _aim(Rig rig, Map<String, BonePose> start, Bone bone, Offset target) {
+  static Map<String, BonePose> _aim(Rig rig, Map<String, BonePose> start, Bone bone, Offset target, Offset? endpoint) {
     final inverse = _parentWorld(rig, start, bone).invert();
     if (inverse == null) return start;
     final pose = start[bone.id] ?? BonePose.rest;
 
     final toTarget = inverse.apply(target) - bone.head - pose.translation;
-    final tail = _flipped(bone.tail - bone.head, pose.flipX);
+    final tail = _flipped((endpoint ?? bone.tail) - bone.head, pose.flipX);
     if (toTarget.distance < 1e-9 || tail.distance < 1e-9) return start;
 
     final rotation = _limit(bone, _nearest(_degrees(toTarget.direction - tail.direction), pose.rotation));
@@ -125,6 +178,7 @@ abstract final class RigSolver {
     Bone lower,
     int bend,
     Offset target,
+    Offset? endpoint,
   ) {
     final inverse = _parentWorld(rig, start, upper).invert();
     if (inverse == null) return null;
@@ -132,7 +186,7 @@ abstract final class RigSolver {
     final p2 = start[lower.id] ?? BonePose.rest;
 
     final u = lower.head + p2.translation - upper.head;
-    final b = _flipped(lower.tail - lower.head, p2.flipX);
+    final b = _flipped((endpoint ?? lower.tail) - lower.head, p2.flipX);
     final v = inverse.apply(target) - upper.head - p1.translation;
     final lu = u.distance, lb = b.distance;
     if (lu < 1e-9 || lb < 1e-9) return null;
@@ -144,8 +198,7 @@ abstract final class RigSolver {
 
     // The preferred fold, unless its angle is outside the bone's limits and
     // the mirror image is not.
-    double lowerRotation(int sign) =>
-        _nearest(_degrees(baseAngle + sign * spread), p2.rotation);
+    double lowerRotation(int sign) => _nearest(_degrees(baseAngle + sign * spread), p2.rotation);
     var second = lowerRotation(bend);
     if (_limit(lower, second) != second) {
       final other = lowerRotation(-bend);
@@ -181,6 +234,7 @@ abstract final class RigSolver {
     List<Bone> bones,
     int bend,
     Offset target,
+    Offset? endpoint,
   ) {
     final poses = Map<String, BonePose>.of(start);
     final tip = bones.last;
@@ -213,7 +267,7 @@ abstract final class RigSolver {
       // Tip first: the bones nearest the target make the finest corrections.
       for (var j = bones.length - 1; j >= 0; j--) {
         final world = solve(rig, poses);
-        final reach = world[tip.id]!.apply(tip.tail);
+        final reach = world[tip.id]!.apply(endpoint ?? tip.tail);
         if ((reach - target).distance < _ikTolerance) return poses;
 
         final bone = bones[j];

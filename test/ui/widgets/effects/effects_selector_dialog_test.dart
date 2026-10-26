@@ -18,6 +18,37 @@ void main() {
     await LocalStorage.init();
   });
 
+  testWidgets('generator menu shows only supported generators and search excludes retired ones', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
+      child: MaterialApp(
+        localizationsDelegates: Strings.localizationsDelegates,
+        supportedLocales: Strings.supportedLocales,
+        home: Scaffold(body: EffectSelectorDialog(onEffectSelected: (_) {})),
+      ),
+    ));
+    await tester.pump(const Duration(milliseconds: 300));
+    // All-effects search must not resurrect retired generators.
+    await tester.enterText(find.byType(TextField), 'Cellular Dungeon');
+    await tester.pump();
+    expect(find.byKey(const ValueKey('effect-preview-cellularDungeon')), findsNothing);
+    await tester.enterText(find.byType(TextField), '');
+    await tester.tap(find.text('Generators'));
+    await tester.pump();
+    for (final type in EffectCatalog.availableGenerators) {
+      expect(find.byKey(ValueKey('effect-preview-${type.name}')), findsOneWidget);
+    }
+    for (final descriptor in EffectCatalog.inWorkspace(EffectWorkspace.generators)) {
+      if (!EffectCatalog.isAvailable(descriptor.type)) {
+        expect(find.byKey(ValueKey('effect-preview-${descriptor.type.name}')), findsNothing);
+      }
+    }
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Materials workspace exposes silhouette-preserving effects',
       (tester) async {
     tester.view.physicalSize = const Size(1200, 900);

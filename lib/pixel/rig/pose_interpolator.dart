@@ -104,9 +104,19 @@ abstract final class PoseInterpolator {
       byChain.putIfAbsent(key.chainId, () => []).add(key);
     }
     final out = <String, Offset>{};
+    final sampleTime = clip.loop && clip.length > 0
+        ? ((time % clip.length) + clip.length) % clip.length
+        : time.clamp(0.0, (clip.length - 1).toDouble());
     for (final chain in chains) {
-      final keys = byChain[chain.id];
-      if (keys == null || keys.isEmpty) continue;
+      final all = byChain[chain.id];
+      if (all == null || all.isEmpty) continue;
+      final contacts = all.where((key) => key.planted && key.time == sampleTime.floor());
+      if (contacts.isNotEmpty) {
+        out[chain.id] = contacts.last.target;
+        continue;
+      }
+      final keys = all.where((key) => !key.planted).toList();
+      if (keys.isEmpty) continue;
       keys.sort((a, b) => a.time.compareTo(b.time));
       out[chain.id] = _sampleTarget(clip, keys, time);
     }

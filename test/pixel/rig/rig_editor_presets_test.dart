@@ -6,6 +6,7 @@ import 'package:picell/data/models/layer.dart';
 import 'package:picell/data/models/rig/rig.dart';
 import 'package:picell/pixel/rig/presets/bone_presets.dart';
 import 'package:picell/pixel/rig/presets/motion_catalog.dart';
+import 'package:picell/pixel/rig/presets/motion_presets.dart';
 import 'package:picell/pixel/rig/rig_editor_controller.dart';
 
 void main() {
@@ -63,7 +64,10 @@ void main() {
 
     test('hidden layers are not part of the artwork', () {
       final hidden = art('hat', 'Hat', x0: 0, y0: 0, x1: 4, y1: 4);
-      final c = make(layers: [art('body', 'Body'), Layer(layerId: 0, id: 'x', name: 'Hat', pixels: hidden.pixels, stableKey: 'hat', isVisible: false)]);
+      final c = make(layers: [
+        art('body', 'Body'),
+        Layer(layerId: 0, id: 'x', name: 'Hat', pixels: hidden.pixels, stableKey: 'hat', isVisible: false)
+      ]);
       c.beginPlacement(BonePresets.humanoid);
       expect(c.placement!.box.left, 8);
     });
@@ -292,6 +296,151 @@ void main() {
       expect(clip.loop, isTrue);
       expect(c.keyTimes(named('thigh_l').id), {for (var i = 0; i < 8; i++) i});
       expect(c.keyTimes(named('hand_l').id), isEmpty, reason: 'a walk does not use the hands');
+    });
+
+    final groundedFrontIdle = MotionPresets.frontIdle.copyWith(
+      plantFeet: true,
+      lockedRoles: MotionPreset.legJointRoles,
+    );
+
+    test('both idles raise and settle the body while foot contacts stay grounded after a run', () {
+      for (final preset in [MotionPresets.idle, groundedFrontIdle]) {
+        c.applyMotion(MotionPresets.frontRun);
+        c.applyMotion(preset);
+        final heights = <double>[];
+        for (var frame = 0; frame < c.activeClip.length; frame++) {
+          c.setTime(frame);
+          final hips = named('hips');
+          final posedHips = c.displayBone(hips.id)!;
+          heights.add(posedHips.head.dy);
+          expect(posedHips.head.dx, closeTo(hips.head.dx, 1e-9));
+          expect(posedHips.head.dy, greaterThanOrEqualTo(hips.head.dy - 1e-9),
+              reason: 'the body never rises beyond the straight-leg rest height');
+          for (final role in ['foot_l', 'foot_r']) {
+            final rest = named(role);
+            expect((c.displayBone(rest.id)!.tail - rest.tail).distance, lessThan(.05),
+                reason: '${preset.name} $role contact stays on the ground at frame $frame');
+          }
+        }
+        expect(heights.reduce((a, b) => a > b ? a : b) - heights.reduce((a, b) => a < b ? a : b), greaterThan(.25),
+            reason: 'breathing visibly moves the body');
+      }
+    });
+
+    test('idle presets automatically plant both feet for the whole clip in one undo step', () {
+      for (final preset in [MotionPresets.idle, groundedFrontIdle]) {
+        c.applyMotion(MotionPresets.frontRun);
+        final before = c.rig;
+        c.applyMotion(preset);
+        final contacts = c.activeClip.ikKeyframes.where((k) => k.planted).toList();
+        expect(contacts, hasLength(preset.frames * 2));
+        for (final side in ['l', 'r']) {
+          final foot = named('foot_$side');
+          final chain = c.ikChainWithTip(foot.id)!;
+          expect(chain.boneCount, 3);
+          for (var frame = 0; frame < preset.frames; frame++) {
+            expect(c.ikKeyAt(chain.id, frame)!.target, foot.tail);
+            c.setTime(frame);
+            expect((c.displayBone(foot.id)!.tail - foot.tail).distance, lessThan(.05));
+          }
+        }
+        final planted = c.rig;
+        c.applyMotion(preset);
+        expect(c.rig, planted, reason: 'reapplying does not duplicate contacts or chains');
+        c.undo();
+        expect(c.rig, before);
+        c.redo();
+        expect(c.rig, planted);
+        c.applyMotion(MotionPresets.frontWalk);
+        expect(c.activeClip.ikKeyframes.where((k) => k.planted), isEmpty,
+            reason: 'starting a walk releases idle contacts');
+      }
+    });
+
+    test('front idle locks both legs at rest while the body breathes and releases them for walking', () {
+      c.applyMotion(MotionPresets.frontRun);
+      final before = c.rig;
+      c.applyMotion(groundedFrontIdle);
+      final locked = c.rig;
+      final roles = ['thigh_l', 'thigh_r', 'shin_l', 'shin_r', 'foot_l', 'foot_r'];
+      expect(c.activeClip.freezes, hasLength(roles.length * groundedFrontIdle.frames));
+      for (var frame = 0; frame < c.activeClip.length; frame++) {
+        c.setTime(frame);
+        for (final role in roles) {
+          final rest = named(role);
+          expect(c.jointFrozenAt(rest.id, frame), isTrue);
+          expect((c.displayBone(rest.id)!.head - rest.head).distance, lessThan(1e-9));
+          expect((c.displayBone(rest.id)!.tail - rest.tail).distance, lessThan(1e-9));
+        }
+      }
+      expect(Rig.fromJson(locked.toJson()), locked);
+      c.applyMotion(groundedFrontIdle);
+      expect(c.rig, locked, reason: 'reapplying does not duplicate locks');
+      c.undo();
+      expect(c.rig, before);
+      c.redo();
+      expect(c.rig, locked);
+      c.applyMotion(MotionPresets.frontWalk);
+      expect(c.activeClip.freezes, isEmpty);
+      final movement = <double>[];
+      for (var frame = 0; frame < c.activeClip.length; frame++) {
+        c.setTime(frame);
+        movement.add((c.displayBone(named('thigh_l').id)!.tail - named('thigh_l').tail).distance);
+      }
+      expect(movement.any((distance) => distance > .1), isTrue);
+    });
+
+    test('front idle keeps manual joint locks and only changes the selected clip', () {
+      c.applyMotion(MotionPresets.walk);
+      c.freezeJoint(named('head').id);
+      final original = c.activeClip;
+      c.createClip('Front idle');
+      c.applyMotion(groundedFrontIdle);
+      expect(c.rig.clips.first, original);
+      c.freezeJoint(named('thigh_l').id);
+      c.applyMotion(MotionPresets.frontRun);
+      expect(c.activeClip.freezes.every((f) => f.sourcePresetId == null), isTrue);
+      expect(c.activeClip.freezes.map((f) => f.boneId).toSet(), {named('thigh_l').id});
+    });
+
+    test('simple humanoid idles plant shin tips when foot bones are absent', () {
+      final simple = make();
+      simple.beginPlacement(BonePresets.humanoidSimple);
+      simple.setPlacementIk(false);
+      simple.commitPlacement();
+      simple.mode = RigMode.animate;
+      simple.applyMotion(groundedFrontIdle, mirror: true, intensity: .5);
+      expect(simple.activeClip.ikKeyframes.where((k) => k.planted), hasLength(32));
+      expect(simple.activeClip.freezes, hasLength(64));
+      expect(simple.rig.ikChains, hasLength(2));
+      expect(simple.rig.ikChains.every((chain) => chain.boneCount == 2), isTrue);
+      final saved = Rig.fromJson(simple.rig.toJson());
+      expect(saved, simple.rig);
+      simple.dispose();
+    });
+
+    test('front actions apply with their timing and undo as one edit', () {
+      for (final preset in [
+        MotionPresets.frontIdle,
+        MotionPresets.frontWalk,
+        MotionPresets.frontRun,
+        MotionPresets.frontJump,
+        MotionPresets.frontAttack
+      ]) {
+        final before = c.rig;
+        final result = c.applyMotion(preset);
+        expect(result.missing, isEmpty);
+        expect(result.matched.length, 11);
+        expect(c.activeClip.length, preset.frames);
+        expect(c.activeClip.fps, preset.fps);
+        expect(c.activeClip.loop, preset.loop);
+        for (var frame = 0; frame < preset.frames; frame++) {
+          c.setTime(frame);
+          expect(c.displayBones.every((b) => b.head.dx.isFinite && b.tail.dy.isFinite), isTrue);
+        }
+        c.undo();
+        expect(c.rig, before);
+      }
     });
 
     test('it replaces the keys of the bones it animates and keeps the others', () {

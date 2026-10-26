@@ -12,6 +12,8 @@ import 'presets/name_tokens.dart';
 import 'pose_interpolator.dart';
 import 'rig_solver.dart';
 
+part 'rig_workflow.dart';
+
 /// Setup builds the skeleton; animate poses it over time.
 enum RigMode { setup, animate }
 
@@ -140,6 +142,19 @@ class RigEditorController extends ChangeNotifier {
   final List<Rig> _redo = [];
   Rig? _gestureBase;
 
+  final Set<String> _selectedBoneIds = {};
+  bool multiSelectEnabled = false;
+  bool groupActivePivot = false;
+  bool snappingEnabled = true;
+  bool moveConnectedChain = true;
+  void _notifyWorkflow() => notifyListeners();
+  bool ghostSkeleton = false, ghostArtwork = false, ghostsSuppressed = false;
+  double ghostOpacity = .25;
+  int ghostSpacing = 1;
+  int? pinnedGhostFrame;
+  bool timelineSelectedTracksOnly = false, rippleTimeline = false;
+  RigClip? _keyClipboard;
+  int _keyClipboardStart = 0, _keyClipboardLength = 1;
   String? _selectedBoneId;
   String? get selectedBoneId => _selectedBoneId;
   Bone? get selectedBone => bone(_selectedBoneId);
@@ -172,9 +187,8 @@ class RigEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool _toolFitsMode(RigTool t) => _mode == RigMode.animate
-      ? t != RigTool.createBone
-      : (t != RigTool.rotate && t != RigTool.move);
+  bool _toolFitsMode(RigTool t) =>
+      _mode == RigMode.animate ? t != RigTool.createBone : (t != RigTool.rotate && t != RigTool.move);
 
   bool get canUndo => _undo.isNotEmpty;
   bool get canRedo => _redo.isNotEmpty;
@@ -219,8 +233,15 @@ class RigEditorController extends ChangeNotifier {
 
   void selectBone(String? id) {
     if (id != null && bone(id) == null) id = null;
-    if (_selectedBoneId == id && _selectedIkChainId == null) return;
+    if (multiSelectEnabled && id != null) {
+      toggleBoneSelection(id);
+      return;
+    }
+    if (_selectedBoneId == id && _selectedIkChainId == null && _selectedBoneIds.length <= 1) return;
     _selectedBoneId = id;
+    _selectedBoneIds
+      ..clear()
+      ..addAll(id == null ? const [] : [id]);
     _selectedIkChainId = null;
     notifyListeners();
   }
@@ -270,11 +291,16 @@ class RigEditorController extends ChangeNotifier {
     return (p - (a + ab * t)).distance;
   }
 
-  /// Snaps [point] to the centre of the pixel it falls in, clamped to the
-  /// canvas. Joints sit on pixels so quarter turns stay on the pixel grid.
+  /// Half-pixel grid: both pixel centres (.5) and boundaries (integers).
+  /// Canvas edges are valid joint positions as well.
   Offset snapToPixel(Offset point) => Offset(
-        (point.dx.floorToDouble() + 0.5).clamp(0.5, width - 0.5),
-        (point.dy.floorToDouble() + 0.5).clamp(0.5, height - 0.5),
+        (point.dx * 2).roundToDouble().clamp(0, width * 2) / 2,
+        (point.dy * 2).roundToDouble().clamp(0, height * 2) / 2,
+      );
+
+  static Offset snapDelta(Offset delta) => Offset(
+        (delta.dx * 2).roundToDouble() / 2,
+        (delta.dy * 2).roundToDouble() / 2,
       );
 
   // ── Gestures / undo ──────────────────────────────────────────────────────
@@ -319,7 +345,8 @@ class RigEditorController extends ChangeNotifier {
   }
 
   void _afterHistoryJump() {
-    if (bone(_selectedBoneId) == null) _selectedBoneId = null;
+    _selectedBoneIds.removeWhere((id) => bone(id) == null);
+    if (bone(_selectedBoneId) == null) _selectedBoneId = _selectedBoneIds.firstOrNull;
     notifyListeners();
   }
 
@@ -329,8 +356,8 @@ class RigEditorController extends ChangeNotifier {
   /// existing bone (within [tolerance]) it becomes that bone's child, joined
   /// at the joint, tip or - along the body - the nearest pixel of the line.
   /// Away from every bone it is a free root starting at [point]'s pixel.
-  ({String? parentId, Offset head}) attachPoint(Offset point, double tolerance) {
-    final hit = hitTest(point, tolerance);
+  ({String? parentId, Offset head}) attachPoint(Offset point, double tolerance, {bool bypass = false}) {
+    final hit = snappingEnabled && !bypass ? hitTest(point, tolerance) : null;
     final d = hit == null ? null : displayBone(hit.boneId);
     if (hit == null || d == null) return (parentId: null, head: snapToPixel(point));
 
@@ -355,16 +382,33 @@ class RigEditorController extends ChangeNotifier {
     return a + ab * t;
   }
 
-  /// Adds a bone from [head] to [tail] (both snapped to pixels) and selects
-  /// it. Returns its id, or null when it would be shorter than one pixel.
+  /// Adds a bone from [head] to [tail] (both snapped to half pixels) and selects
+  /// it. Returns its id, or null when it would be shorter than half a pixel.
   ///
   /// If a layer is armed ([selectLayer]) the new bone is bound to it, in the
   /// same undo step, and the layer is disarmed.
-  String? addBone({required Offset head, required Offset tail, String? parentId, String? name}) {
-    head = snapToPixel(head);
+  String? addBone({required Offset head, required Offset tail, String? parentId, String? name, bool connect = true}) {
+    if (parentId != null && bone(parentId) == null) parentId = null;
+    // Exact endpoints may be off-grid after rotating a connected chain.
+    final parent = bone(parentId);
+    if (parent != null && (head - parent.tail).distance < 1e-6) {
+      head = parent.tail;
+    } else if (parent != null && (head - parent.head).distance < 1e-6) {
+      head = parent.head;
+    } else {
+      head = snapToPixel(head);
+    }
+    if (parentId == null && snappingEnabled && connect) {
+      for (final candidate in _rig.bones.reversed) {
+        if ((head - candidate.tail).distance < 1e-6 || (head - candidate.head).distance < 1e-6) {
+          parentId = candidate.id;
+          break;
+        }
+      }
+    }
     tail = snapToPixel(tail);
     final delta = tail - head;
-    if (delta.distance < 1) return null;
+    if (delta.distance < .5) return null;
     if (parentId != null && bone(parentId) == null) parentId = null;
 
     final id = _newId();
@@ -383,6 +427,9 @@ class RigEditorController extends ChangeNotifier {
       parts: armed == null ? null : _partsBinding(armed, id) ?? _rig.parts,
     ));
     _activeLayerKey = null;
+    _selectedBoneIds
+      ..clear()
+      ..add(id);
     _selectedBoneId = id;
     notifyListeners();
     return id;
@@ -398,49 +445,177 @@ class RigEditorController extends ChangeNotifier {
 
   static double _degrees(Offset v) => math.atan2(v.dy, v.dx) * 180 / math.pi;
 
-  /// Moves [id] and everything below it by [delta] (snapped to whole pixels).
+  /// Moves on a half-pixel grid. A shared head edits the existing joint,
+  /// rather than silently tearing a connected child away from its parent.
   void moveBone(String id, Offset delta) {
-    if (bone(id) == null) return;
-    delta = Offset(delta.dx.roundToDouble(), delta.dy.roundToDouble());
+    final target = bone(id);
+    if (target == null) return;
+    delta = snapDelta(delta);
     if (delta == Offset.zero) return;
+    final parent = bone(target.parentId);
+    if (parent != null && (target.head - parent.tail).distance < 1e-6) {
+      setBoneTail(parent.id, parent.tail + delta);
+      return;
+    }
+    if (parent != null && (target.head - parent.head).distance < 1e-6) {
+      moveBone(parent.id, delta);
+      return;
+    }
     final moving = {id, ..._descendants(id)};
     _commit(_rig.copyWith(bones: [
       for (final b in _rig.bones) moving.contains(b.id) ? b.copyWith(head: b.head + delta) : b,
     ]));
   }
 
-  /// Points the bone at [tail] (snapped), keeping its head. Ignored when it
-  /// would collapse the bone.
-  void setBoneTail(String id, Offset tail) {
+  /// Reshapes a bone and rotates attached subtrees with its new direction.
+  /// Attachment positions along the bone scale with its new length.
+  void setBoneTail(String id, Offset tail, {bool snap = true}) {
     final b = bone(id);
     if (b == null) return;
-    final newTail = snapToPixel(tail);
+    final newTail = snap ? snapToPixel(tail) : tail;
     final delta = newTail - b.head;
-    if (delta.distance < 1) return;
+    if (delta.distance < .5) return;
+    final angle = _degrees(delta);
+    final turn = (angle - b.restAngle) * math.pi / 180;
+    Offset rotate(Offset v) =>
+        Offset(v.dx * math.cos(turn) - v.dy * math.sin(turn), v.dx * math.sin(turn) + v.dy * math.cos(turn));
+    final changed = <String, Bone>{};
+    for (final child in _rig.bones.where((x) => x.parentId == id)) {
+      final oldAxis = b.tail - b.head;
+      final t = b.length == 0
+          ? 0.0
+          : (((child.head - b.head).dx * oldAxis.dx + (child.head - b.head).dy * oldAxis.dy) / (b.length * b.length))
+              .clamp(0.0, 1.0);
+      final onAxis = (child.head - (b.head + oldAxis * t)).distance < 1e-6;
+      final newAnchor = onAxis ? b.head + delta * t : b.head + rotate(child.head - b.head);
+      for (final childId in {child.id, ..._descendants(child.id)}) {
+        final item = bone(childId)!;
+        changed[childId] = item.copyWith(
+          head: newAnchor + rotate(item.head - child.head),
+          restAngle: item.restAngle + angle - b.restAngle,
+        );
+      }
+    }
+    _commit(_rig.copyWith(bones: [
+      for (final item in _rig.bones)
+        if (item.id == id) item.copyWith(length: delta.distance, restAngle: angle) else changed[item.id] ?? item,
+    ]));
+  }
 
-    // Children attached at this bone's tip stay attached: they, and
-    // everything below them, travel with the tip.
-    final oldTail = b.tail;
-    final shift = <String, Offset>{};
-    for (final c in _rig.bones) {
-      if (c.parentId == id && (c.head - oldTail).distance < 0.51) {
-        final move = newTail - c.head;
-        shift[c.id] = move;
-        for (final d in _descendants(c.id)) {
-          shift[d] = move;
+  /// Snap a free bone's head onto an existing joint without allowing cycles.
+  /// Called when a setup drag ends; the gesture remains one undo operation.
+  ({String parentId, Offset point})? jointConnection(String id, {double tolerance = .25}) {
+    final target = bone(id);
+    if (target == null || target.parentId != null) return null;
+    final blocked = {id, ..._descendants(id)};
+    String? parent;
+    Offset? anchor;
+    var best = tolerance;
+    for (final candidate in _rig.bones.reversed) {
+      if (blocked.contains(candidate.id)) continue;
+      for (final joint in [candidate.tail, candidate.head]) {
+        final distance = (target.head - joint).distance;
+        if (distance <= best) {
+          best = distance;
+          parent = candidate.id;
+          anchor = joint;
         }
       }
     }
+    return parent == null || anchor == null ? null : (parentId: parent, point: anchor);
+  }
 
+  bool connectJoint(String id, {double tolerance = .25}) {
+    final connection = jointConnection(id, tolerance: tolerance);
+    final target = bone(id);
+    if (connection == null || target == null) return false;
+    final anchor = connection.point;
+    final move = anchor - target.head;
+    final moving = {id, ..._descendants(id)};
     _commit(_rig.copyWith(bones: [
-      for (final x in _rig.bones)
-        if (x.id == id)
-          x.copyWith(length: delta.distance, restAngle: _degrees(delta))
-        else if (shift.containsKey(x.id))
-          x.copyWith(head: x.head + shift[x.id]!)
+      for (final item in _rig.bones)
+        if (item.id == id)
+          item.copyWith(head: anchor, parentId: () => connection.parentId)
+        else if (moving.contains(item.id))
+          item.copyWith(head: item.head + move)
         else
-          x,
+          item,
     ]));
+    return true;
+  }
+
+  /// Connect an existing bone to the nearest endpoint of another bone.
+  /// The entire child subtree moves together, preserving its internal joints.
+  bool connectToBone(String id, String parentId) {
+    final child = bone(id), parent = bone(parentId);
+    if (child == null || parent == null || id == parentId || _descendants(id).contains(parentId)) return false;
+    final anchor =
+        (child.head - parent.head).distance < (child.head - parent.tail).distance ? parent.head : parent.tail;
+    final delta = anchor - child.head;
+    final moving = {id, ..._descendants(id)};
+    _commit(_rig.copyWith(bones: [
+      for (final item in _rig.bones)
+        if (item.id == id)
+          item.copyWith(head: anchor, parentId: () => parentId)
+        else if (moving.contains(item.id))
+          item.copyWith(head: item.head + delta)
+        else
+          item,
+    ]));
+    return true;
+  }
+
+  /// Moving a posed shared joint translates its connected hierarchy together.
+  String jointMoveBoneId(String id) {
+    var current = bone(id);
+    final seen = <String>{};
+    while (current != null && seen.add(current.id)) {
+      final parent = bone(current.parentId);
+      if (parent == null ||
+          ((current.head - parent.head).distance > 1e-6 && (current.head - parent.tail).distance > 1e-6)) {
+        return current.id;
+      }
+      current = parent;
+    }
+    return id;
+  }
+
+  /// Numeric setup edits retain connected joints and form one undo step.
+  bool setBoneGeometry(String id, {double? x, double? y, double? length, double? angle}) {
+    final b = bone(id);
+    if (b == null ||
+        _mode != RigMode.setup ||
+        [x, y, length, angle].whereType<double>().any((n) => !n.isFinite) ||
+        (length != null && length < .5)) {
+      return false;
+    }
+    if (!moveConnectedChain) {
+      _commit(_rig.copyWith(bones: [
+        for (final item in _rig.bones)
+          item.id == id
+              ? item.copyWith(
+                  head: snapToPixel(Offset(x ?? b.head.dx, y ?? b.head.dy)),
+                  length: length == null ? b.length : (length * 2).roundToDouble() / 2,
+                  restAngle: angle)
+              : item
+      ]));
+      return true;
+    }
+    final ownGesture = _gestureBase == null;
+    if (ownGesture) beginGesture();
+    try {
+      final head = snapToPixel(Offset(x ?? b.head.dx, y ?? b.head.dy));
+      moveBone(id, head - b.head);
+      final current = bone(id)!;
+      if (length != null || angle != null) {
+        final size = length == null ? current.length : (length * 2).roundToDouble() / 2;
+        final radians = (angle ?? current.restAngle) * math.pi / 180;
+        setBoneTail(id, current.head + Offset(math.cos(radians), math.sin(radians)) * size, snap: false);
+      }
+    } finally {
+      if (ownGesture) endGesture();
+    }
+    return true;
   }
 
   void renameBone(String id, String name) {
@@ -479,12 +654,21 @@ class RigEditorController extends ChangeNotifier {
   void deleteBone(String id) {
     final target = bone(id);
     if (target == null) return;
+    _selectedBoneIds.remove(id);
     // A chain ending at the deleted bone has nothing left to reach with.
     final gone = {
       for (final c in _rig.ikChains)
         if (c.tipBoneId == id) c.id,
     };
     _commit(_rig.copyWith(
+      attachments: [
+        for (final a in _rig.attachments)
+          if (a.boneId != id) a
+      ],
+      roleBindings: {
+        for (final e in _rig.roleBindings.entries)
+          if (e.value != id) e.key: e.value
+      },
       bones: [
         for (final b in _rig.bones)
           if (b.id != id) b.parentId == id ? b.copyWith(parentId: () => target.parentId) : b,
@@ -513,8 +697,18 @@ class RigEditorController extends ChangeNotifier {
       clips: [
         for (final c in _rig.clips)
           c.copyWith(
-            keyframes: [for (final k in c.keyframes) if (k.boneId != id) k],
-            ikKeyframes: [for (final k in c.ikKeyframes) if (!gone.contains(k.chainId)) k],
+            freezes: [
+              for (final f in c.freezes)
+                if (f.boneId != id) f
+            ],
+            keyframes: [
+              for (final k in c.keyframes)
+                if (k.boneId != id) k
+            ],
+            ikKeyframes: [
+              for (final k in c.ikKeyframes)
+                if (!gone.contains(k.chainId)) k
+            ],
           ),
       ],
     ));
@@ -544,10 +738,281 @@ class RigEditorController extends ChangeNotifier {
   Map<String, BonePose>? _clipboard;
   Map<String, Offset> _ikClipboard = const {};
 
+  int? _rangeAnchor, _rangeEnd;
+  bool rangeSelectionEnabled = false;
+  bool get hasFrameSelection => _rangeAnchor != null;
+  int get rangeStart => math.min(_rangeAnchor ?? time, _rangeEnd ?? time).clamp(0, activeClip.length - 1);
+  int get rangeEnd => math.max(_rangeAnchor ?? time, _rangeEnd ?? time).clamp(0, activeClip.length - 1);
+  bool frameInSelection(int frame) => hasFrameSelection && frame >= rangeStart && frame <= rangeEnd;
+
+  void selectFrameRange(int start, int end) {
+    _rangeAnchor = start.clamp(0, activeClip.length - 1);
+    _rangeEnd = end.clamp(0, activeClip.length - 1);
+    notifyListeners();
+  }
+
+  void toggleFrameSelection() {
+    rangeSelectionEnabled = !rangeSelectionEnabled;
+    if (rangeSelectionEnabled) {
+      selectFrameRange(time, time);
+    } else {
+      _rangeAnchor = _rangeEnd = null;
+      notifyListeners();
+    }
+  }
+
+  void selectTimelineFrame(int frame, {bool extend = false}) {
+    if (extend || rangeSelectionEnabled) {
+      selectFrameRange(_rangeAnchor ?? time, frame);
+    } else {
+      _rangeAnchor = _rangeEnd = null;
+    }
+    setTime(frame);
+    notifyListeners();
+  }
+
+  /// Move selected keys on every track. Destination keys are replaced.
+  void moveFrameRange(int delta) {
+    if (!hasFrameSelection) return;
+    final start = rangeStart, end = rangeEnd;
+    delta = delta.clamp(-start, 239 - end);
+    if (delta == 0) return;
+    final clip = activeClip;
+    bool inside(int t) => t >= start && t <= end;
+    final keys = [
+      for (final k in clip.keyframes)
+        if (inside(k.time)) k.copyWith(time: k.time + delta)
+    ];
+    final ik = [
+      for (final k in clip.ikKeyframes)
+        if (inside(k.time)) k.copyWith(time: k.time + delta)
+    ];
+    final movedFreezes = [
+      for (final f in clip.freezes)
+        if (inside(f.time)) f.copyWith(time: f.time + delta)
+    ];
+    final destinations = {for (final f in movedFreezes) (f.boneId, f.time)};
+    final base = clip.copyWith(
+      freezes: [
+        for (final f in clip.freezes)
+          if (!inside(f.time) && !destinations.contains((f.boneId, f.time))) f,
+        ...movedFreezes
+      ],
+      length: math.max(clip.length, end + delta + 1),
+      keyframes: [
+        for (final k in clip.keyframes)
+          if (!inside(k.time)) k
+      ],
+      ikKeyframes: [
+        for (final k in clip.ikKeyframes)
+          if (!inside(k.time)) k
+      ],
+    );
+    _updateClip((_) => _withIkKeys(_withKeys(base, keys), ik));
+    selectFrameRange(start + delta, end + delta);
+    setTime(start + delta);
+  }
+
+  /// Insert a copy immediately after the range, preserving later frames.
+  void duplicateFrameRange() {
+    if (!hasFrameSelection) return;
+    final start = rangeStart, end = rangeEnd, clip = activeClip;
+    final count = end - start + 1;
+    if (clip.length + count > 240) return;
+    final at = end + 1;
+    _updateClip((_) => clip.copyWith(
+          length: clip.length + count,
+          freezes: [
+            for (final f in clip.freezes) f.time >= at ? f.copyWith(time: f.time + count) : f,
+            for (final f in clip.freezes)
+              if (f.time >= start && f.time <= end) f.copyWith(time: f.time + count)
+          ],
+          keyframes: [
+            for (final k in clip.keyframes) k.time >= at ? k.copyWith(time: k.time + count) : k,
+            for (final k in clip.keyframes)
+              if (k.time >= start && k.time <= end) k.copyWith(time: k.time + count),
+          ],
+          ikKeyframes: [
+            for (final k in clip.ikKeyframes) k.time >= at ? k.copyWith(time: k.time + count) : k,
+            for (final k in clip.ikKeyframes)
+              if (k.time >= start && k.time <= end) k.copyWith(time: k.time + count),
+          ],
+        ));
+    selectFrameRange(at, at + count - 1);
+    setTime(at);
+  }
+
+  /// Delete selected frames and close the gap on every bone and IK track.
+  void deleteFrameRange() {
+    if (!hasFrameSelection) return;
+    final start = rangeStart, end = rangeEnd, clip = activeClip;
+    final count = end - start + 1;
+    _updateClip((_) => clip.copyWith(
+          length: math.max(1, clip.length - count),
+          freezes: [
+            for (final f in clip.freezes)
+              if (f.time < start || f.time > end) f.time > end ? f.copyWith(time: f.time - count) : f
+          ],
+          keyframes: [
+            for (final k in clip.keyframes)
+              if (k.time < start || k.time > end) k.time > end ? k.copyWith(time: k.time - count) : k
+          ],
+          ikKeyframes: [
+            for (final k in clip.ikKeyframes)
+              if (k.time < start || k.time > end) k.time > end ? k.copyWith(time: k.time - count) : k
+          ],
+        ));
+    _rangeAnchor = _rangeEnd = null;
+    _time = start.clamp(0, activeClip.length - 1);
+    notifyListeners();
+  }
+
+  bool get canPlantFoot =>
+      _mode == RigMode.animate && selectedBone != null && _rig.maxChainLength(selectedBoneId!) >= 2;
+
+  /// Hold the selected foot's current contact point over the chosen range.
+  /// Per-frame contacts never enable IK outside that range.
+  void plantFoot() {
+    if (!canPlantFoot) return;
+    final tip = selectedBone!;
+    final target = displayBone(tip.id)!.tail;
+    final existing = ikChainWithTip(tip.id);
+    final chain = existing ??
+        IkChain(
+            id: _newId(),
+            name: '${tip.name} contact',
+            tipBoneId: tip.id,
+            boneCount: math.min(3, _rig.maxChainLength(tip.id)));
+    final keys = [
+      for (var i = rangeStart; i <= rangeEnd; i++)
+        IkKeyframe(time: i, chainId: chain.id, target: target, planted: true, easing: RigEasing.stepped)
+    ];
+    final clip = _withIkKeys(activeClip, keys);
+    _commit(_rig.copyWith(
+      ikChains: [
+        for (final c in _rig.ikChains)
+          if (c.id != chain.id) c,
+        chain
+      ],
+      clips: _clipsReplacing(clip),
+    ));
+  }
+
+  bool get hasFootPlant {
+    final chain = ikChainWithTip(_selectedBoneId);
+    return chain != null &&
+        activeClip.ikKeyframes
+            .any((k) => k.chainId == chain.id && k.planted && k.time >= rangeStart && k.time <= rangeEnd);
+  }
+
+  void releaseFootPlant() {
+    final chain = ikChainWithTip(_selectedBoneId);
+    if (chain == null) return;
+    _updateClip((clip) => clip.copyWith(ikKeyframes: [
+          for (final k in clip.ikKeyframes)
+            if (!(k.chainId == chain.id && k.planted && k.time >= rangeStart && k.time <= rangeEnd)) k
+        ]));
+  }
+
+  List<RigClip> _clipsReplacing(RigClip clip) => _rig.clips.any((c) => c.id == clip.id)
+      ? [for (final c in _rig.clips) c.id == clip.id ? clip : c]
+      : [..._rig.clips, clip];
+
+  void selectClip(String id) {
+    if (!_rig.clips.any((c) => c.id == id) || activeClip.id == id) return;
+    _rig = _rig.copyWith(activeClipId: () => id);
+    _time = 0;
+    pinnedGhostFrame = null;
+    _rangeAnchor = _rangeEnd = null;
+    notifyListeners();
+  }
+
+  String _clipName(String base) {
+    base = base.trim().isEmpty ? 'Animation' : base.trim();
+    final names = _rig.clips.map((c) => c.name).toSet();
+    if (!names.contains(base)) return base;
+    for (var i = 2;; i++) {
+      if (!names.contains('$base $i')) return '$base $i';
+    }
+  }
+
+  void createClip(String name) {
+    final clip = RigClip(id: _newId(), name: _clipName(name), fps: activeClip.fps);
+    _time = 0;
+    pinnedGhostFrame = null;
+    _rangeAnchor = _rangeEnd = null;
+    _commit(_rig.copyWith(clips: [..._rig.clips, clip], activeClipId: () => clip.id));
+  }
+
+  void duplicateClip() {
+    final source = activeClip;
+    final clip = source.copyWith(id: _newId(), name: _clipName('${source.name} copy'));
+    _time = 0;
+    pinnedGhostFrame = null;
+    _rangeAnchor = _rangeEnd = null;
+    _commit(_rig.copyWith(clips: [..._rig.clips, clip], activeClipId: () => clip.id));
+  }
+
+  void renameClip(String name) {
+    name = name.trim();
+    if (name.isEmpty || name == activeClip.name) return;
+    _updateClip((c) => c.copyWith(name: _clipName(name)));
+  }
+
+  void deleteClip() {
+    if (_rig.clips.isEmpty) return;
+    final clips = _rig.clips.where((c) => c.id != activeClip.id).toList();
+    _time = 0;
+    pinnedGhostFrame = null;
+    _rangeAnchor = _rangeEnd = null;
+    _commit(_rig.copyWith(clips: clips, activeClipId: () => clips.firstOrNull?.id));
+  }
+
+  bool jointFrozenAt(String id, int frame) => activeClip.freezes.any((f) => f.boneId == id && f.time == frame);
+  bool hasJointFreeze(String id) => activeClip.freezes
+      .any((f) => f.boneId == id && (!hasFrameSelection || (f.time >= rangeStart && f.time <= rangeEnd)));
+
+  void freezeJoint(String id) {
+    if (_mode != RigMode.animate || bone(id) == null) return;
+    final t = _world[id] ?? Affine2.identity;
+    final matrix = [t.a, t.b, t.c, t.d, t.tx, t.ty];
+    final start = hasFrameSelection ? rangeStart : 0;
+    final end = hasFrameSelection ? rangeEnd : activeClip.length - 1;
+    _updateClip((clip) => clip.copyWith(freezes: [
+          for (final f in clip.freezes)
+            if (f.boneId != id || f.time < start || f.time > end) f,
+          for (var i = start; i <= end; i++) JointFreeze(boneId: id, time: i, matrix: matrix),
+        ]));
+  }
+
+  void unfreezeJoint(String id) {
+    _updateClip((clip) => clip.copyWith(freezes: [
+          for (final f in clip.freezes)
+            if (!(f.boneId == id && (!hasFrameSelection || (f.time >= rangeStart && f.time <= rangeEnd)))) f
+        ]));
+  }
+
+  /// Whether clearing would remove keys, extra frames, or additional clips.
+  bool get canClearAnimations =>
+      _rig.clips.length > 1 ||
+      activeClip.length > 1 ||
+      _rig.clips.any((clip) => clip.keyframes.isNotEmpty || clip.ikKeyframes.isNotEmpty || clip.freezes.isNotEmpty);
+
+  /// Remove every animation and keyed frame, keeping one empty working frame.
+  /// Skeleton, bindings, IK chains and saved poses remain available for reuse.
+  /// The complete reset, including every clip, is one undo step.
+  void clearAnimations() {
+    if (!canClearAnimations) return;
+    final empty = activeClip.copyWith(length: 1, keyframes: const [], ikKeyframes: const [], freezes: const []);
+    _time = 0;
+    _rangeAnchor = _rangeEnd = null;
+    _commit(_rig.copyWith(clips: [empty]));
+  }
+
   /// The clip being edited. A rig starts without one; the first keyframe
   /// stores this draft in the rig, so merely looking at animate mode leaves
   /// the rig untouched.
-  RigClip get activeClip => _rig.clips.isNotEmpty ? _rig.clips.first : _draftClip;
+  RigClip get activeClip => _rig.activeClip ?? _draftClip;
 
   /// The frame being viewed and edited.
   int get time => _time.clamp(0, activeClip.length - 1);
@@ -570,7 +1035,9 @@ class RigEditorController extends ChangeNotifier {
   Map<String, Offset> get _ikTargets =>
       _mode == RigMode.animate ? PoseInterpolator.sampleIk(activeClip, _rig.ikChains, time.toDouble()) : const {};
 
-  SolvedRig get _solved => RigSolver.solveIk(_rig, poses, _ikTargets);
+  SolvedRig get _solved => _mode == RigMode.animate
+      ? RigSolver.solveClip(_rig, activeClip, time.toDouble())
+      : RigSolver.solveIk(_rig, const {}, const {});
 
   Map<String, Affine2> get _world => _solved.world;
 
@@ -578,8 +1045,7 @@ class RigEditorController extends ChangeNotifier {
   /// bones driven by an active IK chain have the rotation the solver chose.
   BonePose shownPoseOf(String boneId) => _solved.poses[boneId] ?? BonePose.rest;
 
-  /// Bones as drawn: rest positions in setup, posed (with the same
-  /// whole-pixel joint snapping the baked pixels get) in animate.
+  /// Exact solved joint positions, shared with the baker in animate mode.
   List<DisplayBone> get displayBones {
     if (_mode == RigMode.setup) {
       return [for (final b in _rig.bones) (bone: b, head: b.head, tail: b.tail)];
@@ -588,7 +1054,7 @@ class RigEditorController extends ChangeNotifier {
     return [
       for (final b in _rig.bones)
         () {
-          final t = (world[b.id] ?? Affine2.identity).withIntegerDisplacementAt(b.head);
+          final t = (world[b.id] ?? Affine2.identity);
           return (bone: b, head: t.apply(b.head), tail: t.apply(b.tail));
         }(),
     ];
@@ -611,8 +1077,7 @@ class RigEditorController extends ChangeNotifier {
   double rotationSign(String boneId) => _parentWorld(boneId).determinant < 0 ? -1 : 1;
 
   /// A screen-space [delta] expressed in the bone's own (rest-pose) frame.
-  Offset toLocalDelta(String boneId, Offset delta) =>
-      _parentWorld(boneId).invert()?.applyVector(delta) ?? delta;
+  Offset toLocalDelta(String boneId, Offset delta) => _parentWorld(boneId).invert()?.applyVector(delta) ?? delta;
 
   RigKeyframe? keyAt(String boneId, int frame) {
     for (final k in activeClip.keyframes) {
@@ -629,7 +1094,7 @@ class RigEditorController extends ChangeNotifier {
 
   void _updateClip(RigClip Function(RigClip) change) {
     final next = change(activeClip);
-    _commit(_rig.copyWith(clips: [next, ..._rig.clips.skip(1)]));
+    _commit(_rig.copyWith(clips: _clipsReplacing(next)));
   }
 
   RigClip _withKeys(RigClip clip, Iterable<RigKeyframe> keys) {
@@ -660,7 +1125,7 @@ class RigEditorController extends ChangeNotifier {
   /// left null keep what the bone does at this frame now.
   void setPose(String boneId, {double? rotation, Offset? translation, bool? flipX}) {
     final b = bone(boneId);
-    if (b == null) return;
+    if (b == null || jointFrozenAt(boneId, time)) return;
     final key = _keyFor(b, poseOf(boneId), rotation: rotation, translation: translation, flipX: flipX);
     if (keyAt(boneId, time) == key) return;
     _updateClip((clip) => _withKeys(clip, [key]));
@@ -710,7 +1175,8 @@ class RigEditorController extends ChangeNotifier {
     final keys = [
       for (final e in bones.entries)
         if (bone(e.key) != null)
-          _keyFor(bone(e.key)!, e.value, rotation: e.value.rotation, translation: e.value.translation, flipX: e.value.flipX),
+          _keyFor(bone(e.key)!, e.value,
+              rotation: e.value.rotation, translation: e.value.translation, flipX: e.value.flipX),
     ];
     final ikKeys = [
       for (final e in ik.entries)
@@ -782,6 +1248,10 @@ class RigEditorController extends ChangeNotifier {
     if (frames == activeClip.length) return;
     _updateClip((clip) => clip.copyWith(
           length: frames,
+          freezes: [
+            for (final f in clip.freezes)
+              if (f.time < frames) f
+          ],
           keyframes: [
             for (final k in clip.keyframes)
               if (k.time < frames) k,
@@ -837,15 +1307,18 @@ class RigEditorController extends ChangeNotifier {
 
   /// Whether an IK chain is steering the bone on this frame: the chain has
   /// target keys, so its bones' own rotation keys are only a starting guess.
-  bool isIkDriven(String boneId) => ikChainsOf(boneId).any((c) => _hasIkKeys(c.id));
-
-  bool _hasIkKeys(String chainId) => activeClip.ikKeyframes.any((k) => k.chainId == chainId);
+  bool isIkDriven(String boneId) => ikChainsOf(boneId).any((c) => _ikTargets.containsKey(c.id));
 
   /// Picks [chainId] (null to drop the pick) and its tip bone.
   void selectIkChain(String? chainId) {
     final chain = ikChain(chainId);
     _selectedIkChainId = chain?.id;
-    if (chain != null) _selectedBoneId = chain.tipBoneId;
+    if (chain != null) {
+      _selectedBoneIds
+        ..clear()
+        ..add(chain.tipBoneId);
+      _selectedBoneId = chain.tipBoneId;
+    }
     notifyListeners();
   }
 
@@ -891,7 +1364,10 @@ class RigEditorController extends ChangeNotifier {
       ],
       clips: [
         for (final c in _rig.clips)
-          c.copyWith(ikKeyframes: [for (final k in c.ikKeyframes) if (k.chainId != chainId) k]),
+          c.copyWith(ikKeyframes: [
+            for (final k in c.ikKeyframes)
+              if (k.chainId != chainId) k
+          ]),
       ],
     ));
     if (_selectedIkChainId == chainId) _selectedIkChainId = null;
@@ -918,7 +1394,8 @@ class RigEditorController extends ChangeNotifier {
   /// the tip of its last bone. Null in setup mode or if the tip is gone.
   Offset? ikHandle(IkChain chain) {
     if (_mode != RigMode.animate) return null;
-    return _ikTargets[chain.id] ?? displayBone(chain.tipBoneId)?.tail;
+    final point = RigSolver.chainTipPoint(_rig, chain);
+    return _ikTargets[chain.id] ?? (point == null ? null : (_world[chain.tipBoneId] ?? Affine2.identity).apply(point));
   }
 
   IkKeyframe? ikKeyAt(String chainId, int frame) {
@@ -1019,7 +1496,10 @@ class RigEditorController extends ChangeNotifier {
     final current = _placement;
     if (current == null) return;
     final next = change(current);
-    if (next.box == current.box && next.flip == current.flip && next.withIk == current.withIk && next.attach == current.attach) {
+    if (next.box == current.box &&
+        next.flip == current.flip &&
+        next.withIk == current.withIk &&
+        next.attach == current.attach) {
       return;
     }
     _placement = next;
@@ -1041,10 +1521,15 @@ class RigEditorController extends ChangeNotifier {
     var l = p.box.left, t = p.box.top, r = p.box.right, b = p.box.bottom;
     final x = pointer.dx.roundToDouble(), y = pointer.dy.roundToDouble();
 
-    final left = handle == PlacementHandle.left || handle == PlacementHandle.topLeft || handle == PlacementHandle.bottomLeft;
-    final right = handle == PlacementHandle.right || handle == PlacementHandle.topRight || handle == PlacementHandle.bottomRight;
-    final top = handle == PlacementHandle.top || handle == PlacementHandle.topLeft || handle == PlacementHandle.topRight;
-    final bottom = handle == PlacementHandle.bottom || handle == PlacementHandle.bottomLeft || handle == PlacementHandle.bottomRight;
+    final left =
+        handle == PlacementHandle.left || handle == PlacementHandle.topLeft || handle == PlacementHandle.bottomLeft;
+    final right =
+        handle == PlacementHandle.right || handle == PlacementHandle.topRight || handle == PlacementHandle.bottomRight;
+    final top =
+        handle == PlacementHandle.top || handle == PlacementHandle.topLeft || handle == PlacementHandle.topRight;
+    final bottom = handle == PlacementHandle.bottom ||
+        handle == PlacementHandle.bottomLeft ||
+        handle == PlacementHandle.bottomRight;
 
     if (left) l = math.min(x, r - minPlacementSize);
     if (right) r = math.max(x, l + minPlacementSize);
@@ -1129,6 +1614,11 @@ class RigEditorController extends ChangeNotifier {
       ikChains: [..._rig.ikChains, ...built.chains],
       parts: parts,
     ));
+    if (built.bones.isNotEmpty) {
+      _selectedBoneIds
+        ..clear()
+        ..add(built.bones.first.id);
+    }
     _selectedBoneId = built.bones.isEmpty ? _selectedBoneId : built.bones.first.id;
     _selectedIkChainId = null;
     notifyListeners();
@@ -1158,6 +1648,7 @@ class RigEditorController extends ChangeNotifier {
 
   Rect _suggestedBox(BonePreset preset, bool attach) {
     final canvas = Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble());
+    if (preset.alignedCanvasSize == Size(width.toDouble(), height.toDouble())) return canvas;
     final art = _artBounds() ?? canvas.deflate(math.min(width, height) * 0.1);
 
     Rect box;
@@ -1192,7 +1683,8 @@ class RigEditorController extends ChangeNotifier {
 
   /// How many of [preset]'s bones this rig has, for showing before applying.
   ({int matched, int total}) motionCoverage(MotionPreset preset, {bool mirror = false}) =>
-      MotionBuilder.coverage(preset, _rig.bones, mirror: mirror);
+      MotionBuilder.coverage(preset, _rig.bones,
+          mirror: mirror, roleBindings: preset.roleBindings ?? _rig.roleBindings);
 
   /// Puts an animation preset on the clip (animate mode): the bones it finds
   /// get its keyframes, replacing their own; the clip takes the preset's
@@ -1201,10 +1693,47 @@ class RigEditorController extends ChangeNotifier {
   /// Returns what was matched; when nothing was (a missing selection, bones
   /// named something else) the clip is left alone.
   MotionResult applyMotion(MotionPreset preset, {double intensity = 1, bool mirror = false}) {
+    final bindings = preset.roleBindings ?? _rig.roleBindings;
+    final legRoles = RoleMatcher.match(['thigh_l', 'thigh_r', 'shin_l', 'shin_r', 'foot_l', 'foot_r'], _rig.bones);
+    for (final role in legRoles.keys.toList()) {
+      final explicit = bone(bindings[role]);
+      if (explicit != null) legRoles[role] = explicit;
+    }
+    for (final role in bindings.keys) {
+      final explicit = bone(bindings[role]);
+      if (explicit != null) legRoles[role] = explicit;
+    }
+    Offset contact(Bone foot) {
+      final socket = _rig.attachments.where((a) => a.boneId == foot.id && a.name == 'foot_contact').firstOrNull;
+      return socket == null ? foot.tail : RigSolver.attachmentTransform(_rig, socket, const {}).apply(Offset.zero);
+    }
+
+    final feet = [
+      for (final side in ['l', 'r']) legRoles['foot_$side'] ?? legRoles['shin_$side']
+    ].whereType<Bone>().toList();
+    final ground = feet.isEmpty ? null : feet.map((b) => contact(b).dy).reduce(math.max);
+    var root = bone(bindings['hips']) ?? RoleMatcher.match(['hips'], _rig.bones)['hips'];
+    final seen = <String>{};
+    while (root?.parentId != null && seen.add(root!.id)) {
+      root = bone(root.parentId) ?? root;
+    }
+    final origin = preset.keepPosition && root != null
+        ? (_world[root.id] ?? Affine2.identity).apply(root.head) - root.head
+        : Offset.zero;
+    final shift = preset.groundY != null && ground != null ? preset.groundY! - ground : origin.dy;
+    final legs = [
+      for (final side in ['l', 'r'])
+        [legRoles['thigh_$side'], legRoles['shin_$side'], legRoles['foot_$side']]
+            .whereType<Bone>()
+            .fold<double>(0, (v, b) => v + b.length)
+    ].where((v) => v > 0).toList();
+    final motionHeight =
+        preset.proportionScale && legs.isNotEmpty ? legs.reduce((a, b) => a + b) / legs.length / .4 : height.toDouble();
     final result = MotionBuilder.build(
       preset,
       bones: _mode == RigMode.animate ? _rig.bones : const [],
-      canvasHeight: height.toDouble(),
+      canvasHeight: motionHeight,
+      roleBindings: bindings,
       intensity: intensity,
       mirror: mirror,
       selectedBoneId: _selectedBoneId,
@@ -1214,24 +1743,93 @@ class RigEditorController extends ChangeNotifier {
     // Respect the bones' rotation limits, as every other pose edit does.
     final keys = [
       for (final k in result.keyframes)
-        k.copyWith(rotation: _limited(bone(k.boneId), k.rotation)),
+        k.copyWith(
+            rotation: _limited(bone(k.boneId), k.rotation),
+            translation: k.translation + (bone(k.boneId)?.parentId == null ? Offset(origin.dx, shift) : Offset.zero)),
     ];
     final animated = {for (final k in keys) k.boneId};
+    final affectedBones = {
+      for (final id in animated) ...{id, ..._descendants(id)}
+    };
 
-    _updateClip((clip) => clip.copyWith(
-          length: result.frames,
-          fps: result.fps,
-          loop: result.loop,
-          keyframes: [
-            for (final k in clip.keyframes)
-              if (!animated.contains(k.boneId) && k.time < result.frames) k,
-            ...keys,
-          ],
-          ikKeyframes: [
-            for (final k in clip.ikKeyframes)
-              if (k.time < result.frames) k,
-          ],
-        ));
+    // Contact keys from the previous preset must not pin a new walk/jump.
+    final affectedChains = {
+      for (final chain in _rig.ikChains)
+        if (_rig.chainBones(chain).any((b) => animated.contains(b.id))) chain.id
+    };
+    var clip = activeClip.copyWith(
+      length: result.frames,
+      freezes: [
+        for (final f in activeClip.freezes)
+          if (f.time < result.frames && (f.sourcePresetId == null || !affectedBones.contains(f.boneId))) f
+      ],
+      fps: result.fps,
+      loop: result.loop,
+      keyframes: [
+        for (final k in activeClip.keyframes)
+          if (!animated.contains(k.boneId) && k.time < result.frames) k,
+        ...keys,
+      ],
+      ikKeyframes: [
+        for (final k in activeClip.ikKeyframes)
+          if (k.time < result.frames && !(k.planted && affectedChains.contains(k.chainId))) k,
+      ],
+    );
+    final chains = List<IkChain>.of(_rig.ikChains);
+    if (preset.plantFeet) {
+      // Feet are optional so the simple skeleton can plant its shin tips.
+      final roles = legRoles;
+      for (final side in ['l', 'r']) {
+        final foot = roles['foot_$side'] ?? roles['shin_$side'];
+        if (foot == null || _rig.maxChainLength(foot.id) < 2) continue;
+        final count = math.min(roles['foot_$side'] != null ? 3 : 2, _rig.maxChainLength(foot.id));
+        final existing = ikChainWithTip(foot.id);
+        final socket = _rig.attachments.where((a) => a.boneId == foot.id && a.name == 'foot_contact').firstOrNull;
+        final chain = existing?.copyWith(boneCount: count, tipSocketId: () => socket?.id) ??
+            IkChain(
+                id: _newId(),
+                name: '${foot.name} contact',
+                tipBoneId: foot.id,
+                boneCount: count,
+                tipSocketId: socket?.id);
+        final leg = {for (final b in _rig.chainBones(chain)) b.id};
+        // Replace old targets on this leg; independent arm targets stay intact.
+        final conflicting = {
+          for (final c in chains)
+            if (_rig.chainBones(c).any((b) => leg.contains(b.id))) c.id
+        };
+        clip = clip.copyWith(ikKeyframes: [
+          for (final k in clip.ikKeyframes)
+            if (!conflicting.contains(k.chainId)) k,
+          for (var frame = 0; frame < result.frames; frame++)
+            IkKeyframe(
+                time: frame,
+                chainId: chain.id,
+                target: contact(foot) + Offset(origin.dx, shift),
+                planted: true,
+                easing: RigEasing.stepped),
+        ]);
+        chains.removeWhere((c) => c.id == chain.id);
+        chains.add(chain);
+      }
+    }
+    if (preset.lockedRoles.isNotEmpty) {
+      final locked = <String, Bone>{
+        for (final role in preset.lockedRoles)
+          if ((bone(bindings[role]) ?? RoleMatcher.match([role], _rig.bones)[role]) case final Bone b) b.id: b
+      }.values;
+      final existing = {for (final f in clip.freezes) (f.boneId, f.time)};
+      clip = clip.copyWith(freezes: [
+        ...clip.freezes,
+        for (final joint in locked)
+          for (var frame = 0; frame < result.frames; frame++)
+            if (!existing.contains((joint.id, frame)))
+              JointFreeze(
+                  boneId: joint.id, time: frame, matrix: [1, 0, 0, 1, origin.dx, shift], sourcePresetId: preset.id),
+      ]);
+    }
+    // Preset keys, automatic contacts and locks share the same undo step.
+    _commit(_rig.copyWith(ikChains: chains, roleBindings: bindings, clips: _clipsReplacing(clip)));
     _time = _time.clamp(0, result.frames - 1);
     notifyListeners();
     return result;

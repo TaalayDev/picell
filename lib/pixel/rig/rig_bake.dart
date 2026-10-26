@@ -45,7 +45,7 @@ abstract final class RigBakePlanner {
 
   /// Frames a bake of [rig] would delete that hold hand edits.
   static List<AnimationFrame> removalsWithEdits({required Rig rig, required List<AnimationFrame> frames}) {
-    final clip = rig.clips.isEmpty ? null : rig.clips.first;
+    final clip = rig.activeClip;
     final outputId = rig.outputStateId;
     if (clip == null || outputId == null) return const [];
     final existing = frames.where((f) => f.stateId == outputId).toList();
@@ -158,10 +158,12 @@ class RigBakeService {
 
   final ProjectRepo _repo;
 
-  /// Whether [rig] has anything to bake: a clip with at least one keyframe,
-  /// of a bone or of an IK target.
+  /// Whether the selected clip has bone keys, IK targets or frozen joints.
   static bool canBake(Rig rig) =>
-      rig.clips.isNotEmpty && (rig.clips.first.keyframes.isNotEmpty || rig.clips.first.ikKeyframes.isNotEmpty);
+      rig.clips.isNotEmpty &&
+      (rig.activeClip!.keyframes.isNotEmpty ||
+          rig.activeClip!.ikKeyframes.isNotEmpty ||
+          rig.activeClip!.freezes.isNotEmpty);
 
   Future<RigBakeResult> bake({
     required int projectId,
@@ -172,7 +174,7 @@ class RigBakeService {
     required int height,
   }) async {
     if (!canBake(rig)) throw StateError('The rig has no keyframes to bake.');
-    final clip = rig.clips.first;
+    final clip = rig.activeClip!;
 
     final source = states.where((s) => s.id == rig.stateId).firstOrNull;
     final sourceFrames = frames.where((f) => f.stateId == rig.stateId).toList();

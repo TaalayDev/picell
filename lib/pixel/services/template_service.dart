@@ -62,6 +62,27 @@ class TemplateService {
     );
   }
 
+  /// Capture a frame while baking effects into each layer's own pixel buffer.
+  Template convertLayersToTemplate(List<Layer> layers, int width, int height, {required String name}) {
+    final ordered = List<Layer>.of(layers)..sort((a, b) => a.order.compareTo(b.order));
+    final sources = [
+      for (final layer in ordered)
+        TemplateLayer(
+            name: layer.name,
+            pixels: Uint32List.fromList(layer.processedPixels(width, height)),
+            isVisible: layer.isVisible,
+            isLocked: layer.isLocked,
+            opacity: layer.opacity)
+    ];
+    return Template(
+        name: name,
+        width: width,
+        height: height,
+        isLocal: true,
+        layers: sources,
+        pixels: compositeTemplateLayers(sources, width, height));
+  }
+
   /// Save template locally
   Future<bool> saveTemplateLocally(Template template) async {
     try {
@@ -96,6 +117,10 @@ class TemplateService {
     bool isPublic = true,
   }) async {
     try {
+      if (template.layers.isNotEmpty) {
+        _logger.warning('Layered templates must be saved locally until the API supports layers.');
+        return null;
+      }
       // Generate thumbnail for the template
       final thumbnail = await _generateTemplateThumbnail(template);
 

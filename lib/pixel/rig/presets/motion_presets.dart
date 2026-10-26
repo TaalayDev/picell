@@ -98,6 +98,20 @@ class MotionPreset {
   final int frames;
   final int fps;
   final bool loop;
+  final Map<String, String>? roleBindings;
+  final bool proportionScale;
+  final bool keepPosition;
+  final double? groundY;
+
+  /// Automatically hold both available foot contacts for the full clip.
+  final bool plantFeet;
+
+  /// Show optional grounding controls even when the preset starts without them.
+  final bool legControls;
+  static const legJointRoles = ['thigh_l', 'thigh_r', 'shin_l', 'shin_r', 'foot_l', 'foot_r'];
+
+  /// Roles held at their rest-world pose throughout this clip.
+  final List<String> lockedRoles;
   final MotionTarget target;
   final List<MotionTrack> tracks;
 
@@ -115,10 +129,49 @@ class MotionPreset {
     required this.fps,
     required this.tracks,
     this.loop = true,
+    this.roleBindings,
+    this.proportionScale = false,
+    this.keepPosition = false,
+    this.groundY,
+    this.plantFeet = false,
+    this.legControls = false,
+    this.lockedRoles = const [],
     this.target = MotionTarget.roles,
     this.lag = 0,
     this.growth = 0,
   });
+
+  /// Settings used for both the preview and the applied animation.
+  MotionPreset copyWith(
+          {int? frames,
+          int? fps,
+          bool? loop,
+          bool? plantFeet,
+          List<String>? lockedRoles,
+          Map<String, String>? roleBindings,
+          bool? proportionScale,
+          bool? keepPosition,
+          double? Function()? groundY}) =>
+      MotionPreset(
+        id: id,
+        roleBindings: roleBindings ?? this.roleBindings,
+        proportionScale: proportionScale ?? this.proportionScale,
+        keepPosition: keepPosition ?? this.keepPosition,
+        groundY: groundY != null ? groundY() : this.groundY,
+        name: name,
+        description: description,
+        category: category,
+        frames: frames ?? this.frames,
+        fps: fps ?? this.fps,
+        loop: loop ?? this.loop,
+        plantFeet: plantFeet ?? this.plantFeet,
+        legControls: legControls,
+        lockedRoles: lockedRoles ?? this.lockedRoles,
+        tracks: tracks,
+        target: target,
+        lag: lag,
+        growth: growth,
+      );
 
   /// The roles the preset is written for, in track order.
   List<String> get roles => [for (final t in tracks) t.role];
@@ -153,11 +206,16 @@ class MotionResult {
 /// Turns a [MotionPreset] into keyframes for a rig's bones.
 abstract final class MotionBuilder {
   /// How many of [preset]'s roles [bones] can supply, without building.
-  static ({int matched, int total}) coverage(MotionPreset preset, Iterable<Bone> bones, {bool mirror = false}) {
+  static ({int matched, int total}) coverage(MotionPreset preset, Iterable<Bone> bones,
+      {bool mirror = false, Map<String, String> roleBindings = const {}}) {
     if (preset.target != MotionTarget.roles) return (matched: 0, total: 0);
     final roles = preset.roles;
     final found = RoleMatcher.match([for (final r in roles) mirror ? _swapSide(r) : r], bones);
-    return (matched: found.length, total: roles.length);
+    for (final role in roles.map((r) => mirror ? _swapSide(r) : r)) {
+      final explicit = bones.where((b) => b.id == roleBindings[role]).firstOrNull;
+      if (explicit != null) found[role] = explicit;
+    }
+    return (matched: found.values.map((b) => b.id).toSet().length, total: roles.length);
   }
 
   /// Fits [preset] to [bones].
@@ -175,6 +233,7 @@ abstract final class MotionBuilder {
     double intensity = 1,
     bool mirror = false,
     String? selectedBoneId,
+    Map<String, String> roleBindings = const {},
   }) {
     final sign = mirror ? -1.0 : 1.0;
     final keys = <RigKeyframe>[];
@@ -186,9 +245,14 @@ abstract final class MotionBuilder {
     if (preset.target == MotionTarget.roles) {
       final roleFor = {for (final t in preset.tracks) t.role: mirror ? _swapSide(t.role) : t.role};
       final found = RoleMatcher.match(roleFor.values, bones);
+      for (final role in roleFor.values) {
+        final explicit = bones.where((b) => b.id == roleBindings[role]).firstOrNull;
+        if (explicit != null) found[role] = explicit;
+      }
+      final used = <String>{};
       for (final track in preset.tracks) {
         final bone = found[roleFor[track.role]];
-        if (bone == null) {
+        if (bone == null || !used.add(bone.id)) {
           missing.add(track.role);
         } else {
           matched[track.role] = bone;
@@ -245,7 +309,8 @@ abstract final class MotionBuilder {
             boneId: bone.id,
             rotation: (track.rotation?.at(t, phaseShift: shift, amplitudeScale: scale) ?? 0) * intensity * sign,
             translation: Offset(
-              _pixels((track.tx?.at(t, phaseShift: shift, amplitudeScale: scale) ?? 0) * intensity * sign, canvasHeight),
+              _pixels(
+                  (track.tx?.at(t, phaseShift: shift, amplitudeScale: scale) ?? 0) * intensity * sign, canvasHeight),
               _pixels((track.ty?.at(t, phaseShift: shift, amplitudeScale: scale) ?? 0) * intensity, canvasHeight),
             ),
           );

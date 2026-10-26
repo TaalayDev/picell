@@ -101,12 +101,10 @@ class MobileSidePanelBottomSheet extends StatefulWidget {
   }
 
   @override
-  State<MobileSidePanelBottomSheet> createState() =>
-      _MobileSidePanelBottomSheetState();
+  State<MobileSidePanelBottomSheet> createState() => _MobileSidePanelBottomSheetState();
 }
 
-class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
-    with SingleTickerProviderStateMixin {
+class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet> with SingleTickerProviderStateMixin {
   late List<_MobilePanelTab> _tabs;
   late TabController _tabController;
 
@@ -117,8 +115,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
 
     int initialIndex = 0;
     if (widget.initialWorkspace != null) {
-      final index =
-          _tabs.indexWhere((t) => t.workspace == widget.initialWorkspace);
+      final index = _tabs.indexWhere((t) => t.workspace == widget.initialWorkspace);
       if (index >= 0) initialIndex = index;
     }
 
@@ -138,18 +135,15 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
   List<_MobilePanelTab> _tabsForState(PixelCanvasState state) {
     final usedWorkspaces = <EffectWorkspace>{
       for (final layer in state.currentFrame.layers)
-        for (final effect in layer.effects)
-          EffectCatalog.forType(effect.type).workspace,
+        for (final effect in layer.effects) EffectCatalog.forType(effect.type).workspace,
     };
 
     return [
       _MobilePanelTab.layers,
       _MobilePanelTab.filters,
       _MobilePanelTab.materials,
-      if (usedWorkspaces.contains(EffectWorkspace.generators))
-        _MobilePanelTab.generators,
-      if (usedWorkspaces.contains(EffectWorkspace.animation))
-        _MobilePanelTab.animation,
+      if (usedWorkspaces.contains(EffectWorkspace.generators)) _MobilePanelTab.generators,
+      if (usedWorkspaces.contains(EffectWorkspace.animation)) _MobilePanelTab.animation,
       _MobilePanelTab.lighting,
     ];
   }
@@ -168,8 +162,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
       final currentTab = _tabs[_tabController.index.clamp(0, _tabs.length - 1)];
       _tabController.dispose();
       _tabs = nextTabs;
-      final initialIndex =
-          _tabs.contains(currentTab) ? _tabs.indexOf(currentTab) : 0;
+      final initialIndex = _tabs.contains(currentTab) ? _tabs.indexOf(currentTab) : 0;
       _tabController = TabController(
         length: _tabs.length,
         initialIndex: initialIndex,
@@ -185,9 +178,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
     if (layer == null) return 0;
     final workspace = tab.workspace;
     if (workspace == null) return 0;
-    return layer.effects
-        .where((e) => EffectCatalog.forType(e.type).workspace == workspace)
-        .length;
+    return layer.effects.where((e) => EffectCatalog.forType(e.type).workspace == workspace).length;
   }
 
   Future<void> _confirmConvertToPixels(BuildContext context) async {
@@ -246,8 +237,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
             0,
             state.layers.isEmpty ? 0 : state.layers.length - 1,
           );
-          final currentLayer =
-              state.layers.isEmpty ? null : state.layers[layerIndex];
+          final currentLayer = state.layers.isEmpty ? null : state.layers[layerIndex];
 
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -292,9 +282,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                                 child: Row(
                                   children: [
                                     if (i == layerIndex)
-                                      Icon(Icons.check,
-                                          size: 16,
-                                          color: colorScheme.primary)
+                                      Icon(Icons.check, size: 16, color: colorScheme.primary)
                                     else
                                       const SizedBox(width: 16),
                                     const SizedBox(width: 8),
@@ -302,9 +290,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                                       child: Text(
                                         state.layers[i].name,
                                         style: TextStyle(
-                                          fontWeight: i == layerIndex
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
+                                          fontWeight: i == layerIndex ? FontWeight.bold : FontWeight.normal,
                                         ),
                                       ),
                                     ),
@@ -318,16 +304,14 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest
-                                  .withValues(alpha: 0.6),
+                              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 ConstrainedBox(
-                                  constraints:
-                                      const BoxConstraints(maxWidth: 120),
+                                  constraints: const BoxConstraints(maxWidth: 120),
                                   child: Text(
                                     currentLayer.name,
                                     maxLines: 1,
@@ -355,8 +339,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.6),
+                            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -385,8 +368,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                 tabAlignment: TabAlignment.start,
                 labelPadding: const EdgeInsets.symmetric(horizontal: 12),
                 labelColor: colorScheme.primary,
-                unselectedLabelColor:
-                    colorScheme.onSurface.withValues(alpha: 0.55),
+                unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.55),
                 indicatorColor: colorScheme.primary,
                 indicatorSize: TabBarIndicatorSize.tab,
                 indicatorWeight: 2,
@@ -417,8 +399,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                                   vertical: 1,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: colorScheme.primary
-                                      .withValues(alpha: 0.15),
+                                  color: colorScheme.primary.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
@@ -454,27 +435,23 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                             activeLayerIndex: layerIndex,
                             onLayerAdded: widget.notifier.addLayer,
                             onLayerUpdated: widget.notifier.updateLayer,
-                            onLayersVisibilityChanged:
-                                widget.notifier.setLayersVisibility,
+                            onLayersVisibilityChanged: widget.notifier.setLayersVisibility,
                             onLayerSelected: widget.notifier.selectLayer,
                             onLayersDeleted: widget.notifier.removeLayers,
-                            onLayersLockedChanged:
-                                widget.notifier.setLayersLocked,
-                            onLayersDuplicated:
-                                widget.notifier.duplicateLayers,
+                            onLayersLockedChanged: widget.notifier.setLayersLocked,
+                            onLayersDuplicated: widget.notifier.duplicateLayers,
                             onLayerReordered: (oldIndex, newIndex) {
                               widget.notifier.reorderLayers(newIndex, oldIndex);
                             },
-                            onLayersOpacityChanged:
-                                widget.notifier.setLayersOpacity,
-                            onLayersTransformed:
-                                widget.notifier.transformLayers,
+                            onLayersOpacityChanged: widget.notifier.setLayersOpacity,
+                            onLayersTransformed: widget.notifier.transformLayers,
                             onLayerEffectsChanged: widget.notifier.updateLayer,
                             onLayerToTemplate: (layer) {
                               Navigator.of(context).pop();
                               LayerToTemplateDialog.show(
                                 context,
                                 layer: layer,
+                                layers: state.currentFrame.layers,
                                 width: state.width,
                                 height: state.height,
                               );
@@ -496,11 +473,10 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                           onLayerUpdated: (updatedLayer) {
                             widget.notifier.updateLayer(updatedLayer);
                           },
-                          onConvertToPixels: tab.workspace ==
-                                      EffectWorkspace.generators &&
-                                  widget.notifier.currentLayerIsProcedural
-                              ? () => _confirmConvertToPixels(context)
-                              : null,
+                          onConvertToPixels:
+                              tab.workspace == EffectWorkspace.generators && widget.notifier.currentLayerIsProcedural
+                                  ? () => _confirmConvertToPixels(context)
+                                  : null,
                           onAnimate: (effect, effects, effectIndex) {
                             EffectAnimationGeneratorDialog.showForCanvas(
                               context,

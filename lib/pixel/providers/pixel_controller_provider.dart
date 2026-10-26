@@ -1531,6 +1531,23 @@ class PixelDrawController extends _$PixelDrawController {
       }
       return;
     }
+    if (template.layers.isNotEmpty) {
+      for (final source in template.layers) {
+        final order = _layerService.calculateNextLayerOrder(currentFrame.layers);
+        final layer = await _layerService.createLayer(
+          projectId: project.id, frameId: currentFrame.id,
+          name: source.name, width: state.width, height: state.height, order: order);
+        final pixels = _templateService.applyTemplateToLayer(
+          template: Template(name: source.name, width: template.width,
+            height: template.height, pixels: source.pixels),
+          layerPixels: layer.pixels, layerWidth: state.width, layerHeight: state.height);
+        _insertLayerAboveCurrent(layer.copyWith(pixels: pixels,
+          isVisible: source.isVisible, isLocked: source.isLocked, opacity: source.opacity));
+      }
+      _updateProject();
+      _recordProgress(ProgressionEvent.templateUsed);
+      return;
+    }
     final order = _layerService.calculateNextLayerOrder(currentFrame.layers);
 
     var newLayer = await _layerService.createLayer(

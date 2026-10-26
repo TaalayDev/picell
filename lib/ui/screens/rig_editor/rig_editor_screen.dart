@@ -103,6 +103,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
 
   Timer? _playTimer;
   int _playingFps = 0;
+  String? _playingClipId;
   bool get _playing => _playTimer != null;
 
   @override
@@ -121,7 +122,10 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
 
   void _onControllerChanged() {
     // Playback is for animate mode, at the clip's current speed.
-    if (_playing && (_controller.mode != RigMode.animate || _controller.activeClip.fps != _playingFps)) {
+    if (_playing &&
+        (_controller.mode != RigMode.animate ||
+            _controller.activeClip.fps != _playingFps ||
+            _controller.activeClip.id != _playingClipId)) {
       _stopPlayback();
     }
     _refresh();
@@ -184,10 +188,11 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
   }
 
   /// Bakes the animation as it is now and shows it as a looping GIF.
-  Future<void> _previewGif() async {
+  Future<void> _previewGif(BuildContext context) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (!RigBakeService.canBake(_controller.rig)) {
-      messenger?.showSnackBar(const SnackBar(content: Text('Pose a bone or move an IK target first: nothing is keyed yet.')));
+      messenger?.showSnackBar(
+          const SnackBar(content: Text('Pose a bone or move an IK target first: nothing is keyed yet.')));
       return;
     }
     _stopPlayback();
@@ -199,7 +204,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
         width: widget.width,
         height: widget.height,
       );
-      if (!mounted) return;
+      if (!mounted || !context.mounted) return;
       await RigGifPreviewDialog.show(context, bytes: bytes, fileName: _gifFileName);
     } catch (_) {
       messenger?.showSnackBar(const SnackBar(content: Text('Couldn\'t make the preview.')));
@@ -210,7 +215,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
 
   /// "Walk" for a title of "Walk · Frame 2"; anything unsafe in a file name is dropped.
   String get _gifFileName {
-    final name = widget.title.split(' · ').first.replaceAll(RegExp(r'[\\/:*?"<>|]'), '').trim();
+    final name = _controller.activeClip.name.split(' · ').first.replaceAll(RegExp(r'[\\/:*?"<>|]'), '').trim();
     return '${name.isEmpty ? 'rig-animation' : name}.gif';
   }
 
@@ -222,9 +227,11 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     final clip = _controller.activeClip;
     if (!clip.loop && _controller.time >= clip.length - 1) _controller.setTime(0);
     _playingFps = clip.fps;
+    _playingClipId = clip.id;
     setState(() {
       _playTimer = Timer.periodic(Duration(milliseconds: (1000 / clip.fps).round()), (_) => _tick());
     });
+    _controller.setGhostPlayback(true);
   }
 
   void _stopPlayback() {
@@ -234,6 +241,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     } else {
       _playTimer = null;
     }
+    if (mounted) _controller.setGhostPlayback(false);
   }
 
   void _tick() {
@@ -258,7 +266,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     super.dispose();
   }
 
-  Future<void> _confirmDiscard() async {
+  Future<void> _confirmDiscard(BuildContext context) async {
     final discard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -270,12 +278,12 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
         ],
       ),
     );
-    if (discard == true && mounted) Navigator.of(context).pop();
+    if (discard == true && mounted && context.mounted) Navigator.of(context).pop();
   }
 
   void _done() => Navigator.of(context).pop(_controller.rig);
 
-  void _showPanelSheet() {
+  void _showPanelSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -289,6 +297,27 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final readableTheme = theme.copyWith(
+      textTheme: theme.textTheme.apply(bodyColor: colors.onSurface, displayColor: colors.onSurface),
+      iconTheme: theme.iconTheme.copyWith(color: colors.onSurfaceVariant),
+      inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+        labelStyle: TextStyle(color: colors.onSurfaceVariant),
+        hintStyle: TextStyle(color: colors.onSurfaceVariant),
+        helperStyle: TextStyle(color: colors.onSurfaceVariant),
+      ),
+    );
+    return Theme(
+      data: readableTheme,
+      child: DefaultTextStyle(
+        style: readableTheme.textTheme.bodyMedium!,
+        child: Builder(builder: _buildEditor),
+      ),
+    );
+  }
+
+  Widget _buildEditor(BuildContext context) {
+    final theme = Theme.of(context);
     final wide = MediaQuery.sizeOf(context).width >= RigEditorScreen.wideBreakpoint;
 
     return ListenableBuilder(
@@ -297,7 +326,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
         return PopScope(
           canPop: !_controller.hasChanges,
           onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) _confirmDiscard();
+            if (!didPop) _confirmDiscard(context);
           },
           child: CallbackShortcuts(
             bindings: {
@@ -329,7 +358,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
                         controller: _controller,
                         onCancel: () => Navigator.of(context).maybePop(),
                         onDone: _done,
-                        onPanels: wide ? null : _showPanelSheet,
+                        onPanels: wide ? null : () => _showPanelSheet(context),
                       ),
                       if (_makingGif) const LinearProgressIndicator(minHeight: 2),
                       // Its own strip, not a float over the canvas: the box's handles
@@ -372,8 +401,13 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
                           controller: _controller,
                           isPlaying: _playing,
                           onPlayPause: _togglePlayback,
-                          onPreviewGif: _previewGif,
-                          onPresets: _chooseAnimation,
+                          onBeforeEdit: _stopPlayback,
+                          onPreviewGif: () => _previewGif(context),
+                          onPresets: () => _chooseAnimation(context),
+                          onClearAnimations: () {
+                            _stopPlayback();
+                            _controller.clearAnimations();
+                          },
                         ),
                       if (!wide)
                         _ToolRail(
@@ -421,10 +455,10 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
   }
 
   /// Picks a ready-made animation and puts it on the clip.
-  Future<void> _chooseAnimation() async {
+  Future<void> _chooseAnimation(BuildContext context) async {
     _stopPlayback();
     final choice = await pickMotionPreset(context, _controller);
-    if (choice == null || !mounted) return;
+    if (choice == null || !mounted || !context.mounted) return;
 
     final result = _controller.applyMotion(choice.preset, intensity: choice.intensity, mirror: choice.mirror);
     final messenger = ScaffoldMessenger.maybeOf(context);
@@ -482,7 +516,14 @@ class _TopBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          IconButton(visualDensity: compact ? VisualDensity.compact : null, tooltip: 'Cancel', icon: const Icon(Icons.close, size: 18), onPressed: onCancel),
+          IconButton(
+              constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
+              padding: compact ? const EdgeInsets.all(4) : null,
+              style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
+              visualDensity: compact ? VisualDensity.compact : null,
+              tooltip: 'Cancel',
+              icon: const Icon(Icons.close, size: 18),
+              onPressed: onCancel),
           if (!compact)
             Flexible(
               child: Text(
@@ -492,26 +533,30 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           const Spacer(),
-          SegmentedButton<RigMode>(
-            showSelectedIcon: false,
-            style: const ButtonStyle(visualDensity: VisualDensity.compact),
-            segments: const [
-              ButtonSegment(value: RigMode.setup, label: Text('Setup')),
-              ButtonSegment(value: RigMode.animate, label: Text('Animate')),
-            ],
-            selected: {controller.mode},
-            onSelectionChanged: (modes) => controller.mode = modes.first,
-          ),
+          _RigModeTabs(controller: controller, compact: compact),
           const Spacer(),
           if (onPanels != null)
-            IconButton(visualDensity: compact ? VisualDensity.compact : null, tooltip: 'Bones and layers', icon: const Icon(Icons.view_sidebar_outlined, size: 18), onPressed: onPanels),
+            IconButton(
+                constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
+                padding: compact ? const EdgeInsets.all(4) : null,
+                style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
+                visualDensity: compact ? VisualDensity.compact : null,
+                tooltip: 'Bones and layers',
+                icon: const Icon(Icons.view_sidebar_outlined, size: 18),
+                onPressed: onPanels),
           IconButton(
+            constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
+            padding: compact ? const EdgeInsets.all(4) : null,
+            style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
             visualDensity: compact ? VisualDensity.compact : null,
             tooltip: 'Undo',
             icon: const Icon(Icons.undo, size: 18),
             onPressed: controller.canUndo ? controller.undo : null,
           ),
           IconButton(
+            constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
+            padding: compact ? const EdgeInsets.all(4) : null,
+            style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
             visualDensity: compact ? VisualDensity.compact : null,
             tooltip: 'Redo',
             icon: const Icon(Icons.redo, size: 18),
@@ -519,7 +564,14 @@ class _TopBar extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           if (compact)
-            IconButton.filled(visualDensity: VisualDensity.compact, tooltip: 'Done', icon: const Icon(Icons.check, size: 18), onPressed: onDone)
+            IconButton.filled(
+                constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
+                padding: compact ? const EdgeInsets.all(4) : null,
+                style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
+                visualDensity: VisualDensity.compact,
+                tooltip: 'Done',
+                icon: const Icon(Icons.check, size: 18),
+                onPressed: onDone)
           else
             FilledButton.icon(
               onPressed: onDone,
@@ -527,6 +579,62 @@ class _TopBar extends StatelessWidget {
               label: const Text('Done'),
             ),
           const SizedBox(width: 6),
+        ],
+      ),
+    );
+  }
+}
+
+/// Compact tabs share the editor's surface, outline and accent palette.
+class _RigModeTabs extends StatelessWidget {
+  const _RigModeTabs({required this.controller, required this.compact});
+  final RigEditorController controller;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return Container(
+      key: const ValueKey('rig-mode-tabs'),
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final mode in RigMode.values)
+            Semantics(
+              selected: controller.mode == mode,
+              button: true,
+              child: Material(
+                color: controller.mode == mode ? colors.primaryContainer : Colors.transparent,
+                borderRadius: BorderRadius.circular(7),
+                child: InkWell(
+                  key: ValueKey('rig-mode-${mode.name}'),
+                  borderRadius: BorderRadius.circular(7),
+                  onTap: () => controller.mode = mode,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14, vertical: 6),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      if (!compact) ...[
+                        Icon(mode == RigMode.setup ? Icons.account_tree_outlined : Icons.animation,
+                            size: 15, color: controller.mode == mode ? colors.onPrimaryContainer : colors.onSurface),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(mode == RigMode.setup ? 'Setup' : 'Animate',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: controller.mode == mode ? colors.onPrimaryContainer : colors.onSurface,
+                            fontWeight: controller.mode == mode ? FontWeight.w700 : FontWeight.w500,
+                          )),
+                    ]),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -551,8 +659,8 @@ class _ToolRail extends StatelessWidget {
         isSelected: on,
         icon: Icon(icon, size: 18),
         style: IconButton.styleFrom(
-          foregroundColor: on ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.6),
-          backgroundColor: on ? theme.colorScheme.primary.withValues(alpha: 0.14) : null,
+          foregroundColor: on ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
+          backgroundColor: on ? theme.colorScheme.primaryContainer : null,
         ),
         onPressed: () => controller.tool = t,
       );
@@ -581,7 +689,21 @@ class _ToolRail extends StatelessWidget {
               : () => controller.setPose(selectedId, flipX: !controller.poseOf(selectedId).flipX),
         ),
       ],
-      IconButton(tooltip: 'Fit to screen', icon: const Icon(Icons.center_focus_strong_outlined, size: 18), onPressed: onFit),
+      IconButton(
+          key: const ValueKey('rig-multi-select'),
+          tooltip: 'Select multiple bones',
+          isSelected: controller.multiSelectEnabled,
+          icon: const Icon(Icons.select_all, size: 18),
+          onPressed: controller.toggleMultiSelect),
+      if (!animating)
+        IconButton(
+            key: const ValueKey('rig-snapping'),
+            tooltip: 'Joint snapping (Alt bypasses)',
+            isSelected: controller.snappingEnabled,
+            icon: const Icon(Icons.align_horizontal_center, size: 18),
+            onPressed: () => controller.setSnapping(!controller.snappingEnabled)),
+      IconButton(
+          tooltip: 'Fit to screen', icon: const Icon(Icons.center_focus_strong_outlined, size: 18), onPressed: onFit),
     ];
 
     return Container(
@@ -595,7 +717,9 @@ class _ToolRail extends StatelessWidget {
             : Border(right: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5))),
       ),
       child: horizontal
-          ? Row(mainAxisAlignment: MainAxisAlignment.center, children: children)
+          ? SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: children))
           : Column(children: children),
     );
   }

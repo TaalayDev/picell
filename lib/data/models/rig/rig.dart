@@ -3,13 +3,14 @@ import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
 import 'bone.dart';
-import 'bone_pose.dart';
+import 'rig_attachment.dart';
 import 'ik_chain.dart';
 import 'rig_clip.dart';
 import 'rig_part.dart';
 import 'rig_pose.dart';
 
 export 'bone.dart';
+export 'rig_attachment.dart';
 export 'bone_pose.dart';
 export 'ik_chain.dart';
 export 'rig_clip.dart';
@@ -60,7 +61,12 @@ class Rig with EquatableMixin {
   final String name;
   final List<Bone> bones;
   final List<RigPart> parts;
+  final List<RigAttachment> attachments;
+  final Map<String, String> roleBindings;
   final List<RigClip> clips;
+  final String? activeClipId;
+
+  RigClip? get activeClip => clips.where((c) => c.id == activeClipId).firstOrNull ?? clips.firstOrNull;
   final List<IkChain> ikChains;
 
   /// Saved poses, for reuse across frames and clips.
@@ -75,7 +81,10 @@ class Rig with EquatableMixin {
     this.name = 'Rig',
     this.bones = const [],
     this.parts = const [],
+    this.attachments = const [],
+    this.roleBindings = const {},
     this.clips = const [],
+    this.activeClipId,
     this.ikChains = const [],
     this.poses = const [],
     this.settings = const RigSettings(),
@@ -89,7 +98,10 @@ class Rig with EquatableMixin {
     String? name,
     List<Bone>? bones,
     List<RigPart>? parts,
+    List<RigAttachment>? attachments,
+    Map<String, String>? roleBindings,
     List<RigClip>? clips,
+    String? Function()? activeClipId,
     List<IkChain>? ikChains,
     List<RigPose>? poses,
     RigSettings? settings,
@@ -102,7 +114,10 @@ class Rig with EquatableMixin {
       name: name ?? this.name,
       bones: bones ?? this.bones,
       parts: parts ?? this.parts,
+      attachments: attachments ?? this.attachments,
+      roleBindings: roleBindings ?? this.roleBindings,
       clips: clips ?? this.clips,
+      activeClipId: activeClipId != null ? activeClipId() : this.activeClipId,
       ikChains: ikChains ?? this.ikChains,
       poses: poses ?? this.poses,
       settings: settings ?? this.settings,
@@ -140,6 +155,9 @@ class Rig with EquatableMixin {
         'name': name,
         'bones': bones.map((b) => b.toJson()).toList(),
         'parts': parts.map((p) => p.toJson()).toList(),
+        if (attachments.isNotEmpty) 'attachments': attachments.map((a) => a.toJson()).toList(),
+        if (roleBindings.isNotEmpty) 'roleBindings': roleBindings,
+        if (activeClipId != null) 'activeClipId': activeClipId,
         'clips': clips.map((c) => c.toJson()).toList(),
         if (ikChains.isNotEmpty) 'ikChains': ikChains.map((c) => c.toJson()).toList(),
         if (poses.isNotEmpty) 'poses': poses.map((p) => p.toJson()).toList(),
@@ -158,7 +176,10 @@ class Rig with EquatableMixin {
       name: json['name'] as String? ?? 'Rig',
       bones: list('bones', Bone.fromJson),
       parts: list('parts', RigPart.fromJson),
+      attachments: list('attachments', RigAttachment.fromJson),
+      roleBindings: ((json['roleBindings'] as Map?) ?? const {}).cast<String, String>(),
       clips: list('clips', RigClip.fromJson),
+      activeClipId: json['activeClipId'] as String?,
       ikChains: list('ikChains', IkChain.fromJson),
       poses: list('poses', RigPose.fromJson),
       settings: json['settings'] == null
@@ -168,7 +189,22 @@ class Rig with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [id, stateId, restFrameIndex, outputStateId, name, bones, parts, clips, ikChains, poses, settings];
+  List<Object?> get props => [
+        id,
+        stateId,
+        restFrameIndex,
+        outputStateId,
+        name,
+        bones,
+        parts,
+        attachments,
+        roleBindings,
+        clips,
+        activeClipId,
+        ikChains,
+        poses,
+        settings
+      ];
 }
 
 /// The rigs of a project as stored in `Project.rigData`: a versioned JSON

@@ -66,7 +66,7 @@ abstract final class RigGif {
     return (target ~/ longest).clamp(1, math.max(1, 1024 ~/ longest));
   }
 
-  /// Bakes [rig]'s first clip against [restLayers] and encodes it. Uses the
+  /// Bakes [rig]'s selected clip against [restLayers] and encodes it. Uses the
   /// rig as it is now, unsaved edits included. The encoding runs on an
   /// isolate. Throws a [StateError] if the rig has nothing to animate.
   static Future<Uint8List> render({
@@ -76,10 +76,11 @@ abstract final class RigGif {
     required int height,
     int target = 256,
   }) async {
-    if (rig.clips.isEmpty || (rig.clips.first.keyframes.isEmpty && rig.clips.first.ikKeyframes.isEmpty)) {
+    if (rig.clips.isEmpty ||
+        (rig.activeClip!.keyframes.isEmpty && rig.activeClip!.ikKeyframes.isEmpty && rig.activeClip!.freezes.isEmpty)) {
       throw StateError('The rig has no keyframes to preview.');
     }
-    final clip = rig.clips.first;
+    final clip = rig.activeClip!;
     final frames = RigBaker(rig: rig, width: width, height: height, layers: restLayers).bakeClip(clip);
     return compute(encodeRigGif, (
       frames: frames,

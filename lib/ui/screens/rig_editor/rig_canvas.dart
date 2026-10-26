@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../data/models/rig/rig.dart';
+import '../../../core/utils/image_helper.dart';
+import '../../../pixel/rig/rig_baker.dart';
 import '../../../pixel/rig/rig_editor_controller.dart';
 
 /// The rig editor's canvas: the rest-pose sprite with the skeleton drawn on
@@ -36,6 +38,49 @@ class RigCanvasState extends State<RigCanvas> {
   Offset _offset = Offset.zero;
   Size _viewport = Size.zero;
   bool _fitted = false;
+  Offset? _boxStart, _boxEnd;
+  Offset _groupApplied = Offset.zero;
+  final Map<int, ui.Image> _ghostImages = {};
+  Rig? _ghostRig;
+  String _ghostKey = '';
+  int _ghostVersion = 0;
+  bool get _bypassSnap => !c.snappingEnabled || HardwareKeyboard.instance.isAltPressed;
+
+  Future<void> _loadGhosts(List<int> frames) async {
+    final version = ++_ghostVersion;
+    final baker = RigBaker(rig: c.rig, width: c.width, height: c.height, layers: c.restLayers);
+    final images = <int, ui.Image>{};
+    for (final frame in frames) {
+      final pixels = baker.bakeFrame(c.activeClip, frame.toDouble());
+      images[frame] = await ImageHelper.createImageFromPixels(pixels, c.width, c.height);
+    }
+    if (!mounted || version != _ghostVersion) {
+      for (final image in images.values) {
+        image.dispose();
+      }
+      return;
+    }
+    final old = _ghostImages.values.toList();
+    setState(() {
+      _ghostImages
+        ..clear()
+        ..addAll(images);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final image in old) {
+        image.dispose();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _ghostVersion++;
+    for (final image in _ghostImages.values) {
+      image.dispose();
+    }
+    super.dispose();
+  }
 
   /// Set once the user pans or zooms; until then the canvas keeps itself
   /// fitted when its viewport changes (a panel opening, a window resize).
@@ -49,6 +94,7 @@ class RigCanvasState extends State<RigCanvas> {
   Offset? _draftHead;
   Offset? _draftTail;
   String? _draftParent;
+  Offset? _hoverJoint;
 
   // Raw pointer tracking. GestureDetector's scale recognizer only starts
   // after a touch-slop drag, which would grab and draw from the wrong pixel
@@ -166,11 +212,26 @@ class RigCanvasState extends State<RigCanvas> {
       if (handle != null) _placementDrag = _PlacementDrag(handle, start: p);
       return;
     }
-    if (c.mode == RigMode.animate && _beginIkDrag(p, tolerance)) return;
+    _groupApplied = Offset.zero;
+    if (HardwareKeyboard.instance.isShiftPressed || c.multiSelectEnabled) {
+      final hit = c.hitTest(p, tolerance);
+      if (hit != null) {
+        c.toggleBoneSelection(hit.boneId);
+        return;
+      }
+    }
+    if (c.mode == RigMode.animate && c.selectedBoneIds.length <= 1 && _beginIkDrag(p, tolerance)) return;
     switch (c.tool) {
       case RigTool.select:
         final hit = c.hitTest(p, tolerance);
-        c.selectBone(hit?.boneId);
+        if (hit == null && c.multiSelectEnabled) {
+          setState(() {
+            _boxStart = p;
+            _boxEnd = p;
+          });
+          return;
+        }
+        if (hit == null || !c.selectedBoneIds.contains(hit.boneId)) c.selectBone(hit?.boneId);
         // Reshaping the skeleton is a setup edit; animate mode only selects.
         if (hit == null || c.mode == RigMode.animate) return;
         c.beginGesture();
@@ -180,8 +241,13 @@ class RigCanvasState extends State<RigCanvas> {
         // Pose the bone under the pointer, or else the selected one, so the
         // drag can start anywhere once a bone is picked.
         final hit = c.hitTest(p, tolerance);
-        if (hit != null) c.selectBone(hit.boneId);
-        final id = c.selectedBoneId;
+        if (hit != null && !c.selectedBoneIds.contains(hit.boneId)) c.selectBone(hit.boneId);
+        final selected = c.selectedBoneId;
+        final id = selected == null
+            ? null
+            : c.tool == RigTool.move && c.selectedBoneIds.length <= 1
+                ? c.jointMoveBoneId(selected)
+                : selected;
         final shown = id == null ? null : c.displayBone(id);
         if (id == null || shown == null) return;
         c.beginGesture();
@@ -196,7 +262,7 @@ class RigCanvasState extends State<RigCanvas> {
             : _PoseDrag.move(id, start: p, startTranslation: c.poseOf(id).translation);
       case RigTool.createBone:
         // Starting anywhere on an existing bone makes the new one its child.
-        final attach = c.attachPoint(p, tolerance);
+        final attach = c.attachPoint(p, tolerance, bypass: _bypassSnap);
         setState(() {
           _draftParent = attach.parentId;
           _draftHead = attach.head;
@@ -230,6 +296,10 @@ class RigCanvasState extends State<RigCanvas> {
   }
 
   void _updateToolDrag(Offset p) {
+    if (_boxStart != null) {
+      setState(() => _boxEnd = p);
+      return;
+    }
     final placing = _placementDrag;
     if (placing != null) {
       if (placing.handle == PlacementHandle.move) {
@@ -258,13 +328,21 @@ class RigCanvasState extends State<RigCanvas> {
       if (drag.hit.part == RigHitPart.tail) {
         c.setBoneTail(id, p);
       } else {
-        // Move by the whole-pixel distance travelled so far.
+        // Move in half-pixel steps from the gesture origin.
         final total = p - drag.start;
-        final wanted = Offset(total.dx.roundToDouble(), total.dy.roundToDouble());
+        final wanted = RigEditorController.snapDelta(total);
         if (wanted != drag.applied) {
-          c.moveBone(id, wanted - drag.applied);
+          if (c.selectedBoneIds.length > 1) {
+            c.transformSelection(translation: wanted - drag.applied);
+          } else {
+            c.moveBone(id, wanted - drag.applied);
+          }
           drag.applied = wanted;
         }
+        final anchor = _bypassSnap || c.selectedBoneIds.length > 1
+            ? null
+            : c.jointConnection(id, tolerance: _grabRadius / _scale)?.point;
+        if (_hoverJoint != anchor) setState(() => _hoverJoint = anchor);
       }
       return;
     }
@@ -288,30 +366,55 @@ class RigCanvasState extends State<RigCanvas> {
       }
       drag.accumulated += step;
       drag.lastAngle = offset.direction;
-      c.setPose(drag.boneId, rotation: drag.startRotation + drag.sign * drag.accumulated * 180 / math.pi);
+      if (c.selectedBoneIds.length > 1) {
+        c.transformSelection(rotation: step * 180 / math.pi);
+      } else {
+        c.setPose(drag.boneId, rotation: drag.startRotation + drag.sign * drag.accumulated * 180 / math.pi);
+      }
     } else {
       final total = p - drag.start;
-      final wanted = Offset(total.dx.roundToDouble(), total.dy.roundToDouble());
-      c.setPose(drag.boneId, translation: drag.startTranslation + c.toLocalDelta(drag.boneId, wanted));
+      final wanted = RigEditorController.snapDelta(total);
+      if (c.selectedBoneIds.length > 1) {
+        c.transformSelection(translation: wanted - _groupApplied);
+        _groupApplied = wanted;
+      } else {
+        c.setPose(drag.boneId, translation: drag.startTranslation + c.toLocalDelta(drag.boneId, wanted));
+      }
     }
   }
 
   void _endToolDrag() {
+    if (_boxStart != null && _boxEnd != null) {
+      c.selectBox(Rect.fromPoints(_boxStart!, _boxEnd!), additive: HardwareKeyboard.instance.isShiftPressed);
+      setState(() {
+        _boxStart = null;
+        _boxEnd = null;
+      });
+      return;
+    }
     _placementDrag = null;
     if (_drag != null || _poseDrag != null || _ikDrag != null) {
+      final dragged = _drag;
+      if (dragged != null && dragged.hit.part != RigHitPart.tail && dragged.applied != Offset.zero) {
+        if (!_bypassSnap && c.selectedBoneIds.length <= 1) {
+          c.connectJoint(dragged.hit.boneId, tolerance: _grabRadius / _scale);
+        }
+      }
       c.endGesture();
       _drag = null;
+      _hoverJoint = null;
       _poseDrag = null;
       _ikDrag = null;
     }
     final head = _draftHead, tail = _draftTail;
     if (head != null && tail != null) {
-      c.addBone(head: head, tail: tail, parentId: _draftParent);
+      c.addBone(head: head, tail: tail, parentId: _draftParent, connect: !_bypassSnap);
     }
     _clearDraft();
   }
 
   void _cancelToolDrag() {
+    _boxStart = _boxEnd = null;
     _placementDrag = null;
     if (_drag != null || _poseDrag != null || _ikDrag != null) {
       c.endGesture();
@@ -354,6 +457,15 @@ class RigCanvasState extends State<RigCanvas> {
         });
       }
       final theme = Theme.of(context);
+      final frames = c.ghostArtwork ? c.ghostFrames : <int>[];
+      final ghostKey = frames.join(',');
+      if (!identical(_ghostRig, c.rig) || ghostKey != _ghostKey) {
+        _ghostRig = c.rig;
+        _ghostKey = ghostKey;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _loadGhosts(frames);
+        });
+      }
       return ClipRect(
         child: Listener(
           behavior: HitTestBehavior.opaque,
@@ -363,16 +475,35 @@ class RigCanvasState extends State<RigCanvas> {
           onPointerCancel: (e) => _onPointerUp(e, cancelled: true),
           onPointerSignal: _onPointerSignal,
           child: MouseRegion(
+            onHover: (event) {
+              Offset? joint;
+              if (c.mode == RigMode.setup && c.tool == RigTool.createBone) {
+                final attachment =
+                    c.attachPoint(_toCanvas(event.localPosition), _grabRadius / _scale, bypass: _bypassSnap);
+                if (attachment.parentId != null) joint = attachment.head;
+              }
+              if (joint != _hoverJoint) setState(() => _hoverJoint = joint);
+            },
+            onExit: (_) {
+              if (_hoverJoint != null) setState(() => _hoverJoint = null);
+            },
             cursor: c.tool == RigTool.createBone ? SystemMouseCursors.precise : MouseCursor.defer,
             child: CustomPaint(
               size: Size.infinite,
               painter: _RigPainter(
                 controller: c,
+                ghostImages: Map.of(_ghostImages),
+                selectionBox: _boxStart == null || _boxEnd == null ? null : Rect.fromPoints(_boxStart!, _boxEnd!),
                 image: widget.image,
                 scale: _scale,
                 offset: _offset,
                 draftHead: _draftHead,
                 draftTail: _draftTail,
+                snapAnchor: _draftParent != null
+                    ? _draftHead
+                    : c.tool == RigTool.createBone || _drag != null
+                        ? _hoverJoint
+                        : null,
                 background: theme.colorScheme.surface,
                 gridColor: theme.dividerColor,
                 boneColor: theme.colorScheme.primary,
@@ -454,11 +585,14 @@ class _Drag {
 class _RigPainter extends CustomPainter {
   _RigPainter({
     required this.controller,
+    required this.ghostImages,
+    required this.selectionBox,
     required this.image,
     required this.scale,
     required this.offset,
     required this.draftHead,
     required this.draftTail,
+    required this.snapAnchor,
     required this.background,
     required this.gridColor,
     required this.boneColor,
@@ -468,11 +602,14 @@ class _RigPainter extends CustomPainter {
   }) : super(repaint: controller);
 
   final RigEditorController controller;
+  final Map<int, ui.Image> ghostImages;
+  final Rect? selectionBox;
   final ui.Image? image;
   final double scale;
   final Offset offset;
   final Offset? draftHead;
   final Offset? draftTail;
+  final Offset? snapAnchor;
   final Color background, gridColor, boneColor, selectedColor, ikColor, jointFill;
 
   Offset _s(Offset canvasPoint) => canvasPoint * scale + offset;
@@ -495,6 +632,20 @@ class _RigPainter extends CustomPainter {
       );
     }
 
+    if (controller.mode == RigMode.animate && controller.ghostArtwork) {
+      for (final entry in ghostImages.entries) {
+        if (!controller.ghostFrames.contains(entry.key)) continue;
+        canvas.drawImageRect(
+            entry.value,
+            Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
+            area,
+            Paint()
+              ..filterQuality = FilterQuality.none
+              ..color = Colors.white.withValues(alpha: controller.ghostOpacity)
+              ..colorFilter =
+                  ColorFilter.mode(entry.key < controller.time ? Colors.cyan : Colors.pink, BlendMode.srcATop));
+      }
+    }
     if (scale >= 8) {
       final grid = Paint()
         ..color = gridColor.withValues(alpha: 0.5)
@@ -515,14 +666,119 @@ class _RigPainter extends CustomPainter {
     );
 
     final animating = controller.mode == RigMode.animate;
+    if (animating && controller.ghostSkeleton) {
+      for (final frame in controller.ghostFrames) {
+        final ghostPaint = Paint()
+          ..color = (frame < controller.time ? Colors.cyan : Colors.pink).withValues(alpha: controller.ghostOpacity)
+          ..strokeWidth = 2;
+        for (final b in controller.bonesAt(frame)) {
+          canvas.drawLine(_s(b.head), _s(b.tail), ghostPaint);
+          canvas.drawCircle(_s(b.head), 3, ghostPaint);
+        }
+      }
+    }
+    final box = selectionBox;
+    if (box != null) {
+      final screen = Rect.fromPoints(_s(box.topLeft), _s(box.bottomRight));
+      canvas.drawRect(screen, Paint()..color = selectedColor.withValues(alpha: .15));
+      canvas.drawRect(
+          screen,
+          Paint()
+            ..color = selectedColor
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1);
+    }
+    for (final a in controller.rig.attachments) {
+      final p = _s(controller.attachmentPosition(a));
+      canvas.drawLine(
+          p - const Offset(5, 0),
+          p + const Offset(5, 0),
+          Paint()
+            ..color = ikColor
+            ..strokeWidth = 2);
+      canvas.drawLine(
+          p - const Offset(0, 5),
+          p + const Offset(0, 5),
+          Paint()
+            ..color = ikColor
+            ..strokeWidth = 2);
+      final label = TextPainter(
+          text: TextSpan(text: a.name, style: TextStyle(color: ikColor, fontSize: 11)),
+          textDirection: TextDirection.ltr)
+        ..layout();
+      label.paint(canvas, p + const Offset(7, -7));
+    }
     for (final d in controller.displayBones) {
       final id = d.bone.id;
-      _paintBone(canvas, d.head, d.tail, selected: id == controller.selectedBoneId, hasParts: _hasParts(id));
+      _paintBone(canvas, d.head, d.tail, selected: controller.selectedBoneIds.contains(id), hasParts: _hasParts(id));
+      if (animating && controller.jointFrozenAt(id, controller.time)) {
+        final marker = _s(d.head) + const Offset(10, -10);
+        canvas.drawRRect(
+            RRect.fromRectAndRadius(Rect.fromCenter(center: marker, width: 9, height: 7), const Radius.circular(1)),
+            Paint()..color = ikColor);
+        canvas.drawArc(
+            Rect.fromCenter(center: marker + const Offset(0, -3), width: 6, height: 7),
+            math.pi,
+            math.pi,
+            false,
+            Paint()
+              ..color = ikColor
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.5);
+      }
       if (animating && controller.keyAt(id, controller.time) != null) {
         _paintKeyMarker(canvas, _s(d.head));
       }
     }
 
+    for (final shown in controller.displayBones) {
+      if (shown.bone.parentId != null) {
+        canvas.drawCircle(
+            _s(shown.head),
+            8,
+            Paint()
+              ..color = ikColor
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.5);
+      }
+    }
+    final anchor = snapAnchor;
+    if (anchor != null && controller.mode == RigMode.setup) {
+      final target = controller.rig.bones.where((b) {
+        if (controller.tool != RigTool.createBone && b.id == controller.selectedBoneId) return false;
+        final axis = b.tail - b.head;
+        final length2 = axis.dx * axis.dx + axis.dy * axis.dy;
+        final t = length2 == 0
+            ? 0.0
+            : (((anchor - b.head).dx * axis.dx + (anchor - b.head).dy * axis.dy) / length2).clamp(0.0, 1.0);
+        return (anchor - (b.head + axis * t)).distance < .01;
+      }).firstOrNull;
+      final endpoint =
+          target != null && ((target.head - anchor).distance < .01 || (target.tail - anchor).distance < .01);
+      final label = TextPainter(
+          text: TextSpan(
+              text: target == null
+                  ? 'Attach along bone'
+                  : endpoint
+                      ? 'Connect to ${target.name}'
+                      : 'Attach along ${target.name}',
+              style: TextStyle(color: jointFill, backgroundColor: ikColor, fontSize: 12)),
+          textDirection: TextDirection.ltr)
+        ..layout(maxWidth: math.max(80, size.width - 24));
+      label.paint(
+          canvas,
+          Offset((_s(anchor).dx + 16).clamp(4, math.max(4, size.width - label.width - 4)),
+              (_s(anchor).dy - 24).clamp(4, math.max(4, size.height - label.height - 4))));
+
+      canvas.drawCircle(_s(anchor), 12, Paint()..color = ikColor.withValues(alpha: .2));
+      canvas.drawCircle(
+          _s(anchor),
+          12,
+          Paint()
+            ..color = ikColor
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2);
+    }
     if (animating) {
       for (final chain in controller.rig.ikChains) {
         _paintIkHandle(canvas, chain);
@@ -553,8 +809,20 @@ class _RigPainter extends CustomPainter {
 
     for (final b in controller.placementGhost) {
       final a = _s(b.head), z = _s(b.tail);
-      canvas.drawLine(a, z, Paint()..color = Colors.black.withValues(alpha: 0.5)..strokeWidth = 4..strokeCap = StrokeCap.round);
-      canvas.drawLine(a, z, Paint()..color = ikColor..strokeWidth = 2..strokeCap = StrokeCap.round);
+      canvas.drawLine(
+          a,
+          z,
+          Paint()
+            ..color = Colors.black.withValues(alpha: 0.5)
+            ..strokeWidth = 4
+            ..strokeCap = StrokeCap.round);
+      canvas.drawLine(
+          a,
+          z,
+          Paint()
+            ..color = ikColor
+            ..strokeWidth = 2
+            ..strokeCap = StrokeCap.round);
       canvas.drawCircle(a, 3.5, Paint()..color = jointFill);
       canvas.drawCircle(
         a,
@@ -711,5 +979,8 @@ class _RigPainter extends CustomPainter {
       old.boneColor != boneColor ||
       old.selectedColor != selectedColor ||
       old.ikColor != ikColor ||
+      old.snapAnchor != snapAnchor ||
+      old.selectionBox != selectionBox ||
+      old.ghostImages != ghostImages ||
       old.background != background;
 }

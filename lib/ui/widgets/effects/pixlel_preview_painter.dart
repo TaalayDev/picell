@@ -20,10 +20,13 @@ class PixelPreviewPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (size.isEmpty || width <= 0 || height <= 0) return;
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
     // Create a checkerboard background for transparent areas
 
     final checkerSize = size.width / 10;
-    for (int y = 0; y < 10; y++) {
+    for (int y = 0; y < (size.height / checkerSize).ceil(); y++) {
       for (int x = 0; x < 10; x++) {
         canvas.drawRect(
           Rect.fromLTWH(
@@ -61,6 +64,7 @@ class PixelPreviewPainter extends CustomPainter {
         }
       }
     }
+    canvas.restore();
   }
 
   @override
@@ -79,8 +83,11 @@ class CheckerboardPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (size.isEmpty || squares <= 0) return;
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
     final checkerSize = size.width / squares;
-    for (int y = 0; y < squares; y++) {
+    for (int y = 0; y < (size.height / checkerSize).ceil(); y++) {
       for (int x = 0; x < squares; x++) {
         canvas.drawRect(
           Rect.fromLTWH(
@@ -93,8 +100,9 @@ class CheckerboardPainter extends CustomPainter {
         );
       }
     }
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CheckerboardPainter oldDelegate) => oldDelegate.squares != squares;
 }

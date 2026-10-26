@@ -1,48 +1,57 @@
 part of 'effects.dart';
 
-/// Effect that creates realistic cloud formations with multiple layers and atmospheric effects
+/// Seeded cloud banks assembled from connected lobes, shaded as volumes.
+/// The generator paints only cloud pixels; it never fills the sky.
 class CloudFormationEffect extends Effect {
+  static const _defaults = <String, dynamic>{
+    'layers': 3,
+    'style': 0,
+    'density': .5,
+    'coverage': .5,
+    'baseHeight': .3,
+    'colorScheme': 0,
+    'atmosphericHaze': .3,
+    'sunPosition': .5,
+    'mistIntensity': .2,
+    'randomSeed': 42,
+    'detailLevel': .6,
+    'startY': 0.0,
+    'cloudScale': .5,
+    'windShear': .3,
+  };
   CloudFormationEffect([Map<String, dynamic>? parameters])
-      : super(
-          EffectType.cloudFormation,
-          parameters ??
-              const {
-                'layers': 3, // Number of cloud layers (1-5)
-                'style': 0, // 0=fluffy, 1=wispy, 2=stormy, 3=layered, 4=scattered
-                'density': 0.5, // Cloud density (0-1)
-                'coverage': 0.5, // How much of the sky is covered (0-1)
-                'baseHeight': 0.3, // Base cloud height position (0-1, from top)
-                'colorScheme': 0, // 0=daytime, 1=sunset, 2=stormy, 3=night, 4=pastel
-                'atmosphericHaze': 0.3, // Atmospheric depth effect (0-1)
-                'skyGradient': true, // Add sky gradient background
-                'sunPosition': 0.5, // Sun position for lighting (0-1, 0=left, 1=right)
-                'mistIntensity': 0.2, // Low-lying mist effect (0-1)
-                'randomSeed': 42, // Seed for consistent generation
-                'detailLevel': 0.6, // Level of detail in clouds (0-1)
-              },
-        );
+      : super(EffectType.cloudFormation, {..._defaults, ...?parameters});
 
   @override
-  Map<String, dynamic> getDefaultParameters() {
-    return {
-      'layers': 3,
-      'style': 0,
-      'density': 0.5,
-      'coverage': 0.5,
-      'baseHeight': 0.3,
-      'colorScheme': 0,
-      'atmosphericHaze': 0.3,
-      'skyGradient': true,
-      'sunPosition': 0.5,
-      'mistIntensity': 0.2,
-      'randomSeed': 42,
-      'detailLevel': 0.6,
-    };
-  }
+  Map<String, dynamic> getDefaultParameters() => {..._defaults};
 
   @override
   Map<String, dynamic> getMetadata() {
     return {
+      'startY': {
+        'label': 'Start Y',
+        'description': 'Top of the generation area: 0 is the canvas top, 1 is the bottom.',
+        'type': 'slider',
+        'min': 0.0,
+        'max': 1.0,
+        'divisions': 100
+      },
+      'cloudScale': {
+        'label': 'Cloud Size',
+        'description': 'Size of individual cloud formations.',
+        'type': 'slider',
+        'min': 0.0,
+        'max': 1.0,
+        'divisions': 100
+      },
+      'windShear': {
+        'label': 'Wind Shear',
+        'description': 'Sweeps cloud tops sideways and stretches wisps.',
+        'type': 'slider',
+        'min': 0.0,
+        'max': 1.0,
+        'divisions': 100
+      },
       'layers': {
         'label': 'Cloud Layers',
         'description': 'Number of cloud layers for depth effect.',
@@ -107,13 +116,8 @@ class CloudFormationEffect extends Effect {
         'max': 1.0,
         'divisions': 100,
       },
-      'skyGradient': {
-        'label': 'Sky Gradient',
-        'description': 'Adds a gradient sky background.',
-        'type': 'bool',
-      },
       'sunPosition': {
-        'label': 'Sun Position',
+        'label': 'Light Direction',
         'description': 'Position of the sun for lighting effects (0=left, 1=right).',
         'type': 'slider',
         'min': 0.0,
@@ -147,400 +151,183 @@ class CloudFormationEffect extends Effect {
     };
   }
 
+  double _value(String key) {
+    final value = parameters[key];
+    return value is num && value.isFinite ? value.toDouble() : (_defaults[key] as num).toDouble();
+  }
+
+  double _unit(String key) => _value(key).clamp(0.0, 1.0);
+
   @override
   Uint32List apply(Uint32List pixels, int width, int height) {
-    // Extract parameters
-    final layers = (parameters['layers'] as num).toInt().clamp(1, 5);
-    final style = (parameters['style'] as num).toInt();
-    final density = (parameters['density'] as num).toDouble();
-    final coverage = (parameters['coverage'] as num).toDouble();
-    final baseHeight = (parameters['baseHeight'] as num).toDouble();
-    final colorScheme = (parameters['colorScheme'] as num).toInt();
-    final atmosphericHaze = (parameters['atmosphericHaze'] as num).toDouble();
-    final skyGradient = parameters['skyGradient'] as bool;
-    final sunPosition = (parameters['sunPosition'] as num).toDouble();
-    final mistIntensity = (parameters['mistIntensity'] as num).toDouble();
-    final randomSeed = (parameters['randomSeed'] as num).toInt();
-    final detailLevel = (parameters['detailLevel'] as num).toDouble();
-
-    final result = Uint32List(pixels.length);
-    final random = Random(randomSeed);
-
-    // Generate color schemes
-    final colors = _getColorScheme(colorScheme, sunPosition);
-
-    // Step 1: Fill with sky gradient if enabled
-    if (skyGradient) {
-      _fillSkyGradient(result, width, height, colors.skyTop, colors.skyBottom);
-    } else {
-      for (int i = 0; i < result.length; i++) {
-        result[i] = colors.skyBottom.value;
+    if (width <= 0 || height <= 0) return Uint32List(pixels.length);
+    if (pixels.length != width * height) throw ArgumentError('Cloud canvas dimensions must match the pixel buffer.');
+    final out = Uint32List(pixels.length);
+    final start = (_unit('startY') * height).round();
+    final available = height - start;
+    if (available <= 0 || _unit('coverage') == 0 || _unit('density') == 0) return out;
+    final seed = _value('randomSeed').round();
+    final layers = _value('layers').round().clamp(1, 5);
+    final style = _value('style').round().clamp(0, 4);
+    final palette = _CloudBankPalette.schemes[_value('colorScheme').round().clamp(0, 4)];
+    for (var layer = 0; layer < layers; layer++) {
+      final depth = (layer + 1) / layers;
+      final random = Random(seed ^ ((layer + 1) * 0x45d9));
+      final scale = (.65 + depth * .55) * (.55 + _unit('cloudScale') * .95);
+      final radius = max(2.0, min(width * .19, available * .43) * scale * (style == 4 ? .65 : 1));
+      final spacing = max(4.0, radius * (style == 3 ? 2.1 : 2.8));
+      final count = max(1, (width / spacing * (.4 + _unit('coverage') * 1.6)).ceil());
+      final haze = (1 - depth) * _unit('atmosphericHaze') * .65;
+      // Each layer occupies a broad altitude band, rather than independent noise.
+      final band = _unit('baseHeight') * available + (depth - .5) * available * .34;
+      for (var i = 0; i < count; i++) {
+        final cx = (i + .25 + random.nextDouble() * .5) / count * width;
+        final cy = (band + (random.nextDouble() - .5) * available * .27).clamp(0.0, available - 1.0);
+        final size = radius * (.7 + random.nextDouble() * .55);
+        final cloudSeed = random.nextInt(0x7fffffff);
+        _drawBank(out, width, height, start, cx, cy + start, size, style, cloudSeed, haze, palette);
       }
     }
-
-    // Step 2: Generate and render cloud layers from back to front
-    for (int layer = layers - 1; layer >= 0; layer--) {
-      // Generate a 2D density map for the current layer
-      final cloudDensityMap = _generateCloudDensityMap(
-        width,
-        height,
-        layer,
-        layers,
-        style,
-        density,
-        coverage,
-        detailLevel,
-        random,
-      );
-
-      final layerDepth = layer / (layers - 1).toDouble(); // 0 = front, 1 = back
-      final layerColor = _getLayerColor(colors, layerDepth, atmosphericHaze);
-      final highlightColor = _getHighlightColor(colors);
-
-      // Render the layer using the 2D map
-      _renderCloudLayer(
-        result,
-        width,
-        height,
-        cloudDensityMap,
-        layerColor,
-        highlightColor,
-        sunPosition,
-        baseHeight,
-        layerDepth,
-      );
-    }
-
-    // Step 3: Add atmospheric effects
-    if (mistIntensity > 0) {
-      _addMistEffect(result, width, height, mistIntensity, colors.mist, random);
-    }
-
-    return result;
+    return out;
   }
 
-  /// Generates a 2D density map for a cloud layer using Fractional Brownian Motion (fBm).
-  Float32List _generateCloudDensityMap(
-    int width,
-    int height,
-    int layer,
-    int totalLayers,
-    int style,
-    double density,
-    double coverage,
-    double detailLevel,
-    Random random,
-  ) {
-    final densityMap = Float32List(width * height);
-    final layerOffset =
-        Point<double>(layer * 256.0 + random.nextDouble() * 100, layer * 256.0 + random.nextDouble() * 100);
-
-    // Adjust noise scale based on style and detail
-    double baseFrequency, lacunarity, persistence;
-    int octaves;
-
-    switch (style) {
-      case 1: // Wispy Cirrus
-        baseFrequency = 0.01;
-        octaves = 3 + (detailLevel * 3).toInt();
-        lacunarity = 2.5;
-        persistence = 0.3;
-        break;
-      case 2: // Stormy Nimbus
-        baseFrequency = 0.003;
-        octaves = 6 + (detailLevel * 4).toInt();
-        lacunarity = 2.0;
-        persistence = 0.6;
-        break;
-      case 3: // Layered Stratus
-        baseFrequency = 0.005;
-        octaves = 4 + (detailLevel * 2).toInt();
-        lacunarity = 2.0;
-        persistence = 0.4;
-        break;
-      default: // Fluffy Cumulus & Scattered
-        baseFrequency = 0.005;
-        octaves = 5 + (detailLevel * 3).toInt();
-        lacunarity = 2.0;
-        persistence = 0.5;
-        break;
+  void _drawBank(Uint32List out, int width, int height, int start, double cx, double cy, double radius, int style,
+      int seed, double haze, _CloudBankPalette palette) {
+    final random = Random(seed);
+    final lobes = <_CloudLobe>[];
+    final shear = _unit('windShear');
+    final flat = cy + radius * (style == 2 ? .65 : .24);
+    final count = style == 1
+        ? 6
+        : style == 3
+            ? 5
+            : style == 4
+                ? 5
+                : 9;
+    for (var i = 0; i < count; i++) {
+      final u = count == 1 ? .5 : i / (count - 1);
+      final arch = sin(u * pi);
+      var x = cx + (u - .5) * radius * 2.5;
+      var y = cy - arch * radius * (.4 + random.nextDouble() * .3);
+      var rx = radius * (.32 + random.nextDouble() * .22);
+      var ry = rx * (.7 + random.nextDouble() * .3);
+      if (style == 1) {
+        x = cx + (u - .5) * radius * 4;
+        y = cy - u * radius * .7 * shear;
+        rx = radius * .95;
+        ry = max(.7, radius * (.06 + arch * .09));
+      } else if (style == 2) {
+        // Broad anvil plus a raised convective column and heavy lower body.
+        y = cy - arch * radius * 1.05;
+        rx *= 1.1;
+        ry *= 1.4;
+      } else if (style == 3) {
+        x = cx + (u - .5) * radius * 3.6;
+        y = cy + sin(u * pi * 2) * radius * .06;
+        rx = radius * .85;
+        ry = radius * (.17 + random.nextDouble() * .08);
+      }
+      x += (cy - y) * shear * .7;
+      lobes.add(_CloudLobe(x, y, max(.7, rx), max(.7, ry)));
     }
-
-    // Scale frequency based on layer depth (background layers are larger/less detailed)
-    final layerScale = 1.0 - (layer / totalLayers * 0.5);
-    baseFrequency *= layerScale;
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        double noiseVal;
-
-        // Apply different noise shaping for different styles
-        if (style == 1) {
-          // Wispy Cirrus - stretch the noise horizontally
-          noiseVal = _fbm(x * 2.5, y * 0.5, octaves, baseFrequency, lacunarity, persistence, layerOffset);
-        } else if (style == 3) {
-          // Layered Stratus - flatten the noise vertically
-          noiseVal = _fbm(x.toDouble(), y * 0.2, octaves, baseFrequency, lacunarity, persistence, layerOffset);
-        } else {
-          noiseVal = _fbm(x.toDouble(), y.toDouble(), octaves, baseFrequency, lacunarity, persistence, layerOffset);
-        }
-
-        // Remap noise from [-1, 1] to [0, 1]
-        noiseVal = (noiseVal + 1.0) / 2.0;
-
-        // Apply a shaping function to create more defined cloud edges
-        noiseVal = pow(noiseVal, 1.0 + (1.0 - density) * 2.0).toDouble();
-
-        // Use a second noise layer to control cloud coverage
-        final coverageNoise = (_perlinNoise(x * 0.001, y * 0.001, layerOffset) + 1.0) / 2.0;
-        final coverageThreshold = 1.0 - coverage;
-
-        if (coverageNoise < coverageThreshold) {
-          noiseVal = 0;
-        } else {
-          // Smooth the transition at the coverage edge
-          final transitionWidth = 0.1;
-          if (coverageNoise < coverageThreshold + transitionWidth) {
-            noiseVal *= (coverageNoise - coverageThreshold) / transitionWidth;
+    if (style == 2) {
+      lobes.add(_CloudLobe(cx, cy + radius * .08, radius * 1.3, radius * .58));
+      lobes.add(_CloudLobe(cx + radius * shear * .6, cy - radius * 1.05, radius * 1.1, radius * .26));
+    }
+    var left = width, right = 0, top = height, bottom = start;
+    for (final lobe in lobes) {
+      left = min(left, (lobe.x - lobe.rx - 2).floor());
+      right = max(right, (lobe.x + lobe.rx + 2).ceil());
+      top = min(top, (lobe.y - lobe.ry - 2).floor());
+      bottom = max(bottom, (lobe.y + lobe.ry + 2).ceil());
+    }
+    final litColor = _cloudBankMix(palette.light, palette.haze, haze);
+    final midColor = _cloudBankMix(palette.body, palette.haze, haze);
+    final shadeColor = _cloudBankMix(palette.shadow, palette.haze, haze);
+    for (var y = max(start, top); y < min(height, bottom); y++) {
+      for (var x = max(0, left); x < min(width, right); x++) {
+        var field = -double.infinity;
+        var nx = 0.0, ny = 0.0;
+        for (final lobe in lobes) {
+          final dx = (x + .5 - lobe.x) / lobe.rx;
+          final dy = (y + .5 - lobe.y) / lobe.ry;
+          final f = 1 - dx * dx - dy * dy;
+          if (f > field) {
+            field = f;
+            nx = dx;
+            ny = dy;
           }
         }
-
-        densityMap[y * width + x] = noiseVal.clamp(0.0, 1.0).toDouble();
-      }
-    }
-    return densityMap;
-  }
-
-  /// Renders a cloud layer based on its 2D density map.
-  void _renderCloudLayer(
-    Uint32List pixels,
-    int width,
-    int height,
-    Float32List densityMap,
-    Color baseColor,
-    Color highlightColor,
-    double sunPosition,
-    double baseHeight,
-    double layerDepth,
-  ) {
-    final cloudHeight = height * 0.3; // Max height of cloud shapes
-    final layerYOffset = height * baseHeight + layerDepth * height * 0.1;
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final index = y * width + x;
-        final density = densityMap[index];
-
-        if (density > 0.01) {
-          // Map density to a vertical position within the cloud's allowed height
-          final cloudShapeY = cloudHeight * (1.0 - density);
-          final currentPixelY = y - layerYOffset;
-
-          // Check if the current pixel is inside the cloud shape
-          if (currentPixelY > cloudShapeY) {
-            // The alpha is determined by the density
-            final alpha = (density * 255).toInt().clamp(0, 255);
-
-            // Calculate lighting
-            final litColor = _calculate2DLighting(density, baseColor, highlightColor, x / width, sunPosition);
-
-            final cloudPixel = litColor.withAlpha(alpha);
-            pixels[index] = _blendColors(pixels[index], cloudPixel.value);
-          }
-        }
-      }
-    }
-  }
-
-  /// Calculates lighting for a cloud pixel based on density and sun position.
-  Color _calculate2DLighting(
-      double density, Color baseColor, Color highlightColor, double xNormal, double sunPosition) {
-    // Base lighting on density (denser parts are brighter)
-    final densityLight = 0.8 + density * 0.2;
-
-    // Add a highlight based on proximity to the sun
-    final sunHighlight = 1.0 - (xNormal - sunPosition).abs();
-    final highlightIntensity = pow(sunHighlight, 16).toDouble() * density * 0.5;
-
-    // Combine base color with highlight color
-    final r = baseColor.red * densityLight + highlightColor.red * highlightIntensity;
-    final g = baseColor.green * densityLight + highlightColor.green * highlightIntensity;
-    final b = baseColor.blue * densityLight + highlightColor.blue * highlightIntensity;
-
-    return Color.fromARGB(255, r.round().clamp(0, 255), g.round().clamp(0, 255), b.round().clamp(0, 255));
-  }
-
-  /// Fill background with sky gradient
-  void _fillSkyGradient(Uint32List pixels, int width, int height, Color topColor, Color bottomColor) {
-    for (int y = 0; y < height; y++) {
-      final t = y / height.toDouble();
-      final skyColor = Color.lerp(topColor, bottomColor, t)!;
-      for (int x = 0; x < width; x++) {
-        pixels[y * width + x] = skyColor.value;
-      }
-    }
-  }
-
-  /// Add mist/fog effect in lower areas
-  void _addMistEffect(Uint32List pixels, int width, int height, double intensity, Color mistColor, Random random) {
-    final mistHeight = height * 0.4 * intensity;
-    final startY = height - mistHeight;
-    final offset = Point<double>(random.nextDouble() * 100, random.nextDouble() * 100);
-
-    for (int y = startY.toInt(); y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final index = y * width + x;
-        final mistNoise = (_perlinNoise(x * 0.02, y * 0.02, offset) + 1.0) / 2.0;
-        final yFactor = (y - startY) / mistHeight;
-        final alpha = (mistNoise * yFactor * intensity * 255).clamp(0, 255).toInt();
-
+        final texture = _cloudBankNoise(x / max(1.5, radius * .12), y / max(1.5, radius * .12), seed);
+        final erosion = (texture - .5) * .16 * _unit('detailLevel');
+        if (field + erosion <= 0) continue;
+        // Flatten the bases of cumulus and storm clouds without rectangular sides.
+        if (style != 1 && style != 3 && y > flat + texture * radius * .05) continue;
+        final lightX = (_unit('sunPosition') - .5) * 1.4;
+        final normalLight = (-ny * .65 + nx * lightX + .22).clamp(0.0, 1.0);
+        var illumination = (normalLight + (texture - .5) * _unit('detailLevel') * .24).clamp(0.0, 1.0);
+        // A compact ramp creates readable puff shapes at small pixel sizes.
+        illumination = (illumination * 5).round() / 5;
+        var color = illumination < .4
+            ? _cloudBankMix(shadeColor, midColor, illumination / .4)
+            : _cloudBankMix(midColor, litColor, (illumination - .4) / .6);
+        final lower = ((y - cy) / max(1, radius) + .5).clamp(0.0, 1.0);
+        color = _cloudBankMix(color, palette.haze, lower * _unit('mistIntensity') * .25);
+        final edge = (field * radius * .8).clamp(0.0, 1.0);
+        final opacity = (.25 + .75 * _unit('density')) * edge * (style == 1 ? .65 : 1.0);
+        final alpha = (opacity * 255).round();
         if (alpha > 0) {
-          final mistPixel = mistColor.withAlpha(alpha);
-          pixels[index] = _blendColors(pixels[index], mistPixel.value);
+          final index = y * width + x;
+          out[index] = _cloudBankOver(out[index], color, alpha);
         }
       }
     }
-  }
-
-  /// Get layer color with atmospheric haze
-  Color _getLayerColor(CloudColors colors, double depth, double hazeIntensity) {
-    final baseColor = colors.cloudBase;
-    final hazeColor = colors.atmosphericHaze;
-    final haze = depth * hazeIntensity;
-    return Color.lerp(baseColor, hazeColor, haze)!;
-  }
-
-  /// Get highlight color based on scheme
-  Color _getHighlightColor(CloudColors colors) => colors.cloudHighlight;
-
-  /// Blend two colors using alpha compositing
-  int _blendColors(int base, int overlay) {
-    final overlayColor = Color(overlay);
-    if (overlayColor.alpha == 0) return base;
-    if (overlayColor.alpha == 255) return overlay;
-
-    final baseColor = Color(base);
-    final alpha = overlayColor.alpha / 255.0;
-    final invAlpha = 1.0 - alpha;
-
-    final r = (baseColor.red * invAlpha + overlayColor.red * alpha).round();
-    final g = (baseColor.green * invAlpha + overlayColor.green * alpha).round();
-    final b = (baseColor.blue * invAlpha + overlayColor.blue * alpha).round();
-
-    return Color.fromARGB(baseColor.alpha, r, g, b).value;
-  }
-
-  /// Get color scheme for clouds
-  CloudColors _getColorScheme(int scheme, double sunPosition) {
-    switch (scheme) {
-      case 1: // Sunset Orange
-        return CloudColors(
-          skyTop: const Color(0xFF4A466D),
-          skyBottom: const Color(0xFFF07E6E),
-          cloudBase: const Color(0xFFC0B9DD),
-          cloudHighlight: const Color(0xFFFFD6B3),
-          atmosphericHaze: const Color(0xFFD49A8D),
-          mist: const Color(0xFFF0C3A2),
-        );
-      case 2: // Stormy Gray
-        return CloudColors(
-          skyTop: const Color(0xFF465162),
-          skyBottom: const Color(0xFF8696A7),
-          cloudBase: const Color(0xFF6C7A8B),
-          cloudHighlight: const Color(0xFFBCC8D5),
-          atmosphericHaze: const Color(0xFF778899),
-          mist: const Color(0xFFB0B8C0),
-        );
-      case 3: // Night Dark
-        return CloudColors(
-          skyTop: const Color(0xFF0D1A2F),
-          skyBottom: const Color(0xFF26345A),
-          cloudBase: const Color(0xFF3A4C7A),
-          cloudHighlight: const Color(0xFF8A9BC8),
-          atmosphericHaze: const Color(0xFF5A6C9A),
-          mist: const Color(0xFF4A5C8A),
-        );
-      case 4: // Pastel
-        return CloudColors(
-          skyTop: const Color(0xFFA1CCE8),
-          skyBottom: const Color(0xFFE6E6FA),
-          cloudBase: const Color(0xFFFFF0F5),
-          cloudHighlight: const Color(0xFFFFFFFF),
-          atmosphericHaze: const Color(0xFFDDA0DD),
-          mist: const Color(0xFFF0FFF0),
-        );
-      default: // Daytime Blue
-        return CloudColors(
-          skyTop: const Color(0xFF87CEEB),
-          skyBottom: const Color(0xFFB4E6FF),
-          cloudBase: const Color(0xFFF0F8FF),
-          cloudHighlight: const Color(0xFFFFFFFF),
-          atmosphericHaze: const Color(0xFFC0D8E8),
-          mist: const Color(0xFFF0F8FF),
-        );
-    }
-  }
-
-  /// Fractional Brownian Motion for detailed noise.
-  double _fbm(
-      double x, double y, int octaves, double frequency, double lacunarity, double persistence, Point<double> offset) {
-    double total = 0;
-    double amplitude = 1.0;
-    double freq = frequency;
-
-    for (int i = 0; i < octaves; i++) {
-      total += _perlinNoise(x * freq + offset.x, y * freq + offset.y, Point(0, 0)) * amplitude;
-      freq *= lacunarity;
-      amplitude *= persistence;
-    }
-    return total;
-  }
-
-  /// 2D Perlin-like noise function.
-  double _perlinNoise(double x, double y, Point<double> offset) {
-    final intX = x.floor();
-    final intY = y.floor();
-    final fracX = x - intX;
-    final fracY = y - intY;
-
-    final u = fracX * fracX * (3 - 2 * fracX);
-    final v = fracY * fracY * (3 - 2 * fracY);
-
-    final p00 = _hash2D(intX, intY, offset);
-    final p10 = _hash2D(intX + 1, intY, offset);
-    final p01 = _hash2D(intX, intY + 1, offset);
-    final p11 = _hash2D(intX + 1, intY + 1, offset);
-
-    final i1 = p00 * (1 - u) + p10 * u;
-    final i2 = p01 * (1 - u) + p11 * u;
-
-    return (i1 * (1 - v) + i2 * v) * 2.0 - 1.0; // Output in range [-1, 1]
-  }
-
-  /// Simple pseudo-random hash function for noise generation.
-  double _hash2D(int x, int y, Point<double> offset) {
-    // A common hashing technique for procedural generation
-    var h = x * 73856093 ^ y * 19349663;
-    h = ((h >> 13) ^ h) * 127412617;
-    return (h & 0x7fffffff) / 0x7fffffff; // Output in range [0, 1]
   }
 }
 
-/// Defines the color palette for the cloud and sky.
-class CloudColors {
-  final Color skyTop;
-  final Color skyBottom;
-  final Color cloudBase;
-  final Color cloudHighlight;
-  final Color atmosphericHaze;
-  final Color mist;
+class _CloudLobe {
+  final double x, y, rx, ry;
+  const _CloudLobe(this.x, this.y, this.rx, this.ry);
+}
 
-  const CloudColors({
-    required this.skyTop,
-    required this.skyBottom,
-    required this.cloudBase,
-    required this.cloudHighlight,
-    required this.atmosphericHaze,
-    required this.mist,
-  });
+int _cloudBankMix(int a, int b, double t) {
+  t = t.clamp(0.0, 1.0);
+  int c(int shift) => (((a >> shift) & 255) * (1 - t) + ((b >> shift) & 255) * t).round();
+  return 0xff000000 | c(16) << 16 | c(8) << 8 | c(0);
+}
+
+/// Straight-alpha source-over keeps transparent exports free of dark fringes.
+int _cloudBankOver(int background, int foreground, int alpha) {
+  final a = alpha / 255;
+  final b = (background >> 24) / 255 * (1 - a);
+  final combined = a + b;
+  int c(int shift) => ((((foreground >> shift) & 255) * a + ((background >> shift) & 255) * b) / combined).round();
+  return (combined * 255).round() << 24 | c(16) << 16 | c(8) << 8 | c(0);
+}
+
+double _cloudBankNoise(double x, double y, int seed) {
+  double hash(int x, int y) {
+    var h = (seed ^ x * 374761393 ^ y * 668265263) & 0x7fffffff;
+    h = ((h ^ h >> 13) * 1274126177) & 0x7fffffff;
+    return (h ^ h >> 16) / 2147483647;
+  }
+
+  final ix = x.floor(), iy = y.floor();
+  final fx = x - ix, fy = y - iy;
+  final sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+  final a = hash(ix, iy) * (1 - sx) + hash(ix + 1, iy) * sx;
+  final b = hash(ix, iy + 1) * (1 - sx) + hash(ix + 1, iy + 1) * sx;
+  return a * (1 - sy) + b * sy;
+}
+
+class _CloudBankPalette {
+  final int light, body, shadow, haze;
+  const _CloudBankPalette(this.light, this.body, this.shadow, this.haze);
+  static const schemes = [
+    _CloudBankPalette(0xfffff8df, 0xffdce6e4, 0xff8297ad, 0xffbbd4dd),
+    _CloudBankPalette(0xffffe5b7, 0xffe9ab9b, 0xff966f90, 0xffddb6b5),
+    _CloudBankPalette(0xffb7c2ca, 0xff768396, 0xff3c465e, 0xffa1abb5),
+    _CloudBankPalette(0xffb2c9d8, 0xff657c9d, 0xff303c60, 0xff7c90ad),
+    _CloudBankPalette(0xffffebdf, 0xffe0c3db, 0xffa398bf, 0xffd2d0e3),
+  ];
 }

@@ -57,8 +57,7 @@ class EffectEditorDialog extends StatefulWidget {
         isScrollControlled: true,
         useSafeArea: true,
         backgroundColor: Colors.transparent,
-        builder: (context) =>
-            FractionallySizedBox(heightFactor: .94, child: builder(context)),
+        builder: (context) => FractionallySizedBox(heightFactor: .94, child: builder(context)),
       );
     }
     return showDialog<void>(context: context, builder: builder);
@@ -130,10 +129,8 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     final screen = MediaQuery.sizeOf(context);
     final content = SizedBox(
       key: const ValueKey('effect-editor-content'),
-      width:
-          isMobile ? double.infinity : (screen.width - 48).clamp(0.0, 1280.0),
-      height:
-          isMobile ? double.infinity : (screen.height - 48).clamp(0.0, 940.0),
+      width: isMobile ? double.infinity : (screen.width - 48).clamp(0.0, 1280.0),
+      height: isMobile ? double.infinity : (screen.height - 48).clamp(0.0, 940.0),
       child: AnimatedBackground(
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -152,8 +149,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                   ),
                   Expanded(
                     child: Text(
-                      widget.title ??
-                          Strings.of(context).editEffect(effectName),
+                      widget.title ?? Strings.of(context).editEffect(effectName),
                       style: (isMobile
                               ? Theme.of(context).textTheme.titleMedium
                               : Theme.of(context).textTheme.headlineSmall)
@@ -210,8 +206,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                     ElevatedButton(
                       onPressed: _applyChanges,
                       child: Text(
-                        widget.applyButtonText ??
-                            Strings.of(context).applyChanges,
+                        widget.applyButtonText ?? Strings.of(context).applyChanges,
                       ),
                     ),
                   ],
@@ -229,8 +224,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
       );
     }
     return Dialog(
-      insetPadding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 12 : 24, vertical: isMobile ? 20 : 24),
+      insetPadding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 24, vertical: isMobile ? 20 : 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       clipBehavior: Clip.antiAlias,
       child: content,
@@ -242,14 +236,12 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
       children: [
         LayoutBuilder(
             builder: (context, constraints) => SizedBox(
-                  height: (MediaQuery.sizeOf(context).height * .25)
-                      .clamp(140.0, 240.0),
+                  height: (MediaQuery.sizeOf(context).height * .25).clamp(140.0, 240.0),
                   child: _compareEnabled
                       ? Row(children: [
                           Expanded(child: _buildComparisonPane(original: true)),
                           const SizedBox(width: 8),
-                          Expanded(
-                              child: _buildComparisonPane(original: false)),
+                          Expanded(child: _buildComparisonPane(original: false)),
                         ])
                       : Center(child: _buildPreviewCard(maxHeight: 240)),
                 )),
@@ -257,8 +249,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
           key: const ValueKey('effect-mobile-compare-switch'),
           contentPadding: EdgeInsets.zero,
           dense: true,
-          title: Text(
-              '${Strings.of(context).original} / ${Strings.of(context).effectResultLabel}'),
+          title: Text('${Strings.of(context).original} / ${Strings.of(context).effectResultLabel}'),
           secondary: const Icon(Icons.compare_outlined),
           value: _compareEnabled,
           onChanged: (value) => setState(() => _compareEnabled = value),
@@ -312,8 +303,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
         ButtonSegment(value: true, label: Text(strings.original)),
       ],
       selected: {_showOriginal},
-      onSelectionChanged: (value) =>
-          setState(() => _showOriginal = value.first),
+      onSelectionChanged: (value) => setState(() => _showOriginal = value.first),
     );
   }
 
@@ -340,8 +330,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(Strings.of(context).preview,
-                  style: Theme.of(context).textTheme.titleMedium),
+              Text(Strings.of(context).preview, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 12),
               Expanded(
                 child: Row(
@@ -355,16 +344,12 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
               ),
               if (_hasPresets()) ...[
                 const SizedBox(height: 16),
-                Text(Strings.of(context).quickPresets,
-                    style: Theme.of(context).textTheme.titleSmall),
+                Text(Strings.of(context).quickPresets, style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 100),
                   child: SingleChildScrollView(
-                    child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _buildPresetButtons()),
+                    child: Wrap(spacing: 8, runSpacing: 8, children: _buildPresetButtons()),
                   ),
                 ),
               ],
@@ -384,8 +369,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(Strings.of(context).parameters,
-                    style: Theme.of(context).textTheme.titleMedium),
+                Text(Strings.of(context).parameters, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 16),
                 Expanded(child: ListView(children: _buildParameterWidgets())),
               ],
@@ -398,43 +382,49 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
 
   Widget _buildComparisonPane({required bool original}) {
     final colors = Theme.of(context).colorScheme;
-    return Container(
-      key:
-          ValueKey(original ? 'effect-before-preview' : 'effect-after-preview'),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color: original ? colors.outlineVariant : colors.primary),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(children: [
-              Icon(original ? Icons.image_outlined : Icons.auto_awesome,
-                  size: 18,
-                  color: original ? colors.onSurfaceVariant : colors.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: Text(
-                      original
-                          ? Strings.of(context).original
-                          : Strings.of(context).effectResultLabel,
-                      style: Theme.of(context).textTheme.titleSmall)),
-            ]),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Center(child: _buildPreview(original: original)),
+    return LayoutBuilder(builder: (context, constraints) {
+      final aspectRatio = widget.layerWidth / widget.layerHeight;
+      // Header, divider and padding surround a canvas-sized preview area.
+      final preferredHeight = (constraints.maxWidth - 24) / aspectRatio + 73;
+      return Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+          width: constraints.maxWidth,
+          height: preferredHeight.clamp(0.0, constraints.maxHeight),
+          child: Container(
+            key: ValueKey(original ? 'effect-before-preview' : 'effect-after-preview'),
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: original ? colors.outlineVariant : colors.primary),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(children: [
+                    Icon(original ? Icons.image_outlined : Icons.auto_awesome,
+                        size: 18, color: original ? colors.onSurfaceVariant : colors.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: Text(original ? Strings.of(context).original : Strings.of(context).effectResultLabel,
+                            style: Theme.of(context).textTheme.titleSmall)),
+                  ]),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Center(child: _buildPreview(original: original)),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 
   Widget _buildPreview({bool? original}) {
@@ -513,8 +503,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     return widgets;
   }
 
-  Widget _buildParameterFromMetadata(
-      String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildParameterFromMetadata(String key, dynamic value, Map<String, dynamic> metadata) {
     final label = metadata['label'] as String? ?? key.capitalize();
     final description = metadata['description'] as String? ?? '';
     final type = metadata['type'] as String? ?? 'slider';
@@ -535,8 +524,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
         parameterControl = _buildBooleanControl(key, value, metadata);
         break;
       default:
-        parameterControl =
-            const SizedBox(); // _buildSliderControl(key, value, metadata);
+        parameterControl = const SizedBox(); // _buildSliderControl(key, value, metadata);
     }
 
     return Card(
@@ -552,19 +540,14 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
               if (type != 'bool') // Boolean already shows its value
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -584,10 +567,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
               description,
               style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -598,8 +578,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     );
   }
 
-  Widget _buildSliderControl(
-      String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildSliderControl(String key, dynamic value, Map<String, dynamic> metadata) {
     final min = (metadata['min'] as num?)?.toDouble() ?? 0.0;
     final max = (metadata['max'] as num?)?.toDouble() ?? 1.0;
     final divisions = metadata['divisions'] as int?;
@@ -643,8 +622,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     );
   }
 
-  Widget _buildColorControl(
-      String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildColorControl(String key, dynamic value, Map<String, dynamic> metadata) {
     final color = Color(value as int);
 
     return Row(
@@ -674,9 +652,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
                 child: Text(
                   Strings.of(context).tapToChange,
                   style: TextStyle(
-                    color: color.computeLuminance() > 0.5
-                        ? Colors.black
-                        : Colors.white,
+                    color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -700,8 +676,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     );
   }
 
-  Widget _buildSelectControl(
-      String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildSelectControl(String key, dynamic value, Map<String, dynamic> metadata) {
     final options = () {
       if (metadata['options'] is List) {
         final list = metadata['options'] as List;
@@ -719,8 +694,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
       items: options.entries.map((entry) {
         return DropdownMenuItem<dynamic>(
           value: entry.key,
-          child:
-              Text(entry.value, style: Theme.of(context).textTheme.bodyMedium),
+          child: Text(entry.value, style: Theme.of(context).textTheme.bodyMedium),
         );
       }).toList(),
       onChanged: (newValue) {
@@ -734,8 +708,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     );
   }
 
-  Widget _buildBooleanControl(
-      String key, dynamic value, Map<String, dynamic> metadata) {
+  Widget _buildBooleanControl(String key, dynamic value, Map<String, dynamic> metadata) {
     return SwitchListTile(
       title: Text(Strings.of(context).enable),
       value: value as bool,
@@ -833,8 +806,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
     return const SizedBox.shrink();
   }
 
-  Widget _buildLegacySelector(
-      String paramName, EffectType type, dynamic value) {
+  Widget _buildLegacySelector(String paramName, EffectType type, dynamic value) {
     return switch (paramName) {
       'startColor' || 'endColor' => InkWell(
           onTap: () {
@@ -5316,8 +5288,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
 
   // Legacy fallback methods
   double _getMinValue(String paramName, EffectType type) {
-    if (paramName == 'value' &&
-        (type == EffectType.brightness || type == EffectType.contrast)) {
+    if (paramName == 'value' && (type == EffectType.brightness || type == EffectType.contrast)) {
       return -1.0;
     } else if (paramName == 'colors' && type == EffectType.paletteReduction) {
       return 2.0;
@@ -5364,8 +5335,7 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
 
   void _applyChanges() {
     // Create a new effect with updated parameters
-    final updatedEffect =
-        EffectsManager.createEffect(widget.effect.type, _parameters);
+    final updatedEffect = EffectsManager.createEffect(widget.effect.type, _parameters);
 
     widget.onEffectUpdated(updatedEffect);
     Navigator.of(context).pop();

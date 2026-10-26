@@ -19,8 +19,10 @@ void main() {
   Bone bone(String id, String name, {String? parent}) =>
       Bone(id: id, name: name, parentId: parent, head: Offset.zero, length: 1);
 
-  MotionResult build(MotionPreset p, List<Bone> bones, {double h = 64, double intensity = 1, bool mirror = false, String? selected}) =>
-      MotionBuilder.build(p, bones: bones, canvasHeight: h, intensity: intensity, mirror: mirror, selectedBoneId: selected);
+  MotionResult build(MotionPreset p, List<Bone> bones,
+          {double h = 64, double intensity = 1, bool mirror = false, String? selected}) =>
+      MotionBuilder.build(p,
+          bones: bones, canvasHeight: h, intensity: intensity, mirror: mirror, selectedBoneId: selected);
 
   List<RigKeyframe> keysOf(MotionResult r, Bone b) =>
       r.keyframes.where((k) => k.boneId == b.id).toList()..sort((x, y) => x.time.compareTo(y.time));
@@ -47,6 +49,152 @@ void main() {
     });
   });
 
+  test('front idle breathes symmetrically with quiet legs and a seamless neutral seam', () {
+    const idle = MotionPresets.frontIdle;
+    expect(MotionPresets.byId('front_idle'), idle);
+    expect(idle.loop, isTrue);
+    expect(idle.frames / idle.fps, 2);
+    Wave motion(String role) => idle.tracks.firstWhere((t) => t.role == role).rotation!;
+    for (final t in [0.0, .25, .5, .75, 1.0]) {
+      expect(motion('arm_l').at(t), closeTo(-motion('arm_r').at(t), 1e-9));
+      expect(motion('forearm_l').at(t), closeTo(-motion('forearm_r').at(t), 1e-9));
+      for (final role in ['spine', 'head', 'thigh_l', 'thigh_r', 'shin_l', 'shin_r']) {
+        expect(motion(role).at(t), 0);
+      }
+    }
+    for (final track in idle.tracks) {
+      expect(track.tx, isNull);
+      for (final wave in [track.rotation, track.ty].whereType<Wave>()) {
+        expect(wave.at(0), closeTo(0, 1e-9));
+        expect(wave.at(1), closeTo(wave.at(0), 1e-9));
+      }
+    }
+    expect(idle.tracks.first.ty!.at(.5), greaterThan(0));
+    expect(idle.tracks.first.tx, isNull);
+    expect(idle.tracks.first.rotation!.at(.5), 0);
+    final bones = placed(BonePresets.humanoid);
+    final normal = build(idle, bones);
+    final half = build(idle, bones, intensity: .5);
+    final mirrored = build(idle, bones, mirror: true);
+    expect(normal.missing, isEmpty);
+    expect(mirrored.missing, isEmpty);
+    for (var i = 0; i < normal.keyframes.length; i++) {
+      expect(half.keyframes[i].rotation, closeTo(normal.keyframes[i].rotation * .5, 1e-9));
+    }
+  });
+
+  group('front-facing locomotion', () {
+    test('front walk and run are available with looping timing and no lean bias', () {
+      expect(MotionPresets.byId('front_walk'), MotionPresets.frontWalk);
+      expect(MotionPresets.byId('front_run'), MotionPresets.frontRun);
+      expect(MotionPresets.frontRun.fps, greaterThan(MotionPresets.frontWalk.fps));
+      for (final preset in [MotionPresets.frontWalk, MotionPresets.frontRun]) {
+        expect(preset.loop, isTrue);
+        expect(preset.tracks.firstWhere((t) => t.role == 'spine').rotation!.bias, 0);
+        expect(preset.tracks.where((t) => t.role != 'hips').every((t) => t.tx == null && t.ty == null), isTrue,
+            reason: 'limbs must rotate around their connected joints');
+        for (final track in preset.tracks) {
+          for (final wave in [track.rotation, track.tx, track.ty].whereType<Wave>()) {
+            expect(wave.at(0), closeTo(wave.at(1), 1e-9));
+          }
+        }
+      }
+    });
+
+    test('front steps alternate left and right with opposite arm swings', () {
+      for (final preset in [MotionPresets.frontWalk, MotionPresets.frontRun]) {
+        Wave motion(String role) => preset.tracks.firstWhere((t) => t.role == role).rotation!;
+        expect(motion('shin_l').at(0).abs(), greaterThan(0));
+        expect(motion('shin_r').at(0).abs(), closeTo(0, 1e-9));
+        expect(motion('shin_r').at(.5).abs(), greaterThan(0));
+        expect(motion('shin_l').at(.5).abs(), closeTo(0, 1e-9));
+        expect(motion('arm_r').at(0).abs(), greaterThan(0));
+        expect(motion('arm_l').at(.5).abs(), greaterThan(0));
+      }
+      final walk = MotionPresets.frontWalk.tracks.firstWhere((t) => t.role == 'shin_l').rotation!;
+      final run = MotionPresets.frontRun.tracks.firstWhere((t) => t.role == 'shin_l').rotation!;
+      expect(run.at(0).abs(), greaterThan(walk.at(0).abs()));
+    });
+
+    test('frontal presets support strength and mirror controls', () {
+      final bones = placed(BonePresets.humanoid);
+      for (final preset in [MotionPresets.frontWalk, MotionPresets.frontRun]) {
+        final normal = build(preset, bones);
+        final half = build(preset, bones, intensity: .5);
+        final mirrored = build(preset, bones, mirror: true);
+        expect(normal.missing, isEmpty);
+        expect(mirrored.missing, isEmpty);
+        expect(normal.frames, 12);
+        expect(normal.loop, isTrue);
+        for (var i = 0; i < normal.keyframes.length; i++) {
+          expect(half.keyframes[i].rotation, closeTo(normal.keyframes[i].rotation * .5, 1e-9));
+        }
+      }
+    });
+  });
+
+  group('front-facing one-shot actions', () {
+    test('jump and attack are discoverable, non-looping, centered and recover to rest', () {
+      expect(MotionPresets.byId('front_jump'), MotionPresets.frontJump);
+      expect(MotionPresets.byId('front_attack'), MotionPresets.frontAttack);
+      final bones = placed(BonePresets.humanoid);
+      for (final preset in [MotionPresets.frontJump, MotionPresets.frontAttack]) {
+        final result = build(preset, bones);
+        expect(result.missing, isEmpty);
+        expect(result.loop, isFalse);
+        for (final track in preset.tracks) {
+          expect(track.keys.first.t, 0);
+          expect(track.keys.last.t, 1);
+          expect(track.keys.last.rotation, 0);
+          expect(track.keys.every((key) => key.tx == 0), isTrue);
+          if (track.role != 'hips') expect(track.keys.every((key) => key.ty == 0), isTrue);
+        }
+        for (final bone in result.matched.values) {
+          final keys = result.keyframes.where((k) => k.boneId == bone.id).toList();
+          expect(keys.first.time, 0);
+          expect(keys.last.time, preset.frames - 1);
+          expect(keys.last.rotation, 0);
+          expect(keys.last.translation, Offset.zero);
+        }
+      }
+    });
+
+    test('front jump crouches, rises, lands and uses symmetric limb bends', () {
+      const jump = MotionPresets.frontJump;
+      final hips = jump.tracks.firstWhere((t) => t.role == 'hips').keys;
+      expect(hips.firstWhere((k) => k.t == .18).ty, greaterThan(0));
+      expect(hips.firstWhere((k) => k.t == .5).ty, lessThan(0));
+      expect(hips.firstWhere((k) => k.t == .82).ty, greaterThan(0));
+      for (final role in ['thigh', 'shin', 'arm', 'forearm']) {
+        final left = jump.tracks.firstWhere((t) => t.role == '${role}_l').keys;
+        final right = jump.tracks.firstWhere((t) => t.role == '${role}_r').keys;
+        for (var i = 0; i < left.length; i++) {
+          expect(left[i].t, right[i].t);
+          expect(left[i].rotation, -right[i].rotation);
+        }
+      }
+    });
+
+    test('front attack has a windup, cross-body follow-through and mirrors to the left', () {
+      const preset = MotionPresets.frontAttack;
+      final arm = preset.tracks.firstWhere((t) => t.role == 'arm_r').keys;
+      expect(arm.firstWhere((k) => k.t == .25).rotation, lessThan(-90));
+      expect(arm.firstWhere((k) => k.t == .58).rotation, greaterThan(0));
+      final bones = placed(BonePresets.humanoid);
+      for (final action in [MotionPresets.frontJump, preset]) {
+        final normal = build(action, bones);
+        final half = build(action, bones, intensity: .5);
+        final mirrored = build(action, bones, mirror: true);
+        expect(mirrored.missing, isEmpty);
+        for (var i = 0; i < normal.keyframes.length; i++) {
+          expect(half.keyframes[i].rotation, closeTo(normal.keyframes[i].rotation * .5, 1e-9));
+          expect(mirrored.keyframes[i].rotation, closeTo(-normal.keyframes[i].rotation, 1e-9));
+        }
+        expect(mirrored.matched['arm_r']!.name, 'arm_l');
+      }
+    });
+  });
+
   group('the catalogue', () {
     test('has unique ids, sane timing, and tracks', () {
       expect({for (final p in MotionPresets.all) p.id}.length, MotionPresets.all.length);
@@ -62,7 +210,10 @@ void main() {
     });
 
     test('every role an animation uses is a bone some skeleton preset really has', () {
-      final names = {for (final bp in BonePresets.all) for (final b in bp.bones) b.name};
+      final names = {
+        for (final bp in BonePresets.all)
+          for (final b in bp.bones) b.name
+      };
       for (final p in MotionPresets.all.where((p) => p.target == MotionTarget.roles)) {
         for (final role in p.roles) {
           expect(names.contains(role), isTrue, reason: '${p.name} uses "$role"');
@@ -73,8 +224,13 @@ void main() {
     test('each animation finds all of its bones on the skeleton it is made for', () {
       final cases = {
         'idle': BonePresets.humanoid,
+        'front_idle': BonePresets.humanoid,
         'walk': BonePresets.humanoid,
         'run': BonePresets.humanoid,
+        'front_walk': BonePresets.humanoid,
+        'front_run': BonePresets.humanoid,
+        'front_jump': BonePresets.humanoid,
+        'front_attack': BonePresets.humanoid,
         'jump': BonePresets.humanoid,
         'wave': BonePresets.humanoid,
         'attack': BonePresets.humanoid,
@@ -92,7 +248,18 @@ void main() {
 
     test('the simple humanoid runs everything except what needs a hand', () {
       final bones = placed(BonePresets.humanoidSimple);
-      for (final id in ['idle', 'walk', 'run', 'jump', 'attack']) {
+      for (final id in [
+        'idle',
+        'walk',
+        'run',
+        'front_idle',
+        'front_walk',
+        'front_run',
+        'front_jump',
+        'front_attack',
+        'jump',
+        'attack'
+      ]) {
         expect(build(MotionPresets.byId(id)!, bones).missing, isEmpty, reason: id);
       }
       expect(build(MotionPresets.wave, bones).missing, ['hand_r']);
@@ -118,7 +285,8 @@ void main() {
       final c = MotionBuilder.coverage(MotionPresets.wave, bones);
       expect(c.total, 5);
       expect(c.matched, 1, reason: 'only the head (arm_r, forearm_r... are absent)');
-      expect(MotionBuilder.coverage(MotionPresets.wave, bones, mirror: true).matched, 2, reason: 'mirrored, it looks for arm_l too');
+      expect(MotionBuilder.coverage(MotionPresets.wave, bones, mirror: true).matched, 2,
+          reason: 'mirrored, it looks for arm_l too');
       expect(MotionBuilder.coverage(MotionPresets.sway, bones), (matched: 0, total: 0), reason: 'selection based');
     });
 
@@ -195,7 +363,7 @@ void main() {
     });
 
     test('keyed motions put poses on the frames they name, easing between', () {
-      final jump = MotionPresets.jump;
+      const jump = MotionPresets.jump;
       final hips = keysOf(build(jump, humanoid), named('hips'));
       expect(hips.first.time, 0);
       expect(hips.last.time, jump.frames - 1, reason: 'a one-shot motion reaches its last frame');
@@ -213,7 +381,9 @@ void main() {
         category: 'x',
         frames: 4,
         fps: 8,
-        tracks: [MotionTrack('head', keys: [MotionKey(0), MotionKey(0.5, rotation: 10), MotionKey(1)])],
+        tracks: [
+          MotionTrack('head', keys: [MotionKey(0), MotionKey(0.5, rotation: 10), MotionKey(1)])
+        ],
       );
       final times = keysOf(build(loopy, humanoid), named('head')).map((k) => k.time);
       expect(times, [0, 2], reason: 'key t=1 wraps onto frame 0 instead of a fifth frame');

@@ -297,7 +297,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
   }
 
   List<EffectType> get _filteredEffects {
-    final workspaceFiltered = EffectType.values.where((type) {
+    final workspaceFiltered = EffectCatalog.availableTypes.where((type) {
       final descriptor = EffectCatalog.forType(type);
       if (_selectedWorkspace != null && descriptor.workspace != _selectedWorkspace) {
         return false;

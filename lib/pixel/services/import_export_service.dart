@@ -176,13 +176,30 @@ class ImportExportService {
       layers: layers,
     );
 
-    await Share.shareXFiles([
-      XFile.fromData(
-        ImageHelper.convertToBytes(pixels),
-        name: '${project.name}.png',
-        mimeType: 'image/png',
-      ),
-    ]);
+    // iPad/macOS popovers need a non-zero anchor rect, or share_plus throws.
+    final box = context.findRenderObject() as RenderBox?;
+    final Rect origin;
+    if (box != null && box.hasSize && !box.size.isEmpty) {
+      origin = box.localToGlobal(Offset.zero) & box.size;
+    } else {
+      final size = MediaQuery.sizeOf(context);
+      origin = Rect.fromCenter(
+        center: Offset(size.width / 2, size.height / 2),
+        width: 1,
+        height: 1,
+      );
+    }
+
+    await Share.shareXFiles(
+      [
+        XFile.fromData(
+          ImageHelper.convertToBytes(pixels),
+          name: '${project.name}.png',
+          mimeType: 'image/png',
+        ),
+      ],
+      sharePositionOrigin: origin,
+    );
   }
 
   Future<Uint8List> importImageBytes({

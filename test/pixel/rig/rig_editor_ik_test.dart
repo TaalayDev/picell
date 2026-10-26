@@ -85,7 +85,8 @@ void main() {
       c.setIkTarget(id, const Offset(8.5, 10.5));
       c.deleteBone('thigh');
       expect(c.rig.ikChains, hasLength(1));
-      expect(c.rig.chainBones(c.rig.ikChains.single).map((b) => b.id), ['hip', 'shin'], reason: 'shin now hangs from hip');
+      expect(c.rig.chainBones(c.rig.ikChains.single).map((b) => b.id), ['hip', 'shin'],
+          reason: 'shin now hangs from hip');
       c.deleteBone('shin');
       expect(c.rig.ikChains, isEmpty);
       expect(c.rig.clips.single.ikKeyframes, isEmpty);
@@ -97,7 +98,7 @@ void main() {
       expect(c.ikChainsOf('thigh').map((x) => x.id), [id]);
       expect(c.ikChainsOf('hip'), isEmpty);
       expect(c.isIkDriven('thigh'), isFalse, reason: 'no target keys yet: the chain is off');
-      c.setIkTarget(id, const Offset(10.5, 8.5));
+      c.setIkTarget(id, const Offset(10.5, 9));
       expect(c.isIkDriven('thigh'), isTrue);
       expect(c.isIkDriven('hip'), isFalse);
     });
@@ -123,8 +124,8 @@ void main() {
 
     test('setting a target keys it at the current frame, snapped, and the foot goes there', () {
       c.setIkTarget(id, const Offset(10.3, 8.8));
-      expect(c.ikKeyAt(id, 0)!.target, const Offset(10.5, 8.5));
-      expect((foot(c) - const Offset(10.5, 8.5)).distance, lessThan(onThePixel));
+      expect(c.ikKeyAt(id, 0)!.target, const Offset(10.5, 9));
+      expect((foot(c) - const Offset(10.5, 9)).distance, lessThan(onThePixel));
     });
 
     test('targets interpolate between frames and the foot follows', () {
@@ -160,7 +161,7 @@ void main() {
     });
 
     test('deleting the only key switches the chain off again', () {
-      c.setIkTarget(id, const Offset(10.5, 8.5));
+      c.setIkTarget(id, const Offset(10.5, 9));
       c.deleteIkKey(id, 0);
       expect(c.ikTarget(id), isNull);
       expect(c.ikKeyTimes(id), isEmpty);
@@ -169,7 +170,7 @@ void main() {
     test('shrinking the clip drops target keys past the end', () {
       c.setClipLength(8);
       c.setTime(6);
-      c.setIkTarget(id, const Offset(10.5, 8.5));
+      c.setIkTarget(id, const Offset(10.5, 9));
       c.setClipLength(4);
       expect(c.ikKeyTimes(id), isEmpty);
     });

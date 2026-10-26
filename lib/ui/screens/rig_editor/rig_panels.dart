@@ -4,6 +4,8 @@ import '../../../data/models/layer.dart';
 import '../../../data/models/rig/rig.dart';
 import '../../../pixel/rig/rig_editor_controller.dart';
 import 'rig_presets_dialogs.dart';
+import 'rig_workflow_panel.dart';
+import 'package:flutter/services.dart';
 
 /// Right-hand panel of the rig editor: bone tree, layer assignment and the
 /// selected bone's properties. Rebuilds from [controller].
@@ -41,6 +43,7 @@ class RigSidePanel extends StatelessWidget {
               _SectionHeader('Poses', count: controller.savedPoses.length),
               _PosesSection(controller: controller),
             ],
+            RigWorkflowPanel(controller: controller),
           ],
         );
       },
@@ -71,7 +74,7 @@ class _SectionHeader extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              color: theme.colorScheme.onSurfaceVariant,
               fontFamily: 'monospace',
             ),
           ),
@@ -79,7 +82,7 @@ class _SectionHeader extends StatelessWidget {
           if (count != null)
             Text(
               '$count',
-              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
         ],
       ),
@@ -106,7 +109,7 @@ class _BoneTree extends StatelessWidget {
           children: [
             Text(
               'Pick the bone tool and drag on the canvas to draw your first bone.',
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             if (controller.mode == RigMode.setup)
               TextButton.icon(
@@ -143,11 +146,13 @@ class _BoneRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final selected = controller.selectedBoneId == bone.id;
+    final selected = controller.selectedBoneIds.contains(bone.id);
     return Material(
       color: selected ? theme.colorScheme.primary.withValues(alpha: 0.14) : Colors.transparent,
       child: InkWell(
-        onTap: () => controller.selectBone(bone.id),
+        onTap: () => HardwareKeyboard.instance.isShiftPressed
+            ? controller.toggleBoneSelection(bone.id)
+            : controller.selectBone(bone.id),
         child: SizedBox(
           height: 30,
           child: Padding(
@@ -157,7 +162,7 @@ class _BoneRow extends StatelessWidget {
                 Icon(
                   depth == 0 ? Icons.account_tree_outlined : Icons.subdirectory_arrow_right,
                   size: 14,
-                  color: selected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: selected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -169,6 +174,19 @@ class _BoneRow extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (controller.mode == RigMode.animate)
+                  SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: IconButton(
+                        key: ValueKey('freeze-joint-${bone.id}'),
+                        padding: EdgeInsets.zero,
+                        tooltip: controller.hasJointFreeze(bone.id) ? 'Unfreeze ${bone.name}' : 'Freeze ${bone.name}',
+                        icon: Icon(controller.hasJointFreeze(bone.id) ? Icons.lock : Icons.lock_open, size: 14),
+                        onPressed: () => controller.hasJointFreeze(bone.id)
+                            ? controller.unfreezeJoint(bone.id)
+                            : controller.freezeJoint(bone.id),
+                      )),
                 PopupMenuButton<_BoneAction>(
                   tooltip: 'Bone actions',
                   padding: EdgeInsets.zero,
@@ -176,9 +194,14 @@ class _BoneRow extends StatelessWidget {
                   icon: const Icon(Icons.more_vert),
                   onSelected: (action) => _run(context, action),
                   itemBuilder: (_) => [
+                    if (controller.mode == RigMode.animate)
+                      PopupMenuItem(
+                          value: _BoneAction.freeze,
+                          child: Text(controller.hasJointFreeze(bone.id) ? 'Unfreeze joint' : 'Freeze joint')),
                     const PopupMenuItem(value: _BoneAction.rename, child: Text('Rename')),
-                    const PopupMenuItem(value: _BoneAction.setParent, child: Text('Set parent…')),
-                    if (bone.parentId != null) const PopupMenuItem(value: _BoneAction.unparent, child: Text('Make root')),
+                    const PopupMenuItem(value: _BoneAction.setParent, child: Text('Connect joints…')),
+                    if (bone.parentId != null)
+                      const PopupMenuItem(value: _BoneAction.unparent, child: Text('Disconnect')),
                     const PopupMenuItem(value: _BoneAction.delete, child: Text('Delete')),
                   ],
                 ),
@@ -192,12 +215,14 @@ class _BoneRow extends StatelessWidget {
 
   Future<void> _run(BuildContext context, _BoneAction action) async {
     switch (action) {
+      case _BoneAction.freeze:
+        controller.hasJointFreeze(bone.id) ? controller.unfreezeJoint(bone.id) : controller.freezeJoint(bone.id);
       case _BoneAction.rename:
         final name = await showRenameBoneDialog(context, bone.name);
         if (name != null) controller.renameBone(bone.id, name);
       case _BoneAction.setParent:
         final parent = await _pickParent(context);
-        if (parent != null) controller.reparent(bone.id, parent.id);
+        if (parent != null) controller.connectToBone(bone.id, parent.id);
       case _BoneAction.unparent:
         controller.reparent(bone.id, null);
       case _BoneAction.delete:
@@ -214,12 +239,11 @@ class _BoneRow extends StatelessWidget {
     return showDialog<Bone>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: Text('Parent of ${bone.name}'),
+        title: Text('Connect ${bone.name} to'),
         children: [
           if (options.isEmpty)
             const Padding(padding: EdgeInsets.all(16), child: Text('There are no other bones to attach to.')),
-          for (final b in options)
-            SimpleDialogOption(onPressed: () => Navigator.pop(context, b), child: Text(b.name)),
+          for (final b in options) SimpleDialogOption(onPressed: () => Navigator.pop(context, b), child: Text(b.name)),
         ],
       ),
     );
@@ -238,7 +262,7 @@ class _BoneRow extends StatelessWidget {
   }
 }
 
-enum _BoneAction { rename, setParent, unparent, delete }
+enum _BoneAction { freeze, rename, setParent, unparent, delete }
 
 Future<String?> showRenameBoneDialog(BuildContext context, String current) =>
     showNameDialog(context, title: 'Rename bone', initial: current, action: 'Rename');
@@ -303,7 +327,7 @@ class _PartRow extends StatelessWidget {
     final key = layer.stableKey!;
     final bone = controller.boneOfLayer(key);
     final armed = controller.activeLayerKey == key;
-    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.5);
+    final muted = theme.colorScheme.onSurfaceVariant;
 
     // Tapping the row arms the layer: the next bone drawn is bound to it.
     return Material(
@@ -391,7 +415,7 @@ class _BoneProperties extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
           child: Row(
             children: [
-              Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+              Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               const Spacer(),
               Text(value, style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace')),
             ],
@@ -402,20 +426,107 @@ class _BoneProperties extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
-        stat('Joint', '${bone.head.dx.floor()}, ${bone.head.dy.floor()}'),
-        stat('Length', '${bone.length.toStringAsFixed(1)} px'),
-        stat('Angle', '${bone.restAngle.toStringAsFixed(0)}°'),
+        SwitchListTile(
+            dense: true,
+            title: const Text('Move connected chain'),
+            value: controller.moveConnectedChain,
+            onChanged: controller.setConnectedGeometry),
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(children: [
+            Row(children: [
+              Expanded(
+                  child: _BoneNumber(
+                      label: 'X',
+                      value: bone.head.dx,
+                      onApply: (v) {
+                        controller.setBoneGeometry(bone.id, x: v);
+                        return controller.bone(bone.id)!.head.dx;
+                      })),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: _BoneNumber(
+                      label: 'Y',
+                      value: bone.head.dy,
+                      onApply: (v) {
+                        controller.setBoneGeometry(bone.id, y: v);
+                        return controller.bone(bone.id)!.head.dy;
+                      })),
+            ]),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(
+                  child: _BoneNumber(
+                      label: 'Length',
+                      value: bone.length,
+                      minimum: .5,
+                      onApply: (v) {
+                        controller.setBoneGeometry(bone.id, length: v);
+                        return controller.bone(bone.id)!.length;
+                      })),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: _BoneNumber(
+                      label: 'Angle',
+                      value: bone.restAngle,
+                      onApply: (v) {
+                        controller.setBoneGeometry(bone.id, angle: v);
+                        return controller.bone(bone.id)!.restAngle;
+                      })),
+            ]),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(
+                  child: _BoneNumber(
+                      label: 'Tail X',
+                      value: bone.tail.dx,
+                      onApply: (v) {
+                        controller.setBoneEndpoint(bone.id, Offset(v, bone.tail.dy));
+                        return controller.bone(bone.id)!.tail.dx;
+                      })),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: _BoneNumber(
+                      label: 'Tail Y',
+                      value: bone.tail.dy,
+                      onApply: (v) {
+                        controller.setBoneEndpoint(bone.id, Offset(bone.tail.dx, v));
+                        return controller.bone(bone.id)!.tail.dy;
+                      })),
+            ]),
+            const SizedBox(height: 6),
+            Text('Enter to apply · 0.5 px steps',
+                style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          ]),
+        ),
         SwitchListTile(
           dense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 10),
           title: Text('Limit rotation', style: theme.textTheme.bodySmall),
           value: limited,
-          onChanged: (on) => on
-              ? controller.setBoneLimits(bone.id, min: -90, max: 90)
-              : controller.setBoneLimits(bone.id),
+          onChanged: (on) =>
+              on ? controller.setBoneLimits(bone.id, min: -90, max: 90) : controller.setBoneLimits(bone.id),
         ),
         if (limited) ...[
           stat('Range', '${min.round()}° to ${max.round()}°'),
+          Row(children: [
+            Expanded(
+                child: _BoneNumber(
+                    label: 'Min angle',
+                    value: min,
+                    onApply: (v) {
+                      controller.setBoneLimits(bone.id, min: v, max: max);
+                      return controller.bone(bone.id)!.minAngle!;
+                    })),
+            Expanded(
+                child: _BoneNumber(
+                    label: 'Max angle',
+                    value: max,
+                    onApply: (v) {
+                      controller.setBoneLimits(bone.id, min: min, max: v);
+                      return controller.bone(bone.id)!.maxAngle!;
+                    })),
+          ]),
           RangeSlider(
             values: RangeValues(min.clamp(-180, 180).toDouble(), max.clamp(-180, 180).toDouble()),
             min: -180,
@@ -428,6 +539,74 @@ class _BoneProperties extends StatelessWidget {
       ],
     );
   }
+}
+
+class _BoneNumber extends StatefulWidget {
+  const _BoneNumber({required this.label, required this.value, required this.onApply, this.minimum});
+  final String label;
+  final double value;
+  final double? minimum;
+  final double Function(double) onApply;
+  @override
+  State<_BoneNumber> createState() => _BoneNumberState();
+}
+
+class _BoneNumberState extends State<_BoneNumber> {
+  late final TextEditingController _text = TextEditingController(text: widget.value.toStringAsFixed(1));
+  @override
+  void didUpdateWidget(covariant _BoneNumber oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) _text.text = widget.value.toStringAsFixed(1);
+  }
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => TextFormField(
+        key: ValueKey('bone-number-${widget.label}'),
+        controller: _text,
+        style: Theme.of(context).textTheme.bodySmall,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+        decoration: InputDecoration(
+            labelText: widget.label,
+            isDense: true,
+            border: const OutlineInputBorder(),
+            suffixIcon: SizedBox(
+                width: 40,
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  InkWell(
+                      onTap: () {
+                        final value = widget.onApply(
+                            widget.value + ((widget.label.contains('angle') || widget.label == 'Angle') ? 1 : .5));
+                        _text.text = value.toStringAsFixed(1);
+                      },
+                      child: const Icon(Icons.arrow_drop_up, size: 18)),
+                  InkWell(
+                      onTap: () {
+                        final n = widget.value - ((widget.label.contains('angle') || widget.label == 'Angle') ? 1 : .5);
+                        if (widget.minimum != null && n < widget.minimum!) return;
+                        final value = widget.onApply(n);
+                        _text.text = value.toStringAsFixed(1);
+                      },
+                      child: const Icon(Icons.arrow_drop_down, size: 18)),
+                ]))),
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        validator: (text) {
+          final n = double.tryParse(text ?? '');
+          return n == null || !n.isFinite || (widget.minimum != null && n < widget.minimum!) ? 'Invalid value' : null;
+        },
+        onFieldSubmitted: (text) {
+          final value = double.tryParse(text);
+          if (value == null || !value.isFinite || (widget.minimum != null && value < widget.minimum!)) return;
+          final actual = widget.onApply(value);
+          _text.text = actual.toStringAsFixed(1);
+          FocusScope.of(context).unfocus();
+        },
+      );
 }
 
 // ── Pose (animate mode) ─────────────────────────────────────────────────────
@@ -450,12 +629,21 @@ class _PoseSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final bone = controller.selectedBone;
     if (bone == null) return const SizedBox.shrink();
+    if (controller.jointFrozenAt(bone.id, controller.time)) {
+      return Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(children: [
+            Text('Joint frozen in this clip. Parent motion and IK cannot move it.',
+                style: Theme.of(context).textTheme.bodySmall),
+            TextButton(onPressed: () => controller.unfreezeJoint(bone.id), child: const Text('Unfreeze joint')),
+          ]));
+    }
     final theme = Theme.of(context);
     final driven = controller.isIkDriven(bone.id);
     // An IK-driven bone's own rotation key is only a starting guess.
     final pose = driven ? controller.shownPoseOf(bone.id) : controller.poseOf(bone.id);
     final key = controller.keyAt(bone.id, controller.time);
-    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final muted = theme.colorScheme.onSurfaceVariant;
 
     Widget stat(String label, String value) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
@@ -494,7 +682,8 @@ class _PoseSection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(10, 6, 10, 0),
           child: Row(
             children: [
-              Icon(key == null ? Icons.timeline : Icons.diamond, size: 14, color: key == null ? muted : theme.colorScheme.primary),
+              Icon(key == null ? Icons.timeline : Icons.diamond,
+                  size: 14, color: key == null ? muted : theme.colorScheme.primary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -511,7 +700,8 @@ class _PoseSection extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: key == null
                 ? TextButton(onPressed: () => controller.keyBone(bone.id), child: const Text('Add key'))
-                : TextButton(onPressed: () => controller.deleteKey(bone.id, controller.time), child: const Text('Remove key')),
+                : TextButton(
+                    onPressed: () => controller.deleteKey(bone.id, controller.time), child: const Text('Remove key')),
           ),
         ),
         if (key != null)
@@ -550,7 +740,7 @@ class _IkSection extends StatelessWidget {
     final bone = controller.selectedBone;
     if (bone == null) return const SizedBox.shrink();
     final theme = Theme.of(context);
-    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final muted = theme.colorScheme.onSurfaceVariant;
     final hint = theme.textTheme.bodySmall?.copyWith(color: muted);
 
     final chain = controller.selectedIkChain;
@@ -602,7 +792,7 @@ class _ChainControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final muted = theme.colorScheme.onSurfaceVariant;
     final animating = controller.mode == RigMode.animate;
     final most = controller.rig.maxChainLength(chain.tipBoneId);
     final key = controller.ikKeyAt(chain.id, controller.time);
@@ -633,14 +823,17 @@ class _ChainControls extends StatelessWidget {
                 tooltip: 'Fewer bones in the chain',
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.remove, size: 14),
-                onPressed: chain.boneCount > 1 ? () => controller.setIkChain(chain.id, boneCount: chain.boneCount - 1) : null,
+                onPressed:
+                    chain.boneCount > 1 ? () => controller.setIkChain(chain.id, boneCount: chain.boneCount - 1) : null,
               ),
               Text('${controller.rig.chainBones(chain).length}', style: theme.textTheme.bodySmall),
               IconButton(
                 tooltip: 'More bones in the chain',
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.add, size: 14),
-                onPressed: chain.boneCount < most ? () => controller.setIkChain(chain.id, boneCount: chain.boneCount + 1) : null,
+                onPressed: chain.boneCount < most
+                    ? () => controller.setIkChain(chain.id, boneCount: chain.boneCount + 1)
+                    : null,
               ),
             ],
           ),
@@ -665,11 +858,13 @@ class _ChainControls extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    !active
-                        ? 'Off: drag the ring to place the target'
-                        : key == null
-                            ? 'Target between keys'
-                            : 'Target keyed on this frame',
+                    key?.planted == true
+                        ? 'Foot planted on this frame'
+                        : !active
+                            ? 'Off: drag the ring to place the target'
+                            : key == null
+                                ? 'Target between keys'
+                                : 'Target keyed on this frame',
                     style: theme.textTheme.bodySmall?.copyWith(color: key == null ? muted : theme.colorScheme.tertiary),
                   ),
                 ),
@@ -734,7 +929,7 @@ class _PosesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final muted = theme.colorScheme.onSurfaceVariant;
     final poses = controller.savedPoses;
 
     return Column(

@@ -12,6 +12,50 @@ int? _getInt(Map<String, dynamic> json, String key) {
   return int.tryParse(json[key]?.toString() ?? '');
 }
 
+/// A full-canvas template layer, ordered bottom to top in its template.
+class TemplateLayer extends Equatable {
+  final String name;
+  final Uint32List pixels;
+  final bool isVisible;
+  final bool isLocked;
+  final double opacity;
+
+  const TemplateLayer(
+      {required this.name, required this.pixels, this.isVisible = true, this.isLocked = false, this.opacity = 1});
+
+  factory TemplateLayer.fromJson(Map<String, dynamic> json) => TemplateLayer(
+        name: json['name'] as String? ?? 'Layer',
+        pixels: Uint32List.fromList(List<int>.from(json['pixels'] as List)),
+        isVisible: json['is_visible'] as bool? ?? true,
+        isLocked: json['is_locked'] as bool? ?? false,
+        opacity: ((json['opacity'] as num?)?.toDouble() ?? 1).clamp(0, 1),
+      );
+
+  Map<String, dynamic> toJson() =>
+      {'name': name, 'pixels': pixels.toList(), 'is_visible': isVisible, 'is_locked': isLocked, 'opacity': opacity};
+
+  @override
+  List<Object?> get props => [name, pixels, isVisible, isLocked, opacity];
+}
+
+/// Composite layers for previews and compatibility with flat template consumers.
+Uint32List compositeTemplateLayers(List<TemplateLayer> layers, int width, int height) {
+  final result = Uint32List(width * height);
+  for (final layer in layers) {
+    if (!layer.isVisible) continue;
+    for (var i = 0; i < result.length && i < layer.pixels.length; i++) {
+      final src = layer.pixels[i], dst = result[i];
+      final a = (src >>> 24) / 255 * layer.opacity.clamp(0, 1);
+      if (a == 0) continue;
+      final b = (dst >>> 24) / 255 * (1 - a);
+      final alpha = a + b;
+      int channel(int shift) => ((((src >> shift) & 255) * a + ((dst >> shift) & 255) * b) / alpha).round();
+      result[i] = (alpha * 255).round() << 24 | channel(16) << 16 | channel(8) << 8 | channel(0);
+    }
+  }
+  return result;
+}
+
 /// Represents a pixel art template that can be applied to the canvas
 class Template extends Equatable {
   final int? id;
@@ -39,6 +83,8 @@ class Template extends Equatable {
   /// Ordered source parts of an assembled builder template (bottom to top).
   final List<Template> builderParts;
 
+  final List<TemplateLayer> layers;
+
   const Template({
     this.id,
     required this.name,
@@ -62,18 +108,24 @@ class Template extends Equatable {
     this.createdBy,
     this.isPro = false,
     this.builderParts = const [],
+    this.layers = const [],
   });
 
   /// Create Template from JSON
   factory Template.fromJson(Map<String, dynamic> json) {
     final width = int.tryParse(json['width'].toString()) ?? 0;
     final height = int.tryParse(json['height'].toString()) ?? 0;
+    final layers = (json['layers'] as List? ?? [])
+        .map((item) => TemplateLayer.fromJson(Map<String, dynamic>.from(item as Map)))
+        .toList();
     return Template(
+      layers: layers,
       id: int.tryParse(json['id'].toString()),
       name: json['name'] as String,
       width: width,
       height: height,
       pixels: () {
+        if (layers.isNotEmpty) return compositeTemplateLayers(layers, width, height);
         if (json['pixels'] == null) return Uint32List(width * height);
         if (json['pixels'] is String) {
           return Uint32List.fromList((json['pixels'] as String).split(',').map((p) => int.parse(p.trim())).toList());
@@ -108,6 +160,7 @@ class Template extends Equatable {
       'width': width,
       'height': height,
       'pixels': pixels,
+      if (layers.isNotEmpty) 'layers': layers.map((layer) => layer.toJson()).toList(),
       if (description != null) 'description': description,
       if (category != null) 'category': category,
       'tags': tags,
@@ -147,13 +200,15 @@ class Template extends Equatable {
     int? downloadCount,
     bool? isLiked,
     String? createdBy,
+    List<TemplateLayer>? layers,
   }) {
     return Template(
       id: id ?? this.id,
       name: name ?? this.name,
       width: width ?? this.width,
       height: height ?? this.height,
-      pixels: pixels ?? this.pixels,
+      pixels: pixels ??
+          (layers == null ? this.pixels : compositeTemplateLayers(layers, width ?? this.width, height ?? this.height)),
       description: description ?? this.description,
       category: category ?? this.category,
       tags: tags ?? this.tags,
@@ -170,6 +225,8 @@ class Template extends Equatable {
       isLiked: isLiked ?? this.isLiked,
       createdBy: createdBy ?? this.createdBy,
       builderParts: builderParts,
+      layers: layers ?? this.layers,
+      isPro: isPro,
     );
   }
 
@@ -237,7 +294,9 @@ class Template extends Equatable {
         isAsset,
         isLiked,
         createdBy,
-        isPro
+        isPro,
+        layers,
+        builderParts
       ];
 
   @override

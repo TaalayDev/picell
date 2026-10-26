@@ -39,6 +39,9 @@ class BonePreset {
   /// attaches to the selected bone and starts small.
   final bool addOn;
 
+  /// Native canvas for modular artwork whose transparent margins matter.
+  final Size? alignedCanvasSize;
+
   const BonePreset({
     required this.id,
     required this.name,
@@ -46,6 +49,7 @@ class BonePreset {
     required this.bones,
     this.ik = const [],
     this.addOn = false,
+    this.alignedCanvasSize,
   });
 
   /// The width to height of the shape the preset is drawn in, as a hint for
@@ -117,6 +121,38 @@ abstract final class BonePresets {
       PresetIk('arm_r_ik', 'forearm_r'),
       PresetIk('leg_l_ik', 'shin_l'),
       PresetIk('leg_r_ik', 'shin_r'),
+    ],
+  );
+
+  static const humanoidSide = BonePreset(
+    id: 'humanoid_side',
+    name: 'Humanoid (side profile)',
+    description:
+        'Right-facing character with near and far limbs. Matches the 32×32 Side Character Builder. Mirror for left-facing artwork.',
+    alignedCanvasSize: Size(32, 32),
+    bones: [
+      PresetBone('hips', null, Offset(16.5 / 32, 21.5 / 32), Offset(16.5 / 32, 18.5 / 32)),
+      PresetBone('spine', 'hips', Offset(16.5 / 32, 18.5 / 32), Offset(16.5 / 32, 13.5 / 32)),
+      PresetBone('neck', 'spine', Offset(16.5 / 32, 13.5 / 32), Offset(16.5 / 32, 11.5 / 32)),
+      PresetBone('head', 'neck', Offset(16.5 / 32, 11.5 / 32), Offset(17.5 / 32, 4.5 / 32)),
+      PresetBone('arm_l', 'spine', Offset(14.5 / 32, 13.5 / 32), Offset(12.5 / 32, 17.5 / 32)),
+      PresetBone('forearm_l', 'arm_l', Offset(12.5 / 32, 17.5 / 32), Offset(12.5 / 32, 21.5 / 32)),
+      PresetBone('hand_l', 'forearm_l', Offset(12.5 / 32, 21.5 / 32), Offset(13.5 / 32, 23.5 / 32)),
+      PresetBone('arm_r', 'spine', Offset(18.5 / 32, 13.5 / 32), Offset(19.5 / 32, 17.5 / 32)),
+      PresetBone('forearm_r', 'arm_r', Offset(19.5 / 32, 17.5 / 32), Offset(20.5 / 32, 21.5 / 32)),
+      PresetBone('hand_r', 'forearm_r', Offset(20.5 / 32, 21.5 / 32), Offset(21.5 / 32, 23.5 / 32)),
+      PresetBone('thigh_l', 'hips', Offset(15.5 / 32, 21.5 / 32), Offset(14.5 / 32, 25.5 / 32)),
+      PresetBone('shin_l', 'thigh_l', Offset(14.5 / 32, 25.5 / 32), Offset(14.5 / 32, 29.5 / 32)),
+      PresetBone('foot_l', 'shin_l', Offset(14.5 / 32, 29.5 / 32), Offset(18.5 / 32, 30.5 / 32)),
+      PresetBone('thigh_r', 'hips', Offset(17.5 / 32, 21.5 / 32), Offset(18.5 / 32, 25.5 / 32)),
+      PresetBone('shin_r', 'thigh_r', Offset(18.5 / 32, 25.5 / 32), Offset(18.5 / 32, 29.5 / 32)),
+      PresetBone('foot_r', 'shin_r', Offset(18.5 / 32, 29.5 / 32), Offset(22.5 / 32, 30.5 / 32)),
+    ],
+    ik: [
+      PresetIk('arm_l_ik', 'forearm_l'),
+      PresetIk('arm_r_ik', 'forearm_r'),
+      PresetIk('leg_l_ik', 'foot_l', boneCount: 3),
+      PresetIk('leg_r_ik', 'foot_r', boneCount: 3),
     ],
   );
 
@@ -194,14 +230,22 @@ abstract final class BonePresets {
     description: 'A body made of five bones in a row, for swimming with a wave down the spine. Faces left.',
     bones: _chain(
       'fish',
-      const [Offset(0.02, 0.5), Offset(0.24, 0.5), Offset(0.46, 0.5), Offset(0.68, 0.5), Offset(0.84, 0.5), Offset(0.98, 0.5)],
+      const [
+        Offset(0.02, 0.5),
+        Offset(0.24, 0.5),
+        Offset(0.46, 0.5),
+        Offset(0.68, 0.5),
+        Offset(0.84, 0.5),
+        Offset(0.98, 0.5)
+      ],
     ),
   );
 
   static final tail = BonePreset(
     id: 'tail',
     name: 'Tail',
-    description: 'Four bones in a row. Add it to a selected bone to give a character a tail, or use it for a rope or hair.',
+    description:
+        'Four bones in a row. Add it to a selected bone to give a character a tail, or use it for a rope or hair.',
     bones: _chain(
       'tail',
       const [Offset(0.0, 0.5), Offset(0.25, 0.5), Offset(0.5, 0.5), Offset(0.75, 0.5), Offset(1.0, 0.5)],
@@ -247,7 +291,18 @@ abstract final class BonePresets {
   );
 
   /// Everything on offer, characters first.
-  static final all = <BonePreset>[humanoid, humanoidSimple, quadruped, bird, fish, tail, tentacle, arm, leg];
+  static final all = <BonePreset>[
+    humanoid,
+    humanoidSide,
+    humanoidSimple,
+    quadruped,
+    bird,
+    fish,
+    tail,
+    tentacle,
+    arm,
+    leg
+  ];
 
   static BonePreset? byId(String id) {
     for (final p in all) {
@@ -309,9 +364,7 @@ abstract final class BonePresetBuilder {
         // A bone squeezed to under a pixel keeps one pixel of length, along
         // the way it points.
         final raw = flip ? Offset(pb.head.dx - pb.tail.dx, pb.tail.dy - pb.head.dy) : pb.tail - pb.head;
-        delta = raw.dx.abs() >= raw.dy.abs()
-            ? Offset(raw.dx < 0 ? -1 : 1, 0)
-            : Offset(0, raw.dy < 0 ? -1 : 1);
+        delta = raw.dx.abs() >= raw.dy.abs() ? Offset(raw.dx < 0 ? -1 : 1, 0) : Offset(0, raw.dy < 0 ? -1 : 1);
         tail = head + delta;
       }
 

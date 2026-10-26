@@ -36,7 +36,14 @@ class Bone with EquatableMixin {
   /// [restAngle] (0 = right, 90 = down).
   Offset get tail {
     final r = restAngle * math.pi / 180;
-    return head + Offset(math.cos(r), math.sin(r)) * length;
+    final point = head + Offset(math.cos(r), math.sin(r)) * length;
+    // Remove trigonometric roundoff at exact half-pixel joints.
+    double clean(double value) {
+      final half = (value * 2).roundToDouble() / 2;
+      return (value - half).abs() < 1e-10 ? half : value;
+    }
+
+    return Offset(clean(point.dx), clean(point.dy));
   }
 
   Bone copyWith({
@@ -78,9 +85,7 @@ class Bone with EquatableMixin {
       id: json['id'] as String,
       name: json['name'] as String? ?? '',
       parentId: json['parentId'] as String?,
-      head: head == null
-          ? Offset.zero
-          : Offset((head['dx'] as num).toDouble(), (head['dy'] as num).toDouble()),
+      head: head == null ? Offset.zero : Offset((head['dx'] as num).toDouble(), (head['dy'] as num).toDouble()),
       length: (json['length'] as num?)?.toDouble() ?? 0,
       restAngle: (json['restAngle'] as num?)?.toDouble() ?? 0,
       minAngle: (json['minAngle'] as num?)?.toDouble(),

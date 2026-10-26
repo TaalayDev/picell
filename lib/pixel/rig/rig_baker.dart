@@ -5,7 +5,6 @@ import '../../data/models/rig/rig.dart';
 import '../pixel_utils.dart';
 import 'affine2.dart';
 import 'part_rasterizer.dart';
-import 'pose_interpolator.dart';
 import 'rig_solver.dart';
 
 /// Turns a [Rig] and one of its [RigClip]s into pixel frames.
@@ -28,8 +27,7 @@ class RigBaker {
   /// bones, plus layers no bone drives, which stay where they are. Always a
   /// new buffer.
   Uint32List bakeFrame(RigClip clip, double time) {
-    final poses = PoseInterpolator.sample(clip, rig.bones, time);
-    final world = RigSolver.solveIk(rig, poses, PoseInterpolator.sampleIk(clip, rig.ikChains, time)).world;
+    final world = RigSolver.solveClip(rig, clip, time).world;
     final bones = {for (final bone in rig.bones) bone.id: bone};
     final byKey = {
       for (final layer in layers)
@@ -62,8 +60,14 @@ class RigBaker {
       } else {
         final bone = bones[part.boneId];
         if (bone == null) continue;
-        final pivot = part.pivotOverride ?? bone.head;
-        final transform = (world[bone.id] ?? Affine2.identity).withIntegerDisplacementAt(pivot);
+        // Keep the exact shared joint transform; nearest-neighbour rasterization
+        // still preserves the source palette without independently moving joints.
+        var transform = world[bone.id] ?? Affine2.identity;
+        final socket = rig.attachments.where((a) => a.id == part.attachmentId).firstOrNull;
+        if (socket != null) {
+          final pivot = part.pivotOverride ?? bone.head;
+          transform = Affine2.translation(-pivot.dx, -pivot.dy).then(RigSolver.attachmentTransform(rig, socket, world));
+        }
         pixels = _rasterize(part, layer, transform);
       }
 

@@ -17,6 +17,37 @@ void main() {
       }
     });
 
+    test('new artwork exposes only the five supported generators', () {
+      final available = EffectCatalog.availableTypes.toSet();
+      final generators = available.where((type) =>
+          EffectCatalog.forType(type).role == EffectRole.generator).toSet();
+      expect(generators, {
+        EffectType.city, EffectType.forest, EffectType.mountainRange,
+        EffectType.cloudFormation, EffectType.ocean,
+      });
+      for (final type in EffectType.values) {
+        if (EffectCatalog.forType(type).role != EffectRole.generator) {
+          expect(available, contains(type));
+        }
+      }
+    });
+
+    test('retired generators still deserialize and render saved projects', () {
+      final retired = EffectCatalog.inWorkspace(EffectWorkspace.generators)
+          .where((descriptor) => !EffectCatalog.isAvailable(descriptor.type));
+      expect(retired.length, 13);
+      for (final descriptor in retired) {
+        final original = EffectsManager.createEffect(descriptor.type);
+        final restored = EffectsManager.effectFromJson({
+          'type': descriptor.type.name, 'parameters': original.parameters,
+        });
+        expect(restored, isNotNull, reason: descriptor.type.name);
+        expect(restored!.type, descriptor.type);
+        expect(restored.apply(Uint32List(1024), 32, 32).any((p) => p >> 24 != 0),
+            isTrue, reason: descriptor.type.name);
+      }
+    });
+
     test('matches the approved workspace inventory', () {
       expect(_count(EffectWorkspace.filters), 60);
       expect(_count(EffectWorkspace.materials), 18);

@@ -14,6 +14,9 @@ class IkChain with EquatableMixin {
   final String name;
   final String tipBoneId;
 
+  /// Optional named contact socket, otherwise the bone tail is used.
+  final String? tipSocketId;
+
   /// How many bones, counting the tip, take part. At least 1.
   final int boneCount;
 
@@ -24,16 +27,19 @@ class IkChain with EquatableMixin {
   const IkChain({
     required this.id,
     required this.tipBoneId,
+    this.tipSocketId,
     this.name = 'IK',
     this.boneCount = 2,
     this.bend = 1,
   });
 
-  IkChain copyWith({String? id, String? name, String? tipBoneId, int? boneCount, int? bend}) {
+  IkChain copyWith(
+      {String? id, String? name, String? tipBoneId, int? boneCount, int? bend, String? Function()? tipSocketId}) {
     return IkChain(
       id: id ?? this.id,
       name: name ?? this.name,
       tipBoneId: tipBoneId ?? this.tipBoneId,
+      tipSocketId: tipSocketId != null ? tipSocketId() : this.tipSocketId,
       boneCount: boneCount ?? this.boneCount,
       bend: bend ?? this.bend,
     );
@@ -43,6 +49,7 @@ class IkChain with EquatableMixin {
         'id': id,
         'name': name,
         'tipBoneId': tipBoneId,
+        if (tipSocketId != null) 'tipSocketId': tipSocketId,
         'boneCount': boneCount,
         'bend': bend,
       };
@@ -52,11 +59,12 @@ class IkChain with EquatableMixin {
       id: json['id'] as String,
       name: json['name'] as String? ?? 'IK',
       tipBoneId: json['tipBoneId'] as String,
+      tipSocketId: json['tipSocketId'] as String?,
       boneCount: (json['boneCount'] as int? ?? 2).clamp(1, 64),
       bend: (json['bend'] as int? ?? 1) < 0 ? -1 : 1,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, tipBoneId, boneCount, bend];
+  List<Object?> get props => [id, name, tipBoneId, tipSocketId, boneCount, bend];
 }

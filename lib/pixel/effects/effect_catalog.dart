@@ -92,6 +92,22 @@ class EffectCatalog {
       descriptors.values
           .where((descriptor) => descriptor.workspace == workspace);
 
+  /// Generators supported for new artwork. Other generator identifiers remain
+  /// registered so saved projects retain their original rendering and editing.
+  static const Set<EffectType> availableGenerators = {
+    EffectType.city,
+    EffectType.forest,
+    EffectType.mountainRange,
+    EffectType.cloudFormation,
+    EffectType.ocean,
+  };
+
+  static bool isAvailable(EffectType type) =>
+      forType(type).role != EffectRole.generator || availableGenerators.contains(type);
+
+  /// Source for add-effect menus and search; serialization uses all EffectTypes.
+  static Iterable<EffectType> get availableTypes => EffectType.values.where(isAvailable);
+
   /// Animated effects whose result for a pixel depends only on its canvas
   /// position and the parameters, never on what the other pixels contain.
   ///

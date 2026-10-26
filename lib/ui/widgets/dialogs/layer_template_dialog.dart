@@ -18,6 +18,7 @@ import '../notifications/app_notification.dart';
 
 class LayerToTemplateDialog extends HookConsumerWidget {
   final Layer layer;
+  final List<Layer> layers;
   final int width;
   final int height;
   final Function(Template template)? onTemplateCreated;
@@ -25,6 +26,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
   const LayerToTemplateDialog({
     super.key,
     required this.layer,
+    this.layers = const [],
     required this.width,
     required this.height,
     this.onTemplateCreated,
@@ -33,6 +35,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
   static Future<Template?> show(
     BuildContext context, {
     required Layer layer,
+    List<Layer> layers = const [],
     required int width,
     required int height,
     Function(Template template)? onTemplateCreated,
@@ -41,6 +44,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
       context: context,
       builder: (context) => LayerToTemplateDialog(
         layer: layer,
+        layers: layers,
         width: width,
         height: height,
         onTemplateCreated: onTemplateCreated,
@@ -58,6 +62,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
     final selectedCategory = useState<String?>('characters');
     final selectedTags = useState<List<String>>([]);
     final isPublic = useState(true);
+    final includeLayers = useState(false);
     final saveOption = useState<SaveOption>(SaveOption.both);
 
     final isProcessing = useState(false);
@@ -68,6 +73,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
     final categories = [
       'characters',
       'character-builder',
+      'side-character-builder',
       'objects',
       'backgrounds',
       'ui-elements',
@@ -100,9 +106,14 @@ class LayerToTemplateDialog extends HookConsumerWidget {
 
     // Generate preview image
     useEffect(() {
-      _generatePreview(layer, previewImage);
+      final previewLayer = includeLayers.value
+          ? layer.copyWith(
+              pixels: templateNotifier.convertLayersToTemplate(layers, width, height, name: 'Preview').pixels,
+              effects: const [])
+          : layer;
+      _generatePreview(previewLayer, previewImage);
       return null;
-    }, []);
+    }, [includeLayers.value]);
 
     // Auto-generate unique name
     useEffect(() {
@@ -210,6 +221,16 @@ class LayerToTemplateDialog extends HookConsumerWidget {
 
                       const SizedBox(height: 20),
 
+                      if (layers.length > 1)
+                        SwitchListTile(
+                          title: const Text('Include all frame layers'),
+                          subtitle: Text('${layers.length} editable layers (saved locally)'),
+                          value: includeLayers.value,
+                          onChanged: (value) {
+                            includeLayers.value = value;
+                            if (value) saveOption.value = SaveOption.local;
+                          },
+                        ),
                       // Template Name
                       TextField(
                         controller: nameController,
@@ -456,6 +477,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
                                   context,
                                   ref,
                                   layer,
+                                  includeLayers.value ? layers : const [],
                                   nameController.text.trim(),
                                   descriptionController.text.trim(),
                                   selectedCategory.value,
@@ -555,6 +577,7 @@ class LayerToTemplateDialog extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Layer layer,
+    List<Layer> sourceLayers,
     String name,
     String description,
     String? category,
@@ -571,6 +594,10 @@ class LayerToTemplateDialog extends HookConsumerWidget {
       return;
     }
 
+    if (sourceLayers.isNotEmpty && saveOption != SaveOption.local) {
+      errorMessage.value = 'Layered templates currently support local saving. Choose Save locally.';
+      return;
+    }
     isProcessing.value = true;
     errorMessage.value = null;
 
@@ -578,7 +605,9 @@ class LayerToTemplateDialog extends HookConsumerWidget {
       final templateNotifier = ref.read(templateProvider.notifier);
 
       // Convert layer to template
-      final template = await templateNotifier.convertLayerToTemplate(layer, width, height, name: name);
+      final template = sourceLayers.isNotEmpty
+          ? templateNotifier.convertLayersToTemplate(sourceLayers, width, height, name: name)
+          : await templateNotifier.convertLayerToTemplate(layer, width, height, name: name);
       if (template == null) {
         errorMessage.value = Strings.of(context).failedToConvertLayerToTemplate;
         isProcessing.value = false;

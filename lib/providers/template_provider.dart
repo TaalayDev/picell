@@ -92,29 +92,19 @@ class TemplateState {
   }
 
   /// Categories represented by templates in the selected tab.
-  List<TemplateCategory> categoriesForTab(TemplateTab tab,
-      {String? currentUserId}) {
+  List<TemplateCategory> categoriesForTab(TemplateTab tab, {String? currentUserId}) {
     final counts = <String, int>{};
-    for (final template
-        in getTemplatesByTab(tab, currentUserId: currentUserId)) {
+    for (final template in getTemplatesByTab(tab, currentUserId: currentUserId)) {
       final key = normalizeTemplateCategory(template.category ?? '');
       if (key.isNotEmpty) counts[key] = (counts[key] ?? 0) + 1;
     }
     final available = counts.entries.map((entry) {
-      final known = categories
-          .where((c) => normalizeTemplateCategory(c.slug) == entry.key);
+      final known = categories.where((c) => normalizeTemplateCategory(c.slug) == entry.key);
       final label = known.isNotEmpty
           ? known.first.name
-          : entry.key
-              .split('-')
-              .map((word) =>
-                  word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1))
-              .join(' ');
+          : entry.key.split('-').map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1)).join(' ');
       return TemplateCategory(
-          id: known.isNotEmpty ? known.first.id : -1,
-          name: label,
-          slug: entry.key,
-          templateCount: entry.value);
+          id: known.isNotEmpty ? known.first.id : -1, name: label, slug: entry.key, templateCount: entry.value);
     }).toList();
     available.sort((a, b) => a.name.compareTo(b.name));
     return available;
@@ -133,8 +123,7 @@ class TemplateState {
       filtered = filtered
           .where((template) =>
               template.category != null &&
-              normalizeTemplateCategory(template.category!) ==
-                  normalizeTemplateCategory(category))
+              normalizeTemplateCategory(template.category!) == normalizeTemplateCategory(category))
           .toList();
     }
 
@@ -144,8 +133,7 @@ class TemplateState {
       filtered = filtered.where((template) {
         return template.name.toLowerCase().contains(query) ||
             (template.description?.toLowerCase().contains(query) ?? false) ||
-            (template.tags?.any((tag) => tag.toLowerCase().contains(query)) ??
-                false);
+            (template.tags?.any((tag) => tag.toLowerCase().contains(query)) ?? false);
       }).toList();
     }
 
@@ -183,11 +171,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
 
       // Start with empty API templates - these will be loaded separately when needed
       final List<Template> apiTemplates = [];
-      final allTemplates = [
-        ...assetTemplates,
-        ...localTemplates,
-        ...apiTemplates
-      ];
+      final allTemplates = [...assetTemplates, ...localTemplates, ...apiTemplates];
 
       state = state.copyWith(
         assetTemplates: assetTemplates,
@@ -200,8 +184,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
 
       await loadInitialApiTemplates();
 
-      _logger.info(
-          'Initialized templates: ${localTemplates.length} local, ${apiTemplates.length} API');
+      _logger.info('Initialized templates: ${localTemplates.length} local, ${apiTemplates.length} API');
     } catch (error) {
       state = state.copyWith(
         isLoading: false,
@@ -266,11 +249,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
         newApiTemplates = response.templates;
       }
 
-      final allTemplates = [
-        ...state.assetTemplates,
-        ...state.localTemplates,
-        ...newApiTemplates
-      ];
+      final allTemplates = [...state.assetTemplates, ...state.localTemplates, ...newApiTemplates];
 
       state = state.copyWith(
         apiTemplates: newApiTemplates,
@@ -282,8 +261,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
         totalCount: response.total,
       );
 
-      _logger.info(
-          'Loaded API templates: ${response.templates.length} new, ${newApiTemplates.length} total');
+      _logger.info('Loaded API templates: ${response.templates.length} new, ${newApiTemplates.length} total');
     } catch (error) {
       state = state.copyWith(
         isLoading: false,
@@ -307,8 +285,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
       if (response != null) {
         // Update our API templates cache with the fetched template
         final updatedApiTemplates = [...state.apiTemplates];
-        final existingIndex =
-            updatedApiTemplates.indexWhere((t) => t.id == templateId);
+        final existingIndex = updatedApiTemplates.indexWhere((t) => t.id == templateId);
 
         if (existingIndex >= 0) {
           updatedApiTemplates[existingIndex] = response;
@@ -317,11 +294,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
         }
 
         // Update allTemplates as well
-        final allTemplates = [
-          ...state.assetTemplates,
-          ...state.localTemplates,
-          ...updatedApiTemplates
-        ];
+        final allTemplates = [...state.assetTemplates, ...state.localTemplates, ...updatedApiTemplates];
 
         state = state.copyWith(
           apiTemplates: updatedApiTemplates,
@@ -352,8 +325,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
       if (success) {
         // Update local state
         final updatedLocal = [...state.localTemplates];
-        final existingIndex =
-            updatedLocal.indexWhere((t) => t.name == template.name);
+        final existingIndex = updatedLocal.indexWhere((t) => t.name == template.name);
 
         if (existingIndex >= 0) {
           updatedLocal[existingIndex] = template;
@@ -361,11 +333,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
           updatedLocal.add(template);
         }
 
-        final allTemplates = [
-          ...state.assetTemplates,
-          ...updatedLocal,
-          ...state.apiTemplates
-        ];
+        final allTemplates = [...state.assetTemplates, ...updatedLocal, ...state.apiTemplates];
 
         state = state.copyWith(
           localTemplates: updatedLocal,
@@ -402,11 +370,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
       if (uploadedTemplate != null) {
         // Update API templates
         final updatedApi = [...state.apiTemplates, uploadedTemplate];
-        final allTemplates = [
-          ...state.assetTemplates,
-          ...state.localTemplates,
-          ...updatedApi
-        ];
+        final allTemplates = [...state.assetTemplates, ...state.localTemplates, ...updatedApi];
 
         state = state.copyWith(
           apiTemplates: updatedApi,
@@ -430,14 +394,8 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
       final success = await _templateService.deleteLocalTemplate(templateName);
       if (success) {
         // Update local state
-        final updatedLocal = state.localTemplates
-            .where((template) => template.name != templateName)
-            .toList();
-        final allTemplates = [
-          ...state.assetTemplates,
-          ...updatedLocal,
-          ...state.apiTemplates
-        ];
+        final updatedLocal = state.localTemplates.where((template) => template.name != templateName).toList();
+        final allTemplates = [...state.assetTemplates, ...updatedLocal, ...state.apiTemplates];
 
         state = state.copyWith(
           localTemplates: updatedLocal,
@@ -457,21 +415,14 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
   /// Delete API template (if user owns it)
   Future<bool> deleteApiTemplate(int templateId) async {
     try {
-      final template =
-          state.apiTemplates.firstWhereOrNull((t) => t.id == templateId);
+      final template = state.apiTemplates.firstWhereOrNull((t) => t.id == templateId);
       if (template?.id != null) {
         final success = await _templateService.deleteApiTemplate(template!.id!);
       }
 
       // For now, just remove from local state
-      final updatedApi = state.apiTemplates
-          .where((template) => template.id != templateId)
-          .toList();
-      final allTemplates = [
-        ...state.assetTemplates,
-        ...state.localTemplates,
-        ...updatedApi
-      ];
+      final updatedApi = state.apiTemplates.where((template) => template.id != templateId).toList();
+      final allTemplates = [...state.assetTemplates, ...state.localTemplates, ...updatedApi];
 
       state = state.copyWith(
         apiTemplates: updatedApi,
@@ -503,12 +454,14 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
       );
       return template;
     } catch (error) {
-      state =
-          state.copyWith(error: 'Failed to convert layer to template: $error');
+      state = state.copyWith(error: 'Failed to convert layer to template: $error');
       _logger.severe('Error converting layer to template: $error');
       return null;
     }
   }
+
+  Template convertLayersToTemplate(List<Layer> layers, int width, int height, {required String name}) =>
+      _templateService.convertLayersToTemplate(layers, width, height, name: name);
 
   /// Generate unique template name
   Future<String> generateUniqueTemplateName(String baseName) async {
@@ -531,13 +484,11 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
   }
 
   /// Search templates
-  List<Template> searchTemplates(String query,
-      {TemplateTab? tab, String? currentUserId}) {
+  List<Template> searchTemplates(String query, {TemplateTab? tab, String? currentUserId}) {
     List<Template> baseTemplates;
 
     if (tab != null) {
-      baseTemplates =
-          state.getTemplatesByTab(tab, currentUserId: currentUserId);
+      baseTemplates = state.getTemplatesByTab(tab, currentUserId: currentUserId);
     } else {
       baseTemplates = state.allTemplates;
     }
@@ -547,18 +498,14 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
     final searchQuery = query.toLowerCase();
     return baseTemplates.where((template) {
       return template.name.toLowerCase().contains(searchQuery) ||
-          (template.description?.toLowerCase().contains(searchQuery) ??
-              false) ||
-          (template.tags
-                  ?.any((tag) => tag.toLowerCase().contains(searchQuery)) ??
-              false);
+          (template.description?.toLowerCase().contains(searchQuery) ?? false) ||
+          (template.tags?.any((tag) => tag.toLowerCase().contains(searchQuery)) ?? false);
     }).toList();
   }
 }
 
 /// Provider for template management
-final templateProvider =
-    StateNotifierProvider<TemplateNotifier, TemplateState>((ref) {
+final templateProvider = StateNotifierProvider<TemplateNotifier, TemplateState>((ref) {
   final templateService = ref.watch(templateServiceProvider);
   return TemplateNotifier(templateService);
 });

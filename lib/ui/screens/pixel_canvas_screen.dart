@@ -847,7 +847,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       final stored = await notifier.applyRig(rig, bake: bake);
       if (bake && stored.outputStateId != null) {
         messenger?.showSnackBar(SnackBar(
-          content: Text('Baked ${stored.clips.first.length} frames into ${source.name} (rig).'),
+          content: Text('Baked ${stored.activeClip!.length} frames into ${source.name} (rig).'),
         ));
       }
     } catch (error) {

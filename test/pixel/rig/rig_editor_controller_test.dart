@@ -26,16 +26,63 @@ void main() {
 
   String addRoot() => c.addBone(head: const Offset(2.2, 6.7), tail: const Offset(2.4, 2.1))!;
 
+  test('clearing removes keys and all clips in one undo step while keeping the rig', () {
+    final id = addRoot();
+    c.mode = RigMode.animate;
+    c.setClipLength(12);
+    c.setTime(5);
+    c.setPose(id, rotation: 30);
+    final before = c.rig;
+    expect(c.canClearAnimations, isTrue);
+    c.clearAnimations();
+    expect(c.rig.clips, hasLength(1));
+    expect(c.activeClip.length, 1);
+    expect(c.activeClip.keyframes, isEmpty);
+    expect(c.activeClip.ikKeyframes, isEmpty);
+    expect(c.time, 0);
+    expect(c.rig.bones, before.bones);
+    expect(c.rig.parts, before.parts);
+    expect(c.canClearAnimations, isFalse);
+    c.undo();
+    expect(c.rig, before);
+    c.redo();
+    expect(c.activeClip.length, 1);
+    expect(c.canClearAnimations, isFalse);
+  });
+
+  test('clearing also removes secondary clips and IK target animation', () {
+    final populated = RigEditorController(
+      rig: const Rig(id: 'multi', stateId: 1, clips: [
+        RigClip(id: 'walk', name: 'Walk', length: 12, keyframes: [RigKeyframe(time: 4, boneId: 'bone', rotation: 20)]),
+        RigClip(
+            id: 'run',
+            name: 'Run',
+            length: 16,
+            ikKeyframes: [IkKeyframe(time: 3, chainId: 'arm', target: Offset(4, 5))]),
+      ]),
+      restLayers: [],
+      width: 8,
+      height: 8,
+    );
+    final before = populated.rig;
+    populated.clearAnimations();
+    expect(populated.rig.clips, hasLength(1));
+    expect(populated.activeClip.length, 1);
+    expect(populated.activeClip.keyframes, isEmpty);
+    expect(populated.activeClip.ikKeyframes, isEmpty);
+    populated.undo();
+    expect(populated.rig, before);
+    populated.dispose();
+  });
+
   group('creating bones', () {
-    test('snaps to pixel centres and derives length and angle', () {
+    test('snaps to half pixels, including centres and pixel boundaries', () {
       final id = c.addBone(head: const Offset(1.2, 1.9), tail: const Offset(5.7, 1.1))!;
       final b = c.bone(id)!;
-      expect(b.head, const Offset(1.5, 1.5));
-      expect(b.tail.dx, closeTo(5.5, 1e-9));
-      expect(b.tail.dy, closeTo(1.5, 1e-9));
-      expect(b.length, 4);
-      expect(b.restAngle, 0);
+      expect(b.head, const Offset(1, 2));
+      expect(b.tail, const Offset(5.5, 1));
       expect(c.selectedBoneId, id);
+      expect(c.snapToPixel(const Offset(2.49, 3.01)), const Offset(2.5, 3));
     });
 
     test('angle follows screen axes: down is 90 degrees', () {
@@ -43,16 +90,16 @@ void main() {
       expect(c.bone(id)!.restAngle, 90);
     });
 
-    test('a bone shorter than a pixel is rejected', () {
-      expect(c.addBone(head: const Offset(1.1, 1.1), tail: const Offset(1.4, 1.4)), isNull);
+    test('a bone shorter than half a pixel is rejected', () {
+      expect(c.addBone(head: const Offset(1.1, 1.1), tail: const Offset(1.2, 1.2)), isNull);
       expect(c.rig.bones, isEmpty);
       expect(c.canUndo, isFalse);
     });
 
     test('points outside the canvas are clamped onto it', () {
       final id = c.addBone(head: const Offset(-5, -5), tail: const Offset(50, 50))!;
-      expect(c.bone(id)!.head, const Offset(0.5, 0.5));
-      expect(c.bone(id)!.tail.dx, closeTo(7.5, 1e-9));
+      expect(c.bone(id)!.head, Offset.zero);
+      expect(c.bone(id)!.tail.dx, closeTo(8, 1e-9));
     });
 
     test('names are unique and an unknown parent becomes a root', () {
@@ -64,15 +111,15 @@ void main() {
   });
 
   group('editing bones', () {
-    test('moveBone carries descendants and rounds to whole pixels', () {
+    test('moveBone carries descendants in half-pixel steps', () {
       final root = addRoot();
       final child = c.addBone(head: const Offset(2.5, 2.5), tail: const Offset(5.5, 2.5), parentId: root)!;
       final before = c.bone(child)!.head;
 
       c.moveBone(root, const Offset(1.4, 0.6));
 
-      expect(c.bone(root)!.head, const Offset(3.5, 7.5));
-      expect(c.bone(child)!.head, before + const Offset(1, 1));
+      expect(c.bone(root)!.head, const Offset(3.5, 7));
+      expect(c.bone(child)!.head, before + const Offset(1.5, .5));
     });
 
     test('setBoneTail keeps the head and recomputes length and angle', () {
@@ -81,10 +128,10 @@ void main() {
       final b = c.bone(id)!;
       expect(b.head, const Offset(1.5, 1.5));
       expect(b.restAngle, 90);
-      expect(b.length, 5);
+      expect(b.length, 4.5);
       // A collapsing drag is ignored.
       c.setBoneTail(id, const Offset(1.6, 1.6));
-      expect(c.bone(id)!.length, 5);
+      expect(c.bone(id)!.length, 4.5);
     });
 
     test('rename trims and ignores blanks', () {
@@ -273,13 +320,13 @@ void main() {
 
       final body = c.attachPoint(const Offset(3.2, 1.8), 0.6);
       expect(body.parentId, a);
-      expect(body.head, const Offset(3.5, 1.5), reason: 'the nearest pixel on the bone');
+      expect(body.head, const Offset(3, 1.5), reason: 'nearest half-pixel position on the bone');
     });
 
     test('away from every bone it is a free root on the pixel under the pointer', () {
       final free = c.attachPoint(const Offset(3.2, 5.8), 0.6);
       expect(free.parentId, isNull);
-      expect(free.head, const Offset(3.5, 5.5));
+      expect(free.head, const Offset(3, 6));
     });
 
     test('a bone drawn from the body becomes its child', () {
@@ -308,17 +355,19 @@ void main() {
       expect(c.bone(a)!.tail.dx, closeTo(4.5, 1e-9));
       expect(c.bone(a)!.tail.dy, closeTo(4.5, 1e-9));
       expect(c.bone(b)!.head, const Offset(4.5, 4.5), reason: 'still attached to the tip');
-      expect(c.bone(d)!.head, const Offset(4.5, 6.5), reason: 'the whole subtree moved with it');
+      expect((c.bone(d)!.head - c.bone(b)!.tail).distance, lessThan(1e-9), reason: 'subtree rotates with the joint');
+      expect(c.bone(b)!.restAngle, closeTo(45, 1e-9));
     });
 
-    test('children attached along the body, and siblings elsewhere, stay where they are', () {
+    test('body attachments follow the resized axis while separate roots stay put', () {
       final a = c.addBone(head: const Offset(1.5, 1.5), tail: const Offset(1.5, 6.5))!;
       final mid = c.addBone(head: const Offset(1.5, 3.5), tail: const Offset(5.5, 3.5), parentId: a)!;
       final other = c.addBone(head: const Offset(6.5, 1.5), tail: const Offset(6.5, 5.5))!;
 
       c.setBoneTail(a, const Offset(1.5, 4.5));
 
-      expect(c.bone(mid)!.head, const Offset(1.5, 3.5));
+      expect(c.bone(mid)!.head.dx, closeTo(1.5, 1e-9));
+      expect(c.bone(mid)!.head.dy, closeTo(2.7, 1e-9));
       expect(c.bone(other)!.head, const Offset(6.5, 1.5));
     });
 
@@ -338,6 +387,70 @@ void main() {
       c.setPose(a, rotation: 90);
       expect(c.displayBone(b)!.head.dx, closeTo(4.5, 1e-9), reason: 'the child rode the parent tip');
       expect(c.displayBone(b)!.head.dy, closeTo(6.5, 1e-9));
+    });
+  });
+
+  group('half-pixel joined joints', () {
+    test('continuing from an endpoint automatically parents a new half-pixel bone', () {
+      final a = c.addBone(head: const Offset(1, 1), tail: const Offset(3.5, 1))!;
+      final b = c.addBone(head: const Offset(3.5, 1), tail: const Offset(4, 1))!;
+      expect(c.bone(b)!.parentId, a);
+      expect(c.bone(b)!.head, c.bone(a)!.tail);
+      expect(c.bone(b)!.length, .5);
+      final restored = Rig.fromJson(c.rig.toJson());
+      expect(restored.bones.last.head, const Offset(3.5, 1));
+      expect(restored.bones.last.parentId, a);
+    });
+
+    test('moving a shared joint reshapes the parent without tearing the child away', () {
+      final a = c.addBone(head: const Offset(1, 1), tail: const Offset(3, 1))!;
+      final b = c.addBone(head: const Offset(3, 1), tail: const Offset(5, 1))!;
+      c.moveBone(b, const Offset(.5, .5));
+      expect(c.bone(a)!.head, const Offset(1, 1));
+      expect(c.bone(a)!.tail, const Offset(3.5, 1.5));
+      expect(c.bone(b)!.head, c.bone(a)!.tail);
+      c.undo();
+      expect(c.bone(b)!.head, const Offset(3, 1));
+      expect(c.bone(a)!.tail, const Offset(3, 1));
+    });
+
+    test('connecting existing bones moves the subtree, rejects cycles and undoes', () {
+      final a = c.addBone(head: const Offset(1, 1), tail: const Offset(3, 1))!;
+      final b = c.addBone(head: const Offset(5, 2), tail: const Offset(6, 2))!;
+      final d = c.addBone(head: const Offset(6, 2), tail: const Offset(7, 2))!;
+      expect(c.connectToBone(b, a), isTrue);
+      expect(c.bone(b)!.head, c.bone(a)!.tail);
+      expect(c.bone(d)!.head, c.bone(b)!.tail);
+      expect(c.connectToBone(a, d), isFalse);
+      c.undo();
+      expect(c.bone(b)!.parentId, isNull);
+      expect(c.bone(d)!.head, const Offset(6, 2));
+      c.moveBone(b, const Offset(-2, -1));
+      expect(c.connectJoint(b), isTrue);
+      expect(c.bone(b)!.parentId, a);
+    });
+
+    test('disconnect preserves rest positions and isolates subsequent movement', () {
+      final a = c.addBone(head: const Offset(1, 1), tail: const Offset(3, 1))!;
+      final b = c.addBone(head: const Offset(3, 1), tail: const Offset(5, 1))!;
+      final before = c.bone(b)!;
+      c.reparent(b, null);
+      expect(c.bone(b)!.head, before.head);
+      c.moveBone(a, const Offset(.5, 0));
+      expect(c.bone(b)!.head, before.head);
+      c.undo();
+      c.undo();
+      expect(c.bone(b)!.parentId, a);
+    });
+
+    test('non-right-angle poses preserve exact shared joints and half-pixel motion', () {
+      final a = c.addBone(head: const Offset(1, 1), tail: const Offset(3.5, 1))!;
+      final b = c.addBone(head: const Offset(3.5, 1), tail: const Offset(5, 1))!;
+      c.mode = RigMode.animate;
+      c.setPose(a, rotation: 33, translation: const Offset(.5, .5));
+      expect((c.displayBone(a)!.tail - c.displayBone(b)!.head).distance, lessThan(1e-9));
+      expect(c.displayBone(a)!.head, const Offset(1.5, 1.5));
+      expect(c.jointMoveBoneId(b), a);
     });
   });
 
@@ -390,7 +503,7 @@ void main() {
 
     test('a rejected bone keeps the layer armed', () {
       c.selectLayer('arm');
-      expect(c.addBone(head: const Offset(1.1, 1.1), tail: const Offset(1.3, 1.3)), isNull);
+      expect(c.addBone(head: const Offset(1.1, 1.1), tail: const Offset(1.2, 1.2)), isNull);
       expect(c.activeLayerKey, 'arm');
     });
 

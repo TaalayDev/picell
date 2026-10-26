@@ -1,60 +1,62 @@
 part of 'effects.dart';
 
-/// Effect that procedurally generates a city skyline with buildings
+/// A seeded, district-planned pixel skyline. Layout, facade and atmosphere
+/// have separate random streams so cosmetic changes never reshuffle buildings.
 class CityEffect extends Effect {
-  CityEffect([Map<String, dynamic>? parameters])
-      : super(
-          EffectType.city,
-          parameters ??
-              const {
-                'buildingDensity': 0.7, // How packed the buildings are (0-1)
-                'heightVariation': 0.8, // Variation in building heights (0-1)
-                'minHeight': 0.2, // Minimum building height (0-1)
-                'maxHeight': 0.9, // Maximum building height (0-1)
-                'buildingStyle': 0, // 0=modern, 1=classic, 2=futuristic, 3=mixed, 4=art deco/stepped, 5=cyberpunk neon
-                'windowDensity': 0.6, // How many windows buildings have (0-1)
-                'colorScheme': 0, // 0=realistic, 1=neon, 2=monochrome, 3=sunset, 4=emerald matrix, 5=vaporwave
-                'perspective': 0.3, // 3D perspective effect (0-1)
-                'weatherEffect': 0, // 0=clear, 1=fog, 2=rain, 3=night
-                'randomSeed': 42, // Seed for procedural generation
-                'backgroundMode': 0, // 0=transparent, 1=sky, 2=gradient
-                'antennasAndDetails': 0.4, // Rooftop details density (0-1)
-                'buildingWidth': 0.5, // Average building width (0-1)
-                'litWindowRatio': 0.7, // Ratio of lit windows at night (0-1)
-                'windowStyle': 0, // 0=standard, 1=floor-to-ceiling, 2=small, 3=mixed
-                'waterReflection': false, // Waterfront harbour reflections at bottom
-                'groundStreets': true, // Streetlights & traffic light trails at ground level
-                'backgroundSilhouette': true, // Far background distant skyscraper silhouettes
-              },
-        );
+  static const _defaults = <String, dynamic>{
+    'buildingDensity': 0.7,
+    'heightVariation': 0.65,
+    'minHeight': 0.18,
+    'maxHeight': 0.85,
+    'buildingStyle': 0,
+    'windowDensity': 0.65,
+    'colorScheme': 0,
+    'perspective': 0.35,
+    'weatherEffect': 0,
+    'randomSeed': 42,
+    'backgroundMode': 0,
+    'antennasAndDetails': 0.5,
+    'buildingWidth': 0.5,
+    'litWindowRatio': 0.7,
+    'windowStyle': 0,
+    'waterReflection': false,
+    'groundStreets': true,
+    'backgroundSilhouette': true,
+    'depthLayers': 3,
+    'districtLayout': 0,
+    'landmarkStrength': 0.65,
+  };
+
+  CityEffect([Map<String, dynamic>? parameters]) : super(EffectType.city, {..._defaults, ...?parameters});
 
   @override
-  Map<String, dynamic> getDefaultParameters() {
-    return {
-      'buildingDensity': 0.7,
-      'heightVariation': 0.8,
-      'minHeight': 0.2,
-      'maxHeight': 0.9,
-      'buildingStyle': 0,
-      'windowDensity': 0.6,
-      'colorScheme': 0,
-      'perspective': 0.3,
-      'weatherEffect': 0,
-      'randomSeed': 42,
-      'backgroundMode': 0,
-      'antennasAndDetails': 0.4,
-      'buildingWidth': 0.5,
-      'litWindowRatio': 0.7,
-      'windowStyle': 0,
-      'waterReflection': false,
-      'groundStreets': true,
-      'backgroundSilhouette': true,
-    };
-  }
+  Map<String, dynamic> getDefaultParameters() => {..._defaults};
 
   @override
   Map<String, dynamic> getMetadata() {
     return {
+      'depthLayers': {
+        'label': 'City Depth',
+        'description': 'Number of independently planned skyline layers.',
+        'type': 'slider',
+        'min': 1,
+        'max': 4,
+        'divisions': 3
+      },
+      'districtLayout': {
+        'label': 'District Layout',
+        'description': 'Organizes building heights into coherent neighborhoods.',
+        'type': 'select',
+        'options': {0: 'Downtown Core', 1: 'Twin Centers', 2: 'Neighborhoods'}
+      },
+      'landmarkStrength': {
+        'label': 'Landmark Towers',
+        'description': 'Emphasizes signature towers at district centers.',
+        'type': 'slider',
+        'min': 0.0,
+        'max': 1.0,
+        'divisions': 100
+      },
       'buildingDensity': {
         'label': 'Building Density',
         'description': 'How densely packed the buildings are in the city.',
@@ -196,1478 +198,340 @@ class CityEffect extends Effect {
       'backgroundSilhouette': {
         'label': 'Distant Skyline',
         'description': 'Adds distant background skyscraper silhouettes.',
-        'type': 'boolean',
+        'type': 'bool',
       },
       'groundStreets': {
         'label': 'Ground Traffic & Lights',
         'description': 'Street level warm glow and headlights/taillights.',
-        'type': 'boolean',
+        'type': 'bool',
       },
       'waterReflection': {
         'label': 'Water Reflection',
         'description': 'Renders waterfront reflections below the skyline.',
-        'type': 'boolean',
+        'type': 'bool',
       },
     };
   }
 
+  double _number(String key) {
+    final value = parameters[key];
+    return value is num && value.isFinite ? value.toDouble() : (_defaults[key] as num).toDouble();
+  }
+
+  double _unit(String key) => _number(key).clamp(0.0, 1.0);
+  int _choice(String key, int maximum) => _number(key).round().clamp(0, maximum);
+  bool _enabled(String key) => parameters[key] == true;
+
   @override
   Uint32List apply(Uint32List pixels, int width, int height) {
-    final buildingDensity = parameters['buildingDensity'] as double;
-    final heightVariation = parameters['heightVariation'] as double;
-    final minHeight = parameters['minHeight'] as double;
-    final maxHeight = parameters['maxHeight'] as double;
-    final buildingStyle = parameters['buildingStyle'] as int;
-    final windowDensity = parameters['windowDensity'] as double;
-    final colorScheme = parameters['colorScheme'] as int;
-    final perspective = parameters['perspective'] as double;
-    final weatherEffect = parameters['weatherEffect'] as int;
-    final randomSeed = parameters['randomSeed'] as int;
-    final backgroundMode = parameters['backgroundMode'] as int;
-    final antennasAndDetails = parameters['antennasAndDetails'] as double;
-    final buildingWidth = parameters['buildingWidth'] as double;
-    final litWindowRatio = (parameters['litWindowRatio'] as double?) ?? 0.7;
-    final windowStyle = (parameters['windowStyle'] as int?) ?? 0;
-    final waterReflection = (parameters['waterReflection'] as bool?) ?? false;
-    final groundStreets = (parameters['groundStreets'] as bool?) ?? true;
-    final backgroundSilhouette = (parameters['backgroundSilhouette'] as bool?) ?? true;
-
-    final result = Uint32List(pixels.length);
-    final random = Random(randomSeed);
-
-    // Calculate scale factor based on canvas size for proper scaling
-    final scaleFactor = _calculateScaleFactor(width, height);
-
-    // If water reflection is enabled, reserve bottom ~20% of canvas for water body
-    final waterHeight = waterReflection ? max(4, (height * 0.22).round()) : 0;
-    final cityGroundY = height - waterHeight;
-
-    // Step 1: Create background if needed
-    _createBackground(result, width, height, backgroundMode, colorScheme, weatherEffect);
-
-    // Step 1.5: Distant background skyline silhouettes for realistic atmospheric depth
-    if (backgroundSilhouette) {
-      _drawBackgroundSilhouettes(
-        result,
-        width,
-        cityGroundY,
-        buildingDensity,
-        colorScheme,
-        weatherEffect,
-        scaleFactor,
-        random,
-      );
+    if (width <= 0 || height <= 0) return Uint32List(pixels.length);
+    if (pixels.length != width * height) {
+      throw ArgumentError('City canvas dimensions must match the pixel buffer.');
     }
+    final out = Uint32List(pixels.length);
+    final seed = _number('randomSeed').round();
+    final weather = _choice('weatherEffect', 3);
+    final palette = _CityPalette.forScheme(_choice('colorScheme', 5), weather == 3);
+    final background = _choice('backgroundMode', 2);
+    final unit = max(1, (min(width, height) / 128).floor());
+    final water = _enabled('waterReflection') ? max(1, (height * .22).round()) : 0;
+    final shore = height - water;
+    final street = _enabled('groundStreets') ? max(1, (height * .055).round()) : 0;
+    final baseline = max(1, shore - street);
+    final painter = _CityRaster(out, width, height);
 
-    // Step 2: Generate building layout
-    final buildings = _generateBuildings(
-      width,
-      cityGroundY,
-      buildingDensity,
-      heightVariation,
-      minHeight,
-      maxHeight,
-      buildingWidth,
-      scaleFactor,
-      random,
-    );
-
-    // Step 3: Sort buildings by depth for proper layering (back to front)
-    buildings.sort((a, b) => a.depth.compareTo(b.depth));
-
-    // Step 4: Draw buildings
-    for (final building in buildings) {
-      _drawBuilding(
-        result,
-        width,
-        height,
-        building,
-        buildingStyle,
-        windowDensity,
-        colorScheme,
-        perspective,
-        litWindowRatio,
-        windowStyle,
-        weatherEffect,
-        scaleFactor,
-        random,
-      );
-    }
-
-    // Step 5: Add rooftop details
-    _addRooftopDetails(result, width, height, buildings, antennasAndDetails, colorScheme, scaleFactor, random);
-
-    // Step 5.5: Ground streetlights and traffic light trails
-    if (groundStreets) {
-      _drawGroundStreets(
-        result,
-        width,
-        height,
-        cityGroundY,
-        colorScheme,
-        weatherEffect == 3,
-        scaleFactor,
-        random,
-      );
-    }
-
-    // Step 5.8: Water reflections below the city skyline
-    if (waterReflection && waterHeight > 0) {
-      _drawWaterReflections(
-        result,
-        width,
-        height,
-        cityGroundY,
-        waterHeight,
-        colorScheme,
-        weatherEffect,
-        random,
-      );
-    }
-
-    // Step 6: Apply weather effects (fog, rain, stars)
-    _applyWeatherEffect(result, width, height, weatherEffect, colorScheme, random);
-
-    return result;
-  }
-
-  /// Calculate scale factor based on canvas dimensions
-  double _calculateScaleFactor(int width, int height) {
-    // Base reference is 64x64, scale proportionally
-    final avgDimension = (width + height) / 2;
-    return (avgDimension / 64).clamp(0.5, 4.0);
-  }
-
-  /// Create background based on background mode
-  void _createBackground(
-      Uint32List pixels, int width, int height, int backgroundMode, int colorScheme, int weatherEffect) {
-    if (backgroundMode == 0) return; // Transparent
-
-    final isNight = weatherEffect == 3;
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final index = y * width + x;
-        Color bgColor;
-
-        switch (backgroundMode) {
-          case 1: // Sky
-            final skyProgress = y / height;
-            bgColor = _getSkyColor(skyProgress, colorScheme, isNight);
-            break;
-          case 2: // Gradient
-            final gradientProgress = y / height;
-            bgColor = _getGradientColor(gradientProgress, colorScheme, isNight);
-            break;
-          default:
-            continue;
-        }
-
-        pixels[index] = bgColor.value;
+    if (background != 0) {
+      for (var y = 0; y < height; y++) {
+        // Quantized sky bands keep the result deliberately pixel-art friendly.
+        final t = ((y / max(1, baseline) * 20).floor() / 20).clamp(0.0, 1.0);
+        painter.rect(0, y, width, 1, _cityMix(palette.sky, palette.horizon, t));
       }
-    }
-  }
-
-  /// Get sky color based on height and color scheme
-  Color _getSkyColor(double progress, int colorScheme, bool isNight) {
-    if (isNight) {
-      return Color.lerp(
-        const Color(0xFF0a0a1a), // Very dark blue
-        const Color(0xFF1a1a2e), // Dark blue
-        1.0 - progress,
-      )!;
-    }
-
-    switch (colorScheme) {
-      case 0: // Realistic
-        return Color.lerp(
-          const Color(0xFF87CEEB), // Sky blue
-          const Color(0xFFE0F6FF), // Light blue
-          1.0 - progress,
-        )!;
-      case 1: // Neon
-        return Color.lerp(
-          const Color(0xFF000011), // Dark blue
-          const Color(0xFF330055), // Purple
-          1.0 - progress,
-        )!;
-      case 2: // Monochrome
-        final gray = (200 - progress * 50).round();
-        return Color.fromARGB(255, gray, gray, gray);
-      case 3: // Sunset
-        // More realistic sunset gradient with multiple color stops
-        if (progress < 0.3) {
-          return Color.lerp(
-            const Color(0xFF1a0a2e), // Deep purple
-            const Color(0xFFFF4500), // Orange-red
-            progress / 0.3,
-          )!;
-        } else if (progress < 0.6) {
-          return Color.lerp(
-            const Color(0xFFFF4500), // Orange-red
-            const Color(0xFFFF8C00), // Dark orange
-            (progress - 0.3) / 0.3,
-          )!;
-        } else {
-          return Color.lerp(
-            const Color(0xFFFF8C00), // Dark orange
-            const Color(0xFFFFD700), // Gold
-            (progress - 0.6) / 0.4,
-          )!;
-        }
-      case 4: // Matrix Emerald
-        return Color.lerp(
-          const Color(0xFF021208),
-          const Color(0xFF063018),
-          1.0 - progress,
-        )!;
-      case 5: // Vaporwave
-        return Color.lerp(
-          const Color(0xFF1a0033),
-          const Color(0xFF6b0080),
-          1.0 - progress,
-        )!;
-      default:
-        return const Color(0xFF87CEEB);
-    }
-  }
-
-  /// Get gradient background color
-  Color _getGradientColor(double progress, int colorScheme, bool isNight) {
-    if (isNight) {
-      return Color.lerp(const Color(0xFF000008), const Color(0xFF101020), 1.0 - progress)!;
-    }
-
-    switch (colorScheme) {
-      case 0: // Realistic
-        return Color.lerp(Colors.grey.shade300, Colors.grey.shade100, 1.0 - progress)!;
-      case 1: // Neon
-        return Color.lerp(const Color(0xFF001122), const Color(0xFF004488), 1.0 - progress)!;
-      case 2: // Monochrome
-        final value = (150 + progress * 100).round();
-        return Color.fromARGB(255, value, value, value);
-      case 3: // Sunset
-        return Color.lerp(const Color(0xFFFF8C42), const Color(0xFFFFF3A0), 1.0 - progress)!;
-      case 4: // Matrix Emerald
-        return Color.lerp(const Color(0xFF001a0d), const Color(0xFF004d26), 1.0 - progress)!;
-      case 5: // Vaporwave
-        return Color.lerp(const Color(0xFF2e0854), const Color(0xFFff71ce), 1.0 - progress)!;
-      default:
-        return Colors.grey.shade200;
-    }
-  }
-
-  /// Generate building layout with improved distribution and varied silhouettes
-  List<_Building> _generateBuildings(
-    int width,
-    int groundY,
-    double density,
-    double heightVariation,
-    double minHeight,
-    double maxHeight,
-    double avgWidth,
-    double scaleFactor,
-    Random random,
-  ) {
-    final buildings = <_Building>[];
-
-    // Calculate minimum building width based on scale (ensures windows fit)
-    final minBuildingWidth = max(4, (6 * scaleFactor).round());
-    final maxBuildingWidth = max(minBuildingWidth + 4, (width * 0.28).round());
-
-    // Calculate number of buildings based on density and width
-    final avgBuildingWidth = minBuildingWidth + (maxBuildingWidth - minBuildingWidth) * avgWidth;
-    final estimatedBuildings = (width / avgBuildingWidth * density).round().clamp(2, width ~/ minBuildingWidth);
-
-    var currentX = 0;
-    final gapRange = max(1, (3 * scaleFactor * (1 - density)).round());
-
-    for (int i = 0; i < estimatedBuildings && currentX < width - minBuildingWidth; i++) {
-      // Calculate building width with variation
-      final widthVariation = 0.6 + random.nextDouble() * 0.8;
-      final targetWidth = avgBuildingWidth * widthVariation;
-      final buildingWidthValue =
-          targetWidth.round().clamp(minBuildingWidth, min(maxBuildingWidth, width - currentX)).toInt();
-
-      if (currentX + buildingWidthValue > width) break;
-
-      // Calculate building height with bell-curve like distribution for more natural skyline
-      final heightRange = maxHeight - minHeight;
-      final baseHeight = minHeight + random.nextDouble() * heightRange;
-
-      // Add clustering - center bias creates iconic downtown skyscraper cluster
-      final centerBias = 1.0 - (2.0 * (currentX + buildingWidthValue / 2) / width - 1.0).abs();
-      final heightWithBias = baseHeight + centerBias * heightRange * 0.25 * heightVariation;
-
-      final buildingHeight = (heightWithBias.clamp(minHeight, maxHeight) * groundY).round().clamp(
-            (minBuildingWidth * 2),
-            groundY - 2,
-          );
-
-      // Assign depth for layering (0=front, 1=mid, 2=back)
-      final depth = i % 3;
-
-      // Select architectural style: 0=modern, 1=classic, 2=futuristic, 4=stepped art deco, 5=cyberpunk neon
-      final availableStyles = [0, 1, 2, 4, 5];
-      final styleChoice = availableStyles[random.nextInt(availableStyles.length)];
-
-      final building = _Building(
-        x: currentX,
-        y: groundY - buildingHeight,
-        width: buildingWidthValue,
-        height: buildingHeight,
-        style: styleChoice,
-        depth: depth,
-        floors: _calculateFloors(buildingHeight, scaleFactor),
-        hasSpire: random.nextDouble() < 0.28 && buildingHeight > groundY * 0.45,
-        isStepped: (styleChoice == 4 || random.nextDouble() < 0.35) && buildingWidthValue >= 10,
-      );
-
-      buildings.add(building);
-
-      // Variable gap between buildings
-      final gap = gapRange > 0 ? random.nextInt(gapRange) : 0;
-      currentX += buildingWidthValue + gap;
-    }
-
-    return buildings;
-  }
-
-  /// Calculate number of floors based on building height
-  int _calculateFloors(int buildingHeight, double scaleFactor) {
-    final floorHeight = max(3, (4 * scaleFactor).round());
-    return max(1, buildingHeight ~/ floorHeight);
-  }
-
-  /// Draw a single building with improved window rendering and silhouettes
-  void _drawBuilding(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    int buildingStyle,
-    double windowDensity,
-    int colorScheme,
-    double perspective,
-    double litWindowRatio,
-    int windowStyle,
-    int weatherEffect,
-    double scaleFactor,
-    Random random,
-  ) {
-    // Create a seeded random for this specific building for consistency
-    final buildingRandom = Random(building.x * 1000 + building.y);
-
-    // Get building colors
-    final colors = _getBuildingColors(colorScheme, buildingRandom, weatherEffect == 3);
-
-    // Apply depth-based color adjustment (deeper layers get darker and more atmospheric)
-    final depthDarken = building.depth * 0.12;
-    final adjustedMainColor = Color.lerp(colors.main, Colors.black, depthDarken)!;
-
-    // Draw main building structure (with stepped setbacks if applicable)
-    _drawBuildingStructure(pixels, width, height, building, adjustedMainColor, perspective);
-
-    // Draw spire if applicable
-    if (building.hasSpire) {
-      _drawBuildingSpire(pixels, width, height, building, colors.accent, scaleFactor);
-    }
-
-    // Draw windows with proper grid alignment
-    if (windowDensity > 0.05) {
-      _drawWindowsImproved(
-        pixels,
-        width,
-        height,
-        building,
-        windowDensity,
-        colors,
-        litWindowRatio,
-        windowStyle,
-        weatherEffect,
-        scaleFactor,
-        buildingRandom,
-      );
-    }
-
-    // Draw architectural details based on style (resolve mixed style if selected)
-    final effectiveStyle = buildingStyle == 3 ? building.style : buildingStyle;
-    _drawArchitecturalDetails(pixels, width, height, building, effectiveStyle, colors, scaleFactor, buildingRandom);
-  }
-
-  /// Draw main building structure with support for stepped ziggurat setbacks
-  void _drawBuildingStructure(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    Color mainColor,
-    double perspective,
-  ) {
-    final isStepped = building.isStepped && building.width >= 10;
-    final setbackHeight = isStepped ? (building.height * 0.28).round() : 0;
-    final setbackStep = isStepped ? max(1, (building.width * 0.15).round()) : 0;
-
-    for (int y = building.y; y < building.y + building.height; y++) {
-      // Calculate current horizontal bounds for stepped silhouette
-      int currentLeft = building.x;
-      int currentRight = building.x + building.width;
-
-      if (isStepped && y < building.y + setbackHeight) {
-        // Upper tier is narrower
-        currentLeft += setbackStep;
-        currentRight -= setbackStep;
-      }
-
-      for (int x = currentLeft; x < currentRight; x++) {
-        if (x >= 0 && x < width && y >= 0 && y < height) {
-          final index = y * width + x;
-
-          // Apply perspective shading (left side darker, right side lighter)
-          var color = mainColor;
-          if (perspective > 0.1 && (currentRight - currentLeft) > 1) {
-            final xProgress = (x - currentLeft) / (currentRight - currentLeft);
-            final shadeFactor = (xProgress - 0.5) * perspective * 0.4;
-            color = _adjustBrightness(color, shadeFactor);
+      if (background == 1) {
+        final skyRandom = Random(seed ^ 0x51af);
+        if (weather == 3) {
+          for (var i = 0; i < width * height ~/ 180; i++) {
+            painter.dot(skyRandom.nextInt(width), skyRandom.nextInt(max(1, baseline * 2 ~/ 3)),
+                _cityMix(palette.horizon, 0xffffffff, .65));
           }
-
-          pixels[index] = color.value;
+        }
+        final cx = (width * .78).round();
+        final cy = (baseline * .2).round();
+        final radius = max(1, min(width, height) ~/ 19);
+        for (var y = -radius; y <= radius; y++) {
+          final half = sqrt(max(0, radius * radius - y * y)).floor();
+          painter.rect(cx - half, cy + y, half * 2 + 1, 1, weather == 3 ? 0xffdce6eb : palette.light);
         }
       }
     }
-  }
 
-  /// Draw skyscraper decorative spire
-  void _drawBuildingSpire(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    Color spireColor,
-    double scaleFactor,
-  ) {
-    final spireHeight = max(5, (building.height * 0.18).round().clamp(6, (18 * scaleFactor).round()));
-    final centerX = building.x + building.width ~/ 2;
+    final layers = _number('depthLayers').round().clamp(1, 4);
+    // A separate distant silhouette provides scale without overpowering the core.
+    if (_enabled('backgroundSilhouette')) {
+      _drawDistrict(painter, width, baseline, unit, seed, -1, layers, palette, weather);
+    }
+    for (var layer = 0; layer < layers; layer++) {
+      _drawDistrict(painter, width, baseline, unit, seed, layer, layers, palette, weather);
+    }
 
-    for (int sy = 0; sy < spireHeight; sy++) {
-      final y = building.y - sy - 1;
-      if (y >= 0 && y < height) {
-        // Taper spire towards apex
-        final thickness = sy < spireHeight * 0.3 ? max(1, scaleFactor.round()) : 0;
-        for (int tx = -thickness; tx <= thickness; tx++) {
-          final x = centerX + tx;
-          if (x >= 0 && x < width) {
-            pixels[y * width + x] = spireColor.value;
+    if (street > 0) {
+      painter.rect(0, baseline, width, street, palette.shadow);
+      painter.rect(0, baseline, width, unit, palette.trim);
+      final roadRandom = Random(seed ^ 0x7123);
+      final spacing = max(8 * unit, width ~/ 10);
+      for (var x = spacing ~/ 2; x < width; x += spacing) {
+        painter.rect(x, baseline - 4 * unit, unit, 4 * unit, palette.shadow);
+        painter.rect(x - unit, baseline - 4 * unit, 3 * unit, unit, palette.light);
+      }
+      if (street >= 3) {
+        for (var x = 0; x < width; x += 9 * unit) {
+          painter.rect(x, baseline + street ~/ 2, 3 * unit, 1, palette.trim);
+        }
+        for (var i = 0; i < width ~/ (12 * unit); i++) {
+          final x = roadRandom.nextInt(width);
+          final y = baseline + 1 + roadRandom.nextInt(max(1, street - 1));
+          painter.rect(x, y, 2 * unit, 1, i.isEven ? palette.light : 0xffe76d72);
+        }
+      }
+    }
+
+    if (water > 0) {
+      final waterColor = _cityMix(palette.shadow, palette.sky, .25);
+      for (var y = shore; y < height; y++) {
+        final distance = y - shore;
+        final sourceY = max(0, shore - 1 - distance * 2);
+        final offset = (sin(distance * .75 + seed) * (1 + distance * .08)).round();
+        for (var x = 0; x < width; x++) {
+          final source = out[sourceY * width + (x + offset).clamp(0, width - 1)];
+          final fade = .65 * (1 - distance / max(1, water));
+          out[y * width + x] =
+              source == 0 ? waterColor : _cityMix(waterColor, source, fade * (distance % 3 == 0 ? .45 : 1));
+        }
+      }
+      painter.rect(0, shore, width, 1, palette.trim);
+    }
+
+    if (weather == 1) {
+      for (var y = 0; y < height; y++) {
+        final fog = .08 + .28 * y / height;
+        for (var x = 0; x < width; x++) {
+          final i = y * width + x;
+          if (out[i] != 0) out[i] = _cityMix(out[i], palette.horizon, fog);
+        }
+      }
+    } else if (weather == 2) {
+      final rain = Random(seed ^ 0x7a19);
+      for (var i = 0; i < width * height ~/ 65; i++) {
+        final x = rain.nextInt(width);
+        final y = rain.nextInt(height);
+        for (var j = 0; j < 3 * unit; j++) {
+          final px = x - j ~/ 3;
+          final py = y + j;
+          // Transparent exports keep atmosphere confined to existing content.
+          if (px >= 0 && px < width && py < height && out[py * width + px] != 0) {
+            painter.dot(px, py, _cityMix(out[py * width + px], palette.horizon, .4));
           }
         }
       }
     }
-
-    // Glowing tip beacon light
-    final tipY = building.y - spireHeight - 1;
-    if (tipY >= 0 && tipY < height && centerX >= 0 && centerX < width) {
-      pixels[tipY * width + centerX] = const Color(0xFFFF2222).value;
-    }
+    return out;
   }
 
-  /// Improved window drawing with proper grid alignment and realistic appearance
-  void _drawWindowsImproved(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    double density,
-    _BuildingColors colors,
-    double litRatio,
-    int windowStyle,
-    int weatherEffect,
-    double scaleFactor,
-    Random random,
-  ) {
-    // Calculate window dimensions based on scale and style
-    final windowConfig = _getWindowConfig(windowStyle, scaleFactor, random);
-
-    final windowWidth = windowConfig.width;
-    final windowHeight = windowConfig.height;
-    final horizontalSpacing = windowConfig.horizontalSpacing;
-    final verticalSpacing = windowConfig.verticalSpacing;
-    final marginX = windowConfig.marginX;
-    final marginY = windowConfig.marginY;
-
-    // Calculate available space
-    final availableWidth = building.width - (marginX * 2);
-    final availableHeight = building.height - (marginY * 2);
-
-    if (availableWidth < windowWidth || availableHeight < windowHeight) return;
-
-    // Calculate how many windows fit
-    final windowsPerRow = max(1, (availableWidth + horizontalSpacing) ~/ (windowWidth + horizontalSpacing));
-    final numRows = max(1, (availableHeight + verticalSpacing) ~/ (windowHeight + verticalSpacing));
-
-    // Calculate actual spacing to distribute windows evenly
-    final actualHSpacing =
-        windowsPerRow > 1 ? (availableWidth - windowsPerRow * windowWidth) / (windowsPerRow - 1) : 0.0;
-    final actualVSpacing = numRows > 1 ? (availableHeight - numRows * windowHeight) / (numRows - 1) : 0.0;
-
-    // Determine if it's night for lighting effects
-    final isNight = weatherEffect == 3;
-    final isNeon = colors.main.computeLuminance() < 0.2;
-
-    // Pre-generate which windows are lit (per window, not per pixel)
-    final litWindows = List.generate(
-      numRows * windowsPerRow,
-      (i) => random.nextDouble() < (isNight ? litRatio : litRatio * 0.3),
-    );
-
-    // Pre-generate window colors for variation
-    final windowColors = List.generate(numRows * windowsPerRow, (i) {
-      if (!litWindows[i]) {
-        // Unlit window - dark reflection
-        return isNight ? colors.window.withValues(alpha: 0.3) : _adjustBrightness(colors.window, -0.3);
-      }
-
-      // Lit window with color variation
-      final variation = random.nextDouble();
-      if (isNeon) {
-        // Neon windows with vibrant colors
-        final neonColors = [
-          const Color(0xFF00FFFF),
-          const Color(0xFFFF00FF),
-          const Color(0xFFFFFF00),
-          const Color(0xFF00FF00),
-          const Color(0xFFFF6600),
-        ];
-        return neonColors[random.nextInt(neonColors.length)];
-      } else if (variation < 0.6) {
-        return colors.window; // Standard warm light
-      } else if (variation < 0.8) {
-        return Color.lerp(colors.window, const Color(0xFFFFE4B5), 0.5)!; // Warmer
-      } else {
-        return Color.lerp(colors.window, const Color(0xFFE6E6FA), 0.3)!; // Cooler/bluish
-      }
-    });
-
-    // Draw windows
-    for (int row = 0; row < numRows; row++) {
-      // Skip some rows based on density
-      if (random.nextDouble() > density + 0.3) continue;
-
-      for (int col = 0; col < windowsPerRow; col++) {
-        // Skip some windows based on density
-        if (random.nextDouble() > density) continue;
-
-        final windowIndex = row * windowsPerRow + col;
-        final windowX = building.x + marginX + (col * (windowWidth + actualHSpacing)).round();
-        final windowY = building.y + marginY + (row * (windowHeight + actualVSpacing)).round();
-
-        final windowColor = windowColors[windowIndex];
-        final isLit = litWindows[windowIndex];
-
-        _drawSingleWindow(
-          pixels,
-          width,
-          height,
-          windowX,
-          windowY,
-          windowWidth,
-          windowHeight,
-          windowColor,
-          isLit,
-          isNight,
-          windowStyle,
-          scaleFactor,
-        );
-      }
-    }
-  }
-
-  /// Get window configuration based on style
-  _WindowConfig _getWindowConfig(int style, double scaleFactor, Random random) {
-    final baseSize = max(1, scaleFactor.round());
-
-    switch (style) {
-      case 1: // Floor-to-ceiling
-        return _WindowConfig(
-          width: max(1, (baseSize * 1.5).round()),
-          height: max(2, (baseSize * 3).round()),
-          horizontalSpacing: max(1, baseSize),
-          verticalSpacing: max(1, baseSize),
-          marginX: max(1, baseSize),
-          marginY: max(1, baseSize),
-        );
-      case 2: // Small/Classic
-        return _WindowConfig(
-          width: max(1, baseSize),
-          height: max(1, baseSize),
-          horizontalSpacing: max(1, (baseSize * 1.5).round()),
-          verticalSpacing: max(1, (baseSize * 2).round()),
-          marginX: max(1, (baseSize * 1.5).round()),
-          marginY: max(1, (baseSize * 1.5).round()),
-        );
-      case 3: // Mixed - randomize per building
-        final subStyle = random.nextInt(3);
-        return _getWindowConfig(subStyle, scaleFactor, random);
-      case 0: // Standard
-      default:
-        return _WindowConfig(
-          width: max(1, baseSize),
-          height: max(1, (baseSize * 1.5).round()),
-          horizontalSpacing: max(1, (baseSize * 1.2).round()),
-          verticalSpacing: max(1, (baseSize * 1.5).round()),
-          marginX: max(1, (baseSize * 1.2).round()),
-          marginY: max(1, (baseSize * 1.2).round()),
-        );
-    }
-  }
-
-  /// Draw a single window with proper appearance
-  void _drawSingleWindow(
-    Uint32List pixels,
-    int canvasWidth,
-    int canvasHeight,
-    int x,
-    int y,
-    int windowWidth,
-    int windowHeight,
-    Color color,
-    bool isLit,
-    bool isNight,
-    int style,
-    double scaleFactor,
-  ) {
-    for (int wy = 0; wy < windowHeight; wy++) {
-      for (int wx = 0; wx < windowWidth; wx++) {
-        final pixelX = x + wx;
-        final pixelY = y + wy;
-
-        if (pixelX >= 0 && pixelX < canvasWidth && pixelY >= 0 && pixelY < canvasHeight) {
-          final index = pixelY * canvasWidth + pixelX;
-
-          // Add subtle gradient/reflection effect to windows
-          var finalColor = color;
-
-          if (isLit && isNight) {
-            // Glow effect for lit windows at night - brighter in center
-            final centerX = windowWidth / 2;
-            final centerY = windowHeight / 2;
-            final distFromCenter =
-                sqrt(pow(wx - centerX, 2) + pow(wy - centerY, 2)) / sqrt(pow(centerX, 2) + pow(centerY, 2));
-            finalColor = Color.lerp(color, Colors.white, (1 - distFromCenter) * 0.3)!;
-          } else if (!isLit) {
-            // Reflection gradient for unlit windows
-            final reflectionGradient = wy / windowHeight;
-            finalColor = Color.lerp(color, Colors.white.withValues(alpha: 0.1), reflectionGradient * 0.2)!;
-          }
-
-          // Add window frame for larger windows
-          if (scaleFactor >= 1.5 && windowWidth >= 2 && windowHeight >= 2) {
-            final isFrame = wx == 0 || wx == windowWidth - 1 || wy == 0 || wy == windowHeight - 1;
-            if (isFrame) {
-              finalColor = _adjustBrightness(finalColor, -0.3);
-            }
-          }
-
-          pixels[index] = finalColor.value;
-        }
-      }
-    }
-  }
-
-  /// Draw architectural details based on building style
-  void _drawArchitecturalDetails(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    int style,
-    _BuildingColors colors,
-    double scaleFactor,
-    Random random,
-  ) {
-    switch (style) {
-      case 0: // Modern - clean lines
-        _drawModernDetails(pixels, width, height, building, colors, scaleFactor);
-        break;
-      case 1: // Classic - decorative elements
-        _drawClassicDetails(pixels, width, height, building, colors, scaleFactor, random);
-        break;
-      case 2: // Futuristic - sleek design
-        _drawFuturisticDetails(pixels, width, height, building, colors, scaleFactor);
-        break;
-      case 4: // Art Deco - stepped bands and vertical crown chevron
-        _drawArtDecoDetails(pixels, width, height, building, colors, scaleFactor);
-        break;
-      case 5: // Cyberpunk Neon - glowing rooftop edge and facade neon sign
-        _drawCyberpunkNeonDetails(pixels, width, height, building, colors, scaleFactor, random);
-        break;
-      case 3: // Mixed - combination
-      default:
-        final roll = random.nextInt(5);
-        if (roll == 0) {
-          _drawModernDetails(pixels, width, height, building, colors, scaleFactor);
-        } else if (roll == 1) {
-          _drawClassicDetails(pixels, width, height, building, colors, scaleFactor, random);
-        } else if (roll == 2) {
-          _drawFuturisticDetails(pixels, width, height, building, colors, scaleFactor);
-        } else if (roll == 3) {
-          _drawArtDecoDetails(pixels, width, height, building, colors, scaleFactor);
-        } else {
-          _drawCyberpunkNeonDetails(pixels, width, height, building, colors, scaleFactor, random);
-        }
-        break;
-    }
-  }
-
-  /// Draw Art Deco stepped bands and crown chevron lines
-  void _drawArtDecoDetails(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    _BuildingColors colors,
-    double scaleFactor,
-  ) {
-    final lineThick = max(1, scaleFactor.round());
-
-    // Roof crown horizontal accent bands (Art Deco tiered lining)
-    for (int tier = 0; tier < 3; tier++) {
-      final bandY = building.y + tier * (lineThick + 2);
-      if (bandY >= height) break;
-      final int inset = tier * max(1, (scaleFactor * 1.5).round());
-      final startX = building.x + inset;
-      final endX = building.x + building.width - inset;
-
-      for (int x = startX; x < endX; x++) {
-        for (int ly = 0; ly < lineThick && bandY + ly < height; ly++) {
-          if (x >= 0 && x < width && bandY + ly >= 0) {
-            pixels[(bandY + ly) * width + x] = colors.accent.value;
-          }
-        }
-      }
-    }
-
-    // Vertical pinstripe relief ribs
-    if (building.width >= 10 * scaleFactor) {
-      final numRibs = max(2, (building.width / (5 * scaleFactor)).round());
-      for (int r = 1; r < numRibs; r++) {
-        final ribX = building.x + (building.width * r ~/ numRibs);
-        final startY = building.y + (8 * scaleFactor).round();
-        for (int y = startY; y < building.y + building.height; y++) {
-          if (ribX >= 0 && ribX < width && y >= 0 && y < height) {
-            pixels[y * width + ribX] = _adjustBrightness(colors.accent, -0.2).value;
-          }
-        }
-      }
-    }
-  }
-
-  /// Draw Cyberpunk neon illuminated edge trims and rooftop billboard
-  void _drawCyberpunkNeonDetails(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    _BuildingColors colors,
-    double scaleFactor,
-    Random random,
-  ) {
-    // Glowing neon roof trim
-    final roofY = building.y;
-    final neonAccent = colors.accent;
-
-    if (roofY >= 0 && roofY < height) {
-      for (int x = building.x; x < building.x + building.width; x++) {
-        if (x >= 0 && x < width) {
-          pixels[roofY * width + x] = neonAccent.value;
-        }
-      }
-    }
-
-    // Side neon edge strip
-    for (int y = building.y; y < building.y + building.height; y++) {
-      if (y >= 0 && y < height) {
-        if (building.x >= 0 && building.x < width) {
-          pixels[y * width + building.x] = neonAccent.value;
-        }
-        final rightX = building.x + building.width - 1;
-        if (rightX >= 0 && rightX < width) {
-          pixels[y * width + rightX] = neonAccent.value;
-        }
-      }
-    }
-
-    // Neon signage / Japanese cyber-glyph on facade
-    if (building.width >= 8 && building.height >= 14) {
-      final signWidth = min(building.width - 4, max(4, (6 * scaleFactor).round()));
-      final signHeight = max(3, (4 * scaleFactor).round());
-      final signX = building.x + (building.width - signWidth) ~/ 2;
-      final signY = building.y + max(2, (building.height * 0.15).round());
-
-      final signPalette = [
-        const Color(0xFFFF007F), // Neon pink
-        const Color(0xFF00F0FF), // Cyber cyan
-        const Color(0xFF39FF14), // Neon green
-        const Color(0xFFFFE600), // Electric yellow
-      ];
-      final signColor = signPalette[random.nextInt(signPalette.length)];
-
-      for (int sy = 0; sy < signHeight; sy++) {
-        for (int sx = 0; sx < signWidth; sx++) {
-          final px = signX + sx;
-          final py = signY + sy;
-          if (px >= 0 && px < width && py >= 0 && py < height) {
-            // Checkered glyph pixel pattern
-            if ((sx + sy) % 2 == 0) {
-              final pixelIndex = (py * width + px).toInt();
-              pixels[pixelIndex] = signColor.value;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /// Draw modern architectural details
-  void _drawModernDetails(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    _BuildingColors colors,
-    double scaleFactor,
-  ) {
-    final lineWidth = max(1, scaleFactor.round());
-
-    // Draw roof line
-    final roofY = building.y;
-    for (int x = building.x; x < building.x + building.width; x++) {
-      for (int ly = 0; ly < lineWidth && roofY + ly < height; ly++) {
-        if (x >= 0 && x < width && roofY + ly >= 0) {
-          pixels[(roofY + ly) * width + x] = colors.accent.value;
-        }
-      }
-    }
-
-    // Draw vertical accent lines (only if building is wide enough)
-    if (building.width >= 12 * scaleFactor) {
-      for (int i = 1; i < 3; i++) {
-        final lineX = building.x + (building.width * i ~/ 3);
-        for (int y = building.y; y < building.y + building.height; y++) {
-          if (lineX >= 0 && lineX < width && y >= 0 && y < height) {
-            pixels[y * width + lineX] = colors.accent.value;
-          }
-        }
-      }
-    }
-  }
-
-  /// Draw classic architectural details
-  void _drawClassicDetails(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    _BuildingColors colors,
-    double scaleFactor,
-    Random random,
-  ) {
-    final decorHeight = max(2, (3 * scaleFactor).round());
-
-    // Draw decorative cornice at top
-    for (int y = building.y; y < building.y + decorHeight && y < height; y++) {
-      for (int x = building.x; x < building.x + building.width; x++) {
-        if (x >= 0 && x < width && y >= 0) {
-          pixels[y * width + x] = colors.accent.value;
-        }
-      }
-    }
-
-    // Draw columns or pilasters (only if building is wide enough)
-    if (building.width >= 8 * scaleFactor) {
-      final numColumns = (building.width / (6 * scaleFactor)).round().clamp(2, 5);
-      for (int i = 0; i < numColumns; i++) {
-        final columnX = building.x + (building.width * i ~/ (numColumns - 1)).clamp(0, building.width - 1);
-        for (int y = building.y + decorHeight; y < building.y + building.height; y++) {
-          if (columnX >= 0 && columnX < width && y >= 0 && y < height) {
-            pixels[y * width + columnX] = colors.accent.value;
-          }
-        }
-      }
-    }
-  }
-
-  /// Draw futuristic architectural details
-  void _drawFuturisticDetails(
-    Uint32List pixels,
-    int width,
-    int height,
-    _Building building,
-    _BuildingColors colors,
-    double scaleFactor,
-  ) {
-    final lineThickness = max(1, scaleFactor.round());
-
-    // Draw sleek horizontal accent lines
-    final numLines = max(2, (building.height / (15 * scaleFactor)).round());
-    for (int i = 0; i < numLines; i++) {
-      final lineY = building.y + (building.height * (i + 1) ~/ (numLines + 1));
-      for (int x = building.x + 2; x < building.x + building.width - 2; x++) {
-        for (int ly = 0; ly < lineThickness && lineY + ly < height; ly++) {
-          if (x >= 0 && x < width && lineY + ly >= 0) {
-            pixels[(lineY + ly) * width + x] = colors.accent.value;
-          }
-        }
-      }
-    }
-
-    // Draw glowing corner accents
-    final cornerSize = max(2, (3 * scaleFactor).round());
-    final corners = [
-      [building.x, building.y], // Top-left
-      [building.x + building.width - cornerSize, building.y], // Top-right
-    ];
-
-    for (final corner in corners) {
-      for (int y = corner[1]; y < corner[1] + cornerSize && y < height; y++) {
-        for (int x = corner[0]; x < corner[0] + cornerSize && x < width; x++) {
-          if (x >= 0 && y >= 0) {
-            pixels[y * width + x] = colors.accent.value;
-          }
-        }
-      }
-    }
-  }
-
-  /// Add rooftop details like antennas with proper scaling
-  void _addRooftopDetails(
-    Uint32List pixels,
-    int width,
-    int height,
-    List<_Building> buildings,
-    double density,
-    int colorScheme,
-    double scaleFactor,
-    Random random,
-  ) {
-    for (final building in buildings) {
-      if (random.nextDouble() < density) {
-        final detailType = random.nextInt(4);
-        final detailX = building.x + building.width ~/ 2;
-        final detailColor = _getDetailColor(colorScheme);
-
-        switch (detailType) {
-          case 0: // Antenna
-            _drawAntenna(pixels, width, height, detailX, building.y, detailColor, scaleFactor);
-            break;
-          case 1: // Satellite dish
-            _drawSatelliteDish(pixels, width, height, detailX, building.y, detailColor, scaleFactor);
-            break;
-          case 2: // Small structure / AC unit
-            _drawRooftopStructure(pixels, width, height, detailX, building.y, detailColor, scaleFactor, random);
-            break;
-          case 3: // Water tower (for larger buildings)
-            if (building.width >= 10 * scaleFactor) {
-              _drawWaterTower(pixels, width, height, detailX, building.y, detailColor, scaleFactor);
-            } else {
-              _drawAntenna(pixels, width, height, detailX, building.y, detailColor, scaleFactor);
-            }
-            break;
-        }
-      }
-    }
-  }
-
-  /// Draw antenna detail with scaling
-  void _drawAntenna(Uint32List pixels, int width, int height, int x, int y, Color color, double scaleFactor) {
-    final antennaHeight = max(3, (8 * scaleFactor).round());
-    for (int i = 0; i < antennaHeight; i++) {
-      final pixelY = y - i - 1;
-      if (x >= 0 && x < width && pixelY >= 0 && pixelY < height) {
-        pixels[pixelY * width + x] = color.value;
-      }
-    }
-
-    // Add blinking light at top
-    final topY = y - antennaHeight - 1;
-    if (x >= 0 && x < width && topY >= 0 && topY < height) {
-      pixels[topY * width + x] = const Color(0xFFFF0000).value; // Red light
-    }
-  }
-
-  /// Draw satellite dish with scaling
-  void _drawSatelliteDish(Uint32List pixels, int width, int height, int x, int y, Color color, double scaleFactor) {
-    final dishSize = max(2, (3 * scaleFactor).round());
-    final dishHeight = max(1, (2 * scaleFactor).round());
-
-    for (int dy = 0; dy < dishHeight; dy++) {
-      for (int dx = -dishSize; dx <= dishSize; dx++) {
-        final pixelX = x + dx;
-        final pixelY = y - 2 - dy;
-        if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
-          pixels[pixelY * width + pixelX] = color.value;
-        }
-      }
-    }
-  }
-
-  /// Draw small rooftop structure with scaling
-  void _drawRooftopStructure(
-    Uint32List pixels,
-    int width,
-    int height,
-    int x,
-    int y,
-    Color color,
-    double scaleFactor,
-    Random random,
-  ) {
-    final structWidth = max(2, (2 + random.nextInt(3)) * scaleFactor).round();
-    final structHeight = max(2, (2 + random.nextInt(4)) * scaleFactor).round();
-
-    for (int dy = 0; dy < structHeight; dy++) {
-      for (int dx = -structWidth ~/ 2; dx <= structWidth ~/ 2; dx++) {
-        final pixelX = x + dx;
-        final pixelY = y - dy - 1;
-        if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
-          pixels[pixelY * width + pixelX] = color.value;
-        }
-      }
-    }
-  }
-
-  /// Draw water tower
-  void _drawWaterTower(Uint32List pixels, int width, int height, int x, int y, Color color, double scaleFactor) {
-    final towerWidth = max(3, (4 * scaleFactor).round());
-    final towerHeight = max(4, (6 * scaleFactor).round());
-    final legHeight = max(2, (3 * scaleFactor).round());
-
-    // Draw legs
-    final leftLegX = x - towerWidth ~/ 2;
-    final rightLegX = x + towerWidth ~/ 2;
-    for (int dy = 0; dy < legHeight; dy++) {
-      final pixelY = y - dy - 1;
-      if (pixelY >= 0 && pixelY < height) {
-        if (leftLegX >= 0 && leftLegX < width) {
-          pixels[pixelY * width + leftLegX] = color.value;
-        }
-        if (rightLegX >= 0 && rightLegX < width) {
-          pixels[pixelY * width + rightLegX] = color.value;
-        }
-      }
-    }
-
-    // Draw tank
-    for (int dy = legHeight; dy < legHeight + towerHeight; dy++) {
-      for (int dx = -towerWidth ~/ 2; dx <= towerWidth ~/ 2; dx++) {
-        final pixelX = x + dx;
-        final pixelY = y - dy - 1;
-        if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
-          pixels[pixelY * width + pixelX] = color.value;
-        }
-      }
-    }
-  }
-
-  /// Apply weather effects
-  void _applyWeatherEffect(
-      Uint32List pixels, int width, int height, int weatherEffect, int colorScheme, Random random) {
-    switch (weatherEffect) {
-      case 1: // Fog
-        _applyFogEffect(pixels, width, height);
-        break;
-      case 2: // Rain
-        _applyRainEffect(pixels, width, height, random);
-        break;
-      case 3: // Night - already handled in building colors
-        _addStars(pixels, width, height, random);
-        break;
-      case 0: // Clear
-      default:
-        break;
-    }
-  }
-
-  /// Apply fog effect with depth-based intensity
-  void _applyFogEffect(Uint32List pixels, int width, int height) {
-    final fogColor = const Color(0xFFCCCCCC);
-
-    for (int y = 0; y < height; y++) {
-      // Fog is thicker at the bottom (closer to viewer)
-      final fogIntensity = (y / height).clamp(0.0, 1.0) * 0.5;
-
-      for (int x = 0; x < width; x++) {
-        final index = y * width + x;
-        if (pixels[index] == 0) continue; // Skip transparent pixels
-
-        final pixel = Color(pixels[index]);
-        final blended = Color.lerp(pixel, fogColor, fogIntensity)!;
-        pixels[index] = blended.value;
-      }
-    }
-  }
-
-  /// Apply rain effect with better distribution
-  void _applyRainEffect(Uint32List pixels, int width, int height, Random random) {
-    final rainRandom = Random(random.nextInt(10000));
-    final rainDrops = (width * height / 50).round().clamp(10, 500);
-
-    for (int i = 0; i < rainDrops; i++) {
-      final x = rainRandom.nextInt(width);
-      final startY = rainRandom.nextInt(height);
-      final rainLength = 2 + rainRandom.nextInt(4);
-
-      for (int j = 0; j < rainLength; j++) {
-        final y = startY + j;
-        if (x < width && y < height && y >= 0) {
-          final index = y * width + x;
-          // Semi-transparent rain that blends with background
-          final existing = Color(pixels[index]);
-          final rainColor = Color.lerp(existing, const Color(0xFFAABBCC), 0.6)!;
-          pixels[index] = rainColor.value;
-        }
-      }
-    }
-  }
-
-  /// Add stars for night sky
-  void _addStars(Uint32List pixels, int width, int height, Random random) {
-    final starRandom = Random(random.nextInt(10000));
-    final numStars = (width * height / 100).round().clamp(5, 200);
-
-    for (int i = 0; i < numStars; i++) {
-      final x = starRandom.nextInt(width);
-      final y = starRandom.nextInt(height ~/ 2); // Stars only in upper half
-
-      if (x >= 0 && x < width && y >= 0 && y < height) {
-        final index = y * width + x;
-        // Only add star if pixel is dark (sky area)
-        final existing = Color(pixels[index]);
-        if (existing.computeLuminance() < 0.2) {
-          final brightness = 0.5 + starRandom.nextDouble() * 0.5;
-          final starColor = Color.lerp(Colors.white, const Color(0xFFFFFFAA), starRandom.nextDouble())!;
-          pixels[index] = starColor.withValues(alpha: brightness).value;
-        }
-      }
-    }
-  }
-
-  /// Draw background skyline silhouettes for atmospheric depth
-  void _drawBackgroundSilhouettes(
-    Uint32List pixels,
-    int width,
-    int groundY,
-    double density,
-    int colorScheme,
-    int weatherEffect,
-    double scaleFactor,
-    Random random,
-  ) {
-    final isNight = weatherEffect == 3;
-    Color silhouetteColor;
-
-    switch (colorScheme) {
-      case 1: // Neon
-        silhouetteColor = const Color(0xFF14082e);
-        break;
-      case 2: // Monochrome
-        silhouetteColor = isNight ? const Color(0xFF222222) : const Color(0xFF666666);
-        break;
-      case 3: // Sunset
-        silhouetteColor = const Color(0xFF3b1238);
-        break;
-      case 4: // Matrix
-        silhouetteColor = const Color(0xFF021f0e);
-        break;
-      case 5: // Vaporwave
-        silhouetteColor = const Color(0xFF2b0c3f);
-        break;
-      case 0: // Realistic
-      default:
-        silhouetteColor = isNight ? const Color(0xFF111726) : const Color(0xFF5c738e);
-        break;
-    }
-
-    // Generate distant background towers
-    final towerWidth = max(5, (10 * scaleFactor).round());
-    final numTowers = (width / towerWidth * (density * 0.9)).round().clamp(3, 30);
-    var currentX = 0;
-
-    for (int i = 0; i < numTowers && currentX < width; i++) {
-      final w = (towerWidth * (0.8 + random.nextDouble() * 0.8)).round().clamp(4, width ~/ 3);
-      final h = (groundY * (0.45 + random.nextDouble() * 0.45)).round().clamp(10, groundY - 4);
-      final topY = groundY - h;
-
-      for (int y = topY; y < groundY; y++) {
-        for (int x = currentX; x < currentX + w; x++) {
-          if (x >= 0 && x < width && y >= 0) {
-            final idx = y * width + x;
-            pixels[idx] = silhouetteColor.value;
-          }
-        }
-      }
-
-      // Add occasional beacon light atop distant towers
-      if (isNight && random.nextDouble() < 0.4 && topY >= 0 && currentX + w ~/ 2 < width) {
-        pixels[topY * width + (currentX + w ~/ 2)] = const Color(0xFFFF3333).value;
-      }
-
-      currentX += w + max(1, random.nextInt(max(2, (4 * scaleFactor).round())));
-    }
-  }
-
-  /// Draw ground street level with warm glow, traffic headlights and taillights
-  void _drawGroundStreets(
-    Uint32List pixels,
-    int width,
-    int height,
-    int groundY,
-    int colorScheme,
-    bool isNight,
-    double scaleFactor,
-    Random random,
-  ) {
-    final streetDepth = max(3, (5 * scaleFactor).round());
-    final asphaltColor = isNight ? const Color(0xFF151515) : const Color(0xFF353535);
-
-    // Draw asphalt base
-    for (int y = groundY - 1; y < groundY + streetDepth && y < height; y++) {
-      if (y < 0) continue;
-      for (int x = 0; x < width; x++) {
-        final idx = y * width + x;
-        pixels[idx] = asphaltColor.value;
-      }
-    }
-
-    // Traffic light streaks (red taillights going left, white/yellow headlights going right)
-    final numVehicles = (width / (8 * scaleFactor)).round().clamp(3, 40);
-    final taillightColor = const Color(0xFFFF2222);
-    final headlightColor = colorScheme == 1 ? const Color(0xFF00FFFF) : const Color(0xFFFFF6AA);
-
-    for (int i = 0; i < numVehicles; i++) {
-      final vx = random.nextInt(width);
-      final lane = random.nextBool() ? 0 : 1;
-      final vy = groundY + (lane * (scaleFactor >= 1.5 ? 2 : 1)).clamp(0, streetDepth - 1);
-
-      if (vy >= height || vy < 0) continue;
-
-      final carColor = lane == 0 ? taillightColor : headlightColor;
-      final trailLen = max(2, (3 * scaleFactor).round());
-
-      for (int t = 0; t < trailLen; t++) {
-        final px = (vx + t) % width;
-        final idx = vy * width + px;
-        pixels[idx] = carColor.value;
-      }
-    }
-
-    // Streetlamps with warm ambient light pools
-    final lampSpacing = max(8, (16 * scaleFactor).round());
-    final numLamps = width ~/ lampSpacing;
-    final lampColor = colorScheme == 4 ? const Color(0xFF39FF14) : const Color(0xFFFFE599);
-
-    for (int l = 0; l <= numLamps; l++) {
-      final lx = l * lampSpacing + random.nextInt(3);
-      final ly = groundY - 2;
-
-      if (lx >= 0 && lx < width && ly >= 0 && ly < height) {
-        pixels[ly * width + lx] = lampColor.value;
-        // Warm glow below lamp
-        if (ly + 1 < height) {
-          final existing = Color(pixels[(ly + 1) * width + lx]);
-          pixels[(ly + 1) * width + lx] = Color.lerp(existing, lampColor, 0.5)!.value;
-        }
-      }
-    }
-  }
-
-  /// Draw realistic water reflections with horizontal wave scanline ripple
-  void _drawWaterReflections(
-    Uint32List pixels,
-    int width,
-    int height,
-    int groundY,
-    int waterHeight,
-    int colorScheme,
-    int weatherEffect,
-    Random random,
-  ) {
-    Color waterBaseColor;
-    switch (colorScheme) {
-      case 1: // Neon
-        waterBaseColor = const Color(0xFF050518);
-        break;
-      case 3: // Sunset
-        waterBaseColor = const Color(0xFF260d1b);
-        break;
-      case 4: // Matrix
-        waterBaseColor = const Color(0xFF021207);
-        break;
-      case 5: // Vaporwave
-        waterBaseColor = const Color(0xFF1a0628);
-        break;
-      default:
-        waterBaseColor = weatherEffect == 3 ? const Color(0xFF060c18) : const Color(0xFF1b2d42);
-        break;
-    }
-
-    for (int wy = 0; wy < waterHeight; wy++) {
-      final y = groundY + wy;
-      if (y >= height || y < 0) continue;
-
-      // Distance from shoreline (0.0 to 1.0)
-      final progress = wy / waterHeight;
-      // Corresponding reflected point in city above ground
-      final sourceY = groundY - 1 - wy;
-
-      for (int x = 0; x < width; x++) {
-        final destIndex = y * width + x;
-
-        // Ripple displacement horizontally
-        final rippleOffset = ((sin(wy * 0.8 + x * 0.4) * 2.5)).round();
-        final sampleX = (x + rippleOffset).clamp(0, width - 1);
-
-        Color reflectedColor = waterBaseColor;
-
-        if (sourceY >= 0 && sourceY < height) {
-          final srcIndex = sourceY * width + sampleX;
-          final srcPixel = Color(pixels[srcIndex]);
-
-          if (srcPixel.value != 0) {
-            // Check if source pixel is lit (bright window / accent)
-            final isLitSource = srcPixel.computeLuminance() > 0.4;
-            final blendFactor = (1.0 - progress * 0.7) * (isLitSource ? 0.75 : 0.35);
-            reflectedColor = Color.lerp(waterBaseColor, srcPixel, blendFactor)!;
-          }
-        }
-
-        // Add subtle water shimmer lines
-        if (random.nextDouble() < 0.08 && progress < 0.6) {
-          reflectedColor = Color.lerp(reflectedColor, Colors.white.withValues(alpha: 0.6), 0.35)!;
-        }
-
-        pixels[destIndex] = reflectedColor.value;
-      }
-    }
-  }
-
-  /// Get building colors based on color scheme
-  _BuildingColors _getBuildingColors(int colorScheme, Random random, bool isNight) {
-    switch (colorScheme) {
-      case 0: // Realistic
-        final baseHue = 20 + random.nextInt(40); // Brown to gray range
-        final saturation = 0.1 + random.nextDouble() * 0.15;
-        final value = isNight ? 0.3 + random.nextDouble() * 0.2 : 0.5 + random.nextDouble() * 0.3;
-        final main = HSVColor.fromAHSV(1.0, baseHue.toDouble(), saturation, value).toColor();
-        final window = isNight ? const Color(0xFFFFE4B5) : const Color(0xFF6699CC); // Warm light vs sky reflection
-        final accent = Color.lerp(main, Colors.white, 0.2)!;
-        return _BuildingColors(main, window, accent);
-
-      case 1: // Neon/Cyberpunk
-        final main = isNight ? const Color(0xFF0a0a15) : const Color(0xFF1A1A2E);
-        final neonColors = [0xFF00FFFF, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FF00, 0xFFFF6600];
-        final window = Color(neonColors[random.nextInt(neonColors.length)]);
-        final accent = Color.lerp(window, Colors.white, 0.3)!;
-        return _BuildingColors(main, window, accent);
-
-      case 2: // Monochrome
-        final grayValue = isNight ? 60 + random.nextInt(40) : 100 + random.nextInt(80);
-        final main = Color.fromARGB(255, grayValue, grayValue, grayValue);
-        final windowGray = grayValue + (isNight ? 60 : 30);
-        final window =
-            Color.fromARGB(255, windowGray.clamp(0, 255), windowGray.clamp(0, 255), windowGray.clamp(0, 255));
-        final accent = Colors.white.withValues(alpha: 0.8);
-        return _BuildingColors(main, window, accent);
-
-      case 3: // Sunset
-        final warmColors = [0xFFCC5533, 0xFFBB6644, 0xFFAA7755, 0xFF996655];
-        final main = Color(warmColors[random.nextInt(warmColors.length)]);
-        final window = const Color(0xFFFFDD44); // Golden windows reflecting sunset
-        final accent = Color.lerp(main, const Color(0xFFFFAA00), 0.4)!;
-        return _BuildingColors(main, window, accent);
-
-      case 4: // Matrix Emerald
-        final greenTone = isNight ? 20 + random.nextInt(30) : 40 + random.nextInt(40);
-        final main = Color.fromARGB(255, 5, greenTone, 15);
-        final window = const Color(0xFF00FF66); // Neon terminal phosphor green
-        final accent = const Color(0xFF55FFAA);
-        return _BuildingColors(main, window, accent);
-
-      case 5: // Vaporwave
-        final main = isNight ? const Color(0xFF1b0a2a) : const Color(0xFF3d1052);
-        final vaporColors = [0xFFFF71CE, 0xFF01CDFE, 0xFF05FFA1, 0xFFB967FF, 0xFFFFFb96];
-        final window = Color(vaporColors[random.nextInt(vaporColors.length)]);
-        final accent = const Color(0xFFFF71CE);
-        return _BuildingColors(main, window, accent);
-
-      default:
-        return _getBuildingColors(0, random, isNight);
-    }
-  }
-
-  /// Get color for details based on color scheme
-  Color _getDetailColor(int colorScheme) {
-    switch (colorScheme) {
-      case 0:
-        return Colors.grey.shade500;
+  double _district(double x, int seed) {
+    switch (_choice('districtLayout', 2)) {
       case 1:
-        return const Color(0xFF00FFFF);
+        return max(exp(-pow((x - .28) * 6, 2)), exp(-pow((x - .73) * 6, 2))).toDouble();
       case 2:
-        return Colors.grey.shade400;
-      case 3:
-        return const Color(0xFFFF8C42);
-      case 4:
-        return const Color(0xFF00FF66);
-      case 5:
-        return const Color(0xFFFF71CE);
+        return .3 + .7 * pow(.5 + .5 * sin(x * pi * 5 + seed % 7), 2);
       default:
-        return Colors.grey.shade400;
+        final center = .42 + .14 * sin(seed.toDouble());
+        return exp(-pow((x - center) * 3.5, 2));
     }
   }
 
-  /// Adjust color brightness
-  Color _adjustBrightness(Color color, double amount) {
-    final hsl = HSLColor.fromColor(color);
-    final newLightness = (hsl.lightness + amount).clamp(0.0, 1.0);
-    return hsl.withLightness(newLightness).toColor();
+  void _drawDistrict(_CityRaster p, int width, int baseline, int unit, int seed, int layer, int layers,
+      _CityPalette palette, int weather) {
+    final random = Random(seed ^ ((layer + 3) * 0x45d9));
+    final depth = layer < 0 ? 0.0 : (layer + 1) / layers;
+    final far = layer < 0;
+    final density = _unit('buildingDensity');
+    final averageWidth = max(3, (width * (.025 + _unit('buildingWidth') * .065) * (.55 + depth * .6)).round());
+    final low = min(_unit('minHeight'), _unit('maxHeight'));
+    final high = max(_unit('minHeight'), _unit('maxHeight'));
+    var x = -averageWidth ~/ 2;
+    var index = 0;
+    while (x < width) {
+      final bw = max(2, (averageWidth * (.65 + random.nextDouble() * .7)).round());
+      final jitter = random.nextDouble();
+      final district = _district((x + bw / 2) / width, seed);
+      final variation = _unit('heightVariation');
+      final profile = (district * (1 - variation * .55) + jitter * variation * .55).clamp(0.0, 1.0);
+      // Foreground is lower so the distant skyline remains visible.
+      final depthScale = far ? .7 : .98 - depth * .38;
+      var bh = max(1, (baseline * (low + (high - low) * profile) * depthScale).round());
+      final landmark = !far && layer == 0 && district > .85 && index % 3 == 0;
+      if (landmark) bh = (bh * (1 + _unit('landmarkStrength') * .32)).round();
+      bh = bh.clamp(1, max(1, baseline - 2 * unit));
+      final style = _choice('buildingStyle', 5);
+      final selectedStyle = style == 3 ? random.nextInt(6) : style;
+      final buildingSeed = random.nextInt(0x7fffffff);
+      final haze = far ? .72 : (1 - depth) * (weather == 1 ? .65 : .43);
+      final facade = _cityMix(palette.facade, palette.horizon, haze);
+      _drawTower(
+          p, x, baseline - bh, bw, bh, unit, selectedStyle, Random(buildingSeed), palette, facade, haze, far, landmark);
+      // Every depth layer has its own ordered lots; density controls alley width.
+      x += bw + max(1, ((1 - density) * averageWidth * 1.5).round());
+      index++;
+    }
+  }
+
+  void _drawTower(_CityRaster p, int x, int y, int w, int h, int unit, int style, Random random, _CityPalette palette,
+      int facade, double haze, bool silhouette, bool landmark) {
+    final floor = max(3, 4 * unit);
+    final floors = max(1, h ~/ floor);
+    final stepped = style == 4 || style == 2 || landmark;
+    final pitched = style == 1;
+    final roofHeight = min(h ~/ 4, max(1, w ~/ 3));
+    final shade = _cityMix(facade, palette.shadow, .46);
+    final trim = _cityMix(facade, palette.trim, .48);
+    final side = (_unit('perspective') * w * .3).round();
+    final tint = random.nextDouble();
+    final body = _cityMix(facade, tint < .5 ? palette.trim : palette.shadow, .08 + tint * .12);
+    // Per-scanline silhouette allows setbacks and pitched roofs without windows
+    // or facade details spilling outside the architecture.
+    for (var row = 0; row < h; row++) {
+      var inset = 0;
+      if (stepped) {
+        if (row < h ~/ 7) {
+          inset = w ~/ 4;
+        } else if (row < h ~/ 3) {
+          inset = w ~/ 7;
+        }
+      } else if (pitched && row < roofHeight) {
+        inset = ((roofHeight - row) / max(1, roofHeight) * w / 2).floor();
+      }
+      final left = x + inset;
+      final right = x + w - inset;
+      if (right <= left) continue;
+      p.rect(left, y + row, right - left, 1, body);
+      p.rect(max(left, right - side), y + row, min(side, right - left), 1, shade);
+      p.dot(left, y + row, trim);
+      if (row == 0 || (stepped && (row == h ~/ 7 || row == h ~/ 3))) {
+        p.rect(left, y + row, right - left, 1, trim);
+      }
+      if (silhouette ||
+          row <
+              max(
+                  2 * unit,
+                  stepped
+                      ? h ~/ 3
+                      : pitched
+                          ? roofHeight
+                          : 0)) {
+        continue;
+      }
+      if (row % floor == 0 && (style == 1 || style == 4)) {
+        p.rect(left + 1, y + row, max(0, right - left - side - 2), 1, shade);
+      }
+    }
+    if (silhouette) return;
+
+    final windowMode = _choice('windowStyle', 3);
+    final windows = windowMode == 3 ? random.nextInt(3) : windowMode;
+    final windowW = windows == 1 ? 2 * unit : unit;
+    final windowH = windows == 2 ? unit : 2 * unit;
+    final pitch = windowW + (style == 1 ? 2 : 1) * unit;
+    final startY = y +
+        max(
+            2 * unit,
+            stepped
+                ? h ~/ 3 + unit
+                : pitched
+                    ? roofHeight + unit
+                    : 2 * unit);
+    final accent = style == 5 && random.nextBool() ? palette.secondary : palette.light;
+    for (var wy = startY.toInt(); wy + windowH < y + h - unit; wy += floor) {
+      // Shared occupancy per floor yields offices and apartments, not white noise.
+      final occupancy = .55 + random.nextDouble() * .45;
+      for (var wx = x + 2 * unit; wx + windowW < x + w - side - unit; wx += pitch) {
+        final exists = random.nextDouble();
+        final lit = random.nextDouble();
+        if (exists > _unit('windowDensity')) continue;
+        final color = lit < _unit('litWindowRatio') * occupancy
+            ? _cityMix(accent, palette.horizon, haze * .6)
+            : _cityMix(shade, palette.sky, .18);
+        p.rect(wx, wy, windowW, windowH, color);
+      }
+    }
+    // Ground-floor entrances and awnings make the street read at larger sizes.
+    if (w >= 8 * unit && h >= 10 * unit) {
+      p.rect(x + w ~/ 2, y + h - 3 * unit, 2 * unit, 3 * unit, shade);
+      if (style == 1 || style == 5) {
+        p.rect(x + unit, y + h - 4 * unit, w - side - 2 * unit, unit, accent);
+      }
+    }
+    if (style == 5 && w > 7 * unit && h > 12 * unit) {
+      p.rect(x + w - side - 2 * unit, y + h ~/ 3, unit, min(h ~/ 3, 10 * unit), palette.secondary);
+    }
+    final detailRoll = random.nextDouble();
+    if (detailRoll < _unit('antennasAndDetails') && h > floor * 2) {
+      final roofX = x + w ~/ 2;
+      final antenna = max(2, min(h ~/ 5, (landmark ? 9 : 5) * unit));
+      p.rect(roofX, y - antenna, unit, antenna, trim);
+      p.dot(roofX, y - antenna, palette.secondary);
+      if (w > 9 * unit && !stepped && !pitched) {
+        p.rect(x + 2 * unit, y - 2 * unit, 3 * unit, 2 * unit, shade);
+        p.rect(x + 2 * unit, y - 2 * unit, 3 * unit, unit, trim);
+      }
+    }
+    if (style == 2 && floors > 4) {
+      p.rect(x + w ~/ 3, y + h ~/ 3, max(1, w ~/ 3), unit, accent);
+    }
   }
 }
 
-/// Helper class to represent a building
-class _Building {
-  final int x, y, width, height, style, depth, floors;
-  final bool hasSpire;
-  final bool isStepped;
-
-  _Building({
-    required this.x,
-    required this.y,
-    required this.width,
-    required this.height,
-    required this.style,
-    this.depth = 0,
-    this.floors = 1,
-    this.hasSpire = false,
-    this.isStepped = false,
-  });
+int _cityMix(int a, int b, double amount) {
+  final t = amount.clamp(0.0, 1.0);
+  int channel(int shift) => (((a >> shift) & 255) * (1 - t) + ((b >> shift) & 255) * t).round();
+  return 0xff000000 | channel(16) << 16 | channel(8) << 8 | channel(0);
 }
 
-/// Helper class for building colors
-class _BuildingColors {
-  final Color main, window, accent;
+/// Small clipped integer rasterizer: all architecture stays on the pixel grid.
+class _CityRaster {
+  final Uint32List pixels;
+  final int width, height;
+  _CityRaster(this.pixels, this.width, this.height);
 
-  _BuildingColors(this.main, this.window, this.accent);
+  void dot(int x, int y, int color) {
+    if (x >= 0 && y >= 0 && x < width && y < height) pixels[y * width + x] = color;
+  }
+
+  void rect(int x, int y, int w, int h, int color) {
+    final endX = min(width, x + w);
+    final endY = min(height, y + h);
+    for (var py = max(0, y); py < endY; py++) {
+      for (var px = max(0, x); px < endX; px++) {
+        pixels[py * width + px] = color;
+      }
+    }
+  }
 }
 
-/// Helper class for window configuration
-class _WindowConfig {
-  final int width, height, horizontalSpacing, verticalSpacing, marginX, marginY;
+class _CityPalette {
+  final int sky, horizon, facade, shadow, trim, light, secondary;
+  const _CityPalette(this.sky, this.horizon, this.facade, this.shadow, this.trim, this.light, this.secondary);
 
-  _WindowConfig({
-    required this.width,
-    required this.height,
-    required this.horizontalSpacing,
-    required this.verticalSpacing,
-    required this.marginX,
-    required this.marginY,
-  });
+  static _CityPalette forScheme(int scheme, bool night) {
+    const palettes = [
+      _CityPalette(0xff506b91, 0xffc7c8b8, 0xff526375, 0xff202d40, 0xff91a0aa, 0xffffd998, 0xffe57868),
+      _CityPalette(0xff100e2b, 0xff633052, 0xff29203f, 0xff100f23, 0xff57446a, 0xff68e5ed, 0xfff46aba),
+      _CityPalette(0xff373b43, 0xffb3b9bb, 0xff666c74, 0xff22262e, 0xffa0a6aa, 0xffe0e4de, 0xffbfc5c8),
+      _CityPalette(0xff393354, 0xffeda475, 0xff67475d, 0xff302d46, 0xffaa7277, 0xffffdd9a, 0xfff29483),
+      _CityPalette(0xff071c1b, 0xff49745a, 0xff1b3b32, 0xff091b1a, 0xff46715b, 0xff8fe5a2, 0xff42bd8e),
+      _CityPalette(0xff352552, 0xffefa0af, 0xff543767, 0xff241e3d, 0xffa56b9d, 0xff85e3ed, 0xfff57ac5),
+    ];
+    final p = palettes[scheme];
+    if (!night) return p;
+    return _CityPalette(_cityMix(p.sky, 0xff050b20, .75), _cityMix(p.horizon, 0xff18243b, .8),
+        _cityMix(p.facade, 0xff10182a, .55), p.shadow, _cityMix(p.trim, 0xff2b354c, .5), p.light, p.secondary);
+  }
 }

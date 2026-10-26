@@ -13,6 +13,7 @@ class RigPart with EquatableMixin {
   final String id;
   final String boneId;
   final String layerKey;
+  final String? attachmentId;
 
   /// One byte per canvas pixel, non-zero = owned by this part.
   final Uint8List? mask;
@@ -25,6 +26,7 @@ class RigPart with EquatableMixin {
     required this.id,
     required this.boneId,
     required this.layerKey,
+    this.attachmentId,
     this.mask,
     this.drawOrder = 0,
     this.pivotOverride,
@@ -34,6 +36,7 @@ class RigPart with EquatableMixin {
     String? id,
     String? boneId,
     String? layerKey,
+    String? Function()? attachmentId,
     Uint8List? Function()? mask,
     int? drawOrder,
     Offset? Function()? pivotOverride,
@@ -42,6 +45,7 @@ class RigPart with EquatableMixin {
       id: id ?? this.id,
       boneId: boneId ?? this.boneId,
       layerKey: layerKey ?? this.layerKey,
+      attachmentId: attachmentId != null ? attachmentId() : this.attachmentId,
       mask: mask != null ? mask() : this.mask,
       drawOrder: drawOrder ?? this.drawOrder,
       pivotOverride: pivotOverride != null ? pivotOverride() : this.pivotOverride,
@@ -52,6 +56,7 @@ class RigPart with EquatableMixin {
         'id': id,
         'boneId': boneId,
         'layerKey': layerKey,
+        if (attachmentId != null) 'attachmentId': attachmentId,
         if (mask != null) 'mask': encodeMask(mask!),
         'drawOrder': drawOrder,
         if (pivotOverride != null) 'pivotOverride': {'dx': pivotOverride!.dx, 'dy': pivotOverride!.dy},
@@ -63,10 +68,10 @@ class RigPart with EquatableMixin {
       id: json['id'] as String,
       boneId: json['boneId'] as String,
       layerKey: json['layerKey'] as String,
+      attachmentId: json['attachmentId'] as String?,
       mask: json['mask'] == null ? null : decodeMask((json['mask'] as List).cast<int>()),
       drawOrder: json['drawOrder'] as int? ?? 0,
-      pivotOverride:
-          pivot == null ? null : Offset((pivot['dx'] as num).toDouble(), (pivot['dy'] as num).toDouble()),
+      pivotOverride: pivot == null ? null : Offset((pivot['dx'] as num).toDouble(), (pivot['dy'] as num).toDouble()),
     );
   }
 
@@ -105,5 +110,5 @@ class RigPart with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [id, boneId, layerKey, mask, drawOrder, pivotOverride];
+  List<Object?> get props => [id, boneId, layerKey, attachmentId, mask, drawOrder, pivotOverride];
 }

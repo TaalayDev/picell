@@ -6,7 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:picell/data/models/layer.dart';
 import 'package:picell/data/models/rig/rig.dart';
 import 'package:picell/pixel/rig/presets/bone_presets.dart';
+import 'package:picell/pixel/rig/rig_editor_controller.dart';
 import 'package:picell/ui/screens/rig_editor/rig_canvas.dart';
+import 'package:picell/ui/screens/rig_editor/rig_panels.dart';
 import 'package:picell/ui/screens/rig_editor/rig_editor_screen.dart';
 
 void main() {
@@ -15,13 +17,14 @@ void main() {
 
   late List<Rig?> results;
 
-  Future<void> open(WidgetTester tester, {Rig? rig}) async {
-    tester.view.physicalSize = const Size(1200, 800);
+  Future<void> open(WidgetTester tester, {Rig? rig, ThemeData? theme, Size screen = const Size(1200, 800)}) async {
+    tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     results = [];
 
     await tester.pumpWidget(MaterialApp(
+      theme: theme,
       home: Builder(
         builder: (context) => Scaffold(
           body: Center(
@@ -53,6 +56,73 @@ void main() {
     await gesture.up();
     await tester.pump();
   }
+
+  testWidgets('clip picker creates independent clips and keeps joint freezes per clip', (tester) async {
+    await open(tester,
+        rig: const Rig(
+          id: 'r',
+          stateId: 1,
+          bones: [Bone(id: 'arm', name: 'Arm joint', head: Offset(4, 4), length: 3)],
+          clips: [RigClip(id: 'idle', name: 'Idle', length: 4)],
+        ));
+    await tester.tap(find.byKey(const ValueKey('rig-mode-animate')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('freeze-joint-arm')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('frozen-arm-0')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('rig-new-clip')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('rig-clip-name')), 'Run');
+    await tester.tap(find.text('Create'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('frozen-arm-0')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('rig-clip-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Idle').last);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('frozen-arm-0')), findsOneWidget);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    final saved = results.single!;
+    expect(saved.activeClip!.name, 'Idle');
+    expect(saved.clips.first.freezes, hasLength(4));
+    expect(saved.clips.last.name, 'Run');
+    expect(saved.clips.last.freezes, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('dark theme uses readable rig text and matching mode tabs', (tester) async {
+    final dark = ThemeData.dark();
+    // Reproduce a custom dark theme carrying an unsuitable inherited text color.
+    await open(tester,
+        theme: dark.copyWith(
+          textTheme: dark.textTheme.apply(bodyColor: Colors.black, displayColor: Colors.black),
+        ));
+    final body = find.text('Body').first;
+    final localTheme = Theme.of(tester.element(body));
+    expect(localTheme.textTheme.bodySmall!.color, dark.colorScheme.onSurface);
+    expect(localTheme.textTheme.labelLarge!.color, dark.colorScheme.onSurface);
+    expect(find.byKey(const ValueKey('rig-mode-tabs')), findsOneWidget);
+    final setup = tester.widget<Text>(find.text('Setup'));
+    final animate = tester.widget<Text>(find.text('Animate'));
+    expect(setup.style!.color, dark.colorScheme.onPrimaryContainer);
+    expect(animate.style!.color, dark.colorScheme.onSurface);
+    await tester.tap(find.byKey(const ValueKey('rig-mode-animate')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<Text>(find.text('Animate')).style!.color, dark.colorScheme.onPrimaryContainer);
+    expect(tester.widget<Text>(find.text('Setup')).style!.color, dark.colorScheme.onSurface);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('compact rig tabs fit and keep mobile panel text readable', (tester) async {
+    final dark = ThemeData.dark();
+    await open(tester, screen: const Size(390, 844), theme: dark);
+    expect(find.byKey(const ValueKey('rig-mode-tabs')), findsOneWidget);
+    await tester.tap(find.byTooltip('Bones and layers'));
+    await tester.pumpAndSettle();
+    expect(Theme.of(tester.element(find.text('Body').first)).textTheme.bodyMedium!.color, dark.colorScheme.onSurface);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('shows setup chrome and a hint while the rig is empty', (tester) async {
     await open(tester);
@@ -173,6 +243,24 @@ void main() {
     await tester.pump();
   }
 
+  testWidgets('half-pixel dragging carries bones automatically joined while drawing', (tester) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Draw a bone (B)'));
+    await tester.pump();
+    await dragBetween(tester, pixelAt(tester, 4, 4), pixelAt(tester, 4, 8));
+    await dragBetween(tester, pixelAt(tester, 4, 8), pixelAt(tester, 8.5, 8));
+    await tester.tap(find.byTooltip('Select and move bones (V)'));
+    await tester.pump();
+    await dragBetween(tester, pixelAt(tester, 4, 4), pixelAt(tester, 4.5, 4.5));
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    final bones = results.single!.bones;
+    expect(bones.first.head, const Offset(4.5, 4.5));
+    expect(bones.last.parentId, bones.first.id);
+    expect(bones.last.head, bones.first.tail);
+    expect(bones.last.head, const Offset(4.5, 8.5));
+  });
+
   testWidgets('a bone started on the middle of another becomes its child', (tester) async {
     await open(tester);
     await tester.tap(find.byTooltip('Draw a bone (B)'));
@@ -234,6 +322,134 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(results.single!.parts, isEmpty);
+  });
+
+  testWidgets('connected bones offer Disconnect and keep rest positions when detached', (tester) async {
+    const root = Bone(id: 'root', name: 'Root', head: Offset(2, 4), length: 3, restAngle: 0);
+    const child = Bone(id: 'child', name: 'Child', parentId: 'root', head: Offset(5, 4), length: 2, restAngle: 0);
+    await open(tester, rig: const Rig(id: 'r', stateId: 1, bones: [root, child]));
+    await tester.tap(find.byTooltip('Bone actions').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Disconnect'), findsOneWidget);
+    await tester.tap(find.text('Disconnect'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    final detached = results.last!.bones.last;
+    expect(detached.parentId, isNull);
+    expect(detached.head, child.head);
+    expect(detached.tail, child.tail);
+  });
+
+  testWidgets('clear animation button removes frames, stops playback and supports undo', (tester) async {
+    const rig = Rig(id: 'r', stateId: 1, bones: [
+      Bone(id: 'b', name: 'Body', head: Offset(4, 4), length: 4)
+    ], clips: [
+      RigClip(id: 'walk', name: 'Walk', length: 12, keyframes: [RigKeyframe(time: 0, boneId: 'b', rotation: 20)])
+    ]);
+    await open(tester, rig: rig);
+    await tester.tap(find.text('Animate'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Play'));
+    await tester.pump(const Duration(milliseconds: 100));
+    final clear = find.byKey(const ValueKey('clear-rig-animations'));
+    await tester.ensureVisible(clear);
+    await tester.pumpAndSettle();
+    await tester.tap(clear);
+    await tester.pump();
+    expect(find.byTooltip('Pause'), findsNothing);
+    expect(find.text('1 / 1'), findsOneWidget);
+    expect(tester.widget<IconButton>(clear).onPressed, isNull);
+    await tester.tap(find.byTooltip('Undo'));
+    await tester.pump();
+    expect(tester.widget<IconButton>(clear).onPressed, isNotNull);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(results.last, rig);
+  });
+
+  testWidgets('numeric setup controls apply half-pixel coordinates and support undo', (tester) async {
+    await open(tester,
+        rig: const Rig(id: 'r', stateId: 1, bones: [Bone(id: 'b', name: 'Bone', head: Offset(4, 4), length: 4)]));
+    await tester.tap(find.text('Bone').first);
+    await tester.pump();
+    final field = find.byKey(const ValueKey('bone-number-X'));
+    await tester.ensureVisible(field);
+    await tester.pumpAndSettle();
+    await tester.enterText(field, '4.5');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    expect(find.byKey(const ValueKey('bone-number-Angle')), findsOneWidget);
+    await tester.tap(find.byTooltip('Undo'));
+    await tester.pump();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(results.single!.bones.single.head, const Offset(4, 4));
+  });
+
+  testWidgets('timeline range controls duplicate and delete frames across the selected range', (tester) async {
+    const rig = Rig(id: 'r', stateId: 1, bones: [
+      Bone(id: 'b', name: 'Bone', head: Offset(4, 4), length: 4)
+    ], clips: [
+      RigClip(id: 'c', name: 'Clip', length: 8, keyframes: [RigKeyframe(time: 2, boneId: 'b', rotation: 20)])
+    ]);
+    await open(tester, rig: rig);
+    await tester.tap(find.text('Animate'));
+    await tester.pumpAndSettle();
+    final select = find.byKey(const ValueKey('rig-select-frames'));
+    await tester.ensureVisible(select);
+    await tester.pumpAndSettle();
+    await tester.tap(select);
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('frame-2')));
+    await tester.pump();
+    final duplicate = find.byKey(const ValueKey('rig-duplicate-range'));
+    await tester.ensureVisible(duplicate);
+    await tester.pumpAndSettle();
+    await tester.tap(duplicate);
+    await tester.pump();
+    expect(find.text('4 / 11'), findsOneWidget);
+    final delete = find.byKey(const ValueKey('rig-delete-range'));
+    await tester.ensureVisible(delete);
+    await tester.pumpAndSettle();
+    await tester.tap(delete);
+    await tester.pump();
+    expect(find.text('4 / 8'), findsOneWidget);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(results.single!.clips.single.length, 8);
+    expect(results.single!.clips.single.keyframes.single.time, 2);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('plant and release buttons operate on the selected contact frames', (tester) async {
+    const rig = Rig(id: 'r', stateId: 1, bones: [
+      Bone(id: 'upper', name: 'Upper', head: Offset(4, 2), length: 3, restAngle: 90),
+      Bone(id: 'foot', name: 'Foot', parentId: 'upper', head: Offset(4, 5), length: 3),
+    ]);
+    await open(tester, rig: rig);
+    await tester.tap(find.text('Animate'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Foot').first);
+    await tester.pump();
+    final plant = find.byKey(const ValueKey('rig-plant-foot'));
+    await tester.ensureVisible(plant);
+    await tester.pumpAndSettle();
+    await tester.tap(plant);
+    await tester.pump();
+    final release = find.byKey(const ValueKey('rig-release-foot'));
+    expect(tester.widget<IconButton>(release).onPressed, isNotNull);
+    await tester.ensureVisible(release);
+    await tester.pumpAndSettle();
+    await tester.tap(release);
+    await tester.pump();
+    expect(tester.widget<IconButton>(release).onPressed, isNull);
+    await tester.tap(find.byTooltip('Undo'));
+    await tester.pump();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(results.single!.clips.single.ikKeyframes.single.planted, isTrue);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('Cancel closes straight away when nothing changed', (tester) async {
@@ -451,11 +667,11 @@ void main() {
     });
 
     testWidgets('grabbing a bone the chain steers pulls the target along', (tester) async {
-      final clip = RigClip(
+      const clip = RigClip(
         id: 'main',
         name: 'x',
-        keyframes: const [],
-        ikKeyframes: const [IkKeyframe(time: 0, chainId: 'ik', target: Offset(12.5, 8.5))],
+        keyframes: [],
+        ikKeyframes: [IkKeyframe(time: 0, chainId: 'ik', target: Offset(12.5, 8.5))],
       );
       await open(tester, rig: armRig(chains: [arm], clips: [clip]));
       await tester.tap(find.text('Animate'));
@@ -483,6 +699,8 @@ void main() {
       expect(find.text('Chain'), findsOneWidget);
       expect(find.textContaining('Off: drag the ring'), findsOneWidget);
 
+      await tester.ensureVisible(find.text('Key target'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Key target'));
       await tester.pump();
       expect(find.byKey(const ValueKey('ikkey-ik-2')), findsOneWidget);
@@ -490,10 +708,10 @@ void main() {
     });
 
     testWidgets('a bone steered by IK says so in the pose panel', (tester) async {
-      final clip = RigClip(
+      const clip = RigClip(
         id: 'main',
         name: 'x',
-        ikKeyframes: const [IkKeyframe(time: 0, chainId: 'ik', target: Offset(10.5, 6.5))],
+        ikKeyframes: [IkKeyframe(time: 0, chainId: 'ik', target: Offset(10.5, 6.5))],
       );
       await open(tester, rig: armRig(chains: [arm], clips: [clip]));
       await tester.tap(find.text('Animate'));
@@ -520,6 +738,7 @@ void main() {
 
     Future<void> savePoseAs(WidgetTester tester, String name) async {
       await tester.ensureVisible(find.byKey(const ValueKey('save-pose')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('save-pose')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), name);
@@ -536,6 +755,7 @@ void main() {
       await tester.pump();
       expect(find.byKey(const ValueKey('key-spine-3')), findsNothing);
       await tester.ensureVisible(find.text('Stance'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Stance'));
       await tester.pump();
       expect(find.byKey(const ValueKey('key-spine-3')), findsOneWidget);
@@ -552,6 +772,7 @@ void main() {
       await savePoseAs(tester, 'Stance');
 
       await tester.ensureVisible(find.byTooltip('Pose actions'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Pose actions'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Rename'));
@@ -577,6 +798,7 @@ void main() {
     testWidgets('cancelling the name dialog saves nothing', (tester) async {
       await openAnimate(tester);
       await tester.ensureVisible(find.byKey(const ValueKey('save-pose')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('save-pose')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel').last);
@@ -692,6 +914,22 @@ void main() {
       expect(rig.ikChains, isEmpty);
     });
 
+    testWidgets('side-profile skeleton is available with mirrored limbs and IK', (tester) async {
+      await open(tester);
+      await choose(tester, 'humanoid_side');
+      await tester.tap(find.byKey(const ValueKey('placement-flip')));
+      await tester.tap(find.byKey(const ValueKey('placement-ik')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('placement-place')));
+      await tester.pumpAndSettle();
+      final rig = await finish(tester);
+      expect(rig.bones, hasLength(16));
+      expect(rig.ikChains, hasLength(4));
+      final foot = rig.bones.firstWhere((b) => b.name == 'foot_r');
+      expect(foot.tail.dx, lessThan(foot.head.dx));
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('dragging an edge of the box stretches the skeleton', (tester) async {
       await open(tester);
       await choose(tester, 'humanoid');
@@ -709,14 +947,14 @@ void main() {
     testWidgets('dragging inside the box moves it, to whole pixels', (tester) async {
       await open(tester);
       await choose(tester, 'humanoid');
-      // The box is 1,1 -> 15,15, so the hips start at x = 8.5. Grab it in the
+      // The box is 1,1 -> 15,15, so the hips start at x = 8. Grab it in the
       // middle and take it two pixels to the right.
       await dragBetween(tester, pixelAt(tester, 8, 8), pixelAt(tester, 10, 8));
       await tester.tap(find.byKey(const ValueKey('placement-place')));
       await tester.pump();
 
       final hips = (await finish(tester)).bones.firstWhere((b) => b.name == 'hips');
-      expect(hips.head.dx, 10.5);
+      expect(hips.head.dx, 10);
       expect(hips.head.dy, closeTo(9.5, 1.01), reason: 'the vertical position is unchanged');
     });
 
@@ -742,9 +980,10 @@ void main() {
     });
 
     testWidgets('a part is attached to the selected bone', (tester) async {
-      await open(tester, rig: const Rig(id: 'r', stateId: 1, bones: [
-        Bone(id: 'spine', name: 'spine', head: Offset(8.5, 12.5), length: 6, restAngle: -90),
-      ]));
+      await open(tester,
+          rig: const Rig(id: 'r', stateId: 1, bones: [
+            Bone(id: 'spine', name: 'spine', head: Offset(8.5, 12.5), length: 6, restAngle: -90),
+          ]));
       await tester.tap(find.text('spine').first);
       await tester.pump();
       await choose(tester, 'tail');
@@ -761,9 +1000,10 @@ void main() {
     });
 
     testWidgets('turning attach off leaves the part free', (tester) async {
-      await open(tester, rig: const Rig(id: 'r', stateId: 1, bones: [
-        Bone(id: 'spine', name: 'spine', head: Offset(8.5, 12.5), length: 6, restAngle: -90),
-      ]));
+      await open(tester,
+          rig: const Rig(id: 'r', stateId: 1, bones: [
+            Bone(id: 'spine', name: 'spine', head: Offset(8.5, 12.5), length: 6, restAngle: -90),
+          ]));
       await tester.tap(find.text('spine').first);
       await tester.pump();
       await choose(tester, 'tail');
@@ -831,6 +1071,104 @@ void main() {
     });
   });
 
+  group('advanced rig workflow', () {
+    const rig = Rig(id: 'r', stateId: 1, bones: [
+      Bone(id: 'root', name: 'Root', head: Offset(3, 3), length: 3),
+      Bone(id: 'arm', name: 'Arm joint', parentId: 'root', head: Offset(6, 3), length: 3),
+    ]);
+    RigEditorController controller(WidgetTester tester) => tester.widget<RigCanvas>(find.byType(RigCanvas)).controller;
+    Future<void> showControl(WidgetTester tester, Finder target) async {
+      final scrollable = find.descendant(of: find.byType(RigSidePanel), matching: find.byType(Scrollable)).first;
+      if (target.evaluate().isEmpty) {
+        await tester.scrollUntilVisible(target, 120, scrollable: scrollable);
+      } else {
+        await tester.ensureVisible(target);
+      }
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Shift selection moves connected bones as one group and undo restores it', (tester) async {
+      await open(tester, rig: rig);
+      await tester.tap(find.text('Root'));
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.tap(find.text('Arm joint'));
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.pumpAndSettle();
+      expect(controller(tester).selectedBoneIds, {'root', 'arm'});
+      await dragBetween(tester, pixelAt(tester, 3, 3), pixelAt(tester, 4, 3));
+      expect(controller(tester).bone('root')!.head, const Offset(4, 3));
+      expect(controller(tester).bone('arm')!.head, const Offset(7, 3));
+      await tester.tap(find.byTooltip('Undo'));
+      await tester.pumpAndSettle();
+      expect(controller(tester).rig, rig);
+    });
+    testWidgets('attachment controls create, position and bind a socket', (tester) async {
+      await open(tester, rig: rig);
+      await tester.tap(find.text('Root'));
+      await tester.pumpAndSettle();
+      await showControl(tester, find.text('Attachment points'));
+      await tester.tap(find.text('Attachment points'));
+      await tester.pumpAndSettle();
+      await showControl(tester, find.byKey(const ValueKey('rig-add-attachment')));
+      await tester.tap(find.byKey(const ValueKey('rig-add-attachment')));
+      await tester.pumpAndSettle();
+      final id = controller(tester).rig.attachments.single.id;
+      await showControl(tester, find.text('grip'));
+      await tester.tap(find.text('grip'));
+      await tester.pumpAndSettle();
+      final input = find.byWidgetPredicate((w) => w is TextField && w.decoration?.labelText == 'Local X');
+      await showControl(tester, input);
+      await tester.enterText(input, '1.5');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(controller(tester).rig.attachments.single.offset.dx, 1.5);
+      final bind = find.widgetWithText(ListTile, 'Body');
+      await showControl(tester, bind);
+      await tester.tap(bind);
+      await tester.pumpAndSettle();
+      expect(controller(tester).partOfLayer('body')!.attachmentId, id);
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('ghost controls show reference frames without modifying the saved rig', (tester) async {
+      await open(tester, rig: rig);
+      await tester.tap(find.text('Animate'));
+      await tester.pumpAndSettle();
+      await showControl(tester, find.text('Pose ghosting'));
+      await tester.tap(find.text('Pose ghosting'));
+      await tester.pumpAndSettle();
+      for (final key in ['rig-ghost-skeleton', 'rig-ghost-artwork']) {
+        await showControl(tester, find.byKey(ValueKey(key)));
+        await tester.tap(find.byKey(ValueKey(key)));
+        await tester.pumpAndSettle();
+      }
+      expect(controller(tester).ghostFrames.toSet(), {1, 7});
+      expect(controller(tester).rig, rig);
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      expect(results.single, rig);
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('dragging a timeline key moves it and remains undoable', (tester) async {
+      await open(tester,
+          rig: rig.copyWith(clips: const [
+            RigClip(id: 'clip', name: 'Move', keyframes: [RigKeyframe(time: 0, boneId: 'root', rotation: 20)])
+          ]));
+      await tester.tap(find.text('Animate'));
+      await tester.pumpAndSettle();
+      final origin = tester.getCenter(find.byKey(const ValueKey('cell-root-0')));
+      final g = await tester.startGesture(origin);
+      await g.moveBy(const Offset(30, 0));
+      await g.moveBy(const Offset(28, 0));
+      await g.up();
+      await tester.pumpAndSettle();
+      expect(controller(tester).keyAt('root', 0), isNull);
+      expect(controller(tester).keyAt('root', 2), isNotNull);
+      await tester.tap(find.byTooltip('Undo'));
+      await tester.pumpAndSettle();
+      expect(controller(tester).keyAt('root', 0), isNotNull);
+    });
+  });
+
   group('ready-made animations', () {
     Rig humanoidRig() {
       var n = 0;
@@ -855,6 +1193,14 @@ void main() {
       await reveal(tester, ValueKey('motion-$id'));
       await tester.tap(find.byKey(ValueKey('motion-$id')));
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('motion-apply')));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> configure(WidgetTester tester, String id) async {
+      await reveal(tester, ValueKey('motion-$id'));
+      await tester.tap(find.byKey(ValueKey('motion-$id')));
+      await tester.pumpAndSettle();
     }
 
     testWidgets('the picker lists animations with what each needs', (tester) async {
@@ -867,6 +1213,34 @@ void main() {
       await reveal(tester, const ValueKey('motion-sway'));
       expect(find.text('Select a bone first'), findsWidgets);
     });
+
+    for (final action in [
+      ('front_idle', 'Front Idle', 16, 8, true),
+      ('front_jump', 'Front Jump', 16, 16, false),
+      ('front_attack', 'Front Attack Swing', 14, 20, false),
+      ('front_hurt', 'Front Hurt', 10, 18, false),
+      ('front_crouch', 'Front Crouch', 12, 14, false),
+      ('front_land', 'Front Land', 10, 18, false),
+      ('front_interact', 'Front Interact', 16, 12, false),
+      ('front_celebrate', 'Front Celebrate', 20, 12, true),
+      ('dash', 'Dash', 10, 24, false),
+      ('fall', 'Fall', 12, 12, true),
+    ]) {
+      testWidgets('${action.$2} can be chosen from the animation picker', (tester) async {
+        await openPicker(tester);
+        await pick(tester, action.$1);
+        expect(find.textContaining('"${action.$2}" applied to 11 bones'), findsOneWidget);
+        expect(find.text('1 / ${action.$3}'), findsOneWidget);
+        await tester.tap(find.text('Done'));
+        await tester.pumpAndSettle();
+        final clip = results.single!.clips.single;
+        expect(clip.length, action.$3);
+        expect(clip.fps, action.$4);
+        expect(clip.loop, action.$5);
+        expect(clip.keyframes.map((k) => k.boneId).toSet(), hasLength(11));
+        expect(tester.takeException(), isNull);
+      });
+    }
 
     testWidgets('choosing a walk keys the bones, sets the clip, and says so', (tester) async {
       await openPicker(tester);
@@ -885,9 +1259,13 @@ void main() {
 
     testWidgets('mirroring turns it to the other side', (tester) async {
       await openPicker(tester);
+      await configure(tester, 'wave');
+      await tester.ensureVisible(find.byKey(const ValueKey('motion-mirror')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('motion-mirror')));
       await tester.pump();
-      await pick(tester, 'wave');
+      await tester.tap(find.byKey(const ValueKey('motion-apply')));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
@@ -901,11 +1279,13 @@ void main() {
 
     testWidgets('strength scales the swing', (tester) async {
       await openPicker(tester);
+      await configure(tester, 'walk');
       final slider = tester.widget<Slider>(find.byKey(const ValueKey('motion-intensity')));
       slider.onChanged!(2);
       await tester.pump();
       expect(find.text('200%'), findsWidgets);
-      await pick(tester, 'walk');
+      await tester.tap(find.byKey(const ValueKey('motion-apply')));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
@@ -919,12 +1299,16 @@ void main() {
     });
 
     testWidgets('a rig without the bones is told what to name them', (tester) async {
-      await openPicker(tester, rig: const Rig(id: 'r', stateId: 1, bones: [
-        Bone(id: 'x', name: 'blob', head: Offset(8.5, 8.5), length: 3),
-      ]));
-      await pick(tester, 'walk');
-      expect(find.textContaining('No bones for "Walk"'), findsOneWidget);
+      await openPicker(tester,
+          rig: const Rig(id: 'r', stateId: 1, bones: [
+            Bone(id: 'x', name: 'blob', head: Offset(8.5, 8.5), length: 3),
+          ]));
+      await configure(tester, 'walk');
+      expect(find.textContaining('No matching bones.'), findsOneWidget);
+      expect(tester.widget<FilledButton>(find.byKey(const ValueKey('motion-apply'))).onPressed, isNull);
       expect(find.textContaining('hips, spine, head'), findsOneWidget, reason: 'it names what to look for');
+      await tester.tap(find.byKey(const ValueKey('motion-cancel')));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
       expect(results.single!.clips, isEmpty, reason: 'nothing was changed');
@@ -957,6 +1341,136 @@ void main() {
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
       expect(results.last!.clips, isEmpty);
+    });
+
+    testWidgets('configuration previews settings without committing and applies once', (tester) async {
+      await openPicker(tester);
+      final source = tester.widget<RigCanvas>(find.byType(RigCanvas)).controller;
+      final before = source.rig;
+      await configure(tester, 'front_idle');
+      expect(find.byKey(const ValueKey('motion-configuration')), findsOneWidget);
+      final frames = tester.widget<Slider>(find.byKey(const ValueKey('motion-frames')));
+      frames.onChanged!(24);
+      await tester.pumpAndSettle();
+      tester.widget<Slider>(find.byKey(const ValueKey('motion-fps'))).onChanged!(12);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('motion-loop')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('motion-loop')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.byKey(const ValueKey('motion-lock-legs')), 160,
+          scrollable:
+              find.descendant(of: find.byKey(const ValueKey('motion-properties')), matching: find.byType(Scrollable)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('motion-lock-legs')));
+      await tester.pumpAndSettle();
+      final preview = tester.widget<RigCanvas>(find.byKey(const ValueKey('motion-preview'))).controller;
+      expect(preview.activeClip.length, 24);
+      expect(preview.activeClip.fps, 12);
+      expect(preview.activeClip.loop, isFalse);
+      expect(preview.activeClip.freezes, isEmpty);
+      expect(preview.activeClip.ikKeyframes.where((k) => k.planted), hasLength(48));
+      expect(source.rig, before);
+      expect(source.canUndo, isFalse);
+      final previewClip = preview.activeClip;
+      await tester.tap(find.byKey(const ValueKey('motion-apply')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      final clip = results.single!.activeClip!;
+      expect(clip.length, 24);
+      expect(clip.fps, 12);
+      expect(clip.loop, isFalse);
+      expect(clip.freezes, isEmpty);
+      expect(clip.keyframes, previewClip.keyframes);
+      expect(clip.ikKeyframes.map((k) => k.target), previewClip.ikKeyframes.map((k) => k.target));
+    });
+
+    for (final id in [
+      'front_idle',
+      'front_walk',
+      'front_run',
+      'front_jump',
+      'front_attack',
+      'front_hurt',
+      'front_crouch',
+      'front_land',
+      'front_interact',
+      'front_celebrate'
+    ]) {
+      testWidgets('$id offers grounding controls with the preset defaults', (tester) async {
+        await openPicker(tester);
+        await configure(tester, id);
+        for (final key in ['motion-plant-feet', 'motion-lock-legs']) {
+          final target = find.byKey(ValueKey(key));
+          if (target.evaluate().isEmpty) {
+            await tester.scrollUntilVisible(target, 160,
+                scrollable: find.descendant(
+                    of: find.byKey(const ValueKey('motion-properties')), matching: find.byType(Scrollable)));
+          } else {
+            await tester.ensureVisible(target);
+            await tester.pumpAndSettle();
+          }
+          await tester.pumpAndSettle();
+          expect(tester.widget<SwitchListTile>(find.byKey(ValueKey(key))).value, id == 'front_idle');
+        }
+        final previewBefore = tester.widget<RigCanvas>(find.byKey(const ValueKey('motion-preview'))).controller;
+        expect(
+            previewBefore.activeClip.freezes, hasLength(id == 'front_idle' ? previewBefore.activeClip.length * 6 : 0));
+        expect(previewBefore.activeClip.ikKeyframes.where((k) => k.planted),
+            hasLength(id == 'front_idle' ? previewBefore.activeClip.length * 2 : 0));
+        for (final key in ['motion-plant-feet', 'motion-lock-legs']) {
+          final target = find.byKey(ValueKey(key));
+          if (target.evaluate().isEmpty) {
+            await tester.scrollUntilVisible(target, 160,
+                scrollable: find.descendant(
+                    of: find.byKey(const ValueKey('motion-properties')), matching: find.byType(Scrollable)));
+          } else {
+            await tester.ensureVisible(target);
+            await tester.pumpAndSettle();
+          }
+          await tester.pumpAndSettle();
+          if (!tester.widget<SwitchListTile>(target).value) {
+            await tester.tap(target);
+            await tester.pumpAndSettle();
+          }
+        }
+        final preview = tester.widget<RigCanvas>(find.byKey(const ValueKey('motion-preview'))).controller;
+        expect(preview.activeClip.freezes, hasLength(preview.activeClip.length * 6));
+        expect(preview.activeClip.ikKeyframes.where((k) => k.planted), hasLength(preview.activeClip.length * 2));
+        await tester.tap(find.byKey(const ValueKey('motion-apply')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Done'));
+        await tester.pumpAndSettle();
+        final clip = results.single!.activeClip!;
+        expect(clip.freezes, hasLength(clip.length * 6));
+        expect(clip.ikKeyframes.where((k) => k.planted), hasLength(clip.length * 2));
+      });
+    }
+
+    testWidgets('mobile preset configuration is a bottom sheet and cancel leaves the rig untouched', (tester) async {
+      final rig = humanoidRig();
+      await open(tester, rig: rig, screen: const Size(390, 844), theme: ThemeData.dark());
+      await tester.tap(find.byKey(const ValueKey('rig-mode-animate')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('motion-presets-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('motion-presets-button')));
+      await tester.pumpAndSettle();
+      await configure(tester, 'front_idle');
+      expect(find.byType(BottomSheet), findsOneWidget);
+      tester.widget<Slider>(find.byKey(const ValueKey('motion-intensity'))).onChanged!(2);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('motion-preview-play')));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.widget<RigCanvas>(find.byKey(const ValueKey('motion-preview'))).controller.time, greaterThan(0));
+      await tester.tap(find.byKey(const ValueKey('motion-cancel')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('motion-configuration')), findsNothing);
+      await tester.tap(find.byTooltip('Done'));
+      await tester.pumpAndSettle();
+      expect(results.single, rig);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('the animations button is an animate-mode tool', (tester) async {

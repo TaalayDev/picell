@@ -73,6 +73,7 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
   List<Template> filteredTemplates = [];
   late ScrollController scrollController;
   bool _isLoadingTemplate = false;
+  bool _sideFacingLeft = false;
 
   @override
   void initState() {
@@ -237,21 +238,32 @@ class _TemplatesDialogState extends ConsumerState<TemplatesDialog> {
                 },
               ),
 
-              if (selectedCategory == 'character-builder' || selectedCategory == 'monster-builder')
+              if (['character-builder', 'monster-builder', 'side-character-builder'].contains(selectedCategory))
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: FilledButton.icon(
-                      icon: const Icon(Icons.shuffle, size: 18),
-                      label: Text(selectedCategory == 'character-builder' ? 'Random Character' : 'Random Monster'),
-                      onPressed: () {
-                        final generated = buildRandomCharacter(templateState.assetTemplates, selectedCategory!);
-                        if (generated != null) _handleTemplateSelection(generated);
-                      },
-                    ),
-                  ),
-                ),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    child: Wrap(
+                        alignment: WrapAlignment.end,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        children: [
+                          if (selectedCategory == 'side-character-builder')
+                            FilterChip(
+                                label: const Text('Face left'),
+                                selected: _sideFacingLeft,
+                                onSelected: (v) => setState(() => _sideFacingLeft = v)),
+                          FilledButton.icon(
+                              icon: const Icon(Icons.shuffle, size: 18),
+                              label: Text(selectedCategory == 'side-character-builder'
+                                  ? 'Random Side Character'
+                                  : selectedCategory == 'character-builder'
+                                      ? 'Random Character'
+                                      : 'Random Monster'),
+                              onPressed: () {
+                                final generated = buildRandomCharacter(templateState.assetTemplates, selectedCategory!,
+                                    facingLeft: selectedCategory == 'side-character-builder' && _sideFacingLeft);
+                                if (generated != null) _handleTemplateSelection(generated);
+                              }),
+                        ])),
 
               // Content
               Expanded(

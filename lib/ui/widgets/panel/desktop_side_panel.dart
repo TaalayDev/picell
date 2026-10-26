@@ -312,6 +312,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
           LayerToTemplateDialog.show(
             context,
             layer: layer,
+            layers: widget.state.currentFrame.layers,
             width: widget.width,
             height: widget.height,
           );

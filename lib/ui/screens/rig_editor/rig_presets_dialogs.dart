@@ -6,6 +6,9 @@ import '../../../pixel/rig/presets/bone_presets.dart';
 import '../../../pixel/rig/presets/motion_catalog.dart';
 import '../../../pixel/rig/presets/motion_presets.dart';
 import '../../../pixel/rig/rig_editor_controller.dart';
+import 'rig_motion_configuration.dart';
+
+export 'rig_motion_configuration.dart' show MotionChoice;
 
 /// Lets the user pick a ready-made skeleton and starts placing it: the canvas
 /// then shows a box to move and stretch before anything is added.
@@ -23,7 +26,7 @@ class _SkeletonPresetsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final muted = theme.colorScheme.onSurfaceVariant;
     final figures = BonePresets.all.where((p) => !p.addOn).toList();
     final parts = BonePresets.all.where((p) => p.addOn).toList();
 
@@ -119,7 +122,7 @@ class _SkeletonTile extends StatelessWidget {
                     preset.description,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -176,41 +179,25 @@ class _SkeletonThumb extends CustomPainter {
 
 // ── Animation presets ───────────────────────────────────────────────────────
 
-/// What the user chose in the animation presets dialog.
-class MotionChoice {
-  const MotionChoice(this.preset, {required this.intensity, required this.mirror});
-
-  final MotionPreset preset;
-  final double intensity;
-  final bool mirror;
-}
-
-/// Lets the user pick a ready-made animation, how strong it is, and which way
-/// it faces. Returns null if cancelled.
-Future<MotionChoice?> pickMotionPreset(BuildContext context, RigEditorController controller) {
-  return showDialog<MotionChoice>(
+/// Pick a preset, then preview and configure it before applying.
+Future<MotionChoice?> pickMotionPreset(BuildContext context, RigEditorController controller) async {
+  final preset = await showDialog<MotionPreset>(
     context: context,
     builder: (_) => _MotionPresetsDialog(controller: controller),
   );
+  if (preset == null || !context.mounted) return null;
+  return configureMotionPreset(context, controller, preset);
 }
 
-class _MotionPresetsDialog extends StatefulWidget {
+class _MotionPresetsDialog extends StatelessWidget {
   const _MotionPresetsDialog({required this.controller});
 
   final RigEditorController controller;
 
   @override
-  State<_MotionPresetsDialog> createState() => _MotionPresetsDialogState();
-}
-
-class _MotionPresetsDialogState extends State<_MotionPresetsDialog> {
-  double _intensity = 1;
-  bool _mirror = false;
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final muted = theme.colorScheme.onSurfaceVariant;
     final categories = <String>[];
     for (final p in MotionPresets.all) {
       if (!categories.contains(p.category)) categories.add(p.category);
@@ -235,38 +222,6 @@ class _MotionPresetsDialogState extends State<_MotionPresetsDialog> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-              child: Row(
-                children: [
-                  Text('Strength', style: theme.textTheme.bodySmall?.copyWith(color: muted)),
-                  Expanded(
-                    child: Slider(
-                      key: const ValueKey('motion-intensity'),
-                      value: _intensity,
-                      min: 0.5,
-                      max: 2,
-                      divisions: 6,
-                      label: '${(_intensity * 100).round()}%',
-                      onChanged: (v) => setState(() => _intensity = v),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 40,
-                    child: Text('${(_intensity * 100).round()}%', textAlign: TextAlign.end, style: theme.textTheme.bodySmall),
-                  ),
-                ],
-              ),
-            ),
-            SwitchListTile(
-              key: const ValueKey('motion-mirror'),
-              dense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              title: Text('Face the other way', style: theme.textTheme.bodySmall),
-              subtitle: Text('Swaps left and right and flips every swing.', style: theme.textTheme.bodySmall?.copyWith(color: muted)),
-              value: _mirror,
-              onChanged: (v) => setState(() => _mirror = v),
-            ),
             const Divider(height: 1),
             Flexible(
               child: ListView(
@@ -281,9 +236,9 @@ class _MotionPresetsDialogState extends State<_MotionPresetsDialog> {
                     for (final p in MotionPresets.all.where((p) => p.category == category))
                       _MotionTile(
                         preset: p,
-                        controller: widget.controller,
-                        mirror: _mirror,
-                        onPick: () => Navigator.pop(context, MotionChoice(p, intensity: _intensity, mirror: _mirror)),
+                        controller: controller,
+                        mirror: false,
+                        onPick: () => Navigator.pop(context, p),
                       ),
                   ],
                 ],
@@ -312,7 +267,7 @@ class _MotionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final muted = theme.colorScheme.onSurfaceVariant;
 
     // Whether the rig has what this animation needs.
     final String status;
@@ -352,7 +307,8 @@ class _MotionTile extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 status,
-                style: theme.textTheme.labelSmall?.copyWith(color: usable ? theme.colorScheme.primary : theme.colorScheme.error),
+                style: theme.textTheme.labelSmall
+                    ?.copyWith(color: usable ? theme.colorScheme.primary : theme.colorScheme.error),
               ),
             ],
           ),

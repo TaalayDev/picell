@@ -103,9 +103,18 @@ Future<void> openDownloadedProject(
 void shareCommunityProject(BuildContext context, ApiProject project) {
   final author = project.displayName ?? project.username ?? Strings.of(context).unknownArtist;
   final message = Strings.of(context).shareProjectMessage(project.title, author);
+  final box = context.findRenderObject() as RenderBox?;
+  final origin = box != null && box.hasSize && !box.size.isEmpty
+      ? box.localToGlobal(Offset.zero) & box.size
+      : Rect.fromCenter(
+          center: MediaQuery.sizeOf(context).center(Offset.zero),
+          width: 1,
+          height: 1,
+        );
   Share.share(
     '$message\n${Constants.projectUrl(project.id)}',
     subject: project.title,
+    sharePositionOrigin: origin,
   );
 }
 

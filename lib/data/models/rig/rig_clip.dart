@@ -84,24 +84,30 @@ class IkKeyframe with EquatableMixin {
   /// Easing used to reach the next keyframe of the same chain.
   final RigEasing easing;
 
+  /// A contact holds only this frame, unlike an interpolated IK target.
+  final bool planted;
+
   const IkKeyframe({
     required this.time,
     required this.chainId,
     required this.target,
     this.easing = RigEasing.linear,
+    this.planted = false,
   });
 
-  IkKeyframe copyWith({int? time, String? chainId, Offset? target, RigEasing? easing}) {
+  IkKeyframe copyWith({int? time, String? chainId, Offset? target, RigEasing? easing, bool? planted}) {
     return IkKeyframe(
       time: time ?? this.time,
       chainId: chainId ?? this.chainId,
       target: target ?? this.target,
       easing: easing ?? this.easing,
+      planted: planted ?? this.planted,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'time': time,
+        if (planted) 'planted': true,
         'chainId': chainId,
         'target': {'dx': target.dx, 'dy': target.dy},
         'easing': easing.name,
@@ -112,6 +118,7 @@ class IkKeyframe with EquatableMixin {
     return IkKeyframe(
       time: json['time'] as int,
       chainId: json['chainId'] as String,
+      planted: json['planted'] == true,
       target: Offset((t['dx'] as num).toDouble(), (t['dy'] as num).toDouble()),
       easing: RigEasing.values.firstWhere(
         (e) => e.name == json['easing'],
@@ -121,7 +128,41 @@ class IkKeyframe with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [time, chainId, target, easing];
+  List<Object?> get props => [time, chainId, target, easing, planted];
+}
+
+/// A world-space bone pose held for one frame of one clip.
+/// Matrix entries map rest-canvas coordinates to the frozen pose.
+class JointFreeze with EquatableMixin {
+  const JointFreeze({required this.boneId, required this.time, required this.matrix, this.sourcePresetId});
+  final String boneId;
+  final int time;
+  final List<double> matrix;
+
+  /// Preset-created locks can be released when another preset animates the leg.
+  /// Null identifies a lock placed manually by the user.
+  final String? sourcePresetId;
+  JointFreeze copyWith({int? time}) =>
+      JointFreeze(boneId: boneId, time: time ?? this.time, matrix: matrix, sourcePresetId: sourcePresetId);
+  Map<String, dynamic> toJson() => {
+        'boneId': boneId,
+        'time': time,
+        'matrix': matrix,
+        if (sourcePresetId != null) 'sourcePresetId': sourcePresetId,
+      };
+  factory JointFreeze.fromJson(Map<String, dynamic> json) {
+    final values = (json['matrix'] as List).map((n) => (n as num).toDouble()).toList();
+    if (values.length != 6 || values.any((n) => !n.isFinite)) {
+      throw const FormatException('Invalid frozen joint matrix');
+    }
+    return JointFreeze(
+        boneId: json['boneId'] as String,
+        time: json['time'] as int,
+        matrix: values,
+        sourcePresetId: json['sourcePresetId'] as String?);
+  }
+  @override
+  List<Object?> get props => [boneId, time, matrix, sourcePresetId];
 }
 
 /// A keyed animation of a rig. Baked into the linked animation state's frames.
@@ -137,6 +178,7 @@ class RigClip with EquatableMixin {
 
   /// Target positions of the rig's IK chains over time.
   final List<IkKeyframe> ikKeyframes;
+  final List<JointFreeze> freezes;
 
   const RigClip({
     required this.id,
@@ -146,6 +188,7 @@ class RigClip with EquatableMixin {
     this.loop = true,
     this.keyframes = const [],
     this.ikKeyframes = const [],
+    this.freezes = const [],
   });
 
   RigClip copyWith({
@@ -156,6 +199,7 @@ class RigClip with EquatableMixin {
     bool? loop,
     List<RigKeyframe>? keyframes,
     List<IkKeyframe>? ikKeyframes,
+    List<JointFreeze>? freezes,
   }) {
     return RigClip(
       id: id ?? this.id,
@@ -165,6 +209,7 @@ class RigClip with EquatableMixin {
       loop: loop ?? this.loop,
       keyframes: keyframes ?? this.keyframes,
       ikKeyframes: ikKeyframes ?? this.ikKeyframes,
+      freezes: freezes ?? this.freezes,
     );
   }
 
@@ -175,6 +220,7 @@ class RigClip with EquatableMixin {
         'length': length,
         'loop': loop,
         'keyframes': keyframes.map((k) => k.toJson()).toList(),
+        if (freezes.isNotEmpty) 'freezes': freezes.map((f) => f.toJson()).toList(),
         if (ikKeyframes.isNotEmpty) 'ikKeyframes': ikKeyframes.map((k) => k.toJson()).toList(),
       };
 
@@ -188,6 +234,8 @@ class RigClip with EquatableMixin {
       keyframes: ((json['keyframes'] as List?) ?? const [])
           .map((k) => RigKeyframe.fromJson(k as Map<String, dynamic>))
           .toList(),
+      freezes:
+          ((json['freezes'] as List?) ?? const []).map((f) => JointFreeze.fromJson(f as Map<String, dynamic>)).toList(),
       ikKeyframes: ((json['ikKeyframes'] as List?) ?? const [])
           .map((k) => IkKeyframe.fromJson(k as Map<String, dynamic>))
           .toList(),
@@ -195,5 +243,5 @@ class RigClip with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [id, name, fps, length, loop, keyframes, ikKeyframes];
+  List<Object?> get props => [id, name, fps, length, loop, keyframes, ikKeyframes, freezes];
 }
