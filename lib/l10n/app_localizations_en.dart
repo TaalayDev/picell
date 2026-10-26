@@ -4715,4 +4715,23 @@ class StringsEn extends Strings {
   @override
   String get rigExperimentalHint =>
       'Bone rigging is experimental and may change. Keep a copy of your project before relying on it.';
+
+  @override
+  String get whatsNew => 'What\'s new';
+
+  @override
+  String get whatsNewEmpty => 'Nothing new yet. Check back soon!';
+
+  @override
+  String get whatsNewLoadFailed => 'Couldn\'t load the latest news.';
+
+  @override
+  String get whatsNewBoneRigTitle => 'Bone rigger';
+
+  @override
+  String get whatsNewBoneRigBody =>
+      'Rig your pixel art with bones and animate it with poses, clips and easing curves. Open any project\'s animation tools to try it.';
+
+  @override
+  String get whatsNewOpenExample => 'Open example';
 }

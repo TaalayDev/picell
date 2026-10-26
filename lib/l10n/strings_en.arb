@@ -2382,5 +2382,11 @@
     "rigCurveStrongOut": "Strong ease out",
     "rigCurveStrongInOut": "Strong ease in-out",
     "rigExperimental": "Experimental",
-    "rigExperimentalHint": "Bone rigging is experimental and may change. Keep a copy of your project before relying on it."
+    "rigExperimentalHint": "Bone rigging is experimental and may change. Keep a copy of your project before relying on it.",
+    "whatsNew": "What's new",
+    "whatsNewEmpty": "Nothing new yet. Check back soon!",
+    "whatsNewLoadFailed": "Couldn't load the latest news.",
+    "whatsNewBoneRigTitle": "Bone rigger",
+    "whatsNewBoneRigBody": "Rig your pixel art with bones and animate it with poses, clips and easing curves. Open any project's animation tools to try it.",
+    "whatsNewOpenExample": "Open example"
 }

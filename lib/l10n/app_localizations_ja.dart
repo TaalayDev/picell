@@ -4484,4 +4484,22 @@ class StringsJa extends Strings {
 
   @override
   String get rigExperimentalHint => 'ボーンリグは試験的機能で、変更される可能性があります。使用前にプロジェクトのコピーを保存してください。';
+
+  @override
+  String get whatsNew => '新着情報';
+
+  @override
+  String get whatsNewEmpty => '新しいお知らせはまだありません。また後でご確認ください。';
+
+  @override
+  String get whatsNewLoadFailed => '最新のお知らせを読み込めませんでした。';
+
+  @override
+  String get whatsNewBoneRigTitle => 'ボーンリガー';
+
+  @override
+  String get whatsNewBoneRigBody => 'ドット絵にボーンを設定し、ポーズ、クリップ、イージングカーブでアニメーションできます。プロジェクトのアニメーションツールからお試しください。';
+
+  @override
+  String get whatsNewOpenExample => 'サンプルを開く';
 }

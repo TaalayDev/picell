@@ -39,6 +39,7 @@ import '../widgets/dialogs/project_upload_dialog.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/feedback_prompt_dialog.dart';
 import '../widgets/challenges/challenges_banner.dart';
 import '../widgets/discovery/discovery_carousel.dart';
+import '../widgets/discovery/whats_new.dart';
 import '../widgets/drop_target_overlay.dart';
 import '../widgets/project/sidebar_project_list_item.dart';
 import '../widgets/subscription/subscription_menu.dart';
@@ -161,7 +162,10 @@ class ProjectsScreen extends HookConsumerWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      _DesktopContentHeader(theme: currentTheme, flagship: flagship),
+                      _DesktopContentHeader(
+                        theme: currentTheme,
+                        flagship: flagship,
+                      ),
                       if (!subscription.isPro && showBadge.value)
                         SubscriptionPromoBanner(onDismiss: () => showBadge.value = false),
                       Expanded(
@@ -171,11 +175,19 @@ class ProjectsScreen extends HookConsumerWidget {
                               child: CloudProjectsView(
                                 theme: theme,
                                 subscription: subscription,
-                                leadingSlivers: const [
-                                  SliverToBoxAdapter(
+                                leadingSlivers: [
+                                  const SliverToBoxAdapter(
                                     child: Padding(
                                       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
                                       child: DiscoveryCarousel(height: 220),
+                                    ),
+                                  ),
+                                  SliverToBoxAdapter(
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                      child: WhatsNewSection(
+                                        onOpenBoneRigExample: () => _openBoneRigExample(context, ref),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -464,6 +476,15 @@ class ProjectsScreen extends HookConsumerWidget {
                         onStartDrawing: () => _navigateToNewProject(context, ref, subscription),
                       ),
                     ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: WhatsNewButton(onOpenBoneRigExample: () => _openBoneRigExample(context, ref)),
+                        ),
+                      ),
+                    ),
                     const SliverToBoxAdapter(
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(12, 8, 12, 0),
@@ -655,6 +676,64 @@ class ProjectsScreen extends HookConsumerWidget {
             builder: (context) => EditorWorkspaceScreen(initialProject: newProject),
           ),
         );
+      }
+    }
+  }
+
+  /// Creates a project from the layered "Simple Hero" template and opens it
+  /// straight in the bone rig editor, with the skeleton and animations set up.
+  Future<void> _openBoneRigExample(BuildContext context, WidgetRef ref) async {
+    final strings = Strings.of(context);
+    final navigator = Navigator.of(context);
+    final loader = showLoader(context, loadingText: strings.creatingProject);
+    try {
+      final templates = await ref.read(templateServiceProvider).loadAssetTemplates();
+      final template = templates.firstWhere((t) => t.tags.contains('rig') && t.tags.contains('example'));
+      final layers =
+          template.layers.isEmpty ? [TemplateLayer(name: template.name, pixels: template.pixels)] : template.layers;
+      final project = Project(
+        id: 0,
+        name: template.name,
+        width: template.width,
+        height: template.height,
+        createdAt: DateTime.now(),
+        editedAt: DateTime.now(),
+        states: const [AnimationStateModel(id: 0, name: 'Animation', frameRate: 24)],
+        frames: [
+          AnimationFrame(
+            id: 0,
+            stateId: 0,
+            name: 'Frame 1',
+            duration: 100,
+            layers: [
+              for (final (index, layer) in layers.indexed)
+                Layer(
+                  layerId: 0,
+                  id: const Uuid().v4(),
+                  name: layer.name,
+                  pixels: Uint32List.fromList(layer.pixels),
+                  order: index,
+                  isVisible: layer.isVisible,
+                  isLocked: layer.isLocked,
+                  opacity: layer.opacity,
+                ),
+            ],
+          ),
+        ],
+      );
+      final newProject = await ref.read(projectsProvider.notifier).addProject(project, source: 'template');
+      loader.remove();
+      if (!context.mounted) return;
+      navigator.push(
+        FlagshipPageRoute(
+          context: context,
+          builder: (context) => EditorWorkspaceScreen(initialProject: newProject, openBoneRigExample: true),
+        ),
+      );
+    } catch (e) {
+      loader.remove();
+      if (context.mounted) {
+        showTopFlushbar(context, message: Text(strings.failedToImport(e.toString())));
       }
     }
   }

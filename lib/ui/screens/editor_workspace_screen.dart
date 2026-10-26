@@ -16,9 +16,13 @@ class EditorWorkspaceScreen extends ConsumerStatefulWidget {
   const EditorWorkspaceScreen({
     super.key,
     required this.initialProject,
+    this.openBoneRigExample = false,
   });
 
   final Project initialProject;
+
+  /// Opens the bone rig editor on [initialProject] with an example rig set up.
+  final bool openBoneRigExample;
 
   @override
   ConsumerState<EditorWorkspaceScreen> createState() =>
@@ -293,6 +297,8 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
                                 isActive:
                                     tab.projectId == workspace.activeProjectId,
                                 onOpenProject: _openProject,
+                                openBoneRigExample: widget.openBoneRigExample &&
+                                    tab.projectId == widget.initialProject.id,
                               )
                             else
                               SizedBox.shrink(

@@ -11,12 +11,26 @@ import 'package:picell/pixel/rig/rig_editor_controller.dart';
 import 'package:picell/ui/screens/rig_editor/rig_canvas.dart';
 import 'package:picell/ui/screens/rig_editor/rig_panels.dart';
 import 'package:picell/ui/screens/rig_editor/rig_editor_screen.dart';
+import 'package:picell/ui/widgets/notifications/app_notification.dart';
 
 void main() {
   Layer layer(String key, String name) =>
       Layer(layerId: 0, id: 'id-$key', name: name, pixels: Uint32List(16 * 16), stableKey: key);
 
   late List<Rig?> results;
+
+  // The notification overlay is a singleton; drop it so each test's own
+  // overlay gets a fresh one.
+  setUp(AppNotification.dismissAll);
+  tearDown(AppNotification.dismissAll);
+
+  /// Notifications float over the top-right corner, where Done lives; clear
+  /// them first, as a person would wait or swipe them away.
+  Future<void> tapDone(WidgetTester tester) async {
+    AppNotification.dismissAll();
+    await tester.pump();
+    await tester.tap(find.text('Done'));
+  }
 
   /// Scrolls the side panel until [target] is on screen; the panel builds its
   /// sections lazily, so lower ones do not exist until reached.
@@ -97,7 +111,7 @@ void main() {
     await tester.tap(find.text('Idle').last);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('frozen-arm-0')), findsOneWidget);
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     final saved = results.single!;
     expect(saved.activeClip!.name, 'Idle');
@@ -174,7 +188,7 @@ void main() {
     await tester.tap(find.text('bone_1').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
 
     final rig = results.single!;
@@ -209,7 +223,7 @@ void main() {
     await gesture.up();
     await tester.pump();
 
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     final bone = results.single!.bones.single;
     expect(bone.head, const Offset(8.5, 8.5));
@@ -237,7 +251,7 @@ void main() {
     await g.up();
     await tester.pump();
 
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     final bone = results.single!.bones.single;
     expect(bone.head, const Offset(6.5, 6.5), reason: 'moved by (2, 2) pixels');
@@ -269,7 +283,7 @@ void main() {
     await tester.tap(find.byTooltip('Select and move bones (V)'));
     await tester.pump();
     await dragBetween(tester, pixelAt(tester, 4, 4), pixelAt(tester, 4.5, 4.5));
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     final bones = results.single!.bones;
     expect(bones.first.head, const Offset(4.5, 4.5));
@@ -307,7 +321,7 @@ void main() {
     await tester.tap(find.text('45°').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     final rig = results.single!;
     expect(rig.settings.rotationMode, RigRotationMode.rotsprite);
@@ -322,7 +336,7 @@ void main() {
     // Start on the body, a little off the line, and draw sideways.
     await dragBetween(tester, pixelAt(tester, 4.7, 7.4), pixelAt(tester, 10.5, 7.5));
 
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     final bones = results.single!.bones;
     expect(bones, hasLength(2));
@@ -337,7 +351,7 @@ void main() {
     await dragBetween(tester, pixelAt(tester, 4.5, 3.5), pixelAt(tester, 4.5, 11.5));
     await dragBetween(tester, pixelAt(tester, 11.5, 3.5), pixelAt(tester, 11.5, 11.5));
 
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     final bones = results.single!.bones;
     expect(bones[0].parentId, isNull);
@@ -359,7 +373,7 @@ void main() {
     await dragBetween(tester, pixelAt(tester, 4.5, 3.5), pixelAt(tester, 4.5, 11.5));
 
     expect(find.byKey(const ValueKey('armed-layer-banner')), findsNothing, reason: 'one layer, one bone');
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     final rig = results.single!;
     expect(rig.parts.single.layerKey, 'arm');
@@ -377,7 +391,7 @@ void main() {
     await tester.tap(find.byTooltip('Draw a bone (B)'));
     await tester.pump();
     await dragBetween(tester, pixelAt(tester, 4.5, 3.5), pixelAt(tester, 4.5, 11.5));
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     expect(results.single!.parts, isEmpty);
   });
@@ -391,7 +405,7 @@ void main() {
     expect(find.text('Disconnect'), findsOneWidget);
     await tester.tap(find.text('Disconnect'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     final detached = results.last!.bones.last;
     expect(detached.parentId, isNull);
@@ -421,7 +435,7 @@ void main() {
     await tester.tap(find.byTooltip('Undo'));
     await tester.pump();
     expect(tester.widget<IconButton>(clear).onPressed, isNotNull);
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     expect(results.last, rig);
   });
@@ -440,7 +454,7 @@ void main() {
     expect(find.byKey(const ValueKey('bone-number-Angle')), findsOneWidget);
     await tester.tap(find.byTooltip('Undo'));
     await tester.pump();
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     expect(results.single!.bones.single.head, const Offset(4, 4));
   });
@@ -473,7 +487,7 @@ void main() {
     await tester.tap(delete);
     await tester.pump();
     expect(find.text('4 / 8'), findsOneWidget);
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     expect(results.single!.clips.single.length, 8);
     expect(results.single!.clips.single.keyframes.single.time, 2);
@@ -504,7 +518,7 @@ void main() {
     expect(tester.widget<IconButton>(release).onPressed, isNull);
     await tester.tap(find.byTooltip('Undo'));
     await tester.pump();
-    await tester.tap(find.text('Done'));
+    await tapDone(tester);
     await tester.pumpAndSettle();
     expect(results.single!.clips.single.ikKeyframes.single.planted, isTrue);
     expect(tester.takeException(), isNull);
@@ -609,7 +623,7 @@ void main() {
       await tester.pump();
 
       expect(find.byKey(const ValueKey('key-spine-0')), findsOneWidget);
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       final key = results.single!.clips.single.keyframes.single;
       expect(key.time, 0);
@@ -686,7 +700,7 @@ void main() {
       expect(find.text('lower_ik'), findsOneWidget);
       expect(find.byKey(const ValueKey('remove-ik-chain')), findsOneWidget);
 
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       final chain = results.single!.ikChains.single;
       expect(chain.tipBoneId, 'lower');
@@ -706,7 +720,7 @@ void main() {
       await tester.pump();
       expect(find.byKey(const ValueKey('add-ik-chain')), findsOneWidget, reason: 'the bone can get a new chain');
 
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       expect(results.single!.ikChains, isEmpty);
     });
@@ -720,7 +734,7 @@ void main() {
       await dragBetween(tester, pixelAt(tester, 12.5, 8.5), pixelAt(tester, 8.5, 4.5));
 
       expect(find.byKey(const ValueKey('ikkey-ik-0')), findsOneWidget, reason: 'the target is keyed on frame 1');
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       final key = results.single!.clips.single.ikKeyframes.single;
       expect(key.chainId, 'ik');
@@ -743,7 +757,7 @@ void main() {
       // The rotate tool is active; take the forearm in the middle and lift it three pixels.
       await dragBetween(tester, pixelAt(tester, 10.5, 8.5), pixelAt(tester, 10.5, 5.5));
 
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       final key = results.single!.clips.single.ikKeyframes.single;
       expect(key.target.dx, closeTo(12.5, 0.5), reason: 'moved by the pointer\'s travel, not placed under it');
@@ -823,7 +837,7 @@ void main() {
       await tester.pump();
       expect(find.byKey(const ValueKey('key-spine-3')), findsOneWidget);
 
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       final rig = results.single!;
       expect(rig.poses.single.name, 'Stance');
@@ -932,7 +946,7 @@ void main() {
     }
 
     Future<Rig> finish(WidgetTester tester) async {
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       return results.single!;
     }
@@ -1109,7 +1123,7 @@ void main() {
       await tester.pump();
       expect(find.textContaining('2 layers bound by name'), findsOneWidget);
 
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       expect(result!.parts.map((p) => p.layerKey).toSet(), {'head', 'arm'});
     });
@@ -1208,7 +1222,7 @@ void main() {
       }
       expect(controller(tester).ghostFrames.toSet(), {1, 7});
       expect(controller(tester).rig, rig);
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       expect(results.single, rig);
       expect(tester.takeException(), isNull);
@@ -1296,7 +1310,7 @@ void main() {
         await pick(tester, action.$1);
         expect(find.textContaining('"${action.$2}" applied to 11 bones'), findsOneWidget);
         expect(find.text('1 / ${action.$3}'), findsOneWidget);
-        await tester.tap(find.text('Done'));
+        await tapDone(tester);
         await tester.pumpAndSettle();
         final clip = results.single!.clips.single;
         expect(clip.length, action.$3);
@@ -1314,7 +1328,7 @@ void main() {
       expect(find.textContaining('"Walk" applied to 11 bones'), findsOneWidget);
       expect(find.text('1 / 8'), findsOneWidget);
 
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       final clip = results.single!.clips.single;
       expect(clip.length, 8);
@@ -1332,7 +1346,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('motion-apply')));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       final rig = results.single!;
       final armL = rig.bones.firstWhere((b) => b.name == 'arm_l');
@@ -1352,7 +1366,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('motion-apply')));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       final rig = results.single!;
       final thigh = rig.bones.firstWhere((b) => b.name == 'thigh_l');
@@ -1374,7 +1388,7 @@ void main() {
       expect(find.textContaining('hips, spine, head'), findsOneWidget, reason: 'it names what to look for');
       await tester.tap(find.byKey(const ValueKey('motion-cancel')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       expect(results.single!.clips, isEmpty, reason: 'nothing was changed');
     });
@@ -1401,9 +1415,11 @@ void main() {
 
       await openPicker(tester);
       await pick(tester, 'walk');
+      AppNotification.dismissAll();
+      await tester.pump();
       await tester.tap(find.byTooltip('Undo'));
       await tester.pump();
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       expect(results.last!.clips, isEmpty);
     });
@@ -1440,7 +1456,7 @@ void main() {
       final previewClip = preview.activeClip;
       await tester.tap(find.byKey(const ValueKey('motion-apply')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Done'));
+      await tapDone(tester);
       await tester.pumpAndSettle();
       final clip = results.single!.activeClip!;
       expect(clip.length, 24);
@@ -1505,7 +1521,7 @@ void main() {
         expect(preview.activeClip.ikKeyframes.where((k) => k.planted), hasLength(preview.activeClip.length * 2));
         await tester.tap(find.byKey(const ValueKey('motion-apply')));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Done'));
+        await tapDone(tester);
         await tester.pumpAndSettle();
         final clip = results.single!.activeClip!;
         expect(clip.freezes, hasLength(clip.length * 6));

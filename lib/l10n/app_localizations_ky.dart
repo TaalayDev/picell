@@ -4523,4 +4523,23 @@ class StringsKy extends Strings {
   @override
   String get rigExperimentalHint =>
       'Сөөк анимациясы сынамык болуп саналат жана өзгөрүшү мүмкүн. Ишенер алдында долбоордун көчүрмөсүн сактап коюңуз.';
+
+  @override
+  String get whatsNew => 'Эмне жаңылык';
+
+  @override
+  String get whatsNewEmpty => 'Азырынча жаңылык жок. Кийинчерээк кайра кириңиз!';
+
+  @override
+  String get whatsNewLoadFailed => 'Акыркы жаңылыктарды жүктөө мүмкүн болгон жок.';
+
+  @override
+  String get whatsNewBoneRigTitle => 'Сөөк риггери';
+
+  @override
+  String get whatsNewBoneRigBody =>
+      'Пиксель-артыңызга сөөк скелетин жасап, поза, клип жана жумшартуу ийри сызыктары менен жандандырыңыз. Каалаган долбоордун анимация куралдарынан байкап көрүңүз.';
+
+  @override
+  String get whatsNewOpenExample => 'Мисалды ачуу';
 }

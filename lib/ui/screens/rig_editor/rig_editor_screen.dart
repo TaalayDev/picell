@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../l10n/strings.dart';
+import '../../widgets/notifications/app_notification.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../data/models/layer.dart';
 import '../../../data/models/rig/rig.dart';
@@ -197,10 +198,9 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
 
   /// Bakes the animation as it is now and shows it as a looping GIF.
   Future<void> _previewGif(BuildContext context) async {
-    final messenger = ScaffoldMessenger.maybeOf(context);
     final strings = Strings.of(context);
     if (!RigBakeService.canBake(_controller.rig)) {
-      messenger?.showSnackBar(SnackBar(content: Text(strings.rigNothingKeyed)));
+      AppNotification.show(context, message: strings.rigNothingKeyed, type: AppNotificationType.warning);
       return;
     }
     _stopPlayback();
@@ -215,7 +215,9 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
       if (!mounted || !context.mounted) return;
       await RigGifPreviewDialog.show(context, bytes: bytes, fileName: _gifFileName);
     } catch (_) {
-      messenger?.showSnackBar(SnackBar(content: Text(strings.rigPreviewFailed)));
+      if (context.mounted) {
+        AppNotification.show(context, message: strings.rigPreviewFailed, type: AppNotificationType.error);
+      }
     } finally {
       if (mounted) setState(() => _makingGif = false);
     }
@@ -469,11 +471,11 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     final placed = _controller.commitPlacement();
     if (placed == null) return;
     final bound = placed.boundLayers;
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
-      content: Text(
-        Strings.of(context).rigSkeletonAdded(name ?? '', placed.boneIds.length, bound),
-      ),
-    ));
+    AppNotification.show(
+      context,
+      message: Strings.of(context).rigSkeletonAdded(name ?? '', placed.boneIds.length, bound),
+      type: AppNotificationType.success,
+    );
   }
 
   /// Picks a ready-made animation and puts it on the clip.
@@ -483,23 +485,22 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     if (choice == null || !mounted || !context.mounted) return;
 
     final result = _controller.applyMotion(choice.preset, intensity: choice.intensity, mirror: choice.mirror);
-    final messenger = ScaffoldMessenger.maybeOf(context);
     if (result.isEmpty) {
-      messenger?.showSnackBar(SnackBar(
-        content: Text(
-          choice.preset.target == MotionTarget.roles
-              ? Strings.of(context).rigNoBonesForMotion(choice.preset.name, choice.preset.roles.take(3).join(', '))
-              : Strings.of(context).rigSelectBoneFirst,
-        ),
-      ));
+      AppNotification.show(
+        context,
+        message: choice.preset.target == MotionTarget.roles
+            ? Strings.of(context).rigNoBonesForMotion(choice.preset.name, choice.preset.roles.take(3).join(', '))
+            : Strings.of(context).rigSelectBoneFirst,
+        type: AppNotificationType.warning,
+      );
       return;
     }
     final missing = result.missing.length;
-    messenger?.showSnackBar(SnackBar(
-      content: Text(
-        Strings.of(context).rigMotionApplied(choice.preset.name, result.matched.length, missing),
-      ),
-    ));
+    AppNotification.show(
+      context,
+      message: Strings.of(context).rigMotionApplied(choice.preset.name, result.matched.length, missing),
+      type: AppNotificationType.success,
+    );
   }
 
   void _deleteSelected() {

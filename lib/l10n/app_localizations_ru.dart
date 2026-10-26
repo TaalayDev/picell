@@ -4785,4 +4785,23 @@ class StringsRu extends Strings {
   @override
   String get rigExperimentalHint =>
       'Костная анимация экспериментальная и может измениться. Сохраните копию проекта, прежде чем полагаться на неё.';
+
+  @override
+  String get whatsNew => 'Что нового';
+
+  @override
+  String get whatsNewEmpty => 'Пока ничего нового. Загляните позже!';
+
+  @override
+  String get whatsNewLoadFailed => 'Не удалось загрузить новости.';
+
+  @override
+  String get whatsNewBoneRigTitle => 'Костный риггер';
+
+  @override
+  String get whatsNewBoneRigBody =>
+      'Создавайте скелет для пиксель-арта и анимируйте его позами, клипами и кривыми плавности. Попробуйте в инструментах анимации любого проекта.';
+
+  @override
+  String get whatsNewOpenExample => 'Открыть пример';
 }

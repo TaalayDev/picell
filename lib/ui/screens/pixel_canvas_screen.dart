@@ -36,6 +36,7 @@ import '../widgets/panel/desktop_side_panel.dart';
 import '../widgets/pixel_canvas_shortcuts.dart';
 import '../widgets/dialogs/animation_preview_dialog.dart';
 import '../widgets/animation_timeline.dart';
+import '../../pixel/rig/rig_example.dart';
 import 'rig_editor/rig_editor_screen.dart';
 import 'subscription_screen.dart';
 import '../widgets/effects/effects_panel.dart';
@@ -61,9 +62,14 @@ class PixelCanvasScreen extends StatefulHookConsumerWidget {
     this.tilemapPixels,
     this.isActive = true,
     this.onOpenProject,
+    this.openBoneRigExample = false,
   });
 
   final Project project;
+
+  /// Opens the rig editor once, with the example skeleton and animations in
+  /// place, when the screen first appears.
+  final bool openBoneRigExample;
 
   /// Optional pre-rendered pixels from a tilemap editor
   final Uint32List? tilemapPixels;
@@ -92,6 +98,18 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
   void initState() {
     super.initState();
     _shortcutsFocusNode.canRequestFocus = widget.isActive;
+    if (widget.openBoneRigExample && kEnableRigEditor) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _openRigEditor(
+          context,
+          notifier,
+          ref.read(provider),
+          ref.read(subscriptionStateProvider),
+          example: true,
+        );
+      });
+    }
     // Apply tilemap pixels after the first frame if provided
     if (widget.tilemapPixels != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -790,8 +808,9 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     BuildContext context,
     PixelCanvasNotifier notifier,
     PixelCanvasState state,
-    UserSubscription subscription,
-  ) async {
+    UserSubscription subscription, {
+    bool example = false,
+  }) async {
     if (!subscription.hasFeatureAccess(SubscriptionFeature.advancedTools)) {
       SubscriptionOfferScreen.show(context);
       return;
@@ -802,10 +821,21 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     final source = session.source;
     final restFrame = session.frames[session.restFrameIndex];
 
+    var startRig = (session.rig ?? Rig(id: const Uuid().v4(), stateId: source.id, name: source.name))
+        .copyWith(restFrameIndex: session.restFrameIndex);
+    if (example && startRig.bones.isEmpty) {
+      startRig = buildBoneRigExample(
+        base: startRig,
+        restLayers: restFrame.layers,
+        width: project.width,
+        height: project.height,
+        fps: source.frameRate,
+      );
+    }
+
     final rig = await RigEditorScreen.show(
       context,
-      rig: (session.rig ?? Rig(id: const Uuid().v4(), stateId: source.id, name: source.name))
-          .copyWith(restFrameIndex: session.restFrameIndex),
+      rig: startRig,
       restLayers: restFrame.layers,
       width: project.width,
       height: project.height,
@@ -842,18 +872,23 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     }
 
     if (!context.mounted) return;
-    final messenger = ScaffoldMessenger.maybeOf(context);
     try {
       final stored = await notifier.applyRig(rig, bake: bake);
-      if (bake && stored.outputStateId != null) {
-        messenger?.showSnackBar(SnackBar(
-          content: Text('Baked ${stored.activeClip!.length} frames into ${source.name} (rig).'),
-        ));
+      if (bake && stored.outputStateId != null && context.mounted) {
+        AppNotification.show(
+          context,
+          message: 'Baked ${stored.activeClip!.length} frames into ${source.name} (rig).',
+          type: AppNotificationType.success,
+        );
       }
     } catch (error) {
-      messenger?.showSnackBar(const SnackBar(
-        content: Text('Couldn\'t bake the animation. Your rig was saved.'),
-      ));
+      if (context.mounted) {
+        AppNotification.show(
+          context,
+          message: 'Couldn\'t bake the animation. Your rig was saved.',
+          type: AppNotificationType.error,
+        );
+      }
     }
   }
 

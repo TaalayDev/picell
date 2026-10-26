@@ -4482,4 +4482,22 @@ class StringsZh extends Strings {
 
   @override
   String get rigExperimentalHint => '骨骼绑定是实验性功能，可能会有变化。请在依赖它之前备份你的项目。';
+
+  @override
+  String get whatsNew => '最新动态';
+
+  @override
+  String get whatsNewEmpty => '暂无新内容，请稍后再来看看！';
+
+  @override
+  String get whatsNewLoadFailed => '无法加载最新消息。';
+
+  @override
+  String get whatsNewBoneRigTitle => '骨骼绑定';
+
+  @override
+  String get whatsNewBoneRigBody => '用骨骼为像素画绑定骨架，并通过姿势、片段和缓动曲线制作动画。在任意项目的动画工具中即可体验。';
+
+  @override
+  String get whatsNewOpenExample => '打开示例';
 }

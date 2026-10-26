@@ -2063,5 +2063,11 @@
     "rigCurveStrongOut": "強いイーズアウト",
     "rigCurveStrongInOut": "強いイーズインアウト",
     "rigExperimental": "試験的機能",
-    "rigExperimentalHint": "ボーンリグは試験的機能で、変更される可能性があります。使用前にプロジェクトのコピーを保存してください。"
+    "rigExperimentalHint": "ボーンリグは試験的機能で、変更される可能性があります。使用前にプロジェクトのコピーを保存してください。",
+    "whatsNew": "新着情報",
+    "whatsNewEmpty": "新しいお知らせはまだありません。また後でご確認ください。",
+    "whatsNewLoadFailed": "最新のお知らせを読み込めませんでした。",
+    "whatsNewBoneRigTitle": "ボーンリガー",
+    "whatsNewBoneRigBody": "ドット絵にボーンを設定し、ポーズ、クリップ、イージングカーブでアニメーションできます。プロジェクトのアニメーションツールからお試しください。",
+    "whatsNewOpenExample": "サンプルを開く"
 }

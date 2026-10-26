@@ -8170,6 +8170,42 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Bone rigging is experimental and may change. Keep a copy of your project before relying on it.'**
   String get rigExperimentalHint;
+
+  /// No description provided for @whatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get whatsNew;
+
+  /// No description provided for @whatsNewEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new yet. Check back soon!'**
+  String get whatsNewEmpty;
+
+  /// No description provided for @whatsNewLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the latest news.'**
+  String get whatsNewLoadFailed;
+
+  /// No description provided for @whatsNewBoneRigTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bone rigger'**
+  String get whatsNewBoneRigTitle;
+
+  /// No description provided for @whatsNewBoneRigBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rig your pixel art with bones and animate it with poses, clips and easing curves. Open any project\'s animation tools to try it.'**
+  String get whatsNewBoneRigBody;
+
+  /// No description provided for @whatsNewOpenExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Open example'**
+  String get whatsNewOpenExample;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {
