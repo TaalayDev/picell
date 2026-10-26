@@ -154,7 +154,8 @@ void main() {
     c.setSnapping(false);
     expect(c.attachPoint(const Offset(4, 2), 1).parentId, isNull);
     final id = c.addBone(head: const Offset(4, 2), tail: const Offset(4, 4));
-    expect(c.bone(id)!.parentId, isNull);
+    expect(c.bone(id)!.parentId, 'root');
+    expect(c.bone(id)!.connection, BoneConnection.implicit);
     c.setSnapping(true);
     expect(c.attachPoint(const Offset(4, 2), 1, bypass: true).parentId, isNull);
     expect(c.attachPoint(const Offset(2, 2), .1).parentId, 'root');

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/strings.dart';
 import '../../../pixel/rig/rig_editor_controller.dart';
 
 /// Less frequent tools stay collapsible to leave the bone tree accessible.
@@ -9,25 +10,25 @@ class RigWorkflowPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = controller;
     return Column(children: [
-      ExpansionTile(title: Text('Selection · ${c.selectedBoneIds.length} bones'), children: [
+      ExpansionTile(title: Text(Strings.of(context).rigSelectionTitle(c.selectedBoneIds.length)), children: [
         SwitchListTile(
-            title: const Text('Select multiple bones'),
+            title: Text(Strings.of(context).rigSelectMultiple),
             value: c.multiSelectEnabled,
             onChanged: (_) => c.toggleMultiSelect()),
         TextButton(
-            onPressed: c.selectedBoneIds.isEmpty ? null : c.selectDescendants, child: const Text('Select descendants')),
+            onPressed: c.selectedBoneIds.isEmpty ? null : c.selectDescendants, child: Text(Strings.of(context).rigSelectDescendants)),
         if (c.selectedBoneIds.isNotEmpty) ...[
           RigValueField(
-              label: 'Move X', value: 0, step: .5, apply: (v) => c.transformSelection(translation: Offset(v, 0))),
+              label: Strings.of(context).rigMoveX, value: 0, step: .5, apply: (v) => c.transformSelection(translation: Offset(v, 0))),
           RigValueField(
-              label: 'Move Y', value: 0, step: .5, apply: (v) => c.transformSelection(translation: Offset(0, v))),
-          RigValueField(label: 'Rotate group', value: 0, apply: (v) => c.transformSelection(rotation: v)),
+              label: Strings.of(context).rigMoveY, value: 0, step: .5, apply: (v) => c.transformSelection(translation: Offset(0, v))),
+          RigValueField(label: Strings.of(context).rigRotateGroup, value: 0, apply: (v) => c.transformSelection(rotation: v)),
           SwitchListTile(
-              title: const Text('Rotate about active joint'), value: c.groupActivePivot, onChanged: c.setGroupPivot),
+              title: Text(Strings.of(context).rigRotateAboutActive), value: c.groupActivePivot, onChanged: c.setGroupPivot),
           if (c.mode == RigMode.animate)
             Wrap(children: [
-              TextButton(onPressed: () => c.freezeSelection(true), child: const Text('Lock selected joints')),
-              TextButton(onPressed: () => c.freezeSelection(false), child: const Text('Unlock selected joints')),
+              TextButton(onPressed: () => c.freezeSelection(true), child: Text(Strings.of(context).rigLockSelected)),
+              TextButton(onPressed: () => c.freezeSelection(false), child: Text(Strings.of(context).rigUnlockSelected)),
             ]),
         ],
       ]),
@@ -35,72 +36,70 @@ class RigWorkflowPanel extends StatelessWidget {
           c.selectedBone != null &&
           !c.jointFrozenAt(c.selectedBoneId!, c.time) &&
           !c.isIkDriven(c.selectedBoneId!))
-        ExpansionTile(title: const Text('Numeric pose'), children: [
+        ExpansionTile(title: Text(Strings.of(context).rigNumericPose), children: [
           RigValueField(
-              label: 'Pose rotation',
+              label: Strings.of(context).rigPoseRotation,
               value: c.poseOf(c.selectedBoneId!).rotation,
               apply: (v) => c.setPose(c.selectedBoneId!, rotation: v)),
           RigValueField(
-              label: 'Offset X',
+              label: Strings.of(context).rigOffsetX,
               value: c.poseOf(c.selectedBoneId!).translation.dx,
               step: .5,
               apply: (v) =>
                   c.setPose(c.selectedBoneId!, translation: Offset(v, c.poseOf(c.selectedBoneId!).translation.dy))),
           RigValueField(
-              label: 'Offset Y',
+              label: Strings.of(context).rigOffsetY,
               value: c.poseOf(c.selectedBoneId!).translation.dy,
               step: .5,
               apply: (v) =>
                   c.setPose(c.selectedBoneId!, translation: Offset(c.poseOf(c.selectedBoneId!).translation.dx, v))),
         ]),
       if (c.mode == RigMode.animate)
-        ExpansionTile(title: const Text('Pose ghosting'), children: [
+        ExpansionTile(title: Text(Strings.of(context).rigPoseGhosting), children: [
           SwitchListTile(
               key: const ValueKey('rig-ghost-skeleton'),
-              title: const Text('Skeleton ghosts'),
+              title: Text(Strings.of(context).rigSkeletonGhosts),
               value: c.ghostSkeleton,
               onChanged: (v) => c.updateGhosts(skeleton: v)),
           SwitchListTile(
               key: const ValueKey('rig-ghost-artwork'),
-              title: const Text('Artwork ghosts'),
+              title: Text(Strings.of(context).rigArtworkGhosts),
               value: c.ghostArtwork,
               onChanged: (v) => c.updateGhosts(artwork: v)),
-          const Text('Opacity'),
+          Text(Strings.of(context).rigOpacity),
           Slider(value: c.ghostOpacity, min: .05, max: .8, onChanged: (v) => c.updateGhosts(opacity: v)),
           RigValueField(
-              label: 'Frame spacing',
+              label: Strings.of(context).rigFrameSpacing,
               value: c.ghostSpacing.toDouble(),
               apply: (v) => c.updateGhosts(spacing: v.round())),
           TextButton(
               onPressed: () => c.updateGhosts(pin: c.pinnedGhostFrame == null, unpin: c.pinnedGhostFrame != null),
-              child: Text(c.pinnedGhostFrame == null ? 'Pin current pose' : 'Unpin reference pose')),
+              child: Text(c.pinnedGhostFrame == null ? Strings.of(context).rigPinPose : Strings.of(context).rigUnpinPose)),
         ]),
       if (c.mode == RigMode.setup)
-        ExpansionTile(title: const Text('Attachment points'), children: [
-          const Padding(
-              padding: EdgeInsets.all(8),
-              child: Text('Name a foot socket foot_contact to use it as a planting anchor. Offsets follow the bone.')),
+        ExpansionTile(title: Text(Strings.of(context).rigAttachmentPoints), children: [
+          Padding(padding: const EdgeInsets.all(8), child: Text(Strings.of(context).rigSocketHint)),
           TextButton.icon(
               key: const ValueKey('rig-add-attachment'),
               icon: const Icon(Icons.add_location_alt_outlined),
-              label: const Text('Add to selected bone'),
+              label: Text(Strings.of(context).rigAddToBone),
               onPressed: c.selectedBoneId == null ? null : () => c.addAttachment(c.selectedBoneId!, 'grip')),
           for (final a in c.rig.attachments)
             ExpansionTile(
                 key: ValueKey('socket-${a.id}'),
                 title: Text(a.name),
-                subtitle: Text(c.bone(a.boneId)?.name ?? 'Missing bone'),
+                subtitle: Text(c.bone(a.boneId)?.name ?? Strings.of(context).rigMissingBone),
                 children: [
                   TextFormField(
                       initialValue: a.name,
-                      decoration: const InputDecoration(labelText: 'Socket name'),
+                      decoration: InputDecoration(labelText: Strings.of(context).rigSocketName),
                       onFieldSubmitted: (v) => c.updateAttachment(a.id, name: v)),
                   RigValueField(
-                      label: 'Local X', value: a.offset.dx, step: .5, apply: (v) => c.updateAttachment(a.id, x: v)),
+                      label: Strings.of(context).rigLocalX, value: a.offset.dx, step: .5, apply: (v) => c.updateAttachment(a.id, x: v)),
                   RigValueField(
-                      label: 'Local Y', value: a.offset.dy, step: .5, apply: (v) => c.updateAttachment(a.id, y: v)),
+                      label: Strings.of(context).rigLocalY, value: a.offset.dy, step: .5, apply: (v) => c.updateAttachment(a.id, y: v)),
                   RigValueField(
-                      label: 'Socket angle', value: a.angle, apply: (v) => c.updateAttachment(a.id, angle: v)),
+                      label: Strings.of(context).rigSocketAngle, value: a.angle, apply: (v) => c.updateAttachment(a.id, angle: v)),
                   for (final layer in c.restLayers.where((l) => l.stableKey != null))
                     ListTile(
                         dense: true,
@@ -110,21 +109,21 @@ class RigWorkflowPanel extends StatelessWidget {
                         onTap: () => c.attachLayerToSocket(layer.stableKey!, a.id)),
                   for (final part in c.rig.parts.where((p) => p.attachmentId == a.id)) ...[
                     Text(
-                        'Artwork pivot · ${c.restLayers.where((l) => l.stableKey == part.layerKey).firstOrNull?.name ?? part.layerKey}'),
+                        Strings.of(context).rigArtworkPivot(c.restLayers.where((l) => l.stableKey == part.layerKey).firstOrNull?.name ?? part.layerKey)),
                     RigValueField(
-                        label: 'Artwork X',
+                        label: Strings.of(context).rigArtworkX,
                         value: (part.pivotOverride ?? c.bone(a.boneId)!.head).dx,
                         step: .5,
                         apply: (v) => c.setAttachmentArtworkPivot(
                             part.layerKey, Offset(v, (part.pivotOverride ?? c.bone(a.boneId)!.head).dy))),
                     RigValueField(
-                        label: 'Artwork Y',
+                        label: Strings.of(context).rigArtworkY,
                         value: (part.pivotOverride ?? c.bone(a.boneId)!.head).dy,
                         step: .5,
                         apply: (v) => c.setAttachmentArtworkPivot(
                             part.layerKey, Offset((part.pivotOverride ?? c.bone(a.boneId)!.head).dx, v))),
                   ],
-                  TextButton(onPressed: () => c.deleteAttachment(a.id), child: const Text('Delete attachment')),
+                  TextButton(onPressed: () => c.deleteAttachment(a.id), child: Text(Strings.of(context).rigDeleteAttachment)),
                 ]),
         ]),
     ]);

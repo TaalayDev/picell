@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../../l10n/strings.dart';
 import '../../../core/utils/file_utils.dart';
 
 /// Shows a rendered GIF of the rig's animation, looping, with the option to
@@ -23,7 +24,7 @@ class RigGifPreviewDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AlertDialog(
-      title: const Text('Animation preview'),
+      title: Text(Strings.of(context).rigPreviewTitle),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 360, maxHeight: 360),
         child: DecoratedBox(
@@ -44,11 +45,11 @@ class RigGifPreviewDialog extends StatelessWidget {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(Strings.of(context).close)),
         FilledButton.icon(
           key: const ValueKey('save-rig-gif'),
           icon: const Icon(Icons.download, size: 16),
-          label: const Text('Save GIF'),
+          label: Text(Strings.of(context).rigSaveGif),
           onPressed: () => FileUtils(context).saveImage(bytes, fileName),
         ),
       ],

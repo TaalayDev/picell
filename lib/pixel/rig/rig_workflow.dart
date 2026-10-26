@@ -302,6 +302,9 @@ extension RigWorkflow on RigEditorController {
         ikKeyframes: [
           for (final k in clip.ikKeyframes) k.copyWith(time: later(k.time))
         ],
+        orderKeyframes: [
+          for (final k in clip.orderKeyframes) k.copyWith(time: later(k.time))
+        ],
         freezes: [
           for (final f in clip.freezes)
             if (!lockDest.contains((f.boneId, later(f.time)))) f.copyWith(time: later(f.time)),
@@ -311,18 +314,20 @@ extension RigWorkflow on RigEditorController {
     _updateClip((_) => base);
   }
 
-  void editTimelineKeys({int delta = 0, bool delete = false, RigEasing? easing}) {
+  void editTimelineKeys({int delta = 0, bool delete = false, RigEasing? easing, EasingCurve? curve}) {
     final clip = activeClip;
     final start = rangeStart, end = rangeEnd;
     delta = delta.clamp(-start, 239 - end);
     bool inside(int t) => t >= start && t <= end;
     final movedKeys = [
       for (final k in clip.keyframes)
-        if (inside(k.time) && _trackIncluded(k.boneId) && !delete) k.copyWith(time: k.time + delta, easing: easing)
+        if (inside(k.time) && _trackIncluded(k.boneId) && !delete)
+          k.copyWith(time: k.time + delta, easing: easing, curve: easing != null || curve != null ? () => curve : null)
     ];
     final movedIk = [
       for (final k in clip.ikKeyframes)
-        if (inside(k.time) && _chainIncluded(k.chainId) && !delete) k.copyWith(time: k.time + delta, easing: easing)
+        if (inside(k.time) && _chainIncluded(k.chainId) && !delete)
+          k.copyWith(time: k.time + delta, easing: easing, curve: easing != null || curve != null ? () => curve : null)
     ];
     final movedLocks = [
       for (final f in clip.freezes)

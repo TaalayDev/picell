@@ -97,6 +97,19 @@ void main() {
       expect(c.keyTimes('arm'), isEmpty);
     });
 
+    test('a custom curve survives editing and is cleared by a preset easing', () {
+      final c = make();
+      final curve = EasingCurve(.34, 1.56, .64, 1);
+      c.keyBone('arm');
+      c.setKeyCurve('arm', 0, curve);
+      expect(c.keyAt('arm', 0)!.curve, curve);
+      c.setPose('arm', rotation: 15);
+      expect(c.keyAt('arm', 0)!.curve, curve, reason: 'editing keeps the curve');
+      c.setKeyEasing('arm', 0, RigEasing.easeIn);
+      expect(c.keyAt('arm', 0)!.curve, isNull);
+      expect(c.keyAt('arm', 0)!.easing, RigEasing.easeIn);
+    });
+
     test('copy and paste move a whole pose to another frame', () {
       final c = make();
       c.setClipLength(6);

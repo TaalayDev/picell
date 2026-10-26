@@ -3632,4 +3632,850 @@ class StringsJa extends Strings {
 
   @override
   String get effectLayersCombinedKeepHint => 'レイヤーは1枚の画像のように一緒に動き、それぞれのレイヤーに残ります。';
+
+  @override
+  String rigBoneCount(int count) {
+    return '$count 本のボーン';
+  }
+
+  @override
+  String rigLayerCount(int count) {
+    return '$count 枚のレイヤー';
+  }
+
+  @override
+  String get rigNothingKeyed => '先にボーンをポーズさせるか IK ターゲットを動かしてください。まだキーがありません。';
+
+  @override
+  String get rigPreviewFailed => 'プレビューを作成できませんでした。';
+
+  @override
+  String get rigDiscardTitle => 'リグの変更を破棄しますか？';
+
+  @override
+  String get rigDiscardBody => 'このリグに加えた変更は保存されません。';
+
+  @override
+  String get rigKeepEditing => '編集を続ける';
+
+  @override
+  String get rigDiscard => '破棄';
+
+  @override
+  String rigSkeletonAdded(String name, int bones, int bound) {
+    String _temp0 = intl.Intl.pluralLogic(
+      bound,
+      locale: localeName,
+      other: '、名前で $bound 枚のレイヤーを関連付け',
+      zero: '',
+    );
+    return '$name を追加しました：ボーン $bones 本$_temp0。';
+  }
+
+  @override
+  String rigNoBonesForMotion(String name, String examples) {
+    return '「$name」に使えるボーンがありません。$examples のように名前を付けるか、セットアップで既製のスケルトンを追加してください。';
+  }
+
+  @override
+  String get rigSelectBoneFirst => '先にボーンを選択してください。';
+
+  @override
+  String get rigSelectBoneFirstShort => '先にボーンを選択';
+
+  @override
+  String rigMotionApplied(String name, int matched, int missing) {
+    String _temp0 = intl.Intl.pluralLogic(
+      missing,
+      locale: localeName,
+      other: '（$missing 本は見つかりません）',
+      zero: '',
+    );
+    return '「$name」を $matched 本のボーンに適用しました$_temp0。元に戻すと以前のアニメーションに戻ります。';
+  }
+
+  @override
+  String get rigTitle => 'リグ';
+
+  @override
+  String get rigBonesAndLayers => 'ボーンとレイヤー';
+
+  @override
+  String get rigModeSetup => 'セットアップ';
+
+  @override
+  String get rigModeAnimate => 'アニメーション';
+
+  @override
+  String get rigToolSelectAnimate => 'ボーンを選択 (V)';
+
+  @override
+  String get rigToolSelectSetup => 'ボーンの選択と移動 (V)';
+
+  @override
+  String get rigToolDraw => 'ボーンを描く (B)';
+
+  @override
+  String get rigToolPaint => '選択したボーンが動かす部分を塗る (P)';
+
+  @override
+  String get rigAddSkeleton => '既製のスケルトンを追加';
+
+  @override
+  String get rigToolRotate => 'ボーンを回転 (R)';
+
+  @override
+  String get rigToolMove => 'ボーンを移動 (M)';
+
+  @override
+  String get rigFlipBone => '選択したボーンを反転';
+
+  @override
+  String get rigSelectMultiple => '複数のボーンを選択';
+
+  @override
+  String get rigSnapping => '関節スナップ（Alt で無効）';
+
+  @override
+  String get rigFit => '画面に合わせる';
+
+  @override
+  String rigNextBoneMoves(String layer) {
+    return '次のボーンが「$layer」を動かします';
+  }
+
+  @override
+  String get rigDontBindLayer => 'レイヤーを関連付けない';
+
+  @override
+  String get rigPaintErasing => '消去：ピクセルは動きません';
+
+  @override
+  String get rigPaintSelectBone => '塗る対象のボーンを選択';
+
+  @override
+  String rigPaintingFor(String bone) {
+    return '$bone を塗っています';
+  }
+
+  @override
+  String get rigErase => '消去';
+
+  @override
+  String get rigAnyVisibleLayer => '表示中のレイヤーすべて';
+
+  @override
+  String rigPlacePrompt(String name) {
+    return '「$name」を配置：ボックスをドラッグで移動、端をドラッグで拡大縮小。';
+  }
+
+  @override
+  String get rigMirror => 'ミラー';
+
+  @override
+  String get rigWithIk => 'IK 付き';
+
+  @override
+  String rigAttachTo(String bone) {
+    return '$bone に取り付け';
+  }
+
+  @override
+  String get rigAddSkeletonButton => 'スケルトンを追加';
+
+  @override
+  String get rigPreviewTitle => 'アニメーションのプレビュー';
+
+  @override
+  String get rigSaveGif => 'GIF を保存';
+
+  @override
+  String get rigSkeletonsTitle => '既製のスケルトン';
+
+  @override
+  String get rigSkeletonsHint => '1 つ選び、追加する前に作品の上で移動・拡大縮小してください。';
+
+  @override
+  String get rigWholeFigures => '全身';
+
+  @override
+  String get rigPartsToAdd => 'ボーンに追加するパーツ';
+
+  @override
+  String rigPresetBones(String name, int count) {
+    return '$name · ボーン $count 本';
+  }
+
+  @override
+  String get rigAnimationsTitle => '既製のアニメーション';
+
+  @override
+  String rigBonesFound(int matched, int total) {
+    return 'ボーン $total 本中 $matched 本が見つかりました';
+  }
+
+  @override
+  String rigNoBonesNamedLike(String examples) {
+    return '$examples のような名前のボーンがありません';
+  }
+
+  @override
+  String get rigSelectedBoneAndBelow => '選択したボーンとその下位';
+
+  @override
+  String get rigSelectedBone => '選択したボーン';
+
+  @override
+  String rigMotionMeta(int frames, int fps) {
+    return '$frames フレーム · $fps fps';
+  }
+
+  @override
+  String rigMotionMetaOnce(int frames, int fps) {
+    return '$frames フレーム · $fps fps · 1 回';
+  }
+
+  @override
+  String rigUnmappedRoles(String roles) {
+    return '未割り当ての役割：$roles。「ボーンの役割割り当て」でボーンを選んでください。';
+  }
+
+  @override
+  String get rigStrength => '強さ';
+
+  @override
+  String get rigFrames => 'フレーム';
+
+  @override
+  String get rigFrameRate => 'フレームレート';
+
+  @override
+  String get rigLoop => 'ループ';
+
+  @override
+  String get rigFaceOther => '反対向きにする';
+
+  @override
+  String get rigFaceOtherHint => '左右を入れ替え、振りを逆にします。';
+
+  @override
+  String get rigScaleMotion => '動きを体の比率に合わせる';
+
+  @override
+  String get rigKeepPosition => '現在の位置を維持';
+
+  @override
+  String get rigAlignFeet => '足を地面に合わせる';
+
+  @override
+  String get rigGroundY => '地面の Y';
+
+  @override
+  String get rigRoleMapping => 'ボーンの役割割り当て';
+
+  @override
+  String get rigAutomaticByName => '自動（名前で判定）';
+
+  @override
+  String get rigPlantFeet => '足を接地させる';
+
+  @override
+  String get rigPlantFeetHint => '足の接地点を地面に保ちます。';
+
+  @override
+  String get rigLockLegs => '脚の関節をロック';
+
+  @override
+  String get rigLockLegsHint => '太もも・すね・足をその位置に固定します。';
+
+  @override
+  String get rigPlayPreview => 'プレビューを再生';
+
+  @override
+  String get rigPausePreview => 'プレビューを一時停止';
+
+  @override
+  String rigConfigure(String name) {
+    return '$name を設定';
+  }
+
+  @override
+  String get rigCloseConfig => '設定を閉じる';
+
+  @override
+  String rigNoMatchingBones(String examples) {
+    return '一致するボーンがありません。$examples のように名前を付けてください。';
+  }
+
+  @override
+  String get rigSelectBoneBeforePreset => 'このプリセットを選ぶ前にボーンを選択してください。';
+
+  @override
+  String rigFpsValue(int fps) {
+    return '$fps fps';
+  }
+
+  @override
+  String get rigAddBonesHint => 'セットアップでボーンを追加するとポーズを付けられます。';
+
+  @override
+  String get rigNewClip => '新しいアニメーションクリップ';
+
+  @override
+  String get rigRenameClip => 'アニメーションクリップの名前を変更';
+
+  @override
+  String get rigClipName => 'クリップ名';
+
+  @override
+  String get rigClipActions => 'クリップの操作';
+
+  @override
+  String get rigDuplicateClip => 'クリップを複製';
+
+  @override
+  String get rigRenameClipItem => 'クリップ名を変更';
+
+  @override
+  String get rigDeleteClip => 'クリップを削除';
+
+  @override
+  String get rigUnfreezeRange => '関節のフリーズを解除（選択フレームまたはクリップ全体）';
+
+  @override
+  String get rigFreezeRange => '関節をフリーズ（選択フレームまたはクリップ全体）';
+
+  @override
+  String get rigAutoKeyOn => 'オートキー オン：ポーズ操作でキーを記録 (A)';
+
+  @override
+  String get rigAutoKeyOff => 'オートキー オフ：ポーズはプレビューのみ (A)';
+
+  @override
+  String get rigKeyPose => 'ポーズをキー登録';
+
+  @override
+  String get rigDiscardUnkeyed => '未登録のポーズを破棄';
+
+  @override
+  String get rigPrevFrame => '前のフレーム';
+
+  @override
+  String get rigNextFrame => '次のフレーム';
+
+  @override
+  String get rigLooping => 'ループ再生';
+
+  @override
+  String get rigPlaysOnce => '1 回だけ再生';
+
+  @override
+  String get rigMirrorFramePose => 'このフレームのポーズをミラー';
+
+  @override
+  String get rigSwapLeftRight => '左右を入れ替え（逆位相）';
+
+  @override
+  String get rigMirrorCentre => '中心線でミラー';
+
+  @override
+  String get rigFixLoop => 'ループを修正';
+
+  @override
+  String get rigCopyPose => 'このフレームのポーズをコピー';
+
+  @override
+  String get rigPastePose => 'ここにポーズを貼り付け';
+
+  @override
+  String get rigClearAll => 'すべてのアニメーションとフレームを消去';
+
+  @override
+  String get rigSelectRange => 'フレーム範囲を選択（Shift クリックまたは長押し）';
+
+  @override
+  String get rigFrom => '開始';
+
+  @override
+  String get rigTo => '終了';
+
+  @override
+  String get rigMoveKeysLeftReplace => '選択したキーを左へ移動（移動先のキーを置き換え）';
+
+  @override
+  String get rigMoveKeysRightReplace => '選択したキーを右へ移動（移動先のキーを置き換え）';
+
+  @override
+  String get rigDuplicateFrames => '選択したフレームを複製';
+
+  @override
+  String get rigDeleteFrames => '選択したフレームを削除';
+
+  @override
+  String get rigPlantFoot => '選択フレームで選択した足を接地（現在の接地点）';
+
+  @override
+  String get rigReleaseFoot => '選択フレームの足の接地を解除';
+
+  @override
+  String get rigPreviewGif => 'GIF でプレビュー';
+
+  @override
+  String rigFewer(String label) {
+    return '$labelを減らす';
+  }
+
+  @override
+  String rigMore(String label) {
+    return '$labelを増やす';
+  }
+
+  @override
+  String get rigSelectedTracks => '選択したトラック';
+
+  @override
+  String get rigAllTracks => 'すべてのトラック';
+
+  @override
+  String get rigCopyKeys => '範囲内のキーをコピー';
+
+  @override
+  String get rigPasteKeys => '現在のフレームにキーを貼り付け';
+
+  @override
+  String get rigMoveKeysLeft => 'キーを左へ移動';
+
+  @override
+  String get rigMoveKeysRight => 'キーを右へ移動';
+
+  @override
+  String get rigDeleteKeys => 'フレームを残してキーを削除';
+
+  @override
+  String get rigSetEasing => '選択したキーのイージングを設定';
+
+  @override
+  String get rigRippleOn => 'リップル貼り付け：オン';
+
+  @override
+  String get rigRippleOff => 'リップル貼り付け：オフ';
+
+  @override
+  String get rigEasingLinear => 'リニア';
+
+  @override
+  String get rigEasingIn => 'イーズイン';
+
+  @override
+  String get rigEasingOut => 'イーズアウト';
+
+  @override
+  String get rigEasingInOut => 'イーズイン・アウト';
+
+  @override
+  String get rigEasingStepped => '保持してから切り替え';
+
+  @override
+  String rigSelectionTitle(int count) {
+    return '選択 · ボーン $count 本';
+  }
+
+  @override
+  String get rigSelectDescendants => '子孫を選択';
+
+  @override
+  String get rigMoveX => 'X 移動';
+
+  @override
+  String get rigMoveY => 'Y 移動';
+
+  @override
+  String get rigRotateGroup => 'グループを回転';
+
+  @override
+  String get rigRotateAboutActive => 'アクティブな関節を中心に回転';
+
+  @override
+  String get rigLockSelected => '選択した関節をロック';
+
+  @override
+  String get rigUnlockSelected => '選択した関節のロックを解除';
+
+  @override
+  String get rigNumericPose => '数値ポーズ';
+
+  @override
+  String get rigPoseRotation => 'ポーズの回転';
+
+  @override
+  String get rigOffsetX => 'オフセット X';
+
+  @override
+  String get rigOffsetY => 'オフセット Y';
+
+  @override
+  String get rigPoseGhosting => 'ポーズのゴースト';
+
+  @override
+  String get rigSkeletonGhosts => 'スケルトンのゴースト';
+
+  @override
+  String get rigArtworkGhosts => '作品のゴースト';
+
+  @override
+  String get rigOpacity => '不透明度';
+
+  @override
+  String get rigFrameSpacing => 'フレーム間隔';
+
+  @override
+  String get rigPinPose => '現在のポーズを固定';
+
+  @override
+  String get rigUnpinPose => '参照ポーズの固定を解除';
+
+  @override
+  String get rigAttachmentPoints => 'アタッチメントポイント';
+
+  @override
+  String get rigSocketHint => '足のソケットに foot_contact と名付けると接地アンカーとして使えます。オフセットはボーンに追従します。';
+
+  @override
+  String get rigAddToBone => '選択したボーンに追加';
+
+  @override
+  String get rigMissingBone => 'ボーンがありません';
+
+  @override
+  String get rigSocketName => 'ソケット名';
+
+  @override
+  String get rigLocalX => 'ローカル X';
+
+  @override
+  String get rigLocalY => 'ローカル Y';
+
+  @override
+  String get rigSocketAngle => 'ソケット角度';
+
+  @override
+  String rigArtworkPivot(String layer) {
+    return '作品のピボット · $layer';
+  }
+
+  @override
+  String get rigArtworkX => '作品 X';
+
+  @override
+  String get rigArtworkY => '作品 Y';
+
+  @override
+  String get rigDeleteAttachment => 'アタッチメントを削除';
+
+  @override
+  String get rigSectionBones => 'ボーン';
+
+  @override
+  String get rigSectionLayers => 'レイヤー';
+
+  @override
+  String get rigSectionBone => 'ボーン';
+
+  @override
+  String rigSectionPose(int frame) {
+    return 'ポーズ · フレーム $frame';
+  }
+
+  @override
+  String get rigSectionPoses => 'ポーズ';
+
+  @override
+  String get rigSectionCheck => 'チェック';
+
+  @override
+  String get rigEmptyHint => 'ボーンツールを選び、キャンバス上をドラッグして最初のボーンを描きます。';
+
+  @override
+  String get rigOrAddSkeleton => 'または既製のスケルトンを追加';
+
+  @override
+  String rigUnfreezeBone(String bone) {
+    return '$bone のフリーズを解除';
+  }
+
+  @override
+  String rigFreezeBone(String bone) {
+    return '$bone をフリーズ';
+  }
+
+  @override
+  String get rigBoneActions => 'ボーンの操作';
+
+  @override
+  String get rigUnfreezeJoint => '関節のフリーズを解除';
+
+  @override
+  String get rigFreezeJoint => '関節をフリーズ';
+
+  @override
+  String get rigConnectJoints => '関節を接続…';
+
+  @override
+  String get rigInheritMotion => '動きだけを継承…';
+
+  @override
+  String get rigImplicitNote => '暗黙：動きのみ';
+
+  @override
+  String get rigExplicitNote => '明示：関節と継承されたレイヤー';
+
+  @override
+  String get rigDisconnect => '接続を解除';
+
+  @override
+  String rigConnectTo(String bone) {
+    return '$bone の接続先';
+  }
+
+  @override
+  String get rigNoOtherBones => '接続できる他のボーンがありません。';
+
+  @override
+  String get rigRenameBone => 'ボーン名を変更';
+
+  @override
+  String get rigNoLayers => 'このアニメーションにはレイヤーがありません。';
+
+  @override
+  String get rigStaysStill => '動かない';
+
+  @override
+  String rigChooseBoneFor(String layer) {
+    return '$layer を動かすボーンを選択';
+  }
+
+  @override
+  String rigOrderLabel(String state) {
+    return 'レイヤー順：$state';
+  }
+
+  @override
+  String get rigOrderNormal => '通常';
+
+  @override
+  String rigOrderFront(int count) {
+    return '$count 枚前面';
+  }
+
+  @override
+  String rigOrderBehind(int count) {
+    return '$count 枚後ろ';
+  }
+
+  @override
+  String get rigSendBehind => 'このフレームからさらに 1 枚後ろへ';
+
+  @override
+  String get rigBringFront => 'このフレームからさらに 1 枚前へ';
+
+  @override
+  String get rigRemoveOrderKey => 'このフレームの順序キーを削除';
+
+  @override
+  String get rigMoveConnected => '接続したチェーンを移動';
+
+  @override
+  String get rigLength => '長さ';
+
+  @override
+  String get rigAngle => '角度';
+
+  @override
+  String get rigEnterHint => 'Enter で適用 · 0.5 px 刻み';
+
+  @override
+  String get rigLimitRotation => '回転を制限';
+
+  @override
+  String get rigRange => '範囲';
+
+  @override
+  String rigRangeValue(int min, int max) {
+    return '$min° ～ $max°';
+  }
+
+  @override
+  String get rigMinAngle => '最小角度';
+
+  @override
+  String get rigMaxAngle => '最大角度';
+
+  @override
+  String get rigInvalidValue => '無効な値';
+
+  @override
+  String get rigJointFrozen => 'この関節はクリップ内でフリーズされています。親の動きや IK では動きません。';
+
+  @override
+  String get rigRotation => '回転';
+
+  @override
+  String get rigOffset => 'オフセット';
+
+  @override
+  String get rigSteeredByIk => 'IK で制御中：キャンバス上のリングをドラッグしてポーズを付けます。';
+
+  @override
+  String get rigFlipH => '左右反転';
+
+  @override
+  String get rigBetweenKeys => 'キーの間';
+
+  @override
+  String get rigKeyedHere => 'このフレームにキーあり';
+
+  @override
+  String get rigAddKey => 'キーを追加';
+
+  @override
+  String get rigUpdateKey => 'キーを更新';
+
+  @override
+  String get rigRemoveKey => 'キーを削除';
+
+  @override
+  String rigIkPartOf(String name) {
+    return 'IK チェーン「$name」の一部です。';
+  }
+
+  @override
+  String get rigEditChain => 'そのチェーンを編集';
+
+  @override
+  String get rigIkAttachHint => 'このボーンを親に接続すると、ターゲットに向かって曲がるチェーンを作れます。';
+
+  @override
+  String get rigIkBendHint => 'このボーンと上位のボーンを曲げてターゲットに届かせます（手や足など）。';
+
+  @override
+  String get rigAddIkToBone => 'このボーンに IK を追加';
+
+  @override
+  String get rigAddIkChain => 'IK チェーンを追加';
+
+  @override
+  String get rigChain => 'チェーン';
+
+  @override
+  String get rigFewerBones => 'チェーンのボーンを減らす';
+
+  @override
+  String get rigMoreBones => 'チェーンのボーンを増やす';
+
+  @override
+  String get rigFoldOther => '逆方向に曲げる';
+
+  @override
+  String get rigFootPlanted => 'このフレームで足を接地中';
+
+  @override
+  String get rigIkOff => 'オフ：リングをドラッグしてターゲットを置きます';
+
+  @override
+  String get rigTargetBetween => 'ターゲットはキーの間';
+
+  @override
+  String get rigTargetKeyed => 'このフレームにターゲットのキーあり';
+
+  @override
+  String get rigKeyTarget => 'ターゲットをキー登録';
+
+  @override
+  String get rigRemoveTargetKey => 'ターゲットのキーを削除';
+
+  @override
+  String get rigRemoveIk => 'IK を削除';
+
+  @override
+  String get rigPoseSaveHint => 'このフレームのポーズを保存すると、他のフレームで再利用できます。';
+
+  @override
+  String rigPutPose(String name, int frame) {
+    return '「$name」をフレーム $frame に適用';
+  }
+
+  @override
+  String get rigPoseActions => 'ポーズの操作';
+
+  @override
+  String get rigRenamePose => 'ポーズ名を変更';
+
+  @override
+  String get rigSavePose => 'ポーズを保存';
+
+  @override
+  String rigPoseDefault(int n) {
+    return 'ポーズ $n';
+  }
+
+  @override
+  String rigSaveFrameAsPose(int frame) {
+    return 'フレーム $frame をポーズとして保存';
+  }
+
+  @override
+  String get rigTailX => '先端 X';
+
+  @override
+  String get rigTailY => '先端 Y';
+
+  @override
+  String get rigSectionRotation => 'ピクセルの回転';
+
+  @override
+  String get rigRotSprite => 'エッジを保つ回転 (RotSprite)';
+
+  @override
+  String get rigRotSpriteHint => 'パーツの回転時に細い線や斜線を崩さずに保ちます。描画はやや遅くなります。';
+
+  @override
+  String get rigSnapAngle => '角度スナップ';
+
+  @override
+  String get rigSnapDefault => '既定の角度スナップ';
+
+  @override
+  String get rigSnapRigDefault => 'リグの既定に従う';
+
+  @override
+  String get rigSnapOff => 'オフ';
+
+  @override
+  String rigSnapDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String get rigEasingCustom => 'カスタムカーブ';
+
+  @override
+  String get rigEditCurve => 'イージングカーブを編集';
+
+  @override
+  String get rigCurveTitle => 'イージングカーブ';
+
+  @override
+  String get rigCurveHint => '2つのハンドルをドラッグして、キー間の動きの加減速を調整します。';
+
+  @override
+  String get rigCurveOvershoot => 'オーバーシュート';
+
+  @override
+  String get rigCurveAnticipate => '予備動作';
+
+  @override
+  String get rigCurveStrongOut => '強いイーズアウト';
+
+  @override
+  String get rigCurveStrongInOut => '強いイーズインアウト';
 }

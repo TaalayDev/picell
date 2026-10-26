@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:picell/l10n/strings.dart';
 import 'package:picell/data/models/layer.dart';
 import 'package:picell/data/models/rig/rig.dart';
 import 'package:picell/pixel/rig/presets/bone_presets.dart';
@@ -17,14 +18,29 @@ void main() {
 
   late List<Rig?> results;
 
-  Future<void> open(WidgetTester tester, {Rig? rig, ThemeData? theme, Size screen = const Size(1200, 800)}) async {
+  /// Scrolls the side panel until [target] is on screen; the panel builds its
+  /// sections lazily, so lower ones do not exist until reached.
+  Future<void> inPanel(WidgetTester tester, Finder target) async {
+    await tester.scrollUntilVisible(
+      target,
+      120,
+      scrollable: find.descendant(of: find.byType(RigSidePanel), matching: find.byType(Scrollable)).first,
+    );
+    await tester.pump();
+  }
+
+  Future<void> open(WidgetTester tester,
+      {Rig? rig, ThemeData? theme, Size screen = const Size(1200, 800), Locale? locale}) async {
     tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     results = [];
 
     await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: Strings.localizationsDelegates,
+      supportedLocales: Strings.supportedLocales,
       theme: theme,
+      locale: locale,
       home: Builder(
         builder: (context) => Scaffold(
           body: Center(
@@ -143,6 +159,7 @@ void main() {
     expect(find.text('bone_1'), findsOneWidget);
     expect(find.textContaining('drag on the canvas'), findsNothing);
     // The selected bone's properties are shown.
+    await inPanel(tester, find.text('Limit rotation'));
     expect(find.text('Limit rotation'), findsOneWidget);
   });
 
@@ -261,6 +278,42 @@ void main() {
     expect(bones.last.head, const Offset(4.5, 8.5));
   });
 
+  testWidgets('the editor speaks the app language, including plurals', (tester) async {
+    await open(tester, locale: const Locale('ru'));
+    expect(find.text('Настройка'), findsOneWidget);
+    expect(find.byTooltip('Нарисовать кость (B)'), findsOneWidget);
+    expect(find.text('Walk'), findsOneWidget, reason: 'the project title is the user\'s own text');
+    final ru = Strings.of(tester.element(find.byType(RigCanvas)));
+    expect(ru.rigBoneCount(1), '1 кость');
+    expect(ru.rigBoneCount(3), '3 кости');
+    expect(ru.rigBoneCount(5), '5 костей');
+  });
+
+  testWidgets('the panel switches rotation quality and sets a bone\'s angle snap', (tester) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Draw a bone (B)'));
+    await tester.pump();
+    await dragBetween(tester, pixelAt(tester, 4.5, 3.5), pixelAt(tester, 4.5, 11.5));
+    await tester.tap(find.byTooltip('Select and move bones (V)'));
+    await tester.pump();
+
+    await inPanel(tester, find.byKey(const ValueKey('rig-rotsprite')));
+    await tester.tap(find.byKey(const ValueKey('rig-rotsprite')));
+    await tester.pump();
+
+    await inPanel(tester, find.byKey(const ValueKey('bone-snap')));
+    await tester.tap(find.byKey(const ValueKey('bone-snap')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('45°').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    final rig = results.single!;
+    expect(rig.settings.rotationMode, RigRotationMode.rotsprite);
+    expect(rig.bones.single.snapAngle, 45);
+  });
+
   testWidgets('a bone started on the middle of another becomes its child', (tester) async {
     await open(tester);
     await tester.tap(find.byTooltip('Draw a bone (B)'));
@@ -277,7 +330,7 @@ void main() {
     expect(bones[1].head, const Offset(4.5, 7.5), reason: 'joined on the parent\'s line');
   });
 
-  testWidgets('a bone started away from every bone is a free root', (tester) async {
+  testWidgets('a bone started away from every bone keeps its own joint but follows the first bone', (tester) async {
     await open(tester);
     await tester.tap(find.byTooltip('Draw a bone (B)'));
     await tester.pump();
@@ -286,7 +339,12 @@ void main() {
 
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
-    expect(results.single!.bones.map((b) => b.parentId), [null, null]);
+    final bones = results.single!.bones;
+    expect(bones[0].parentId, isNull);
+    // Motion is inherited, but the joint stays where it was drawn.
+    expect(bones[1].parentId, bones[0].id);
+    expect(bones[1].connection, BoneConnection.implicit);
+    expect(bones[1].head, const Offset(11.5, 3.5));
   });
 
   testWidgets('selecting a layer then drawing a bone binds the bone to it', (tester) async {
@@ -488,6 +546,8 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: Strings.localizationsDelegates,
+      supportedLocales: Strings.supportedLocales,
       home: RigEditorScreen(
         rig: const Rig(id: 'r', stateId: 1),
         restLayers: [layer('body', 'Body')],
@@ -619,6 +679,7 @@ void main() {
       await open(tester, rig: armRig());
       await tester.tap(find.text('lower'));
       await tester.pump();
+      await inPanel(tester, find.byKey(const ValueKey('add-ik-chain')));
       await tester.tap(find.byKey(const ValueKey('add-ik-chain')));
       await tester.pump();
 
@@ -637,8 +698,10 @@ void main() {
       await tester.tap(find.text('lower'));
       await tester.pump();
 
+      await inPanel(tester, find.byTooltip('Fewer bones in the chain'));
       await tester.tap(find.byTooltip('Fewer bones in the chain'));
       await tester.pump();
+      await inPanel(tester, find.byKey(const ValueKey('remove-ik-chain')));
       await tester.tap(find.byKey(const ValueKey('remove-ik-chain')));
       await tester.pump();
       expect(find.byKey(const ValueKey('add-ik-chain')), findsOneWidget, reason: 'the bone can get a new chain');
@@ -1021,6 +1084,8 @@ void main() {
       addTearDown(tester.view.reset);
       Rig? result;
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: Strings.localizationsDelegates,
+        supportedLocales: Strings.supportedLocales,
         home: Builder(
           builder: (context) => Scaffold(
             body: ElevatedButton(

@@ -3663,4 +3663,857 @@ class StringsKy extends Strings {
 
   @override
   String get effectLayersCombinedKeepHint => 'Катмарлар бир сүрөт катары чогуу кыймылдайт жана өз катмарларында калат.';
+
+  @override
+  String rigBoneCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count сөөк',
+      one: '$count сөөк',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rigLayerCount(int count) {
+    return '$count катмар';
+  }
+
+  @override
+  String get rigNothingKeyed => 'Адегенде сөөктү буруңуз же IK максатын жылдырыңыз: азырынча ачкыч жок.';
+
+  @override
+  String get rigPreviewFailed => 'Алдын ала көрүүнү түзүү мүмкүн болгон жок.';
+
+  @override
+  String get rigDiscardTitle => 'Ригдеги өзгөртүүлөрдү жокко чыгарасызбы?';
+
+  @override
+  String get rigDiscardBody => 'Ригге киргизген өзгөртүүлөр сакталбайт.';
+
+  @override
+  String get rigKeepEditing => 'Улантуу';
+
+  @override
+  String get rigDiscard => 'Жокко чыгаруу';
+
+  @override
+  String rigSkeletonAdded(String name, int bones, int bound) {
+    String _temp0 = intl.Intl.pluralLogic(
+      bound,
+      locale: localeName,
+      other: ', аты боюнча $bound катмар байланды',
+      zero: '',
+    );
+    return '$name кошулду: $bones сөөк$_temp0.';
+  }
+
+  @override
+  String rigNoBonesForMotion(String name, String examples) {
+    return '«$name» үчүн сөөк жок. Аларды $examples сыяктуу атаңыз же Орнотууда даяр скелет кошуңуз.';
+  }
+
+  @override
+  String get rigSelectBoneFirst => 'Адегенде сөөктү тандаңыз.';
+
+  @override
+  String get rigSelectBoneFirstShort => 'Адегенде сөөктү тандаңыз';
+
+  @override
+  String rigMotionApplied(String name, int matched, int missing) {
+    String _temp0 = intl.Intl.pluralLogic(
+      missing,
+      locale: localeName,
+      other: ' ($missing табылган жок)',
+      zero: '',
+    );
+    return '«$name» $matched сөөккө колдонулду$_temp0. Артка кайтаруу мурунку анимацияны калыбына келтирет.';
+  }
+
+  @override
+  String get rigTitle => 'Риг';
+
+  @override
+  String get rigBonesAndLayers => 'Сөөктөр жана катмарлар';
+
+  @override
+  String get rigModeSetup => 'Орнотуу';
+
+  @override
+  String get rigModeAnimate => 'Анимация';
+
+  @override
+  String get rigToolSelectAnimate => 'Сөөктү тандоо (V)';
+
+  @override
+  String get rigToolSelectSetup => 'Сөөктөрдү тандоо жана жылдыруу (V)';
+
+  @override
+  String get rigToolDraw => 'Сөөк тартуу (B)';
+
+  @override
+  String get rigToolPaint => 'Тандалган сөөк эмнени кыймылдатарын боёо (P)';
+
+  @override
+  String get rigAddSkeleton => 'Даяр скелет кошуу';
+
+  @override
+  String get rigToolRotate => 'Сөөктү буруу (R)';
+
+  @override
+  String get rigToolMove => 'Сөөктү жылдыруу (M)';
+
+  @override
+  String get rigFlipBone => 'Тандалган сөөктү оодаруу';
+
+  @override
+  String get rigSelectMultiple => 'Бир нече сөөктү тандоо';
+
+  @override
+  String get rigSnapping => 'Муундарды жабыштыруу (Alt өчүрөт)';
+
+  @override
+  String get rigFit => 'Экранга батыруу';
+
+  @override
+  String rigNextBoneMoves(String layer) {
+    return 'Кийинки сөөк «$layer» катмарын кыймылдатат';
+  }
+
+  @override
+  String get rigDontBindLayer => 'Катмарды байлабоо';
+
+  @override
+  String get rigPaintErasing => 'Өчүрүү: пиксельдер кыймылсыз калат';
+
+  @override
+  String get rigPaintSelectBone => 'Боёо үчүн сөөктү тандаңыз';
+
+  @override
+  String rigPaintingFor(String bone) {
+    return '$bone үчүн боёлууда';
+  }
+
+  @override
+  String get rigErase => 'Өчүрүү';
+
+  @override
+  String get rigAnyVisibleLayer => 'Каалаган көрүнүүчү катмар';
+
+  @override
+  String rigPlacePrompt(String name) {
+    return '«$name» жайгаштыруу: кутуну сүйрөп жылдырыңыз, четтерин тартып чоңойтуңуз.';
+  }
+
+  @override
+  String get rigMirror => 'Күзгү';
+
+  @override
+  String get rigWithIk => 'IK менен';
+
+  @override
+  String rigAttachTo(String bone) {
+    return '$bone сөөгүнө бекитүү';
+  }
+
+  @override
+  String get rigAddSkeletonButton => 'Скелет кошуу';
+
+  @override
+  String get rigPreviewTitle => 'Анимацияны алдын ала көрүү';
+
+  @override
+  String get rigSaveGif => 'GIF сактоо';
+
+  @override
+  String get rigSkeletonsTitle => 'Даяр скелеттер';
+
+  @override
+  String get rigSkeletonsHint => 'Бирин тандаңыз, кошордон мурун сүрөтүңүздүн үстүнө жылдырып, чоңойтуңуз.';
+
+  @override
+  String get rigWholeFigures => 'Толук фигуралар';
+
+  @override
+  String get rigPartsToAdd => 'Сөөккө кошула турган бөлүктөр';
+
+  @override
+  String rigPresetBones(String name, int count) {
+    return '$name · $count сөөк';
+  }
+
+  @override
+  String get rigAnimationsTitle => 'Даяр анимациялар';
+
+  @override
+  String rigBonesFound(int matched, int total) {
+    return '$total сөөктүн $matched табылды';
+  }
+
+  @override
+  String rigNoBonesNamedLike(String examples) {
+    return '$examples сыяктуу аталган сөөк жок';
+  }
+
+  @override
+  String get rigSelectedBoneAndBelow => 'Тандалган сөөк жана анын астындагылар';
+
+  @override
+  String get rigSelectedBone => 'Тандалган сөөк';
+
+  @override
+  String rigMotionMeta(int frames, int fps) {
+    return '$frames кадр · $fps fps';
+  }
+
+  @override
+  String rigMotionMetaOnce(int frames, int fps) {
+    return '$frames кадр · $fps fps · бир жолу';
+  }
+
+  @override
+  String rigUnmappedRoles(String roles) {
+    return 'Байланышпаган ролдор: $roles. «Сөөк ролдорун дайындоо» бөлүмүнөн сөөктөрдү тандаңыз.';
+  }
+
+  @override
+  String get rigStrength => 'Күчү';
+
+  @override
+  String get rigFrames => 'Кадрлар';
+
+  @override
+  String get rigFrameRate => 'Кадр ылдамдыгы';
+
+  @override
+  String get rigLoop => 'Кайталоо';
+
+  @override
+  String get rigFaceOther => 'Башка тарапка буруу';
+
+  @override
+  String get rigFaceOtherHint => 'Сол менен оңду алмаштырып, термелүүлөрдү тескери кылат.';
+
+  @override
+  String get rigScaleMotion => 'Кыймылды дененин пропорциясына ылайыктоо';
+
+  @override
+  String get rigKeepPosition => 'Азыркы абалды сактоо';
+
+  @override
+  String get rigAlignFeet => 'Бутту жерге тегиздөө';
+
+  @override
+  String get rigGroundY => 'Жер деңгээли (Y)';
+
+  @override
+  String get rigRoleMapping => 'Сөөк ролдорун дайындоо';
+
+  @override
+  String get rigAutomaticByName => 'Автоматтык (аты боюнча)';
+
+  @override
+  String get rigPlantFeet => 'Бутту бекитүү';
+
+  @override
+  String get rigPlantFeetHint => 'Буттун тийген жерин жерде кармайт.';
+
+  @override
+  String get rigLockLegs => 'Буттун муундарын кулпулоо';
+
+  @override
+  String get rigLockLegsHint => 'Сан, жото жана бутту ордунда кармайт.';
+
+  @override
+  String get rigPlayPreview => 'Алдын ала көрүүнү ойнотуу';
+
+  @override
+  String get rigPausePreview => 'Алдын ала көрүүнү токтотуу';
+
+  @override
+  String rigConfigure(String name) {
+    return '$name ырастоо';
+  }
+
+  @override
+  String get rigCloseConfig => 'Ырастоону жабуу';
+
+  @override
+  String rigNoMatchingBones(String examples) {
+    return 'Туура келген сөөк жок. Сөөктөрдү $examples сыяктуу атаңыз.';
+  }
+
+  @override
+  String get rigSelectBoneBeforePreset => 'Бул даярды тандаардан мурун сөөктү тандаңыз.';
+
+  @override
+  String rigFpsValue(int fps) {
+    return '$fps fps';
+  }
+
+  @override
+  String get rigAddBonesHint => 'Позалоо үчүн Орнотууда сөөктөрдү кошуңуз.';
+
+  @override
+  String get rigNewClip => 'Жаңы анимация клиби';
+
+  @override
+  String get rigRenameClip => 'Анимация клибинин атын өзгөртүү';
+
+  @override
+  String get rigClipName => 'Клиптин аты';
+
+  @override
+  String get rigClipActions => 'Клип аракеттери';
+
+  @override
+  String get rigDuplicateClip => 'Клипти көчүрүү';
+
+  @override
+  String get rigRenameClipItem => 'Клиптин атын өзгөртүү';
+
+  @override
+  String get rigDeleteClip => 'Клипти өчүрүү';
+
+  @override
+  String get rigUnfreezeRange => 'Муунду чечүү (тандалган кадрлар же бүт клип)';
+
+  @override
+  String get rigFreezeRange => 'Муунду тоңдуруу (тандалган кадрлар же бүт клип)';
+
+  @override
+  String get rigAutoKeyOn => 'Авто-ачкыч күйүк: поза ачкычтарды жазат (A)';
+
+  @override
+  String get rigAutoKeyOff => 'Авто-ачкыч өчүк: поза алдын ала көрүү гана (A)';
+
+  @override
+  String get rigKeyPose => 'Позаны жазуу';
+
+  @override
+  String get rigDiscardUnkeyed => 'Жазылбаган позаны ыргытуу';
+
+  @override
+  String get rigPrevFrame => 'Мурунку кадр';
+
+  @override
+  String get rigNextFrame => 'Кийинки кадр';
+
+  @override
+  String get rigLooping => 'Кайталанат';
+
+  @override
+  String get rigPlaysOnce => 'Бир жолу ойнойт';
+
+  @override
+  String get rigMirrorFramePose => 'Бул кадрдын позасын күзгүлөө';
+
+  @override
+  String get rigSwapLeftRight => 'Сол менен оңду алмаштыруу (карама-каршы фаза)';
+
+  @override
+  String get rigMirrorCentre => 'Борбор боюнча күзгүлөө';
+
+  @override
+  String get rigFixLoop => 'Циклди оңдоо';
+
+  @override
+  String get rigCopyPose => 'Бул кадрдын позасын көчүрүү';
+
+  @override
+  String get rigPastePose => 'Позаны ушул жерге чаптоо';
+
+  @override
+  String get rigClearAll => 'Бардык анимацияларды жана кадрларды тазалоо';
+
+  @override
+  String get rigSelectRange => 'Кадрлар диапазонун тандоо (Shift+басуу же узак басуу)';
+
+  @override
+  String get rigFrom => 'Башы';
+
+  @override
+  String get rigTo => 'Аягы';
+
+  @override
+  String get rigMoveKeysLeftReplace => 'Тандалган ачкычтарды солго жылдыруу (максаттагы ачкычтарды алмаштырат)';
+
+  @override
+  String get rigMoveKeysRightReplace => 'Тандалган ачкычтарды оңго жылдыруу (максаттагы ачкычтарды алмаштырат)';
+
+  @override
+  String get rigDuplicateFrames => 'Тандалган кадрларды көчүрүү';
+
+  @override
+  String get rigDeleteFrames => 'Тандалган кадрларды өчүрүү';
+
+  @override
+  String get rigPlantFoot => 'Тандалган кадрларда тандалган бутту бекитүү (азыркы тийүү чекити)';
+
+  @override
+  String get rigReleaseFoot => 'Тандалган кадрларда буттун бекитүүсүн алуу';
+
+  @override
+  String get rigPreviewGif => 'GIF катары алдын ала көрүү';
+
+  @override
+  String rigFewer(String label) {
+    return '$label азыраак';
+  }
+
+  @override
+  String rigMore(String label) {
+    return '$label көбүрөөк';
+  }
+
+  @override
+  String get rigSelectedTracks => 'Тандалган тректер';
+
+  @override
+  String get rigAllTracks => 'Бардык тректер';
+
+  @override
+  String get rigCopyKeys => 'Диапазондогу ачкычтарды көчүрүү';
+
+  @override
+  String get rigPasteKeys => 'Ачкычтарды азыркы кадрга чаптоо';
+
+  @override
+  String get rigMoveKeysLeft => 'Ачкычтарды солго жылдыруу';
+
+  @override
+  String get rigMoveKeysRight => 'Ачкычтарды оңго жылдыруу';
+
+  @override
+  String get rigDeleteKeys => 'Кадрларды калтырып ачкычтарды өчүрүү';
+
+  @override
+  String get rigSetEasing => 'Тандалган ачкычтардын жылмакайлыгын коюу';
+
+  @override
+  String get rigRippleOn => 'Жылдыруу менен чаптоо: күйүк';
+
+  @override
+  String get rigRippleOff => 'Жылдыруу менен чаптоо: өчүк';
+
+  @override
+  String get rigEasingLinear => 'Сызыктуу';
+
+  @override
+  String get rigEasingIn => 'Акырындап башталуу';
+
+  @override
+  String get rigEasingOut => 'Акырындап аяктоо';
+
+  @override
+  String get rigEasingInOut => 'Акырындап башталып аяктоо';
+
+  @override
+  String get rigEasingStepped => 'Кармап туруп секирүү';
+
+  @override
+  String rigSelectionTitle(int count) {
+    return 'Тандоо · $count сөөк';
+  }
+
+  @override
+  String get rigSelectDescendants => 'Бала сөөктөрдү тандоо';
+
+  @override
+  String get rigMoveX => 'X жылдыруу';
+
+  @override
+  String get rigMoveY => 'Y жылдыруу';
+
+  @override
+  String get rigRotateGroup => 'Топту буруу';
+
+  @override
+  String get rigRotateAboutActive => 'Активдүү муундун тегерегинде буруу';
+
+  @override
+  String get rigLockSelected => 'Тандалган муундарды кулпулоо';
+
+  @override
+  String get rigUnlockSelected => 'Тандалган муундарды ачуу';
+
+  @override
+  String get rigNumericPose => 'Сандык поза';
+
+  @override
+  String get rigPoseRotation => 'Позанын бурулушу';
+
+  @override
+  String get rigOffsetX => 'Жылыш X';
+
+  @override
+  String get rigOffsetY => 'Жылыш Y';
+
+  @override
+  String get rigPoseGhosting => 'Поза элестери';
+
+  @override
+  String get rigSkeletonGhosts => 'Скелет элестери';
+
+  @override
+  String get rigArtworkGhosts => 'Сүрөт элестери';
+
+  @override
+  String get rigOpacity => 'Тунуксуздук';
+
+  @override
+  String get rigFrameSpacing => 'Кадр аралыгы';
+
+  @override
+  String get rigPinPose => 'Азыркы позаны бекитүү';
+
+  @override
+  String get rigUnpinPose => 'Таяныч позаны бошотуу';
+
+  @override
+  String get rigAttachmentPoints => 'Бекитүү чекиттери';
+
+  @override
+  String get rigSocketHint =>
+      'Бут уясын foot_contact деп атасаңыз, бекитүү якору болот. Жылыштар сөөк менен кошо жүрөт.';
+
+  @override
+  String get rigAddToBone => 'Тандалган сөөккө кошуу';
+
+  @override
+  String get rigMissingBone => 'Сөөк жок';
+
+  @override
+  String get rigSocketName => 'Уянын аты';
+
+  @override
+  String get rigLocalX => 'Жергиликтүү X';
+
+  @override
+  String get rigLocalY => 'Жергиликтүү Y';
+
+  @override
+  String get rigSocketAngle => 'Уянын бурчу';
+
+  @override
+  String rigArtworkPivot(String layer) {
+    return 'Сүрөттүн огу · $layer';
+  }
+
+  @override
+  String get rigArtworkX => 'Сүрөт X';
+
+  @override
+  String get rigArtworkY => 'Сүрөт Y';
+
+  @override
+  String get rigDeleteAttachment => 'Бекитүүнү өчүрүү';
+
+  @override
+  String get rigSectionBones => 'Сөөктөр';
+
+  @override
+  String get rigSectionLayers => 'Катмарлар';
+
+  @override
+  String get rigSectionBone => 'Сөөк';
+
+  @override
+  String rigSectionPose(int frame) {
+    return 'Поза · $frame-кадр';
+  }
+
+  @override
+  String get rigSectionPoses => 'Позалар';
+
+  @override
+  String get rigSectionCheck => 'Текшерүү';
+
+  @override
+  String get rigEmptyHint => 'Сөөк куралын тандап, кенепте сүйрөп, биринчи сөөгүңүздү тартыңыз.';
+
+  @override
+  String get rigOrAddSkeleton => 'Же даяр скелет кошуңуз';
+
+  @override
+  String rigUnfreezeBone(String bone) {
+    return '$bone чечүү';
+  }
+
+  @override
+  String rigFreezeBone(String bone) {
+    return '$bone тоңдуруу';
+  }
+
+  @override
+  String get rigBoneActions => 'Сөөк аракеттери';
+
+  @override
+  String get rigUnfreezeJoint => 'Муунду чечүү';
+
+  @override
+  String get rigFreezeJoint => 'Муунду тоңдуруу';
+
+  @override
+  String get rigConnectJoints => 'Муундарды бириктирүү…';
+
+  @override
+  String get rigInheritMotion => 'Кыймылды гана мурастоо…';
+
+  @override
+  String get rigImplicitNote => 'Жашыруун: кыймыл гана';
+
+  @override
+  String get rigExplicitNote => 'Ачык: муун жана мурасталган катмар';
+
+  @override
+  String get rigDisconnect => 'Ажыратуу';
+
+  @override
+  String rigConnectTo(String bone) {
+    return '$bone сөөгүн бириктирүү';
+  }
+
+  @override
+  String get rigNoOtherBones => 'Бириктире турган башка сөөк жок.';
+
+  @override
+  String get rigRenameBone => 'Сөөктүн атын өзгөртүү';
+
+  @override
+  String get rigNoLayers => 'Бул анимацияда катмар жок.';
+
+  @override
+  String get rigStaysStill => 'Кыймылсыз';
+
+  @override
+  String rigChooseBoneFor(String layer) {
+    return '$layer катмарын кыймылдаткан сөөктү тандаңыз';
+  }
+
+  @override
+  String rigOrderLabel(String state) {
+    return 'Катмар тартиби: $state';
+  }
+
+  @override
+  String get rigOrderNormal => 'кадимки';
+
+  @override
+  String rigOrderFront(int count) {
+    return '$count алдыда';
+  }
+
+  @override
+  String rigOrderBehind(int count) {
+    return '$count артта';
+  }
+
+  @override
+  String get rigSendBehind => 'Бул кадрдан тартып дагы бир катмар артка жылдыруу';
+
+  @override
+  String get rigBringFront => 'Бул кадрдан тартып дагы бир катмар алдыга чыгаруу';
+
+  @override
+  String get rigRemoveOrderKey => 'Бул кадрдын тартип ачкычын өчүрүү';
+
+  @override
+  String get rigMoveConnected => 'Байланышкан чынжырды жылдыруу';
+
+  @override
+  String get rigLength => 'Узундугу';
+
+  @override
+  String get rigAngle => 'Бурч';
+
+  @override
+  String get rigEnterHint => 'Enter — колдонуу · 0,5 px кадам';
+
+  @override
+  String get rigLimitRotation => 'Бурууну чектөө';
+
+  @override
+  String get rigRange => 'Диапазон';
+
+  @override
+  String rigRangeValue(int min, int max) {
+    return '$min° дан $max° га чейин';
+  }
+
+  @override
+  String get rigMinAngle => 'Мин. бурч';
+
+  @override
+  String get rigMaxAngle => 'Макс. бурч';
+
+  @override
+  String get rigInvalidValue => 'Жараксыз маани';
+
+  @override
+  String get rigJointFrozen => 'Муун бул клипте тоңдурулган. Ата-эненин кыймылы жана IK аны жылдыра албайт.';
+
+  @override
+  String get rigRotation => 'Бурулуш';
+
+  @override
+  String get rigOffset => 'Жылыш';
+
+  @override
+  String get rigSteeredByIk => 'IK башкарат: поза берүү үчүн кенептеги шакегин сүйрөңүз.';
+
+  @override
+  String get rigFlipH => 'Туурасынан оодаруу';
+
+  @override
+  String get rigBetweenKeys => 'Ачкычтардын ортосунда';
+
+  @override
+  String get rigKeyedHere => 'Бул кадрда ачкыч бар';
+
+  @override
+  String get rigAddKey => 'Ачкыч кошуу';
+
+  @override
+  String get rigUpdateKey => 'Ачкычты жаңыртуу';
+
+  @override
+  String get rigRemoveKey => 'Ачкычты өчүрүү';
+
+  @override
+  String rigIkPartOf(String name) {
+    return '«$name» IK чынжырынын бөлүгү.';
+  }
+
+  @override
+  String get rigEditChain => 'Ошол чынжырды түзөтүү';
+
+  @override
+  String get rigIkAttachHint => 'Бул сөөктү атасына бириктирсеңиз, максатка карай ийилген чынжыр пайда болот.';
+
+  @override
+  String get rigIkBendHint => 'Бул сөөктү жана үстүндөгүлөрдү ийип, максатка жеткиребиз (кол же бут сыяктуу).';
+
+  @override
+  String get rigAddIkToBone => 'Бул сөккө IK кошуу';
+
+  @override
+  String get rigAddIkChain => 'IK чынжырын кошуу';
+
+  @override
+  String get rigChain => 'Чынжыр';
+
+  @override
+  String get rigFewerBones => 'Чынжырдагы сөөктөрдү азайтуу';
+
+  @override
+  String get rigMoreBones => 'Чынжырдагы сөөктөрдү көбөйтүү';
+
+  @override
+  String get rigFoldOther => 'Тескери багытта ийүү';
+
+  @override
+  String get rigFootPlanted => 'Бут бул кадрда бекитилген';
+
+  @override
+  String get rigIkOff => 'Өчүк: максатты коюу үчүн шакекти сүйрөңүз';
+
+  @override
+  String get rigTargetBetween => 'Максат ачкычтардын ортосунда';
+
+  @override
+  String get rigTargetKeyed => 'Бул кадрда максаттын ачкычы бар';
+
+  @override
+  String get rigKeyTarget => 'Максатты жазуу';
+
+  @override
+  String get rigRemoveTargetKey => 'Максат ачкычын өчүрүү';
+
+  @override
+  String get rigRemoveIk => 'IK өчүрүү';
+
+  @override
+  String get rigPoseSaveHint => 'Бул кадрдын позасын сактасаңыз, башка кадрларда колдонсо болот.';
+
+  @override
+  String rigPutPose(String name, int frame) {
+    return '«$name» позасын $frame-кадрга коюу';
+  }
+
+  @override
+  String get rigPoseActions => 'Поза аракеттери';
+
+  @override
+  String get rigRenamePose => 'Позанын атын өзгөртүү';
+
+  @override
+  String get rigSavePose => 'Позаны сактоо';
+
+  @override
+  String rigPoseDefault(int n) {
+    return 'Поза $n';
+  }
+
+  @override
+  String rigSaveFrameAsPose(int frame) {
+    return '$frame-кадрды поза катары сактоо';
+  }
+
+  @override
+  String get rigTailX => 'Учу X';
+
+  @override
+  String get rigTailY => 'Учу Y';
+
+  @override
+  String get rigSectionRotation => 'Пиксель буруу';
+
+  @override
+  String get rigRotSprite => 'Четти сактап буруу (RotSprite)';
+
+  @override
+  String get rigRotSpriteHint => 'Бөлүктөр бурулганда ичке сызыктарды жана диагоналдарды сактайт. Чийүү жайыраак.';
+
+  @override
+  String get rigSnapAngle => 'Бурчту жабыштыруу';
+
+  @override
+  String get rigSnapDefault => 'Демейки бурч жабыштыруу';
+
+  @override
+  String get rigSnapRigDefault => 'Риг боюнча';
+
+  @override
+  String get rigSnapOff => 'Өчүк';
+
+  @override
+  String rigSnapDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String get rigEasingCustom => 'Өз ийри сызыгы';
+
+  @override
+  String get rigEditCurve => 'Easing ийри сызыгын өзгөртүү';
+
+  @override
+  String get rigCurveTitle => 'Easing ийри сызыгы';
+
+  @override
+  String get rigCurveHint => 'Эки чекитти сүйрөп, ачкычтардын ортосундагы кыймылдын ылдамдашын тууралаңыз.';
+
+  @override
+  String get rigCurveOvershoot => 'Ашып кетүү';
+
+  @override
+  String get rigCurveAnticipate => 'Камынуу';
+
+  @override
+  String get rigCurveStrongOut => 'Күчтүү басаңдоо';
+
+  @override
+  String get rigCurveStrongInOut => 'Күчтүү ылдамдоо-басаңдоо';
 }

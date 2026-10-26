@@ -6634,6 +6634,1530 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'The layers move together as one image and stay on their own layers.'**
   String get effectLayersCombinedKeepHint;
+
+  /// No description provided for @rigBoneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} bone} other{{count} bones}}'**
+  String rigBoneCount(int count);
+
+  /// No description provided for @rigLayerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} layer} other{{count} layers}}'**
+  String rigLayerCount(int count);
+
+  /// No description provided for @rigNothingKeyed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose a bone or move an IK target first: nothing is keyed yet.'**
+  String get rigNothingKeyed;
+
+  /// No description provided for @rigPreviewFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t make the preview.'**
+  String get rigPreviewFailed;
+
+  /// No description provided for @rigDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard rig changes?'**
+  String get rigDiscardTitle;
+
+  /// No description provided for @rigDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The changes you made to this rig won\'t be saved.'**
+  String get rigDiscardBody;
+
+  /// No description provided for @rigKeepEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get rigKeepEditing;
+
+  /// No description provided for @rigDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get rigDiscard;
+
+  /// No description provided for @rigSkeletonAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added: {bones, plural, one{1 bone} other{{bones} bones}}{bound, plural, =0{} one{, 1 layer bound by name} other{, {bound} layers bound by name}}.'**
+  String rigSkeletonAdded(String name, int bones, int bound);
+
+  /// No description provided for @rigNoBonesForMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'No bones for \"{name}\". Name them like {examples}, or add a ready-made skeleton in Setup.'**
+  String rigNoBonesForMotion(String name, String examples);
+
+  /// No description provided for @rigSelectBoneFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a bone first.'**
+  String get rigSelectBoneFirst;
+
+  /// No description provided for @rigSelectBoneFirstShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a bone first'**
+  String get rigSelectBoneFirstShort;
+
+  /// No description provided for @rigMotionApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" applied to {matched, plural, one{1 bone} other{{matched} bones}}{missing, plural, =0{} other{ ({missing} not found)}}. Undo brings the old animation back.'**
+  String rigMotionApplied(String name, int matched, int missing);
+
+  /// No description provided for @rigTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rig'**
+  String get rigTitle;
+
+  /// No description provided for @rigBonesAndLayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Bones and layers'**
+  String get rigBonesAndLayers;
+
+  /// No description provided for @rigModeSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get rigModeSetup;
+
+  /// No description provided for @rigModeAnimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Animate'**
+  String get rigModeAnimate;
+
+  /// No description provided for @rigToolSelectAnimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a bone (V)'**
+  String get rigToolSelectAnimate;
+
+  /// No description provided for @rigToolSelectSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Select and move bones (V)'**
+  String get rigToolSelectSetup;
+
+  /// No description provided for @rigToolDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw a bone (B)'**
+  String get rigToolDraw;
+
+  /// No description provided for @rigToolPaint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paint what the selected bone moves (P)'**
+  String get rigToolPaint;
+
+  /// No description provided for @rigAddSkeleton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a ready-made skeleton'**
+  String get rigAddSkeleton;
+
+  /// No description provided for @rigToolRotate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate a bone (R)'**
+  String get rigToolRotate;
+
+  /// No description provided for @rigToolMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move a bone (M)'**
+  String get rigToolMove;
+
+  /// No description provided for @rigFlipBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip the selected bone'**
+  String get rigFlipBone;
+
+  /// No description provided for @rigSelectMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Select multiple bones'**
+  String get rigSelectMultiple;
+
+  /// No description provided for @rigSnapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Joint snapping (Alt bypasses)'**
+  String get rigSnapping;
+
+  /// No description provided for @rigFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit to screen'**
+  String get rigFit;
+
+  /// No description provided for @rigNextBoneMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Next bone moves \"{layer}\"'**
+  String rigNextBoneMoves(String layer);
+
+  /// No description provided for @rigDontBindLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t bind a layer'**
+  String get rigDontBindLayer;
+
+  /// No description provided for @rigPaintErasing.
+  ///
+  /// In en, this message translates to:
+  /// **'Erasing: pixels stay still'**
+  String get rigPaintErasing;
+
+  /// No description provided for @rigPaintSelectBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a bone to paint for'**
+  String get rigPaintSelectBone;
+
+  /// No description provided for @rigPaintingFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Painting for {bone}'**
+  String rigPaintingFor(String bone);
+
+  /// No description provided for @rigErase.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase'**
+  String get rigErase;
+
+  /// No description provided for @rigAnyVisibleLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Any visible layer'**
+  String get rigAnyVisibleLayer;
+
+  /// No description provided for @rigPlacePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Place \"{name}\": drag the box to move it, its edges to stretch it.'**
+  String rigPlacePrompt(String name);
+
+  /// No description provided for @rigMirror.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirror'**
+  String get rigMirror;
+
+  /// No description provided for @rigWithIk.
+  ///
+  /// In en, this message translates to:
+  /// **'With IK'**
+  String get rigWithIk;
+
+  /// No description provided for @rigAttachTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach to {bone}'**
+  String rigAttachTo(String bone);
+
+  /// No description provided for @rigAddSkeletonButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add skeleton'**
+  String get rigAddSkeletonButton;
+
+  /// No description provided for @rigPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Animation preview'**
+  String get rigPreviewTitle;
+
+  /// No description provided for @rigSaveGif.
+  ///
+  /// In en, this message translates to:
+  /// **'Save GIF'**
+  String get rigSaveGif;
+
+  /// No description provided for @rigSkeletonsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready-made skeletons'**
+  String get rigSkeletonsTitle;
+
+  /// No description provided for @rigSkeletonsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick one, then move and stretch it over your artwork before adding it.'**
+  String get rigSkeletonsHint;
+
+  /// No description provided for @rigWholeFigures.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole figures'**
+  String get rigWholeFigures;
+
+  /// No description provided for @rigPartsToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts to add to a bone'**
+  String get rigPartsToAdd;
+
+  /// No description provided for @rigPresetBones.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {count, plural, one{{count} bone} other{{count} bones}}'**
+  String rigPresetBones(String name, int count);
+
+  /// No description provided for @rigAnimationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready-made animations'**
+  String get rigAnimationsTitle;
+
+  /// No description provided for @rigBonesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{matched} of {total} bones found'**
+  String rigBonesFound(int matched, int total);
+
+  /// No description provided for @rigNoBonesNamedLike.
+  ///
+  /// In en, this message translates to:
+  /// **'No bones named like {examples}'**
+  String rigNoBonesNamedLike(String examples);
+
+  /// No description provided for @rigSelectedBoneAndBelow.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected bone and below'**
+  String get rigSelectedBoneAndBelow;
+
+  /// No description provided for @rigSelectedBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected bone'**
+  String get rigSelectedBone;
+
+  /// No description provided for @rigMotionMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{frames, plural, one{{frames} frame} other{{frames} frames}} · {fps} fps'**
+  String rigMotionMeta(int frames, int fps);
+
+  /// No description provided for @rigMotionMetaOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'{frames, plural, one{{frames} frame} other{{frames} frames}} · {fps} fps · once'**
+  String rigMotionMetaOnce(int frames, int fps);
+
+  /// No description provided for @rigUnmappedRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmapped roles: {roles}. Choose bones under Bone role mapping.'**
+  String rigUnmappedRoles(String roles);
+
+  /// No description provided for @rigStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength'**
+  String get rigStrength;
+
+  /// No description provided for @rigFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'Frames'**
+  String get rigFrames;
+
+  /// No description provided for @rigFrameRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame rate'**
+  String get rigFrameRate;
+
+  /// No description provided for @rigLoop.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop'**
+  String get rigLoop;
+
+  /// No description provided for @rigFaceOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Face the other way'**
+  String get rigFaceOther;
+
+  /// No description provided for @rigFaceOtherHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap left and right and reverse the swings.'**
+  String get rigFaceOtherHint;
+
+  /// No description provided for @rigScaleMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale motion to body proportions'**
+  String get rigScaleMotion;
+
+  /// No description provided for @rigKeepPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current position'**
+  String get rigKeepPosition;
+
+  /// No description provided for @rigAlignFeet.
+  ///
+  /// In en, this message translates to:
+  /// **'Align feet to ground'**
+  String get rigAlignFeet;
+
+  /// No description provided for @rigGroundY.
+  ///
+  /// In en, this message translates to:
+  /// **'Ground Y'**
+  String get rigGroundY;
+
+  /// No description provided for @rigRoleMapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Bone role mapping'**
+  String get rigRoleMapping;
+
+  /// No description provided for @rigAutomaticByName.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic (by name)'**
+  String get rigAutomaticByName;
+
+  /// No description provided for @rigPlantFeet.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant feet'**
+  String get rigPlantFeet;
+
+  /// No description provided for @rigPlantFeetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep foot contacts on the ground.'**
+  String get rigPlantFeetHint;
+
+  /// No description provided for @rigLockLegs.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock leg joints'**
+  String get rigLockLegs;
+
+  /// No description provided for @rigLockLegsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold thighs, shins and feet in place.'**
+  String get rigLockLegsHint;
+
+  /// No description provided for @rigPlayPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Play preview'**
+  String get rigPlayPreview;
+
+  /// No description provided for @rigPausePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause preview'**
+  String get rigPausePreview;
+
+  /// No description provided for @rigConfigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure {name}'**
+  String rigConfigure(String name);
+
+  /// No description provided for @rigCloseConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Close configuration'**
+  String get rigCloseConfig;
+
+  /// No description provided for @rigNoMatchingBones.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching bones. Name bones like {examples}.'**
+  String rigNoMatchingBones(String examples);
+
+  /// No description provided for @rigSelectBoneBeforePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a bone before choosing this preset.'**
+  String get rigSelectBoneBeforePreset;
+
+  /// No description provided for @rigFpsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{fps} fps'**
+  String rigFpsValue(int fps);
+
+  /// No description provided for @rigAddBonesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add bones in Setup to start posing.'**
+  String get rigAddBonesHint;
+
+  /// No description provided for @rigNewClip.
+  ///
+  /// In en, this message translates to:
+  /// **'New animation clip'**
+  String get rigNewClip;
+
+  /// No description provided for @rigRenameClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename animation clip'**
+  String get rigRenameClip;
+
+  /// No description provided for @rigClipName.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip name'**
+  String get rigClipName;
+
+  /// No description provided for @rigClipActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Animation clip actions'**
+  String get rigClipActions;
+
+  /// No description provided for @rigDuplicateClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate clip'**
+  String get rigDuplicateClip;
+
+  /// No description provided for @rigRenameClipItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename clip'**
+  String get rigRenameClipItem;
+
+  /// No description provided for @rigDeleteClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete clip'**
+  String get rigDeleteClip;
+
+  /// No description provided for @rigUnfreezeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfreeze joint (selected frames or whole clip)'**
+  String get rigUnfreezeRange;
+
+  /// No description provided for @rigFreezeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze joint (selected frames or whole clip)'**
+  String get rigFreezeRange;
+
+  /// No description provided for @rigAutoKeyOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-key on: posing records keys (A)'**
+  String get rigAutoKeyOn;
+
+  /// No description provided for @rigAutoKeyOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-key off: posing only previews (A)'**
+  String get rigAutoKeyOff;
+
+  /// No description provided for @rigKeyPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Key pose'**
+  String get rigKeyPose;
+
+  /// No description provided for @rigDiscardUnkeyed.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard unkeyed pose'**
+  String get rigDiscardUnkeyed;
+
+  /// No description provided for @rigPrevFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous frame'**
+  String get rigPrevFrame;
+
+  /// No description provided for @rigNextFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Next frame'**
+  String get rigNextFrame;
+
+  /// No description provided for @rigLooping.
+  ///
+  /// In en, this message translates to:
+  /// **'Looping'**
+  String get rigLooping;
+
+  /// No description provided for @rigPlaysOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays once'**
+  String get rigPlaysOnce;
+
+  /// No description provided for @rigMirrorFramePose.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirror this frame\'s pose'**
+  String get rigMirrorFramePose;
+
+  /// No description provided for @rigSwapLeftRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap left and right (opposite phase)'**
+  String get rigSwapLeftRight;
+
+  /// No description provided for @rigMirrorCentre.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirror across the centre'**
+  String get rigMirrorCentre;
+
+  /// No description provided for @rigFixLoop.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix loop'**
+  String get rigFixLoop;
+
+  /// No description provided for @rigCopyPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy this frame\'s pose'**
+  String get rigCopyPose;
+
+  /// No description provided for @rigPastePose.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste pose here'**
+  String get rigPastePose;
+
+  /// No description provided for @rigClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all animations and frames'**
+  String get rigClearAll;
+
+  /// No description provided for @rigSelectRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Select frame range (Shift-click or long-press frames)'**
+  String get rigSelectRange;
+
+  /// No description provided for @rigFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get rigFrom;
+
+  /// No description provided for @rigTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get rigTo;
+
+  /// No description provided for @rigMoveKeysLeftReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Move selected keys left (replaces destination keys)'**
+  String get rigMoveKeysLeftReplace;
+
+  /// No description provided for @rigMoveKeysRightReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Move selected keys right (replaces destination keys)'**
+  String get rigMoveKeysRightReplace;
+
+  /// No description provided for @rigDuplicateFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate selected frames'**
+  String get rigDuplicateFrames;
+
+  /// No description provided for @rigDeleteFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete selected frames'**
+  String get rigDeleteFrames;
+
+  /// No description provided for @rigPlantFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant selected foot for selected frames (current contact point)'**
+  String get rigPlantFoot;
+
+  /// No description provided for @rigReleaseFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Release foot plant in selected frames'**
+  String get rigReleaseFoot;
+
+  /// No description provided for @rigPreviewGif.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview as GIF'**
+  String get rigPreviewGif;
+
+  /// No description provided for @rigFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer {label}'**
+  String rigFewer(String label);
+
+  /// No description provided for @rigMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More {label}'**
+  String rigMore(String label);
+
+  /// No description provided for @rigSelectedTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected tracks'**
+  String get rigSelectedTracks;
+
+  /// No description provided for @rigAllTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'All tracks'**
+  String get rigAllTracks;
+
+  /// No description provided for @rigCopyKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy keys in range'**
+  String get rigCopyKeys;
+
+  /// No description provided for @rigPasteKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste keys at current frame'**
+  String get rigPasteKeys;
+
+  /// No description provided for @rigMoveKeysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Move keys left'**
+  String get rigMoveKeysLeft;
+
+  /// No description provided for @rigMoveKeysRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Move keys right'**
+  String get rigMoveKeysRight;
+
+  /// No description provided for @rigDeleteKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete keys without removing frames'**
+  String get rigDeleteKeys;
+
+  /// No description provided for @rigSetEasing.
+  ///
+  /// In en, this message translates to:
+  /// **'Set selected keys easing'**
+  String get rigSetEasing;
+
+  /// No description provided for @rigRippleOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ripple paste: on'**
+  String get rigRippleOn;
+
+  /// No description provided for @rigRippleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Ripple paste: off'**
+  String get rigRippleOff;
+
+  /// No description provided for @rigEasingLinear.
+  ///
+  /// In en, this message translates to:
+  /// **'Linear'**
+  String get rigEasingLinear;
+
+  /// No description provided for @rigEasingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ease in'**
+  String get rigEasingIn;
+
+  /// No description provided for @rigEasingOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Ease out'**
+  String get rigEasingOut;
+
+  /// No description provided for @rigEasingInOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Ease in and out'**
+  String get rigEasingInOut;
+
+  /// No description provided for @rigEasingStepped.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold, then snap'**
+  String get rigEasingStepped;
+
+  /// No description provided for @rigSelectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection · {count, plural, one{{count} bone} other{{count} bones}}'**
+  String rigSelectionTitle(int count);
+
+  /// No description provided for @rigSelectDescendants.
+  ///
+  /// In en, this message translates to:
+  /// **'Select descendants'**
+  String get rigSelectDescendants;
+
+  /// No description provided for @rigMoveX.
+  ///
+  /// In en, this message translates to:
+  /// **'Move X'**
+  String get rigMoveX;
+
+  /// No description provided for @rigMoveY.
+  ///
+  /// In en, this message translates to:
+  /// **'Move Y'**
+  String get rigMoveY;
+
+  /// No description provided for @rigRotateGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate group'**
+  String get rigRotateGroup;
+
+  /// No description provided for @rigRotateAboutActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate about active joint'**
+  String get rigRotateAboutActive;
+
+  /// No description provided for @rigLockSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock selected joints'**
+  String get rigLockSelected;
+
+  /// No description provided for @rigUnlockSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock selected joints'**
+  String get rigUnlockSelected;
+
+  /// No description provided for @rigNumericPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Numeric pose'**
+  String get rigNumericPose;
+
+  /// No description provided for @rigPoseRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose rotation'**
+  String get rigPoseRotation;
+
+  /// No description provided for @rigOffsetX.
+  ///
+  /// In en, this message translates to:
+  /// **'Offset X'**
+  String get rigOffsetX;
+
+  /// No description provided for @rigOffsetY.
+  ///
+  /// In en, this message translates to:
+  /// **'Offset Y'**
+  String get rigOffsetY;
+
+  /// No description provided for @rigPoseGhosting.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose ghosting'**
+  String get rigPoseGhosting;
+
+  /// No description provided for @rigSkeletonGhosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Skeleton ghosts'**
+  String get rigSkeletonGhosts;
+
+  /// No description provided for @rigArtworkGhosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Artwork ghosts'**
+  String get rigArtworkGhosts;
+
+  /// No description provided for @rigOpacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Opacity'**
+  String get rigOpacity;
+
+  /// No description provided for @rigFrameSpacing.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame spacing'**
+  String get rigFrameSpacing;
+
+  /// No description provided for @rigPinPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin current pose'**
+  String get rigPinPose;
+
+  /// No description provided for @rigUnpinPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin reference pose'**
+  String get rigUnpinPose;
+
+  /// No description provided for @rigAttachmentPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment points'**
+  String get rigAttachmentPoints;
+
+  /// No description provided for @rigSocketHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name a foot socket foot_contact to use it as a planting anchor. Offsets follow the bone.'**
+  String get rigSocketHint;
+
+  /// No description provided for @rigAddToBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to selected bone'**
+  String get rigAddToBone;
+
+  /// No description provided for @rigMissingBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing bone'**
+  String get rigMissingBone;
+
+  /// No description provided for @rigSocketName.
+  ///
+  /// In en, this message translates to:
+  /// **'Socket name'**
+  String get rigSocketName;
+
+  /// No description provided for @rigLocalX.
+  ///
+  /// In en, this message translates to:
+  /// **'Local X'**
+  String get rigLocalX;
+
+  /// No description provided for @rigLocalY.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Y'**
+  String get rigLocalY;
+
+  /// No description provided for @rigSocketAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Socket angle'**
+  String get rigSocketAngle;
+
+  /// No description provided for @rigArtworkPivot.
+  ///
+  /// In en, this message translates to:
+  /// **'Artwork pivot · {layer}'**
+  String rigArtworkPivot(String layer);
+
+  /// No description provided for @rigArtworkX.
+  ///
+  /// In en, this message translates to:
+  /// **'Artwork X'**
+  String get rigArtworkX;
+
+  /// No description provided for @rigArtworkY.
+  ///
+  /// In en, this message translates to:
+  /// **'Artwork Y'**
+  String get rigArtworkY;
+
+  /// No description provided for @rigDeleteAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete attachment'**
+  String get rigDeleteAttachment;
+
+  /// No description provided for @rigSectionBones.
+  ///
+  /// In en, this message translates to:
+  /// **'Bones'**
+  String get rigSectionBones;
+
+  /// No description provided for @rigSectionLayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Layers'**
+  String get rigSectionLayers;
+
+  /// No description provided for @rigSectionBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Bone'**
+  String get rigSectionBone;
+
+  /// No description provided for @rigSectionPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose · frame {frame}'**
+  String rigSectionPose(int frame);
+
+  /// No description provided for @rigSectionPoses.
+  ///
+  /// In en, this message translates to:
+  /// **'Poses'**
+  String get rigSectionPoses;
+
+  /// No description provided for @rigSectionCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get rigSectionCheck;
+
+  /// No description provided for @rigEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the bone tool and drag on the canvas to draw your first bone.'**
+  String get rigEmptyHint;
+
+  /// No description provided for @rigOrAddSkeleton.
+  ///
+  /// In en, this message translates to:
+  /// **'Or add a ready-made skeleton'**
+  String get rigOrAddSkeleton;
+
+  /// No description provided for @rigUnfreezeBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfreeze {bone}'**
+  String rigUnfreezeBone(String bone);
+
+  /// No description provided for @rigFreezeBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze {bone}'**
+  String rigFreezeBone(String bone);
+
+  /// No description provided for @rigBoneActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Bone actions'**
+  String get rigBoneActions;
+
+  /// No description provided for @rigUnfreezeJoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfreeze joint'**
+  String get rigUnfreezeJoint;
+
+  /// No description provided for @rigFreezeJoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze joint'**
+  String get rigFreezeJoint;
+
+  /// No description provided for @rigConnectJoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect joints…'**
+  String get rigConnectJoints;
+
+  /// No description provided for @rigInheritMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Inherit motion only…'**
+  String get rigInheritMotion;
+
+  /// No description provided for @rigImplicitNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Implicit: motion only'**
+  String get rigImplicitNote;
+
+  /// No description provided for @rigExplicitNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Explicit: joint and inherited layer'**
+  String get rigExplicitNote;
+
+  /// No description provided for @rigDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get rigDisconnect;
+
+  /// No description provided for @rigConnectTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect {bone} to'**
+  String rigConnectTo(String bone);
+
+  /// No description provided for @rigNoOtherBones.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no other bones to attach to.'**
+  String get rigNoOtherBones;
+
+  /// No description provided for @rigRenameBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename bone'**
+  String get rigRenameBone;
+
+  /// No description provided for @rigNoLayers.
+  ///
+  /// In en, this message translates to:
+  /// **'This animation has no layers.'**
+  String get rigNoLayers;
+
+  /// No description provided for @rigStaysStill.
+  ///
+  /// In en, this message translates to:
+  /// **'Stays still'**
+  String get rigStaysStill;
+
+  /// No description provided for @rigChooseBoneFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the bone that moves {layer}'**
+  String rigChooseBoneFor(String layer);
+
+  /// No description provided for @rigOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Layer order: {state}'**
+  String rigOrderLabel(String state);
+
+  /// No description provided for @rigOrderNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get rigOrderNormal;
+
+  /// No description provided for @rigOrderFront.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in front'**
+  String rigOrderFront(int count);
+
+  /// No description provided for @rigOrderBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} behind'**
+  String rigOrderBehind(int count);
+
+  /// No description provided for @rigSendBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Send behind one more layer from this frame'**
+  String get rigSendBehind;
+
+  /// No description provided for @rigBringFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring in front of one more layer from this frame'**
+  String get rigBringFront;
+
+  /// No description provided for @rigRemoveOrderKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this frame\'s order key'**
+  String get rigRemoveOrderKey;
+
+  /// No description provided for @rigMoveConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Move connected chain'**
+  String get rigMoveConnected;
+
+  /// No description provided for @rigLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get rigLength;
+
+  /// No description provided for @rigAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Angle'**
+  String get rigAngle;
+
+  /// No description provided for @rigEnterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter to apply · 0.5 px steps'**
+  String get rigEnterHint;
+
+  /// No description provided for @rigLimitRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit rotation'**
+  String get rigLimitRotation;
+
+  /// No description provided for @rigRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Range'**
+  String get rigRange;
+
+  /// No description provided for @rigRangeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{min}° to {max}°'**
+  String rigRangeValue(int min, int max);
+
+  /// No description provided for @rigMinAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Min angle'**
+  String get rigMinAngle;
+
+  /// No description provided for @rigMaxAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Max angle'**
+  String get rigMaxAngle;
+
+  /// No description provided for @rigInvalidValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid value'**
+  String get rigInvalidValue;
+
+  /// No description provided for @rigJointFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Joint frozen in this clip. Parent motion and IK cannot move it.'**
+  String get rigJointFrozen;
+
+  /// No description provided for @rigRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotation'**
+  String get rigRotation;
+
+  /// No description provided for @rigOffset.
+  ///
+  /// In en, this message translates to:
+  /// **'Offset'**
+  String get rigOffset;
+
+  /// No description provided for @rigSteeredByIk.
+  ///
+  /// In en, this message translates to:
+  /// **'Steered by IK: drag its ring on the canvas to pose it.'**
+  String get rigSteeredByIk;
+
+  /// No description provided for @rigFlipH.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip horizontally'**
+  String get rigFlipH;
+
+  /// No description provided for @rigBetweenKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Between keys'**
+  String get rigBetweenKeys;
+
+  /// No description provided for @rigKeyedHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyed on this frame'**
+  String get rigKeyedHere;
+
+  /// No description provided for @rigAddKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Add key'**
+  String get rigAddKey;
+
+  /// No description provided for @rigUpdateKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Update key'**
+  String get rigUpdateKey;
+
+  /// No description provided for @rigRemoveKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove key'**
+  String get rigRemoveKey;
+
+  /// No description provided for @rigIkPartOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of the IK chain \"{name}\".'**
+  String rigIkPartOf(String name);
+
+  /// No description provided for @rigEditChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit that chain'**
+  String get rigEditChain;
+
+  /// No description provided for @rigIkAttachHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach this bone to a parent to make a chain that bends to a target.'**
+  String get rigIkAttachHint;
+
+  /// No description provided for @rigIkBendHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bend this bone and the ones above it to reach a target, like a hand or a foot.'**
+  String get rigIkBendHint;
+
+  /// No description provided for @rigAddIkToBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Add IK to this bone'**
+  String get rigAddIkToBone;
+
+  /// No description provided for @rigAddIkChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Add IK chain'**
+  String get rigAddIkChain;
+
+  /// No description provided for @rigChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Chain'**
+  String get rigChain;
+
+  /// No description provided for @rigFewerBones.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer bones in the chain'**
+  String get rigFewerBones;
+
+  /// No description provided for @rigMoreBones.
+  ///
+  /// In en, this message translates to:
+  /// **'More bones in the chain'**
+  String get rigMoreBones;
+
+  /// No description provided for @rigFoldOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Fold the other way'**
+  String get rigFoldOther;
+
+  /// No description provided for @rigFootPlanted.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot planted on this frame'**
+  String get rigFootPlanted;
+
+  /// No description provided for @rigIkOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: drag the ring to place the target'**
+  String get rigIkOff;
+
+  /// No description provided for @rigTargetBetween.
+  ///
+  /// In en, this message translates to:
+  /// **'Target between keys'**
+  String get rigTargetBetween;
+
+  /// No description provided for @rigTargetKeyed.
+  ///
+  /// In en, this message translates to:
+  /// **'Target keyed on this frame'**
+  String get rigTargetKeyed;
+
+  /// No description provided for @rigKeyTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Key target'**
+  String get rigKeyTarget;
+
+  /// No description provided for @rigRemoveTargetKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove target key'**
+  String get rigRemoveTargetKey;
+
+  /// No description provided for @rigRemoveIk.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove IK'**
+  String get rigRemoveIk;
+
+  /// No description provided for @rigPoseSaveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the pose on this frame to reuse it on other frames.'**
+  String get rigPoseSaveHint;
+
+  /// No description provided for @rigPutPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Put \"{name}\" on frame {frame}'**
+  String rigPutPose(String name, int frame);
+
+  /// No description provided for @rigPoseActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose actions'**
+  String get rigPoseActions;
+
+  /// No description provided for @rigRenamePose.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename pose'**
+  String get rigRenamePose;
+
+  /// No description provided for @rigSavePose.
+  ///
+  /// In en, this message translates to:
+  /// **'Save pose'**
+  String get rigSavePose;
+
+  /// No description provided for @rigPoseDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose {n}'**
+  String rigPoseDefault(int n);
+
+  /// No description provided for @rigSaveFrameAsPose.
+  ///
+  /// In en, this message translates to:
+  /// **'Save frame {frame} as a pose'**
+  String rigSaveFrameAsPose(int frame);
+
+  /// No description provided for @rigTailX.
+  ///
+  /// In en, this message translates to:
+  /// **'Tail X'**
+  String get rigTailX;
+
+  /// No description provided for @rigTailY.
+  ///
+  /// In en, this message translates to:
+  /// **'Tail Y'**
+  String get rigTailY;
+
+  /// No description provided for @rigSectionRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pixel rotation'**
+  String get rigSectionRotation;
+
+  /// No description provided for @rigRotSprite.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge-preserving rotation (RotSprite)'**
+  String get rigRotSprite;
+
+  /// No description provided for @rigRotSpriteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps thin lines and diagonals intact when parts turn. Slower to draw.'**
+  String get rigRotSpriteHint;
+
+  /// No description provided for @rigSnapAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Angle snap'**
+  String get rigSnapAngle;
+
+  /// No description provided for @rigSnapDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default angle snap'**
+  String get rigSnapDefault;
+
+  /// No description provided for @rigSnapRigDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Rig default'**
+  String get rigSnapRigDefault;
+
+  /// No description provided for @rigSnapOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get rigSnapOff;
+
+  /// No description provided for @rigSnapDegrees.
+  ///
+  /// In en, this message translates to:
+  /// **'{degrees}°'**
+  String rigSnapDegrees(String degrees);
+
+  /// No description provided for @rigEasingCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom curve'**
+  String get rigEasingCustom;
+
+  /// No description provided for @rigEditCurve.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit easing curve'**
+  String get rigEditCurve;
+
+  /// No description provided for @rigCurveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easing curve'**
+  String get rigCurveTitle;
+
+  /// No description provided for @rigCurveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the two handles to shape how the motion accelerates between keys.'**
+  String get rigCurveHint;
+
+  /// No description provided for @rigCurveOvershoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Overshoot'**
+  String get rigCurveOvershoot;
+
+  /// No description provided for @rigCurveAnticipate.
+  ///
+  /// In en, this message translates to:
+  /// **'Anticipate'**
+  String get rigCurveAnticipate;
+
+  /// No description provided for @rigCurveStrongOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong ease out'**
+  String get rigCurveStrongOut;
+
+  /// No description provided for @rigCurveStrongInOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong ease in-out'**
+  String get rigCurveStrongInOut;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

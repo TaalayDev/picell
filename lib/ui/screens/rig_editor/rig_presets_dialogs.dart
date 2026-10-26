@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../l10n/strings.dart';
 import '../../../pixel/rig/presets/bone_presets.dart';
 import '../../../pixel/rig/presets/motion_catalog.dart';
 import '../../../pixel/rig/presets/motion_presets.dart';
@@ -51,9 +52,9 @@ class _SkeletonPresetsDialog extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 8, 4),
               child: Row(
                 children: [
-                  Expanded(child: Text('Ready-made skeletons', style: theme.textTheme.titleMedium)),
+                  Expanded(child: Text(Strings.of(context).rigSkeletonsTitle, style: theme.textTheme.titleMedium)),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: Strings.of(context).close,
                     icon: const Icon(Icons.close, size: 18),
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -65,7 +66,7 @@ class _SkeletonPresetsDialog extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Pick one, then move and stretch it over your artwork before adding it.',
+                  Strings.of(context).rigSkeletonsHint,
                   style: theme.textTheme.bodySmall?.copyWith(color: muted),
                 ),
               ),
@@ -75,8 +76,8 @@ class _SkeletonPresetsDialog extends StatelessWidget {
                 shrinkWrap: true,
                 padding: const EdgeInsets.only(bottom: 12),
                 children: [
-                  section('Whole figures', figures),
-                  section('Parts to add to a bone', parts),
+                  section(Strings.of(context).rigWholeFigures, figures),
+                  section(Strings.of(context).rigPartsToAdd, parts),
                 ],
               ),
             ),
@@ -116,7 +117,7 @@ class _SkeletonTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${preset.name} · ${preset.bones.length} bones', style: theme.textTheme.bodyMedium),
+                  Text(Strings.of(context).rigPresetBones(preset.name, preset.bones.length), style: theme.textTheme.bodyMedium),
                   const SizedBox(height: 2),
                   Text(
                     preset.description,
@@ -213,9 +214,9 @@ class _MotionPresetsDialog extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 8, 0),
               child: Row(
                 children: [
-                  Expanded(child: Text('Ready-made animations', style: theme.textTheme.titleMedium)),
+                  Expanded(child: Text(Strings.of(context).rigAnimationsTitle, style: theme.textTheme.titleMedium)),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: Strings.of(context).close,
                     icon: const Icon(Icons.close, size: 18),
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -275,12 +276,12 @@ class _MotionTile extends StatelessWidget {
     if (preset.target == MotionTarget.roles) {
       final c = controller.motionCoverage(preset, mirror: mirror);
       usable = c.matched > 0;
-      status = usable ? '${c.matched} of ${c.total} bones found' : 'No bones named like ${_examples(preset)}';
+      status = usable ? Strings.of(context).rigBonesFound(c.matched, c.total) : Strings.of(context).rigNoBonesNamedLike(_examples(preset));
     } else {
       usable = controller.selectedBone != null;
       status = usable
-          ? (preset.target == MotionTarget.selectedChain ? 'Selected bone and below' : 'Selected bone')
-          : 'Select a bone first';
+          ? (preset.target == MotionTarget.selectedChain ? Strings.of(context).rigSelectedBoneAndBelow : Strings.of(context).rigSelectedBone)
+          : Strings.of(context).rigSelectBoneFirstShort;
     }
 
     return InkWell(
@@ -297,7 +298,7 @@ class _MotionTile extends StatelessWidget {
                 children: [
                   Expanded(child: Text(preset.name, style: theme.textTheme.bodyMedium)),
                   Text(
-                    '${preset.frames} frames · ${preset.fps} fps${preset.loop ? '' : ' · once'}',
+                    preset.loop ? Strings.of(context).rigMotionMeta(preset.frames, preset.fps) : Strings.of(context).rigMotionMetaOnce(preset.frames, preset.fps),
                     style: theme.textTheme.labelSmall?.copyWith(color: muted, fontFamily: 'monospace'),
                   ),
                 ],

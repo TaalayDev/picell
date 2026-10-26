@@ -3863,4 +3863,919 @@ class StringsRu extends Strings {
 
   @override
   String get effectLayersCombinedKeepHint => 'Слои двигаются вместе как одно изображение и остаются на своих слоях.';
+
+  @override
+  String rigBoneCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count костей',
+      many: '$count костей',
+      few: '$count кости',
+      one: '$count кость',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rigLayerCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count слоя',
+      many: '$count слоёв',
+      few: '$count слоя',
+      one: '$count слой',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rigNothingKeyed => 'Сначала поверните кость или сдвиньте цель IK: ключей пока нет.';
+
+  @override
+  String get rigPreviewFailed => 'Не удалось создать предпросмотр.';
+
+  @override
+  String get rigDiscardTitle => 'Отменить изменения рига?';
+
+  @override
+  String get rigDiscardBody => 'Внесённые в риг изменения не будут сохранены.';
+
+  @override
+  String get rigKeepEditing => 'Продолжить';
+
+  @override
+  String get rigDiscard => 'Отменить';
+
+  @override
+  String rigSkeletonAdded(String name, int bones, int bound) {
+    String _temp0 = intl.Intl.pluralLogic(
+      bones,
+      locale: localeName,
+      other: '$bones костей',
+      many: '$bones костей',
+      few: '$bones кости',
+      one: '$bones кость',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      bound,
+      locale: localeName,
+      other: ', привязано $bound слоя по имени',
+      many: ', привязано $bound слоёв по имени',
+      few: ', привязано $bound слоя по имени',
+      one: ', привязан $bound слой по имени',
+      zero: '',
+    );
+    return '$name добавлен: $_temp0$_temp1.';
+  }
+
+  @override
+  String rigNoBonesForMotion(String name, String examples) {
+    return 'Нет костей для «$name». Назовите их как $examples или добавьте готовый скелет в режиме настройки.';
+  }
+
+  @override
+  String get rigSelectBoneFirst => 'Сначала выберите кость.';
+
+  @override
+  String get rigSelectBoneFirstShort => 'Сначала выберите кость';
+
+  @override
+  String rigMotionApplied(String name, int matched, int missing) {
+    String _temp0 = intl.Intl.pluralLogic(
+      matched,
+      locale: localeName,
+      other: '$matched костей',
+      many: '$matched костей',
+      few: '$matched кости',
+      one: '$matched кость',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      missing,
+      locale: localeName,
+      other: ' (не найдено: $missing)',
+      zero: '',
+    );
+    return '«$name» применена: $_temp0$_temp1. Отмена вернёт прежнюю анимацию.';
+  }
+
+  @override
+  String get rigTitle => 'Риг';
+
+  @override
+  String get rigBonesAndLayers => 'Кости и слои';
+
+  @override
+  String get rigModeSetup => 'Настройка';
+
+  @override
+  String get rigModeAnimate => 'Анимация';
+
+  @override
+  String get rigToolSelectAnimate => 'Выбрать кость (V)';
+
+  @override
+  String get rigToolSelectSetup => 'Выбор и перемещение костей (V)';
+
+  @override
+  String get rigToolDraw => 'Нарисовать кость (B)';
+
+  @override
+  String get rigToolPaint => 'Закрасить, что двигает выбранная кость (P)';
+
+  @override
+  String get rigAddSkeleton => 'Добавить готовый скелет';
+
+  @override
+  String get rigToolRotate => 'Повернуть кость (R)';
+
+  @override
+  String get rigToolMove => 'Переместить кость (M)';
+
+  @override
+  String get rigFlipBone => 'Отразить выбранную кость';
+
+  @override
+  String get rigSelectMultiple => 'Выбрать несколько костей';
+
+  @override
+  String get rigSnapping => 'Привязка суставов (Alt — отключить)';
+
+  @override
+  String get rigFit => 'По размеру экрана';
+
+  @override
+  String rigNextBoneMoves(String layer) {
+    return 'Следующая кость двигает «$layer»';
+  }
+
+  @override
+  String get rigDontBindLayer => 'Не привязывать слой';
+
+  @override
+  String get rigPaintErasing => 'Стирание: пиксели остаются неподвижными';
+
+  @override
+  String get rigPaintSelectBone => 'Выберите кость, для которой красить';
+
+  @override
+  String rigPaintingFor(String bone) {
+    return 'Закраска для «$bone»';
+  }
+
+  @override
+  String get rigErase => 'Стереть';
+
+  @override
+  String get rigAnyVisibleLayer => 'Любой видимый слой';
+
+  @override
+  String rigPlacePrompt(String name) {
+    return 'Разместите «$name»: тяните рамку, чтобы переместить, и края, чтобы растянуть.';
+  }
+
+  @override
+  String get rigMirror => 'Зеркало';
+
+  @override
+  String get rigWithIk => 'С IK';
+
+  @override
+  String rigAttachTo(String bone) {
+    return 'Присоединить к «$bone»';
+  }
+
+  @override
+  String get rigAddSkeletonButton => 'Добавить скелет';
+
+  @override
+  String get rigPreviewTitle => 'Предпросмотр анимации';
+
+  @override
+  String get rigSaveGif => 'Сохранить GIF';
+
+  @override
+  String get rigSkeletonsTitle => 'Готовые скелеты';
+
+  @override
+  String get rigSkeletonsHint =>
+      'Выберите скелет, затем переместите и растяните его поверх рисунка, прежде чем добавить.';
+
+  @override
+  String get rigWholeFigures => 'Целые фигуры';
+
+  @override
+  String get rigPartsToAdd => 'Части для добавления к кости';
+
+  @override
+  String rigPresetBones(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count костей',
+      many: '$count костей',
+      few: '$count кости',
+      one: '$count кость',
+    );
+    return '$name · $_temp0';
+  }
+
+  @override
+  String get rigAnimationsTitle => 'Готовые анимации';
+
+  @override
+  String rigBonesFound(int matched, int total) {
+    return 'Найдено костей: $matched из $total';
+  }
+
+  @override
+  String rigNoBonesNamedLike(String examples) {
+    return 'Нет костей с именами вроде $examples';
+  }
+
+  @override
+  String get rigSelectedBoneAndBelow => 'Выбранная кость и дочерние';
+
+  @override
+  String get rigSelectedBone => 'Выбранная кость';
+
+  @override
+  String rigMotionMeta(int frames, int fps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      frames,
+      locale: localeName,
+      other: '$frames кадра',
+      many: '$frames кадров',
+      few: '$frames кадра',
+      one: '$frames кадр',
+    );
+    return '$_temp0 · $fps к/с';
+  }
+
+  @override
+  String rigMotionMetaOnce(int frames, int fps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      frames,
+      locale: localeName,
+      other: '$frames кадра',
+      many: '$frames кадров',
+      few: '$frames кадра',
+      one: '$frames кадр',
+    );
+    return '$_temp0 · $fps к/с · один раз';
+  }
+
+  @override
+  String rigUnmappedRoles(String roles) {
+    return 'Роли без костей: $roles. Выберите кости в разделе «Сопоставление ролей».';
+  }
+
+  @override
+  String get rigStrength => 'Сила';
+
+  @override
+  String get rigFrames => 'Кадры';
+
+  @override
+  String get rigFrameRate => 'Частота кадров';
+
+  @override
+  String get rigLoop => 'Зациклить';
+
+  @override
+  String get rigFaceOther => 'Повернуть в другую сторону';
+
+  @override
+  String get rigFaceOtherHint => 'Поменять левую и правую стороны и обратить взмахи.';
+
+  @override
+  String get rigScaleMotion => 'Подогнать движение под пропорции тела';
+
+  @override
+  String get rigKeepPosition => 'Сохранить текущее положение';
+
+  @override
+  String get rigAlignFeet => 'Выровнять ступни по земле';
+
+  @override
+  String get rigGroundY => 'Уровень земли (Y)';
+
+  @override
+  String get rigRoleMapping => 'Сопоставление ролей костей';
+
+  @override
+  String get rigAutomaticByName => 'Автоматически (по имени)';
+
+  @override
+  String get rigPlantFeet => 'Фиксировать ступни';
+
+  @override
+  String get rigPlantFeetHint => 'Удерживать точки контакта ступней на земле.';
+
+  @override
+  String get rigLockLegs => 'Заблокировать суставы ног';
+
+  @override
+  String get rigLockLegsHint => 'Удерживать бёдра, голени и ступни на месте.';
+
+  @override
+  String get rigPlayPreview => 'Запустить предпросмотр';
+
+  @override
+  String get rigPausePreview => 'Пауза предпросмотра';
+
+  @override
+  String rigConfigure(String name) {
+    return 'Настройка «$name»';
+  }
+
+  @override
+  String get rigCloseConfig => 'Закрыть настройки';
+
+  @override
+  String rigNoMatchingBones(String examples) {
+    return 'Подходящих костей нет. Назовите кости как $examples.';
+  }
+
+  @override
+  String get rigSelectBoneBeforePreset => 'Выберите кость перед выбором этого пресета.';
+
+  @override
+  String rigFpsValue(int fps) {
+    return '$fps к/с';
+  }
+
+  @override
+  String get rigAddBonesHint => 'Добавьте кости в режиме настройки, чтобы начать анимировать.';
+
+  @override
+  String get rigNewClip => 'Новый клип анимации';
+
+  @override
+  String get rigRenameClip => 'Переименовать клип анимации';
+
+  @override
+  String get rigClipName => 'Название клипа';
+
+  @override
+  String get rigClipActions => 'Действия с клипом';
+
+  @override
+  String get rigDuplicateClip => 'Дублировать клип';
+
+  @override
+  String get rigRenameClipItem => 'Переименовать клип';
+
+  @override
+  String get rigDeleteClip => 'Удалить клип';
+
+  @override
+  String get rigUnfreezeRange => 'Разморозить сустав (выбранные кадры или весь клип)';
+
+  @override
+  String get rigFreezeRange => 'Заморозить сустав (выбранные кадры или весь клип)';
+
+  @override
+  String get rigAutoKeyOn => 'Автоключи включены: поза записывает ключи (A)';
+
+  @override
+  String get rigAutoKeyOff => 'Автоключи выключены: поза только для просмотра (A)';
+
+  @override
+  String get rigKeyPose => 'Записать позу';
+
+  @override
+  String get rigDiscardUnkeyed => 'Отбросить незаписанную позу';
+
+  @override
+  String get rigPrevFrame => 'Предыдущий кадр';
+
+  @override
+  String get rigNextFrame => 'Следующий кадр';
+
+  @override
+  String get rigLooping => 'Зациклено';
+
+  @override
+  String get rigPlaysOnce => 'Играет один раз';
+
+  @override
+  String get rigMirrorFramePose => 'Отразить позу этого кадра';
+
+  @override
+  String get rigSwapLeftRight => 'Поменять лево и право (противофаза)';
+
+  @override
+  String get rigMirrorCentre => 'Отразить относительно центра';
+
+  @override
+  String get rigFixLoop => 'Исправить цикл';
+
+  @override
+  String get rigCopyPose => 'Копировать позу этого кадра';
+
+  @override
+  String get rigPastePose => 'Вставить позу сюда';
+
+  @override
+  String get rigClearAll => 'Очистить все анимации и кадры';
+
+  @override
+  String get rigSelectRange => 'Выбрать диапазон кадров (Shift-клик или долгое нажатие)';
+
+  @override
+  String get rigFrom => 'С';
+
+  @override
+  String get rigTo => 'По';
+
+  @override
+  String get rigMoveKeysLeftReplace => 'Сдвинуть выбранные ключи влево (заменяет ключи в месте назначения)';
+
+  @override
+  String get rigMoveKeysRightReplace => 'Сдвинуть выбранные ключи вправо (заменяет ключи в месте назначения)';
+
+  @override
+  String get rigDuplicateFrames => 'Дублировать выбранные кадры';
+
+  @override
+  String get rigDeleteFrames => 'Удалить выбранные кадры';
+
+  @override
+  String get rigPlantFoot => 'Зафиксировать выбранную ступню на выбранных кадрах (текущая точка контакта)';
+
+  @override
+  String get rigReleaseFoot => 'Снять фиксацию ступни на выбранных кадрах';
+
+  @override
+  String get rigPreviewGif => 'Предпросмотр в виде GIF';
+
+  @override
+  String rigFewer(String label) {
+    return 'Меньше: $label';
+  }
+
+  @override
+  String rigMore(String label) {
+    return 'Больше: $label';
+  }
+
+  @override
+  String get rigSelectedTracks => 'Выбранные дорожки';
+
+  @override
+  String get rigAllTracks => 'Все дорожки';
+
+  @override
+  String get rigCopyKeys => 'Копировать ключи диапазона';
+
+  @override
+  String get rigPasteKeys => 'Вставить ключи в текущий кадр';
+
+  @override
+  String get rigMoveKeysLeft => 'Сдвинуть ключи влево';
+
+  @override
+  String get rigMoveKeysRight => 'Сдвинуть ключи вправо';
+
+  @override
+  String get rigDeleteKeys => 'Удалить ключи, не удаляя кадры';
+
+  @override
+  String get rigSetEasing => 'Задать плавность выбранных ключей';
+
+  @override
+  String get rigRippleOn => 'Вставка со сдвигом: вкл.';
+
+  @override
+  String get rigRippleOff => 'Вставка со сдвигом: выкл.';
+
+  @override
+  String get rigEasingLinear => 'Линейная';
+
+  @override
+  String get rigEasingIn => 'Плавное начало';
+
+  @override
+  String get rigEasingOut => 'Плавное завершение';
+
+  @override
+  String get rigEasingInOut => 'Плавное начало и завершение';
+
+  @override
+  String get rigEasingStepped => 'Удержание, затем скачок';
+
+  @override
+  String rigSelectionTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count костей',
+      many: '$count костей',
+      few: '$count кости',
+      one: '$count кость',
+    );
+    return 'Выбор · $_temp0';
+  }
+
+  @override
+  String get rigSelectDescendants => 'Выбрать дочерние';
+
+  @override
+  String get rigMoveX => 'Сдвиг X';
+
+  @override
+  String get rigMoveY => 'Сдвиг Y';
+
+  @override
+  String get rigRotateGroup => 'Повернуть группу';
+
+  @override
+  String get rigRotateAboutActive => 'Вращать вокруг активного сустава';
+
+  @override
+  String get rigLockSelected => 'Заблокировать выбранные суставы';
+
+  @override
+  String get rigUnlockSelected => 'Разблокировать выбранные суставы';
+
+  @override
+  String get rigNumericPose => 'Числовая поза';
+
+  @override
+  String get rigPoseRotation => 'Поворот позы';
+
+  @override
+  String get rigOffsetX => 'Смещение X';
+
+  @override
+  String get rigOffsetY => 'Смещение Y';
+
+  @override
+  String get rigPoseGhosting => 'Призраки поз';
+
+  @override
+  String get rigSkeletonGhosts => 'Призраки скелета';
+
+  @override
+  String get rigArtworkGhosts => 'Призраки рисунка';
+
+  @override
+  String get rigOpacity => 'Непрозрачность';
+
+  @override
+  String get rigFrameSpacing => 'Шаг кадров';
+
+  @override
+  String get rigPinPose => 'Закрепить текущую позу';
+
+  @override
+  String get rigUnpinPose => 'Открепить опорную позу';
+
+  @override
+  String get rigAttachmentPoints => 'Точки крепления';
+
+  @override
+  String get rigSocketHint =>
+      'Назовите гнездо стопы foot_contact, чтобы использовать его как точку фиксации. Смещения следуют за костью.';
+
+  @override
+  String get rigAddToBone => 'Добавить к выбранной кости';
+
+  @override
+  String get rigMissingBone => 'Кость отсутствует';
+
+  @override
+  String get rigSocketName => 'Имя гнезда';
+
+  @override
+  String get rigLocalX => 'Локальный X';
+
+  @override
+  String get rigLocalY => 'Локальный Y';
+
+  @override
+  String get rigSocketAngle => 'Угол гнезда';
+
+  @override
+  String rigArtworkPivot(String layer) {
+    return 'Опорная точка рисунка · $layer';
+  }
+
+  @override
+  String get rigArtworkX => 'Рисунок X';
+
+  @override
+  String get rigArtworkY => 'Рисунок Y';
+
+  @override
+  String get rigDeleteAttachment => 'Удалить крепление';
+
+  @override
+  String get rigSectionBones => 'Кости';
+
+  @override
+  String get rigSectionLayers => 'Слои';
+
+  @override
+  String get rigSectionBone => 'Кость';
+
+  @override
+  String rigSectionPose(int frame) {
+    return 'Поза · кадр $frame';
+  }
+
+  @override
+  String get rigSectionPoses => 'Позы';
+
+  @override
+  String get rigSectionCheck => 'Проверка';
+
+  @override
+  String get rigEmptyHint => 'Выберите инструмент «Кость» и проведите по холсту, чтобы нарисовать первую кость.';
+
+  @override
+  String get rigOrAddSkeleton => 'Или добавьте готовый скелет';
+
+  @override
+  String rigUnfreezeBone(String bone) {
+    return 'Разморозить «$bone»';
+  }
+
+  @override
+  String rigFreezeBone(String bone) {
+    return 'Заморозить «$bone»';
+  }
+
+  @override
+  String get rigBoneActions => 'Действия с костью';
+
+  @override
+  String get rigUnfreezeJoint => 'Разморозить сустав';
+
+  @override
+  String get rigFreezeJoint => 'Заморозить сустав';
+
+  @override
+  String get rigConnectJoints => 'Соединить суставы…';
+
+  @override
+  String get rigInheritMotion => 'Наследовать только движение…';
+
+  @override
+  String get rigImplicitNote => 'Неявная: только движение';
+
+  @override
+  String get rigExplicitNote => 'Явная: сустав и унаследованный слой';
+
+  @override
+  String get rigDisconnect => 'Отсоединить';
+
+  @override
+  String rigConnectTo(String bone) {
+    return 'Соединить «$bone» с';
+  }
+
+  @override
+  String get rigNoOtherBones => 'Больше нет костей, к которым можно присоединить.';
+
+  @override
+  String get rigRenameBone => 'Переименовать кость';
+
+  @override
+  String get rigNoLayers => 'В этой анимации нет слоёв.';
+
+  @override
+  String get rigStaysStill => 'Неподвижен';
+
+  @override
+  String rigChooseBoneFor(String layer) {
+    return 'Выберите кость, двигающую «$layer»';
+  }
+
+  @override
+  String rigOrderLabel(String state) {
+    return 'Порядок слоёв: $state';
+  }
+
+  @override
+  String get rigOrderNormal => 'обычный';
+
+  @override
+  String rigOrderFront(int count) {
+    return 'на $count выше';
+  }
+
+  @override
+  String rigOrderBehind(int count) {
+    return 'на $count ниже';
+  }
+
+  @override
+  String get rigSendBehind => 'Опустить ещё на один слой начиная с этого кадра';
+
+  @override
+  String get rigBringFront => 'Поднять ещё на один слой начиная с этого кадра';
+
+  @override
+  String get rigRemoveOrderKey => 'Удалить ключ порядка этого кадра';
+
+  @override
+  String get rigMoveConnected => 'Двигать связанную цепь';
+
+  @override
+  String get rigLength => 'Длина';
+
+  @override
+  String get rigAngle => 'Угол';
+
+  @override
+  String get rigEnterHint => 'Enter — применить · шаг 0,5 px';
+
+  @override
+  String get rigLimitRotation => 'Ограничить вращение';
+
+  @override
+  String get rigRange => 'Диапазон';
+
+  @override
+  String rigRangeValue(int min, int max) {
+    return 'от $min° до $max°';
+  }
+
+  @override
+  String get rigMinAngle => 'Мин. угол';
+
+  @override
+  String get rigMaxAngle => 'Макс. угол';
+
+  @override
+  String get rigInvalidValue => 'Неверное значение';
+
+  @override
+  String get rigJointFrozen => 'Сустав заморожен в этом клипе. Движение родителя и IK его не двигают.';
+
+  @override
+  String get rigRotation => 'Поворот';
+
+  @override
+  String get rigOffset => 'Смещение';
+
+  @override
+  String get rigSteeredByIk => 'Управляется IK: перетащите его кольцо на холсте, чтобы задать позу.';
+
+  @override
+  String get rigFlipH => 'Отразить по горизонтали';
+
+  @override
+  String get rigBetweenKeys => 'Между ключами';
+
+  @override
+  String get rigKeyedHere => 'Ключ на этом кадре';
+
+  @override
+  String get rigAddKey => 'Добавить ключ';
+
+  @override
+  String get rigUpdateKey => 'Обновить ключ';
+
+  @override
+  String get rigRemoveKey => 'Удалить ключ';
+
+  @override
+  String rigIkPartOf(String name) {
+    return 'Входит в цепь IK «$name».';
+  }
+
+  @override
+  String get rigEditChain => 'Изменить эту цепь';
+
+  @override
+  String get rigIkAttachHint => 'Присоедините эту кость к родителю, чтобы получить цепь, которая сгибается к цели.';
+
+  @override
+  String get rigIkBendHint => 'Сгибайте эту кость и вышестоящие, чтобы дотянуться до цели, например рукой или ногой.';
+
+  @override
+  String get rigAddIkToBone => 'Добавить IK к этой кости';
+
+  @override
+  String get rigAddIkChain => 'Добавить цепь IK';
+
+  @override
+  String get rigChain => 'Цепь';
+
+  @override
+  String get rigFewerBones => 'Меньше костей в цепи';
+
+  @override
+  String get rigMoreBones => 'Больше костей в цепи';
+
+  @override
+  String get rigFoldOther => 'Сгибать в другую сторону';
+
+  @override
+  String get rigFootPlanted => 'Ступня зафиксирована на этом кадре';
+
+  @override
+  String get rigIkOff => 'Выкл.: перетащите кольцо, чтобы поставить цель';
+
+  @override
+  String get rigTargetBetween => 'Цель между ключами';
+
+  @override
+  String get rigTargetKeyed => 'Ключ цели на этом кадре';
+
+  @override
+  String get rigKeyTarget => 'Ключ цели';
+
+  @override
+  String get rigRemoveTargetKey => 'Удалить ключ цели';
+
+  @override
+  String get rigRemoveIk => 'Удалить IK';
+
+  @override
+  String get rigPoseSaveHint => 'Сохраните позу этого кадра, чтобы использовать её на других кадрах.';
+
+  @override
+  String rigPutPose(String name, int frame) {
+    return 'Поставить «$name» на кадр $frame';
+  }
+
+  @override
+  String get rigPoseActions => 'Действия с позой';
+
+  @override
+  String get rigRenamePose => 'Переименовать позу';
+
+  @override
+  String get rigSavePose => 'Сохранить позу';
+
+  @override
+  String rigPoseDefault(int n) {
+    return 'Поза $n';
+  }
+
+  @override
+  String rigSaveFrameAsPose(int frame) {
+    return 'Сохранить кадр $frame как позу';
+  }
+
+  @override
+  String get rigTailX => 'Конец X';
+
+  @override
+  String get rigTailY => 'Конец Y';
+
+  @override
+  String get rigSectionRotation => 'Вращение пикселей';
+
+  @override
+  String get rigRotSprite => 'Вращение с сохранением краёв (RotSprite)';
+
+  @override
+  String get rigRotSpriteHint => 'Сохраняет тонкие линии и диагонали при повороте частей. Рисуется медленнее.';
+
+  @override
+  String get rigSnapAngle => 'Привязка угла';
+
+  @override
+  String get rigSnapDefault => 'Привязка угла по умолчанию';
+
+  @override
+  String get rigSnapRigDefault => 'Как у рига';
+
+  @override
+  String get rigSnapOff => 'Выкл.';
+
+  @override
+  String rigSnapDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String get rigEasingCustom => 'Своя кривая';
+
+  @override
+  String get rigEditCurve => 'Изменить кривую easing';
+
+  @override
+  String get rigCurveTitle => 'Кривая easing';
+
+  @override
+  String get rigCurveHint => 'Перетащите две точки, чтобы задать ускорение движения между ключами.';
+
+  @override
+  String get rigCurveOvershoot => 'Перелёт';
+
+  @override
+  String get rigCurveAnticipate => 'Замах';
+
+  @override
+  String get rigCurveStrongOut => 'Сильное замедление';
+
+  @override
+  String get rigCurveStrongInOut => 'Сильный разгон и торможение';
 }

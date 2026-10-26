@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -10,7 +11,10 @@ import 'presets/bone_presets.dart';
 import 'presets/motion_presets.dart';
 import 'presets/name_tokens.dart';
 import 'pose_interpolator.dart';
+import 'rig_influence_paint.dart';
+import 'rig_layer_influences.dart';
 import 'rig_solver.dart';
+import 'rig_validator.dart';
 
 part 'rig_workflow.dart';
 
@@ -25,6 +29,9 @@ enum RigTool {
   /// Setup: drag out a new bone. Starting on another bone's tip makes it a
   /// child.
   createBone,
+
+  /// Setup: paint which pixels of a layer the selected bone moves.
+  paintInfluence,
 
   /// Animate: drag to rotate the selected bone about its joint.
   rotate,
@@ -165,7 +172,7 @@ class RigEditorController extends ChangeNotifier {
     if (_tool == value) return;
     // Tools that make no sense in the current mode are ignored.
     final animating = _mode == RigMode.animate;
-    if (animating && value == RigTool.createBone) return;
+    if (animating && (value == RigTool.createBone || value == RigTool.paintInfluence)) return;
     if (!animating && (value == RigTool.rotate || value == RigTool.move)) return;
     _tool = value;
     notifyListeners();
@@ -176,6 +183,7 @@ class RigEditorController extends ChangeNotifier {
   set mode(RigMode value) {
     if (_mode == value) return;
     _mode = value;
+    _dropPending();
     _activeLayerKey = null; // arming a layer is a setup gesture
     _placement = null; // and so is placing a preset
     // Posing is what animate mode is for, so start on the rotate tool.
@@ -187,8 +195,9 @@ class RigEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool _toolFitsMode(RigTool t) =>
-      _mode == RigMode.animate ? t != RigTool.createBone : (t != RigTool.rotate && t != RigTool.move);
+  bool _toolFitsMode(RigTool t) => _mode == RigMode.animate
+      ? (t != RigTool.createBone && t != RigTool.paintInfluence)
+      : (t != RigTool.rotate && t != RigTool.move);
 
   bool get canUndo => _undo.isNotEmpty;
   bool get canRedo => _redo.isNotEmpty;
@@ -227,6 +236,16 @@ class RigEditorController extends ChangeNotifier {
       if (b.parentId == null || !ids.contains(b.parentId)) walk(b, 0);
     }
     return out;
+  }
+
+  final Set<String> _collapsed = {};
+
+  /// Whether the bone's children are folded away in the bone tree.
+  bool isCollapsed(String id) => _collapsed.contains(id);
+
+  void toggleCollapsed(String id) {
+    if (!_collapsed.remove(id)) _collapsed.add(id);
+    notifyListeners();
   }
 
   // ── Selection ────────────────────────────────────────────────────────────
@@ -325,6 +344,7 @@ class RigEditorController extends ChangeNotifier {
 
   void _commit(Rig next) {
     if (next == _rig) return;
+    _dropPending();
     if (_gestureBase == null) _pushUndo(_rig);
     _rig = next;
     notifyListeners();
@@ -345,6 +365,7 @@ class RigEditorController extends ChangeNotifier {
   }
 
   void _afterHistoryJump() {
+    _dropPending();
     _selectedBoneIds.removeWhere((id) => bone(id) == null);
     if (bone(_selectedBoneId) == null) _selectedBoneId = _selectedBoneIds.firstOrNull;
     notifyListeners();
@@ -400,7 +421,7 @@ class RigEditorController extends ChangeNotifier {
     }
     if (parentId == null && snappingEnabled && connect) {
       for (final candidate in _rig.bones.reversed) {
-        if ((head - candidate.tail).distance < 1e-6 || (head - candidate.head).distance < 1e-6) {
+        if ((head - _nearestOnSegment(head, candidate.head, candidate.tail)).distance < 1e-6) {
           parentId = candidate.id;
           break;
         }
@@ -411,11 +432,17 @@ class RigEditorController extends ChangeNotifier {
     if (delta.distance < .5) return null;
     if (parentId != null && bone(parentId) == null) parentId = null;
 
+    var connection = BoneConnection.explicit;
+    if (parentId == null && connect && _rig.bones.isNotEmpty) {
+      parentId = _rig.bones.first.id;
+      connection = BoneConnection.implicit;
+    }
     final id = _newId();
     final created = Bone(
       id: id,
       name: name ?? _uniqueName('bone'),
       parentId: parentId,
+      connection: connection,
       head: head,
       length: delta.distance,
       restAngle: _degrees(delta),
@@ -453,11 +480,11 @@ class RigEditorController extends ChangeNotifier {
     delta = snapDelta(delta);
     if (delta == Offset.zero) return;
     final parent = bone(target.parentId);
-    if (parent != null && (target.head - parent.tail).distance < 1e-6) {
+    if (parent != null && target.connection == BoneConnection.explicit && (target.head - parent.tail).distance < 1e-6) {
       setBoneTail(parent.id, parent.tail + delta);
       return;
     }
-    if (parent != null && (target.head - parent.head).distance < 1e-6) {
+    if (parent != null && target.connection == BoneConnection.explicit && (target.head - parent.head).distance < 1e-6) {
       moveBone(parent.id, delta);
       return;
     }
@@ -486,7 +513,8 @@ class RigEditorController extends ChangeNotifier {
           ? 0.0
           : (((child.head - b.head).dx * oldAxis.dx + (child.head - b.head).dy * oldAxis.dy) / (b.length * b.length))
               .clamp(0.0, 1.0);
-      final onAxis = (child.head - (b.head + oldAxis * t)).distance < 1e-6;
+      final onAxis =
+          child.connection == BoneConnection.explicit && (child.head - (b.head + oldAxis * t)).distance < 1e-6;
       final newAnchor = onAxis ? b.head + delta * t : b.head + rotate(child.head - b.head);
       for (final childId in {child.id, ..._descendants(child.id)}) {
         final item = bone(childId)!;
@@ -506,7 +534,7 @@ class RigEditorController extends ChangeNotifier {
   /// Called when a setup drag ends; the gesture remains one undo operation.
   ({String parentId, Offset point})? jointConnection(String id, {double tolerance = .25}) {
     final target = bone(id);
-    if (target == null || target.parentId != null) return null;
+    if (target == null || (target.parentId != null && target.connection == BoneConnection.explicit)) return null;
     final blocked = {id, ..._descendants(id)};
     String? parent;
     Offset? anchor;
@@ -535,7 +563,7 @@ class RigEditorController extends ChangeNotifier {
     _commit(_rig.copyWith(bones: [
       for (final item in _rig.bones)
         if (item.id == id)
-          item.copyWith(head: anchor, parentId: () => connection.parentId)
+          item.copyWith(head: anchor, parentId: () => connection.parentId, connection: BoneConnection.explicit)
         else if (moving.contains(item.id))
           item.copyWith(head: item.head + move)
         else
@@ -556,7 +584,7 @@ class RigEditorController extends ChangeNotifier {
     _commit(_rig.copyWith(bones: [
       for (final item in _rig.bones)
         if (item.id == id)
-          item.copyWith(head: anchor, parentId: () => parentId)
+          item.copyWith(head: anchor, parentId: () => parentId, connection: BoneConnection.explicit)
         else if (moving.contains(item.id))
           item.copyWith(head: item.head + delta)
         else
@@ -572,6 +600,7 @@ class RigEditorController extends ChangeNotifier {
     while (current != null && seen.add(current.id)) {
       final parent = bone(current.parentId);
       if (parent == null ||
+          current.connection == BoneConnection.implicit ||
           ((current.head - parent.head).distance > 1e-6 && (current.head - parent.tail).distance > 1e-6)) {
         return current.id;
       }
@@ -635,16 +664,39 @@ class RigEditorController extends ChangeNotifier {
     ]));
   }
 
+  /// Angle steps offered for snapping, in degrees.
+  static const snapChoices = <double>[5, 15, 22.5, 45, 90];
+
+  /// Rounds [id]'s rotation to multiples of [degrees]. Null follows the
+  /// rig's setting, 0 turns snapping off for this bone.
+  void setBoneSnap(String id, double? degrees) {
+    if (bone(id) == null || (degrees != null && degrees < 0)) return;
+    _commit(_rig.copyWith(bones: [
+      for (final b in _rig.bones) b.id == id ? b.copyWith(snapAngle: () => degrees) : b,
+    ]));
+  }
+
+  /// The rig-wide angle snap that bones without their own setting follow
+  /// (0 = off).
+  void setRigSnap(double degrees) {
+    if (degrees < 0) return;
+    _commit(_rig.copyWith(settings: _rig.settings.copyWith(snapAngleDegrees: degrees)));
+  }
+
+  void setRotationMode(RigRotationMode mode) {
+    _commit(_rig.copyWith(settings: _rig.settings.copyWith(rotationMode: mode)));
+  }
+
   /// Makes [parentId] the parent of [id] (null = root). Returns false, and
   /// changes nothing, if that would make a bone its own ancestor.
-  bool reparent(String id, String? parentId) {
+  bool reparent(String id, String? parentId, {BoneConnection connection = BoneConnection.implicit}) {
     if (bone(id) == null) return false;
     if (parentId != null) {
       if (bone(parentId) == null) return false;
       if (parentId == id || _descendants(id).contains(parentId)) return false;
     }
     _commit(_rig.copyWith(bones: [
-      for (final b in _rig.bones) b.id == id ? b.copyWith(parentId: () => parentId) : b,
+      for (final b in _rig.bones) b.id == id ? b.copyWith(parentId: () => parentId, connection: connection) : b,
     ]));
     return true;
   }
@@ -708,6 +760,10 @@ class RigEditorController extends ChangeNotifier {
             ikKeyframes: [
               for (final k in c.ikKeyframes)
                 if (!gone.contains(k.chainId)) k
+            ],
+            orderKeyframes: [
+              for (final k in c.orderKeyframes)
+                if (k.boneId != id) k
             ],
           ),
       ],
@@ -787,6 +843,10 @@ class RigEditorController extends ChangeNotifier {
       for (final k in clip.ikKeyframes)
         if (inside(k.time)) k.copyWith(time: k.time + delta)
     ];
+    final movedOrder = [
+      for (final k in clip.orderKeyframes)
+        if (inside(k.time)) k.copyWith(time: k.time + delta)
+    ];
     final movedFreezes = [
       for (final f in clip.freezes)
         if (inside(f.time)) f.copyWith(time: f.time + delta)
@@ -806,6 +866,11 @@ class RigEditorController extends ChangeNotifier {
       ikKeyframes: [
         for (final k in clip.ikKeyframes)
           if (!inside(k.time)) k
+      ],
+      orderKeyframes: [
+        for (final k in clip.orderKeyframes)
+          if (!inside(k.time) && !movedOrder.any((m) => m.boneId == k.boneId && m.time == k.time)) k,
+        ...movedOrder,
       ],
     );
     _updateClip((_) => _withIkKeys(_withKeys(base, keys), ik));
@@ -837,6 +902,11 @@ class RigEditorController extends ChangeNotifier {
             for (final k in clip.ikKeyframes)
               if (k.time >= start && k.time <= end) k.copyWith(time: k.time + count),
           ],
+          orderKeyframes: [
+            for (final k in clip.orderKeyframes) k.time >= at ? k.copyWith(time: k.time + count) : k,
+            for (final k in clip.orderKeyframes)
+              if (k.time >= start && k.time <= end) k.copyWith(time: k.time + count),
+          ],
         ));
     selectFrameRange(at, at + count - 1);
     setTime(at);
@@ -859,6 +929,10 @@ class RigEditorController extends ChangeNotifier {
           ],
           ikKeyframes: [
             for (final k in clip.ikKeyframes)
+              if (k.time < start || k.time > end) k.time > end ? k.copyWith(time: k.time - count) : k
+          ],
+          orderKeyframes: [
+            for (final k in clip.orderKeyframes)
               if (k.time < start || k.time > end) k.time > end ? k.copyWith(time: k.time - count) : k
           ],
         ));
@@ -920,6 +994,7 @@ class RigEditorController extends ChangeNotifier {
 
   void selectClip(String id) {
     if (!_rig.clips.any((c) => c.id == id) || activeClip.id == id) return;
+    _dropPending();
     _rig = _rig.copyWith(activeClipId: () => id);
     _time = 0;
     pinnedGhostFrame = null;
@@ -996,14 +1071,19 @@ class RigEditorController extends ChangeNotifier {
   bool get canClearAnimations =>
       _rig.clips.length > 1 ||
       activeClip.length > 1 ||
-      _rig.clips.any((clip) => clip.keyframes.isNotEmpty || clip.ikKeyframes.isNotEmpty || clip.freezes.isNotEmpty);
+      _rig.clips.any((clip) =>
+          clip.keyframes.isNotEmpty ||
+          clip.ikKeyframes.isNotEmpty ||
+          clip.orderKeyframes.isNotEmpty ||
+          clip.freezes.isNotEmpty);
 
   /// Remove every animation and keyed frame, keeping one empty working frame.
   /// Skeleton, bindings, IK chains and saved poses remain available for reuse.
   /// The complete reset, including every clip, is one undo step.
   void clearAnimations() {
     if (!canClearAnimations) return;
-    final empty = activeClip.copyWith(length: 1, keyframes: const [], ikKeyframes: const [], freezes: const []);
+    final empty = activeClip
+        .copyWith(length: 1, keyframes: const [], ikKeyframes: const [], orderKeyframes: const [], freezes: const []);
     _time = 0;
     _rangeAnchor = _rangeEnd = null;
     _commit(_rig.copyWith(clips: [empty]));
@@ -1012,7 +1092,73 @@ class RigEditorController extends ChangeNotifier {
   /// The clip being edited. A rig starts without one; the first keyframe
   /// stores this draft in the rig, so merely looking at animate mode leaves
   /// the rig untouched.
-  RigClip get activeClip => _rig.activeClip ?? _draftClip;
+  RigClip get activeClip {
+    final stored = _storedClip;
+    if (_unkeyed.isEmpty && _unkeyedIk.isEmpty) return stored;
+    if (!identical(_viewBase, stored) || _view == null) {
+      _viewBase = stored;
+      _view = _withIkKeys(_withKeys(stored, _unkeyed.values), _unkeyedIk.values);
+    }
+    return _view!;
+  }
+
+  RigClip get _storedClip => _rig.activeClip ?? _draftClip;
+
+  // ── Auto-key ─────────────────────────────────────────────────────────────
+
+  bool _autoKey = true;
+
+  /// Whether posing a bone (or IK target) keys it on the current frame. When
+  /// off, poses are only previewed: they show on the canvas but are not stored
+  /// until [keyPending], and are dropped on frame change or undo.
+  bool get autoKey => _autoKey;
+  set autoKey(bool value) {
+    if (_autoKey == value) return;
+    _autoKey = value;
+    // Turning recording back on stores what was posed meanwhile.
+    if (value) keyPending();
+    notifyListeners();
+  }
+
+  final Map<String, RigKeyframe> _unkeyed = {};
+  final Map<String, IkKeyframe> _unkeyedIk = {};
+  RigClip? _viewBase, _view;
+
+  /// Whether there are poses shown that are not keyed yet.
+  bool get hasPendingPose => _unkeyed.isNotEmpty || _unkeyedIk.isNotEmpty;
+
+  /// Whether [boneId]'s current pose is an unkeyed preview.
+  bool isPending(String boneId) => _unkeyed.containsKey(boneId);
+
+  int _previewRevision = 0;
+
+  /// Changes whenever an unkeyed pose appears, changes or goes away, so
+  /// views that cache the baked artwork by rig know to redraw.
+  int get previewRevision => _previewRevision;
+
+  void _dropPending() {
+    if (hasPendingPose) _previewRevision++;
+    _unkeyed.clear();
+    _unkeyedIk.clear();
+    _view = null;
+  }
+
+  /// Keys every previewed pose at the current frame, as one undo step.
+  void keyPending() {
+    if (!hasPendingPose) return;
+    final keys = _unkeyed.values.toList();
+    final ikKeys = _unkeyedIk.values.toList();
+    _dropPending();
+    _updateClip((clip) => _withIkKeys(_withKeys(clip, keys), ikKeys));
+    notifyListeners();
+  }
+
+  /// Throws the previewed poses away; bones go back to their keyed pose.
+  void discardPending() {
+    if (!hasPendingPose) return;
+    _dropPending();
+    notifyListeners();
+  }
 
   /// The frame being viewed and edited.
   int get time => _time.clamp(0, activeClip.length - 1);
@@ -1020,6 +1166,7 @@ class RigEditorController extends ChangeNotifier {
   void setTime(int frame) {
     frame = frame.clamp(0, activeClip.length - 1);
     if (frame == _time) return;
+    _dropPending();
     _time = frame;
     notifyListeners();
   }
@@ -1080,7 +1227,7 @@ class RigEditorController extends ChangeNotifier {
   Offset toLocalDelta(String boneId, Offset delta) => _parentWorld(boneId).invert()?.applyVector(delta) ?? delta;
 
   RigKeyframe? keyAt(String boneId, int frame) {
-    for (final k in activeClip.keyframes) {
+    for (final k in _storedClip.keyframes) {
       if (k.boneId == boneId && k.time == frame) return k;
     }
     return null;
@@ -1093,7 +1240,7 @@ class RigEditorController extends ChangeNotifier {
       };
 
   void _updateClip(RigClip Function(RigClip) change) {
-    final next = change(activeClip);
+    final next = change(_storedClip);
     _commit(_rig.copyWith(clips: _clipsReplacing(next)));
   }
 
@@ -1118,6 +1265,7 @@ class RigEditorController extends ChangeNotifier {
       translation: translation ?? base.translation,
       flipX: flipX ?? base.flipX,
       easing: keyAt(bone.id, time)?.easing ?? RigEasing.linear,
+      curve: keyAt(bone.id, time)?.curve,
     );
   }
 
@@ -1127,14 +1275,26 @@ class RigEditorController extends ChangeNotifier {
     final b = bone(boneId);
     if (b == null || jointFrozenAt(boneId, time)) return;
     final key = _keyFor(b, poseOf(boneId), rotation: rotation, translation: translation, flipX: flipX);
-    if (keyAt(boneId, time) == key) return;
+    if (!_autoKey) {
+      if (_unkeyed[boneId] == key || (!_unkeyed.containsKey(boneId) && keyAt(boneId, time) == key)) return;
+      _unkeyed[boneId] = key;
+      _view = null;
+      _previewRevision++;
+      notifyListeners();
+      return;
+    }
+    if (keyAt(boneId, time) == key && !_unkeyed.containsKey(boneId)) return;
+    _unkeyed.remove(boneId);
     _updateClip((clip) => _withKeys(clip, [key]));
   }
 
-  /// Keys [boneId] at the current frame exactly as it is posed now.
+  /// Keys [boneId] at the current frame exactly as it is posed now. Also
+  /// stores any other previewed poses of this frame.
   void keyBone(String boneId) {
     final b = bone(boneId);
-    if (b == null || keyAt(boneId, time) != null) return;
+    if (b == null) return;
+    if (hasPendingPose) return keyPending();
+    if (keyAt(boneId, time) != null) return;
     _updateClip((clip) => _withKeys(clip, [_keyFor(b, poseOf(boneId))]));
   }
 
@@ -1149,8 +1309,8 @@ class RigEditorController extends ChangeNotifier {
   /// Sets how the bone eases from the key at [frame] to its next key.
   void setKeyEasing(String boneId, int frame, RigEasing easing) {
     final key = keyAt(boneId, frame);
-    if (key == null || key.easing == easing) return;
-    _updateClip((clip) => _withKeys(clip, [key.copyWith(easing: easing)]));
+    if (key == null || (key.easing == easing && key.curve == null)) return;
+    _updateClip((clip) => _withKeys(clip, [key.copyWith(easing: easing, curve: () => null)]));
   }
 
   bool get canPastePose => _clipboard != null;
@@ -1258,6 +1418,10 @@ class RigEditorController extends ChangeNotifier {
           ],
           ikKeyframes: [
             for (final k in clip.ikKeyframes)
+              if (k.time < frames) k,
+          ],
+          orderKeyframes: [
+            for (final k in clip.orderKeyframes)
               if (k.time < frames) k,
           ],
         ));
@@ -1399,7 +1563,7 @@ class RigEditorController extends ChangeNotifier {
   }
 
   IkKeyframe? ikKeyAt(String chainId, int frame) {
-    for (final k in activeClip.ikKeyframes) {
+    for (final k in _storedClip.ikKeyframes) {
       if (k.chainId == chainId && k.time == frame) return k;
     }
     return null;
@@ -1428,8 +1592,18 @@ class RigEditorController extends ChangeNotifier {
       chainId: chainId,
       target: snapToPixel(target),
       easing: ikKeyAt(chainId, time)?.easing ?? RigEasing.linear,
+      curve: ikKeyAt(chainId, time)?.curve,
     );
-    if (ikKeyAt(chainId, time) == key) return;
+    if (!_autoKey) {
+      if (_unkeyedIk[chainId] == key || (!_unkeyedIk.containsKey(chainId) && ikKeyAt(chainId, time) == key)) return;
+      _unkeyedIk[chainId] = key;
+      _view = null;
+      _previewRevision++;
+      notifyListeners();
+      return;
+    }
+    if (ikKeyAt(chainId, time) == key && !_unkeyedIk.containsKey(chainId)) return;
+    _unkeyedIk.remove(chainId);
     _updateClip((clip) => _withIkKeys(clip, [key]));
   }
 
@@ -1437,8 +1611,12 @@ class RigEditorController extends ChangeNotifier {
   void keyIkChain(String chainId) {
     final chain = ikChain(chainId);
     final here = chain == null ? null : ikHandle(chain);
+    if (hasPendingPose) return keyPending();
     if (here == null || ikKeyAt(chainId, time) != null) return;
+    final recording = _autoKey;
+    _autoKey = true;
     setIkTarget(chainId, here);
+    _autoKey = recording;
   }
 
   void deleteIkKey(String chainId, int frame) {
@@ -1451,8 +1629,21 @@ class RigEditorController extends ChangeNotifier {
 
   void setIkKeyEasing(String chainId, int frame, RigEasing easing) {
     final key = ikKeyAt(chainId, frame);
-    if (key == null || key.easing == easing) return;
-    _updateClip((clip) => _withIkKeys(clip, [key.copyWith(easing: easing)]));
+    if (key == null || (key.easing == easing && key.curve == null)) return;
+    _updateClip((clip) => _withIkKeys(clip, [key.copyWith(easing: easing, curve: () => null)]));
+  }
+
+  /// Eases the segment after the key at [frame] along a custom [curve].
+  void setKeyCurve(String boneId, int frame, EasingCurve curve) {
+    final key = keyAt(boneId, frame);
+    if (key == null || key.curve == curve) return;
+    _updateClip((clip) => _withKeys(clip, [key.copyWith(curve: () => curve)]));
+  }
+
+  void setIkKeyCurve(String chainId, int frame, EasingCurve curve) {
+    final key = ikKeyAt(chainId, frame);
+    if (key == null || key.curve == curve) return;
+    _updateClip((clip) => _withIkKeys(clip, [key.copyWith(curve: () => curve)]));
   }
 
   // ── Skeleton presets ─────────────────────────────────────────────────────
@@ -1851,6 +2042,22 @@ class RigEditorController extends ChangeNotifier {
     return null;
   }
 
+  /// Direct bindings win; only explicit connections inherit a parent's layer.
+  List<String> layerKeysOfBone(String boneId) {
+    final seen = <String>{};
+    var current = bone(boneId);
+    while (current != null && seen.add(current.id)) {
+      final keys = [
+        for (final p in _rig.parts)
+          if (p.boneId == current.id) p.layerKey
+      ];
+      if (keys.isNotEmpty) return keys;
+      if (current.connection != BoneConnection.explicit) break;
+      current = bone(current.parentId);
+    }
+    return const [];
+  }
+
   Bone? boneOfLayer(String layerKey) => bone(partOfLayer(layerKey)?.boneId);
 
   /// The parts list with [layerKey] bound to [boneId], or null if the layer
@@ -1909,4 +2116,345 @@ class RigEditorController extends ChangeNotifier {
         for (final l in restLayers)
           if (l.stableKey != null && partOfLayer(l.stableKey!) == null) l,
       ];
+
+  // ── Checks ───────────────────────────────────────────────────────────────
+
+  Rig? _issuesRig;
+  List<RigIssue> _issues = const [];
+
+  /// Problems found in the rig as it is now (see [RigValidator]).
+  List<RigIssue> get issues {
+    if (identical(_issuesRig, _rig)) return _issues;
+    _issuesRig = _rig;
+    return _issues = RigValidator.validate(
+      _rig,
+      width: width,
+      height: height,
+      layerNames: {
+        for (final l in restLayers)
+          if (l.stableKey != null) l.stableKey!: l.name,
+      },
+    );
+  }
+
+  /// Selects what [issue] is about, if it names a bone or an IK chain.
+  void focusIssue(RigIssue issue) {
+    if (issue.chainId != null && ikChain(issue.chainId) != null) {
+      selectIkChain(issue.chainId);
+    }
+    if (issue.boneId != null && bone(issue.boneId) != null) selectBone(issue.boneId);
+  }
+
+  // ── Draw order ───────────────────────────────────────────────────────────
+
+  /// How far [boneId]'s artwork is moved in the stacking order on the current
+  /// frame (positive = in front of more layers).
+  int drawOrderOf(String boneId) => PoseInterpolator.sampleOrder(activeClip, time.toDouble())[boneId] ?? 0;
+
+  DrawOrderKeyframe? orderKeyAt(String boneId, int frame) {
+    for (final k in _storedClip.orderKeyframes) {
+      if (k.boneId == boneId && k.time == frame) return k;
+    }
+    return null;
+  }
+
+  Set<int> orderKeyTimes(String boneId) => {
+        for (final k in _storedClip.orderKeyframes)
+          if (k.boneId == boneId) k.time,
+      };
+
+  /// Keys [boneId]'s stacking offset at the current frame. It holds until the
+  /// bone's next order key.
+  void setDrawOrder(String boneId, int offset) {
+    if (bone(boneId) == null || _mode != RigMode.animate) return;
+    offset = offset.clamp(-restLayers.length, restLayers.length);
+    if (drawOrderOf(boneId) == offset && orderKeyAt(boneId, time) == null) return;
+    final key = DrawOrderKeyframe(time: time, boneId: boneId, offset: offset);
+    if (orderKeyAt(boneId, time) == key) return;
+    _updateClip((clip) => clip.copyWith(orderKeyframes: [
+          for (final k in clip.orderKeyframes)
+            if (!(k.boneId == boneId && k.time == time)) k,
+          key,
+        ]));
+  }
+
+  /// Moves the bone [delta] layers in front of (or, negative, behind) where
+  /// it is now, from this frame on.
+  void shiftDrawOrder(String boneId, int delta) => setDrawOrder(boneId, drawOrderOf(boneId) + delta);
+
+  void deleteOrderKey(String boneId, int frame) {
+    if (orderKeyAt(boneId, frame) == null) return;
+    _updateClip((clip) => clip.copyWith(orderKeyframes: [
+          for (final k in clip.orderKeyframes)
+            if (!(k.boneId == boneId && k.time == frame)) k,
+        ]));
+  }
+
+  // ── Mirror pose ──────────────────────────────────────────────────────────
+
+  /// Pairs of bones that are each other's left/right counterpart by name
+  /// ("arm_l" / "arm_r"). Each bone is in at most one pair.
+  Map<String, String> get mirrorPairs {
+    final tokens = {for (final b in _rig.bones) b.id: NameTokens.of(b.name)};
+    final out = <String, String>{};
+    for (final b in _rig.bones) {
+      final t = tokens[b.id]!;
+      if (out.containsKey(b.id) || !(t.contains('l') || t.contains('r'))) continue;
+      final wanted = NameTokens.mirrored(t);
+      final others = [
+        for (final o in _rig.bones)
+          if (o.id != b.id &&
+              !out.containsKey(o.id) &&
+              tokens[o.id]!.length == wanted.length &&
+              tokens[o.id]!.containsAll(wanted))
+            o,
+      ];
+      if (others.length != 1) continue;
+      out[b.id] = others.single.id;
+      out[others.single.id] = b.id;
+    }
+    return out;
+  }
+
+  bool get canMirrorPose => _mode == RigMode.animate && mirrorPairs.isNotEmpty;
+
+  /// Swaps the poses of left and right bones on the current frame, for the
+  /// opposite phase of a cycle. With [reflect] the figure is also mirrored
+  /// across the canvas centre line - rotations and horizontal moves are
+  /// negated, centre bones included, and IK targets are reflected - which is
+  /// what a front-facing symmetric rig wants. One undo step.
+  void mirrorPose({bool reflect = false}) {
+    if (!canMirrorPose) return;
+    final pairs = mirrorPairs;
+    BonePose flipped(BonePose p) => reflect
+        ? BonePose(rotation: -p.rotation, translation: Offset(-p.translation.dx, p.translation.dy), flipX: p.flipX)
+        : p;
+    final current = poses;
+    final bones = <String, BonePose>{
+      for (final e in pairs.entries) e.key: flipped(current[e.value] ?? BonePose.rest),
+      if (reflect)
+        for (final b in _rig.bones)
+          if (!pairs.containsKey(b.id)) b.id: flipped(current[b.id] ?? BonePose.rest),
+    };
+
+    // IK chains pair up through their tip bones.
+    final targets = _ikTargets;
+    final ik = <String, Offset>{};
+    for (final chain in _rig.ikChains) {
+      final other = _rig.ikChains.where((c) => c.tipBoneId == pairs[chain.tipBoneId]).firstOrNull;
+      final source = other ?? (reflect ? chain : null);
+      final target = source == null ? null : targets[source.id];
+      if (target == null) continue;
+      ik[chain.id] = reflect ? Offset(width - target.dx, target.dy) : target;
+    }
+    _applyPose(bones, ik);
+  }
+
+  // ── Loop seam ────────────────────────────────────────────────────────────
+
+  bool _sameKeyPose(RigKeyframe a, RigKeyframe b) =>
+      a.rotation == b.rotation && a.translation == b.translation && a.flipX == b.flipX;
+
+  /// Keys at the last frame that repeat the first key of a looping clip. A
+  /// loop already eases from its last key back to its first, so such a key
+  /// shows the same pose on two frames in a row: a stutter at the seam.
+  List<RigKeyframe> get _duplicateEndKeys {
+    final clip = _storedClip;
+    if (clip.length < 2) return const [];
+    final byBone = <String, List<RigKeyframe>>{};
+    for (final k in clip.keyframes) {
+      byBone.putIfAbsent(k.boneId, () => []).add(k);
+    }
+    return [
+      for (final keys in byBone.values)
+        if (keys.length >= 2)
+          if ((keys.toList()..sort((a, b) => a.time.compareTo(b.time))) case final sorted
+              when sorted.last.time == clip.length - 1 && _sameKeyPose(sorted.first, sorted.last))
+            sorted.last,
+    ];
+  }
+
+  List<IkKeyframe> get _duplicateEndIkKeys {
+    final clip = _storedClip;
+    if (clip.length < 2) return const [];
+    final byChain = <String, List<IkKeyframe>>{};
+    for (final k in clip.ikKeyframes) {
+      if (!k.planted) byChain.putIfAbsent(k.chainId, () => []).add(k);
+    }
+    return [
+      for (final keys in byChain.values)
+        if (keys.length >= 2)
+          if ((keys.toList()..sort((a, b) => a.time.compareTo(b.time))) case final sorted
+              when sorted.last.time == clip.length - 1 && sorted.first.target == sorted.last.target)
+            sorted.last,
+    ];
+  }
+
+  /// Whether the clip has a seam problem [fixLoopSeam] can repair: it is not
+  /// set to loop, or some track repeats its first pose on the last frame.
+  bool get hasLoopSeamIssue =>
+      _mode == RigMode.animate &&
+      (_storedClip.keyframes.isNotEmpty || _storedClip.ikKeyframes.isNotEmpty) &&
+      (!_storedClip.loop || _duplicateEndKeys.isNotEmpty || _duplicateEndIkKeys.isNotEmpty);
+
+  /// Turns looping on and removes last-frame keys that repeat the first, so
+  /// the cycle closes without a held frame. Returns how many keys went away.
+  /// One undo step.
+  int fixLoopSeam() {
+    if (!hasLoopSeamIssue) return 0;
+    final dup = _duplicateEndKeys, dupIk = _duplicateEndIkKeys;
+    _updateClip((clip) => clip.copyWith(
+          loop: true,
+          keyframes: [
+            for (final k in clip.keyframes)
+              if (!dup.contains(k)) k,
+          ],
+          ikKeyframes: [
+            for (final k in clip.ikKeyframes)
+              if (!dupIk.contains(k)) k,
+          ],
+        ));
+    return dup.length + dupIk.length;
+  }
+
+  // ── Influence painting (split a layer across bones) ──────────────────────
+
+  static const int minBrushSize = 1, maxBrushSize = 16;
+
+  int _brushSize = 3;
+  int get brushSize => _brushSize;
+  set brushSize(int value) {
+    value = value.clamp(minBrushSize, maxBrushSize);
+    if (value == _brushSize) return;
+    _brushSize = value;
+    notifyListeners();
+  }
+
+  bool _influenceErase = false;
+
+  /// Whether the brush takes pixels away from every bone instead of giving
+  /// them to the selected one.
+  bool get influenceErase => _influenceErase;
+  set influenceErase(bool value) {
+    if (value == _influenceErase) return;
+    _influenceErase = value;
+    notifyListeners();
+  }
+
+  String? _paintLayerKey;
+
+  /// The only layer the brush works on, or null to paint whatever is visible
+  /// under it (the topmost layer with a pixel there).
+  String? get paintLayerKey => _paintLayerKey;
+  set paintLayerKey(String? key) {
+    if (key != null && restLayers.indexWhere((l) => l.stableKey == key) < 0) key = null;
+    if (key == _paintLayerKey) return;
+    _paintLayerKey = key;
+    notifyListeners();
+  }
+
+  /// Whether a stroke would do something now: erasing, or a bone is selected.
+  bool get canPaintInfluence => _mode == RigMode.setup && (_influenceErase || selectedBone != null);
+
+  final Map<String, Uint32List> _layerPixels = {};
+
+  Uint32List _pixelsOf(Layer layer) =>
+      _layerPixels[layer.stableKey ?? layer.id] ??= layer.processedPixels(width, height);
+
+  /// Paints with the brush along the line from [from] to [to] (canvas
+  /// pixels), giving the pixels to the selected bone, or - when erasing - to
+  /// nobody. Call between [beginGesture] and [endGesture] so a stroke is one
+  /// undo step. Returns whether anything changed.
+  bool paintInfluence(Offset from, Offset to) {
+    if (!canPaintInfluence) return false;
+    final boneId = _influenceErase ? null : _selectedBoneId;
+
+    final cells = <int>{};
+    final steps = math.max(1, ((to - from).distance * 2).ceil());
+    for (var i = 0; i <= steps; i++) {
+      final p = Offset.lerp(from, to, i / steps)!;
+      cells.addAll(RigInfluencePaint.brush(p.dx, p.dy, _brushSize, width, height));
+    }
+
+    // Which layer each pixel belongs to: the chosen one, else the topmost
+    // visible layer that has a pixel there.
+    final byLayer = <String, List<int>>{};
+    final layers = restLayers.where((l) => l.stableKey != null && l.isVisible).toList();
+    final armed = _paintLayerKey;
+    for (final cell in cells) {
+      if (armed != null) {
+        final layer = layers.where((l) => l.stableKey == armed).firstOrNull;
+        if (layer != null && (_pixelsOf(layer)[cell] >> 24) != 0) (byLayer[armed] ??= []).add(cell);
+        continue;
+      }
+      for (final layer in layers.reversed) {
+        if ((_pixelsOf(layer)[cell] >> 24) != 0) {
+          (byLayer[layer.stableKey!] ??= []).add(cell);
+          break;
+        }
+      }
+    }
+
+    var parts = _rig.parts;
+    for (final entry in byLayer.entries) {
+      parts = RigInfluencePaint.paint(
+        parts,
+        layerKey: entry.key,
+        boneId: boneId,
+        pixels: entry.value,
+        width: width,
+        height: height,
+        drawOrder: restLayers.indexWhere((l) => l.stableKey == entry.key),
+        newId: _newId,
+      );
+    }
+    if (identical(parts, _rig.parts)) return false;
+    final before = _rig;
+    _commit(_rig.copyWith(parts: parts));
+    return !identical(before, _rig);
+  }
+
+  /// Every layer that [boneId] owns at least some pixels of through a mask.
+  bool boneHasMaskedPixels(String boneId) => _rig.parts.any((p) => p.boneId == boneId && p.mask != null);
+
+  /// All parts of the layer (more than one once it has been painted over).
+  List<RigPart> partsOfLayer(String layerKey) => [
+        for (final p in _rig.parts)
+          if (p.layerKey == layerKey) p,
+      ];
+
+  Rig? _overlayRig;
+  Map<String, Path> _overlay = const {};
+
+  /// Per bone, the opaque pixels it moves (as one path of canvas-pixel
+  /// rectangles), for tinting the canvas while painting. Cached per rig.
+  Map<String, Path> get influenceOverlay {
+    if (identical(_overlayRig, _rig)) return _overlay;
+    _overlayRig = _rig;
+    final byKey = {
+      for (final l in restLayers)
+        if (l.stableKey != null) l.stableKey!: l,
+    };
+    final paths = <String, Path>{};
+    for (final part in RigLayerInfluences.resolve(_rig, width, height)) {
+      final layer = byKey[part.layerKey];
+      if (layer == null || !layer.isVisible) continue;
+      final pixels = _pixelsOf(layer);
+      final mask = part.mask;
+      final path = paths.putIfAbsent(part.boneId, Path.new);
+      for (var y = 0; y < height; y++) {
+        var runStart = -1;
+        for (var x = 0; x <= width; x++) {
+          final i = y * width + x;
+          final on = x < width && (pixels[i] >> 24) != 0 && (mask == null || (i < mask.length && mask[i] != 0));
+          if (on && runStart < 0) runStart = x;
+          if (!on && runStart >= 0) {
+            path.addRect(Rect.fromLTRB(runStart.toDouble(), y.toDouble(), x.toDouble(), y + 1.0));
+            runStart = -1;
+          }
+        }
+      }
+    }
+    return _overlay = paths;
+  }
 }

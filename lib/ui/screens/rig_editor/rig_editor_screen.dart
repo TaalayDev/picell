@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../l10n/strings.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../data/models/layer.dart';
 import '../../../data/models/rig/rig.dart';
@@ -96,6 +97,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
   Rig? _shownRig;
   int? _shownTime;
   RigMode? _shownMode;
+  int? _shownRevision;
   bool _refreshing = false;
   bool _refreshAgain = false;
 
@@ -151,7 +153,12 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     final c = _controller;
     final animate = c.mode == RigMode.animate;
     final time = animate ? c.time : -1;
-    if (identical(_shownRig, c.rig) && _shownTime == time && _shownMode == c.mode) return;
+    if (identical(_shownRig, c.rig) &&
+        _shownTime == time &&
+        _shownMode == c.mode &&
+        _shownRevision == c.previewRevision) {
+      return;
+    }
 
     final Uint32List pixels;
     if (animate) {
@@ -170,7 +177,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
       pixels = Uint32List.fromList(_restPixels!);
     }
 
-    final rig = c.rig, mode = c.mode;
+    final rig = c.rig, mode = c.mode, revision = c.previewRevision;
     final image = await ImageHelper.createImageFromPixels(pixels, widget.width, widget.height);
     if (!mounted) {
       image.dispose();
@@ -182,6 +189,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
       _shownRig = rig;
       _shownTime = time;
       _shownMode = mode;
+      _shownRevision = revision;
     });
     // The painter may still be using the old image this frame.
     if (old != null) WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
@@ -190,9 +198,10 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
   /// Bakes the animation as it is now and shows it as a looping GIF.
   Future<void> _previewGif(BuildContext context) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
+    final strings = Strings.of(context);
     if (!RigBakeService.canBake(_controller.rig)) {
       messenger?.showSnackBar(
-          const SnackBar(content: Text('Pose a bone or move an IK target first: nothing is keyed yet.')));
+          SnackBar(content: Text(strings.rigNothingKeyed)));
       return;
     }
     _stopPlayback();
@@ -207,7 +216,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
       if (!mounted || !context.mounted) return;
       await RigGifPreviewDialog.show(context, bytes: bytes, fileName: _gifFileName);
     } catch (_) {
-      messenger?.showSnackBar(const SnackBar(content: Text('Couldn\'t make the preview.')));
+      messenger?.showSnackBar(SnackBar(content: Text(strings.rigPreviewFailed)));
     } finally {
       if (mounted) setState(() => _makingGif = false);
     }
@@ -270,11 +279,11 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     final discard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard rig changes?'),
-        content: const Text('The changes you made to this rig won\'t be saved.'),
+        title: Text(Strings.of(context).rigDiscardTitle),
+        content: Text(Strings.of(context).rigDiscardBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep editing')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Discard')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(Strings.of(context).rigKeepEditing)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(Strings.of(context).rigDiscard)),
         ],
       ),
     );
@@ -336,9 +345,12 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
               const SingleActivator(LogicalKeyboardKey.keyZ, control: true, shift: true): _controller.redo,
               const SingleActivator(LogicalKeyboardKey.keyV): () => _controller.tool = RigTool.select,
               const SingleActivator(LogicalKeyboardKey.keyB): () => _controller.tool = RigTool.createBone,
+              const SingleActivator(LogicalKeyboardKey.keyP): () => _controller.tool = RigTool.paintInfluence,
               const SingleActivator(LogicalKeyboardKey.keyR): () => _controller.tool = RigTool.rotate,
               const SingleActivator(LogicalKeyboardKey.keyM): () => _controller.tool = RigTool.move,
               const SingleActivator(LogicalKeyboardKey.space): _playPauseIfAnimating,
+              const SingleActivator(LogicalKeyboardKey.keyA): _toggleAutoKey,
+              const SingleActivator(LogicalKeyboardKey.keyK): _keyShortcut,
               const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _stepFrame(-1),
               const SingleActivator(LogicalKeyboardKey.arrowRight): () => _stepFrame(1),
               const SingleActivator(LogicalKeyboardKey.escape): _controller.cancelPlacement,
@@ -364,6 +376,8 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
                       // Its own strip, not a float over the canvas: the box's handles
                       // run to the canvas edges and must stay reachable.
                       if (_controller.placement != null) _PlacementBar(controller: _controller, onPlace: _placePreset),
+                      if (_controller.mode == RigMode.setup && _controller.tool == RigTool.paintInfluence)
+                        _PaintBar(controller: _controller),
                       Expanded(
                         child: Row(
                           children: [
@@ -430,6 +444,15 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     if (_controller.mode == RigMode.animate) _togglePlayback();
   }
 
+  void _toggleAutoKey() {
+    if (_controller.mode == RigMode.animate) _controller.autoKey = !_controller.autoKey;
+  }
+
+  void _keyShortcut() {
+    final id = _controller.selectedBoneId;
+    if (_controller.mode == RigMode.animate && id != null) _controller.keyBone(id);
+  }
+
   void _stepFrame(int delta) {
     if (_controller.mode != RigMode.animate) return;
     _stopPlayback();
@@ -448,8 +471,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     final bound = placed.boundLayers;
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
       content: Text(
-        '$name added: ${placed.boneIds.length} bone${placed.boneIds.length == 1 ? '' : 's'}'
-        '${bound == 0 ? '' : ', $bound layer${bound == 1 ? '' : 's'} bound by name'}.',
+        Strings.of(context).rigSkeletonAdded(name ?? '', placed.boneIds.length, bound),
       ),
     ));
   }
@@ -466,8 +488,8 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
       messenger?.showSnackBar(SnackBar(
         content: Text(
           choice.preset.target == MotionTarget.roles
-              ? 'No bones for "${choice.preset.name}". Name them like ${choice.preset.roles.take(3).join(', ')}, or add a ready-made skeleton in Setup.'
-              : 'Select a bone first.',
+              ? Strings.of(context).rigNoBonesForMotion(choice.preset.name, choice.preset.roles.take(3).join(', '))
+              : Strings.of(context).rigSelectBoneFirst,
         ),
       ));
       return;
@@ -475,8 +497,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     final missing = result.missing.length;
     messenger?.showSnackBar(SnackBar(
       content: Text(
-        '"${choice.preset.name}" applied to ${result.matched.length} bone${result.matched.length == 1 ? '' : 's'}'
-        '${missing == 0 ? '' : ' ($missing not found)'}. Undo brings the old animation back.',
+        Strings.of(context).rigMotionApplied(choice.preset.name, result.matched.length, missing),
       ),
     ));
   }
@@ -521,13 +542,13 @@ class _TopBar extends StatelessWidget {
               padding: compact ? const EdgeInsets.all(4) : null,
               style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
               visualDensity: compact ? VisualDensity.compact : null,
-              tooltip: 'Cancel',
+              tooltip: Strings.of(context).cancel,
               icon: const Icon(Icons.close, size: 18),
               onPressed: onCancel),
           if (!compact)
             Flexible(
               child: Text(
-                title.isEmpty ? 'Rig' : title,
+                title.isEmpty ? Strings.of(context).rigTitle : title,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelLarge?.copyWith(fontFamily: 'monospace'),
               ),
@@ -541,7 +562,7 @@ class _TopBar extends StatelessWidget {
                 padding: compact ? const EdgeInsets.all(4) : null,
                 style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
                 visualDensity: compact ? VisualDensity.compact : null,
-                tooltip: 'Bones and layers',
+                tooltip: Strings.of(context).rigBonesAndLayers,
                 icon: const Icon(Icons.view_sidebar_outlined, size: 18),
                 onPressed: onPanels),
           IconButton(
@@ -549,7 +570,7 @@ class _TopBar extends StatelessWidget {
             padding: compact ? const EdgeInsets.all(4) : null,
             style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
             visualDensity: compact ? VisualDensity.compact : null,
-            tooltip: 'Undo',
+            tooltip: Strings.of(context).undo,
             icon: const Icon(Icons.undo, size: 18),
             onPressed: controller.canUndo ? controller.undo : null,
           ),
@@ -558,7 +579,7 @@ class _TopBar extends StatelessWidget {
             padding: compact ? const EdgeInsets.all(4) : null,
             style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
             visualDensity: compact ? VisualDensity.compact : null,
-            tooltip: 'Redo',
+            tooltip: Strings.of(context).redo,
             icon: const Icon(Icons.redo, size: 18),
             onPressed: controller.canRedo ? controller.redo : null,
           ),
@@ -569,14 +590,14 @@ class _TopBar extends StatelessWidget {
                 padding: compact ? const EdgeInsets.all(4) : null,
                 style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Done',
+                tooltip: Strings.of(context).done,
                 icon: const Icon(Icons.check, size: 18),
                 onPressed: onDone)
           else
             FilledButton.icon(
               onPressed: onDone,
               icon: const Icon(Icons.check, size: 16),
-              label: const Text('Done'),
+              label: Text(Strings.of(context).done),
             ),
           const SizedBox(width: 6),
         ],
@@ -625,7 +646,7 @@ class _RigModeTabs extends StatelessWidget {
                             size: 15, color: controller.mode == mode ? colors.onPrimaryContainer : colors.onSurface),
                         const SizedBox(width: 6),
                       ],
-                      Text(mode == RigMode.setup ? 'Setup' : 'Animate',
+                      Text(mode == RigMode.setup ? Strings.of(context).rigModeSetup : Strings.of(context).rigModeAnimate,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: controller.mode == mode ? colors.onPrimaryContainer : colors.onSurface,
                             fontWeight: controller.mode == mode ? FontWeight.w700 : FontWeight.w500,
@@ -669,20 +690,25 @@ class _ToolRail extends StatelessWidget {
     final animating = controller.mode == RigMode.animate;
     final selectedId = controller.selectedBoneId;
     final children = [
-      tool(RigTool.select, Icons.near_me_outlined, animating ? 'Select a bone (V)' : 'Select and move bones (V)'),
-      if (!animating) tool(RigTool.createBone, Icons.show_chart, 'Draw a bone (B)'),
+      tool(RigTool.select, Icons.near_me_outlined, animating ? Strings.of(context).rigToolSelectAnimate : Strings.of(context).rigToolSelectSetup),
+      if (!animating) tool(RigTool.createBone, Icons.show_chart, Strings.of(context).rigToolDraw),
+      if (!animating)
+        KeyedSubtree(
+          key: const ValueKey('rig-paint-tool'),
+          child: tool(RigTool.paintInfluence, Icons.brush, Strings.of(context).rigToolPaint),
+        ),
       if (!animating)
         IconButton(
           key: const ValueKey('add-skeleton-preset'),
-          tooltip: 'Add a ready-made skeleton',
+          tooltip: Strings.of(context).rigAddSkeleton,
           icon: const Icon(Icons.dashboard_customize_outlined, size: 18),
           onPressed: () => addSkeletonPreset(context, controller),
         ),
       if (animating) ...[
-        tool(RigTool.rotate, Icons.rotate_right, 'Rotate a bone (R)'),
-        tool(RigTool.move, Icons.open_with, 'Move a bone (M)'),
+        tool(RigTool.rotate, Icons.rotate_right, Strings.of(context).rigToolRotate),
+        tool(RigTool.move, Icons.open_with, Strings.of(context).rigToolMove),
         IconButton(
-          tooltip: 'Flip the selected bone',
+          tooltip: Strings.of(context).rigFlipBone,
           icon: const Icon(Icons.flip, size: 18),
           onPressed: selectedId == null
               ? null
@@ -691,19 +717,19 @@ class _ToolRail extends StatelessWidget {
       ],
       IconButton(
           key: const ValueKey('rig-multi-select'),
-          tooltip: 'Select multiple bones',
+          tooltip: Strings.of(context).rigSelectMultiple,
           isSelected: controller.multiSelectEnabled,
           icon: const Icon(Icons.select_all, size: 18),
           onPressed: controller.toggleMultiSelect),
       if (!animating)
         IconButton(
             key: const ValueKey('rig-snapping'),
-            tooltip: 'Joint snapping (Alt bypasses)',
+            tooltip: Strings.of(context).rigSnapping,
             isSelected: controller.snappingEnabled,
             icon: const Icon(Icons.align_horizontal_center, size: 18),
             onPressed: () => controller.setSnapping(!controller.snappingEnabled)),
       IconButton(
-          tooltip: 'Fit to screen', icon: const Icon(Icons.center_focus_strong_outlined, size: 18), onPressed: onFit),
+          tooltip: Strings.of(context).rigFit, icon: const Icon(Icons.center_focus_strong_outlined, size: 18), onPressed: onFit),
     ];
 
     return Container(
@@ -749,16 +775,87 @@ class _ArmedLayerBanner extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                'Next bone moves "${layer.name}"',
+                Strings.of(context).rigNextBoneMoves(layer.name),
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onPrimaryContainer),
               ),
             ),
             IconButton(
-              tooltip: 'Don\'t bind a layer',
+              tooltip: Strings.of(context).rigDontBindLayer,
               visualDensity: VisualDensity.compact,
               icon: Icon(Icons.close, size: 16, color: theme.colorScheme.onPrimaryContainer),
               onPressed: () => controller.selectLayer(null),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Options of the influence brush: which bone it paints, brush size, erase,
+/// and the layer it is limited to.
+class _PaintBar extends StatelessWidget {
+  const _PaintBar({required this.controller});
+
+  final RigEditorController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bone = controller.selectedBone;
+    final layers = controller.restLayers.reversed.where((l) => l.stableKey != null).toList();
+    final erase = controller.influenceErase;
+
+    return Material(
+      key: const ValueKey('paint-bar'),
+      color: theme.colorScheme.surfaceContainerHigh,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+        child: Row(
+          children: [
+            Text(
+              erase
+                  ? Strings.of(context).rigPaintErasing
+                  : bone == null
+                      ? Strings.of(context).rigPaintSelectBone
+                      : Strings.of(context).rigPaintingFor(bone.name),
+              style: theme.textTheme.labelMedium,
+            ),
+            const SizedBox(width: 8),
+            ChoiceChip(
+              key: const ValueKey('paint-erase'),
+              label: Text(Strings.of(context).rigErase),
+              selected: erase,
+              visualDensity: VisualDensity.compact,
+              onSelected: (v) => controller.influenceErase = v,
+            ),
+            const SizedBox(width: 8),
+            Text(Strings.of(context).size, style: theme.textTheme.labelMedium),
+            IconButton(
+              key: const ValueKey('paint-size-down'),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.remove, size: 16),
+              onPressed: () => controller.brushSize = controller.brushSize - 1,
+            ),
+            Text('${controller.brushSize}', style: theme.textTheme.labelMedium),
+            IconButton(
+              key: const ValueKey('paint-size-up'),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.add, size: 16),
+              onPressed: () => controller.brushSize = controller.brushSize + 1,
+            ),
+            const SizedBox(width: 8),
+            DropdownButton<String?>(
+              key: const ValueKey('paint-layer'),
+              isDense: true,
+              value: layers.any((l) => l.stableKey == controller.paintLayerKey) ? controller.paintLayerKey : null,
+              items: [
+                DropdownMenuItem<String?>(value: null, child: Text(Strings.of(context).rigAnyVisibleLayer)),
+                for (final l in layers) DropdownMenuItem<String?>(value: l.stableKey, child: Text(l.name)),
+              ],
+              onChanged: (key) => controller.paintLayerKey = key,
             ),
           ],
         ),
@@ -793,7 +890,7 @@ class _PlacementBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Place "${preset.name}": drag the box to move it, its edges to stretch it.',
+              Strings.of(context).rigPlacePrompt(preset.name),
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 6),
@@ -804,33 +901,33 @@ class _PlacementBar extends StatelessWidget {
               children: [
                 FilterChip(
                   key: const ValueKey('placement-flip'),
-                  label: const Text('Mirror'),
+                  label: Text(Strings.of(context).rigMirror),
                   selected: placement.flip,
                   onSelected: controller.setPlacementFlip,
                 ),
                 if (preset.ik.isNotEmpty)
                   FilterChip(
                     key: const ValueKey('placement-ik'),
-                    label: const Text('With IK'),
+                    label: Text(Strings.of(context).rigWithIk),
                     selected: placement.withIk,
                     onSelected: controller.setPlacementIk,
                   ),
                 if (parent != null)
                   FilterChip(
                     key: const ValueKey('placement-attach'),
-                    label: Text('Attach to ${parent.name}'),
+                    label: Text(Strings.of(context).rigAttachTo(parent.name)),
                     selected: placement.attach,
                     onSelected: controller.setPlacementAttach,
                   ),
                 TextButton(
                   key: const ValueKey('placement-cancel'),
                   onPressed: controller.cancelPlacement,
-                  child: const Text('Cancel'),
+                  child: Text(Strings.of(context).cancel),
                 ),
                 FilledButton(
                   key: const ValueKey('placement-place'),
                   onPressed: onPlace,
-                  child: const Text('Add skeleton'),
+                  child: Text(Strings.of(context).rigAddSkeletonButton),
                 ),
               ],
             ),

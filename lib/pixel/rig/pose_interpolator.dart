@@ -84,7 +84,7 @@ abstract final class PoseInterpolator {
     final end = _fromKey(to);
     final span = toTime - fromTime;
     final progress = span <= 0 ? 1.0 : (time - fromTime) / span;
-    final k = ease(from?.easing ?? RigEasing.linear, progress);
+    final k = from?.curve?.transform(progress) ?? ease(from?.easing ?? RigEasing.linear, progress);
     return BonePose(
       rotation: start.rotation + (end.rotation - start.rotation) * k,
       translation: Offset.lerp(start.translation, end.translation, k)!,
@@ -123,6 +123,25 @@ abstract final class PoseInterpolator {
     return out;
   }
 
+  /// How many layers each bone's artwork is moved in the stacking order at
+  /// [time]; bones at their normal place are absent. Steps, never blends: a
+  /// bone keeps its last key's offset until its next key, and sits at its
+  /// normal place before its first key (also when the clip loops, so a
+  /// single key can never leak into the start of the next round).
+  static Map<String, int> sampleOrder(RigClip clip, double time) {
+    if (clip.orderKeyframes.isEmpty) return const {};
+    final best = <String, DrawOrderKeyframe>{};
+    for (final k in clip.orderKeyframes) {
+      if (k.time > time) continue;
+      final current = best[k.boneId];
+      if (current == null || k.time >= current.time) best[k.boneId] = k;
+    }
+    return {
+      for (final e in best.entries)
+        if (e.value.offset != 0) e.key: e.value.offset,
+    };
+  }
+
   static Offset _sampleTarget(RigClip clip, List<IkKeyframe> keys, double time) {
     final loops = clip.loop && clip.length > 0;
     if (loops) {
@@ -134,7 +153,7 @@ abstract final class PoseInterpolator {
     Offset between(IkKeyframe from, num fromTime, IkKeyframe to, num toTime) {
       final span = toTime - fromTime;
       final progress = span <= 0 ? 1.0 : (time - fromTime) / span;
-      return Offset.lerp(from.target, to.target, ease(from.easing, progress))!;
+      return Offset.lerp(from.target, to.target, from.curve?.transform(progress) ?? ease(from.easing, progress))!;
     }
 
     if (time < first.time) {

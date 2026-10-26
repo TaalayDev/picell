@@ -423,7 +423,8 @@ void main() {
       expect(c.bone(d)!.head, c.bone(b)!.tail);
       expect(c.connectToBone(a, d), isFalse);
       c.undo();
-      expect(c.bone(b)!.parentId, isNull);
+      expect(c.bone(b)!.parentId, a);
+      expect(c.bone(b)!.connection, BoneConnection.implicit);
       expect(c.bone(d)!.head, const Offset(6, 2));
       c.moveBone(b, const Offset(-2, -1));
       expect(c.connectJoint(b), isTrue);

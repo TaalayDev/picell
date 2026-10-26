@@ -4,6 +4,69 @@ import 'package:equatable/equatable.dart';
 
 enum RigEasing { linear, easeIn, easeOut, easeInOut, stepped }
 
+/// A cubic Bézier easing curve, as in CSS `cubic-bezier(x1, y1, x2, y2)`: the
+/// curve runs from (0, 0) to (1, 1) with these two control points. The x
+/// values stay in 0..1 (time never runs backwards); the y values may leave
+/// 0..1 to overshoot the target or pull back before moving.
+class EasingCurve with EquatableMixin {
+  final double x1, y1, x2, y2;
+
+  /// Control points are clamped to what the editor offers.
+  static const double minY = -1, maxY = 2;
+
+  EasingCurve(double x1, double y1, double x2, double y2)
+      : x1 = x1.clamp(0.0, 1.0),
+        y1 = y1.clamp(minY, maxY),
+        x2 = x2.clamp(0.0, 1.0),
+        y2 = y2.clamp(minY, maxY);
+
+  static final linear = EasingCurve(0, 0, 1, 1);
+  static final easeIn = EasingCurve(.42, 0, 1, 1);
+  static final easeOut = EasingCurve(0, 0, .58, 1);
+  static final easeInOut = EasingCurve(.42, 0, .58, 1);
+
+  /// Eased progress for linear progress [t] (0..1). The result may leave 0..1
+  /// when the curve overshoots.
+  double transform(double t) {
+    t = t.clamp(0.0, 1.0);
+    if (t == 0 || t == 1) return t;
+    // Solve x(s) = t for the curve parameter s by bisection: x is monotonic
+    // for control x values in 0..1.
+    var lo = 0.0, hi = 1.0, s = t;
+    for (var i = 0; i < 40; i++) {
+      s = (lo + hi) / 2;
+      final x = _bezier(s, x1, x2);
+      if ((x - t).abs() < 1e-9) break;
+      if (x < t) {
+        lo = s;
+      } else {
+        hi = s;
+      }
+    }
+    return _bezier(s, y1, y2);
+  }
+
+  static double _bezier(double s, double p1, double p2) {
+    final u = 1 - s;
+    return 3 * u * u * s * p1 + 3 * u * s * s * p2 + s * s * s;
+  }
+
+  EasingCurve copyWith({double? x1, double? y1, double? x2, double? y2}) =>
+      EasingCurve(x1 ?? this.x1, y1 ?? this.y1, x2 ?? this.x2, y2 ?? this.y2);
+
+  List<double> toJson() => [x1, y1, x2, y2];
+
+  /// Null for anything that is not four numbers.
+  static EasingCurve? fromJson(Object? json) {
+    if (json is! List || json.length != 4 || json.any((v) => v is! num || !v.isFinite)) return null;
+    final v = [for (final n in json) (n as num).toDouble()];
+    return EasingCurve(v[0], v[1], v[2], v[3]);
+  }
+
+  @override
+  List<Object?> get props => [x1, y1, x2, y2];
+}
+
 /// A bone's pose at one point of a clip. Missing channels keep the value of
 /// the previous keyframe (or the rest pose before the first one).
 class RigKeyframe with EquatableMixin {
@@ -19,6 +82,10 @@ class RigKeyframe with EquatableMixin {
   /// Easing used to reach the next keyframe of the same bone.
   final RigEasing easing;
 
+  /// A custom curve for the same segment; when set it is used instead of
+  /// [easing].
+  final EasingCurve? curve;
+
   const RigKeyframe({
     required this.time,
     required this.boneId,
@@ -26,6 +93,7 @@ class RigKeyframe with EquatableMixin {
     this.translation = Offset.zero,
     this.flipX = false,
     this.easing = RigEasing.linear,
+    this.curve,
   });
 
   RigKeyframe copyWith({
@@ -35,6 +103,7 @@ class RigKeyframe with EquatableMixin {
     Offset? translation,
     bool? flipX,
     RigEasing? easing,
+    EasingCurve? Function()? curve,
   }) {
     return RigKeyframe(
       time: time ?? this.time,
@@ -43,6 +112,7 @@ class RigKeyframe with EquatableMixin {
       translation: translation ?? this.translation,
       flipX: flipX ?? this.flipX,
       easing: easing ?? this.easing,
+      curve: curve != null ? curve() : this.curve,
     );
   }
 
@@ -53,6 +123,7 @@ class RigKeyframe with EquatableMixin {
         'translation': {'dx': translation.dx, 'dy': translation.dy},
         'flipX': flipX,
         'easing': easing.name,
+        if (curve != null) 'curve': curve!.toJson(),
       };
 
   factory RigKeyframe.fromJson(Map<String, dynamic> json) {
@@ -67,11 +138,12 @@ class RigKeyframe with EquatableMixin {
         (e) => e.name == json['easing'],
         orElse: () => RigEasing.linear,
       ),
+      curve: EasingCurve.fromJson(json['curve']),
     );
   }
 
   @override
-  List<Object?> get props => [time, boneId, rotation, translation, flipX, easing];
+  List<Object?> get props => [time, boneId, rotation, translation, flipX, easing, curve];
 }
 
 /// Where an [IkChain]'s target is on one frame, in canvas pixels. Between
@@ -87,21 +159,33 @@ class IkKeyframe with EquatableMixin {
   /// A contact holds only this frame, unlike an interpolated IK target.
   final bool planted;
 
+  /// A custom curve for the same segment; used instead of [easing] when set.
+  final EasingCurve? curve;
+
   const IkKeyframe({
     required this.time,
     required this.chainId,
     required this.target,
     this.easing = RigEasing.linear,
     this.planted = false,
+    this.curve,
   });
 
-  IkKeyframe copyWith({int? time, String? chainId, Offset? target, RigEasing? easing, bool? planted}) {
+  IkKeyframe copyWith({
+    int? time,
+    String? chainId,
+    Offset? target,
+    RigEasing? easing,
+    bool? planted,
+    EasingCurve? Function()? curve,
+  }) {
     return IkKeyframe(
       time: time ?? this.time,
       chainId: chainId ?? this.chainId,
       target: target ?? this.target,
       easing: easing ?? this.easing,
       planted: planted ?? this.planted,
+      curve: curve != null ? curve() : this.curve,
     );
   }
 
@@ -111,6 +195,7 @@ class IkKeyframe with EquatableMixin {
         'chainId': chainId,
         'target': {'dx': target.dx, 'dy': target.dy},
         'easing': easing.name,
+        if (curve != null) 'curve': curve!.toJson(),
       };
 
   factory IkKeyframe.fromJson(Map<String, dynamic> json) {
@@ -124,11 +209,42 @@ class IkKeyframe with EquatableMixin {
         (e) => e.name == json['easing'],
         orElse: () => RigEasing.linear,
       ),
+      curve: EasingCurve.fromJson(json['curve']),
     );
   }
 
   @override
-  List<Object?> get props => [time, chainId, target, easing, planted];
+  List<Object?> get props => [time, chainId, target, easing, planted, curve];
+}
+
+/// Moves a bone's artwork in the stacking order from one frame on, until its
+/// next order key. Never blended: the bone steps to the new place.
+class DrawOrderKeyframe with EquatableMixin {
+  final int time;
+  final String boneId;
+
+  /// Layers to move forward (positive) or back (negative) from where the
+  /// bone's layer normally sits. Zero is the normal place.
+  final int offset;
+
+  const DrawOrderKeyframe({required this.time, required this.boneId, this.offset = 0});
+
+  DrawOrderKeyframe copyWith({int? time, String? boneId, int? offset}) => DrawOrderKeyframe(
+        time: time ?? this.time,
+        boneId: boneId ?? this.boneId,
+        offset: offset ?? this.offset,
+      );
+
+  Map<String, dynamic> toJson() => {'time': time, 'boneId': boneId, 'offset': offset};
+
+  factory DrawOrderKeyframe.fromJson(Map<String, dynamic> json) => DrawOrderKeyframe(
+        time: json['time'] as int,
+        boneId: json['boneId'] as String,
+        offset: json['offset'] as int? ?? 0,
+      );
+
+  @override
+  List<Object?> get props => [time, boneId, offset];
 }
 
 /// A world-space bone pose held for one frame of one clip.
@@ -180,6 +296,9 @@ class RigClip with EquatableMixin {
   final List<IkKeyframe> ikKeyframes;
   final List<JointFreeze> freezes;
 
+  /// Changes of the stacking order of bones' artwork over time.
+  final List<DrawOrderKeyframe> orderKeyframes;
+
   const RigClip({
     required this.id,
     required this.name,
@@ -189,6 +308,7 @@ class RigClip with EquatableMixin {
     this.keyframes = const [],
     this.ikKeyframes = const [],
     this.freezes = const [],
+    this.orderKeyframes = const [],
   });
 
   RigClip copyWith({
@@ -200,6 +320,7 @@ class RigClip with EquatableMixin {
     List<RigKeyframe>? keyframes,
     List<IkKeyframe>? ikKeyframes,
     List<JointFreeze>? freezes,
+    List<DrawOrderKeyframe>? orderKeyframes,
   }) {
     return RigClip(
       id: id ?? this.id,
@@ -210,6 +331,7 @@ class RigClip with EquatableMixin {
       keyframes: keyframes ?? this.keyframes,
       ikKeyframes: ikKeyframes ?? this.ikKeyframes,
       freezes: freezes ?? this.freezes,
+      orderKeyframes: orderKeyframes ?? this.orderKeyframes,
     );
   }
 
@@ -222,6 +344,7 @@ class RigClip with EquatableMixin {
         'keyframes': keyframes.map((k) => k.toJson()).toList(),
         if (freezes.isNotEmpty) 'freezes': freezes.map((f) => f.toJson()).toList(),
         if (ikKeyframes.isNotEmpty) 'ikKeyframes': ikKeyframes.map((k) => k.toJson()).toList(),
+        if (orderKeyframes.isNotEmpty) 'orderKeyframes': orderKeyframes.map((k) => k.toJson()).toList(),
       };
 
   factory RigClip.fromJson(Map<String, dynamic> json) {
@@ -239,9 +362,12 @@ class RigClip with EquatableMixin {
       ikKeyframes: ((json['ikKeyframes'] as List?) ?? const [])
           .map((k) => IkKeyframe.fromJson(k as Map<String, dynamic>))
           .toList(),
+      orderKeyframes: ((json['orderKeyframes'] as List?) ?? const [])
+          .map((k) => DrawOrderKeyframe.fromJson(k as Map<String, dynamic>))
+          .toList(),
     );
   }
 
   @override
-  List<Object?> get props => [id, name, fps, length, loop, keyframes, ikKeyframes, freezes];
+  List<Object?> get props => [id, name, fps, length, loop, keyframes, ikKeyframes, freezes, orderKeyframes];
 }

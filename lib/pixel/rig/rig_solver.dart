@@ -352,7 +352,14 @@ abstract final class RigSolver {
     final lo = bone.minAngle, hi = bone.maxAngle;
     if (lo != null && rotation < lo) rotation = lo;
     if (hi != null && rotation > hi) rotation = hi;
-    if (snapDegrees > 0) rotation = (rotation / snapDegrees).roundToDouble() * snapDegrees;
+    // A bone's own setting wins over the rig's; 0 means no snapping.
+    final snap = bone.snapAngle ?? snapDegrees;
+    if (snap > 0) {
+      rotation = (rotation / snap).roundToDouble() * snap;
+      // Snapping must not carry the bone past its limits.
+      if (lo != null && rotation < lo) rotation = lo;
+      if (hi != null && rotation > hi) rotation = hi;
+    }
 
     final head = bone.head;
     var t = Affine2.identity;

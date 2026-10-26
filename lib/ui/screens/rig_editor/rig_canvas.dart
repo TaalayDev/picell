@@ -9,6 +9,7 @@ import '../../../data/models/rig/rig.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../pixel/rig/rig_baker.dart';
 import '../../../pixel/rig/rig_editor_controller.dart';
+import '../../../pixel/rig/rig_influence_paint.dart';
 
 /// The rig editor's canvas: the rest-pose sprite with the skeleton drawn on
 /// top, plus pan/zoom and the select / create-bone interactions.
@@ -109,6 +110,11 @@ class RigCanvasState extends State<RigCanvas> {
   Offset _focalAtStart = Offset.zero;
 
   RigEditorController get c => widget.controller;
+
+  // Influence painting: the last brush position of the stroke in progress,
+  // and where the pointer hovers (for the brush outline).
+  Offset? _paintLast;
+  Offset? _brushHover;
 
   /// Fits the whole canvas in view with a margin.
   void fit() {
@@ -260,6 +266,11 @@ class RigCanvasState extends State<RigCanvas> {
                 sign: c.rotationSign(id),
               )
             : _PoseDrag.move(id, start: p, startTranslation: c.poseOf(id).translation);
+      case RigTool.paintInfluence:
+        if (!c.canPaintInfluence) return;
+        c.beginGesture();
+        _paintLast = p;
+        c.paintInfluence(p, p);
       case RigTool.createBone:
         // Starting anywhere on an existing bone makes the new one its child.
         final attach = c.attachPoint(p, tolerance, bypass: _bypassSnap);
@@ -296,6 +307,13 @@ class RigCanvasState extends State<RigCanvas> {
   }
 
   void _updateToolDrag(Offset p) {
+    final last = _paintLast;
+    if (last != null) {
+      c.paintInfluence(last, p);
+      _paintLast = p;
+      setState(() => _brushHover = p);
+      return;
+    }
     if (_boxStart != null) {
       setState(() => _boxEnd = p);
       return;
@@ -384,6 +402,11 @@ class RigCanvasState extends State<RigCanvas> {
   }
 
   void _endToolDrag() {
+    if (_paintLast != null) {
+      _paintLast = null;
+      c.endGesture();
+      return;
+    }
     if (_boxStart != null && _boxEnd != null) {
       c.selectBox(Rect.fromPoints(_boxStart!, _boxEnd!), additive: HardwareKeyboard.instance.isShiftPressed);
       setState(() {
@@ -414,6 +437,10 @@ class RigCanvasState extends State<RigCanvas> {
   }
 
   void _cancelToolDrag() {
+    if (_paintLast != null) {
+      _paintLast = null;
+      c.endGesture();
+    }
     _boxStart = _boxEnd = null;
     _placementDrag = null;
     if (_drag != null || _poseDrag != null || _ikDrag != null) {
@@ -476,6 +503,11 @@ class RigCanvasState extends State<RigCanvas> {
           onPointerSignal: _onPointerSignal,
           child: MouseRegion(
             onHover: (event) {
+              if (c.mode == RigMode.setup && c.tool == RigTool.paintInfluence) {
+                setState(() => _brushHover = _toCanvas(event.localPosition));
+              } else if (_brushHover != null) {
+                setState(() => _brushHover = null);
+              }
               Offset? joint;
               if (c.mode == RigMode.setup && c.tool == RigTool.createBone) {
                 final attachment =
@@ -485,14 +517,18 @@ class RigCanvasState extends State<RigCanvas> {
               if (joint != _hoverJoint) setState(() => _hoverJoint = joint);
             },
             onExit: (_) {
+              if (_brushHover != null) setState(() => _brushHover = null);
               if (_hoverJoint != null) setState(() => _hoverJoint = null);
             },
-            cursor: c.tool == RigTool.createBone ? SystemMouseCursors.precise : MouseCursor.defer,
+            cursor: c.tool == RigTool.createBone || c.tool == RigTool.paintInfluence
+                ? SystemMouseCursors.precise
+                : MouseCursor.defer,
             child: CustomPaint(
               size: Size.infinite,
               painter: _RigPainter(
                 controller: c,
                 ghostImages: Map.of(_ghostImages),
+                brushHover: c.tool == RigTool.paintInfluence ? _brushHover : null,
                 selectionBox: _boxStart == null || _boxEnd == null ? null : Rect.fromPoints(_boxStart!, _boxEnd!),
                 image: widget.image,
                 scale: _scale,
@@ -582,10 +618,14 @@ class _Drag {
   Offset applied = Offset.zero;
 }
 
+/// A distinct colour for the [index]th bone, used to show what it moves.
+Color boneInfluenceColor(int index) => HSVColor.fromAHSV(1, (index * 47.0) % 360, .75, .95).toColor();
+
 class _RigPainter extends CustomPainter {
   _RigPainter({
     required this.controller,
     required this.ghostImages,
+    required this.brushHover,
     required this.selectionBox,
     required this.image,
     required this.scale,
@@ -603,6 +643,7 @@ class _RigPainter extends CustomPainter {
 
   final RigEditorController controller;
   final Map<int, ui.Image> ghostImages;
+  final Offset? brushHover;
   final Rect? selectionBox;
   final ui.Image? image;
   final double scale;
@@ -611,6 +652,39 @@ class _RigPainter extends CustomPainter {
   final Offset? draftTail;
   final Offset? snapAnchor;
   final Color background, gridColor, boneColor, selectedColor, ikColor, jointFill;
+
+  /// Tints every pixel with the colour of the bone that moves it, and
+  /// outlines the brush, so painting shows what it does.
+  void _paintInfluence(Canvas canvas, Rect area) {
+    final ids = [for (final b in controller.rig.bones) b.id];
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
+    canvas.scale(scale);
+    for (final entry in controller.influenceOverlay.entries) {
+      final index = ids.indexOf(entry.key);
+      if (index < 0) continue;
+      final selected = entry.key == controller.selectedBoneId;
+      canvas.drawPath(
+        entry.value,
+        Paint()..color = boneInfluenceColor(index).withValues(alpha: selected ? .65 : .35),
+      );
+    }
+    canvas.restore();
+
+    final hover = brushHover;
+    if (hover != null) {
+      final size = controller.brushSize;
+      final cells = RigInfluencePaint.brush(hover.dx, hover.dy, size, controller.width, controller.height);
+      final outline = Paint()
+        ..color = (controller.influenceErase ? Colors.redAccent : Colors.white).withValues(alpha: .9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1;
+      for (final i in cells) {
+        final x = i % controller.width, y = i ~/ controller.width;
+        canvas.drawRect(Rect.fromLTWH(offset.dx + x * scale, offset.dy + y * scale, scale, scale), outline);
+      }
+    }
+  }
 
   Offset _s(Offset canvasPoint) => canvasPoint * scale + offset;
 
@@ -664,6 +738,10 @@ class _RigPainter extends CustomPainter {
         ..color = gridColor
         ..strokeWidth = 1,
     );
+
+    if (controller.mode == RigMode.setup && controller.tool == RigTool.paintInfluence) {
+      _paintInfluence(canvas, area);
+    }
 
     final animating = controller.mode == RigMode.animate;
     if (animating && controller.ghostSkeleton) {
@@ -732,7 +810,7 @@ class _RigPainter extends CustomPainter {
     }
 
     for (final shown in controller.displayBones) {
-      if (shown.bone.parentId != null) {
+      if (shown.bone.parentId != null && shown.bone.connection == BoneConnection.explicit) {
         canvas.drawCircle(
             _s(shown.head),
             8,
@@ -917,7 +995,7 @@ class _RigPainter extends CustomPainter {
     );
   }
 
-  bool _hasParts(String boneId) => controller.rig.parts.any((p) => p.boneId == boneId);
+  bool _hasParts(String boneId) => controller.layerKeysOfBone(boneId).isNotEmpty;
 
   void _paintChecker(Canvas canvas, Rect area) {
     final cell = math.max(scale, 6.0);

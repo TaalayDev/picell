@@ -3812,4 +3812,900 @@ class StringsEn extends Strings {
 
   @override
   String get effectLayersCombinedKeepHint => 'The layers move together as one image and stay on their own layers.';
+
+  @override
+  String rigBoneCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bones',
+      one: '$count bone',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rigLayerCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count layers',
+      one: '$count layer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rigNothingKeyed => 'Pose a bone or move an IK target first: nothing is keyed yet.';
+
+  @override
+  String get rigPreviewFailed => 'Couldn\'t make the preview.';
+
+  @override
+  String get rigDiscardTitle => 'Discard rig changes?';
+
+  @override
+  String get rigDiscardBody => 'The changes you made to this rig won\'t be saved.';
+
+  @override
+  String get rigKeepEditing => 'Keep editing';
+
+  @override
+  String get rigDiscard => 'Discard';
+
+  @override
+  String rigSkeletonAdded(String name, int bones, int bound) {
+    String _temp0 = intl.Intl.pluralLogic(
+      bones,
+      locale: localeName,
+      other: '$bones bones',
+      one: '1 bone',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      bound,
+      locale: localeName,
+      other: ', $bound layers bound by name',
+      one: ', 1 layer bound by name',
+      zero: '',
+    );
+    return '$name added: $_temp0$_temp1.';
+  }
+
+  @override
+  String rigNoBonesForMotion(String name, String examples) {
+    return 'No bones for \"$name\". Name them like $examples, or add a ready-made skeleton in Setup.';
+  }
+
+  @override
+  String get rigSelectBoneFirst => 'Select a bone first.';
+
+  @override
+  String get rigSelectBoneFirstShort => 'Select a bone first';
+
+  @override
+  String rigMotionApplied(String name, int matched, int missing) {
+    String _temp0 = intl.Intl.pluralLogic(
+      matched,
+      locale: localeName,
+      other: '$matched bones',
+      one: '1 bone',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      missing,
+      locale: localeName,
+      other: ' ($missing not found)',
+      zero: '',
+    );
+    return '\"$name\" applied to $_temp0$_temp1. Undo brings the old animation back.';
+  }
+
+  @override
+  String get rigTitle => 'Rig';
+
+  @override
+  String get rigBonesAndLayers => 'Bones and layers';
+
+  @override
+  String get rigModeSetup => 'Setup';
+
+  @override
+  String get rigModeAnimate => 'Animate';
+
+  @override
+  String get rigToolSelectAnimate => 'Select a bone (V)';
+
+  @override
+  String get rigToolSelectSetup => 'Select and move bones (V)';
+
+  @override
+  String get rigToolDraw => 'Draw a bone (B)';
+
+  @override
+  String get rigToolPaint => 'Paint what the selected bone moves (P)';
+
+  @override
+  String get rigAddSkeleton => 'Add a ready-made skeleton';
+
+  @override
+  String get rigToolRotate => 'Rotate a bone (R)';
+
+  @override
+  String get rigToolMove => 'Move a bone (M)';
+
+  @override
+  String get rigFlipBone => 'Flip the selected bone';
+
+  @override
+  String get rigSelectMultiple => 'Select multiple bones';
+
+  @override
+  String get rigSnapping => 'Joint snapping (Alt bypasses)';
+
+  @override
+  String get rigFit => 'Fit to screen';
+
+  @override
+  String rigNextBoneMoves(String layer) {
+    return 'Next bone moves \"$layer\"';
+  }
+
+  @override
+  String get rigDontBindLayer => 'Don\'t bind a layer';
+
+  @override
+  String get rigPaintErasing => 'Erasing: pixels stay still';
+
+  @override
+  String get rigPaintSelectBone => 'Select a bone to paint for';
+
+  @override
+  String rigPaintingFor(String bone) {
+    return 'Painting for $bone';
+  }
+
+  @override
+  String get rigErase => 'Erase';
+
+  @override
+  String get rigAnyVisibleLayer => 'Any visible layer';
+
+  @override
+  String rigPlacePrompt(String name) {
+    return 'Place \"$name\": drag the box to move it, its edges to stretch it.';
+  }
+
+  @override
+  String get rigMirror => 'Mirror';
+
+  @override
+  String get rigWithIk => 'With IK';
+
+  @override
+  String rigAttachTo(String bone) {
+    return 'Attach to $bone';
+  }
+
+  @override
+  String get rigAddSkeletonButton => 'Add skeleton';
+
+  @override
+  String get rigPreviewTitle => 'Animation preview';
+
+  @override
+  String get rigSaveGif => 'Save GIF';
+
+  @override
+  String get rigSkeletonsTitle => 'Ready-made skeletons';
+
+  @override
+  String get rigSkeletonsHint => 'Pick one, then move and stretch it over your artwork before adding it.';
+
+  @override
+  String get rigWholeFigures => 'Whole figures';
+
+  @override
+  String get rigPartsToAdd => 'Parts to add to a bone';
+
+  @override
+  String rigPresetBones(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bones',
+      one: '$count bone',
+    );
+    return '$name · $_temp0';
+  }
+
+  @override
+  String get rigAnimationsTitle => 'Ready-made animations';
+
+  @override
+  String rigBonesFound(int matched, int total) {
+    return '$matched of $total bones found';
+  }
+
+  @override
+  String rigNoBonesNamedLike(String examples) {
+    return 'No bones named like $examples';
+  }
+
+  @override
+  String get rigSelectedBoneAndBelow => 'Selected bone and below';
+
+  @override
+  String get rigSelectedBone => 'Selected bone';
+
+  @override
+  String rigMotionMeta(int frames, int fps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      frames,
+      locale: localeName,
+      other: '$frames frames',
+      one: '$frames frame',
+    );
+    return '$_temp0 · $fps fps';
+  }
+
+  @override
+  String rigMotionMetaOnce(int frames, int fps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      frames,
+      locale: localeName,
+      other: '$frames frames',
+      one: '$frames frame',
+    );
+    return '$_temp0 · $fps fps · once';
+  }
+
+  @override
+  String rigUnmappedRoles(String roles) {
+    return 'Unmapped roles: $roles. Choose bones under Bone role mapping.';
+  }
+
+  @override
+  String get rigStrength => 'Strength';
+
+  @override
+  String get rigFrames => 'Frames';
+
+  @override
+  String get rigFrameRate => 'Frame rate';
+
+  @override
+  String get rigLoop => 'Loop';
+
+  @override
+  String get rigFaceOther => 'Face the other way';
+
+  @override
+  String get rigFaceOtherHint => 'Swap left and right and reverse the swings.';
+
+  @override
+  String get rigScaleMotion => 'Scale motion to body proportions';
+
+  @override
+  String get rigKeepPosition => 'Keep current position';
+
+  @override
+  String get rigAlignFeet => 'Align feet to ground';
+
+  @override
+  String get rigGroundY => 'Ground Y';
+
+  @override
+  String get rigRoleMapping => 'Bone role mapping';
+
+  @override
+  String get rigAutomaticByName => 'Automatic (by name)';
+
+  @override
+  String get rigPlantFeet => 'Plant feet';
+
+  @override
+  String get rigPlantFeetHint => 'Keep foot contacts on the ground.';
+
+  @override
+  String get rigLockLegs => 'Lock leg joints';
+
+  @override
+  String get rigLockLegsHint => 'Hold thighs, shins and feet in place.';
+
+  @override
+  String get rigPlayPreview => 'Play preview';
+
+  @override
+  String get rigPausePreview => 'Pause preview';
+
+  @override
+  String rigConfigure(String name) {
+    return 'Configure $name';
+  }
+
+  @override
+  String get rigCloseConfig => 'Close configuration';
+
+  @override
+  String rigNoMatchingBones(String examples) {
+    return 'No matching bones. Name bones like $examples.';
+  }
+
+  @override
+  String get rigSelectBoneBeforePreset => 'Select a bone before choosing this preset.';
+
+  @override
+  String rigFpsValue(int fps) {
+    return '$fps fps';
+  }
+
+  @override
+  String get rigAddBonesHint => 'Add bones in Setup to start posing.';
+
+  @override
+  String get rigNewClip => 'New animation clip';
+
+  @override
+  String get rigRenameClip => 'Rename animation clip';
+
+  @override
+  String get rigClipName => 'Clip name';
+
+  @override
+  String get rigClipActions => 'Animation clip actions';
+
+  @override
+  String get rigDuplicateClip => 'Duplicate clip';
+
+  @override
+  String get rigRenameClipItem => 'Rename clip';
+
+  @override
+  String get rigDeleteClip => 'Delete clip';
+
+  @override
+  String get rigUnfreezeRange => 'Unfreeze joint (selected frames or whole clip)';
+
+  @override
+  String get rigFreezeRange => 'Freeze joint (selected frames or whole clip)';
+
+  @override
+  String get rigAutoKeyOn => 'Auto-key on: posing records keys (A)';
+
+  @override
+  String get rigAutoKeyOff => 'Auto-key off: posing only previews (A)';
+
+  @override
+  String get rigKeyPose => 'Key pose';
+
+  @override
+  String get rigDiscardUnkeyed => 'Discard unkeyed pose';
+
+  @override
+  String get rigPrevFrame => 'Previous frame';
+
+  @override
+  String get rigNextFrame => 'Next frame';
+
+  @override
+  String get rigLooping => 'Looping';
+
+  @override
+  String get rigPlaysOnce => 'Plays once';
+
+  @override
+  String get rigMirrorFramePose => 'Mirror this frame\'s pose';
+
+  @override
+  String get rigSwapLeftRight => 'Swap left and right (opposite phase)';
+
+  @override
+  String get rigMirrorCentre => 'Mirror across the centre';
+
+  @override
+  String get rigFixLoop => 'Fix loop';
+
+  @override
+  String get rigCopyPose => 'Copy this frame\'s pose';
+
+  @override
+  String get rigPastePose => 'Paste pose here';
+
+  @override
+  String get rigClearAll => 'Clear all animations and frames';
+
+  @override
+  String get rigSelectRange => 'Select frame range (Shift-click or long-press frames)';
+
+  @override
+  String get rigFrom => 'From';
+
+  @override
+  String get rigTo => 'To';
+
+  @override
+  String get rigMoveKeysLeftReplace => 'Move selected keys left (replaces destination keys)';
+
+  @override
+  String get rigMoveKeysRightReplace => 'Move selected keys right (replaces destination keys)';
+
+  @override
+  String get rigDuplicateFrames => 'Duplicate selected frames';
+
+  @override
+  String get rigDeleteFrames => 'Delete selected frames';
+
+  @override
+  String get rigPlantFoot => 'Plant selected foot for selected frames (current contact point)';
+
+  @override
+  String get rigReleaseFoot => 'Release foot plant in selected frames';
+
+  @override
+  String get rigPreviewGif => 'Preview as GIF';
+
+  @override
+  String rigFewer(String label) {
+    return 'Fewer $label';
+  }
+
+  @override
+  String rigMore(String label) {
+    return 'More $label';
+  }
+
+  @override
+  String get rigSelectedTracks => 'Selected tracks';
+
+  @override
+  String get rigAllTracks => 'All tracks';
+
+  @override
+  String get rigCopyKeys => 'Copy keys in range';
+
+  @override
+  String get rigPasteKeys => 'Paste keys at current frame';
+
+  @override
+  String get rigMoveKeysLeft => 'Move keys left';
+
+  @override
+  String get rigMoveKeysRight => 'Move keys right';
+
+  @override
+  String get rigDeleteKeys => 'Delete keys without removing frames';
+
+  @override
+  String get rigSetEasing => 'Set selected keys easing';
+
+  @override
+  String get rigRippleOn => 'Ripple paste: on';
+
+  @override
+  String get rigRippleOff => 'Ripple paste: off';
+
+  @override
+  String get rigEasingLinear => 'Linear';
+
+  @override
+  String get rigEasingIn => 'Ease in';
+
+  @override
+  String get rigEasingOut => 'Ease out';
+
+  @override
+  String get rigEasingInOut => 'Ease in and out';
+
+  @override
+  String get rigEasingStepped => 'Hold, then snap';
+
+  @override
+  String rigSelectionTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bones',
+      one: '$count bone',
+    );
+    return 'Selection · $_temp0';
+  }
+
+  @override
+  String get rigSelectDescendants => 'Select descendants';
+
+  @override
+  String get rigMoveX => 'Move X';
+
+  @override
+  String get rigMoveY => 'Move Y';
+
+  @override
+  String get rigRotateGroup => 'Rotate group';
+
+  @override
+  String get rigRotateAboutActive => 'Rotate about active joint';
+
+  @override
+  String get rigLockSelected => 'Lock selected joints';
+
+  @override
+  String get rigUnlockSelected => 'Unlock selected joints';
+
+  @override
+  String get rigNumericPose => 'Numeric pose';
+
+  @override
+  String get rigPoseRotation => 'Pose rotation';
+
+  @override
+  String get rigOffsetX => 'Offset X';
+
+  @override
+  String get rigOffsetY => 'Offset Y';
+
+  @override
+  String get rigPoseGhosting => 'Pose ghosting';
+
+  @override
+  String get rigSkeletonGhosts => 'Skeleton ghosts';
+
+  @override
+  String get rigArtworkGhosts => 'Artwork ghosts';
+
+  @override
+  String get rigOpacity => 'Opacity';
+
+  @override
+  String get rigFrameSpacing => 'Frame spacing';
+
+  @override
+  String get rigPinPose => 'Pin current pose';
+
+  @override
+  String get rigUnpinPose => 'Unpin reference pose';
+
+  @override
+  String get rigAttachmentPoints => 'Attachment points';
+
+  @override
+  String get rigSocketHint =>
+      'Name a foot socket foot_contact to use it as a planting anchor. Offsets follow the bone.';
+
+  @override
+  String get rigAddToBone => 'Add to selected bone';
+
+  @override
+  String get rigMissingBone => 'Missing bone';
+
+  @override
+  String get rigSocketName => 'Socket name';
+
+  @override
+  String get rigLocalX => 'Local X';
+
+  @override
+  String get rigLocalY => 'Local Y';
+
+  @override
+  String get rigSocketAngle => 'Socket angle';
+
+  @override
+  String rigArtworkPivot(String layer) {
+    return 'Artwork pivot · $layer';
+  }
+
+  @override
+  String get rigArtworkX => 'Artwork X';
+
+  @override
+  String get rigArtworkY => 'Artwork Y';
+
+  @override
+  String get rigDeleteAttachment => 'Delete attachment';
+
+  @override
+  String get rigSectionBones => 'Bones';
+
+  @override
+  String get rigSectionLayers => 'Layers';
+
+  @override
+  String get rigSectionBone => 'Bone';
+
+  @override
+  String rigSectionPose(int frame) {
+    return 'Pose · frame $frame';
+  }
+
+  @override
+  String get rigSectionPoses => 'Poses';
+
+  @override
+  String get rigSectionCheck => 'Check';
+
+  @override
+  String get rigEmptyHint => 'Pick the bone tool and drag on the canvas to draw your first bone.';
+
+  @override
+  String get rigOrAddSkeleton => 'Or add a ready-made skeleton';
+
+  @override
+  String rigUnfreezeBone(String bone) {
+    return 'Unfreeze $bone';
+  }
+
+  @override
+  String rigFreezeBone(String bone) {
+    return 'Freeze $bone';
+  }
+
+  @override
+  String get rigBoneActions => 'Bone actions';
+
+  @override
+  String get rigUnfreezeJoint => 'Unfreeze joint';
+
+  @override
+  String get rigFreezeJoint => 'Freeze joint';
+
+  @override
+  String get rigConnectJoints => 'Connect joints…';
+
+  @override
+  String get rigInheritMotion => 'Inherit motion only…';
+
+  @override
+  String get rigImplicitNote => 'Implicit: motion only';
+
+  @override
+  String get rigExplicitNote => 'Explicit: joint and inherited layer';
+
+  @override
+  String get rigDisconnect => 'Disconnect';
+
+  @override
+  String rigConnectTo(String bone) {
+    return 'Connect $bone to';
+  }
+
+  @override
+  String get rigNoOtherBones => 'There are no other bones to attach to.';
+
+  @override
+  String get rigRenameBone => 'Rename bone';
+
+  @override
+  String get rigNoLayers => 'This animation has no layers.';
+
+  @override
+  String get rigStaysStill => 'Stays still';
+
+  @override
+  String rigChooseBoneFor(String layer) {
+    return 'Choose the bone that moves $layer';
+  }
+
+  @override
+  String rigOrderLabel(String state) {
+    return 'Layer order: $state';
+  }
+
+  @override
+  String get rigOrderNormal => 'Normal';
+
+  @override
+  String rigOrderFront(int count) {
+    return '$count in front';
+  }
+
+  @override
+  String rigOrderBehind(int count) {
+    return '$count behind';
+  }
+
+  @override
+  String get rigSendBehind => 'Send behind one more layer from this frame';
+
+  @override
+  String get rigBringFront => 'Bring in front of one more layer from this frame';
+
+  @override
+  String get rigRemoveOrderKey => 'Remove this frame\'s order key';
+
+  @override
+  String get rigMoveConnected => 'Move connected chain';
+
+  @override
+  String get rigLength => 'Length';
+
+  @override
+  String get rigAngle => 'Angle';
+
+  @override
+  String get rigEnterHint => 'Enter to apply · 0.5 px steps';
+
+  @override
+  String get rigLimitRotation => 'Limit rotation';
+
+  @override
+  String get rigRange => 'Range';
+
+  @override
+  String rigRangeValue(int min, int max) {
+    return '$min° to $max°';
+  }
+
+  @override
+  String get rigMinAngle => 'Min angle';
+
+  @override
+  String get rigMaxAngle => 'Max angle';
+
+  @override
+  String get rigInvalidValue => 'Invalid value';
+
+  @override
+  String get rigJointFrozen => 'Joint frozen in this clip. Parent motion and IK cannot move it.';
+
+  @override
+  String get rigRotation => 'Rotation';
+
+  @override
+  String get rigOffset => 'Offset';
+
+  @override
+  String get rigSteeredByIk => 'Steered by IK: drag its ring on the canvas to pose it.';
+
+  @override
+  String get rigFlipH => 'Flip horizontally';
+
+  @override
+  String get rigBetweenKeys => 'Between keys';
+
+  @override
+  String get rigKeyedHere => 'Keyed on this frame';
+
+  @override
+  String get rigAddKey => 'Add key';
+
+  @override
+  String get rigUpdateKey => 'Update key';
+
+  @override
+  String get rigRemoveKey => 'Remove key';
+
+  @override
+  String rigIkPartOf(String name) {
+    return 'Part of the IK chain \"$name\".';
+  }
+
+  @override
+  String get rigEditChain => 'Edit that chain';
+
+  @override
+  String get rigIkAttachHint => 'Attach this bone to a parent to make a chain that bends to a target.';
+
+  @override
+  String get rigIkBendHint => 'Bend this bone and the ones above it to reach a target, like a hand or a foot.';
+
+  @override
+  String get rigAddIkToBone => 'Add IK to this bone';
+
+  @override
+  String get rigAddIkChain => 'Add IK chain';
+
+  @override
+  String get rigChain => 'Chain';
+
+  @override
+  String get rigFewerBones => 'Fewer bones in the chain';
+
+  @override
+  String get rigMoreBones => 'More bones in the chain';
+
+  @override
+  String get rigFoldOther => 'Fold the other way';
+
+  @override
+  String get rigFootPlanted => 'Foot planted on this frame';
+
+  @override
+  String get rigIkOff => 'Off: drag the ring to place the target';
+
+  @override
+  String get rigTargetBetween => 'Target between keys';
+
+  @override
+  String get rigTargetKeyed => 'Target keyed on this frame';
+
+  @override
+  String get rigKeyTarget => 'Key target';
+
+  @override
+  String get rigRemoveTargetKey => 'Remove target key';
+
+  @override
+  String get rigRemoveIk => 'Remove IK';
+
+  @override
+  String get rigPoseSaveHint => 'Save the pose on this frame to reuse it on other frames.';
+
+  @override
+  String rigPutPose(String name, int frame) {
+    return 'Put \"$name\" on frame $frame';
+  }
+
+  @override
+  String get rigPoseActions => 'Pose actions';
+
+  @override
+  String get rigRenamePose => 'Rename pose';
+
+  @override
+  String get rigSavePose => 'Save pose';
+
+  @override
+  String rigPoseDefault(int n) {
+    return 'Pose $n';
+  }
+
+  @override
+  String rigSaveFrameAsPose(int frame) {
+    return 'Save frame $frame as a pose';
+  }
+
+  @override
+  String get rigTailX => 'Tail X';
+
+  @override
+  String get rigTailY => 'Tail Y';
+
+  @override
+  String get rigSectionRotation => 'Pixel rotation';
+
+  @override
+  String get rigRotSprite => 'Edge-preserving rotation (RotSprite)';
+
+  @override
+  String get rigRotSpriteHint => 'Keeps thin lines and diagonals intact when parts turn. Slower to draw.';
+
+  @override
+  String get rigSnapAngle => 'Angle snap';
+
+  @override
+  String get rigSnapDefault => 'Default angle snap';
+
+  @override
+  String get rigSnapRigDefault => 'Rig default';
+
+  @override
+  String get rigSnapOff => 'Off';
+
+  @override
+  String rigSnapDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String get rigEasingCustom => 'Custom curve';
+
+  @override
+  String get rigEditCurve => 'Edit easing curve';
+
+  @override
+  String get rigCurveTitle => 'Easing curve';
+
+  @override
+  String get rigCurveHint => 'Drag the two handles to shape how the motion accelerates between keys.';
+
+  @override
+  String get rigCurveOvershoot => 'Overshoot';
+
+  @override
+  String get rigCurveAnticipate => 'Anticipate';
+
+  @override
+  String get rigCurveStrongOut => 'Strong ease out';
+
+  @override
+  String get rigCurveStrongInOut => 'Strong ease in-out';
 }

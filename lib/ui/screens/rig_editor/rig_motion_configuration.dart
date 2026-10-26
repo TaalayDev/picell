@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../../../l10n/strings.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../pixel/rig/presets/motion_presets.dart';
 import '../../../pixel/rig/rig_baker.dart';
@@ -197,52 +198,52 @@ class _MotionConfigurationState extends State<_MotionConfiguration> {
           if (_usable && _missingRoles.isNotEmpty)
             Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text('Unmapped roles: ${_missingRoles.join(', ')}. Choose bones under Bone role mapping.',
+                child: Text(Strings.of(context).rigUnmappedRoles(_missingRoles.join(', ')),
                     style: TextStyle(color: Theme.of(context).colorScheme.error))),
           const SizedBox(height: 16),
-          _slider('Strength', 'motion-intensity', _intensity, .5, 2, 6, '${(_intensity * 100).round()}%',
+          _slider(Strings.of(context).rigStrength, 'motion-intensity', _intensity, .5, 2, 6, '${(_intensity * 100).round()}%',
               (v) => _intensity = v),
-          _slider('Frames', 'motion-frames', _frames.toDouble(), 1, 240, 239, '$_frames', (v) => _frames = v.round()),
-          _slider('Frame rate', 'motion-fps', _fps.toDouble(), 1, 60, 59, '$_fps fps', (v) => _fps = v.round()),
+          _slider(Strings.of(context).rigFrames, 'motion-frames', _frames.toDouble(), 1, 240, 239, '$_frames', (v) => _frames = v.round()),
+          _slider(Strings.of(context).rigFrameRate, 'motion-fps', _fps.toDouble(), 1, 60, 59, Strings.of(context).rigFpsValue(_fps), (v) => _fps = v.round()),
           SwitchListTile(
             key: const ValueKey('motion-loop'),
             contentPadding: EdgeInsets.zero,
-            title: const Text('Loop'),
+            title: Text(Strings.of(context).rigLoop),
             value: _loop,
             onChanged: (v) => _change(() => _loop = v),
           ),
           SwitchListTile(
             key: const ValueKey('motion-mirror'),
             contentPadding: EdgeInsets.zero,
-            title: const Text('Face the other way'),
-            subtitle: const Text('Swap left and right and reverse the swings.'),
+            title: Text(Strings.of(context).rigFaceOther),
+            subtitle: Text(Strings.of(context).rigFaceOtherHint),
             value: _mirror,
             onChanged: (v) => _change(() => _mirror = v),
           ),
           SwitchListTile(
-              title: const Text('Scale motion to body proportions'),
+              title: Text(Strings.of(context).rigScaleMotion),
               value: _proportions,
               onChanged: (v) => _change(() => _proportions = v)),
           if (widget.preset.target == MotionTarget.roles) ...[
             SwitchListTile(
-                title: const Text('Keep current position'),
+                title: Text(Strings.of(context).rigKeepPosition),
                 value: _keepPosition,
                 onChanged: (v) => _change(() => _keepPosition = v)),
             SwitchListTile(
-                title: const Text('Align feet to ground'),
+                title: Text(Strings.of(context).rigAlignFeet),
                 value: _alignGround,
                 onChanged: (v) => _change(() => _alignGround = v)),
             if (_alignGround)
-              _slider('Ground Y', 'motion-ground-y', _groundY, 0, widget.controller.height.toDouble(),
+              _slider(Strings.of(context).rigGroundY, 'motion-ground-y', _groundY, 0, widget.controller.height.toDouble(),
                   widget.controller.height * 2, _groundY.toStringAsFixed(1), (v) => _groundY = v),
-            ExpansionTile(title: const Text('Bone role mapping'), children: [
+            ExpansionTile(title: Text(Strings.of(context).rigRoleMapping), children: [
               for (final role in {...widget.preset.roles, if (widget.preset.legControls) ...MotionPreset.legJointRoles})
                 DropdownButtonFormField<String>(
                     initialValue: _roles[role] ?? '',
                     isExpanded: true,
                     decoration: InputDecoration(labelText: role),
                     items: [
-                      const DropdownMenuItem(value: '', child: Text('Automatic (by name)')),
+                      DropdownMenuItem(value: '', child: Text(Strings.of(context).rigAutomaticByName)),
                       for (final b in widget.controller.rig.bones) DropdownMenuItem(value: b.id, child: Text(b.name)),
                     ],
                     onChanged: (id) => _change(() {
@@ -258,8 +259,8 @@ class _MotionConfigurationState extends State<_MotionConfiguration> {
             SwitchListTile(
               key: const ValueKey('motion-plant-feet'),
               contentPadding: EdgeInsets.zero,
-              title: const Text('Plant feet'),
-              subtitle: const Text('Keep foot contacts on the ground.'),
+              title: Text(Strings.of(context).rigPlantFeet),
+              subtitle: Text(Strings.of(context).rigPlantFeetHint),
               value: _plantFeet,
               onChanged: (v) => _change(() => _plantFeet = v),
             ),
@@ -267,8 +268,8 @@ class _MotionConfigurationState extends State<_MotionConfiguration> {
             SwitchListTile(
               key: const ValueKey('motion-lock-legs'),
               contentPadding: EdgeInsets.zero,
-              title: const Text('Lock leg joints'),
-              subtitle: const Text('Hold thighs, shins and feet in place.'),
+              title: Text(Strings.of(context).rigLockLegs),
+              subtitle: Text(Strings.of(context).rigLockLegsHint),
               value: _lockLegs,
               onChanged: (v) => _change(() => _lockLegs = v),
             ),
@@ -279,7 +280,7 @@ class _MotionConfigurationState extends State<_MotionConfiguration> {
         Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Row(children: [
-              Expanded(child: Text('Preview', style: Theme.of(context).textTheme.titleSmall)),
+              Expanded(child: Text(Strings.of(context).preview, style: Theme.of(context).textTheme.titleSmall)),
               Text('${(_frames / _fps).toStringAsFixed(2)} s', style: Theme.of(context).textTheme.bodySmall),
             ])),
         Expanded(
@@ -290,7 +291,7 @@ class _MotionConfigurationState extends State<_MotionConfiguration> {
         Row(children: [
           IconButton(
               key: const ValueKey('motion-preview-play'),
-              tooltip: _timer == null ? 'Play preview' : 'Pause preview',
+              tooltip: _timer == null ? Strings.of(context).rigPlayPreview : Strings.of(context).rigPausePreview,
               onPressed: _usable ? _play : null,
               icon: Icon(_timer == null ? Icons.play_arrow : Icons.pause)),
           Expanded(
@@ -321,9 +322,9 @@ class _MotionConfigurationState extends State<_MotionConfiguration> {
             Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(children: [
-                  Expanded(child: Text('Configure ${widget.preset.name}', style: theme.textTheme.titleMedium)),
+                  Expanded(child: Text(Strings.of(context).rigConfigure(widget.preset.name), style: theme.textTheme.titleMedium)),
                   IconButton(
-                      tooltip: 'Close configuration',
+                      tooltip: Strings.of(context).rigCloseConfig,
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close)),
                 ])),
@@ -347,8 +348,8 @@ class _MotionConfigurationState extends State<_MotionConfiguration> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
                       widget.preset.target == MotionTarget.roles
-                          ? 'No matching bones. Name bones like ${widget.preset.roles.take(3).join(', ')}.'
-                          : 'Select a bone before choosing this preset.',
+                          ? Strings.of(context).rigNoMatchingBones(widget.preset.roles.take(3).join(', '))
+                          : Strings.of(context).rigSelectBoneBeforePreset,
                       style: TextStyle(color: theme.colorScheme.error))),
             const Divider(height: 1),
             Padding(
@@ -357,7 +358,7 @@ class _MotionConfigurationState extends State<_MotionConfiguration> {
                   TextButton(
                       key: const ValueKey('motion-cancel'),
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel')),
+                      child: Text(Strings.of(context).cancel)),
                   const SizedBox(width: 8),
                   FilledButton(
                       key: const ValueKey('motion-apply'),
@@ -365,7 +366,7 @@ class _MotionConfigurationState extends State<_MotionConfiguration> {
                           ? () =>
                               Navigator.pop(context, MotionChoice(_configured, intensity: _intensity, mirror: _mirror))
                           : null,
-                      child: const Text('Apply')),
+                      child: Text(Strings.of(context).apply)),
                 ])),
           ],
         ));

@@ -5,7 +5,10 @@ import '../../data/models/rig/rig.dart';
 import '../pixel_utils.dart';
 import 'affine2.dart';
 import 'part_rasterizer.dart';
+import 'pose_interpolator.dart';
 import 'rig_solver.dart';
+import 'rotsprite.dart';
+import 'rig_layer_influences.dart';
 
 /// Turns a [Rig] and one of its [RigClip]s into pixel frames.
 ///
@@ -20,6 +23,8 @@ class RigBaker {
   final List<Layer> layers;
 
   final Map<String, Uint32List> _partCache = {};
+  final Map<String, RotSpriteSource> _sprites = {};
+  late final _parts = RigLayerInfluences.resolve(rig, width, height);
 
   RigBaker({required this.rig, required this.width, required this.height, required this.layers});
 
@@ -33,16 +38,24 @@ class RigBaker {
       for (final layer in layers)
         if (layer.stableKey != null) layer.stableKey!: layer,
     };
-    final boundKeys = {for (final part in rig.parts) part.layerKey};
+    final boundKeys = {for (final part in _parts) part.layerKey};
+    final orderOffsets = PoseInterpolator.sampleOrder(clip, time);
 
     // Everything to draw, with its stacking position. Parts carry the order
     // the editor gave them (their layer's position); still layers use their
     // own position, so both interleave exactly like the layer stack.
-    final entries = <({int order, Layer layer, RigPart? part})>[
-      for (final part in rig.parts)
-        if (byKey[part.layerKey] != null) (order: part.drawOrder, layer: byKey[part.layerKey]!, part: part),
+    // A moved part sits half a step past the layer it lands on, so it never
+    // ties with that layer.
+    double orderOf(RigPart part) {
+      final offset = orderOffsets[part.boneId] ?? 0;
+      return part.drawOrder + offset + (offset == 0 ? 0 : (offset > 0 ? .5 : -.5));
+    }
+
+    final entries = <({double order, Layer layer, RigPart? part})>[
+      for (final part in _parts)
+        if (byKey[part.layerKey] != null) (order: orderOf(part), layer: byKey[part.layerKey]!, part: part),
       for (final (index, layer) in layers.indexed)
-        if (layer.stableKey == null || !boundKeys.contains(layer.stableKey)) (order: index, layer: layer, part: null),
+        if (layer.stableKey == null || !boundKeys.contains(layer.stableKey)) (order: index.toDouble(), layer: layer, part: null),
     ];
     // Highest first: the first opaque pixel wins, which is the same rule
     // PixelUtils.mergeLayersPixels uses for layers.
@@ -87,6 +100,12 @@ class RigBaker {
   // buffers are only read by bakeFrame, never handed out.
   Uint32List _rasterize(RigPart part, Layer layer, Affine2 transform) {
     final key = '${part.id}|${layer.id}|${transform.cacheKey}';
+    if (rig.settings.rotationMode == RigRotationMode.rotsprite) {
+      // The enlarged image is built once per part; poses only sample it.
+      final sprite = _sprites[part.id] ??=
+          RotSpriteSource(layer.processedPixels(width, height), width, height, mask: part.mask);
+      return _partCache[key] ??= sprite.rasterize(transform);
+    }
     return _partCache[key] ??= PartRasterizer.rasterize(
       layer.processedPixels(width, height),
       width,

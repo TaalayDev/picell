@@ -163,6 +163,7 @@ class RigBakeService {
       rig.clips.isNotEmpty &&
       (rig.activeClip!.keyframes.isNotEmpty ||
           rig.activeClip!.ikKeyframes.isNotEmpty ||
+          rig.activeClip!.orderKeyframes.isNotEmpty ||
           rig.activeClip!.freezes.isNotEmpty);
 
   Future<RigBakeResult> bake({

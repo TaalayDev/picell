@@ -3630,4 +3630,850 @@ class StringsZh extends Strings {
 
   @override
   String get effectLayersCombinedKeepHint => '图层像一张图像一样一起运动，并保留在各自的图层上。';
+
+  @override
+  String rigBoneCount(int count) {
+    return '$count 根骨骼';
+  }
+
+  @override
+  String rigLayerCount(int count) {
+    return '$count 个图层';
+  }
+
+  @override
+  String get rigNothingKeyed => '请先摆放骨骼或移动 IK 目标：目前还没有关键帧。';
+
+  @override
+  String get rigPreviewFailed => '无法生成预览。';
+
+  @override
+  String get rigDiscardTitle => '放弃骨架更改？';
+
+  @override
+  String get rigDiscardBody => '您对此骨架所做的更改将不会保存。';
+
+  @override
+  String get rigKeepEditing => '继续编辑';
+
+  @override
+  String get rigDiscard => '放弃';
+
+  @override
+  String rigSkeletonAdded(String name, int bones, int bound) {
+    String _temp0 = intl.Intl.pluralLogic(
+      bound,
+      locale: localeName,
+      other: '，按名称绑定了 $bound 个图层',
+      zero: '',
+    );
+    return '已添加 $name：$bones 根骨骼$_temp0。';
+  }
+
+  @override
+  String rigNoBonesForMotion(String name, String examples) {
+    return '没有适用于“$name”的骨骼。请将骨骼命名为 $examples 等，或在设置模式中添加现成骨架。';
+  }
+
+  @override
+  String get rigSelectBoneFirst => '请先选择一根骨骼。';
+
+  @override
+  String get rigSelectBoneFirstShort => '请先选择骨骼';
+
+  @override
+  String rigMotionApplied(String name, int matched, int missing) {
+    String _temp0 = intl.Intl.pluralLogic(
+      missing,
+      locale: localeName,
+      other: '（$missing 根未找到）',
+      zero: '',
+    );
+    return '已将“$name”应用到 $matched 根骨骼$_temp0。撤销可恢复原动画。';
+  }
+
+  @override
+  String get rigTitle => '骨架';
+
+  @override
+  String get rigBonesAndLayers => '骨骼和图层';
+
+  @override
+  String get rigModeSetup => '设置';
+
+  @override
+  String get rigModeAnimate => '动画';
+
+  @override
+  String get rigToolSelectAnimate => '选择骨骼 (V)';
+
+  @override
+  String get rigToolSelectSetup => '选择并移动骨骼 (V)';
+
+  @override
+  String get rigToolDraw => '绘制骨骼 (B)';
+
+  @override
+  String get rigToolPaint => '绘制所选骨骼控制的区域 (P)';
+
+  @override
+  String get rigAddSkeleton => '添加现成骨架';
+
+  @override
+  String get rigToolRotate => '旋转骨骼 (R)';
+
+  @override
+  String get rigToolMove => '移动骨骼 (M)';
+
+  @override
+  String get rigFlipBone => '翻转所选骨骼';
+
+  @override
+  String get rigSelectMultiple => '选择多根骨骼';
+
+  @override
+  String get rigSnapping => '关节吸附（按 Alt 跳过）';
+
+  @override
+  String get rigFit => '适应屏幕';
+
+  @override
+  String rigNextBoneMoves(String layer) {
+    return '下一根骨骼将移动“$layer”';
+  }
+
+  @override
+  String get rigDontBindLayer => '不绑定图层';
+
+  @override
+  String get rigPaintErasing => '擦除：像素保持不动';
+
+  @override
+  String get rigPaintSelectBone => '请选择要绘制的骨骼';
+
+  @override
+  String rigPaintingFor(String bone) {
+    return '正在为 $bone 绘制';
+  }
+
+  @override
+  String get rigErase => '擦除';
+
+  @override
+  String get rigAnyVisibleLayer => '任意可见图层';
+
+  @override
+  String rigPlacePrompt(String name) {
+    return '放置“$name”：拖动方框可移动，拖动边缘可拉伸。';
+  }
+
+  @override
+  String get rigMirror => '镜像';
+
+  @override
+  String get rigWithIk => '带 IK';
+
+  @override
+  String rigAttachTo(String bone) {
+    return '附加到 $bone';
+  }
+
+  @override
+  String get rigAddSkeletonButton => '添加骨架';
+
+  @override
+  String get rigPreviewTitle => '动画预览';
+
+  @override
+  String get rigSaveGif => '保存 GIF';
+
+  @override
+  String get rigSkeletonsTitle => '现成骨架';
+
+  @override
+  String get rigSkeletonsHint => '选择一个，然后在添加前将其移动并拉伸到您的作品上。';
+
+  @override
+  String get rigWholeFigures => '完整角色';
+
+  @override
+  String get rigPartsToAdd => '可添加到骨骼的部件';
+
+  @override
+  String rigPresetBones(String name, int count) {
+    return '$name · $count 根骨骼';
+  }
+
+  @override
+  String get rigAnimationsTitle => '现成动画';
+
+  @override
+  String rigBonesFound(int matched, int total) {
+    return '找到 $matched/$total 根骨骼';
+  }
+
+  @override
+  String rigNoBonesNamedLike(String examples) {
+    return '没有名为 $examples 之类的骨骼';
+  }
+
+  @override
+  String get rigSelectedBoneAndBelow => '所选骨骼及其子级';
+
+  @override
+  String get rigSelectedBone => '所选骨骼';
+
+  @override
+  String rigMotionMeta(int frames, int fps) {
+    return '$frames 帧 · $fps fps';
+  }
+
+  @override
+  String rigMotionMetaOnce(int frames, int fps) {
+    return '$frames 帧 · $fps fps · 单次';
+  }
+
+  @override
+  String rigUnmappedRoles(String roles) {
+    return '未映射的角色：$roles。请在“骨骼角色映射”中选择骨骼。';
+  }
+
+  @override
+  String get rigStrength => '强度';
+
+  @override
+  String get rigFrames => '帧数';
+
+  @override
+  String get rigFrameRate => '帧率';
+
+  @override
+  String get rigLoop => '循环';
+
+  @override
+  String get rigFaceOther => '朝向另一侧';
+
+  @override
+  String get rigFaceOtherHint => '交换左右并反转摆动方向。';
+
+  @override
+  String get rigScaleMotion => '按身体比例缩放动作';
+
+  @override
+  String get rigKeepPosition => '保持当前位置';
+
+  @override
+  String get rigAlignFeet => '将脚对齐地面';
+
+  @override
+  String get rigGroundY => '地面 Y';
+
+  @override
+  String get rigRoleMapping => '骨骼角色映射';
+
+  @override
+  String get rigAutomaticByName => '自动（按名称）';
+
+  @override
+  String get rigPlantFeet => '固定脚部';
+
+  @override
+  String get rigPlantFeetHint => '让脚部接触点保持在地面上。';
+
+  @override
+  String get rigLockLegs => '锁定腿部关节';
+
+  @override
+  String get rigLockLegsHint => '让大腿、小腿和脚保持原位。';
+
+  @override
+  String get rigPlayPreview => '播放预览';
+
+  @override
+  String get rigPausePreview => '暂停预览';
+
+  @override
+  String rigConfigure(String name) {
+    return '配置 $name';
+  }
+
+  @override
+  String get rigCloseConfig => '关闭配置';
+
+  @override
+  String rigNoMatchingBones(String examples) {
+    return '没有匹配的骨骼。请将骨骼命名为 $examples 等。';
+  }
+
+  @override
+  String get rigSelectBoneBeforePreset => '请先选择骨骼，再选择此预设。';
+
+  @override
+  String rigFpsValue(int fps) {
+    return '$fps fps';
+  }
+
+  @override
+  String get rigAddBonesHint => '请先在设置模式中添加骨骼，然后开始摆姿势。';
+
+  @override
+  String get rigNewClip => '新建动画片段';
+
+  @override
+  String get rigRenameClip => '重命名动画片段';
+
+  @override
+  String get rigClipName => '片段名称';
+
+  @override
+  String get rigClipActions => '动画片段操作';
+
+  @override
+  String get rigDuplicateClip => '复制片段';
+
+  @override
+  String get rigRenameClipItem => '重命名片段';
+
+  @override
+  String get rigDeleteClip => '删除片段';
+
+  @override
+  String get rigUnfreezeRange => '解冻关节（所选帧或整个片段）';
+
+  @override
+  String get rigFreezeRange => '冻结关节（所选帧或整个片段）';
+
+  @override
+  String get rigAutoKeyOn => '自动关键帧已开启：摆姿势会记录关键帧 (A)';
+
+  @override
+  String get rigAutoKeyOff => '自动关键帧已关闭：摆姿势仅预览 (A)';
+
+  @override
+  String get rigKeyPose => '记录姿势';
+
+  @override
+  String get rigDiscardUnkeyed => '放弃未记录的姿势';
+
+  @override
+  String get rigPrevFrame => '上一帧';
+
+  @override
+  String get rigNextFrame => '下一帧';
+
+  @override
+  String get rigLooping => '循环播放';
+
+  @override
+  String get rigPlaysOnce => '仅播放一次';
+
+  @override
+  String get rigMirrorFramePose => '镜像此帧的姿势';
+
+  @override
+  String get rigSwapLeftRight => '交换左右（相反相位）';
+
+  @override
+  String get rigMirrorCentre => '沿中线镜像';
+
+  @override
+  String get rigFixLoop => '修复循环';
+
+  @override
+  String get rigCopyPose => '复制此帧的姿势';
+
+  @override
+  String get rigPastePose => '在此粘贴姿势';
+
+  @override
+  String get rigClearAll => '清除所有动画和帧';
+
+  @override
+  String get rigSelectRange => '选择帧范围（按住 Shift 点击或长按帧）';
+
+  @override
+  String get rigFrom => '从';
+
+  @override
+  String get rigTo => '到';
+
+  @override
+  String get rigMoveKeysLeftReplace => '将所选关键帧左移（替换目标位置的关键帧）';
+
+  @override
+  String get rigMoveKeysRightReplace => '将所选关键帧右移（替换目标位置的关键帧）';
+
+  @override
+  String get rigDuplicateFrames => '复制所选帧';
+
+  @override
+  String get rigDeleteFrames => '删除所选帧';
+
+  @override
+  String get rigPlantFoot => '在所选帧中固定所选的脚（当前接触点）';
+
+  @override
+  String get rigReleaseFoot => '解除所选帧中的脚部固定';
+
+  @override
+  String get rigPreviewGif => '以 GIF 预览';
+
+  @override
+  String rigFewer(String label) {
+    return '减少$label';
+  }
+
+  @override
+  String rigMore(String label) {
+    return '增加$label';
+  }
+
+  @override
+  String get rigSelectedTracks => '所选轨道';
+
+  @override
+  String get rigAllTracks => '所有轨道';
+
+  @override
+  String get rigCopyKeys => '复制范围内的关键帧';
+
+  @override
+  String get rigPasteKeys => '在当前帧粘贴关键帧';
+
+  @override
+  String get rigMoveKeysLeft => '左移关键帧';
+
+  @override
+  String get rigMoveKeysRight => '右移关键帧';
+
+  @override
+  String get rigDeleteKeys => '删除关键帧但保留帧';
+
+  @override
+  String get rigSetEasing => '设置所选关键帧的缓动';
+
+  @override
+  String get rigRippleOn => '波纹粘贴：开';
+
+  @override
+  String get rigRippleOff => '波纹粘贴：关';
+
+  @override
+  String get rigEasingLinear => '线性';
+
+  @override
+  String get rigEasingIn => '缓入';
+
+  @override
+  String get rigEasingOut => '缓出';
+
+  @override
+  String get rigEasingInOut => '缓入缓出';
+
+  @override
+  String get rigEasingStepped => '保持后跳变';
+
+  @override
+  String rigSelectionTitle(int count) {
+    return '选择 · $count 根骨骼';
+  }
+
+  @override
+  String get rigSelectDescendants => '选择子级';
+
+  @override
+  String get rigMoveX => '移动 X';
+
+  @override
+  String get rigMoveY => '移动 Y';
+
+  @override
+  String get rigRotateGroup => '旋转组';
+
+  @override
+  String get rigRotateAboutActive => '绕活动关节旋转';
+
+  @override
+  String get rigLockSelected => '锁定所选关节';
+
+  @override
+  String get rigUnlockSelected => '解锁所选关节';
+
+  @override
+  String get rigNumericPose => '数值姿势';
+
+  @override
+  String get rigPoseRotation => '姿势旋转';
+
+  @override
+  String get rigOffsetX => '偏移 X';
+
+  @override
+  String get rigOffsetY => '偏移 Y';
+
+  @override
+  String get rigPoseGhosting => '姿势残影';
+
+  @override
+  String get rigSkeletonGhosts => '骨架残影';
+
+  @override
+  String get rigArtworkGhosts => '图稿残影';
+
+  @override
+  String get rigOpacity => '不透明度';
+
+  @override
+  String get rigFrameSpacing => '帧间隔';
+
+  @override
+  String get rigPinPose => '固定当前姿势';
+
+  @override
+  String get rigUnpinPose => '取消固定参考姿势';
+
+  @override
+  String get rigAttachmentPoints => '附着点';
+
+  @override
+  String get rigSocketHint => '将脚部插槽命名为 foot_contact 即可用作固定锚点。偏移会跟随骨骼。';
+
+  @override
+  String get rigAddToBone => '添加到所选骨骼';
+
+  @override
+  String get rigMissingBone => '骨骼缺失';
+
+  @override
+  String get rigSocketName => '插槽名称';
+
+  @override
+  String get rigLocalX => '局部 X';
+
+  @override
+  String get rigLocalY => '局部 Y';
+
+  @override
+  String get rigSocketAngle => '插槽角度';
+
+  @override
+  String rigArtworkPivot(String layer) {
+    return '图稿轴心 · $layer';
+  }
+
+  @override
+  String get rigArtworkX => '图稿 X';
+
+  @override
+  String get rigArtworkY => '图稿 Y';
+
+  @override
+  String get rigDeleteAttachment => '删除附着点';
+
+  @override
+  String get rigSectionBones => '骨骼';
+
+  @override
+  String get rigSectionLayers => '图层';
+
+  @override
+  String get rigSectionBone => '骨骼';
+
+  @override
+  String rigSectionPose(int frame) {
+    return '姿势 · 第 $frame 帧';
+  }
+
+  @override
+  String get rigSectionPoses => '姿势';
+
+  @override
+  String get rigSectionCheck => '检查';
+
+  @override
+  String get rigEmptyHint => '选择骨骼工具并在画布上拖动，绘制第一根骨骼。';
+
+  @override
+  String get rigOrAddSkeleton => '或添加现成骨架';
+
+  @override
+  String rigUnfreezeBone(String bone) {
+    return '解冻 $bone';
+  }
+
+  @override
+  String rigFreezeBone(String bone) {
+    return '冻结 $bone';
+  }
+
+  @override
+  String get rigBoneActions => '骨骼操作';
+
+  @override
+  String get rigUnfreezeJoint => '解冻关节';
+
+  @override
+  String get rigFreezeJoint => '冻结关节';
+
+  @override
+  String get rigConnectJoints => '连接关节…';
+
+  @override
+  String get rigInheritMotion => '仅继承运动…';
+
+  @override
+  String get rigImplicitNote => '隐式：仅运动';
+
+  @override
+  String get rigExplicitNote => '显式：关节与继承的图层';
+
+  @override
+  String get rigDisconnect => '断开连接';
+
+  @override
+  String rigConnectTo(String bone) {
+    return '将 $bone 连接到';
+  }
+
+  @override
+  String get rigNoOtherBones => '没有其他可连接的骨骼。';
+
+  @override
+  String get rigRenameBone => '重命名骨骼';
+
+  @override
+  String get rigNoLayers => '此动画没有图层。';
+
+  @override
+  String get rigStaysStill => '保持不动';
+
+  @override
+  String rigChooseBoneFor(String layer) {
+    return '选择移动“$layer”的骨骼';
+  }
+
+  @override
+  String rigOrderLabel(String state) {
+    return '图层顺序：$state';
+  }
+
+  @override
+  String get rigOrderNormal => '正常';
+
+  @override
+  String rigOrderFront(int count) {
+    return '靠前 $count 层';
+  }
+
+  @override
+  String rigOrderBehind(int count) {
+    return '靠后 $count 层';
+  }
+
+  @override
+  String get rigSendBehind => '从此帧起再下移一层';
+
+  @override
+  String get rigBringFront => '从此帧起再上移一层';
+
+  @override
+  String get rigRemoveOrderKey => '移除此帧的顺序关键帧';
+
+  @override
+  String get rigMoveConnected => '移动相连的链';
+
+  @override
+  String get rigLength => '长度';
+
+  @override
+  String get rigAngle => '角度';
+
+  @override
+  String get rigEnterHint => '按 Enter 应用 · 步长 0.5 px';
+
+  @override
+  String get rigLimitRotation => '限制旋转';
+
+  @override
+  String get rigRange => '范围';
+
+  @override
+  String rigRangeValue(int min, int max) {
+    return '$min° 至 $max°';
+  }
+
+  @override
+  String get rigMinAngle => '最小角度';
+
+  @override
+  String get rigMaxAngle => '最大角度';
+
+  @override
+  String get rigInvalidValue => '无效值';
+
+  @override
+  String get rigJointFrozen => '关节在此片段中已冻结，父级运动和 IK 都无法移动它。';
+
+  @override
+  String get rigRotation => '旋转';
+
+  @override
+  String get rigOffset => '偏移';
+
+  @override
+  String get rigSteeredByIk => '由 IK 控制：在画布上拖动其圆环来摆姿势。';
+
+  @override
+  String get rigFlipH => '水平翻转';
+
+  @override
+  String get rigBetweenKeys => '关键帧之间';
+
+  @override
+  String get rigKeyedHere => '此帧有关键帧';
+
+  @override
+  String get rigAddKey => '添加关键帧';
+
+  @override
+  String get rigUpdateKey => '更新关键帧';
+
+  @override
+  String get rigRemoveKey => '移除关键帧';
+
+  @override
+  String rigIkPartOf(String name) {
+    return '属于 IK 链“$name”。';
+  }
+
+  @override
+  String get rigEditChain => '编辑该链';
+
+  @override
+  String get rigIkAttachHint => '将此骨骼连接到父级，以组成可弯向目标的链。';
+
+  @override
+  String get rigIkBendHint => '弯曲此骨骼及其上级以够到目标，例如手或脚。';
+
+  @override
+  String get rigAddIkToBone => '为此骨骼添加 IK';
+
+  @override
+  String get rigAddIkChain => '添加 IK 链';
+
+  @override
+  String get rigChain => '链';
+
+  @override
+  String get rigFewerBones => '减少链中的骨骼';
+
+  @override
+  String get rigMoreBones => '增加链中的骨骼';
+
+  @override
+  String get rigFoldOther => '反向弯折';
+
+  @override
+  String get rigFootPlanted => '脚在此帧已固定';
+
+  @override
+  String get rigIkOff => '关闭：拖动圆环放置目标';
+
+  @override
+  String get rigTargetBetween => '目标位于关键帧之间';
+
+  @override
+  String get rigTargetKeyed => '此帧有目标关键帧';
+
+  @override
+  String get rigKeyTarget => '记录目标';
+
+  @override
+  String get rigRemoveTargetKey => '移除目标关键帧';
+
+  @override
+  String get rigRemoveIk => '移除 IK';
+
+  @override
+  String get rigPoseSaveHint => '保存此帧的姿势，以便在其他帧上重复使用。';
+
+  @override
+  String rigPutPose(String name, int frame) {
+    return '将“$name”应用到第 $frame 帧';
+  }
+
+  @override
+  String get rigPoseActions => '姿势操作';
+
+  @override
+  String get rigRenamePose => '重命名姿势';
+
+  @override
+  String get rigSavePose => '保存姿势';
+
+  @override
+  String rigPoseDefault(int n) {
+    return '姿势 $n';
+  }
+
+  @override
+  String rigSaveFrameAsPose(int frame) {
+    return '将第 $frame 帧保存为姿势';
+  }
+
+  @override
+  String get rigTailX => '末端 X';
+
+  @override
+  String get rigTailY => '末端 Y';
+
+  @override
+  String get rigSectionRotation => '像素旋转';
+
+  @override
+  String get rigRotSprite => '保边旋转 (RotSprite)';
+
+  @override
+  String get rigRotSpriteHint => '部件旋转时保持细线和斜线完整，绘制稍慢。';
+
+  @override
+  String get rigSnapAngle => '角度吸附';
+
+  @override
+  String get rigSnapDefault => '默认角度吸附';
+
+  @override
+  String get rigSnapRigDefault => '跟随骨架默认';
+
+  @override
+  String get rigSnapOff => '关闭';
+
+  @override
+  String rigSnapDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String get rigEasingCustom => '自定义曲线';
+
+  @override
+  String get rigEditCurve => '编辑缓动曲线';
+
+  @override
+  String get rigCurveTitle => '缓动曲线';
+
+  @override
+  String get rigCurveHint => '拖动两个手柄来调整关键帧之间的运动加速方式。';
+
+  @override
+  String get rigCurveOvershoot => '过冲';
+
+  @override
+  String get rigCurveAnticipate => '预备';
+
+  @override
+  String get rigCurveStrongOut => '强缓出';
+
+  @override
+  String get rigCurveStrongInOut => '强缓入缓出';
 }

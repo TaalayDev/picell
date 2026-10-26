@@ -1,7 +1,10 @@
+import 'rig_curve_editor.dart';
+import 'rig_panels.dart' show rigEasingName;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 
+import '../../../l10n/strings.dart';
 import '../../../data/models/rig/rig.dart';
 import '../../../pixel/rig/rig_editor_controller.dart';
 
@@ -71,7 +74,7 @@ class RigTimeline extends StatelessWidget {
                     ? Padding(
                         padding: const EdgeInsets.all(12),
                         child: Text(
-                          'Add bones in Setup to start posing.',
+                          Strings.of(context).rigAddBonesHint,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -137,23 +140,23 @@ class _ClipBar extends StatelessWidget {
     final name = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
-              title: Text(creating ? 'New animation clip' : 'Rename animation clip'),
+              title: Text(creating ? Strings.of(context).rigNewClip : Strings.of(context).rigRenameClip),
               content: TextFormField(
                   key: const ValueKey('rig-clip-name'),
                   initialValue: value,
                   autofocus: true,
-                  decoration: const InputDecoration(labelText: 'Clip name'),
+                  decoration: InputDecoration(labelText: Strings.of(context).rigClipName),
                   onChanged: (text) => value = text,
                   onFieldSubmitted: (text) {
                     if (text.trim().isNotEmpty) Navigator.pop(context, text.trim());
                   }),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                TextButton(onPressed: () => Navigator.pop(context), child: Text(Strings.of(context).cancel)),
                 FilledButton(
                     onPressed: () {
                       if (value.trim().isNotEmpty) Navigator.pop(context, value.trim());
                     },
-                    child: Text(creating ? 'Create' : 'Save')),
+                    child: Text(creating ? Strings.of(context).create : Strings.of(context).save)),
               ],
             ));
     if (name == null || !context.mounted) return;
@@ -197,18 +200,18 @@ class _ClipBar extends StatelessWidget {
         ))),
         IconButton(
             key: const ValueKey('rig-new-clip'),
-            tooltip: 'New animation clip',
+            tooltip: Strings.of(context).rigNewClip,
             icon: const Icon(Icons.add, size: 18),
             onPressed: () => _name(context, creating: true)),
         PopupMenuButton<String>(
             key: const ValueKey('rig-clip-actions'),
-            tooltip: 'Animation clip actions',
+            tooltip: Strings.of(context).rigClipActions,
             icon: const Icon(Icons.more_horiz, size: 18),
             itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'duplicate', child: Text('Duplicate clip')),
-                  const PopupMenuItem(value: 'rename', child: Text('Rename clip')),
+                  PopupMenuItem(value: 'duplicate', child: Text(Strings.of(context).rigDuplicateClip)),
+                  PopupMenuItem(value: 'rename', child: Text(Strings.of(context).rigRenameClipItem)),
                   PopupMenuItem(
-                      value: 'delete', enabled: controller.rig.clips.isNotEmpty, child: const Text('Delete clip')),
+                      value: 'delete', enabled: controller.rig.clips.isNotEmpty, child: Text(Strings.of(context).rigDeleteClip)),
                 ],
             onSelected: (action) {
               onBeforeEdit?.call();
@@ -219,8 +222,8 @@ class _ClipBar extends StatelessWidget {
         IconButton(
             key: const ValueKey('rig-freeze-joint'),
             tooltip: frozen
-                ? 'Unfreeze joint (selected frames or whole clip)'
-                : 'Freeze joint (selected frames or whole clip)',
+                ? Strings.of(context).rigUnfreezeRange
+                : Strings.of(context).rigFreezeRange,
             icon: Icon(frozen ? Icons.lock : Icons.lock_open, size: 18),
             onPressed: selected == null
                 ? null
@@ -269,12 +272,34 @@ class _Header extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              tooltip: isPlaying ? 'Pause' : 'Play',
+              tooltip: isPlaying ? Strings.of(context).pause : Strings.of(context).play,
               icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, size: 18),
               onPressed: onPlayPause,
             ),
             IconButton(
-              tooltip: 'Previous frame',
+              key: const ValueKey('rig-auto-key'),
+              tooltip: controller.autoKey ? Strings.of(context).rigAutoKeyOn : Strings.of(context).rigAutoKeyOff,
+              isSelected: controller.autoKey,
+              color: controller.autoKey ? theme.colorScheme.error : null,
+              icon: Icon(controller.autoKey ? Icons.fiber_manual_record : Icons.fiber_manual_record_outlined, size: 18),
+              onPressed: () => controller.autoKey = !controller.autoKey,
+            ),
+            if (controller.hasPendingPose) ...[
+              TextButton.icon(
+                key: const ValueKey('rig-key-pending'),
+                onPressed: controller.keyPending,
+                icon: const Icon(Icons.vpn_key, size: 14),
+                label: Text(Strings.of(context).rigKeyPose),
+              ),
+              IconButton(
+                key: const ValueKey('rig-discard-pending'),
+                tooltip: Strings.of(context).rigDiscardUnkeyed,
+                icon: const Icon(Icons.undo, size: 18),
+                onPressed: controller.discardPending,
+              ),
+            ],
+            IconButton(
+              tooltip: Strings.of(context).rigPrevFrame,
               icon: const Icon(Icons.skip_previous, size: 18),
               onPressed: controller.time > 0 ? () => controller.setTime(controller.time - 1) : null,
             ),
@@ -283,58 +308,82 @@ class _Header extends StatelessWidget {
               child: Text('${controller.time + 1} / ${clip.length}', textAlign: TextAlign.center, style: mono),
             ),
             IconButton(
-              tooltip: 'Next frame',
+              tooltip: Strings.of(context).rigNextFrame,
               icon: const Icon(Icons.skip_next, size: 18),
               onPressed: controller.time < clip.length - 1 ? () => controller.setTime(controller.time + 1) : null,
             ),
             const SizedBox(width: 8),
             _Stepper(
-              label: 'Frames',
+              label: Strings.of(context).rigFrames,
               value: clip.length,
               onChanged: (delta) => controller.setClipLength(clip.length + delta),
             ),
             const SizedBox(width: 8),
-            _Stepper(label: 'FPS', value: clip.fps, onChanged: (delta) => controller.setFps(clip.fps + delta)),
+            _Stepper(label: Strings.of(context).fps, value: clip.fps, onChanged: (delta) => controller.setFps(clip.fps + delta)),
             IconButton(
-              tooltip: clip.loop ? 'Looping' : 'Plays once',
+              tooltip: clip.loop ? Strings.of(context).rigLooping : Strings.of(context).rigPlaysOnce,
               isSelected: clip.loop,
               icon: Icon(clip.loop ? Icons.repeat_on : Icons.repeat, size: 18),
               onPressed: () => controller.setLoop(!clip.loop),
             ),
+            PopupMenuButton<bool>(
+              key: const ValueKey('rig-mirror-pose'),
+              tooltip: Strings.of(context).rigMirrorFramePose,
+              enabled: controller.canMirrorPose,
+              icon: const Icon(Icons.flip, size: 18),
+              onSelected: (reflect) {
+                onBeforeEdit?.call();
+                controller.mirrorPose(reflect: reflect);
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(value: false, child: Text(Strings.of(context).rigSwapLeftRight)),
+                PopupMenuItem(value: true, child: Text(Strings.of(context).rigMirrorCentre)),
+              ],
+            ),
+            if (controller.hasLoopSeamIssue)
+              TextButton.icon(
+                key: const ValueKey('rig-fix-loop'),
+                onPressed: () {
+                  onBeforeEdit?.call();
+                  controller.fixLoopSeam();
+                },
+                icon: const Icon(Icons.sync_problem, size: 14),
+                label: Text(Strings.of(context).rigFixLoop),
+              ),
             IconButton(
-              tooltip: 'Copy this frame\'s pose',
+              tooltip: Strings.of(context).rigCopyPose,
               icon: const Icon(Icons.copy_all, size: 18),
               onPressed: controller.copyPose,
             ),
             IconButton(
-              tooltip: 'Paste pose here',
+              tooltip: Strings.of(context).rigPastePose,
               icon: const Icon(Icons.paste, size: 18),
               onPressed: controller.canPastePose ? controller.pastePose : null,
             ),
             IconButton(
               key: const ValueKey('clear-rig-animations'),
-              tooltip: 'Clear all animations and frames',
+              tooltip: Strings.of(context).rigClearAll,
               icon: const Icon(Icons.delete_sweep_outlined, size: 18),
               onPressed: controller.canClearAnimations ? onClearAnimations : null,
             ),
             IconButton(
               key: const ValueKey('rig-select-frames'),
-              tooltip: 'Select frame range (Shift-click or long-press frames)',
+              tooltip: Strings.of(context).rigSelectRange,
               isSelected: controller.rangeSelectionEnabled,
               icon: const Icon(Icons.select_all, size: 18),
               onPressed: controller.toggleFrameSelection,
             ),
             if (controller.hasFrameSelection) ...[
               _Stepper(
-                  label: 'From',
+                  label: Strings.of(context).rigFrom,
                   value: controller.rangeStart + 1,
                   onChanged: (d) => controller.selectFrameRange(controller.rangeStart + d, controller.rangeEnd)),
               _Stepper(
-                  label: 'To',
+                  label: Strings.of(context).rigTo,
                   value: controller.rangeEnd + 1,
                   onChanged: (d) => controller.selectFrameRange(controller.rangeStart, controller.rangeEnd + d)),
               IconButton(
-                  tooltip: 'Move selected keys left (replaces destination keys)',
+                  tooltip: Strings.of(context).rigMoveKeysLeftReplace,
                   icon: const Icon(Icons.keyboard_arrow_left, size: 18),
                   onPressed: controller.rangeStart > 0
                       ? () {
@@ -343,7 +392,7 @@ class _Header extends StatelessWidget {
                         }
                       : null),
               IconButton(
-                  tooltip: 'Move selected keys right (replaces destination keys)',
+                  tooltip: Strings.of(context).rigMoveKeysRightReplace,
                   icon: const Icon(Icons.keyboard_arrow_right, size: 18),
                   onPressed: controller.rangeEnd < 239
                       ? () {
@@ -353,7 +402,7 @@ class _Header extends StatelessWidget {
                       : null),
               IconButton(
                   key: const ValueKey('rig-duplicate-range'),
-                  tooltip: 'Duplicate selected frames',
+                  tooltip: Strings.of(context).rigDuplicateFrames,
                   icon: const Icon(Icons.copy, size: 18),
                   onPressed: controller.activeClip.length + controller.rangeEnd - controller.rangeStart + 1 <= 240
                       ? () {
@@ -363,7 +412,7 @@ class _Header extends StatelessWidget {
                       : null),
               IconButton(
                   key: const ValueKey('rig-delete-range'),
-                  tooltip: 'Delete selected frames',
+                  tooltip: Strings.of(context).rigDeleteFrames,
                   icon: const Icon(Icons.delete_outline, size: 18),
                   onPressed: () {
                     onBeforeEdit?.call();
@@ -372,7 +421,7 @@ class _Header extends StatelessWidget {
             ],
             IconButton(
                 key: const ValueKey('rig-plant-foot'),
-                tooltip: 'Plant selected foot for selected frames (current contact point)',
+                tooltip: Strings.of(context).rigPlantFoot,
                 icon: const Icon(Icons.push_pin_outlined, size: 18),
                 onPressed: controller.canPlantFoot
                     ? () {
@@ -382,7 +431,7 @@ class _Header extends StatelessWidget {
                     : null),
             IconButton(
                 key: const ValueKey('rig-release-foot'),
-                tooltip: 'Release foot plant in selected frames',
+                tooltip: Strings.of(context).rigReleaseFoot,
                 icon: const Icon(Icons.pin_end_outlined, size: 18),
                 onPressed: controller.hasFootPlant
                     ? () {
@@ -393,13 +442,13 @@ class _Header extends StatelessWidget {
             if (onPresets != null)
               IconButton(
                 key: const ValueKey('motion-presets-button'),
-                tooltip: 'Ready-made animations',
+                tooltip: Strings.of(context).rigAnimationsTitle,
                 icon: const Icon(Icons.movie_filter_outlined, size: 18),
                 onPressed: onPresets,
               ),
             if (onPreviewGif != null)
               IconButton(
-                tooltip: 'Preview as GIF',
+                tooltip: Strings.of(context).rigPreviewGif,
                 icon: const Icon(Icons.gif_box_outlined, size: 18),
                 onPressed: onPreviewGif,
               ),
@@ -427,7 +476,7 @@ class _Stepper extends StatelessWidget {
           style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
         IconButton(
-          tooltip: 'Fewer $label',
+          tooltip: Strings.of(context).rigFewer(label),
           visualDensity: VisualDensity.compact,
           icon: const Icon(Icons.remove, size: 14),
           onPressed: () => onChanged(-1),
@@ -438,7 +487,7 @@ class _Stepper extends StatelessWidget {
               textAlign: TextAlign.center, style: theme.textTheme.labelSmall?.copyWith(fontFamily: 'monospace')),
         ),
         IconButton(
-          tooltip: 'More $label',
+          tooltip: Strings.of(context).rigMore(label),
           visualDensity: VisualDensity.compact,
           icon: const Icon(Icons.add, size: 14),
           onPressed: () => onChanged(1),
@@ -725,33 +774,40 @@ class _KeyEditBar extends StatelessWidget {
               TextButton(
                   key: const ValueKey('rig-track-scope'),
                   onPressed: () => c.setTimelineScope(selectedOnly: !c.timelineSelectedTracksOnly),
-                  child: Text(c.timelineSelectedTracksOnly ? 'Selected tracks' : 'All tracks')),
+                  child: Text(c.timelineSelectedTracksOnly ? Strings.of(context).rigSelectedTracks : Strings.of(context).rigAllTracks)),
               IconButton(
-                  tooltip: 'Copy keys in range', icon: const Icon(Icons.copy, size: 16), onPressed: c.copyTimelineKeys),
+                  tooltip: Strings.of(context).rigCopyKeys, icon: const Icon(Icons.copy, size: 16), onPressed: c.copyTimelineKeys),
               IconButton(
-                  tooltip: 'Paste keys at current frame',
+                  tooltip: Strings.of(context).rigPasteKeys,
                   icon: const Icon(Icons.content_paste, size: 16),
                   onPressed: c.canPasteTimelineKeys ? () => edit(c.pasteTimelineKeys) : null),
               IconButton(
-                  tooltip: 'Move keys left',
+                  tooltip: Strings.of(context).rigMoveKeysLeft,
                   icon: const Icon(Icons.keyboard_arrow_left, size: 16),
                   onPressed: () => edit(() => c.editTimelineKeys(delta: -1))),
               IconButton(
-                  tooltip: 'Move keys right',
+                  tooltip: Strings.of(context).rigMoveKeysRight,
                   icon: const Icon(Icons.keyboard_arrow_right, size: 16),
                   onPressed: () => edit(() => c.editTimelineKeys(delta: 1))),
               IconButton(
-                  tooltip: 'Delete keys without removing frames',
+                  tooltip: Strings.of(context).rigDeleteKeys,
                   icon: const Icon(Icons.delete_outline, size: 16),
                   onPressed: () => edit(() => c.editTimelineKeys(delete: true))),
-              PopupMenuButton<RigEasing>(
-                  tooltip: 'Set selected keys easing',
+              PopupMenuButton<int>(
+                  tooltip: Strings.of(context).rigSetEasing,
                   icon: const Icon(Icons.timeline, size: 16),
-                  itemBuilder: (_) => [for (final e in RigEasing.values) PopupMenuItem(value: e, child: Text(e.name))],
-                  onSelected: (e) => edit(() => c.editTimelineKeys(easing: e))),
+                  itemBuilder: (_) => [
+                        for (final e in RigEasing.values) PopupMenuItem(value: e.index, child: Text(rigEasingName(Strings.of(context), e))),
+                        PopupMenuItem(value: -1, child: Text(Strings.of(context).rigEasingCustom)),
+                      ],
+                  onSelected: (i) async {
+                    if (i >= 0) return edit(() => c.editTimelineKeys(easing: RigEasing.values[i]));
+                    final curve = await showEasingCurveDialog(context, EasingCurve.easeInOut);
+                    if (curve != null) edit(() => c.editTimelineKeys(curve: curve));
+                  }),
               TextButton(
                   onPressed: () => c.setTimelineScope(ripple: !c.rippleTimeline),
-                  child: Text(c.rippleTimeline ? 'Ripple paste: on' : 'Ripple paste: off')),
+                  child: Text(c.rippleTimeline ? Strings.of(context).rigRippleOn : Strings.of(context).rigRippleOff)),
             ])));
   }
 }

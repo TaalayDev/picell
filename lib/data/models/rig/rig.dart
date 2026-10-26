@@ -17,6 +17,17 @@ export 'rig_clip.dart';
 export 'rig_part.dart';
 export 'rig_pose.dart';
 
+/// How rotated parts are drawn.
+enum RigRotationMode {
+  /// Samples the original pixels: fast, exact for quarter turns, but thin
+  /// diagonals can break up at other angles.
+  nearest,
+
+  /// Enlarges with Scale2x, rotates, and samples back (RotSprite): keeps
+  /// lines and edges intact at any angle.
+  rotsprite,
+}
+
 class RigSettings with EquatableMixin {
   /// Rotation is rounded to a multiple of this many degrees; 0 disables
   /// snapping. Snapping keeps rotated pixel art consistent between frames.
@@ -25,22 +36,34 @@ class RigSettings with EquatableMixin {
   /// Matches `PixelUtils.applyRotation`'s interpolation argument.
   final int interpolation;
 
-  const RigSettings({this.snapAngleDegrees = 0, this.interpolation = 0});
+  /// How parts are drawn when they turn.
+  final RigRotationMode rotationMode;
 
-  RigSettings copyWith({double? snapAngleDegrees, int? interpolation}) => RigSettings(
+  const RigSettings({this.snapAngleDegrees = 0, this.interpolation = 0, this.rotationMode = RigRotationMode.nearest});
+
+  RigSettings copyWith({double? snapAngleDegrees, int? interpolation, RigRotationMode? rotationMode}) => RigSettings(
         snapAngleDegrees: snapAngleDegrees ?? this.snapAngleDegrees,
         interpolation: interpolation ?? this.interpolation,
+        rotationMode: rotationMode ?? this.rotationMode,
       );
 
-  Map<String, dynamic> toJson() => {'snapAngleDegrees': snapAngleDegrees, 'interpolation': interpolation};
+  Map<String, dynamic> toJson() => {
+        'snapAngleDegrees': snapAngleDegrees,
+        'interpolation': interpolation,
+        if (rotationMode != RigRotationMode.nearest) 'rotationMode': rotationMode.name,
+      };
 
   factory RigSettings.fromJson(Map<String, dynamic> json) => RigSettings(
         snapAngleDegrees: (json['snapAngleDegrees'] as num?)?.toDouble() ?? 0,
         interpolation: json['interpolation'] as int? ?? 0,
+        rotationMode: RigRotationMode.values.firstWhere(
+          (m) => m.name == json['rotationMode'],
+          orElse: () => RigRotationMode.nearest,
+        ),
       );
 
   @override
-  List<Object?> get props => [snapAngleDegrees, interpolation];
+  List<Object?> get props => [snapAngleDegrees, interpolation, rotationMode];
 }
 
 /// A skeleton, its bound parts and animation clips, linked to one animation

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/strings.dart';
 import '../../../data/models/layer.dart';
 import '../../../data/models/rig/rig.dart';
 import '../../../pixel/rig/rig_editor_controller.dart';
+import '../../../pixel/rig/rig_validator.dart';
+import 'rig_canvas.dart' show boneInfluenceColor;
+import 'rig_curve_editor.dart';
 import 'rig_presets_dialogs.dart';
 import 'rig_workflow_panel.dart';
 import 'package:flutter/services.dart';
@@ -22,17 +26,17 @@ class RigSidePanel extends StatelessWidget {
         return ListView(
           padding: EdgeInsets.zero,
           children: [
-            _SectionHeader('Bones', count: controller.rig.bones.length),
+            _SectionHeader(Strings.of(context).rigSectionBones, count: controller.rig.bones.length),
             _BoneTree(controller: controller),
             if (controller.mode == RigMode.setup) ...[
-              const _SectionHeader('Layers'),
+              _SectionHeader(Strings.of(context).rigSectionLayers),
               _PartsList(controller: controller),
               if (controller.selectedBone != null) ...[
-                const _SectionHeader('Bone'),
+                _SectionHeader(Strings.of(context).rigSectionBone),
                 _BoneProperties(key: ValueKey(controller.selectedBoneId), controller: controller),
               ],
             ] else if (controller.selectedBone != null) ...[
-              _SectionHeader('Pose · frame ${controller.time + 1}'),
+              _SectionHeader(Strings.of(context).rigSectionPose(controller.time + 1)),
               _PoseSection(controller: controller),
             ],
             if (controller.selectedBone != null) ...[
@@ -40,8 +44,14 @@ class RigSidePanel extends StatelessWidget {
               _IkSection(controller: controller),
             ],
             if (controller.mode == RigMode.animate) ...[
-              _SectionHeader('Poses', count: controller.savedPoses.length),
+              _SectionHeader(Strings.of(context).rigSectionPoses, count: controller.savedPoses.length),
               _PosesSection(controller: controller),
+            ],
+            _SectionHeader(Strings.of(context).rigSectionRotation),
+            _RotationSettings(controller: controller),
+            if (controller.issues.isNotEmpty) ...[
+              _SectionHeader(Strings.of(context).rigSectionCheck, count: controller.issues.length),
+              _IssuesList(controller: controller),
             ],
             RigWorkflowPanel(controller: controller),
           ],
@@ -90,6 +100,122 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+// ── Pixel rotation ──────────────────────────────────────────────────────────
+
+String _degreesLabel(Strings s, double degrees) =>
+    s.rigSnapDegrees(degrees == degrees.roundToDouble() ? degrees.round().toString() : degrees.toString());
+
+/// A drop-down of angle-snap steps. [value] null means "follow the default",
+/// offered only when [inheritLabel] is given.
+class _SnapDropdown extends StatelessWidget {
+  const _SnapDropdown({super.key, required this.value, required this.onChanged, this.inheritLabel});
+
+  final double? value;
+  final ValueChanged<double?> onChanged;
+
+  /// Text of the "follow the default" entry; null leaves that entry out.
+  final String? inheritLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final choices = {...RigEditorController.snapChoices, if (value != null && value! > 0) value!}.toList()..sort();
+    return DropdownButton<double?>(
+      isDense: true,
+      value: value,
+      items: [
+        if (inheritLabel != null) DropdownMenuItem<double?>(value: null, child: Text(inheritLabel!)),
+        DropdownMenuItem<double?>(value: 0, child: Text(s.rigSnapOff)),
+        for (final d in choices) DropdownMenuItem<double?>(value: d, child: Text(_degreesLabel(s, d))),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+/// How rotated parts are drawn, and the default angle snap of the rig.
+class _RotationSettings extends StatelessWidget {
+  const _RotationSettings({required this.controller});
+
+  final RigEditorController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final theme = Theme.of(context);
+    final settings = controller.rig.settings;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SwitchListTile(
+          key: const ValueKey('rig-rotsprite'),
+          dense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+          title: Text(s.rigRotSprite, style: theme.textTheme.bodySmall),
+          subtitle: Text(s.rigRotSpriteHint, style: theme.textTheme.labelSmall),
+          value: settings.rotationMode == RigRotationMode.rotsprite,
+          onChanged: (on) => controller.setRotationMode(on ? RigRotationMode.rotsprite : RigRotationMode.nearest),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            children: [
+              Expanded(child: Text(s.rigSnapDefault, style: theme.textTheme.bodySmall)),
+              _SnapDropdown(
+                key: const ValueKey('rig-default-snap'),
+                value: settings.snapAngleDegrees,
+                onChanged: (v) => controller.setRigSnap(v ?? 0),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Checks ──────────────────────────────────────────────────────────────────
+
+class _IssuesList extends StatelessWidget {
+  const _IssuesList({required this.controller});
+
+  final RigEditorController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Color colorOf(RigIssueSeverity s) => switch (s) {
+          RigIssueSeverity.error => theme.colorScheme.error,
+          RigIssueSeverity.warning => Colors.orange,
+          RigIssueSeverity.info => theme.colorScheme.onSurfaceVariant,
+        };
+    IconData iconOf(RigIssueSeverity s) => switch (s) {
+          RigIssueSeverity.error => Icons.error_outline,
+          RigIssueSeverity.warning => Icons.warning_amber_rounded,
+          RigIssueSeverity.info => Icons.info_outline,
+        };
+    return Column(
+      children: [
+        for (final issue in controller.issues)
+          InkWell(
+            onTap: () => controller.focusIssue(issue),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(iconOf(issue.severity), size: 14, color: colorOf(issue.severity)),
+                  const SizedBox(width: 6),
+                  Expanded(child: Text(issue.message, style: theme.textTheme.bodySmall)),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 // ── Bones ───────────────────────────────────────────────────────────────────
 
 class _BoneTree extends StatelessWidget {
@@ -108,7 +234,7 @@ class _BoneTree extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Pick the bone tool and drag on the canvas to draw your first bone.',
+              Strings.of(context).rigEmptyHint,
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             if (controller.mode == RigMode.setup)
@@ -116,20 +242,33 @@ class _BoneTree extends StatelessWidget {
                 key: const ValueKey('empty-skeleton-presets'),
                 onPressed: () => addSkeletonPreset(context, controller),
                 icon: const Icon(Icons.dashboard_customize_outlined, size: 16),
-                label: const Text('Or add a ready-made skeleton'),
+                label: Text(Strings.of(context).rigOrAddSkeleton),
               ),
           ],
         ),
       );
     }
+    // Rows under a folded bone are skipped until the depth comes back up.
+    final shown = <({Bone bone, int depth})>[];
+    int? foldedAt;
+    for (final row in rows) {
+      if (foldedAt != null) {
+        if (row.depth > foldedAt) continue;
+        foldedAt = null;
+      }
+      shown.add(row);
+      if (controller.isCollapsed(row.bone.id) && controller.childrenOf(row.bone.id).isNotEmpty) foldedAt = row.depth;
+    }
+    final colorIndex = {for (final (i, b) in controller.rig.bones.indexed) b.id: i};
     return Column(
       children: [
-        for (final row in rows)
+        for (final row in shown)
           _BoneRow(
             key: ValueKey(row.bone.id),
             controller: controller,
             bone: row.bone,
             depth: row.depth,
+            color: boneInfluenceColor(colorIndex[row.bone.id] ?? 0),
           ),
       ],
     );
@@ -137,16 +276,63 @@ class _BoneTree extends StatelessWidget {
 }
 
 class _BoneRow extends StatelessWidget {
-  const _BoneRow({super.key, required this.controller, required this.bone, required this.depth});
+  const _BoneRow({
+    super.key,
+    required this.controller,
+    required this.bone,
+    required this.depth,
+    required this.color,
+  });
 
   final RigEditorController controller;
   final Bone bone;
   final int depth;
 
+  /// The colour this bone's pixels are tinted with while painting.
+  final Color color;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selected = controller.selectedBoneIds.contains(bone.id);
+    final hasChildren = controller.childrenOf(bone.id).isNotEmpty;
+    final row = _rowBody(context, theme, selected, hasChildren);
+    if (controller.mode != RigMode.setup) return row;
+
+    // Long-press and drag a bone onto another to make it that bone's child.
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (d) => d.data != bone.id && !_wouldLoop(d.data),
+      onAcceptWithDetails: (d) => controller.reparent(d.data, bone.id),
+      builder: (context, candidates, _) => LongPressDraggable<String>(
+        data: bone.id,
+        feedback: Material(
+          elevation: 3,
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(padding: const EdgeInsets.all(8), child: Text(bone.name)),
+        ),
+        child: DecoratedBox(
+          position: DecorationPosition.foreground,
+          decoration: BoxDecoration(
+            border: candidates.isEmpty ? null : Border.all(color: theme.colorScheme.primary, width: 1.5),
+          ),
+          child: row,
+        ),
+      ),
+    );
+  }
+
+  bool _wouldLoop(String draggedId) {
+    // Dropping a bone onto its own descendant would make a cycle.
+    var current = bone.parentId;
+    final seen = <String>{};
+    while (current != null && seen.add(current)) {
+      if (current == draggedId) return true;
+      current = controller.bone(current)?.parentId;
+    }
+    return false;
+  }
+
+  Widget _rowBody(BuildContext context, ThemeData theme, bool selected, bool hasChildren) {
     return Material(
       color: selected ? theme.colorScheme.primary.withValues(alpha: 0.14) : Colors.transparent,
       child: InkWell(
@@ -156,11 +342,32 @@ class _BoneRow extends StatelessWidget {
         child: SizedBox(
           height: 30,
           child: Padding(
-            padding: EdgeInsets.only(left: 10 + depth * 14.0, right: 2),
+            padding: EdgeInsets.only(left: 4 + depth * 14.0, right: 2),
             child: Row(
               children: [
+                SizedBox(
+                  width: 18,
+                  height: 28,
+                  child: hasChildren
+                      ? InkWell(
+                          key: ValueKey('fold-bone-${bone.id}'),
+                          onTap: () => controller.toggleCollapsed(bone.id),
+                          child: Icon(
+                            controller.isCollapsed(bone.id) ? Icons.chevron_right : Icons.expand_more,
+                            size: 16,
+                          ),
+                        )
+                      : null,
+                ),
+                if (controller.mode == RigMode.setup)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(right: 4),
+                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                  ),
                 Icon(
-                  depth == 0 ? Icons.account_tree_outlined : Icons.subdirectory_arrow_right,
+                  depth == 0 ? Icons.account_tree_outlined : (bone.connection == BoneConnection.implicit ? Icons.link : Icons.subdirectory_arrow_right),
                   size: 14,
                   color: selected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                 ),
@@ -181,14 +388,14 @@ class _BoneRow extends StatelessWidget {
                       child: IconButton(
                         key: ValueKey('freeze-joint-${bone.id}'),
                         padding: EdgeInsets.zero,
-                        tooltip: controller.hasJointFreeze(bone.id) ? 'Unfreeze ${bone.name}' : 'Freeze ${bone.name}',
+                        tooltip: controller.hasJointFreeze(bone.id) ? Strings.of(context).rigUnfreezeBone(bone.name) : Strings.of(context).rigFreezeBone(bone.name),
                         icon: Icon(controller.hasJointFreeze(bone.id) ? Icons.lock : Icons.lock_open, size: 14),
                         onPressed: () => controller.hasJointFreeze(bone.id)
                             ? controller.unfreezeJoint(bone.id)
                             : controller.freezeJoint(bone.id),
                       )),
                 PopupMenuButton<_BoneAction>(
-                  tooltip: 'Bone actions',
+                  tooltip: Strings.of(context).rigBoneActions,
                   padding: EdgeInsets.zero,
                   iconSize: 16,
                   icon: const Icon(Icons.more_vert),
@@ -197,12 +404,20 @@ class _BoneRow extends StatelessWidget {
                     if (controller.mode == RigMode.animate)
                       PopupMenuItem(
                           value: _BoneAction.freeze,
-                          child: Text(controller.hasJointFreeze(bone.id) ? 'Unfreeze joint' : 'Freeze joint')),
-                    const PopupMenuItem(value: _BoneAction.rename, child: Text('Rename')),
-                    const PopupMenuItem(value: _BoneAction.setParent, child: Text('Connect joints…')),
-                    if (bone.parentId != null)
-                      const PopupMenuItem(value: _BoneAction.unparent, child: Text('Disconnect')),
-                    const PopupMenuItem(value: _BoneAction.delete, child: Text('Delete')),
+                          child: Text(controller.hasJointFreeze(bone.id) ? Strings.of(context).rigUnfreezeJoint : Strings.of(context).rigFreezeJoint)),
+                    PopupMenuItem(value: _BoneAction.rename, child: Text(Strings.of(context).rename)),
+                    PopupMenuItem(value: _BoneAction.setParent, child: Text(Strings.of(context).rigConnectJoints)),
+                    PopupMenuItem(value: _BoneAction.implicitParent, child: Text(Strings.of(context).rigInheritMotion)),
+                    if (bone.parentId != null) ...[
+                      PopupMenuItem<_BoneAction>(
+                        enabled: false,
+                        child: Text(bone.connection == BoneConnection.implicit
+                            ? Strings.of(context).rigImplicitNote
+                            : Strings.of(context).rigExplicitNote),
+                      ),
+                      PopupMenuItem(value: _BoneAction.unparent, child: Text(Strings.of(context).rigDisconnect)),
+                    ],
+                    PopupMenuItem(value: _BoneAction.delete, child: Text(Strings.of(context).delete)),
                   ],
                 ),
               ],
@@ -223,6 +438,9 @@ class _BoneRow extends StatelessWidget {
       case _BoneAction.setParent:
         final parent = await _pickParent(context);
         if (parent != null) controller.connectToBone(bone.id, parent.id);
+      case _BoneAction.implicitParent:
+        final parent = await _pickParent(context);
+        if (parent != null) controller.reparent(bone.id, parent.id, connection: BoneConnection.implicit);
       case _BoneAction.unparent:
         controller.reparent(bone.id, null);
       case _BoneAction.delete:
@@ -239,10 +457,10 @@ class _BoneRow extends StatelessWidget {
     return showDialog<Bone>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: Text('Connect ${bone.name} to'),
+        title: Text(Strings.of(context).rigConnectTo(bone.name)),
         children: [
           if (options.isEmpty)
-            const Padding(padding: EdgeInsets.all(16), child: Text('There are no other bones to attach to.')),
+            Padding(padding: const EdgeInsets.all(16), child: Text(Strings.of(context).rigNoOtherBones)),
           for (final b in options) SimpleDialogOption(onPressed: () => Navigator.pop(context, b), child: Text(b.name)),
         ],
       ),
@@ -262,10 +480,10 @@ class _BoneRow extends StatelessWidget {
   }
 }
 
-enum _BoneAction { freeze, rename, setParent, unparent, delete }
+enum _BoneAction { freeze, rename, setParent, implicitParent, unparent, delete }
 
 Future<String?> showRenameBoneDialog(BuildContext context, String current) =>
-    showNameDialog(context, title: 'Rename bone', initial: current, action: 'Rename');
+    showNameDialog(context, title: Strings.of(context).rigRenameBone, initial: current, action: Strings.of(context).rename);
 
 /// Asks for a short name. Returns null if cancelled.
 Future<String?> showNameDialog(
@@ -286,7 +504,7 @@ Future<String?> showNameDialog(
         onSubmitted: (v) => Navigator.pop(context, v),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(Strings.of(context).cancel)),
         FilledButton(onPressed: () => Navigator.pop(context, text.text), child: Text(action)),
       ],
     ),
@@ -305,7 +523,7 @@ class _PartsList extends StatelessWidget {
     // Top layer first, like the layers panel.
     final layers = controller.restLayers.reversed.where((l) => l.stableKey != null).toList();
     if (layers.isEmpty) {
-      return const Padding(padding: EdgeInsets.all(12), child: Text('This animation has no layers.'));
+      return Padding(padding: const EdgeInsets.all(12), child: Text(Strings.of(context).rigNoLayers));
     }
     return Column(
       children: [
@@ -325,7 +543,9 @@ class _PartRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final key = layer.stableKey!;
+    final layerParts = controller.partsOfLayer(key);
     final bone = controller.boneOfLayer(key);
+    final label = layerParts.length > 1 ? Strings.of(context).rigBoneCount(layerParts.length) : (bone?.name ?? Strings.of(context).rigStaysStill);
     final armed = controller.activeLayerKey == key;
     final muted = theme.colorScheme.onSurfaceVariant;
 
@@ -354,19 +574,19 @@ class _PartRow extends StatelessWidget {
                   ),
                 ),
                 PopupMenuButton<String?>(
-                  tooltip: 'Choose the bone that moves ${layer.name}',
+                  tooltip: Strings.of(context).rigChooseBoneFor(layer.name),
                   padding: EdgeInsets.zero,
                   onSelected: (boneId) => controller.assignLayer(key, boneId),
                   itemBuilder: (_) => [
-                    const PopupMenuItem<String?>(value: null, child: Text('Stays still')),
+                    PopupMenuItem<String?>(value: null, child: Text(Strings.of(context).rigStaysStill)),
                     for (final b in controller.rig.bones) PopupMenuItem<String?>(value: b.id, child: Text(b.name)),
                   ],
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 96),
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: bone == null ? Colors.transparent : theme.colorScheme.primary.withValues(alpha: 0.14),
-                      border: Border.all(color: bone == null ? theme.dividerColor : theme.colorScheme.primary),
+                      color: layerParts.isEmpty ? Colors.transparent : theme.colorScheme.primary.withValues(alpha: 0.14),
+                      border: Border.all(color: layerParts.isEmpty ? theme.dividerColor : theme.colorScheme.primary),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -374,10 +594,10 @@ class _PartRow extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            bone?.name ?? 'Stays still',
+                            label,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: bone == null ? muted : theme.colorScheme.primary,
+                              color: layerParts.isEmpty ? muted : theme.colorScheme.primary,
                             ),
                           ),
                         ),
@@ -390,6 +610,56 @@ class _PartRow extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Steps a bone's artwork in front of or behind other layers from this frame
+/// on, e.g. an arm swinging across the body.
+class _DrawOrderRow extends StatelessWidget {
+  const _DrawOrderRow({required this.controller, required this.boneId});
+
+  final RigEditorController controller;
+  final String boneId;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final offset = controller.drawOrderOf(boneId);
+    final keyed = controller.orderKeyAt(boneId, controller.time) != null;
+    final label = offset == 0 ? Strings.of(context).rigOrderNormal : (offset > 0 ? Strings.of(context).rigOrderFront(offset) : Strings.of(context).rigOrderBehind(-offset));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 4, 4, 0),
+      child: Row(
+        children: [
+          Icon(keyed ? Icons.layers : Icons.layers_outlined,
+              size: 14, color: keyed ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Expanded(child: Text(Strings.of(context).rigOrderLabel(label), style: theme.textTheme.bodySmall)),
+          IconButton(
+            key: const ValueKey('order-back'),
+            tooltip: Strings.of(context).rigSendBehind,
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.flip_to_back, size: 16),
+            onPressed: () => controller.shiftDrawOrder(boneId, -1),
+          ),
+          IconButton(
+            key: const ValueKey('order-front'),
+            tooltip: Strings.of(context).rigBringFront,
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.flip_to_front, size: 16),
+            onPressed: () => controller.shiftDrawOrder(boneId, 1),
+          ),
+          if (keyed)
+            IconButton(
+              key: const ValueKey('order-clear'),
+              tooltip: Strings.of(context).rigRemoveOrderKey,
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.close, size: 16),
+              onPressed: () => controller.deleteOrderKey(boneId, controller.time),
+            ),
+        ],
       ),
     );
   }
@@ -428,7 +698,7 @@ class _BoneProperties extends StatelessWidget {
         const SizedBox(height: 4),
         SwitchListTile(
             dense: true,
-            title: const Text('Move connected chain'),
+            title: Text(Strings.of(context).rigMoveConnected),
             value: controller.moveConnectedChain,
             onChanged: controller.setConnectedGeometry),
         Padding(
@@ -457,7 +727,7 @@ class _BoneProperties extends StatelessWidget {
             Row(children: [
               Expanded(
                   child: _BoneNumber(
-                      label: 'Length',
+                      label: Strings.of(context).rigLength,
                       value: bone.length,
                       minimum: .5,
                       onApply: (v) {
@@ -467,7 +737,8 @@ class _BoneProperties extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                   child: _BoneNumber(
-                      label: 'Angle',
+                      label: Strings.of(context).rigAngle,
+                      step: 1,
                       value: bone.restAngle,
                       onApply: (v) {
                         controller.setBoneGeometry(bone.id, angle: v);
@@ -478,7 +749,7 @@ class _BoneProperties extends StatelessWidget {
             Row(children: [
               Expanded(
                   child: _BoneNumber(
-                      label: 'Tail X',
+                      label: Strings.of(context).rigTailX,
                       value: bone.tail.dx,
                       onApply: (v) {
                         controller.setBoneEndpoint(bone.id, Offset(v, bone.tail.dy));
@@ -487,7 +758,7 @@ class _BoneProperties extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                   child: _BoneNumber(
-                      label: 'Tail Y',
+                      label: Strings.of(context).rigTailY,
                       value: bone.tail.dy,
                       onApply: (v) {
                         controller.setBoneEndpoint(bone.id, Offset(bone.tail.dx, v));
@@ -495,24 +766,39 @@ class _BoneProperties extends StatelessWidget {
                       })),
             ]),
             const SizedBox(height: 6),
-            Text('Enter to apply · 0.5 px steps',
+            Text(Strings.of(context).rigEnterHint,
                 style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            children: [
+              Expanded(child: Text(Strings.of(context).rigSnapAngle, style: theme.textTheme.bodySmall)),
+              _SnapDropdown(
+                key: const ValueKey('bone-snap'),
+                value: bone.snapAngle,
+                inheritLabel: Strings.of(context).rigSnapRigDefault,
+                onChanged: (v) => controller.setBoneSnap(bone.id, v),
+              ),
+            ],
+          ),
         ),
         SwitchListTile(
           dense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-          title: Text('Limit rotation', style: theme.textTheme.bodySmall),
+          title: Text(Strings.of(context).rigLimitRotation, style: theme.textTheme.bodySmall),
           value: limited,
           onChanged: (on) =>
               on ? controller.setBoneLimits(bone.id, min: -90, max: 90) : controller.setBoneLimits(bone.id),
         ),
         if (limited) ...[
-          stat('Range', '${min.round()}° to ${max.round()}°'),
+          stat(Strings.of(context).rigRange, Strings.of(context).rigRangeValue(min.round(), max.round())),
           Row(children: [
             Expanded(
                 child: _BoneNumber(
-                    label: 'Min angle',
+                    label: Strings.of(context).rigMinAngle,
+                    step: 1,
                     value: min,
                     onApply: (v) {
                       controller.setBoneLimits(bone.id, min: v, max: max);
@@ -520,7 +806,8 @@ class _BoneProperties extends StatelessWidget {
                     })),
             Expanded(
                 child: _BoneNumber(
-                    label: 'Max angle',
+                    label: Strings.of(context).rigMaxAngle,
+                    step: 1,
                     value: max,
                     onApply: (v) {
                       controller.setBoneLimits(bone.id, min: min, max: v);
@@ -542,10 +829,13 @@ class _BoneProperties extends StatelessWidget {
 }
 
 class _BoneNumber extends StatefulWidget {
-  const _BoneNumber({required this.label, required this.value, required this.onApply, this.minimum});
+  const _BoneNumber({required this.label, required this.value, required this.onApply, this.minimum, this.step = .5});
   final String label;
   final double value;
   final double? minimum;
+
+  /// How far the arrows nudge the value (degrees for angles, else pixels).
+  final double step;
   final double Function(double) onApply;
   @override
   State<_BoneNumber> createState() => _BoneNumberState();
@@ -581,13 +871,13 @@ class _BoneNumberState extends State<_BoneNumber> {
                   InkWell(
                       onTap: () {
                         final value = widget.onApply(
-                            widget.value + ((widget.label.contains('angle') || widget.label == 'Angle') ? 1 : .5));
+                            widget.value + widget.step);
                         _text.text = value.toStringAsFixed(1);
                       },
                       child: const Icon(Icons.arrow_drop_up, size: 18)),
                   InkWell(
                       onTap: () {
-                        final n = widget.value - ((widget.label.contains('angle') || widget.label == 'Angle') ? 1 : .5);
+                        final n = widget.value - widget.step;
                         if (widget.minimum != null && n < widget.minimum!) return;
                         final value = widget.onApply(n);
                         _text.text = value.toStringAsFixed(1);
@@ -597,7 +887,7 @@ class _BoneNumberState extends State<_BoneNumber> {
         autovalidateMode: AutovalidateMode.onUserInteraction,
         validator: (text) {
           final n = double.tryParse(text ?? '');
-          return n == null || !n.isFinite || (widget.minimum != null && n < widget.minimum!) ? 'Invalid value' : null;
+          return n == null || !n.isFinite || (widget.minimum != null && n < widget.minimum!) ? Strings.of(context).rigInvalidValue : null;
         },
         onFieldSubmitted: (text) {
           final value = double.tryParse(text);
@@ -611,13 +901,14 @@ class _BoneNumberState extends State<_BoneNumber> {
 
 // ── Pose (animate mode) ─────────────────────────────────────────────────────
 
-const _easingNames = {
-  RigEasing.linear: 'Linear',
-  RigEasing.easeIn: 'Ease in',
-  RigEasing.easeOut: 'Ease out',
-  RigEasing.easeInOut: 'Ease in and out',
-  RigEasing.stepped: 'Hold, then snap',
-};
+/// The words for an easing curve, in the app's language.
+String rigEasingName(Strings strings, RigEasing easing) => switch (easing) {
+      RigEasing.linear => strings.rigEasingLinear,
+      RigEasing.easeIn => strings.rigEasingIn,
+      RigEasing.easeOut => strings.rigEasingOut,
+      RigEasing.easeInOut => strings.rigEasingInOut,
+      RigEasing.stepped => strings.rigEasingStepped,
+    };
 
 /// The selected bone's pose on the current frame, and its key there.
 class _PoseSection extends StatelessWidget {
@@ -633,9 +924,9 @@ class _PoseSection extends StatelessWidget {
       return Padding(
           padding: const EdgeInsets.all(10),
           child: Column(children: [
-            Text('Joint frozen in this clip. Parent motion and IK cannot move it.',
+            Text(Strings.of(context).rigJointFrozen,
                 style: Theme.of(context).textTheme.bodySmall),
-            TextButton(onPressed: () => controller.unfreezeJoint(bone.id), child: const Text('Unfreeze joint')),
+            TextButton(onPressed: () => controller.unfreezeJoint(bone.id), child: Text(Strings.of(context).rigUnfreezeJoint)),
           ]));
     }
     final theme = Theme.of(context);
@@ -660,24 +951,25 @@ class _PoseSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
-        stat('Bone', bone.name),
+        stat(Strings.of(context).rigSectionBone, bone.name),
         if (driven)
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 2, 10, 4),
             child: Text(
-              'Steered by IK: drag its ring on the canvas to pose it.',
+              Strings.of(context).rigSteeredByIk,
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.tertiary),
             ),
           ),
-        stat('Rotation', '${pose.rotation.toStringAsFixed(0)}°'),
-        stat('Offset', '${pose.translation.dx.toStringAsFixed(0)}, ${pose.translation.dy.toStringAsFixed(0)}'),
+        stat(Strings.of(context).rigRotation, '${pose.rotation.toStringAsFixed(0)}°'),
+        stat(Strings.of(context).rigOffset, '${pose.translation.dx.toStringAsFixed(0)}, ${pose.translation.dy.toStringAsFixed(0)}'),
         SwitchListTile(
           dense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-          title: Text('Flip horizontally', style: theme.textTheme.bodySmall),
+          title: Text(Strings.of(context).rigFlipH, style: theme.textTheme.bodySmall),
           value: pose.flipX,
           onChanged: (on) => controller.setPose(bone.id, flipX: on),
         ),
+        _DrawOrderRow(controller: controller, boneId: bone.id),
         Padding(
           padding: const EdgeInsets.fromLTRB(10, 6, 10, 0),
           child: Row(
@@ -687,7 +979,7 @@ class _PoseSection extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  key == null ? 'Between keys' : 'Keyed on this frame',
+                  key == null ? Strings.of(context).rigBetweenKeys : Strings.of(context).rigKeyedHere,
                   style: theme.textTheme.bodySmall?.copyWith(color: key == null ? muted : theme.colorScheme.primary),
                 ),
               ),
@@ -698,27 +990,44 @@ class _PoseSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: key == null
-                ? TextButton(onPressed: () => controller.keyBone(bone.id), child: const Text('Add key'))
+            child: key == null || controller.isPending(bone.id)
+                ? TextButton(
+                    onPressed: () => controller.keyBone(bone.id),
+                    child: Text(key == null ? Strings.of(context).rigAddKey : Strings.of(context).rigUpdateKey))
                 : TextButton(
-                    onPressed: () => controller.deleteKey(bone.id, controller.time), child: const Text('Remove key')),
+                    onPressed: () => controller.deleteKey(bone.id, controller.time), child: Text(Strings.of(context).rigRemoveKey)),
           ),
         ),
         if (key != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: DropdownButton<RigEasing>(
-              isExpanded: true,
-              isDense: true,
-              value: key.easing,
-              items: [
-                for (final e in RigEasing.values)
-                  DropdownMenuItem(value: e, child: Text(_easingNames[e]!, style: theme.textTheme.bodySmall)),
-              ],
-              onChanged: (e) {
-                if (e != null) controller.setKeyEasing(bone.id, controller.time, e);
-              },
-            ),
+            child: Row(children: [
+              Expanded(
+                child: DropdownButton<int>(
+                  isExpanded: true,
+                  isDense: true,
+                  value: key.curve != null ? -1 : key.easing.index,
+                  items: [
+                    if (key.curve != null)
+                      DropdownMenuItem(value: -1, child: Text(Strings.of(context).rigEasingCustom, style: theme.textTheme.bodySmall)),
+                    for (final e in RigEasing.values)
+                      DropdownMenuItem(value: e.index, child: Text(rigEasingName(Strings.of(context), e), style: theme.textTheme.bodySmall)),
+                  ],
+                  onChanged: (i) {
+                    if (i != null && i >= 0) controller.setKeyEasing(bone.id, controller.time, RigEasing.values[i]);
+                  },
+                ),
+              ),
+              IconButton(
+                tooltip: Strings.of(context).rigEditCurve,
+                visualDensity: VisualDensity.compact,
+                icon: Icon(Icons.show_chart, size: 18, color: key.curve != null ? theme.colorScheme.primary : null),
+                onPressed: () async {
+                  final curve = await showEasingCurveDialog(context, key.curve ?? curveOfEasing(key.easing));
+                  if (curve != null) controller.setKeyCurve(bone.id, controller.time, curve);
+                },
+              ),
+            ]),
           ),
         const SizedBox(height: 8),
       ],
@@ -755,16 +1064,16 @@ class _IkSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (inChains.isNotEmpty) ...[
-            Text('Part of the IK chain "${inChains.first.name}".', style: hint),
+            Text(Strings.of(context).rigIkPartOf(inChains.first.name), style: hint),
             TextButton(
               onPressed: () => controller.selectIkChain(inChains.first.id),
-              child: const Text('Edit that chain'),
+              child: Text(Strings.of(context).rigEditChain),
             ),
           ] else ...[
             Text(
               most < 2
-                  ? 'Attach this bone to a parent to make a chain that bends to a target.'
-                  : 'Bend this bone and the ones above it to reach a target, like a hand or a foot.',
+                  ? Strings.of(context).rigIkAttachHint
+                  : Strings.of(context).rigIkBendHint,
               style: hint,
             ),
             const SizedBox(height: 4),
@@ -773,7 +1082,7 @@ class _IkSection extends StatelessWidget {
               child: FilledButton.tonal(
                 key: const ValueKey('add-ik-chain'),
                 onPressed: () => controller.addIkChain(tipBoneId: bone.id),
-                child: Text(most < 2 ? 'Add IK to this bone' : 'Add IK chain'),
+                child: Text(most < 2 ? Strings.of(context).rigAddIkToBone : Strings.of(context).rigAddIkChain),
               ),
             ),
           ],
@@ -813,14 +1122,14 @@ class _ChainControls extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
-        row('Chain', Text(chain.name, style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'))),
+        row(Strings.of(context).rigChain, Text(chain.name, style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'))),
         row(
-          'Bones',
+          Strings.of(context).rigSectionBones,
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                tooltip: 'Fewer bones in the chain',
+                tooltip: Strings.of(context).rigFewerBones,
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.remove, size: 14),
                 onPressed:
@@ -828,7 +1137,7 @@ class _ChainControls extends StatelessWidget {
               ),
               Text('${controller.rig.chainBones(chain).length}', style: theme.textTheme.bodySmall),
               IconButton(
-                tooltip: 'More bones in the chain',
+                tooltip: Strings.of(context).rigMoreBones,
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.add, size: 14),
                 onPressed: chain.boneCount < most
@@ -841,7 +1150,7 @@ class _ChainControls extends StatelessWidget {
         SwitchListTile(
           dense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-          title: Text('Fold the other way', style: theme.textTheme.bodySmall),
+          title: Text(Strings.of(context).rigFoldOther, style: theme.textTheme.bodySmall),
           value: chain.bend < 0,
           onChanged: (on) => controller.setIkChain(chain.id, bend: on ? -1 : 1),
         ),
@@ -859,12 +1168,12 @@ class _ChainControls extends StatelessWidget {
                 Expanded(
                   child: Text(
                     key?.planted == true
-                        ? 'Foot planted on this frame'
+                        ? Strings.of(context).rigFootPlanted
                         : !active
-                            ? 'Off: drag the ring to place the target'
+                            ? Strings.of(context).rigIkOff
                             : key == null
-                                ? 'Target between keys'
-                                : 'Target keyed on this frame',
+                                ? Strings.of(context).rigTargetBetween
+                                : Strings.of(context).rigTargetKeyed,
                     style: theme.textTheme.bodySmall?.copyWith(color: key == null ? muted : theme.colorScheme.tertiary),
                   ),
                 ),
@@ -876,28 +1185,43 @@ class _ChainControls extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: key == null
-                  ? TextButton(onPressed: () => controller.keyIkChain(chain.id), child: const Text('Key target'))
+                  ? TextButton(onPressed: () => controller.keyIkChain(chain.id), child: Text(Strings.of(context).rigKeyTarget))
                   : TextButton(
                       onPressed: () => controller.deleteIkKey(chain.id, controller.time),
-                      child: const Text('Remove target key'),
+                      child: Text(Strings.of(context).rigRemoveTargetKey),
                     ),
             ),
           ),
           if (key != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: DropdownButton<RigEasing>(
-                isExpanded: true,
-                isDense: true,
-                value: key.easing,
-                items: [
-                  for (final e in RigEasing.values)
-                    DropdownMenuItem(value: e, child: Text(_easingNames[e]!, style: theme.textTheme.bodySmall)),
-                ],
-                onChanged: (e) {
-                  if (e != null) controller.setIkKeyEasing(chain.id, controller.time, e);
-                },
-              ),
+              child: Row(children: [
+                Expanded(
+                  child: DropdownButton<int>(
+                    isExpanded: true,
+                    isDense: true,
+                    value: key.curve != null ? -1 : key.easing.index,
+                    items: [
+                      if (key.curve != null)
+                        DropdownMenuItem(value: -1, child: Text(Strings.of(context).rigEasingCustom, style: theme.textTheme.bodySmall)),
+                      for (final e in RigEasing.values)
+                        DropdownMenuItem(value: e.index, child: Text(rigEasingName(Strings.of(context), e), style: theme.textTheme.bodySmall)),
+                    ],
+                    onChanged: (i) {
+                      if (i != null && i >= 0) controller.setIkKeyEasing(chain.id, controller.time, RigEasing.values[i]);
+                    },
+                  ),
+                ),
+                IconButton(
+                  tooltip: Strings.of(context).rigEditCurve,
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(Icons.show_chart, size: 18, color: key.curve != null ? theme.colorScheme.primary : null),
+                  onPressed: () async {
+                    final curve = await showEasingCurveDialog(context, key.curve ?? curveOfEasing(key.easing));
+                    if (curve != null) controller.setIkKeyCurve(chain.id, controller.time, curve);
+                  },
+                ),
+              ]),
             ),
         ],
         Padding(
@@ -907,7 +1231,7 @@ class _ChainControls extends StatelessWidget {
             child: TextButton(
               key: const ValueKey('remove-ik-chain'),
               onPressed: () => controller.removeIkChain(chain.id),
-              child: const Text('Remove IK'),
+              child: Text(Strings.of(context).rigRemoveIk),
             ),
           ),
         ),
@@ -939,7 +1263,7 @@ class _PosesSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
             child: Text(
-              'Save the pose on this frame to reuse it on other frames.',
+              Strings.of(context).rigPoseSaveHint,
               style: theme.textTheme.bodySmall?.copyWith(color: muted),
             ),
           ),
@@ -957,12 +1281,12 @@ class _PosesSection extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Tooltip(
-                        message: 'Put "${pose.name}" on frame ${controller.time + 1}',
+                        message: Strings.of(context).rigPutPose(pose.name, controller.time + 1),
                         child: Text(pose.name, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall),
                       ),
                     ),
                     PopupMenuButton<_PoseAction>(
-                      tooltip: 'Pose actions',
+                      tooltip: Strings.of(context).rigPoseActions,
                       padding: EdgeInsets.zero,
                       iconSize: 16,
                       icon: const Icon(Icons.more_vert),
@@ -973,15 +1297,15 @@ class _PosesSection extends StatelessWidget {
                         }
                         final name = await showNameDialog(
                           context,
-                          title: 'Rename pose',
+                          title: Strings.of(context).rigRenamePose,
                           initial: pose.name,
-                          action: 'Rename',
+                          action: Strings.of(context).rename,
                         );
                         if (name != null) controller.renamePose(pose.id, name);
                       },
-                      itemBuilder: (_) => const [
-                        PopupMenuItem(value: _PoseAction.rename, child: Text('Rename')),
-                        PopupMenuItem(value: _PoseAction.delete, child: Text('Delete')),
+                      itemBuilder: (_) => [
+                        PopupMenuItem(value: _PoseAction.rename, child: Text(Strings.of(context).rename)),
+                        PopupMenuItem(value: _PoseAction.delete, child: Text(Strings.of(context).delete)),
                       ],
                     ),
                   ],
@@ -1000,14 +1324,14 @@ class _PosesSection extends StatelessWidget {
                   : () async {
                       final name = await showNameDialog(
                         context,
-                        title: 'Save pose',
-                        initial: 'Pose ${poses.length + 1}',
-                        action: 'Save',
+                        title: Strings.of(context).rigSavePose,
+                        initial: Strings.of(context).rigPoseDefault(poses.length + 1),
+                        action: Strings.of(context).save,
                       );
                       if (name != null) controller.savePose(name);
                     },
               icon: const Icon(Icons.bookmark_add_outlined, size: 16),
-              label: Text('Save frame ${controller.time + 1} as a pose'),
+              label: Text(Strings.of(context).rigSaveFrameAsPose(controller.time + 1)),
             ),
           ),
         ),

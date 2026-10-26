@@ -77,7 +77,10 @@ abstract final class RigGif {
     int target = 256,
   }) async {
     if (rig.clips.isEmpty ||
-        (rig.activeClip!.keyframes.isEmpty && rig.activeClip!.ikKeyframes.isEmpty && rig.activeClip!.freezes.isEmpty)) {
+        (rig.activeClip!.keyframes.isEmpty &&
+            rig.activeClip!.ikKeyframes.isEmpty &&
+            rig.activeClip!.orderKeyframes.isEmpty &&
+            rig.activeClip!.freezes.isEmpty)) {
       throw StateError('The rig has no keyframes to preview.');
     }
     final clip = rig.activeClip!;
