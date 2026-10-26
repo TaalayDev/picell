@@ -56,6 +56,7 @@ class RigTimeline extends StatelessWidget {
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _ClipBar(controller: controller, onBeforeEdit: onBeforeEdit),
               _KeyEditBar(controller: controller, onBeforeEdit: onBeforeEdit),
@@ -69,7 +70,7 @@ class RigTimeline extends StatelessWidget {
                 onBeforeEdit: onBeforeEdit,
               ),
               ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: rowsHeight.clamp(_rowHeight * 2, 150).toDouble()),
+                constraints: BoxConstraints(maxHeight: rowsHeight.clamp(_rowHeight * 2, 156).toDouble()),
                 child: rows.isEmpty
                     ? Padding(
                         padding: const EdgeInsets.all(12),
@@ -211,7 +212,9 @@ class _ClipBar extends StatelessWidget {
                   PopupMenuItem(value: 'duplicate', child: Text(Strings.of(context).rigDuplicateClip)),
                   PopupMenuItem(value: 'rename', child: Text(Strings.of(context).rigRenameClipItem)),
                   PopupMenuItem(
-                      value: 'delete', enabled: controller.rig.clips.isNotEmpty, child: Text(Strings.of(context).rigDeleteClip)),
+                      value: 'delete',
+                      enabled: controller.rig.clips.isNotEmpty,
+                      child: Text(Strings.of(context).rigDeleteClip)),
                 ],
             onSelected: (action) {
               onBeforeEdit?.call();
@@ -221,9 +224,7 @@ class _ClipBar extends StatelessWidget {
             }),
         IconButton(
             key: const ValueKey('rig-freeze-joint'),
-            tooltip: frozen
-                ? Strings.of(context).rigUnfreezeRange
-                : Strings.of(context).rigFreezeRange,
+            tooltip: frozen ? Strings.of(context).rigUnfreezeRange : Strings.of(context).rigFreezeRange,
             icon: Icon(frozen ? Icons.lock : Icons.lock_open, size: 18),
             onPressed: selected == null
                 ? null
@@ -265,12 +266,14 @@ class _Header extends StatelessWidget {
     final clip = controller.activeClip;
     final mono = theme.textTheme.labelSmall?.copyWith(fontFamily: 'monospace');
 
-    return SizedBox(
-      height: 36,
+    return Container(
+      height: 40,
+      color: theme.colorScheme.surfaceContainerLow,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
+            const SizedBox(width: 4),
             IconButton(
               tooltip: isPlaying ? Strings.of(context).pause : Strings.of(context).play,
               icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, size: 18),
@@ -312,20 +315,24 @@ class _Header extends StatelessWidget {
               icon: const Icon(Icons.skip_next, size: 18),
               onPressed: controller.time < clip.length - 1 ? () => controller.setTime(controller.time + 1) : null,
             ),
-            const SizedBox(width: 8),
+            const _Sep(),
             _Stepper(
               label: Strings.of(context).rigFrames,
               value: clip.length,
               onChanged: (delta) => controller.setClipLength(clip.length + delta),
             ),
-            const SizedBox(width: 8),
-            _Stepper(label: Strings.of(context).fps, value: clip.fps, onChanged: (delta) => controller.setFps(clip.fps + delta)),
+            const SizedBox(width: 4),
+            _Stepper(
+                label: Strings.of(context).fps,
+                value: clip.fps,
+                onChanged: (delta) => controller.setFps(clip.fps + delta)),
             IconButton(
               tooltip: clip.loop ? Strings.of(context).rigLooping : Strings.of(context).rigPlaysOnce,
               isSelected: clip.loop,
               icon: Icon(clip.loop ? Icons.repeat_on : Icons.repeat, size: 18),
               onPressed: () => controller.setLoop(!clip.loop),
             ),
+            const _Sep(),
             PopupMenuButton<bool>(
               key: const ValueKey('rig-mirror-pose'),
               tooltip: Strings.of(context).rigMirrorFramePose,
@@ -366,6 +373,7 @@ class _Header extends StatelessWidget {
               icon: const Icon(Icons.delete_sweep_outlined, size: 18),
               onPressed: controller.canClearAnimations ? onClearAnimations : null,
             ),
+            const _Sep(),
             IconButton(
               key: const ValueKey('rig-select-frames'),
               tooltip: Strings.of(context).rigSelectRange,
@@ -419,6 +427,7 @@ class _Header extends StatelessWidget {
                     controller.deleteFrameRange();
                   }),
             ],
+            const _Sep(),
             IconButton(
                 key: const ValueKey('rig-plant-foot'),
                 tooltip: Strings.of(context).rigPlantFoot,
@@ -439,6 +448,7 @@ class _Header extends StatelessWidget {
                         controller.releaseFootPlant();
                       }
                     : null),
+            const _Sep(),
             if (onPresets != null)
               IconButton(
                 key: const ValueKey('motion-presets-button'),
@@ -457,6 +467,18 @@ class _Header extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Sep extends StatelessWidget {
+  const _Sep();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 1,
+        height: 20,
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        color: Theme.of(context).dividerColor.withValues(alpha: 0.6),
+      );
 }
 
 class _Stepper extends StatelessWidget {
@@ -525,7 +547,7 @@ class _Ruler extends StatelessWidget {
                 color: controller.frameInSelection(i)
                     ? theme.colorScheme.primaryContainer
                     : i == controller.time
-                        ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                        ? theme.colorScheme.primary
                         : null,
                 child: Text(
                   '${i + 1}',
@@ -534,8 +556,9 @@ class _Ruler extends StatelessWidget {
                     color: controller.frameInSelection(i)
                         ? theme.colorScheme.onPrimaryContainer
                         : i == controller.time
-                            ? theme.colorScheme.primary
+                            ? theme.colorScheme.onPrimary
                             : theme.colorScheme.onSurfaceVariant,
+                    fontWeight: i == controller.time ? FontWeight.w700 : null,
                   ),
                 ),
               ),
@@ -563,7 +586,13 @@ class _Label extends StatelessWidget {
         height: RigTimeline._rowHeight,
         alignment: Alignment.centerLeft,
         padding: EdgeInsets.only(left: 10 + depth * 10.0, right: 4),
-        color: selected ? theme.colorScheme.primary.withValues(alpha: 0.14) : null,
+        decoration: BoxDecoration(
+          color: selected ? theme.colorScheme.primary.withValues(alpha: 0.14) : null,
+          border: Border(
+            left: BorderSide(color: selected ? theme.colorScheme.primary : Colors.transparent, width: 2),
+            bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.25), width: 0.5),
+          ),
+        ),
         child: Text(
           bone.name,
           overflow: TextOverflow.ellipsis,
@@ -591,7 +620,10 @@ class _BoneTrack extends StatelessWidget {
 
     return Container(
       height: RigTimeline._rowHeight,
-      color: selected ? theme.colorScheme.primary.withValues(alpha: 0.08) : null,
+      decoration: BoxDecoration(
+        color: selected ? theme.colorScheme.primary.withValues(alpha: 0.08) : null,
+        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.25), width: 0.5)),
+      ),
       child: Row(
         children: [
           for (var i = 0; i < frames; i++)
@@ -639,7 +671,9 @@ class _BoneTrack extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       color: controller.keyAt(bone.id, i)?.easing == RigEasing.stepped
                                           ? theme.colorScheme.tertiary
-                                          : theme.colorScheme.primary,
+                                          : controller.keyAt(bone.id, i)?.curve != null
+                                              ? theme.colorScheme.secondary
+                                              : theme.colorScheme.primary,
                                       border: Border.all(color: Colors.black.withValues(alpha: 0.5), width: 0.5),
                                     ),
                                   ),
@@ -774,9 +808,13 @@ class _KeyEditBar extends StatelessWidget {
               TextButton(
                   key: const ValueKey('rig-track-scope'),
                   onPressed: () => c.setTimelineScope(selectedOnly: !c.timelineSelectedTracksOnly),
-                  child: Text(c.timelineSelectedTracksOnly ? Strings.of(context).rigSelectedTracks : Strings.of(context).rigAllTracks)),
+                  child: Text(c.timelineSelectedTracksOnly
+                      ? Strings.of(context).rigSelectedTracks
+                      : Strings.of(context).rigAllTracks)),
               IconButton(
-                  tooltip: Strings.of(context).rigCopyKeys, icon: const Icon(Icons.copy, size: 16), onPressed: c.copyTimelineKeys),
+                  tooltip: Strings.of(context).rigCopyKeys,
+                  icon: const Icon(Icons.copy, size: 16),
+                  onPressed: c.copyTimelineKeys),
               IconButton(
                   tooltip: Strings.of(context).rigPasteKeys,
                   icon: const Icon(Icons.content_paste, size: 16),
@@ -797,7 +835,8 @@ class _KeyEditBar extends StatelessWidget {
                   tooltip: Strings.of(context).rigSetEasing,
                   icon: const Icon(Icons.timeline, size: 16),
                   itemBuilder: (_) => [
-                        for (final e in RigEasing.values) PopupMenuItem(value: e.index, child: Text(rigEasingName(Strings.of(context), e))),
+                        for (final e in RigEasing.values)
+                          PopupMenuItem(value: e.index, child: Text(rigEasingName(Strings.of(context), e))),
                         PopupMenuItem(value: -1, child: Text(Strings.of(context).rigEasingCustom)),
                       ],
                   onSelected: (i) async {

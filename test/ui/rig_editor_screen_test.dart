@@ -800,7 +800,7 @@ void main() {
     }
 
     Future<void> savePoseAs(WidgetTester tester, String name) async {
-      await tester.ensureVisible(find.byKey(const ValueKey('save-pose')));
+      await inPanel(tester, find.byKey(const ValueKey('save-pose')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('save-pose')));
       await tester.pumpAndSettle();
@@ -860,7 +860,7 @@ void main() {
 
     testWidgets('cancelling the name dialog saves nothing', (tester) async {
       await openAnimate(tester);
-      await tester.ensureVisible(find.byKey(const ValueKey('save-pose')));
+      await inPanel(tester, find.byKey(const ValueKey('save-pose')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('save-pose')));
       await tester.pumpAndSettle();

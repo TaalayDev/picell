@@ -200,8 +200,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final strings = Strings.of(context);
     if (!RigBakeService.canBake(_controller.rig)) {
-      messenger?.showSnackBar(
-          SnackBar(content: Text(strings.rigNothingKeyed)));
+      messenger?.showSnackBar(SnackBar(content: Text(strings.rigNothingKeyed)));
       return;
     }
     _stopPlayback();
@@ -364,6 +363,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
                 backgroundColor: theme.scaffoldBackgroundColor,
                 body: SafeArea(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _TopBar(
                         title: widget.title,
@@ -646,7 +646,8 @@ class _RigModeTabs extends StatelessWidget {
                             size: 15, color: controller.mode == mode ? colors.onPrimaryContainer : colors.onSurface),
                         const SizedBox(width: 6),
                       ],
-                      Text(mode == RigMode.setup ? Strings.of(context).rigModeSetup : Strings.of(context).rigModeAnimate,
+                      Text(
+                          mode == RigMode.setup ? Strings.of(context).rigModeSetup : Strings.of(context).rigModeAnimate,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: controller.mode == mode ? colors.onPrimaryContainer : colors.onSurface,
                             fontWeight: controller.mode == mode ? FontWeight.w700 : FontWeight.w500,
@@ -687,10 +688,34 @@ class _ToolRail extends StatelessWidget {
       );
     }
 
+    /// A toggle shown pressed with the same look as the active tool.
+    Widget toggle(Key key, String label, IconData icon, bool on, VoidCallback onPressed) => IconButton(
+          key: key,
+          tooltip: label,
+          isSelected: on,
+          icon: Icon(icon, size: 18),
+          style: IconButton.styleFrom(
+            foregroundColor: on ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurfaceVariant,
+            backgroundColor: on ? theme.colorScheme.secondaryContainer : null,
+          ),
+          onPressed: onPressed,
+        );
+    Widget divider() => Padding(
+          padding: horizontal
+              ? const EdgeInsets.symmetric(horizontal: 4, vertical: 8)
+              : const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: SizedBox(
+            width: horizontal ? 1 : null,
+            height: horizontal ? null : 1,
+            child: ColoredBox(color: theme.dividerColor.withValues(alpha: 0.6)),
+          ),
+        );
+
     final animating = controller.mode == RigMode.animate;
     final selectedId = controller.selectedBoneId;
     final children = [
-      tool(RigTool.select, Icons.near_me_outlined, animating ? Strings.of(context).rigToolSelectAnimate : Strings.of(context).rigToolSelectSetup),
+      tool(RigTool.select, Icons.near_me_outlined,
+          animating ? Strings.of(context).rigToolSelectAnimate : Strings.of(context).rigToolSelectSetup),
       if (!animating) tool(RigTool.createBone, Icons.show_chart, Strings.of(context).rigToolDraw),
       if (!animating)
         KeyedSubtree(
@@ -715,29 +740,25 @@ class _ToolRail extends StatelessWidget {
               : () => controller.setPose(selectedId, flipX: !controller.poseOf(selectedId).flipX),
         ),
       ],
-      IconButton(
-          key: const ValueKey('rig-multi-select'),
-          tooltip: Strings.of(context).rigSelectMultiple,
-          isSelected: controller.multiSelectEnabled,
-          icon: const Icon(Icons.select_all, size: 18),
-          onPressed: controller.toggleMultiSelect),
+      divider(),
+      toggle(const ValueKey('rig-multi-select'), Strings.of(context).rigSelectMultiple, Icons.select_all,
+          controller.multiSelectEnabled, controller.toggleMultiSelect),
       if (!animating)
-        IconButton(
-            key: const ValueKey('rig-snapping'),
-            tooltip: Strings.of(context).rigSnapping,
-            isSelected: controller.snappingEnabled,
-            icon: const Icon(Icons.align_horizontal_center, size: 18),
-            onPressed: () => controller.setSnapping(!controller.snappingEnabled)),
+        toggle(const ValueKey('rig-snapping'), Strings.of(context).rigSnapping, Icons.align_horizontal_center,
+            controller.snappingEnabled, () => controller.setSnapping(!controller.snappingEnabled)),
+      if (!horizontal) const Spacer(),
       IconButton(
-          tooltip: Strings.of(context).rigFit, icon: const Icon(Icons.center_focus_strong_outlined, size: 18), onPressed: onFit),
+          tooltip: Strings.of(context).rigFit,
+          icon: const Icon(Icons.center_focus_strong_outlined, size: 18),
+          onPressed: onFit),
     ];
 
     return Container(
-      width: horizontal ? null : 44,
-      height: horizontal ? 44 : null,
+      width: horizontal ? null : 48,
+      height: horizontal ? 48 : null,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: theme.colorScheme.surfaceContainerLow,
         border: horizontal
             ? Border(top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)))
             : Border(right: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5))),
@@ -767,12 +788,16 @@ class _ArmedLayerBanner extends StatelessWidget {
     return Material(
       key: const ValueKey('armed-layer-banner'),
       color: theme.colorScheme.primaryContainer,
-      borderRadius: BorderRadius.circular(16),
+      elevation: 3,
+      shadowColor: Colors.black54,
+      borderRadius: BorderRadius.circular(20),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(Icons.link, size: 16, color: theme.colorScheme.onPrimaryContainer),
+            const SizedBox(width: 6),
             Flexible(
               child: Text(
                 Strings.of(context).rigNextBoneMoves(layer.name),
@@ -810,18 +835,21 @@ class _PaintBar extends StatelessWidget {
     return Material(
       key: const ValueKey('paint-bar'),
       color: theme.colorScheme.surfaceContainerHigh,
+      shape: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5))),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
         child: Row(
           children: [
+            Icon(erase ? Icons.cleaning_services_outlined : Icons.brush, size: 16, color: theme.colorScheme.primary),
+            const SizedBox(width: 6),
             Text(
               erase
                   ? Strings.of(context).rigPaintErasing
                   : bone == null
                       ? Strings.of(context).rigPaintSelectBone
                       : Strings.of(context).rigPaintingFor(bone.name),
-              style: theme.textTheme.labelMedium,
+              style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(width: 8),
             ChoiceChip(
@@ -883,6 +911,7 @@ class _PlacementBar extends StatelessWidget {
     return Material(
       key: const ValueKey('placement-bar'),
       color: theme.colorScheme.surfaceContainerHigh,
+      shape: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5))),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Column(

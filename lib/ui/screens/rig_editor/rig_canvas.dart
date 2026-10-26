@@ -543,7 +543,7 @@ class RigCanvasState extends State<RigCanvas> {
                 background: theme.colorScheme.surface,
                 gridColor: theme.dividerColor,
                 boneColor: theme.colorScheme.primary,
-                selectedColor: theme.colorScheme.secondary,
+                selectedColor: const Color(0xFFFFB300), // reads on every theme and apart from the bone colour
                 ikColor: theme.colorScheme.tertiary,
                 jointFill: theme.colorScheme.surface,
               ),
