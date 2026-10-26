@@ -5,6 +5,52 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:picell/data/models/template.dart';
 
 void main() {
+  test('front adventurer restores six layers and a transparent background', () {
+    final json = jsonDecode(File('assets/data/templates/front_scarf_adventurer_64x96.json').readAsStringSync())
+        as Map<String, dynamic>;
+    final template = Template.fromJson(json);
+    expect(template.layers.map((layer) => layer.name), ['leg_l', 'leg_r', 'arm_l', 'body', 'arm_r', 'head']);
+    expect(template.pixels.toList(), List<int>.from(json['pixels'] as List));
+    expect(template.pixels.first, 0);
+    expect(template.pixels.last, 0);
+    expect(template.tags, contains('front-view'));
+    for (final layer in template.layers) {
+      expect(layer.pixels, hasLength(64 * 96));
+      expect(layer.pixels.any((p) => p != 0), true);
+    }
+    expect(Template.fromJson(jsonDecode(jsonEncode(template.toJson()))), template);
+  });
+
+  test('scarf adventurer restores six aligned layers with unchanged pixels', () {
+    final json = jsonDecode(File('assets/data/templates/scarf_adventurer_64x96.json').readAsStringSync())
+        as Map<String, dynamic>;
+    final template = Template.fromJson(json);
+    expect(template.layers.map((layer) => layer.name), ['leg_l', 'leg_r', 'arm_l', 'body', 'arm_r', 'head']);
+    expect(template.pixels.toList(), List<int>.from(json['pixels'] as List));
+    for (final layer in template.layers) {
+      expect(layer.pixels, hasLength(64 * 96));
+      expect(layer.pixels.any((p) => p != 0), true);
+    }
+    expect(Template.fromJson(jsonDecode(jsonEncode(template.toJson()))), template);
+  });
+
+  test('clockwork robot preserves source pixels across six editable layers', () {
+    final json =
+        jsonDecode(File('assets/data/templates/clockwork_robot_64x96.json').readAsStringSync()) as Map<String, dynamic>;
+    final template = Template.fromJson(json);
+    expect(template.layers.map((layer) => layer.name), ['leg_l', 'leg_r', 'arm_l', 'body', 'arm_r', 'head']);
+    expect(template.pixels.toList(), List<int>.from(json['pixels'] as List));
+    expect(template.width, 64);
+    expect(template.height, 96);
+    for (final layer in template.layers) {
+      expect(layer.pixels, hasLength(64 * 96));
+      expect(layer.pixels.any((p) => p != 0), true);
+    }
+    final index = jsonDecode(File('assets/data/templates/index.json').readAsStringSync()) as List;
+    expect(index.where((name) => name == 'clockwork_robot_64x96.json'), hasLength(1));
+    expect(Template.fromJson(jsonDecode(jsonEncode(template.toJson()))), template);
+  });
+
   test('side-profile knight restores aligned layers without changing its artwork', () {
     final json = jsonDecode(File('assets/data/templates/side_profile_knight_32x48.json').readAsStringSync())
         as Map<String, dynamic>;
