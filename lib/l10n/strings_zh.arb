@@ -2044,5 +2044,7 @@
     "rigCurveOvershoot": "过冲",
     "rigCurveAnticipate": "预备",
     "rigCurveStrongOut": "强缓出",
-    "rigCurveStrongInOut": "强缓入缓出"
+    "rigCurveStrongInOut": "强缓入缓出",
+    "rigExperimental": "实验性",
+    "rigExperimentalHint": "骨骼绑定是实验性功能，可能会有变化。请在依赖它之前备份你的项目。"
 }

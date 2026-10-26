@@ -2380,5 +2380,7 @@
     "rigCurveOvershoot": "Overshoot",
     "rigCurveAnticipate": "Anticipate",
     "rigCurveStrongOut": "Strong ease out",
-    "rigCurveStrongInOut": "Strong ease in-out"
+    "rigCurveStrongInOut": "Strong ease in-out",
+    "rigExperimental": "Experimental",
+    "rigExperimentalHint": "Bone rigging is experimental and may change. Keep a copy of your project before relying on it."
 }

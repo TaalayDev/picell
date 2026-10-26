@@ -8158,6 +8158,18 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Strong ease in-out'**
   String get rigCurveStrongInOut;
+
+  /// No description provided for @rigExperimental.
+  ///
+  /// In en, this message translates to:
+  /// **'Experimental'**
+  String get rigExperimental;
+
+  /// No description provided for @rigExperimentalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bone rigging is experimental and may change. Keep a copy of your project before relying on it.'**
+  String get rigExperimentalHint;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

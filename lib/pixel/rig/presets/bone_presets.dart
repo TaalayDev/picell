@@ -124,6 +124,23 @@ abstract final class BonePresets {
     ],
   );
 
+  /// Six bones, one per body part. Its names are the layer names of the
+  /// "Simple Hero" example, so a layered figure binds by name.
+  static const humanoidBasic = BonePreset(
+    id: 'humanoid_basic',
+    name: 'Basic character',
+    description: 'The simplest figure: body, head, two arms and two legs, one bone each. Seen from the front.',
+    alignedCanvasSize: Size(32, 32),
+    bones: [
+      PresetBone('body', null, Offset(16 / 32, 21 / 32), Offset(16 / 32, 12 / 32)),
+      PresetBone('head', 'body', Offset(16 / 32, 12 / 32), Offset(16 / 32, 2 / 32)),
+      PresetBone('arm_l', 'body', Offset(9 / 32, 12.5 / 32), Offset(9 / 32, 20.5 / 32)),
+      PresetBone('arm_r', 'body', Offset(23 / 32, 12.5 / 32), Offset(23 / 32, 20.5 / 32)),
+      PresetBone('leg_l', 'body', Offset(13.5 / 32, 21 / 32), Offset(13.5 / 32, 29.5 / 32)),
+      PresetBone('leg_r', 'body', Offset(18.5 / 32, 21 / 32), Offset(18.5 / 32, 29.5 / 32)),
+    ],
+  );
+
   static const humanoidSide = BonePreset(
     id: 'humanoid_side',
     name: 'Humanoid (side profile)',
@@ -293,6 +310,7 @@ abstract final class BonePresets {
   /// Everything on offer, characters first.
   static final all = <BonePreset>[
     humanoid,
+    humanoidBasic,
     humanoidSide,
     humanoidSimple,
     quadruped,

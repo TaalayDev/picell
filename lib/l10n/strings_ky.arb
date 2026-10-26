@@ -1999,5 +1999,7 @@
     "rigCurveOvershoot": "Ашып кетүү",
     "rigCurveAnticipate": "Камынуу",
     "rigCurveStrongOut": "Күчтүү басаңдоо",
-    "rigCurveStrongInOut": "Күчтүү ылдамдоо-басаңдоо"
+    "rigCurveStrongInOut": "Күчтүү ылдамдоо-басаңдоо",
+    "rigExperimental": "Сынамык",
+    "rigExperimentalHint": "Сөөк анимациясы сынамык болуп саналат жана өзгөрүшү мүмкүн. Ишенер алдында долбоордун көчүрмөсүн сактап коюңуз."
 }

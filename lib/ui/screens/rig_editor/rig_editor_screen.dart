@@ -553,6 +553,8 @@ class _TopBar extends StatelessWidget {
                 style: theme.textTheme.labelLarge?.copyWith(fontFamily: 'monospace'),
               ),
             ),
+          const SizedBox(width: 8),
+          _ExperimentalBadge(compact: compact),
           const Spacer(),
           _RigModeTabs(controller: controller, compact: compact),
           const Spacer(),
@@ -607,6 +609,45 @@ class _TopBar extends StatelessWidget {
 }
 
 /// Compact tabs share the editor's surface, outline and accent palette.
+/// Marks bone rigging as a feature still in flux.
+class _ExperimentalBadge extends StatelessWidget {
+  const _ExperimentalBadge({required this.compact});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final strings = Strings.of(context);
+    return Tooltip(
+      key: const ValueKey('rig-experimental'),
+      message: strings.rigExperimentalHint,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: compact ? 5 : 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: colors.tertiaryContainer,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.science_outlined, size: 14, color: colors.onTertiaryContainer),
+            if (!compact) ...[
+              const SizedBox(width: 4),
+              Text(
+                strings.rigExperimental,
+                style: theme.textTheme.labelSmall
+                    ?.copyWith(color: colors.onTertiaryContainer, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _RigModeTabs extends StatelessWidget {
   const _RigModeTabs({required this.controller, required this.compact});
   final RigEditorController controller;

@@ -4476,4 +4476,10 @@ class StringsZh extends Strings {
 
   @override
   String get rigCurveStrongInOut => '强缓入缓出';
+
+  @override
+  String get rigExperimental => '实验性';
+
+  @override
+  String get rigExperimentalHint => '骨骼绑定是实验性功能，可能会有变化。请在依赖它之前备份你的项目。';
 }

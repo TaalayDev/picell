@@ -4708,4 +4708,11 @@ class StringsEn extends Strings {
 
   @override
   String get rigCurveStrongInOut => 'Strong ease in-out';
+
+  @override
+  String get rigExperimental => 'Experimental';
+
+  @override
+  String get rigExperimentalHint =>
+      'Bone rigging is experimental and may change. Keep a copy of your project before relying on it.';
 }

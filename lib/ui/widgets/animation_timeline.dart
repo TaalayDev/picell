@@ -174,7 +174,7 @@ class AnimationTimeline extends HookWidget {
             const SizedBox(width: 8),
             if (onOpenRig != null)
               Tooltip(
-                message: 'Bone rig',
+                message: 'Bone rig (experimental)',
                 child: IconButton(
                   key: const ValueKey('open-rig-editor'),
                   icon: Badge(

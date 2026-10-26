@@ -4478,4 +4478,10 @@ class StringsJa extends Strings {
 
   @override
   String get rigCurveStrongInOut => '強いイーズインアウト';
+
+  @override
+  String get rigExperimental => '試験的機能';
+
+  @override
+  String get rigExperimentalHint => 'ボーンリグは試験的機能で、変更される可能性があります。使用前にプロジェクトのコピーを保存してください。';
 }

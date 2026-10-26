@@ -2061,5 +2061,7 @@
     "rigCurveOvershoot": "オーバーシュート",
     "rigCurveAnticipate": "予備動作",
     "rigCurveStrongOut": "強いイーズアウト",
-    "rigCurveStrongInOut": "強いイーズインアウト"
+    "rigCurveStrongInOut": "強いイーズインアウト",
+    "rigExperimental": "試験的機能",
+    "rigExperimentalHint": "ボーンリグは試験的機能で、変更される可能性があります。使用前にプロジェクトのコピーを保存してください。"
 }

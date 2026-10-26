@@ -4516,4 +4516,11 @@ class StringsKy extends Strings {
 
   @override
   String get rigCurveStrongInOut => 'Күчтүү ылдамдоо-басаңдоо';
+
+  @override
+  String get rigExperimental => 'Сынамык';
+
+  @override
+  String get rigExperimentalHint =>
+      'Сөөк анимациясы сынамык болуп саналат жана өзгөрүшү мүмкүн. Ишенер алдында долбоордун көчүрмөсүн сактап коюңуз.';
 }

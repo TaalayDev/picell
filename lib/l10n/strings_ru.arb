@@ -1988,5 +1988,7 @@
     "rigCurveOvershoot": "Перелёт",
     "rigCurveAnticipate": "Замах",
     "rigCurveStrongOut": "Сильное замедление",
-    "rigCurveStrongInOut": "Сильный разгон и торможение"
+    "rigCurveStrongInOut": "Сильный разгон и торможение",
+    "rigExperimental": "Экспериментально",
+    "rigExperimentalHint": "Костная анимация экспериментальная и может измениться. Сохраните копию проекта, прежде чем полагаться на неё."
 }

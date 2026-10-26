@@ -4778,4 +4778,11 @@ class StringsRu extends Strings {
 
   @override
   String get rigCurveStrongInOut => 'Сильный разгон и торможение';
+
+  @override
+  String get rigExperimental => 'Экспериментально';
+
+  @override
+  String get rigExperimentalHint =>
+      'Костная анимация экспериментальная и может измениться. Сохраните копию проекта, прежде чем полагаться на неё.';
 }

@@ -20,6 +20,8 @@ abstract final class NameTokens {
     'calf': 'shin',
     'knee': 'shin',
     'ankle': 'foot',
+    'body': 'hips',
+    'leg': 'thigh',
     'pelvis': 'hips',
     'hip': 'hips',
     'torso': 'spine',
