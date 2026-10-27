@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../app/theme/theme.dart';
 import '../../../l10n/strings.dart';
 import '../../widgets/notifications/app_notification.dart';
 import '../../../core/utils/image_helper.dart';
@@ -19,6 +20,7 @@ import '../../../pixel/rig/rig_editor_controller.dart';
 import 'rig_canvas.dart';
 import 'rig_gif_preview.dart';
 import 'rig_presets_dialogs.dart';
+import 'rig_style.dart';
 import 'rig_panels.dart';
 import 'rig_timeline.dart';
 
@@ -327,116 +329,137 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
   }
 
   Widget _buildEditor(BuildContext context) {
-    final theme = Theme.of(context);
     final wide = MediaQuery.sizeOf(context).width >= RigEditorScreen.wideBreakpoint;
 
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, _) {
-        return PopScope(
-          canPop: !_controller.hasChanges,
-          onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) _confirmDiscard(context);
-          },
-          child: CallbackShortcuts(
-            bindings: {
-              const SingleActivator(LogicalKeyboardKey.keyZ, meta: true): _controller.undo,
-              const SingleActivator(LogicalKeyboardKey.keyZ, control: true): _controller.undo,
-              const SingleActivator(LogicalKeyboardKey.keyZ, meta: true, shift: true): _controller.redo,
-              const SingleActivator(LogicalKeyboardKey.keyZ, control: true, shift: true): _controller.redo,
-              const SingleActivator(LogicalKeyboardKey.keyV): () => _controller.tool = RigTool.select,
-              const SingleActivator(LogicalKeyboardKey.keyB): () => _controller.tool = RigTool.createBone,
-              const SingleActivator(LogicalKeyboardKey.keyP): () => _controller.tool = RigTool.paintInfluence,
-              const SingleActivator(LogicalKeyboardKey.keyR): () => _controller.tool = RigTool.rotate,
-              const SingleActivator(LogicalKeyboardKey.keyM): () => _controller.tool = RigTool.move,
-              const SingleActivator(LogicalKeyboardKey.space): _playPauseIfAnimating,
-              const SingleActivator(LogicalKeyboardKey.keyA): _toggleAutoKey,
-              const SingleActivator(LogicalKeyboardKey.keyK): _keyShortcut,
-              const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _stepFrame(-1),
-              const SingleActivator(LogicalKeyboardKey.arrowRight): () => _stepFrame(1),
-              const SingleActivator(LogicalKeyboardKey.escape): _controller.cancelPlacement,
-              const SingleActivator(LogicalKeyboardKey.enter): _placeIfPlacing,
-              const SingleActivator(LogicalKeyboardKey.delete): _deleteSelected,
-              const SingleActivator(LogicalKeyboardKey.backspace): _deleteSelected,
-            },
-            child: Focus(
-              autofocus: true,
-              child: Scaffold(
-                backgroundColor: theme.scaffoldBackgroundColor,
-                body: SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _TopBar(
-                        title: widget.title,
-                        controller: _controller,
-                        onCancel: () => Navigator.of(context).maybePop(),
-                        onDone: _done,
-                        onPanels: wide ? null : () => _showPanelSheet(context),
-                      ),
-                      if (_makingGif) const LinearProgressIndicator(minHeight: 2),
-                      // Its own strip, not a float over the canvas: the box's handles
-                      // run to the canvas edges and must stay reachable.
-                      if (_controller.placement != null) _PlacementBar(controller: _controller, onPlace: _placePreset),
-                      if (_controller.mode == RigMode.setup && _controller.tool == RigTool.paintInfluence)
-                        _PaintBar(controller: _controller),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            if (wide) _ToolRail(controller: _controller, onFit: () => _canvasKey.currentState?.fit()),
-                            Expanded(
-                              child: Stack(
-                                children: [
-                                  Positioned.fill(
-                                    child: RigCanvas(key: _canvasKey, controller: _controller, image: _image),
+        return Theme(
+          data: rigThemeFor(context, _controller.mode),
+          child: Builder(builder: (context) {
+            final theme = Theme.of(context);
+            return PopScope(
+              canPop: !_controller.hasChanges,
+              onPopInvokedWithResult: (didPop, _) {
+                if (!didPop) _confirmDiscard(context);
+              },
+              child: CallbackShortcuts(
+                bindings: {
+                  const SingleActivator(LogicalKeyboardKey.keyZ, meta: true): _controller.undo,
+                  const SingleActivator(LogicalKeyboardKey.keyZ, control: true): _controller.undo,
+                  const SingleActivator(LogicalKeyboardKey.keyZ, meta: true, shift: true): _controller.redo,
+                  const SingleActivator(LogicalKeyboardKey.keyZ, control: true, shift: true): _controller.redo,
+                  const SingleActivator(LogicalKeyboardKey.keyV): () => _controller.tool = RigTool.select,
+                  const SingleActivator(LogicalKeyboardKey.keyB): () => _controller.tool = RigTool.createBone,
+                  const SingleActivator(LogicalKeyboardKey.keyP): () => _controller.tool = RigTool.paintInfluence,
+                  const SingleActivator(LogicalKeyboardKey.keyR): () => _controller.tool = RigTool.rotate,
+                  const SingleActivator(LogicalKeyboardKey.keyM): () => _controller.tool = RigTool.move,
+                  const SingleActivator(LogicalKeyboardKey.space): _playPauseIfAnimating,
+                  const SingleActivator(LogicalKeyboardKey.keyA): _toggleAutoKey,
+                  const SingleActivator(LogicalKeyboardKey.keyK): _keyShortcut,
+                  const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _stepFrame(-1),
+                  const SingleActivator(LogicalKeyboardKey.arrowRight): () => _stepFrame(1),
+                  const SingleActivator(LogicalKeyboardKey.escape): _controller.cancelPlacement,
+                  const SingleActivator(LogicalKeyboardKey.enter): _placeIfPlacing,
+                  const SingleActivator(LogicalKeyboardKey.delete): _deleteSelected,
+                  const SingleActivator(LogicalKeyboardKey.backspace): _deleteSelected,
+                },
+                child: Focus(
+                  autofocus: true,
+                  child: Scaffold(
+                    backgroundColor: theme.scaffoldBackgroundColor,
+                    body: SafeArea(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _TopBar(
+                            title: widget.title,
+                            controller: _controller,
+                            onCancel: () => Navigator.of(context).maybePop(),
+                            onDone: _done,
+                            onPanels: wide ? null : () => _showPanelSheet(context),
+                          ),
+                          if (_makingGif) const LinearProgressIndicator(minHeight: 2),
+                          // Its own strip, not a float over the canvas: the box's handles
+                          // run to the canvas edges and must stay reachable.
+                          if (_controller.placement != null)
+                            _PlacementBar(controller: _controller, onPlace: _placePreset),
+                          if (_controller.mode == RigMode.setup && _controller.tool == RigTool.paintInfluence)
+                            _PaintBar(controller: _controller),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                if (wide)
+                                  _ToolRail(controller: _controller, onFit: () => _canvasKey.currentState?.fit()),
+                                Expanded(
+                                  child: Stack(
+                                    children: [
+                                      Positioned.fill(
+                                        child: RigCanvas(key: _canvasKey, controller: _controller, image: _image),
+                                      ),
+                                      if (_controller.mode == RigMode.setup &&
+                                          _controller.rig.bones.isEmpty &&
+                                          _controller.tool == RigTool.select &&
+                                          _controller.placement == null)
+                                        Positioned.fill(
+                                          child: Align(
+                                            alignment: Alignment.topCenter,
+                                            child: _CoachCard(
+                                              onPreset: () => addSkeletonPreset(context, _controller),
+                                              onDraw: () => _controller.tool = RigTool.createBone,
+                                            ),
+                                          ),
+                                        ),
+                                      if (_controller.mode == RigMode.setup && _controller.activeLayerKey != null)
+                                        Positioned(
+                                          top: 8,
+                                          left: 8,
+                                          right: 8,
+                                          child: Center(child: _ArmedLayerBanner(controller: _controller)),
+                                        ),
+                                    ],
                                   ),
-                                  if (_controller.mode == RigMode.setup && _controller.activeLayerKey != null)
-                                    Positioned(
-                                      top: 8,
-                                      left: 8,
-                                      right: 8,
-                                      child: Center(child: _ArmedLayerBanner(controller: _controller)),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            if (wide)
-                              Container(
-                                width: 248,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.surface,
-                                  border: Border(left: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5))),
                                 ),
-                                child: RigSidePanel(controller: _controller),
-                              ),
-                          ],
-                        ),
+                                if (wide)
+                                  Container(
+                                    width: 248,
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.surface,
+                                      border:
+                                          Border(left: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5))),
+                                    ),
+                                    child: RigSidePanel(controller: _controller),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          if (_controller.mode == RigMode.animate)
+                            RigTimeline(
+                              controller: _controller,
+                              isPlaying: _playing,
+                              onPlayPause: _togglePlayback,
+                              onBeforeEdit: _stopPlayback,
+                              onPreviewGif: () => _previewGif(context),
+                              onPresets: () => _chooseAnimation(context),
+                              onClearAnimations: () {
+                                _stopPlayback();
+                                _controller.clearAnimations();
+                              },
+                            ),
+                          if (!wide)
+                            _ToolRail(
+                              controller: _controller,
+                              horizontal: true,
+                              onFit: () => _canvasKey.currentState?.fit(),
+                            ),
+                        ],
                       ),
-                      if (_controller.mode == RigMode.animate)
-                        RigTimeline(
-                          controller: _controller,
-                          isPlaying: _playing,
-                          onPlayPause: _togglePlayback,
-                          onBeforeEdit: _stopPlayback,
-                          onPreviewGif: () => _previewGif(context),
-                          onPresets: () => _chooseAnimation(context),
-                          onClearAnimations: () {
-                            _stopPlayback();
-                            _controller.clearAnimations();
-                          },
-                        ),
-                      if (!wide)
-                        _ToolRail(
-                          controller: _controller,
-                          horizontal: true,
-                          onFit: () => _canvasKey.currentState?.fit(),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          }),
         );
       },
     );
@@ -526,15 +549,17 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final pv = context.pv;
+    final accent = rigModeColor(controller.mode);
     // Phones have no room for the title or a labelled Done button.
     final compact = MediaQuery.sizeOf(context).width < 640;
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5))),
+        color: pv.tint(accent),
+        border: Border(bottom: BorderSide(color: accent, width: 2)),
       ),
       child: Row(
         children: [
@@ -551,7 +576,7 @@ class _TopBar extends StatelessWidget {
               child: Text(
                 title.isEmpty ? Strings.of(context).rigTitle : title,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelLarge?.copyWith(fontFamily: 'monospace'),
+                style: pv.mono(size: 13),
               ),
             ),
           const SizedBox(width: 8),
@@ -586,23 +611,37 @@ class _TopBar extends StatelessWidget {
             icon: const Icon(Icons.redo, size: 18),
             onPressed: controller.canRedo ? controller.redo : null,
           ),
-          const SizedBox(width: 6),
-          if (compact)
-            IconButton.filled(
-                constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
-                padding: compact ? const EdgeInsets.all(4) : null,
-                style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
-                visualDensity: VisualDensity.compact,
-                tooltip: Strings.of(context).done,
-                icon: const Icon(Icons.check, size: 18),
-                onPressed: onDone)
-          else
-            FilledButton.icon(
-              onPressed: onDone,
-              icon: const Icon(Icons.check, size: 16),
-              label: Text(Strings.of(context).done),
+          SizedBox(width: compact ? 2 : 6),
+          Material(
+            color: accent,
+            shape: const StadiumBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              key: const ValueKey('rig-done'),
+              onTap: onDone,
+              child: Tooltip(
+                message: Strings.of(context).done,
+                child: SizedBox(
+                  height: 36,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 14),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check, size: 20, color: pv.ink),
+                        if (!compact) ...[
+                          const SizedBox(width: 4),
+                          Text(Strings.of(context).done,
+                              style: pv.body(size: 13, color: pv.ink, weight: FontWeight.w700)),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-          const SizedBox(width: 6),
+          ),
+          SizedBox(width: compact ? 2 : 6),
         ],
       ),
     );
@@ -618,29 +657,26 @@ class _ExperimentalBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final pv = context.pv;
     final strings = Strings.of(context);
     return Tooltip(
       key: const ValueKey('rig-experimental'),
       message: strings.rigExperimentalHint,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: compact ? 5 : 8, vertical: 3),
+        height: 24,
+        padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 8),
         decoration: BoxDecoration(
-          color: colors.tertiaryContainer,
-          borderRadius: BorderRadius.circular(10),
+          color: pv.warn.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: pv.warn),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.science_outlined, size: 14, color: colors.onTertiaryContainer),
+            Icon(Icons.science_outlined, size: 14, color: pv.warn),
             if (!compact) ...[
               const SizedBox(width: 4),
-              Text(
-                strings.rigExperimental,
-                style: theme.textTheme.labelSmall
-                    ?.copyWith(color: colors.onTertiaryContainer, fontWeight: FontWeight.w600),
-              ),
+              Text(strings.rigExperimental, style: pv.pixelLabel(size: 10, color: pv.warn)),
             ],
           ],
         ),
@@ -656,15 +692,15 @@ class _RigModeTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final pv = context.pv;
     return Container(
       key: const ValueKey('rig-mode-tabs'),
-      padding: const EdgeInsets.all(3),
+      height: 36,
+      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colors.outlineVariant),
+        color: pv.background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: pv.divider),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -673,27 +709,32 @@ class _RigModeTabs extends StatelessWidget {
             Semantics(
               selected: controller.mode == mode,
               button: true,
-              child: Material(
-                color: controller.mode == mode ? colors.primaryContainer : Colors.transparent,
-                borderRadius: BorderRadius.circular(7),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                decoration: BoxDecoration(
+                  color: controller.mode == mode ? rigModeColor(mode) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 child: InkWell(
                   key: ValueKey('rig-mode-${mode.name}'),
-                  borderRadius: BorderRadius.circular(7),
+                  borderRadius: BorderRadius.circular(15),
                   onTap: () => controller.mode = mode,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14, vertical: 6),
+                    padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 14),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       if (!compact) ...[
                         Icon(mode == RigMode.setup ? Icons.account_tree_outlined : Icons.animation,
-                            size: 15, color: controller.mode == mode ? colors.onPrimaryContainer : colors.onSurface),
+                            size: 18, color: controller.mode == mode ? pv.ink : pv.textSecondary),
                         const SizedBox(width: 6),
                       ],
                       Text(
-                          mode == RigMode.setup ? Strings.of(context).rigModeSetup : Strings.of(context).rigModeAnimate,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: controller.mode == mode ? colors.onPrimaryContainer : colors.onSurface,
-                            fontWeight: controller.mode == mode ? FontWeight.w700 : FontWeight.w500,
-                          )),
+                        mode == RigMode.setup ? Strings.of(context).rigModeSetup : Strings.of(context).rigModeAnimate,
+                        style: pv.body(
+                          size: 13,
+                          color: controller.mode == mode ? pv.ink : pv.textSecondary,
+                          weight: FontWeight.w700,
+                        ),
+                      ),
                     ]),
                   ),
                 ),
@@ -815,6 +856,75 @@ class _ToolRail extends StatelessWidget {
 }
 
 /// Reminds that the next bone drawn will move a layer, and lets go of it.
+/// First-run guide shown over an empty canvas in Setup.
+class _CoachCard extends StatelessWidget {
+  const _CoachCard({required this.onPreset, required this.onDraw});
+
+  final VoidCallback onPreset;
+  final VoidCallback onDraw;
+
+  @override
+  Widget build(BuildContext context) {
+    final pv = context.pv;
+    final strings = Strings.of(context);
+    Widget step(int n, String text) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: pv.tint(PvTokens.rigSetup, 0.25), shape: BoxShape.circle),
+                child: Text('$n', style: pv.mono(size: 12, color: PvTokens.rigSetup, weight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 10),
+              Flexible(child: Text(text, style: pv.body(size: 13))),
+            ],
+          ),
+        );
+    return Container(
+      key: const ValueKey('rig-coach-card'),
+      constraints: const BoxConstraints(maxWidth: 300),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        color: pv.surface.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: pv.divider),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(strings.rigCoachTitle, style: pv.pixelLabel(size: 13, color: PvTokens.rigSetup)),
+          const SizedBox(height: 8),
+          step(1, strings.rigCoachPreset),
+          step(2, strings.rigCoachDraw),
+          step(3, strings.rigCoachBind),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              FilledButton.icon(
+                onPressed: onPreset,
+                icon: const Icon(Icons.dashboard_customize_outlined, size: 16),
+                label: Text(strings.rigAddSkeletonButton),
+              ),
+              OutlinedButton.icon(
+                onPressed: onDraw,
+                icon: const Icon(Icons.show_chart, size: 16),
+                label: Text(strings.rigToolDraw),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ArmedLayerBanner extends StatelessWidget {
   const _ArmedLayerBanner({required this.controller});
 

@@ -46,9 +46,10 @@ class _ProjectThumbnailWidgetState extends State<ProjectThumbnailWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final pv = context.pv;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: pv.checkerA,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ClipRRect(
@@ -59,15 +60,15 @@ class _ProjectThumbnailWidgetState extends State<ProjectThumbnailWidget> {
             CustomPaint(
               painter: CheckerboardPainter(
                 cellSize: 8,
-                color1: Colors.grey.shade100,
-                color2: Colors.grey.shade50,
+                color1: pv.checkerA,
+                color2: pv.checkerB,
               ),
             ),
             if (_image != null)
-              CustomPaint(painter: ImagePainter(_image!, fit: widget.fit))
+              CustomPaint(painter: ImagePainter(_image!, fit: widget.fit, filterQuality: FilterQuality.none))
             else
-              const Center(
-                child: Icon(Feather.image, size: 48),
+              Center(
+                child: Icon(Feather.image, size: 48, color: pv.textSecondary),
               ),
           ],
         ),

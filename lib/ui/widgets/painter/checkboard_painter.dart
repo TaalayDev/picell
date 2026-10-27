@@ -24,5 +24,6 @@ class CheckerboardPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CheckerboardPainter old) =>
+      old.cellSize != cellSize || old.color1 != color1 || old.color2 != color2;
 }

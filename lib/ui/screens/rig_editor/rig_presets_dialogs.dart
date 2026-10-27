@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../app/theme/theme.dart';
+
 import '../../../l10n/strings.dart';
 import '../../../pixel/rig/presets/bone_presets.dart';
 import '../../../pixel/rig/presets/motion_catalog.dart';
@@ -96,6 +98,7 @@ class _SkeletonTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final pv = context.pv;
     return InkWell(
       key: ValueKey('skeleton-${preset.id}'),
       onTap: () => Navigator.pop(context, preset),
@@ -107,17 +110,19 @@ class _SkeletonTile extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
+                color: pv.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: pv.divider),
               ),
-              child: CustomPaint(painter: _SkeletonThumb(preset, theme.colorScheme.primary)),
+              child: CustomPaint(painter: _SkeletonThumb(preset, PvTokens.rigSetup)),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(Strings.of(context).rigPresetBones(preset.name, preset.bones.length), style: theme.textTheme.bodyMedium),
+                  Text(Strings.of(context).rigPresetBones(preset.name, preset.bones.length),
+                      style: pv.body(size: 14, weight: FontWeight.w600)),
                   const SizedBox(height: 2),
                   Text(
                     preset.description,
@@ -276,11 +281,15 @@ class _MotionTile extends StatelessWidget {
     if (preset.target == MotionTarget.roles) {
       final c = controller.motionCoverage(preset, mirror: mirror);
       usable = c.matched > 0;
-      status = usable ? Strings.of(context).rigBonesFound(c.matched, c.total) : Strings.of(context).rigNoBonesNamedLike(_examples(preset));
+      status = usable
+          ? Strings.of(context).rigBonesFound(c.matched, c.total)
+          : Strings.of(context).rigNoBonesNamedLike(_examples(preset));
     } else {
       usable = controller.selectedBone != null;
       status = usable
-          ? (preset.target == MotionTarget.selectedChain ? Strings.of(context).rigSelectedBoneAndBelow : Strings.of(context).rigSelectedBone)
+          ? (preset.target == MotionTarget.selectedChain
+              ? Strings.of(context).rigSelectedBoneAndBelow
+              : Strings.of(context).rigSelectedBone)
           : Strings.of(context).rigSelectBoneFirstShort;
     }
 
@@ -298,7 +307,9 @@ class _MotionTile extends StatelessWidget {
                 children: [
                   Expanded(child: Text(preset.name, style: theme.textTheme.bodyMedium)),
                   Text(
-                    preset.loop ? Strings.of(context).rigMotionMeta(preset.frames, preset.fps) : Strings.of(context).rigMotionMetaOnce(preset.frames, preset.fps),
+                    preset.loop
+                        ? Strings.of(context).rigMotionMeta(preset.frames, preset.fps)
+                        : Strings.of(context).rigMotionMetaOnce(preset.frames, preset.fps),
                     style: theme.textTheme.labelSmall?.copyWith(color: muted, fontFamily: 'monospace'),
                   ),
                 ],

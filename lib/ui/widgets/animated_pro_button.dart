@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../app/theme/theme.dart';
 
@@ -54,63 +52,42 @@ class _AnimatedProButtonState extends State<AnimatedProButton> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
+    final pv = context.pv;
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Container(
+          scale: reduceMotion ? 1.0 : _scaleAnimation.value,
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  widget.theme.accentColor,
-                  Color.lerp(widget.theme.accentColor, Colors.purple, 0.5)!,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10),
+              gradient: pv.gradient,
+              borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: widget.theme.accentColor.withValues(alpha: _glowAnimation.value),
+                  color: pv.primary.withValues(alpha: _glowAnimation.value * 0.6),
                   blurRadius: 8,
-                  spreadRadius: 1,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Material(
-              color: Colors.transparent,
+              type: MaterialType.transparency,
               child: InkWell(
                 onTap: widget.onTap,
-                borderRadius: BorderRadius.circular(20),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        MaterialCommunityIcons.star,
-                        color: Colors.white,
-                        size: 18,
-                      )
-                          .animate(
-                            onPlay: (controller) => controller.repeat(),
-                          )
-                          .rotate(
-                            duration: 3.seconds,
-                            curve: Curves.easeInOut,
-                          ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Pro',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+                borderRadius: BorderRadius.circular(15),
+                child: SizedBox(
+                  height: 30,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8, right: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.workspace_premium, color: pv.ink, size: 16),
+                        const SizedBox(width: 4),
+                        Text('PRO', style: pv.pixelLabel(size: 12, color: pv.ink)),
+                      ],
+                    ),
                   ),
                 ),
               ),

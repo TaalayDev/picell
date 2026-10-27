@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/theme/theme.dart';
 import '../../../l10n/strings.dart';
 import '../../../data/models/layer.dart';
 import '../../../data/models/rig/rig.dart';
@@ -84,6 +85,7 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final pv = context.pv;
     final muted = theme.colorScheme.onSurfaceVariant;
     return Material(
       color: theme.colorScheme.surfaceContainerHigh.withValues(alpha: 0.6),
@@ -104,8 +106,7 @@ class _SectionHeader extends StatelessWidget {
               const SizedBox(width: 2),
               Text(
                 title,
-                style:
-                    theme.textTheme.labelSmall?.copyWith(color: muted, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+                style: pv.pixelLabel(size: 11, color: muted).copyWith(letterSpacing: 0.8),
               ),
               const Spacer(),
               if (count != null)
@@ -115,7 +116,7 @@ class _SectionHeader extends StatelessWidget {
                     color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text('$count', style: theme.textTheme.labelSmall?.copyWith(color: muted)),
+                  child: Text('$count', style: pv.mono(size: 11, color: muted)),
                 ),
             ],
           ),
@@ -895,7 +896,7 @@ class _BoneNumberState extends State<_BoneNumber> {
   Widget build(BuildContext context) => TextFormField(
         key: ValueKey('bone-number-${widget.label}'),
         controller: _text,
-        style: Theme.of(context).textTheme.bodySmall,
+        style: context.pv.mono(size: 12),
         keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
         decoration: InputDecoration(
             labelText: widget.label,

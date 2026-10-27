@@ -4804,4 +4804,46 @@ class StringsRu extends Strings {
 
   @override
   String get whatsNewOpenExample => 'Открыть пример';
+
+  @override
+  String get continueWhereYouLeftOff => 'Продолжить с того же места';
+
+  @override
+  String get resumeProject => 'Продолжить';
+
+  @override
+  String get noProjectsSubtitle => 'Здесь будет жить ваш пиксель-арт. Начните с чистого холста или шаблона.';
+
+  @override
+  String get createFirstProject => 'Создайте первый проект';
+
+  @override
+  String get newBadge => 'НОВОЕ';
+
+  @override
+  String get rigCoachTitle => 'Риг для спрайта';
+
+  @override
+  String get rigCoachPreset => 'Выберите готовый скелет';
+
+  @override
+  String get rigCoachDraw => 'Рисуйте кости';
+
+  @override
+  String get rigCoachBind => 'Привяжите слои к костям';
+
+  @override
+  String get startSomethingNew => 'Начать новое';
+
+  @override
+  String get pickCanvasSize => 'Выберите размер холста';
+
+  @override
+  String get importImageOrProject => 'Импорт изображения или проекта';
+
+  @override
+  String get searchProjectsAndCommunity => 'Поиск по проектам и сообществу';
+
+  @override
+  String get untitledProject => 'Без названия';
 }

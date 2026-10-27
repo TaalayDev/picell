@@ -2069,5 +2069,19 @@
     "whatsNewLoadFailed": "最新のお知らせを読み込めませんでした。",
     "whatsNewBoneRigTitle": "ボーンリガー",
     "whatsNewBoneRigBody": "ドット絵にボーンを設定し、ポーズ、クリップ、イージングカーブでアニメーションできます。プロジェクトのアニメーションツールからお試しください。",
-    "whatsNewOpenExample": "サンプルを開く"
+    "whatsNewOpenExample": "サンプルを開く",
+    "continueWhereYouLeftOff": "前回の続きから",
+    "resumeProject": "再開",
+    "noProjectsSubtitle": "ここにピクセルアートが保存されます。白紙のキャンバスかテンプレートから始めましょう。",
+    "createFirstProject": "最初のプロジェクトを作成",
+    "newBadge": "NEW",
+    "rigCoachTitle": "スプライトをリグする",
+    "rigCoachPreset": "スケルトンのプリセットを選ぶ",
+    "rigCoachDraw": "ボーンを描く",
+    "rigCoachBind": "レイヤーをボーンに割り当てる",
+    "startSomethingNew": "新しく始める",
+    "pickCanvasSize": "キャンバスサイズを選択",
+    "importImageOrProject": "画像またはプロジェクトを読み込む",
+    "searchProjectsAndCommunity": "プロジェクトとコミュニティを検索",
+    "untitledProject": "無題"
 }

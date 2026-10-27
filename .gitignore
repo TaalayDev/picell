@@ -72,3 +72,6 @@ lib/firebase_options.dart
 .env
 backend/
 studio/
+
+# Claude Design prototypes (reference only)
+design_prototype/

@@ -4502,4 +4502,46 @@ class StringsJa extends Strings {
 
   @override
   String get whatsNewOpenExample => 'サンプルを開く';
+
+  @override
+  String get continueWhereYouLeftOff => '前回の続きから';
+
+  @override
+  String get resumeProject => '再開';
+
+  @override
+  String get noProjectsSubtitle => 'ここにピクセルアートが保存されます。白紙のキャンバスかテンプレートから始めましょう。';
+
+  @override
+  String get createFirstProject => '最初のプロジェクトを作成';
+
+  @override
+  String get newBadge => 'NEW';
+
+  @override
+  String get rigCoachTitle => 'スプライトをリグする';
+
+  @override
+  String get rigCoachPreset => 'スケルトンのプリセットを選ぶ';
+
+  @override
+  String get rigCoachDraw => 'ボーンを描く';
+
+  @override
+  String get rigCoachBind => 'レイヤーをボーンに割り当てる';
+
+  @override
+  String get startSomethingNew => '新しく始める';
+
+  @override
+  String get pickCanvasSize => 'キャンバスサイズを選択';
+
+  @override
+  String get importImageOrProject => '画像またはプロジェクトを読み込む';
+
+  @override
+  String get searchProjectsAndCommunity => 'プロジェクトとコミュニティを検索';
+
+  @override
+  String get untitledProject => '無題';
 }

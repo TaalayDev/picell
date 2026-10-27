@@ -39,6 +39,8 @@ import '../widgets/dialogs/project_upload_dialog.dart' hide CheckerboardPainter;
 import '../widgets/dialogs/feedback_prompt_dialog.dart';
 import '../widgets/challenges/challenges_banner.dart';
 import '../widgets/discovery/discovery_carousel.dart';
+import '../widgets/project/home/pv_my_projects.dart';
+import '../widgets/pv/pv.dart';
 import '../widgets/discovery/whats_new.dart';
 import '../widgets/drop_target_overlay.dart';
 import '../widgets/project/sidebar_project_list_item.dart';
@@ -106,6 +108,27 @@ class ProjectsScreen extends HookConsumerWidget {
     final isDesktop = MediaQuery.sizeOf(context).width >= 800;
     final flagship = currentTheme.flagship;
 
+    Future<void> importProject() async {
+      final error = await ref.read(projectsProvider.notifier).importProject(context);
+      if (error != null && context.mounted) {
+        showTopFlushbar(context, message: Text(Strings.of(context).invalidFileContent));
+      }
+    }
+
+    void showAbout() => showDialog(
+          context: context,
+          builder: (_) => Dialog(
+            child: ClipRRect(
+              clipBehavior: Clip.antiAlias,
+              borderRadius: BorderRadius.circular(16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: const AboutScreen(),
+              ),
+            ),
+          ),
+        );
+
     // ── Desktop layout ─────────────────────────────────────────────────────
     if (isDesktop) {
       return DropTargetOverlay(
@@ -133,29 +156,9 @@ class ProjectsScreen extends HookConsumerWidget {
                   onDeleteCloudProject: (project) => _onDeleteCloudProject(context, ref, project, authState),
                   onRetryProjects: () => ref.refresh(projectsProvider),
                   onNewProject: () => _navigateToNewProject(context, ref, subscription),
-                  onImport: () async {
-                    final error = await ref.read(projectsProvider.notifier).importProject(context);
-                    if (error != null && context.mounted) {
-                      showTopFlushbar(
-                        context,
-                        message: Text(Strings.of(context).invalidFileContent),
-                      );
-                    }
-                  },
+                  onImport: importProject,
                   onFeedback: () => _navigateToFeedback(context, ref),
-                  onAbout: () => showDialog(
-                    context: context,
-                    builder: (_) => Dialog(
-                      child: ClipRRect(
-                        clipBehavior: Clip.antiAlias,
-                        borderRadius: BorderRadius.circular(16),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 600),
-                          child: const AboutScreen(),
-                        ),
-                      ),
-                    ),
-                  ),
+                  onAbout: showAbout,
                   onTheme: () => ThemeSelectorBottomSheet.show(context),
                   onPro: () => _showSubscriptionScreen(context),
                 ),
@@ -165,41 +168,79 @@ class ProjectsScreen extends HookConsumerWidget {
                       _DesktopContentHeader(
                         theme: currentTheme,
                         flagship: flagship,
+                        onAbout: showAbout,
+                        onImport: importProject,
+                        onTheme: () => ThemeSelectorBottomSheet.show(context),
+                        onPro: () => _showSubscriptionScreen(context),
+                        onFeedback: () => _navigateToFeedback(context, ref),
                       ),
                       if (!subscription.isPro && showBadge.value)
                         SubscriptionPromoBanner(onDismiss: () => showBadge.value = false),
                       Expanded(
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: CloudProjectsView(
-                                theme: theme,
-                                subscription: subscription,
-                                leadingSlivers: [
-                                  const SliverToBoxAdapter(
-                                    child: Padding(
-                                      padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                                      child: DiscoveryCarousel(height: 220),
-                                    ),
-                                  ),
-                                  SliverToBoxAdapter(
-                                    child: Padding(
-                                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                                      child: WhatsNewSection(
-                                        onOpenBoneRigExample: () => _openBoneRigExample(context, ref),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                        child: CloudProjectsView(
+                          theme: theme,
+                          subscription: subscription,
+                          leadingSlivers: [
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(32, 20, 32, 0),
+                                child: _DesktopHome(
+                                  projects: projects,
+                                  onCreateNew: () => _navigateToNewProject(context, ref, subscription),
+                                  onQuickCreate: (size) => _quickCreateProject(context, ref, size),
+                                  onImport: importProject,
+                                  onTapProject: (project) => _openProject(context, ref, project, overlayLoader),
+                                  onDeleteProject: (project) => _onDeleteProject(context, ref, project, authState),
+                                  onEditProject: (project) =>
+                                      ref.read(projectsProvider.notifier).renameProject(project.id, project.name),
+                                  onUploadProject: (project) => _onUploadProject(context, ref, project, authState),
+                                  onUpdateProject: (project) => _onUpdateProject(context, ref, project, authState),
+                                  onDeleteCloudProject: (project) =>
+                                      _onDeleteCloudProject(context, ref, project, authState),
+                                  onRetry: () => ref.refresh(projectsProvider),
+                                ),
                               ),
                             ),
-                            // Running challenges float over the feed and can
-                            // be closed until a new challenge starts.
-                            Positioned(
-                              right: 24,
-                              bottom: 24,
-                              child: ChallengesFloatingPanel(
-                                onStartDrawing: () => _navigateToNewProject(context, ref, subscription),
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(32, 8, 32, 0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: ChallengesBanner(
+                                        onStartDrawing: () => _navigateToNewProject(context, ref, subscription),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 20),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          PvSectionHeader(
+                                            title: Strings.of(context).whatsNew,
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                          WhatsNewButton(onOpenBoneRigExample: () => _openBoneRigExample(context, ref)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SliverToBoxAdapter(
+                              child: PvSectionHeader(
+                                title: Strings.of(context).featured,
+                                padding: const EdgeInsets.fromLTRB(32, 8, 32, 0),
+                              ),
+                            ),
+                            const SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(32, 0, 32, 0),
+                                child: DiscoveryCarousel(height: 220),
                               ),
                             ),
                           ],
@@ -427,11 +468,10 @@ class ProjectsScreen extends HookConsumerWidget {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _navigateToNewProject(context, ref, subscription),
             backgroundColor: Theme.of(context).colorScheme.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
+            foregroundColor: context.pv.ink,
+            shape: const PixelCutBorder(),
             extendedPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-            label: Text(Strings.of(context).newProject),
+            label: Text(Strings.of(context).newProject, style: context.pv.pixelLabel(size: 14, color: context.pv.ink)),
             icon: const Icon(Feather.plus),
             tooltip: Strings.of(context).createNewProjectTooltip,
           ),
@@ -453,21 +493,17 @@ class ProjectsScreen extends HookConsumerWidget {
                   subscription: subscription,
                   leadingSlivers: [
                     SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 320,
-                        child: _CompactProjectsList(
-                          projects: projects,
-                          onCreateNew: () => _navigateToNewProject(context, ref, subscription),
-                          onTapProject: (project) => _openProject(context, ref, project, overlayLoader),
-                          onDeleteProject: (project) => _onDeleteProject(context, ref, project, authState),
-                          onEditProject: (project) =>
-                              ref.read(projectsProvider.notifier).renameProject(project.id, project.name),
-                          onUploadProject: (project) => _onUploadProject(context, ref, project, authState),
-                          onUpdateProject: (project) => _onUpdateProject(context, ref, project, authState),
-                          onDeleteCloudProject: (project) => _onDeleteCloudProject(context, ref, project, authState),
-                          onRetry: () => ref.refresh(projectsProvider),
-                          showNewButton: true,
-                        ),
+                      child: PvMyProjects(
+                        projects: projects,
+                        onCreateNew: () => _navigateToNewProject(context, ref, subscription),
+                        onTapProject: (project) => _openProject(context, ref, project, overlayLoader),
+                        onDeleteProject: (project) => _onDeleteProject(context, ref, project, authState),
+                        onEditProject: (project) =>
+                            ref.read(projectsProvider.notifier).renameProject(project.id, project.name),
+                        onUploadProject: (project) => _onUploadProject(context, ref, project, authState),
+                        onUpdateProject: (project) => _onUpdateProject(context, ref, project, authState),
+                        onDeleteCloudProject: (project) => _onDeleteCloudProject(context, ref, project, authState),
+                        onRetry: () => ref.refresh(projectsProvider),
                       ),
                     ),
                     SliverToBoxAdapter(
@@ -478,16 +514,14 @@ class ProjectsScreen extends HookConsumerWidget {
                     ),
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: WhatsNewButton(onOpenBoneRigExample: () => _openBoneRigExample(context, ref)),
-                        ),
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                        child: WhatsNewButton(onOpenBoneRigExample: () => _openBoneRigExample(context, ref)),
                       ),
                     ),
+                    SliverToBoxAdapter(child: PvSectionHeader(title: Strings.of(context).featured)),
                     const SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(12, 8, 12, 0),
+                        padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
                         child: DiscoveryCarousel(height: 180, showArrows: false),
                       ),
                     ),
@@ -594,6 +628,29 @@ class ProjectsScreen extends HookConsumerWidget {
 
   void _navigateToFeedback(BuildContext context, WidgetRef ref) {
     FeedbackScreen.show(context);
+  }
+
+  /// Creates an empty square canvas of [size] and opens it right away.
+  Future<void> _quickCreateProject(BuildContext context, WidgetRef ref, int size) async {
+    final now = DateTime.now();
+    final project = Project(
+      id: 0,
+      name: Strings.of(context).untitledProject,
+      width: size,
+      height: size,
+      createdAt: now,
+      editedAt: now,
+    );
+    final loader = showLoader(context, loadingText: Strings.of(context).creatingProject);
+    final newProject = await ref.read(projectsProvider.notifier).addProject(project, source: 'blank');
+    if (!context.mounted) return;
+    loader.remove();
+    Navigator.of(context).push(
+      FlagshipPageRoute(
+        context: context,
+        builder: (context) => EditorWorkspaceScreen(initialProject: newProject),
+      ),
+    );
   }
 
   void _navigateToNewProject(
@@ -988,18 +1045,11 @@ class _DesktopSidebar extends StatelessWidget {
           // ── New Project ────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-            child: FilledButton.icon(
+            child: PvPixelButton(
+              label: Strings.of(context).newProject,
+              icon: Feather.plus,
+              expand: true,
               onPressed: onNewProject,
-              icon: const Icon(Feather.plus, size: 15),
-              label: Text(Strings.of(context).newProject),
-              style: FilledButton.styleFrom(
-                backgroundColor: theme.primaryColor,
-                foregroundColor: theme.onPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
             ),
           ),
 
@@ -1098,14 +1148,16 @@ class _DesktopSidebar extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Picell',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: theme.textPrimary,
-                  letterSpacing: 0.2,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(gradient: PvTokens.fromTheme(theme).gradient),
+                  ),
+                  const SizedBox(width: 10),
+                  Text('PICELL', style: PvTokens.fromTheme(theme).pixelTitle(size: 14)),
+                ],
               ),
             ],
           ),
@@ -1139,7 +1191,7 @@ class _NavItem extends StatelessWidget {
     final activeColor = accentColor ?? theme.primaryColor;
     final iconColor = selected ? activeColor : theme.textSecondary;
 
-    final iconWidget = Icon(icon, size: 18, color: iconColor);
+    final iconWidget = Icon(icon, size: 22, color: iconColor);
 
     // Optional glow for flagship active items
     final displayIcon = (flagship != null && flagship!.enableIconGlow && selected)
@@ -1159,25 +1211,26 @@ class _NavItem extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: selected ? activeColor.withValues(alpha: 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
             displayIcon,
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected ? activeColor : theme.textSecondary,
+                style: PvTokens.fromTheme(theme).body(
+                  size: 14,
+                  weight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected ? activeColor : theme.textPrimary,
                 ),
               ),
             ),
@@ -1188,48 +1241,214 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-/// Static header above the discovery carousel + community feed. Used to
-/// branch between "My Projects"/"Community" per the active tab — now always
-/// just "Discover", since "My Projects" lives permanently in the sidebar and
-/// there's no tab to switch away from it.
-class _DesktopContentHeader extends StatelessWidget {
+/// Desktop page header: title, community search and the app-level actions
+/// that live in the app bar on mobile.
+class _DesktopContentHeader extends ConsumerWidget {
   final AppTheme theme;
   final FlagshipConfig? flagship;
+  final VoidCallback onAbout;
+  final VoidCallback onImport;
+  final VoidCallback onTheme;
+  final VoidCallback onPro;
+  final VoidCallback onFeedback;
 
   const _DesktopContentHeader({
     required this.theme,
     required this.flagship,
+    required this.onAbout,
+    required this.onImport,
+    required this.onTheme,
+    required this.onPro,
+    required this.onFeedback,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pv = context.pv;
+    final strings = Strings.of(context);
+    final subscription = ref.watch(subscriptionStateProvider);
+    final claimable = ref.watch(progressionProvider.select((state) => state.claimableCount));
+    final authState = ref.watch(authProvider);
+    final hasFlagshipGradient = flagship != null && flagship!.appBarGradient != null;
+
+    Widget action(IconData icon, String tooltip, VoidCallback onTap, {Widget? badge}) => IconButton(
+          tooltip: tooltip,
+          iconSize: 24,
+          constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+          icon: badge ?? Icon(icon, color: pv.textSecondary),
+          onPressed: onTap,
+        );
+
+    return Container(
+      height: 72,
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      decoration: BoxDecoration(
+        gradient: hasFlagshipGradient ? flagship!.appBarGradient : null,
+        color: hasFlagshipGradient ? null : pv.background.withValues(alpha: 0.6),
+        border: Border(bottom: BorderSide(color: pv.divider)),
+      ),
+      child: Row(
+        children: [
+          Text(strings.projects.toUpperCase(), style: pv.pixelLabel(size: 22).copyWith(letterSpacing: 1)),
+          const SizedBox(width: 32),
+          Flexible(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: TextField(
+                style: pv.body(size: 14),
+                onSubmitted: (value) => ref.read(communityProjectsProvider.notifier).searchProjects(value),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: strings.searchProjectsAndCommunity,
+                  hintStyle: pv.body(size: 14, color: pv.textSecondary, weight: FontWeight.w400),
+                  prefixIcon: Icon(Icons.search, color: pv.textSecondary),
+                  filled: true,
+                  fillColor: pv.surfaceHigh,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
+                ),
+              ),
+            ),
+          ),
+          const Spacer(),
+          action(Feather.info, strings.about, onAbout),
+          action(Feather.download, strings.importFile, onImport),
+          action(
+            Icons.storefront_outlined,
+            strings.effectStoreTitle,
+            () => EffectStoreScreen.show(
+              context,
+              tab: claimable > 0 ? EffectStoreTab.quests : EffectStoreTab.packs,
+            ),
+            badge: Badge(
+              isLabelVisible: claimable > 0,
+              label: Text('$claimable'),
+              child: Icon(Icons.storefront_outlined, color: pv.textSecondary),
+            ),
+          ),
+          if (!subscription.isPro) ...[
+            const SizedBox(width: 4),
+            AnimatedProButton(onTap: onPro, theme: theme),
+            const SizedBox(width: 4),
+          ],
+          action(Icons.palette_outlined, strings.chooseTheme, onTheme),
+          if (authState.isSignedIn)
+            PopupMenuButton<String>(
+              tooltip: '',
+              offset: const Offset(0, 45),
+              onSelected: (value) {
+                if (value == 'delete_account') {
+                  DeleteAccountDialog.show(context, onSuccess: () {});
+                } else if (value == 'logout') {
+                  ref.read(authProvider.notifier).signOut();
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(value: 'logout', child: Text(strings.logout)),
+                PopupMenuItem(
+                  value: 'delete_account',
+                  child: Text(strings.deleteAccount, style: TextStyle(color: pv.err)),
+                ),
+              ],
+              child: Container(
+                width: 36,
+                height: 36,
+                margin: const EdgeInsets.only(left: 4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: pv.surfaceHigh,
+                  border: Border.all(color: pv.accent, width: 2),
+                  image: authState.apiUser?.avatarUrl != null
+                      ? DecorationImage(image: NetworkImage(authState.apiUser!.avatarUrl!), fit: BoxFit.cover)
+                      : null,
+                ),
+                child:
+                    authState.apiUser?.avatarUrl == null ? Icon(Feather.user, size: 18, color: pv.textSecondary) : null,
+              ),
+            )
+          else
+            action(Icons.feedback_outlined, strings.feedback, onFeedback),
+        ],
+      ),
+    );
+  }
+}
+
+/// Desktop "home" block: Resume card beside quick-create, then the project grid.
+class _DesktopHome extends StatelessWidget {
+  final AsyncValue<List<Project>> projects;
+  final VoidCallback onCreateNew;
+  final void Function(int size) onQuickCreate;
+  final VoidCallback onImport;
+  final void Function(Project) onTapProject;
+  final void Function(Project) onDeleteProject;
+  final void Function(Project) onEditProject;
+  final void Function(Project) onUploadProject;
+  final void Function(Project) onUpdateProject;
+  final void Function(Project) onDeleteCloudProject;
+  final VoidCallback onRetry;
+
+  const _DesktopHome({
+    required this.projects,
+    required this.onCreateNew,
+    required this.onQuickCreate,
+    required this.onImport,
+    required this.onTapProject,
+    required this.onDeleteProject,
+    required this.onEditProject,
+    required this.onUploadProject,
+    required this.onUpdateProject,
+    required this.onDeleteCloudProject,
+    required this.onRetry,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasFlagshipGradient = flagship != null && flagship!.appBarGradient != null;
-    final titleColor = hasFlagshipGradient ? Colors.white : theme.textPrimary;
-
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: hasFlagshipGradient
-          ? BoxDecoration(
-              gradient: flagship!.appBarGradient,
-              border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.15), width: 1)),
-            )
-          : BoxDecoration(
-              color: theme.surface.withValues(alpha: 0.85),
-              border: Border(bottom: BorderSide(color: theme.divider, width: 1)),
-            ),
-      child: Row(
-        children: [
-          Text(
-            'Discover',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: titleColor,
-            ),
-          ),
-        ],
+    final strings = Strings.of(context);
+    return projects.when(
+      loading: () => const PvProjectsSkeleton(),
+      error: (_, __) => Center(
+        child: Column(
+          children: [
+            Text(strings.anErrorOccurred),
+            TextButton(onPressed: onRetry, child: Text(strings.tryAgain)),
+          ],
+        ),
       ),
+      data: (all) {
+        final sorted = List<Project>.of(all)..sort((a, b) => b.editedAt.compareTo(a.editedAt));
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: sorted.isEmpty
+                      ? PvEmptyProjects(onCreate: onCreateNew)
+                      : PvResumeCardWide(project: sorted.first, onResume: () => onTapProject(sorted.first)),
+                ),
+                const SizedBox(width: 20),
+                Expanded(child: PvQuickCreatePanel(onPickSize: onQuickCreate, onImport: onImport)),
+              ],
+            ),
+            if (sorted.isNotEmpty) ...[
+              PvSectionHeader(title: '${strings.myProjects} (${sorted.length})', padding: EdgeInsets.zero),
+              PvProjectsGrid(
+                projects: sorted,
+                onCreateNew: onCreateNew,
+                onTapProject: onTapProject,
+                onDeleteProject: onDeleteProject,
+                onEditProject: onEditProject,
+                onUploadProject: onUploadProject,
+                onUpdateProject: onUpdateProject,
+                onDeleteCloudProject: onDeleteCloudProject,
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }
@@ -1328,11 +1547,8 @@ class _CompactProjectsList extends HookWidget {
                         : Row(
                             children: [
                               Text(
-                                Strings.of(context).myProjects,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
-                                    ?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                                Strings.of(context).myProjects.toUpperCase(),
+                                style: context.pv.pixelLabel(size: 12).copyWith(letterSpacing: 1),
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -1577,11 +1793,7 @@ class CloudProjectsView extends HookConsumerWidget {
         // Search and Sort Bar
         SliverToBoxAdapter(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
               children: [
                 Expanded(
@@ -1603,13 +1815,7 @@ class CloudProjectsView extends HookConsumerWidget {
                             ref.read(communityProjectsProvider.notifier).searchProjects(value);
                           },
                         )
-                      : Text(
-                          Strings.of(context).discoverAmazingPixelArt,
-                          style: TextStyle(
-                            color: theme.textSecondary,
-                            fontSize: 16,
-                          ),
-                        ),
+                      : PvSectionHeader(title: Strings.of(context).community, padding: EdgeInsets.zero),
                 ),
                 const SizedBox(width: 8),
                 IconButton(

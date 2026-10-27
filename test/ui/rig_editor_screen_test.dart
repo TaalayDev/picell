@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:picell/app/theme/theme.dart';
 import 'package:picell/l10n/strings.dart';
 import 'package:picell/data/models/layer.dart';
 import 'package:picell/data/models/rig/rig.dart';
@@ -130,17 +131,18 @@ void main() {
         ));
     final body = find.text('Body').first;
     final localTheme = Theme.of(tester.element(body));
-    expect(localTheme.textTheme.bodySmall!.color, dark.colorScheme.onSurface);
-    expect(localTheme.textTheme.labelLarge!.color, dark.colorScheme.onSurface);
+    final tokens = PvTokens.fromTheme(AppTheme.defaultTheme);
+    expect(localTheme.textTheme.bodySmall!.color, tokens.textPrimary);
+    expect(localTheme.textTheme.labelLarge!.color, tokens.textPrimary);
     expect(find.byKey(const ValueKey('rig-mode-tabs')), findsOneWidget);
     final setup = tester.widget<Text>(find.text('Setup'));
     final animate = tester.widget<Text>(find.text('Animate'));
-    expect(setup.style!.color, dark.colorScheme.onPrimaryContainer);
-    expect(animate.style!.color, dark.colorScheme.onSurface);
+    expect(setup.style!.color, tokens.ink);
+    expect(animate.style!.color, tokens.textSecondary);
     await tester.tap(find.byKey(const ValueKey('rig-mode-animate')));
     await tester.pumpAndSettle();
-    expect(tester.widget<Text>(find.text('Animate')).style!.color, dark.colorScheme.onPrimaryContainer);
-    expect(tester.widget<Text>(find.text('Setup')).style!.color, dark.colorScheme.onSurface);
+    expect(tester.widget<Text>(find.text('Animate')).style!.color, tokens.ink);
+    expect(tester.widget<Text>(find.text('Setup')).style!.color, tokens.textSecondary);
     expect(tester.takeException(), isNull);
   });
 
@@ -150,7 +152,8 @@ void main() {
     expect(find.byKey(const ValueKey('rig-mode-tabs')), findsOneWidget);
     await tester.tap(find.byTooltip('Bones and layers'));
     await tester.pumpAndSettle();
-    expect(Theme.of(tester.element(find.text('Body').first)).textTheme.bodyMedium!.color, dark.colorScheme.onSurface);
+    expect(Theme.of(tester.element(find.text('Body').first)).textTheme.bodyMedium!.color,
+        PvTokens.fromTheme(AppTheme.defaultTheme).textPrimary);
     expect(tester.takeException(), isNull);
   });
 

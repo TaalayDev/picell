@@ -2388,5 +2388,19 @@
     "whatsNewLoadFailed": "Couldn't load the latest news.",
     "whatsNewBoneRigTitle": "Bone rigger",
     "whatsNewBoneRigBody": "Rig your pixel art with bones and animate it with poses, clips and easing curves. Open any project's animation tools to try it.",
-    "whatsNewOpenExample": "Open example"
+    "whatsNewOpenExample": "Open example",
+    "continueWhereYouLeftOff": "Continue where you left off",
+    "resumeProject": "Resume",
+    "noProjectsSubtitle": "Your pixel art lives here. Start with a blank canvas or a template.",
+    "createFirstProject": "Create your first project",
+    "newBadge": "NEW",
+    "rigCoachTitle": "Rig this sprite",
+    "rigCoachPreset": "Pick a skeleton preset",
+    "rigCoachDraw": "Draw bones",
+    "rigCoachBind": "Bind layers to bones",
+    "startSomethingNew": "Start something new",
+    "pickCanvasSize": "Pick a canvas size",
+    "importImageOrProject": "Import image or project file",
+    "searchProjectsAndCommunity": "Search projects and community",
+    "untitledProject": "Untitled"
 }

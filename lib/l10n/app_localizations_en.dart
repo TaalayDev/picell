@@ -4734,4 +4734,46 @@ class StringsEn extends Strings {
 
   @override
   String get whatsNewOpenExample => 'Open example';
+
+  @override
+  String get continueWhereYouLeftOff => 'Continue where you left off';
+
+  @override
+  String get resumeProject => 'Resume';
+
+  @override
+  String get noProjectsSubtitle => 'Your pixel art lives here. Start with a blank canvas or a template.';
+
+  @override
+  String get createFirstProject => 'Create your first project';
+
+  @override
+  String get newBadge => 'NEW';
+
+  @override
+  String get rigCoachTitle => 'Rig this sprite';
+
+  @override
+  String get rigCoachPreset => 'Pick a skeleton preset';
+
+  @override
+  String get rigCoachDraw => 'Draw bones';
+
+  @override
+  String get rigCoachBind => 'Bind layers to bones';
+
+  @override
+  String get startSomethingNew => 'Start something new';
+
+  @override
+  String get pickCanvasSize => 'Pick a canvas size';
+
+  @override
+  String get importImageOrProject => 'Import image or project file';
+
+  @override
+  String get searchProjectsAndCommunity => 'Search projects and community';
+
+  @override
+  String get untitledProject => 'Untitled';
 }

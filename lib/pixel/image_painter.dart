@@ -6,7 +6,11 @@ class ImagePainter extends CustomPainter {
   final double? opacity;
   final BoxFit fit;
 
-  ImagePainter(this.image, {this.opacity, this.fit = BoxFit.fill});
+  /// Defaults to the engine's choice; pass [FilterQuality.none] to keep
+  /// pixel-art edges crisp when scaling up.
+  final FilterQuality? filterQuality;
+
+  ImagePainter(this.image, {this.opacity, this.fit = BoxFit.fill, this.filterQuality});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -26,6 +30,9 @@ class ImagePainter extends CustomPainter {
         break;
     }
     final paint = Paint();
+    if (filterQuality != null) {
+      paint.filterQuality = filterQuality!;
+    }
     if (opacity != null) {
       paint.color = Color.fromRGBO(255, 255, 255, opacity!);
     }

@@ -2052,5 +2052,19 @@
     "whatsNewLoadFailed": "无法加载最新消息。",
     "whatsNewBoneRigTitle": "骨骼绑定",
     "whatsNewBoneRigBody": "用骨骼为像素画绑定骨架，并通过姿势、片段和缓动曲线制作动画。在任意项目的动画工具中即可体验。",
-    "whatsNewOpenExample": "打开示例"
+    "whatsNewOpenExample": "打开示例",
+    "continueWhereYouLeftOff": "从上次的位置继续",
+    "resumeProject": "继续",
+    "noProjectsSubtitle": "你的像素作品会保存在这里。从空白画布或模板开始吧。",
+    "createFirstProject": "创建你的第一个项目",
+    "newBadge": "新",
+    "rigCoachTitle": "为精灵绑定骨骼",
+    "rigCoachPreset": "选择骨架预设",
+    "rigCoachDraw": "绘制骨骼",
+    "rigCoachBind": "将图层绑定到骨骼",
+    "startSomethingNew": "开始新作品",
+    "pickCanvasSize": "选择画布尺寸",
+    "importImageOrProject": "导入图片或项目文件",
+    "searchProjectsAndCommunity": "搜索项目和社区",
+    "untitledProject": "未命名"
 }

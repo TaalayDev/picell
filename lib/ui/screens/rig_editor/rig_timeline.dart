@@ -649,7 +649,11 @@ class _BoneTrack extends StatelessWidget {
                           : i == controller.time
                               ? theme.colorScheme.primary.withValues(alpha: 0.12)
                               : null,
-                      border: Border(left: BorderSide(color: theme.dividerColor.withValues(alpha: 0.35), width: 0.5)),
+                      border: Border(
+                        left: i == controller.time
+                            ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
+                            : BorderSide(color: theme.dividerColor.withValues(alpha: 0.35), width: 0.5),
+                      ),
                     ),
                     child: controller.jointFrozenAt(bone.id, i)
                         ? Icon(Icons.lock,
@@ -765,7 +769,11 @@ class _IkTrack extends StatelessWidget {
                           : i == controller.time
                               ? theme.colorScheme.primary.withValues(alpha: 0.12)
                               : null,
-                      border: Border(left: BorderSide(color: theme.dividerColor.withValues(alpha: 0.35), width: 0.5)),
+                      border: Border(
+                        left: i == controller.time
+                            ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
+                            : BorderSide(color: theme.dividerColor.withValues(alpha: 0.35), width: 0.5),
+                      ),
                     ),
                     child: keys.contains(i)
                         ? Container(

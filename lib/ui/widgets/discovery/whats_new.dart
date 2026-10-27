@@ -3,6 +3,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../app/theme/theme.dart';
 import '../../../data/models/discovery_api_models.dart';
 import '../../../l10n/strings.dart';
 import '../../../providers/discovery_providers.dart';
@@ -294,11 +295,42 @@ class WhatsNewButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton.icon(
+    final pv = context.pv;
+    final strings = Strings.of(context);
+    return Material(
       key: const ValueKey('whats-new-button'),
-      onPressed: () => showSheet(context, onOpenBoneRigExample: onOpenBoneRigExample),
-      icon: const Icon(Feather.gift, size: 18),
-      label: Text(Strings.of(context).whatsNew),
+      color: pv.surface,
+      shape: StadiumBorder(side: BorderSide(color: pv.divider)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => showSheet(context, onOpenBoneRigExample: onOpenBoneRigExample),
+        child: SizedBox(
+          height: 48,
+          child: Row(
+            children: [
+              const SizedBox(width: 6),
+              Container(
+                height: 24,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(gradient: pv.gradient, borderRadius: BorderRadius.circular(12)),
+                child: Text(strings.newBadge, style: pv.pixelLabel(size: 11, color: pv.ink)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  strings.whatsNew,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: pv.body(size: 14),
+                ),
+              ),
+              Icon(Icons.chevron_right, size: 22, color: pv.textSecondary),
+              const SizedBox(width: 8),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

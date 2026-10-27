@@ -2007,5 +2007,19 @@
     "whatsNewLoadFailed": "Акыркы жаңылыктарды жүктөө мүмкүн болгон жок.",
     "whatsNewBoneRigTitle": "Сөөк риггери",
     "whatsNewBoneRigBody": "Пиксель-артыңызга сөөк скелетин жасап, поза, клип жана жумшартуу ийри сызыктары менен жандандырыңыз. Каалаган долбоордун анимация куралдарынан байкап көрүңүз.",
-    "whatsNewOpenExample": "Мисалды ачуу"
+    "whatsNewOpenExample": "Мисалды ачуу",
+    "continueWhereYouLeftOff": "Калган жерден улантуу",
+    "resumeProject": "Улантуу",
+    "noProjectsSubtitle": "Пиксель-арт ишмердүүлүгүңүз ушул жерде сакталат. Таза полотно же шаблондон баштаңыз.",
+    "createFirstProject": "Биринчи долбоорду түзүңүз",
+    "newBadge": "ЖАҢЫ",
+    "rigCoachTitle": "Спрайтка скелет жасоо",
+    "rigCoachPreset": "Даяр скелетти тандаңыз",
+    "rigCoachDraw": "Сөөктөрдү тартыңыз",
+    "rigCoachBind": "Катмарларды сөөктөргө байланыштырыңыз",
+    "startSomethingNew": "Жаңысын баштоо",
+    "pickCanvasSize": "Полотнонун өлчөмүн тандаңыз",
+    "importImageOrProject": "Сүрөттү же долбоорду импорттоо",
+    "searchProjectsAndCommunity": "Долбоорлорду жана жамааттан издөө",
+    "untitledProject": "Аталышсыз"
 }

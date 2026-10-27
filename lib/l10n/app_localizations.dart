@@ -8206,6 +8206,90 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Open example'**
   String get whatsNewOpenExample;
+
+  /// No description provided for @continueWhereYouLeftOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue where you left off'**
+  String get continueWhereYouLeftOff;
+
+  /// No description provided for @resumeProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resumeProject;
+
+  /// No description provided for @noProjectsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pixel art lives here. Start with a blank canvas or a template.'**
+  String get noProjectsSubtitle;
+
+  /// No description provided for @createFirstProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first project'**
+  String get createFirstProject;
+
+  /// No description provided for @newBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get newBadge;
+
+  /// No description provided for @rigCoachTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rig this sprite'**
+  String get rigCoachTitle;
+
+  /// No description provided for @rigCoachPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a skeleton preset'**
+  String get rigCoachPreset;
+
+  /// No description provided for @rigCoachDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw bones'**
+  String get rigCoachDraw;
+
+  /// No description provided for @rigCoachBind.
+  ///
+  /// In en, this message translates to:
+  /// **'Bind layers to bones'**
+  String get rigCoachBind;
+
+  /// No description provided for @startSomethingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Start something new'**
+  String get startSomethingNew;
+
+  /// No description provided for @pickCanvasSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a canvas size'**
+  String get pickCanvasSize;
+
+  /// No description provided for @importImageOrProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Import image or project file'**
+  String get importImageOrProject;
+
+  /// No description provided for @searchProjectsAndCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Search projects and community'**
+  String get searchProjectsAndCommunity;
+
+  /// No description provided for @untitledProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get untitledProject;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

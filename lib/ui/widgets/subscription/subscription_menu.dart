@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import '../../../app/theme/theme.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../l10n/strings.dart';
 import '../../../providers/subscription_provider.dart';
@@ -102,51 +101,13 @@ class SubscriptionBadge extends ConsumerWidget {
   }
 }
 
-class SubscriptionPromoBanner extends ConsumerStatefulWidget {
+class SubscriptionPromoBanner extends ConsumerWidget {
   final VoidCallback? onDismiss;
 
   const SubscriptionPromoBanner({super.key, this.onDismiss});
 
   @override
-  ConsumerState<SubscriptionPromoBanner> createState() => _SubscriptionPromoBannerState();
-}
-
-class _SubscriptionPromoBannerState extends ConsumerState<SubscriptionPromoBanner> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _glowAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    )..repeat(reverse: true);
-
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.03).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    _glowAnimation = Tween<double>(begin: 0.3, end: 0.7).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final plan = ref.watch(subscriptionStateProvider).plan;
 
     // Only show for free users
@@ -154,155 +115,58 @@ class _SubscriptionPromoBannerState extends ConsumerState<SubscriptionPromoBanne
       return const SizedBox.shrink();
     }
 
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final secondaryColor = Theme.of(context).colorScheme.secondary;
-
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Transform.scale(
-            scale: _scaleAnimation.value,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    primaryColor,
-                    Color.lerp(primaryColor, secondaryColor, 0.7)!,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryColor.withValues(alpha: _glowAnimation.value * 0.5),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => SubscriptionOfferScreen.show(context),
-                  borderRadius: BorderRadius.circular(12),
-                  splashColor: Colors.white.withValues(alpha: 0.1),
-                  highlightColor: Colors.white.withValues(alpha: 0.1),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    child: Row(
-                      children: [
-                        _buildSparklingStar(),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                Strings.of(context).upgradeToPro,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                Strings.of(context).promoBannerSubtitle,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        _buildUpgradeButton(),
-                        if (widget.onDismiss != null) ...[
-                          const SizedBox(width: 8),
-                          _buildDismissButton(),
-                        ]
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSparklingStar() {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        shape: BoxShape.circle,
-      ),
-      child: const Center(
-        child: Icon(
-          MaterialCommunityIcons.star,
-          color: Colors.white,
-          size: 24,
-        ),
-      ),
-    )
-        .animate(onPlay: (controller) => controller.repeat())
-        .shimmer(duration: 2.seconds, color: Colors.white)
-        .animate(onPlay: (controller) => controller.repeat())
-        .rotate(duration: 8.seconds);
-  }
-
-  Widget _buildUpgradeButton() {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    final pv = context.pv;
+    final strings = Strings.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       child: Material(
-        color: Colors.transparent,
+        color: pv.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: pv.divider),
+        ),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => SubscriptionOfferScreen.show(context),
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              Strings.of(context).upgrade.toUpperCase(),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+          child: Stack(
+            children: [
+              Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 3,
+                  child: DecoratedBox(decoration: BoxDecoration(gradient: pv.gradient))),
+              SizedBox(
+                height: 44,
+                child: Row(
+                  children: [
+                    const SizedBox(width: 12),
+                    Icon(Icons.workspace_premium, size: 18, color: pv.accent),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        strings.promoBannerSubtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: pv.body(size: 13),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(strings.upgrade, style: pv.body(size: 13, color: pv.accent, weight: FontWeight.w700)),
+                    if (onDismiss != null)
+                      IconButton(
+                        tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                        icon: Icon(Icons.close, size: 18, color: pv.textSecondary),
+                        onPressed: onDismiss,
+                      )
+                    else
+                      const SizedBox(width: 12),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
-      ),
-    )
-        .animate()
-        .fadeIn(duration: 400.ms, delay: 200.ms)
-        .slideX(begin: 0.2, end: 0, duration: 400.ms, delay: 200.ms, curve: Curves.easeOutQuad);
-  }
-
-  Widget _buildDismissButton() {
-    return IconButton(
-      icon: const Icon(Icons.close, color: Colors.white, size: 18),
-      onPressed: widget.onDismiss,
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.white.withValues(alpha: 0.2),
-        padding: const EdgeInsets.all(8),
       ),
     );
   }

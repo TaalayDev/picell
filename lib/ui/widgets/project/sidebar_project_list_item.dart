@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
+import '../../../app/theme/theme.dart';
 import '../../../core.dart';
 import '../../../data.dart';
 import 'project_menu_button.dart';
@@ -31,7 +31,7 @@ class SidebarProjectListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final pv = context.pv;
 
     return ProjectContextMenuRegion(
       project: project,
@@ -43,7 +43,7 @@ class SidebarProjectListItem extends StatelessWidget {
       onDeleteCloudProject: onDeleteCloudProject,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           child: Row(
@@ -51,8 +51,8 @@ class SidebarProjectListItem extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: SizedBox(
-                  width: 40,
-                  height: 40,
+                  width: 32,
+                  height: 32,
                   // Cover, not contain: at icon size a letterboxed non-square
                   // thumbnail would shrink to an illegible sliver — cropping
                   // reads better, the same tradeoff every OS file manager
@@ -73,12 +73,12 @@ class SidebarProjectListItem extends StatelessWidget {
                             project.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                            style: pv.body(size: 14, weight: FontWeight.w600),
                           ),
                         ),
                         if (project.isCloudSynced) ...[
                           const SizedBox(width: 4),
-                          Icon(Feather.cloud, size: 12, color: theme.colorScheme.primary),
+                          Icon(Icons.cloud_done_outlined, size: 14, color: pv.ok),
                         ],
                       ],
                     ),
@@ -87,9 +87,7 @@ class SidebarProjectListItem extends StatelessWidget {
                       '${project.width}×${project.height} · ${formatLastEdited(context, project.editedAt)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                      style: pv.body(size: 12, color: pv.textSecondary, weight: FontWeight.w400),
                     ),
                   ],
                 ),

@@ -3,6 +3,7 @@ import 'package:picell/data.dart';
 
 import 'app_theme_geometry.dart';
 import 'flagship/flagship_config.dart';
+import 'pv_tokens.dart';
 import 'art_deco.dart';
 import 'art_nouevau.dart';
 import 'autumn_harvest.dart';
@@ -52,6 +53,7 @@ import 'bioluminescent_brutalism.dart';
 export 'theme_type.dart';
 export 'app_theme_geometry.dart';
 export 'flagship/flagship_config.dart';
+export 'pv_tokens.dart';
 
 class AppTheme {
   static const defaultType = ThemeType.retroWave;
@@ -420,6 +422,7 @@ class AppTheme {
       ),
       extensions: <ThemeExtension<dynamic>>[
         if (flagship != null) flagship!,
+        PvTokens.fromTheme(this),
       ],
     );
 

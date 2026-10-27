@@ -11,6 +11,7 @@ import '../../../data/storage/local_storage.dart';
 import '../../../providers/challenges_provider.dart';
 import '../../screens/challenge_screen.dart';
 import '../progression/quests_view.dart';
+import '../pv/pv.dart';
 
 /// Active challenges on the projects screen. Hidden while loading, on errors
 /// and when nothing is running, so it never pushes the page around.
@@ -63,19 +64,7 @@ class ChallengesBanner extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 8),
-            child: Row(
-              children: [
-                Icon(Icons.emoji_events_outlined, size: 18, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 6),
-                Text(
-                  Strings.of(context).challengesTitle,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
+          PvSectionHeader(title: Strings.of(context).challengesTitle, padding: const EdgeInsets.only(left: 4)),
           if (withCover.isNotEmpty)
             LayoutBuilder(
               builder: (context, constraints) {

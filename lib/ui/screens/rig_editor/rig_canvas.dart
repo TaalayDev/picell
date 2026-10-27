@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../app/theme/theme.dart';
 import '../../../data/models/rig/rig.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../pixel/rig/rig_baker.dart';
@@ -540,12 +541,13 @@ class RigCanvasState extends State<RigCanvas> {
                     : c.tool == RigTool.createBone || _drag != null
                         ? _hoverJoint
                         : null,
-                background: theme.colorScheme.surface,
+                background: context.pv.background,
                 gridColor: theme.dividerColor,
-                boneColor: theme.colorScheme.primary,
-                selectedColor: const Color(0xFFFFB300), // reads on every theme and apart from the bone colour
+                // Bones stay neutral so the selected bone can wear the mode color.
+                boneColor: context.pv.textPrimary.withValues(alpha: 0.85),
+                selectedColor: theme.colorScheme.primary,
                 ikColor: theme.colorScheme.tertiary,
-                jointFill: theme.colorScheme.surface,
+                jointFill: context.pv.surface,
               ),
             ),
           ),

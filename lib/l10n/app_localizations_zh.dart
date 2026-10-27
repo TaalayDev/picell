@@ -4500,4 +4500,46 @@ class StringsZh extends Strings {
 
   @override
   String get whatsNewOpenExample => '打开示例';
+
+  @override
+  String get continueWhereYouLeftOff => '从上次的位置继续';
+
+  @override
+  String get resumeProject => '继续';
+
+  @override
+  String get noProjectsSubtitle => '你的像素作品会保存在这里。从空白画布或模板开始吧。';
+
+  @override
+  String get createFirstProject => '创建你的第一个项目';
+
+  @override
+  String get newBadge => '新';
+
+  @override
+  String get rigCoachTitle => '为精灵绑定骨骼';
+
+  @override
+  String get rigCoachPreset => '选择骨架预设';
+
+  @override
+  String get rigCoachDraw => '绘制骨骼';
+
+  @override
+  String get rigCoachBind => '将图层绑定到骨骼';
+
+  @override
+  String get startSomethingNew => '开始新作品';
+
+  @override
+  String get pickCanvasSize => '选择画布尺寸';
+
+  @override
+  String get importImageOrProject => '导入图片或项目文件';
+
+  @override
+  String get searchProjectsAndCommunity => '搜索项目和社区';
+
+  @override
+  String get untitledProject => '未命名';
 }

@@ -4542,4 +4542,47 @@ class StringsKy extends Strings {
 
   @override
   String get whatsNewOpenExample => 'Мисалды ачуу';
+
+  @override
+  String get continueWhereYouLeftOff => 'Калган жерден улантуу';
+
+  @override
+  String get resumeProject => 'Улантуу';
+
+  @override
+  String get noProjectsSubtitle =>
+      'Пиксель-арт ишмердүүлүгүңүз ушул жерде сакталат. Таза полотно же шаблондон баштаңыз.';
+
+  @override
+  String get createFirstProject => 'Биринчи долбоорду түзүңүз';
+
+  @override
+  String get newBadge => 'ЖАҢЫ';
+
+  @override
+  String get rigCoachTitle => 'Спрайтка скелет жасоо';
+
+  @override
+  String get rigCoachPreset => 'Даяр скелетти тандаңыз';
+
+  @override
+  String get rigCoachDraw => 'Сөөктөрдү тартыңыз';
+
+  @override
+  String get rigCoachBind => 'Катмарларды сөөктөргө байланыштырыңыз';
+
+  @override
+  String get startSomethingNew => 'Жаңысын баштоо';
+
+  @override
+  String get pickCanvasSize => 'Полотнонун өлчөмүн тандаңыз';
+
+  @override
+  String get importImageOrProject => 'Сүрөттү же долбоорду импорттоо';
+
+  @override
+  String get searchProjectsAndCommunity => 'Долбоорлорду жана жамааттан издөө';
+
+  @override
+  String get untitledProject => 'Аталышсыз';
 }
