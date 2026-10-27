@@ -389,14 +389,31 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
                           Expanded(
                             child: Row(
                               children: [
-                                if (wide)
-                                  _ToolRail(controller: _controller, onFit: () => _canvasKey.currentState?.fit()),
                                 Expanded(
                                   child: Stack(
                                     children: [
                                       Positioned.fill(
                                         child: RigCanvas(key: _canvasKey, controller: _controller, image: _image),
                                       ),
+                                      if (wide)
+                                        Positioned(
+                                          left: 12,
+                                          top: 12,
+                                          child: _ToolRail(
+                                            controller: _controller,
+                                            onFit: () => _canvasKey.currentState?.fit(),
+                                            floating: true,
+                                          ),
+                                        ),
+                                      if (wide)
+                                        Positioned(
+                                          right: 12,
+                                          top: 12,
+                                          child: _ViewPill(
+                                            controller: _controller,
+                                            onFit: () => _canvasKey.currentState?.fit(),
+                                          ),
+                                        ),
                                       if (_controller.mode == RigMode.setup &&
                                           _controller.rig.bones.isEmpty &&
                                           _controller.tool == RigTool.select &&
@@ -422,9 +439,9 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
                                 ),
                                 if (wide)
                                   Container(
-                                    width: 248,
+                                    width: 280,
                                     decoration: BoxDecoration(
-                                      color: theme.colorScheme.surface,
+                                      color: theme.scaffoldBackgroundColor,
                                       border:
                                           Border(left: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5))),
                                     ),
@@ -564,13 +581,14 @@ class _TopBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-              constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
-              padding: compact ? const EdgeInsets.all(4) : null,
-              style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
-              visualDensity: compact ? VisualDensity.compact : null,
-              tooltip: Strings.of(context).cancel,
-              icon: const Icon(Icons.close, size: 18),
-              onPressed: onCancel),
+            constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
+            padding: compact ? const EdgeInsets.all(4) : null,
+            style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
+            visualDensity: compact ? VisualDensity.compact : null,
+            tooltip: Strings.of(context).cancel,
+            icon: const Icon(Icons.close, size: 18),
+            onPressed: onCancel,
+          ),
           if (!compact)
             Flexible(
               child: Text(
@@ -586,13 +604,14 @@ class _TopBar extends StatelessWidget {
           const Spacer(),
           if (onPanels != null)
             IconButton(
-                constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
-                padding: compact ? const EdgeInsets.all(4) : null,
-                style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
-                visualDensity: compact ? VisualDensity.compact : null,
-                tooltip: Strings.of(context).rigBonesAndLayers,
-                icon: const Icon(Icons.view_sidebar_outlined, size: 18),
-                onPressed: onPanels),
+              constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
+              padding: compact ? const EdgeInsets.all(4) : null,
+              style: compact ? IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap) : null,
+              visualDensity: compact ? VisualDensity.compact : null,
+              tooltip: Strings.of(context).rigBonesAndLayers,
+              icon: const Icon(Icons.view_sidebar_outlined, size: 18),
+              onPressed: onPanels,
+            ),
           IconButton(
             constraints: compact ? const BoxConstraints.tightFor(width: 32, height: 32) : null,
             padding: compact ? const EdgeInsets.all(4) : null,
@@ -720,11 +739,14 @@ class _RigModeTabs extends StatelessWidget {
                   borderRadius: BorderRadius.circular(15),
                   onTap: () => controller.mode = mode,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 14),
+                    padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 14, vertical: 6),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       if (!compact) ...[
-                        Icon(mode == RigMode.setup ? Icons.account_tree_outlined : Icons.animation,
-                            size: 18, color: controller.mode == mode ? pv.ink : pv.textSecondary),
+                        Icon(
+                          mode == RigMode.setup ? Icons.account_tree_outlined : Icons.animation,
+                          size: 18,
+                          color: controller.mode == mode ? pv.ink : pv.textSecondary,
+                        ),
                         const SizedBox(width: 6),
                       ],
                       Text(
@@ -747,11 +769,14 @@ class _RigModeTabs extends StatelessWidget {
 }
 
 class _ToolRail extends StatelessWidget {
-  const _ToolRail({required this.controller, required this.onFit, this.horizontal = false});
+  const _ToolRail({required this.controller, required this.onFit, this.horizontal = false, this.floating = false});
 
   final RigEditorController controller;
   final VoidCallback onFit;
   final bool horizontal;
+
+  /// Rounded pill floating over the canvas; the view toggles live in [_ViewPill].
+  final bool floating;
 
   @override
   Widget build(BuildContext context) {
@@ -762,10 +787,14 @@ class _ToolRail extends StatelessWidget {
       return IconButton(
         tooltip: label,
         isSelected: on,
-        icon: Icon(icon, size: 18),
+        icon: Icon(icon, size: floating ? 20 : 18),
         style: IconButton.styleFrom(
           foregroundColor: on ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
           backgroundColor: on ? theme.colorScheme.primaryContainer : null,
+          shape: floating
+              ? CircleBorder(side: BorderSide(color: on ? theme.colorScheme.primary : Colors.transparent, width: 2))
+              : null,
+          minimumSize: floating ? const Size(44, 44) : null,
         ),
         onPressed: () => controller.tool = t,
       );
@@ -823,18 +852,36 @@ class _ToolRail extends StatelessWidget {
               : () => controller.setPose(selectedId, flipX: !controller.poseOf(selectedId).flipX),
         ),
       ],
-      divider(),
-      toggle(const ValueKey('rig-multi-select'), Strings.of(context).rigSelectMultiple, Icons.select_all,
-          controller.multiSelectEnabled, controller.toggleMultiSelect),
-      if (!animating)
-        toggle(const ValueKey('rig-snapping'), Strings.of(context).rigSnapping, Icons.align_horizontal_center,
-            controller.snappingEnabled, () => controller.setSnapping(!controller.snappingEnabled)),
-      if (!horizontal) const Spacer(),
-      IconButton(
-          tooltip: Strings.of(context).rigFit,
-          icon: const Icon(Icons.center_focus_strong_outlined, size: 18),
-          onPressed: onFit),
+      if (!floating) ...[
+        divider(),
+        toggle(const ValueKey('rig-multi-select'), Strings.of(context).rigSelectMultiple, Icons.select_all,
+            controller.multiSelectEnabled, controller.toggleMultiSelect),
+        if (!animating)
+          toggle(const ValueKey('rig-snapping'), Strings.of(context).rigSnapping, Icons.align_horizontal_center,
+              controller.snappingEnabled, () => controller.setSnapping(!controller.snappingEnabled)),
+        if (!horizontal) const Spacer(),
+        IconButton(
+            tooltip: Strings.of(context).rigFit,
+            icon: const Icon(Icons.center_focus_strong_outlined, size: 18),
+            onPressed: onFit),
+      ],
     ];
+
+    if (floating) {
+      return Container(
+        width: 56,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface.withValues(alpha: 0.94),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: theme.dividerColor),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6))
+          ],
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      );
+    }
 
     return Container(
       width: horizontal ? null : 48,
@@ -849,8 +896,75 @@ class _ToolRail extends StatelessWidget {
       child: horizontal
           ? SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: children))
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: children),
+            )
           : Column(children: children),
+    );
+  }
+}
+
+/// Floating view controls at the canvas's top right: multi-select, snapping
+/// and fit-to-view.
+class _ViewPill extends StatelessWidget {
+  const _ViewPill({required this.controller, required this.onFit});
+
+  final RigEditorController controller;
+  final VoidCallback onFit;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final strings = Strings.of(context);
+
+    Widget button(Key? key, String label, IconData icon, {bool on = false, required VoidCallback onPressed}) =>
+        IconButton(
+          key: key,
+          tooltip: label,
+          isSelected: on,
+          icon: Icon(icon, size: 20),
+          style: IconButton.styleFrom(
+            minimumSize: const Size(44, 44),
+            foregroundColor: on ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+            backgroundColor: on ? theme.colorScheme.primaryContainer : null,
+            shape: CircleBorder(side: BorderSide(color: on ? theme.colorScheme.primary : Colors.transparent, width: 2)),
+          ),
+          onPressed: onPressed,
+        );
+
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: theme.dividerColor),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6))],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          button(
+            const ValueKey('rig-multi-select'),
+            strings.rigSelectMultiple,
+            Icons.checklist,
+            on: controller.multiSelectEnabled,
+            onPressed: controller.toggleMultiSelect,
+          ),
+          if (controller.mode == RigMode.setup)
+            button(
+              const ValueKey('rig-snapping'),
+              strings.rigSnapping,
+              Icons.grid_4x4,
+              on: controller.snappingEnabled,
+              onPressed: () => controller.setSnapping(!controller.snappingEnabled),
+            ),
+          button(
+            null,
+            strings.rigFit,
+            Icons.center_focus_strong_outlined,
+            onPressed: onFit,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -2021,5 +2021,21 @@
     "pickCanvasSize": "Полотнонун өлчөмүн тандаңыз",
     "importImageOrProject": "Сүрөттү же долбоорду импорттоо",
     "searchProjectsAndCommunity": "Долбоорлорду жана жамааттан издөө",
-    "untitledProject": "Аталышсыз"
+    "untitledProject": "Аталышсыз",
+    "planOneTime": "бир жолку",
+    "planCurrentChip": "Учурдагы",
+    "planCurrentPlanLabel": "Учурдагы план",
+    "planSelectedLabel": "Тандалды",
+    "planUpgradeToLabel": "Жаңыртуу:",
+    "planUpgradeNote": "жаңыртуу, бир жолку",
+    "planProcessing": "Иштетилүүдө",
+    "planConfirmingWithStore": "Дүкөндө ырасталууда. Бул экранды жаппаңыз.",
+    "planOwnEverything": "Баары сизде",
+    "planUnlocksWithPro": "Pro менен ачылат",
+    "planUnlockedWithYourPlan": "Планыңыз менен ачык",
+    "planStoreUnavailableTitle": "Бул жерде дүкөн жеткиликсиз.",
+    "planStoreUnavailableBody": "Сатып алуу Android, iOS же компьютердик PixelVerse колдонмосунда жүргүзүлөт. План автоматтык түрдө шайкештелет.",
+    "planOpenAppToPurchase": "Сатып алуу үчүн колдонмону ачыңыз. Баалар маалымат үчүн.",
+    "planRetry": "Кайра аракет",
+    "planRestorePurchases": "Сатып алууларды калыбына келтирүү"
 }

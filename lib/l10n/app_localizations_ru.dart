@@ -4846,4 +4846,53 @@ class StringsRu extends Strings {
 
   @override
   String get untitledProject => 'Без названия';
+
+  @override
+  String get planOneTime => 'разовая оплата';
+
+  @override
+  String get planCurrentChip => 'Текущий';
+
+  @override
+  String get planCurrentPlanLabel => 'Текущий план';
+
+  @override
+  String get planSelectedLabel => 'Выбрано';
+
+  @override
+  String get planUpgradeToLabel => 'Улучшить до';
+
+  @override
+  String get planUpgradeNote => 'апгрейд, разовая оплата';
+
+  @override
+  String get planProcessing => 'Обработка';
+
+  @override
+  String get planConfirmingWithStore => 'Подтверждаем покупку в магазине. Не закрывайте экран.';
+
+  @override
+  String get planOwnEverything => 'У вас есть всё';
+
+  @override
+  String get planUnlocksWithPro => 'Открывается в Pro';
+
+  @override
+  String get planUnlockedWithYourPlan => 'Открыто вашим планом';
+
+  @override
+  String get planStoreUnavailableTitle => 'Магазин здесь недоступен.';
+
+  @override
+  String get planStoreUnavailableBody =>
+      'Покупки совершаются в приложении PixelVerse для Android, iOS или компьютера. План синхронизируется автоматически.';
+
+  @override
+  String get planOpenAppToPurchase => 'Откройте приложение для покупки. Цены указаны для справки.';
+
+  @override
+  String get planRetry => 'Повторить';
+
+  @override
+  String get planRestorePurchases => 'Восстановить покупки';
 }

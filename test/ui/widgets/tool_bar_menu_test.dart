@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:picell/data/models/project_model.dart';
+import 'package:picell/data/models/challenge_models.dart';
+import 'package:picell/providers/challenges_provider.dart';
 import 'package:picell/data/models/selection_region.dart';
 import 'package:picell/data/models/subscription_model.dart';
 import 'package:picell/data/storage/local_storage.dart';
@@ -18,8 +20,7 @@ void main() {
     await LocalStorage.init();
   });
 
-  testWidgets('top bar groups infrequent actions into File, View and Add',
-      (tester) async {
+  testWidgets('top bar groups infrequent actions into File, View and Add', (tester) async {
     var historyCalls = 0;
     var effectsCalls = 0;
     var tileModeCalls = 0;
@@ -48,6 +49,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
         child: MaterialApp(
           localizationsDelegates: Strings.localizationsDelegates,
           supportedLocales: Strings.supportedLocales,
@@ -181,6 +183,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
         child: MaterialApp(
           localizationsDelegates: Strings.localizationsDelegates,
           supportedLocales: Strings.supportedLocales,
@@ -276,4 +279,9 @@ void main() {
     expect(find.text('Alt + 4'), findsOneWidget);
     expect(find.text('Alt + 5'), findsOneWidget);
   });
+}
+
+class _NoChallenges extends CurrentChallengesNotifier {
+  @override
+  Future<CurrentChallenges?> build() async => null;
 }

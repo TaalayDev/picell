@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+import '../../providers/editor_tool_memory_provider.dart';
+import 'grouped_tool_button.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../data/models/subscription_model.dart';
@@ -88,9 +92,7 @@ class ToolMenu extends StatelessWidget {
                     AppIcons.pen,
                     color: tool == PixelTool.pen ? Colors.blue : null,
                   ),
-                  onPressed: !subscription.isPro
-                      ? null
-                      : () => onSelectTool(PixelTool.pen),
+                  onPressed: !subscription.isPro ? null : () => onSelectTool(PixelTool.pen),
                 ),
               ),
               ProBadge(
@@ -100,9 +102,7 @@ class ToolMenu extends StatelessWidget {
                     AppIcons.curved_connector,
                     color: tool == PixelTool.curve ? Colors.blue : null,
                   ),
-                  onPressed: !subscription.isPro
-                      ? null
-                      : () => onSelectTool(PixelTool.curve),
+                  onPressed: !subscription.isPro ? null : () => onSelectTool(PixelTool.curve),
                 ),
               ),
               ProBadge(
@@ -112,9 +112,7 @@ class ToolMenu extends StatelessWidget {
                     Feather.move,
                     color: tool == PixelTool.drag ? Colors.blue : null,
                   ),
-                  onPressed: !subscription.isPro
-                      ? null
-                      : () => onSelectTool(PixelTool.drag),
+                  onPressed: !subscription.isPro ? null : () => onSelectTool(PixelTool.drag),
                 ),
               ),
               IconButton(
@@ -124,56 +122,9 @@ class ToolMenu extends StatelessWidget {
                 ),
                 onPressed: () => onSelectTool(PixelTool.sprayPaint),
               ),
-              Stack(
-                fit: StackFit.passthrough,
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.texture,
-                      color: tool == PixelTool.textureBrush ||
-                              tool == PixelTool.textureFill
-                          ? Colors.blue
-                          : null,
-                    ),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => Dialog(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxWidth: 400,
-                              maxHeight: 500,
-                            ),
-                            child: TextureBrushPanel(
-                              isFill: tool == PixelTool.textureFill,
-                              onTextureSelected: (texture, blendMode, isFill) {
-                                Navigator.of(context).pop();
-                                if (texture != null) {
-                                  onTextureSelected?.call(
-                                      texture, blendMode, isFill);
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                    tooltip: Strings.of(context).textureBrush,
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Transform.rotate(
-                      angle: -0.785398,
-                      child: const Icon(
-                        Icons.arrow_drop_down,
-                        color: Colors.grey,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ],
+              TextureToolsMenuButton(
+                currentTool: currentTool,
+                onTextureSelected: onTextureSelected,
               ),
             ],
           ),
@@ -183,7 +134,7 @@ class ToolMenu extends StatelessWidget {
   }
 }
 
-class ShapesMenuButton extends StatelessWidget {
+class ShapesMenuButton extends ConsumerWidget {
   final ValueNotifier<PixelTool> currentTool;
   final Function(PixelTool) onSelectTool;
 
@@ -194,34 +145,22 @@ class ShapesMenuButton extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final remembered = ref.watch(editorToolMemoryProvider).shape;
+    final selected = shapeTools.contains(currentTool.value) ? currentTool.value : remembered;
+    final active = shapeTools.contains(currentTool.value);
+    final menuKey = GlobalKey<PopupMenuButtonState<PixelTool>>();
     return PopupMenuButton<PixelTool>(
-      icon: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Icon(
-            currentTool.value == PixelTool.line
-                ? Icons.show_chart
-                : currentTool.value == PixelTool.rectangle
-                    ? Icons.crop_square
-                    : Icons.radio_button_unchecked,
-            color: _isShapeTool(currentTool.value) ? Colors.blue : null,
-          ),
-          Positioned(
-            right: -5,
-            bottom: -5,
-            child: Transform.rotate(
-              angle: -0.785398,
-              child: const Icon(
-                Icons.arrow_drop_down,
-                color: Colors.grey,
-                size: 16,
-              ),
-            ),
-          ),
-        ],
+      key: menuKey,
+      initialValue: selected,
+      child: GroupedToolButton(
+        group: 'shape-tool',
+        icon: Icon(_shapeIcon(selected), color: active ? Theme.of(context).colorScheme.primary : null),
+        onActivate: () => onSelectTool(selected),
+        onOpenMenu: () => menuKey.currentState?.showButtonMenu(),
       ),
-      onSelected: (PixelTool result) {
+      onSelected: (result) {
+        ref.read(editorToolMemoryProvider.notifier).rememberTool(result);
         onSelectTool(result);
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<PixelTool>>[
@@ -340,14 +279,23 @@ class ShapesMenuButton extends StatelessWidget {
     );
   }
 
-  bool _isShapeTool(PixelTool tool) {
-    return tool == PixelTool.line ||
-        tool == PixelTool.rectangle ||
-        tool == PixelTool.circle;
-  }
+  IconData _shapeIcon(PixelTool tool) => switch (tool) {
+        PixelTool.line => Icons.show_chart,
+        PixelTool.rectangle => Icons.crop_square,
+        PixelTool.triangle => Icons.change_history,
+        PixelTool.diamond => Icons.diamond_outlined,
+        PixelTool.hexagon => Icons.hexagon_outlined,
+        PixelTool.heart => Icons.favorite_border,
+        PixelTool.arrow => Icons.arrow_forward,
+        PixelTool.lightning => Icons.flash_on,
+        PixelTool.cross => Icons.add,
+        PixelTool.spiral => Icons.sync,
+        PixelTool.cloud => Icons.cloud_outlined,
+        _ => Icons.radio_button_unchecked,
+      };
 }
 
-class SelectionToolsMenuButton extends StatelessWidget {
+class SelectionToolsMenuButton extends ConsumerWidget {
   final ValueNotifier<PixelTool> currentTool;
   final Function(PixelTool) onSelectTool;
 
@@ -364,8 +312,8 @@ class SelectionToolsMenuButton extends StatelessWidget {
         tool == PixelTool.smartSelect;
   }
 
-  Widget _buildCurrentIcon(Color? color) {
-    switch (currentTool.value) {
+  Widget _buildCurrentIcon(PixelTool tool, Color? color) {
+    switch (tool) {
       case PixelTool.ellipseSelect:
         return Icon(Icons.circle_outlined, color: color);
       case PixelTool.lasso:
@@ -379,30 +327,24 @@ class SelectionToolsMenuButton extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final activeColor =
-        _isSelectionTool(currentTool.value) ? Colors.blue : null;
-
+  Widget build(BuildContext context, WidgetRef ref) {
+    final remembered = ref.watch(editorToolMemoryProvider).selection;
+    final selected = selectionTools.contains(currentTool.value) ? currentTool.value : remembered;
+    final activeColor = _isSelectionTool(currentTool.value) ? Theme.of(context).colorScheme.primary : null;
+    final menuKey = GlobalKey<PopupMenuButtonState<PixelTool>>();
     return PopupMenuButton<PixelTool>(
-      icon: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          _buildCurrentIcon(activeColor),
-          Positioned(
-            right: -5,
-            bottom: -5,
-            child: Transform.rotate(
-              angle: -0.785398,
-              child: const Icon(
-                Icons.arrow_drop_down,
-                color: Colors.grey,
-                size: 16,
-              ),
-            ),
-          ),
-        ],
+      key: menuKey,
+      initialValue: selected,
+      child: GroupedToolButton(
+        group: 'selection-tool',
+        icon: _buildCurrentIcon(selected, activeColor),
+        onActivate: () => onSelectTool(selected),
+        onOpenMenu: () => menuKey.currentState?.showButtonMenu(),
       ),
-      onSelected: onSelectTool,
+      onSelected: (result) {
+        ref.read(editorToolMemoryProvider.notifier).rememberTool(result);
+        onSelectTool(result);
+      },
       itemBuilder: (context) => [
         PopupMenuItem<PixelTool>(
           value: PixelTool.select,
@@ -441,6 +383,57 @@ class SelectionToolsMenuButton extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class TextureToolsMenuButton extends ConsumerWidget {
+  const TextureToolsMenuButton({super.key, required this.currentTool, required this.onTextureSelected});
+
+  final ValueNotifier<PixelTool> currentTool;
+  final Function(TexturePattern, BlendMode, bool isFill)? onTextureSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final memory = ref.watch(editorToolMemoryProvider);
+    final active = currentTool.value == PixelTool.textureBrush || currentTool.value == PixelTool.textureFill;
+    void apply(TexturePattern texture, BlendMode blendMode, bool isFill) {
+      ref.read(editorToolMemoryProvider.notifier).rememberTexture(texture, blendMode, isFill);
+      onTextureSelected?.call(texture, blendMode, isFill);
+    }
+
+    void openOptions() {
+      showDialog(
+        context: context,
+        builder: (dialogContext) => Dialog(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
+            child: TextureBrushPanel(
+              selectedTextureId: memory.texture?.id,
+              blendMode: memory.blendMode,
+              isFill: memory.isTextureFill,
+              onBlendModeChanged: (_) {},
+              onTextureSelected: (texture, blendMode, isFill) {
+                if (texture == null) return;
+                Navigator.of(dialogContext).pop();
+                apply(texture, blendMode, isFill);
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Tooltip(
+      message: Strings.of(context).textureBrush,
+      child: GroupedToolButton(
+        group: 'texture-tool',
+        icon: Icon(memory.isTextureFill ? Icons.format_color_fill : Icons.texture,
+            color: active ? Theme.of(context).colorScheme.primary : null),
+        onActivate:
+            memory.texture == null ? openOptions : () => apply(memory.texture!, memory.blendMode, memory.isTextureFill),
+        onOpenMenu: openOptions,
+      ),
     );
   }
 }

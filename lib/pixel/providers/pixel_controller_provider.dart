@@ -1446,10 +1446,24 @@ class PixelDrawController extends _$PixelDrawController {
     if (sourceIndex < 0) return;
     final sourceState = state.animationStates[sourceIndex];
 
-    // Create a new animation state with a "Copy of" name
+    // Copies of copies share one base name and get a counter, and the result
+    // stays within the 100-character column limit.
+    final base = sourceState.name.replaceFirst(RegExp(r'(\s*\(copy(?: \d+)?\))+$'), '');
+    final taken = state.animationStates.map((s) => s.name).toSet();
+    String copyName(int n) {
+      final suffix = n == 1 ? ' (copy)' : ' (copy $n)';
+      final room = 100 - suffix.length;
+      return '${base.length > room ? base.substring(0, room) : base}$suffix';
+    }
+
+    var copyNumber = 1;
+    while (taken.contains(copyName(copyNumber))) {
+      copyNumber++;
+    }
+
     final newState = await _animationService.createAnimationState(
       projectId: project.id,
-      name: '${sourceState.name} (copy)',
+      name: copyName(copyNumber),
       frameRate: sourceState.frameRate,
     );
 

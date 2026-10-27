@@ -7,7 +7,9 @@ import '../../../../core.dart';
 import '../../../../data.dart';
 import '../../../../l10n/strings.dart';
 import '../../pv/pv.dart';
+import '../../../../app/theme/flagship/flagship_extensions.dart';
 import '../project_menu_button.dart';
+import '../theme_aware_project_card.dart';
 import '../project_thumbnail.dart';
 
 /// Mobile "home" block of the Projects screen: a Resume card for the last
@@ -53,7 +55,7 @@ class PvMyProjects extends HookWidget {
     final strings = Strings.of(context);
 
     return projects.when(
-      loading: () => const PvProjectsSkeleton(),
+      loading: () => const PvProjectsSkeleton(compact: true),
       error: (_, __) => Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -64,7 +66,7 @@ class PvMyProjects extends HookWidget {
         ),
       ),
       data: (all) {
-        if (all.isEmpty) return PvEmptyProjects(onCreate: onCreateNew);
+        if (all.isEmpty) return PvEmptyProjects(onCreate: onCreateNew, compact: true);
 
         final sorted = List<Project>.of(all)..sort((a, b) => b.editedAt.compareTo(a.editedAt));
         final q = query.value.trim().toLowerCase();
@@ -74,7 +76,7 @@ class PvMyProjects extends HookWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
               child: PvResumeCard(project: sorted.first, onResume: () => onTapProject(sorted.first)),
             ),
             PvSectionHeader(
@@ -104,17 +106,19 @@ class PvMyProjects extends HookWidget {
                 ),
               ),
             SizedBox(
-              height: 232,
+              height: 112 + MediaQuery.textScalerOf(context).scale(44),
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
                 itemCount: filtered.length + 1,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, i) {
-                  if (i == 0) return PvCreateTile(onTap: onCreateNew);
+                  if (i == 0) return PvCreateTile(onTap: onCreateNew, width: 96);
                   final project = filtered[i - 1];
                   return PvProjectTile(
                     key: ValueKey(project.id),
+                    compact: true,
+                    width: 140,
                     project: project,
                     onTap: () => onTapProject(project),
                     onDelete: onDeleteProject,
@@ -149,6 +153,7 @@ class _SyncChip extends StatelessWidget {
   }
 }
 
+/// Compact mobile resume row; the desktop uses [PvResumeCardWide].
 class PvResumeCard extends StatelessWidget {
   const PvResumeCard({super.key, required this.project, required this.onResume});
 
@@ -159,89 +164,42 @@ class PvResumeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final pv = context.pv;
     final strings = Strings.of(context);
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
-        child: PvPressable(
-          onTap: onResume,
-          builder: (context, hovered) => Container(
-            decoration: BoxDecoration(
-              color: pv.surface,
-              borderRadius: BorderRadius.circular(pv.cardRadius + 4),
-              border: Border.all(color: hovered ? pv.accent : pv.divider),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 20, offset: const Offset(0, 6))
-              ],
+    return PvPressable(
+      onTap: onResume,
+      builder: (context, hovered) => Container(
+        padding: const EdgeInsets.all(10),
+        decoration: pv.cardDecoration(hovered: hovered),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(pv.cardRadius.clamp(0, 8)),
+              child: SizedBox.square(
+                dimension: 56,
+                child: ProjectThumbnailWidget(project: project, fit: BoxFit.contain),
+              ),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  height: 200,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      ProjectThumbnailWidget(project: project, fit: BoxFit.contain),
-                      Positioned(left: 10, top: 10, child: _SyncChip(project: project)),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              strings.continueWhereYouLeftOff.toUpperCase(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: pv.pixelLabel(size: 11, color: pv.accent).copyWith(letterSpacing: 1),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              project.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: pv.body(size: 20, weight: FontWeight.w700),
-                            ),
-                            Text(
-                              '${project.width}×${project.height} · ${formatLastEdited(context, project.editedAt)}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: pv.body(size: 13, color: pv.textSecondary, weight: FontWeight.w400),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      DecoratedBox(
-                        decoration: BoxDecoration(gradient: pv.gradient, borderRadius: BorderRadius.circular(24)),
-                        child: SizedBox(
-                          height: 48,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 12, right: 18),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.play_arrow_rounded, color: pv.ink, size: 24),
-                                const SizedBox(width: 4),
-                                Text(strings.resumeProject,
-                                    style: pv.body(size: 15, color: pv.ink, weight: FontWeight.w700)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(strings.continueWhereYouLeftOff.toUpperCase(),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: pv.pixelLabel(size: 9, color: pv.accent)),
+                  const SizedBox(height: 3),
+                  Text(project.name,
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: pv.body(size: 14, weight: FontWeight.w600)),
+                  Text('${project.width}×${project.height} · ${formatLastEdited(context, project.editedAt)}',
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: pv.body(size: 11, color: pv.textSecondary)),
+                ],
+              ),
             ),
-          ),
+            IconButton(
+              tooltip: strings.resumeProject,
+              onPressed: onResume,
+              icon: Icon(Icons.play_circle_outline, color: pv.accent),
+            ),
+          ],
         ),
       ),
     );
@@ -264,18 +222,14 @@ class PvCreateTile extends StatelessWidget {
       builder: (context, hovered) => Container(
         width: width,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(pv.cardRadius + 4),
-          border: Border.all(color: hovered ? pv.accent : pv.divider, width: 2),
+          borderRadius: BorderRadius.circular(pv.cardRadius),
+          border: Border.all(
+              color: hovered ? pv.accent : pv.divider, width: pv.cardBorderWidth < 1 ? 2 : pv.cardBorderWidth + 1),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(gradient: pv.gradient, borderRadius: BorderRadius.circular(12)),
-              child: Icon(Feather.plus, color: pv.ink, size: 26),
-            ),
+            Icon(Icons.add_circle_outline, color: pv.accent, size: 48),
             const SizedBox(height: 10),
             Text(Strings.of(context).create, style: pv.body(size: 14, weight: FontWeight.w600)),
           ],
@@ -285,10 +239,17 @@ class PvCreateTile extends StatelessWidget {
   }
 }
 
+/// True when the active theme ships its own project card.
+bool _hasFlagshipCard(BuildContext context) =>
+    context.flagship?.isFlagship == true && context.flagship?.cardBuilder != null;
+
+const double _flagshipCardWidth = 230;
+
 class PvProjectTile extends StatelessWidget {
   const PvProjectTile({
     super.key,
     this.width = 160,
+    this.compact = false,
     required this.project,
     required this.onTap,
     required this.onDelete,
@@ -297,6 +258,9 @@ class PvProjectTile extends StatelessWidget {
     required this.onUpdate,
     required this.onDeleteCloud,
   });
+
+  /// Compact mobile cards keep the project actions in a shorter rail.
+  final bool compact;
 
   /// Null fills the grid cell and shows a square thumbnail.
   final double? width;
@@ -309,11 +273,34 @@ class PvProjectTile extends StatelessWidget {
   final void Function(Project) onDeleteCloud;
 
   Widget _fixedOrSquare(Widget child) =>
-      width == null ? AspectRatio(aspectRatio: 1, child: child) : SizedBox(height: 150, child: child);
+      width == null ? AspectRatio(aspectRatio: 1, child: child) : SizedBox(height: compact ? 88 : 150, child: child);
 
   @override
   Widget build(BuildContext context) {
     final pv = context.pv;
+    if (!compact && _hasFlagshipCard(context)) {
+      // The theme's own card, shrunk to fit the rail if a tall canvas makes it taller.
+      final card = ThemeAwareProjectCard(
+        project: project,
+        onTapProject: (_) => onTap(),
+        onDeleteProject: onDelete,
+        onEditProject: onEdit,
+        onUploadProject: onUpload,
+        onUpdateProject: onUpdate,
+        onDeleteCloudProject: onDeleteCloud,
+      );
+      if (width == null) return card;
+      // Flagship cards lay out chips and buttons side by side and need room.
+      final cardWidth = width! < _flagshipCardWidth ? _flagshipCardWidth : width!;
+      return SizedBox(
+        width: cardWidth,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.topCenter,
+          child: SizedBox(width: cardWidth, child: card),
+        ),
+      );
+    }
     return ProjectContextMenuRegion(
       project: project,
       onTapProject: (_) => onTap(),
@@ -326,11 +313,7 @@ class PvProjectTile extends StatelessWidget {
         onTap: onTap,
         builder: (context, hovered) => Container(
           width: width,
-          decoration: BoxDecoration(
-            color: pv.surface,
-            borderRadius: BorderRadius.circular(pv.cardRadius + 4),
-            border: Border.all(color: hovered ? pv.accent : pv.divider),
-          ),
+          decoration: pv.cardDecoration(hovered: hovered),
           clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -340,7 +323,7 @@ class PvProjectTile extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     ProjectThumbnailWidget(project: project, fit: BoxFit.contain),
-                    Positioned(left: 8, bottom: 8, child: _SyncChip(project: project)),
+                    if (!compact) Positioned(left: 8, bottom: 8, child: _SyncChip(project: project)),
                   ],
                 ),
               ),
@@ -395,7 +378,8 @@ class PvProjectTile extends StatelessWidget {
 
 /// First-run state: a pixel pencil, short copy and the hero create button.
 class PvEmptyProjects extends StatelessWidget {
-  const PvEmptyProjects({super.key, required this.onCreate});
+  final bool compact;
+  const PvEmptyProjects({super.key, required this.onCreate, this.compact = false});
 
   final VoidCallback onCreate;
 
@@ -407,28 +391,25 @@ class PvEmptyProjects extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
-        decoration: BoxDecoration(
-          color: pv.surface,
-          borderRadius: BorderRadius.circular(pv.cardRadius + 4),
-          border: Border.all(color: pv.divider),
-        ),
+        decoration: pv.cardDecoration(),
         child: Column(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: SizedBox(
-                width: 120,
-                height: 120,
-                child: PvCheckerboard(
-                  cell: 16,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: CustomPaint(painter: _PencilPainter(pv)),
+            if (!compact)
+              ClipRRect(
+                borderRadius: BorderRadius.circular((pv.cardRadius * 0.8).clamp(0, 16)),
+                child: SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: PvCheckerboard(
+                    cell: 16,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: CustomPaint(painter: _PencilPainter(pv)),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+            if (!compact) const SizedBox(height: 16),
             Text(
               strings.noProjectsYet.toUpperCase(),
               textAlign: TextAlign.center,
@@ -488,7 +469,9 @@ class _PencilPainter extends CustomPainter {
 
 /// Shimmer placeholder matching the Resume card and project rail.
 class PvProjectsSkeleton extends StatelessWidget {
-  const PvProjectsSkeleton({super.key});
+  const PvProjectsSkeleton({super.key, this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -497,19 +480,19 @@ class PvProjectsSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const PvShimmerBox(height: 290, radius: 16),
+          PvShimmerBox(height: compact ? 80 : 290, radius: 16),
           const SizedBox(height: 20),
           const PvShimmerBox(width: 140, height: 18, radius: 4),
           const SizedBox(height: 12),
           SizedBox(
-            height: 190,
+            height: compact ? 148 : 190,
             child: ListView(
               scrollDirection: Axis.horizontal,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                for (var i = 0; i < 3; i++) ...const [
-                  PvShimmerBox(width: 160, height: 158, radius: 16),
-                  SizedBox(width: 12),
+                for (var i = 0; i < 3; i++) ...[
+                  PvShimmerBox(width: compact ? 140 : 160, height: compact ? 140 : 158, radius: 16),
+                  const SizedBox(width: 12),
                 ],
               ],
             ),
@@ -536,14 +519,7 @@ class PvResumeCardWide extends StatelessWidget {
       onTap: onResume,
       builder: (context, hovered) => Container(
         height: 240,
-        decoration: BoxDecoration(
-          color: pv.surface,
-          borderRadius: BorderRadius.circular(pv.cardRadius + 4),
-          border: Border.all(color: hovered ? pv.accent : pv.divider),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 20, offset: const Offset(0, 6))
-          ],
-        ),
+        decoration: pv.cardDecoration(hovered: hovered),
         clipBehavior: Clip.antiAlias,
         child: Row(
           children: [
@@ -583,7 +559,8 @@ class PvResumeCardWide extends StatelessWidget {
                     ),
                     const Spacer(),
                     DecoratedBox(
-                      decoration: BoxDecoration(gradient: pv.gradient, borderRadius: BorderRadius.circular(24)),
+                      decoration: BoxDecoration(
+                          gradient: pv.gradient, borderRadius: BorderRadius.circular(pv.buttonRadius.clamp(0, 24))),
                       child: SizedBox(
                         height: 48,
                         child: Padding(
@@ -627,11 +604,7 @@ class PvQuickCreatePanel extends StatelessWidget {
     return Container(
       height: 240,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: pv.surface,
-        borderRadius: BorderRadius.circular(pv.cardRadius + 4),
-        border: Border.all(color: pv.divider),
-      ),
+      decoration: pv.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -653,16 +626,12 @@ class PvQuickCreatePanel extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: pv.surfaceHigh,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular((pv.cardRadius * 0.75).clamp(0, 12)),
                         border: Border.all(color: hovered ? pv.accent : Colors.transparent, width: 2),
                       ),
                       child: Row(
                         children: [
-                          Container(
-                            width: 8 + size / 128 * 16,
-                            height: 8 + size / 128 * 16,
-                            decoration: BoxDecoration(gradient: pv.gradient, borderRadius: BorderRadius.circular(2)),
-                          ),
+                          Icon(Icons.crop_square, size: 16 + size / 128 * 8, color: pv.accent),
                           const SizedBox(width: 10),
                           Flexible(
                             child: Text('$size×$size',
@@ -684,7 +653,7 @@ class PvQuickCreatePanel extends StatelessWidget {
               height: 48,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular((pv.cardRadius * 0.75).clamp(0, 12)),
                 border: Border.all(color: hovered ? pv.accent : pv.divider, width: 2),
               ),
               child: Row(
@@ -735,38 +704,31 @@ class PvProjectsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const gap = 16.0;
-        final columns = ((constraints.maxWidth + gap) / (190 + gap)).floor().clamp(2, 6);
-        final cell = (constraints.maxWidth - gap * (columns - 1)) / columns;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: projects.length + 1,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            mainAxisSpacing: gap,
-            crossAxisSpacing: gap,
-            childAspectRatio: cell / (cell + 60),
-          ),
-          itemBuilder: (context, i) {
-            if (i == 0) return PvCreateTile(onTap: onCreateNew, width: null);
-            final project = projects[i - 1];
-            return PvProjectTile(
-              key: ValueKey(project.id),
-              width: null,
-              project: project,
-              onTap: () => onTapProject(project),
-              onDelete: onDeleteProject,
-              onEdit: onEditProject,
-              onUpload: onUploadProject,
-              onUpdate: onUpdateProject,
-              onDeleteCloud: onDeleteCloudProject,
-            );
-          },
-        );
-      },
+    const cell = 180.0;
+    const gap = 16.0;
+    return SizedBox(
+      height: cell + (_hasFlagshipCard(context) ? 120 : 60),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
+        itemCount: projects.length + 1,
+        separatorBuilder: (_, __) => const SizedBox(width: gap),
+        itemBuilder: (context, i) {
+          if (i == 0) return PvCreateTile(onTap: onCreateNew, width: cell);
+          final project = projects[i - 1];
+          return PvProjectTile(
+            key: ValueKey(project.id),
+            width: cell,
+            project: project,
+            onTap: () => onTapProject(project),
+            onDelete: onDeleteProject,
+            onEdit: onEditProject,
+            onUpload: onUploadProject,
+            onUpdate: onUpdateProject,
+            onDeleteCloud: onDeleteCloudProject,
+          );
+        },
+      ),
     );
   }
 }

@@ -16,13 +16,16 @@ import '../pv/pv.dart';
 /// Active challenges on the projects screen. Hidden while loading, on errors
 /// and when nothing is running, so it never pushes the page around.
 class ChallengesBanner extends HookConsumerWidget {
-  const ChallengesBanner({super.key, this.onStartDrawing, this.padding = EdgeInsets.zero});
+  const ChallengesBanner({super.key, this.onStartDrawing, this.padding = EdgeInsets.zero, this.showHeader = true});
 
   /// Opens a new project from the challenge details.
   final VoidCallback? onStartDrawing;
 
   /// Applied only while the banner is visible, so a hidden banner leaves no gap.
   final EdgeInsetsGeometry padding;
+
+  /// Turn off when a parent already titles the block.
+  final bool showHeader;
 
   static const double _minCardWidth = 300;
   static const double _gap = 12;
@@ -64,7 +67,11 @@ class ChallengesBanner extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PvSectionHeader(title: Strings.of(context).challengesTitle, padding: const EdgeInsets.only(left: 4)),
+          if (showHeader)
+            PvSectionHeader(
+                icon: Icons.emoji_events_outlined,
+                title: Strings.of(context).challengesTitle,
+                padding: const EdgeInsets.only(left: 4)),
           if (withCover.isNotEmpty)
             LayoutBuilder(
               builder: (context, constraints) {

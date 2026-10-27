@@ -2083,5 +2083,21 @@
     "pickCanvasSize": "キャンバスサイズを選択",
     "importImageOrProject": "画像またはプロジェクトを読み込む",
     "searchProjectsAndCommunity": "プロジェクトとコミュニティを検索",
-    "untitledProject": "無題"
+    "untitledProject": "無題",
+    "planOneTime": "разовый платёж",
+    "planCurrentChip": "現在のプラン",
+    "planCurrentPlanLabel": "現在のプラン",
+    "planSelectedLabel": "選択中",
+    "planUpgradeToLabel": "アップグレード先",
+    "planUpgradeNote": "アップグレード・買い切り",
+    "planProcessing": "処理中",
+    "planConfirmingWithStore": "ストアで確認しています。この画面を開いたままにしてください。",
+    "planOwnEverything": "すべて入手済みです",
+    "planUnlocksWithPro": "Proで解放",
+    "planUnlockedWithYourPlan": "お使いのプランで解放済み",
+    "planStoreUnavailableTitle": "ここではストアを利用できません。",
+    "planStoreUnavailableBody": "購入はAndroid、iOS、デスクトップ版のPixelVerseアプリで行います。プランは自動で同期されます。",
+    "planOpenAppToPurchase": "購入にはアプリを開いてください。価格は参考です。",
+    "planRetry": "再試行",
+    "planRestorePurchases": "購入を復元"
 }

@@ -8290,6 +8290,102 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Untitled'**
   String get untitledProject;
+
+  /// No description provided for @planOneTime.
+  ///
+  /// In en, this message translates to:
+  /// **'one-time'**
+  String get planOneTime;
+
+  /// No description provided for @planCurrentChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get planCurrentChip;
+
+  /// No description provided for @planCurrentPlanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan'**
+  String get planCurrentPlanLabel;
+
+  /// No description provided for @planSelectedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get planSelectedLabel;
+
+  /// No description provided for @planUpgradeToLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to'**
+  String get planUpgradeToLabel;
+
+  /// No description provided for @planUpgradeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'upgrade, one-time'**
+  String get planUpgradeNote;
+
+  /// No description provided for @planProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get planProcessing;
+
+  /// No description provided for @planConfirmingWithStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming with the store. Please keep this screen open.'**
+  String get planConfirmingWithStore;
+
+  /// No description provided for @planOwnEverything.
+  ///
+  /// In en, this message translates to:
+  /// **'You own everything'**
+  String get planOwnEverything;
+
+  /// No description provided for @planUnlocksWithPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocks with Pro'**
+  String get planUnlocksWithPro;
+
+  /// No description provided for @planUnlockedWithYourPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked with your plan'**
+  String get planUnlockedWithYourPlan;
+
+  /// No description provided for @planStoreUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store unavailable here.'**
+  String get planStoreUnavailableTitle;
+
+  /// No description provided for @planStoreUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases happen in the PixelVerse app for Android, iOS or desktop. Your plan syncs automatically.'**
+  String get planStoreUnavailableBody;
+
+  /// No description provided for @planOpenAppToPurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the app to purchase. Prices shown for reference.'**
+  String get planOpenAppToPurchase;
+
+  /// No description provided for @planRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get planRetry;
+
+  /// No description provided for @planRestorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get planRestorePurchases;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

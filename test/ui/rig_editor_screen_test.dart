@@ -36,11 +36,11 @@ void main() {
   /// Scrolls the side panel until [target] is on screen; the panel builds its
   /// sections lazily, so lower ones do not exist until reached.
   Future<void> inPanel(WidgetTester tester, Finder target) async {
-    await tester.scrollUntilVisible(
-      target,
-      120,
-      scrollable: find.descendant(of: find.byType(RigSidePanel), matching: find.byType(Scrollable)).first,
-    );
+    final scrollable = find.descendant(of: find.byType(RigSidePanel), matching: find.byType(Scrollable)).first;
+    // Each section is one lazy list child, so start from the top.
+    tester.state<ScrollableState>(scrollable).position.jumpTo(0);
+    await tester.pump();
+    await tester.scrollUntilVisible(target, 120, scrollable: scrollable);
     await tester.pump();
   }
 

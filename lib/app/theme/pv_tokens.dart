@@ -28,6 +28,9 @@ class PvTokens extends ThemeExtension<PvTokens> {
     required this.cardRadius,
     required this.buttonRadius,
     required this.chipRadius,
+    required this.cardBorderWidth,
+    required this.cardElevation,
+    required this.shadowColor,
     required this.isDark,
   });
 
@@ -49,9 +52,12 @@ class PvTokens extends ThemeExtension<PvTokens> {
       err: t.error,
       checkerA: Color.lerp(t.surface, t.surfaceVariant, 0.5)!,
       checkerB: t.surfaceVariant,
-      cardRadius: g.cardRadius < 12 ? 12 : g.cardRadius,
+      cardRadius: g.cardRadius,
       buttonRadius: g.buttonRadius,
       chipRadius: g.chipRadius,
+      cardBorderWidth: g.cardBorderWidth,
+      cardElevation: g.cardElevation,
+      shadowColor: g.shadowColor,
       isDark: t.isDark,
     );
   }
@@ -77,6 +83,12 @@ class PvTokens extends ThemeExtension<PvTokens> {
   final double cardRadius;
   final double buttonRadius;
   final double chipRadius;
+
+  /// Card outline and shadow straight from the theme's geometry, so project
+  /// cards read like the theme's own cards.
+  final double cardBorderWidth;
+  final double cardElevation;
+  final Color? shadowColor;
   final bool isDark;
 
   // Rig editor accents — fixed because they identify the mode / chain type.
@@ -86,6 +98,29 @@ class PvTokens extends ThemeExtension<PvTokens> {
 
   /// Tints [c] over [surface] — the "mode tint" used on rig bars.
   Color tint(Color c, [double alpha = 0.10]) => Color.alphaBlend(c.withValues(alpha: alpha), surface);
+
+  /// Surface decoration for cards: the theme's radius, border width and
+  /// shadow. [hovered] swaps the outline to the accent and lifts the shadow.
+  BoxDecoration cardDecoration({bool hovered = false, Color? color, double? radius, bool outlined = true}) {
+    final lift = hovered ? 4.0 : 0.0;
+    final elevation = cardElevation + lift;
+    return BoxDecoration(
+      color: color ?? surface,
+      borderRadius: BorderRadius.circular(radius ?? cardRadius),
+      border: outlined
+          ? Border.all(color: hovered ? accent : divider, width: cardBorderWidth < 1 ? 1 : cardBorderWidth)
+          : null,
+      boxShadow: elevation <= 0 && shadowColor == null
+          ? null
+          : [
+              BoxShadow(
+                color: shadowColor ?? Colors.black.withValues(alpha: isDark ? 0.35 : 0.14),
+                blurRadius: 4 + elevation * 3,
+                offset: Offset(0, 1 + elevation),
+              ),
+            ],
+    );
+  }
 
   // ── Type ──────────────────────────────────────────────────────────────────
   /// Pixel display face for logos and hero headings. Use sparingly.
@@ -123,6 +158,9 @@ class PvTokens extends ThemeExtension<PvTokens> {
         cardRadius: cardRadius,
         buttonRadius: buttonRadius,
         chipRadius: chipRadius,
+        cardBorderWidth: cardBorderWidth,
+        cardElevation: cardElevation,
+        shadowColor: shadowColor,
         isDark: isDark,
       );
 
@@ -149,6 +187,9 @@ class PvTokens extends ThemeExtension<PvTokens> {
       cardRadius: cardRadius + (other.cardRadius - cardRadius) * t,
       buttonRadius: buttonRadius + (other.buttonRadius - buttonRadius) * t,
       chipRadius: chipRadius + (other.chipRadius - chipRadius) * t,
+      cardBorderWidth: cardBorderWidth + (other.cardBorderWidth - cardBorderWidth) * t,
+      cardElevation: cardElevation + (other.cardElevation - cardElevation) * t,
+      shadowColor: Color.lerp(shadowColor, other.shadowColor, t),
       isDark: t < 0.5 ? isDark : other.isDark,
     );
   }

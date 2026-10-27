@@ -30,15 +30,32 @@ class _RigSidePanelState extends State<RigSidePanel> {
   RigEditorController get controller => widget.controller;
 
   /// A header that folds [body] away.
-  List<Widget> _section(String id, String title, Widget body, {int? count}) => [
-        _SectionHeader(
-          title,
-          count: count,
-          folded: _folded.contains(id),
-          onTap: () => setState(() => _folded.contains(id) ? _folded.remove(id) : _folded.add(id)),
+  List<Widget> _section(String id, String title, Widget body, {int? count}) {
+    final pv = context.pv;
+    return [
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: pv.surface,
+          borderRadius: BorderRadius.circular(pv.cardRadius),
+          border: Border.all(color: pv.divider),
         ),
-        if (!_folded.contains(id)) body,
-      ];
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _SectionHeader(
+              title,
+              count: count,
+              folded: _folded.contains(id),
+              onTap: () => setState(() => _folded.contains(id) ? _folded.remove(id) : _folded.add(id)),
+            ),
+            if (!_folded.contains(id)) body,
+          ],
+        ),
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +64,7 @@ class _RigSidePanelState extends State<RigSidePanel> {
       listenable: controller,
       builder: (context, _) {
         return ListView(
-          padding: EdgeInsets.zero,
+          padding: const EdgeInsets.all(12),
           children: [
             ..._section('bones', strings.rigSectionBones, _BoneTree(controller: controller),
                 count: controller.rig.bones.length),
@@ -88,37 +105,36 @@ class _SectionHeader extends StatelessWidget {
     final pv = context.pv;
     final muted = theme.colorScheme.onSurfaceVariant;
     return Material(
-      color: theme.colorScheme.surfaceContainerHigh.withValues(alpha: 0.6),
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        child: Container(
-          height: 32,
-          padding: const EdgeInsets.only(left: 6, right: 10),
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.4)),
-              bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.4)),
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(folded ? Icons.chevron_right : Icons.expand_more, size: 18, color: muted),
-              const SizedBox(width: 2),
-              Text(
-                title,
-                style: pv.pixelLabel(size: 11, color: muted).copyWith(letterSpacing: 0.8),
-              ),
-              const Spacer(),
-              if (count != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(10),
+        child: SizedBox(
+          height: 44,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 10, right: 12),
+            child: Row(
+              children: [
+                Icon(folded ? Icons.chevron_right : Icons.expand_more, size: 20, color: muted),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: pv.body(size: 14, weight: FontWeight.w700),
                   ),
-                  child: Text('$count', style: pv.mono(size: 11, color: muted)),
                 ),
-            ],
+                if (count != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text('$count', style: pv.mono(size: 11, color: muted)),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -360,7 +376,7 @@ class _BoneRow extends StatelessWidget {
 
   Widget _rowBody(BuildContext context, ThemeData theme, bool selected, bool hasChildren) {
     return Material(
-      color: selected ? theme.colorScheme.primary.withValues(alpha: 0.14) : Colors.transparent,
+      color: selected ? theme.colorScheme.primary.withValues(alpha: 0.18) : Colors.transparent,
       child: InkWell(
         onTap: () => HardwareKeyboard.instance.isShiftPressed
             ? controller.toggleBoneSelection(bone.id)
@@ -368,9 +384,19 @@ class _BoneRow extends StatelessWidget {
         child: SizedBox(
           height: 30,
           child: Padding(
-            padding: EdgeInsets.only(left: 4 + depth * 14.0, right: 2),
+            padding: const EdgeInsets.only(left: 4, right: 2),
             child: Row(
               children: [
+                Icon(Icons.drag_indicator, size: 14, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                // One guide line per level of nesting.
+                for (var i = 0; i < depth; i++)
+                  Container(
+                    width: 14,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      border: Border(left: BorderSide(color: theme.dividerColor.withValues(alpha: 0.7))),
+                    ),
+                  ),
                 SizedBox(
                   width: 18,
                   height: 28,
@@ -892,49 +918,86 @@ class _BoneNumberState extends State<_BoneNumber> {
     super.dispose();
   }
 
+  /// Nudges the value by [delta] and shows what the rig actually took.
+  void _nudge(double delta) {
+    final n = widget.value + delta;
+    if (widget.minimum != null && n < widget.minimum!) return;
+    _text.text = widget.onApply(n).toStringAsFixed(1);
+  }
+
   @override
-  Widget build(BuildContext context) => TextFormField(
-        key: ValueKey('bone-number-${widget.label}'),
-        controller: _text,
-        style: context.pv.mono(size: 12),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-        decoration: InputDecoration(
-            labelText: widget.label,
-            isDense: true,
-            border: const OutlineInputBorder(),
-            suffixIcon: SizedBox(
-                width: 40,
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  InkWell(
-                      onTap: () {
-                        final value = widget.onApply(widget.value + widget.step);
-                        _text.text = value.toStringAsFixed(1);
-                      },
-                      child: const Icon(Icons.arrow_drop_up, size: 18)),
-                  InkWell(
-                      onTap: () {
-                        final n = widget.value - widget.step;
-                        if (widget.minimum != null && n < widget.minimum!) return;
-                        final value = widget.onApply(n);
-                        _text.text = value.toStringAsFixed(1);
-                      },
-                      child: const Icon(Icons.arrow_drop_down, size: 18)),
-                ]))),
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        validator: (text) {
-          final n = double.tryParse(text ?? '');
-          return n == null || !n.isFinite || (widget.minimum != null && n < widget.minimum!)
-              ? Strings.of(context).rigInvalidValue
-              : null;
-        },
-        onFieldSubmitted: (text) {
-          final value = double.tryParse(text);
-          if (value == null || !value.isFinite || (widget.minimum != null && value < widget.minimum!)) return;
-          final actual = widget.onApply(value);
-          _text.text = actual.toStringAsFixed(1);
-          FocusScope.of(context).unfocus();
-        },
-      );
+  Widget build(BuildContext context) {
+    final pv = context.pv;
+    final theme = Theme.of(context);
+    // Drag the label sideways to scrub the value, a pixel (or degree) per step.
+    final label = MouseRegion(
+      cursor: SystemMouseCursors.resizeLeftRight,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onHorizontalDragUpdate: (d) => _nudge(d.delta.dx * widget.step),
+        child: Row(
+          children: [
+            Icon(Icons.swap_horiz, size: 12, color: pv.textSecondary),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(widget.label,
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: pv.body(size: 11, color: pv.textSecondary)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 6, 10, 2),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(pv.cardRadius.clamp(8, 14)),
+        border: Border.all(color: pv.divider),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          label,
+          CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.arrowUp): () => _nudge(widget.step),
+              const SingleActivator(LogicalKeyboardKey.arrowDown): () => _nudge(-widget.step),
+            },
+            child: TextFormField(
+              key: ValueKey('bone-number-${widget.label}'),
+              controller: _text,
+              style: pv.mono(size: 15, weight: FontWeight.w700),
+              textAlign: TextAlign.right,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+              decoration: const InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(vertical: 4),
+              ),
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: (text) {
+                final n = double.tryParse(text ?? '');
+                return n == null || !n.isFinite || (widget.minimum != null && n < widget.minimum!)
+                    ? Strings.of(context).rigInvalidValue
+                    : null;
+              },
+              onFieldSubmitted: (text) {
+                final value = double.tryParse(text);
+                if (value == null || !value.isFinite || (widget.minimum != null && value < widget.minimum!)) return;
+                final actual = widget.onApply(value);
+                _text.text = actual.toStringAsFixed(1);
+                FocusScope.of(context).unfocus();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ── Pose (animate mode) ─────────────────────────────────────────────────────

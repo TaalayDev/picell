@@ -4542,4 +4542,52 @@ class StringsZh extends Strings {
 
   @override
   String get untitledProject => '未命名';
+
+  @override
+  String get planOneTime => '一次性';
+
+  @override
+  String get planCurrentChip => '当前';
+
+  @override
+  String get planCurrentPlanLabel => '当前方案';
+
+  @override
+  String get planSelectedLabel => '已选择';
+
+  @override
+  String get planUpgradeToLabel => '升级到';
+
+  @override
+  String get planUpgradeNote => '升级，一次性';
+
+  @override
+  String get planProcessing => '处理中';
+
+  @override
+  String get planConfirmingWithStore => '正在与商店确认，请保持此页面打开。';
+
+  @override
+  String get planOwnEverything => '您已拥有全部内容';
+
+  @override
+  String get planUnlocksWithPro => 'Pro 解锁';
+
+  @override
+  String get planUnlockedWithYourPlan => '已随您的方案解锁';
+
+  @override
+  String get planStoreUnavailableTitle => '此处无法使用商店。';
+
+  @override
+  String get planStoreUnavailableBody => '请在 Android、iOS 或桌面版 PixelVerse 应用中购买，您的方案会自动同步。';
+
+  @override
+  String get planOpenAppToPurchase => '请打开应用购买，价格仅供参考。';
+
+  @override
+  String get planRetry => '重试';
+
+  @override
+  String get planRestorePurchases => '恢复购买';
 }

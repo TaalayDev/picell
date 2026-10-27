@@ -4544,4 +4544,52 @@ class StringsJa extends Strings {
 
   @override
   String get untitledProject => '無題';
+
+  @override
+  String get planOneTime => 'разовый платёж';
+
+  @override
+  String get planCurrentChip => '現在のプラン';
+
+  @override
+  String get planCurrentPlanLabel => '現在のプラン';
+
+  @override
+  String get planSelectedLabel => '選択中';
+
+  @override
+  String get planUpgradeToLabel => 'アップグレード先';
+
+  @override
+  String get planUpgradeNote => 'アップグレード・買い切り';
+
+  @override
+  String get planProcessing => '処理中';
+
+  @override
+  String get planConfirmingWithStore => 'ストアで確認しています。この画面を開いたままにしてください。';
+
+  @override
+  String get planOwnEverything => 'すべて入手済みです';
+
+  @override
+  String get planUnlocksWithPro => 'Proで解放';
+
+  @override
+  String get planUnlockedWithYourPlan => 'お使いのプランで解放済み';
+
+  @override
+  String get planStoreUnavailableTitle => 'ここではストアを利用できません。';
+
+  @override
+  String get planStoreUnavailableBody => '購入はAndroid、iOS、デスクトップ版のPixelVerseアプリで行います。プランは自動で同期されます。';
+
+  @override
+  String get planOpenAppToPurchase => '購入にはアプリを開いてください。価格は参考です。';
+
+  @override
+  String get planRetry => '再試行';
+
+  @override
+  String get planRestorePurchases => '購入を復元';
 }

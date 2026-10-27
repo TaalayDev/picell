@@ -2402,5 +2402,21 @@
     "pickCanvasSize": "Pick a canvas size",
     "importImageOrProject": "Import image or project file",
     "searchProjectsAndCommunity": "Search projects and community",
-    "untitledProject": "Untitled"
+    "untitledProject": "Untitled",
+    "planOneTime": "one-time",
+    "planCurrentChip": "Current",
+    "planCurrentPlanLabel": "Current plan",
+    "planSelectedLabel": "Selected",
+    "planUpgradeToLabel": "Upgrade to",
+    "planUpgradeNote": "upgrade, one-time",
+    "planProcessing": "Processing",
+    "planConfirmingWithStore": "Confirming with the store. Please keep this screen open.",
+    "planOwnEverything": "You own everything",
+    "planUnlocksWithPro": "Unlocks with Pro",
+    "planUnlockedWithYourPlan": "Unlocked with your plan",
+    "planStoreUnavailableTitle": "Store unavailable here.",
+    "planStoreUnavailableBody": "Purchases happen in the PixelVerse app for Android, iOS or desktop. Your plan syncs automatically.",
+    "planOpenAppToPurchase": "Open the app to purchase. Prices shown for reference.",
+    "planRetry": "Retry",
+    "planRestorePurchases": "Restore purchases"
 }

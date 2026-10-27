@@ -62,8 +62,32 @@ void main() {
     await tester.pump();
 
     expect(find.text('CONTINUE WHERE YOU LEFT OFF'), findsOneWidget);
-    await tester.tap(find.text('Resume'));
+    await tester.tap(find.byTooltip('Resume'));
     expect(opened, ['Fresh Slime']);
+  });
+
+  testWidgets('mobile section stays compact and supports search and project opening', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final opened = <String>[];
+    final projects = [
+      _project(1, 'First sprite', DateTime(2026, 1, 1)),
+      _project(2, 'Latest sprite', DateTime(2026, 6, 1)),
+    ];
+    await tester.pumpWidget(_host(AsyncData(projects), onTap: (project) => opened.add(project.name)));
+    await tester.pump();
+    expect(tester.getSize(find.byType(PvMyProjects)).height, lessThan(320));
+    expect(tester.getSize(find.byType(PvResumeCard)).height, lessThan(110));
+    await tester.tap(find.byTooltip('Search...'));
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), 'First');
+    tester.testTextInput.hide();
+    await tester.pump();
+    expect(find.text('First sprite'), findsOneWidget);
+    await tester.tap(find.text('First sprite'));
+    expect(opened, ['First sprite']);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('loading state builds a skeleton', (tester) async {
@@ -106,7 +130,7 @@ void desktopTests() {
     expect(imported, 1);
   });
 
-  testWidgets('grid starts with Create and lists every project', (tester) async {
+  testWidgets('grid scrolls horizontally from Create to the last project', (tester) async {
     final projects = [for (var i = 0; i < 7; i++) _project(i, 'Sprite $i', DateTime(2026, 1, i + 1))];
     var created = 0;
     await tester.pumpWidget(_desktopHost(PvProjectsGrid(
@@ -121,7 +145,13 @@ void desktopTests() {
     )));
     await tester.pump();
     expect(find.text('Create'), findsOneWidget);
-    expect(find.text('Sprite 6'), findsOneWidget);
+    expect(find.byType(ListView), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(-4000, 0));
+    await tester.pump();
+    // Flagship cards may upper-case the name.
+    expect(find.byWidgetPredicate((w) => w is Text && w.data?.toLowerCase() == 'sprite 6'), findsWidgets);
+    await tester.drag(find.byType(ListView), const Offset(4000, 0));
+    await tester.pump();
     await tester.tap(find.text('Create'));
     expect(created, 1);
     expect(tester.takeException(), isNull);

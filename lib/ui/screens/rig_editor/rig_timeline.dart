@@ -544,21 +544,25 @@ class _Ruler extends StatelessWidget {
               child: Container(
                 width: RigTimeline._cell,
                 alignment: Alignment.center,
-                color: controller.frameInSelection(i)
-                    ? theme.colorScheme.primaryContainer
-                    : i == controller.time
-                        ? theme.colorScheme.primary
-                        : null,
-                child: Text(
-                  '${i + 1}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontFamily: 'monospace',
-                    color: controller.frameInSelection(i)
-                        ? theme.colorScheme.onPrimaryContainer
-                        : i == controller.time
-                            ? theme.colorScheme.onPrimary
-                            : theme.colorScheme.onSurfaceVariant,
-                    fontWeight: i == controller.time ? FontWeight.w700 : null,
+                color: controller.frameInSelection(i) ? theme.colorScheme.primaryContainer : null,
+                child: Container(
+                  width: i == controller.time ? 22 : null,
+                  height: i == controller.time ? 20 : null,
+                  alignment: Alignment.center,
+                  decoration: i == controller.time
+                      ? BoxDecoration(color: theme.colorScheme.primary, borderRadius: BorderRadius.circular(10))
+                      : null,
+                  child: Text(
+                    '${i + 1}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontFamily: 'monospace',
+                      color: controller.frameInSelection(i)
+                          ? theme.colorScheme.onPrimaryContainer
+                          : i == controller.time
+                              ? theme.colorScheme.onPrimary
+                              : theme.colorScheme.onSurfaceVariant,
+                      fontWeight: i == controller.time ? FontWeight.w700 : null,
+                    ),
                   ),
                 ),
               ),
@@ -593,10 +597,19 @@ class _Label extends StatelessWidget {
             bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.25), width: 0.5),
           ),
         ),
-        child: Text(
-          bone.name,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodySmall?.copyWith(color: selected ? theme.colorScheme.primary : null),
+        child: Row(
+          children: [
+            Icon(Icons.account_tree_outlined,
+                size: 12, color: selected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                bone.name,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(color: selected ? theme.colorScheme.primary : null),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -678,7 +691,11 @@ class _BoneTrack extends StatelessWidget {
                                           : controller.keyAt(bone.id, i)?.curve != null
                                               ? theme.colorScheme.secondary
                                               : theme.colorScheme.primary,
-                                      border: Border.all(color: Colors.black.withValues(alpha: 0.5), width: 0.5),
+                                      borderRadius: BorderRadius.circular(2),
+                                      border: Border.all(
+                                          color:
+                                              i == controller.time ? Colors.white : Colors.black.withValues(alpha: 0.5),
+                                          width: i == controller.time ? 1.5 : 0.5),
                                     ),
                                   ),
                                 ))

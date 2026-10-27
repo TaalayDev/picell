@@ -23,6 +23,7 @@ import '../../pixel/tools.dart';
 import '../../data.dart';
 import '../../data/models/subscription_model.dart';
 import '../../providers/editor_settings_provider.dart';
+import '../../providers/editor_tool_memory_provider.dart';
 import '../../providers/pixel_clipboard_provider.dart';
 import '../../providers/subscription_provider.dart';
 import '../widgets/animated_background.dart';
@@ -323,6 +324,11 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
   @override
   Widget build(BuildContext context) {
     final currentTool = useState(PixelTool.pencil);
+    useEffect(() {
+      void rememberTool() => ref.read(editorToolMemoryProvider.notifier).rememberTool(currentTool.value);
+      currentTool.addListener(rememberTool);
+      return () => currentTool.removeListener(rememberTool);
+    }, [currentTool]);
     final currentModifier = useState(PixelModifier.none);
     final width = project.width;
     final height = project.height;

@@ -2010,5 +2010,21 @@
     "pickCanvasSize": "Выберите размер холста",
     "importImageOrProject": "Импорт изображения или проекта",
     "searchProjectsAndCommunity": "Поиск по проектам и сообществу",
-    "untitledProject": "Без названия"
+    "untitledProject": "Без названия",
+    "planOneTime": "разовая оплата",
+    "planCurrentChip": "Текущий",
+    "planCurrentPlanLabel": "Текущий план",
+    "planSelectedLabel": "Выбрано",
+    "planUpgradeToLabel": "Улучшить до",
+    "planUpgradeNote": "апгрейд, разовая оплата",
+    "planProcessing": "Обработка",
+    "planConfirmingWithStore": "Подтверждаем покупку в магазине. Не закрывайте экран.",
+    "planOwnEverything": "У вас есть всё",
+    "planUnlocksWithPro": "Открывается в Pro",
+    "planUnlockedWithYourPlan": "Открыто вашим планом",
+    "planStoreUnavailableTitle": "Магазин здесь недоступен.",
+    "planStoreUnavailableBody": "Покупки совершаются в приложении PixelVerse для Android, iOS или компьютера. План синхронизируется автоматически.",
+    "planOpenAppToPurchase": "Откройте приложение для покупки. Цены указаны для справки.",
+    "planRetry": "Повторить",
+    "planRestorePurchases": "Восстановить покупки"
 }

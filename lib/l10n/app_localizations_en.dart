@@ -4776,4 +4776,53 @@ class StringsEn extends Strings {
 
   @override
   String get untitledProject => 'Untitled';
+
+  @override
+  String get planOneTime => 'one-time';
+
+  @override
+  String get planCurrentChip => 'Current';
+
+  @override
+  String get planCurrentPlanLabel => 'Current plan';
+
+  @override
+  String get planSelectedLabel => 'Selected';
+
+  @override
+  String get planUpgradeToLabel => 'Upgrade to';
+
+  @override
+  String get planUpgradeNote => 'upgrade, one-time';
+
+  @override
+  String get planProcessing => 'Processing';
+
+  @override
+  String get planConfirmingWithStore => 'Confirming with the store. Please keep this screen open.';
+
+  @override
+  String get planOwnEverything => 'You own everything';
+
+  @override
+  String get planUnlocksWithPro => 'Unlocks with Pro';
+
+  @override
+  String get planUnlockedWithYourPlan => 'Unlocked with your plan';
+
+  @override
+  String get planStoreUnavailableTitle => 'Store unavailable here.';
+
+  @override
+  String get planStoreUnavailableBody =>
+      'Purchases happen in the PixelVerse app for Android, iOS or desktop. Your plan syncs automatically.';
+
+  @override
+  String get planOpenAppToPurchase => 'Open the app to purchase. Prices shown for reference.';
+
+  @override
+  String get planRetry => 'Retry';
+
+  @override
+  String get planRestorePurchases => 'Restore purchases';
 }

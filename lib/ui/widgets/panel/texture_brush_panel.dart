@@ -57,6 +57,7 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
       if (mounted) {
         setState(() {
           _textures = textures.isNotEmpty ? textures : TextureManager().getDefaultTextures();
+          _selectedTexture = _textures.where((texture) => texture.id == widget.selectedTextureId).firstOrNull;
           _isLoading = false;
         });
       }
@@ -64,6 +65,7 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
       if (mounted) {
         setState(() {
           _textures = TextureManager().getDefaultTextures();
+          _selectedTexture = _textures.where((texture) => texture.id == widget.selectedTextureId).firstOrNull;
           _isLoading = false;
         });
       }
@@ -82,7 +84,7 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
 
     // If a texture is already selected, update it with the new fill mode
     if (_selectedTexture != null) {
-      widget.onTextureSelected(_selectedTexture, widget.blendMode, value);
+      widget.onTextureSelected(_selectedTexture, _blendMode, value);
     }
   }
 
@@ -384,11 +386,12 @@ class _TextureBrushPanelState extends State<TextureBrushPanel> {
 
   Future<void> _selectTexture(TexturePattern texture) async {
     try {
-      final textureBrush = await TextureManager().createTextureBrush(
+      await TextureManager().createTextureBrush(
         textureId: texture.id,
         blendMode: _blendMode,
       );
 
+      if (!mounted) return;
       setState(() {
         _selectedTexture = texture;
       });

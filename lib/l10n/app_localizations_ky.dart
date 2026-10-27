@@ -4585,4 +4585,53 @@ class StringsKy extends Strings {
 
   @override
   String get untitledProject => 'Аталышсыз';
+
+  @override
+  String get planOneTime => 'бир жолку';
+
+  @override
+  String get planCurrentChip => 'Учурдагы';
+
+  @override
+  String get planCurrentPlanLabel => 'Учурдагы план';
+
+  @override
+  String get planSelectedLabel => 'Тандалды';
+
+  @override
+  String get planUpgradeToLabel => 'Жаңыртуу:';
+
+  @override
+  String get planUpgradeNote => 'жаңыртуу, бир жолку';
+
+  @override
+  String get planProcessing => 'Иштетилүүдө';
+
+  @override
+  String get planConfirmingWithStore => 'Дүкөндө ырасталууда. Бул экранды жаппаңыз.';
+
+  @override
+  String get planOwnEverything => 'Баары сизде';
+
+  @override
+  String get planUnlocksWithPro => 'Pro менен ачылат';
+
+  @override
+  String get planUnlockedWithYourPlan => 'Планыңыз менен ачык';
+
+  @override
+  String get planStoreUnavailableTitle => 'Бул жерде дүкөн жеткиликсиз.';
+
+  @override
+  String get planStoreUnavailableBody =>
+      'Сатып алуу Android, iOS же компьютердик PixelVerse колдонмосунда жүргүзүлөт. План автоматтык түрдө шайкештелет.';
+
+  @override
+  String get planOpenAppToPurchase => 'Сатып алуу үчүн колдонмону ачыңыз. Баалар маалымат үчүн.';
+
+  @override
+  String get planRetry => 'Кайра аракет';
+
+  @override
+  String get planRestorePurchases => 'Сатып алууларды калыбына келтирүү';
 }

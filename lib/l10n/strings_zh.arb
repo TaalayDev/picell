@@ -2066,5 +2066,21 @@
     "pickCanvasSize": "选择画布尺寸",
     "importImageOrProject": "导入图片或项目文件",
     "searchProjectsAndCommunity": "搜索项目和社区",
-    "untitledProject": "未命名"
+    "untitledProject": "未命名",
+    "planOneTime": "一次性",
+    "planCurrentChip": "当前",
+    "planCurrentPlanLabel": "当前方案",
+    "planSelectedLabel": "已选择",
+    "planUpgradeToLabel": "升级到",
+    "planUpgradeNote": "升级，一次性",
+    "planProcessing": "处理中",
+    "planConfirmingWithStore": "正在与商店确认，请保持此页面打开。",
+    "planOwnEverything": "您已拥有全部内容",
+    "planUnlocksWithPro": "Pro 解锁",
+    "planUnlockedWithYourPlan": "已随您的方案解锁",
+    "planStoreUnavailableTitle": "此处无法使用商店。",
+    "planStoreUnavailableBody": "请在 Android、iOS 或桌面版 PixelVerse 应用中购买，您的方案会自动同步。",
+    "planOpenAppToPurchase": "请打开应用购买，价格仅供参考。",
+    "planRetry": "重试",
+    "planRestorePurchases": "恢复购买"
 }

@@ -250,6 +250,55 @@ class WhatsNewSection extends StatelessWidget {
   }
 }
 
+/// Compact list of the latest item titles (the bone rigger plus server news).
+/// Tapping any row opens the full "What's new" sheet.
+class WhatsNewTitles extends ConsumerWidget {
+  final VoidCallback? onOpenBoneRigExample;
+  final int maxItems;
+  const WhatsNewTitles({super.key, this.onOpenBoneRigExample, this.maxItems = 4});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pv = context.pv;
+    final strings = Strings.of(context);
+    final news = ref.watch(newsItemsProvider).valueOrNull ?? const <NewsItemModel>[];
+    final titles = [strings.whatsNewBoneRigTitle, ...news.map((n) => n.title)].take(maxItems).toList();
+
+    return Column(
+      key: const ValueKey('whats-new-titles'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (i, title) in titles.indexed)
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => WhatsNewButton.showSheet(context, onOpenBoneRigExample: onOpenBoneRigExample),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              child: Row(
+                children: [
+                  if (i == 0)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(Icons.auto_awesome, size: 20, color: pv.accent, semanticLabel: strings.newBadge),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(Icons.check_circle_outline, size: 20, color: pv.accent),
+                    ),
+                  Expanded(
+                    child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: pv.body(size: 14)),
+                  ),
+                  Icon(Icons.chevron_right, size: 18, color: pv.textSecondary),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 /// Single button that opens the "What's new" content in a bottom sheet.
 class WhatsNewButton extends StatelessWidget {
   final VoidCallback? onOpenBoneRigExample;
@@ -309,13 +358,7 @@ class WhatsNewButton extends StatelessWidget {
           child: Row(
             children: [
               const SizedBox(width: 6),
-              Container(
-                height: 24,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(gradient: pv.gradient, borderRadius: BorderRadius.circular(12)),
-                child: Text(strings.newBadge, style: pv.pixelLabel(size: 11, color: pv.ink)),
-              ),
+              Icon(Icons.new_releases_outlined, size: 24, color: pv.accent, semanticLabel: strings.newBadge),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
