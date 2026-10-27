@@ -27,14 +27,17 @@ class Projects extends _$Projects {
       'height': newProject.height,
       'source': source,
     });
-    ref
-        .read(progressionProvider.notifier)
-        .record(ProgressionEvent.projectCreated);
+    ref.read(progressionProvider.notifier).record(ProgressionEvent.projectCreated);
+
+    if (newProject.type == ProjectType.proceduralTileset) {
+      final project = await ref.read(projectRepo).createProject(newProject);
+      ref.read(inAppReviewProvider).incrementProjectCount();
+      return project;
+    }
 
     // Check if the incoming project already has states and frames (e.g., from imported image/aseprite)
     // The insertProject method in the database handles states, frames, and layers automatically
-    final hasExistingData =
-        newProject.states.isNotEmpty && newProject.frames.isNotEmpty;
+    final hasExistingData = newProject.states.isNotEmpty && newProject.frames.isNotEmpty;
 
     if (hasExistingData) {
       // Project has existing data (e.g., from dropped image) - insertProject will handle everything
@@ -92,8 +95,7 @@ class Projects extends _$Projects {
           project.height,
         );
       } catch (e, stack) {
-        ErrorReportService.instance
-            .report(e, stack, operation: 'project.prepareEffects');
+        ErrorReportService.instance.report(e, stack, operation: 'project.prepareEffects');
         // The editor still applies effects itself, just on the UI thread.
         debugPrint('Failed to prepare layer effects: $e');
       }
@@ -120,22 +122,16 @@ class Projects extends _$Projects {
   }
 
   Future<void> markProjectAsSynced(int projectId, int remoteProjectId) async {
-    ref
-        .read(analyticsProvider)
-        .logEvent(name: 'project_marked_synced', parameters: {
+    ref.read(analyticsProvider).logEvent(name: 'project_marked_synced', parameters: {
       'project_id': projectId,
       'remote_project_id': remoteProjectId,
     });
 
-    return ref
-        .read(projectRepo)
-        .markProjectAsSynced(projectId, remoteProjectId);
+    return ref.read(projectRepo).markProjectAsSynced(projectId, remoteProjectId);
   }
 
   Future<void> markProjectAsUnsynced(int projectId) async {
-    ref
-        .read(analyticsProvider)
-        .logEvent(name: 'project_marked_unsynced', parameters: {
+    ref.read(analyticsProvider).logEvent(name: 'project_marked_unsynced', parameters: {
       'project_id': projectId,
     });
 
@@ -148,9 +144,7 @@ class Projects extends _$Projects {
       if (project == null) return null;
 
       await addProject(project, source: 'import');
-      ref
-          .read(progressionProvider.notifier)
-          .record(ProgressionEvent.projectImported);
+      ref.read(progressionProvider.notifier).record(ProgressionEvent.projectImported);
     } catch (e, s) {
       ErrorReportService.instance.report(e, s, operation: 'project.import');
       debugPrint(e.toString());
@@ -167,8 +161,7 @@ final downloadedProjectsProvider = StreamProvider<Set<int>>((ref) {
     // owned sync (remoteId) or a downloaded/forked copy (forkedFromId).
     return projects
         .expand((project) => [
-              if (project.isCloudSynced && project.remoteId != null)
-                project.remoteId!,
+              if (project.isCloudSynced && project.remoteId != null) project.remoteId!,
               if (project.forkedFromId != null) project.forkedFromId!,
             ])
         .toSet();
@@ -184,14 +177,11 @@ final isProjectDownloadedProvider = Provider.family<bool, int>((ref, remoteId) {
   );
 });
 
-final localProjectByRemoteIdProvider =
-    Provider.family<Project?, int>((ref, remoteId) {
+final localProjectByRemoteIdProvider = Provider.family<Project?, int>((ref, remoteId) {
   final projects = ref.read(projectsProvider);
   return projects.when(
     data: (projectsList) => projectsList
-        .where((project) =>
-            (project.isCloudSynced && project.remoteId == remoteId) ||
-            project.forkedFromId == remoteId)
+        .where((project) => (project.isCloudSynced && project.remoteId == remoteId) || project.forkedFromId == remoteId)
         .firstOrNull,
     loading: () => null,
     error: (_, __) => null,

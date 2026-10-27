@@ -23,6 +23,7 @@ import '../../pixel/tools.dart';
 import '../../data.dart';
 import '../../data/models/subscription_model.dart';
 import '../../providers/editor_settings_provider.dart';
+import '../../providers/projects_provider.dart';
 import '../../providers/editor_tool_memory_provider.dart';
 import '../../providers/pixel_clipboard_provider.dart';
 import '../../providers/subscription_provider.dart';
@@ -525,6 +526,23 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   onCopySelection: copySelectionToClipboard,
                   onCutSelection: cutSelectionToClipboard,
                   onPasteSelection: pasteFromClipboard,
+                  onTilesetGenerator: widget.onOpenProject == null ? null : () async {
+                    try {
+                      final now = DateTime.now();
+                      final tileset = await ref.read(projectsProvider.notifier).addProject(
+                        Project(id: 0, name: 'New Tileset', width: 16, height: 16,
+                          type: ProjectType.proceduralTileset, createdAt: now, editedAt: now),
+                        source: 'tileset',
+                      );
+                      if (mounted) widget.onOpenProject?.call(tileset);
+                    } catch (error) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not create tileset: $error')),
+                        );
+                      }
+                    }
+                  },
                   onTemplates: () {
                     TemplatesDialog.show(context, (template) {
                       notifier.addTemplate(template);

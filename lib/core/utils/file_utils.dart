@@ -223,17 +223,19 @@ class FileUtils {
 
   /// Saves an arbitrary binary file without routing mobile data through the
   /// image gallery. Use this for archives and other non-image exports.
-  Future<void> saveBinaryFile(Uint8List data, String fileName) async {
+  /// Returns false when the desktop save dialog is cancelled.
+  Future<bool> saveBinaryFile(Uint8List data, String fileName) async {
     if (kIsWeb) {
       _downloadFileWeb(data, fileName);
-      return;
+      return true;
     }
 
     const platform = LocalPlatform();
     if (platform.isMacOS || platform.isWindows || platform.isLinux) {
-      await _saveWithFilePicker(data, fileName);
+      return _saveWithFilePicker(data, fileName);
     } else {
       await _saveToDocuments(data, fileName);
+      return true;
     }
   }
 
@@ -244,18 +246,19 @@ class FileUtils {
     saveImage(pngBytes, fileName);
   }
 
-  Future<void> _saveWithFilePicker(Uint8List jpg, String fileName) async {
+  Future<bool> _saveWithFilePicker(Uint8List jpg, String fileName) async {
     String? outputFile = await FilePicker.platform.saveFile(
       dialogTitle: 'Please select an output file:',
       fileName: fileName,
     );
 
     if (outputFile == null) {
-      return;
+      return false;
     }
 
     final File file = File(outputFile);
     await file.writeAsBytes(jpg);
+    return true;
   }
 
   void _downloadFileWeb(Uint8List bytes, String fileName) {

@@ -59,8 +59,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('shows a dialog on desktop and creates a project',
-      (tester) async {
+  testWidgets('shows a dialog on desktop and creates a project', (tester) async {
     Project? result;
     await pumpHost(
       tester,
@@ -84,8 +83,20 @@ void main() {
     expect(result?.height, 16);
   });
 
-  testWidgets('shows a bottom sheet on mobile and selects an existing project',
-      (tester) async {
+  testWidgets('creates a tileset without pixel-canvas dimension fields', (tester) async {
+    Project? result;
+    await pumpHost(tester, size: const Size(1000, 800), onResult: (p) => result = p);
+    await tester.tap(find.text('Tileset'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('project-tab-new-width')), findsNothing);
+    await tester.enterText(find.byKey(const ValueKey('project-tab-new-name')), 'Platforms');
+    await tester.tap(find.byKey(const ValueKey('project-tab-create')));
+    await tester.pumpAndSettle();
+    expect(result?.type, ProjectType.proceduralTileset);
+    expect(result?.name, 'Platforms');
+  });
+
+  testWidgets('shows a bottom sheet on mobile and selects an existing project', (tester) async {
     Project? result;
     await pumpHost(
       tester,

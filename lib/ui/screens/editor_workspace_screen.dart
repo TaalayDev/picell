@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../providers/providers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -11,6 +12,9 @@ import '../widgets/project_tabs_bar.dart';
 import '../widgets/project_tab_launcher.dart';
 import '../widgets/project_workspace_shortcuts.dart';
 import 'pixel_canvas_screen.dart';
+import 'tileset_generator/tileset_generator_screen.dart';
+import '../../pixel/tileset/tileset_project.dart';
+import '../../pixel/tileset/tileset_generator.dart';
 
 class EditorWorkspaceScreen extends ConsumerStatefulWidget {
   const EditorWorkspaceScreen({
@@ -25,8 +29,7 @@ class EditorWorkspaceScreen extends ConsumerStatefulWidget {
   final bool openBoneRigExample;
 
   @override
-  ConsumerState<EditorWorkspaceScreen> createState() =>
-      _EditorWorkspaceScreenState();
+  ConsumerState<EditorWorkspaceScreen> createState() => _EditorWorkspaceScreenState();
 }
 
 class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
@@ -36,6 +39,50 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
   final List<int> _recentProjectIds = [];
   bool _isChangingResidency = false;
   int? _loadingProjectId;
+  final _tilesetKeys = <int, GlobalKey<TilesetGeneratorScreenState>>{};
+  bool _allowExit = false;
+  bool _exiting = false;
+
+  Future<bool> _flushEditor(ProjectEditorTab tab) async {
+    if (tab.project.type == ProjectType.proceduralTileset) {
+      return await _tilesetKeys[tab.projectId]?.currentState?.flushPendingSave() ?? false;
+    }
+    return ref.read(pixelCanvasNotifierProvider(tab.project).notifier).flushPendingProjectSave();
+  }
+
+  Future<void> _saveTileset(int projectId, TilesetDocument document) async {
+    final project = ref.read(editorWorkspaceProvider).tabs.firstWhere((t) => t.projectId == projectId).project;
+    final updated = await compute(projectWithTileset, (project: project, document: document));
+    final repo = ref.read(projectRepo);
+    await repo.updateProject(updated);
+    // The legacy write queue logs failures rather than propagating them.
+    // Read back before allowing a dirty session to be discarded.
+    final stored = await repo.fetchProject(projectId);
+    if (stored?.tilesetData != updated.tilesetData || stored?.name != updated.name) {
+      throw StateError('Tileset changes were not persisted');
+    }
+    if (mounted) ref.read(editorWorkspaceProvider.notifier).updateProject(updated);
+  }
+
+  Future<void> _exitWorkspace() async {
+    if (_exiting) return;
+    _exiting = true;
+    try {
+      for (final tab in List<ProjectEditorTab>.of(ref.read(editorWorkspaceProvider).tabs)) {
+        if (_residentProjectIds.contains(tab.projectId) && !await _flushEditor(tab)) {
+          if (mounted) _showPersistenceError();
+          return;
+        }
+      }
+      if (!mounted) return;
+      setState(() => _allowExit = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).pop();
+      });
+    } finally {
+      _exiting = false;
+    }
+  }
 
   @override
   void initState() {
@@ -44,9 +91,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
     _recentProjectIds.add(widget.initialProject.id);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref
-          .read(editorWorkspaceProvider.notifier)
-          .startWorkspace(widget.initialProject);
+      ref.read(editorWorkspaceProvider.notifier).startWorkspace(widget.initialProject);
     });
   }
 
@@ -56,8 +101,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
 
     var project = selected;
     if (project.frames.isEmpty || project.frames.first.layers.isEmpty) {
-      final loaded =
-          await ref.read(projectsProvider.notifier).getProject(project.id);
+      final loaded = await ref.read(projectsProvider.notifier).getProject(project.id);
       if (loaded == null || !mounted) return;
       project = loaded;
     }
@@ -92,9 +136,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
       final victim = workspace.tabs.firstWhere(
         (candidate) => candidate.projectId == victimId,
       );
-      final saved = await ref
-          .read(pixelCanvasNotifierProvider(victim.project).notifier)
-          .flushPendingProjectSave();
+      final saved = await _flushEditor(victim);
       if (!mounted) return false;
       if (!saved) {
         _showPersistenceError();
@@ -109,8 +151,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
       if (!mounted) return false;
     }
 
-    final latest =
-        await ref.read(projectsProvider.notifier).getProject(tab.projectId);
+    final latest = await ref.read(projectsProvider.notifier).getProject(tab.projectId);
     if (!mounted) return false;
     if (latest == null) {
       _showPersistenceError();
@@ -127,8 +168,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
 
   Future<void> _activateProject(int projectId) async {
     final workspace = ref.read(editorWorkspaceProvider);
-    final tab =
-        workspace.tabs.where((tab) => tab.projectId == projectId).firstOrNull;
+    final tab = workspace.tabs.where((tab) => tab.projectId == projectId).firstOrNull;
     if (tab == null) return;
 
     if (_residentProjectIds.contains(projectId)) {
@@ -165,15 +205,12 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
     );
     var projectToOpen = project;
     if (projectToOpen.id <= 0) {
-      projectToOpen =
-          await ref.read(projectsProvider.notifier).addProject(projectToOpen);
+      projectToOpen = await ref.read(projectsProvider.notifier).addProject(projectToOpen);
       if (!mounted) return;
     }
 
     final workspace = ref.read(editorWorkspaceProvider);
-    final existing = workspace.tabs
-        .where((tab) => tab.projectId == projectToOpen.id)
-        .firstOrNull;
+    final existing = workspace.tabs.where((tab) => tab.projectId == projectToOpen.id).firstOrNull;
     if (existing != null) {
       await _activateProject(projectToOpen.id);
       return;
@@ -190,9 +227,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
         final victim = workspace.tabs.firstWhere(
           (tab) => tab.projectId == victimId,
         );
-        final saved = await ref
-            .read(pixelCanvasNotifierProvider(victim.project).notifier)
-            .flushPendingProjectSave();
+        final saved = await _flushEditor(victim);
         if (!mounted) return;
         if (!saved) {
           _showPersistenceError();
@@ -218,13 +253,9 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
 
   Future<void> _closeProject(int projectId) async {
     final workspace = ref.read(editorWorkspaceProvider);
-    final tab = workspace.tabs
-        .where((candidate) => candidate.projectId == projectId)
-        .firstOrNull;
+    final tab = workspace.tabs.where((candidate) => candidate.projectId == projectId).firstOrNull;
     if (tab != null && _residentProjectIds.contains(projectId)) {
-      final saved = await ref
-          .read(pixelCanvasNotifierProvider(tab.project).notifier)
-          .flushPendingProjectSave();
+      final saved = await _flushEditor(tab);
       if (!mounted) return;
       if (!saved) {
         _showPersistenceError();
@@ -236,6 +267,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
     ref.read(editorWorkspaceProvider.notifier).closeProject(projectId);
     _residentProjectIds.remove(projectId);
     _recentProjectIds.remove(projectId);
+    _tilesetKeys.remove(projectId);
 
     final nextProjectId = ref.read(editorWorkspaceProvider).activeProjectId;
     if (nextProjectId != null && !_residentProjectIds.contains(nextProjectId)) {
@@ -244,7 +276,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
 
     if (closesLastTab) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) Navigator.of(context).maybePop();
+        if (mounted) _exitWorkspace();
       });
     }
   }
@@ -255,64 +287,81 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
     final workspaceNotifier = ref.read(editorWorkspaceProvider.notifier);
     final activeIndex = workspace.activeIndex;
 
-    return ProjectWorkspaceShortcuts(
-      onNextTab: () => _activateRelative(1),
-      onPreviousTab: () => _activateRelative(-1),
-      onActivateTab: (index) {
-        if (index < workspace.tabs.length) {
-          _activateProject(workspace.tabs[index].projectId);
-        }
-      },
-      onCloseCurrentTab: () {
-        final projectId = workspace.activeProjectId;
-        if (projectId != null) _closeProject(projectId);
-      },
-      child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        body: SafeArea(
-          child: Column(
-            children: [
-              ProjectTabsBar(
-                state: workspace,
-                onProjectSelected: _activateProject,
-                onProjectClosed: (projectId) => _closeProject(projectId),
-                onProjectReordered: workspaceNotifier.reorderTabs,
-                onOpenProject: _showProjectPicker,
-                onShowProjects: () => Navigator.of(context).maybePop(),
-                loadingProjectId: _loadingProjectId,
+    return PopScope(
+        canPop: _allowExit,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) _exitWorkspace();
+        },
+        child: ProjectWorkspaceShortcuts(
+          onNextTab: () => _activateRelative(1),
+          onPreviousTab: () => _activateRelative(-1),
+          onActivateTab: (index) {
+            if (index < workspace.tabs.length) {
+              _activateProject(workspace.tabs[index].projectId);
+            }
+          },
+          onCloseCurrentTab: () {
+            final projectId = workspace.activeProjectId;
+            if (projectId != null) _closeProject(projectId);
+          },
+          child: Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  ProjectTabsBar(
+                    state: workspace,
+                    onProjectSelected: _activateProject,
+                    onProjectClosed: (projectId) => _closeProject(projectId),
+                    onProjectReordered: workspaceNotifier.reorderTabs,
+                    onOpenProject: _showProjectPicker,
+                    onShowProjects: _exitWorkspace,
+                    loadingProjectId: _loadingProjectId,
+                  ),
+                  Expanded(
+                    child: activeIndex < 0
+                        ? const SizedBox.shrink()
+                        : IndexedStack(
+                            index: activeIndex,
+                            children: [
+                              for (final tab in workspace.tabs)
+                                if (_residentProjectIds.contains(tab.projectId))
+                                  if (tab.project.type == ProjectType.proceduralTileset)
+                                    TilesetGeneratorScreen(
+                                      key: _tilesetKeys.putIfAbsent(
+                                          tab.projectId, () => GlobalKey<TilesetGeneratorScreenState>()),
+                                      embedded: true,
+                                      projectName: tab.project.name,
+                                      initialDocument: tab.project.tilesetData,
+                                      onSaveProject: (doc) => _saveTileset(tab.projectId, doc),
+                                      onDirtyChanged: (dirty) => ref
+                                          .read(editorWorkspaceProvider.notifier)
+                                          .setUnsavedChanges(tab.projectId, dirty),
+                                    )
+                                  else
+                                    PixelCanvasScreen(
+                                      key: ValueKey(
+                                        'project-editor-${tab.projectId}',
+                                      ),
+                                      project: tab.project,
+                                      isActive: tab.projectId == workspace.activeProjectId,
+                                      onOpenProject: _openProject,
+                                      openBoneRigExample:
+                                          widget.openBoneRigExample && tab.projectId == widget.initialProject.id,
+                                    )
+                                else
+                                  SizedBox.shrink(
+                                    key: ValueKey(
+                                      'unloaded-project-${tab.projectId}',
+                                    ),
+                                  ),
+                            ],
+                          ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: activeIndex < 0
-                    ? const SizedBox.shrink()
-                    : IndexedStack(
-                        index: activeIndex,
-                        children: [
-                          for (final tab in workspace.tabs)
-                            if (_residentProjectIds.contains(tab.projectId))
-                              PixelCanvasScreen(
-                                key: ValueKey(
-                                  'project-editor-${tab.projectId}',
-                                ),
-                                project: tab.project,
-                                isActive:
-                                    tab.projectId == workspace.activeProjectId,
-                                onOpenProject: _openProject,
-                                openBoneRigExample: widget.openBoneRigExample &&
-                                    tab.projectId == widget.initialProject.id,
-                              )
-                            else
-                              SizedBox.shrink(
-                                key: ValueKey(
-                                  'unloaded-project-${tab.projectId}',
-                                ),
-                              ),
-                        ],
-                      ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 }

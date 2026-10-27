@@ -66,14 +66,14 @@ class ProjectTabLauncher extends ConsumerStatefulWidget {
   ConsumerState<ProjectTabLauncher> createState() => _ProjectTabLauncherState();
 }
 
-class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher>
-    with SingleTickerProviderStateMixin {
+class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _widthController = TextEditingController(text: '16');
   final _heightController = TextEditingController(text: '16');
   late final TabController _tabController;
   bool _isCreating = false;
+  bool _tileset = false;
 
   @override
   void initState() {
@@ -100,8 +100,9 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher>
             Project(
               id: 0,
               name: _nameController.text.trim(),
-              width: int.parse(_widthController.text),
-              height: int.parse(_heightController.text),
+              type: _tileset ? ProjectType.proceduralTileset : ProjectType.pixelArt,
+              width: _tileset ? 16 : int.parse(_widthController.text),
+              height: _tileset ? 16 : int.parse(_heightController.text),
               createdAt: now,
               editedAt: now,
             ),
@@ -183,8 +184,7 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher>
   Widget _buildCreateProject(BuildContext context) {
     final strings = Strings.of(context);
     final subscription = ref.watch(subscriptionStateProvider);
-    final maxCanvasSize =
-        subscription.getFeatureLimit<int>(SubscriptionFeature.maxCanvasSize);
+    final maxCanvasSize = subscription.getFeatureLimit<int>(SubscriptionFeature.maxCanvasSize);
 
     String? validateDimension(String? value, bool width) {
       if (value == null || value.isEmpty) {
@@ -192,10 +192,9 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher>
       }
       final dimension = int.tryParse(value);
       const absoluteLimit = 5024;
+      if (_tileset) return null;
       if (dimension == null || dimension < 1 || dimension > absoluteLimit) {
-        return width
-            ? strings.widthRangeError(absoluteLimit)
-            : strings.heightRangeError(absoluteLimit);
+        return width ? strings.widthRangeError(absoluteLimit) : strings.heightRangeError(absoluteLimit);
       }
       if (!kIsDemo && dimension > maxCanvasSize) {
         return strings.planLimitError(maxCanvasSize);
@@ -208,6 +207,13 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher>
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          SegmentedButton<bool>(segments: const [
+            ButtonSegment(value: false, label: Text('Pixel Art')),
+            ButtonSegment(value: true, label: Text('Tileset')),
+          ], selected: {
+            _tileset
+          }, onSelectionChanged: _isCreating ? null : (v) => setState(() => _tileset = v.first)),
+          const SizedBox(height: 16),
           TextFormField(
             key: const ValueKey('project-tab-new-name'),
             controller: _nameController,
@@ -218,55 +224,55 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher>
               prefixIcon: const Icon(Icons.edit_outlined),
               border: const OutlineInputBorder(),
             ),
-            validator: (value) => value == null || value.trim().isEmpty
-                ? strings.projectNameRequired
-                : null,
+            validator: (value) => value == null || value.trim().isEmpty ? strings.projectNameRequired : null,
           ),
           const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final size in const [16, 32, 64, 128])
-                ActionChip(
-                  label: Text('$size × $size'),
-                  onPressed: () => _applySize(size),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: TextFormField(
-                  key: const ValueKey('project-tab-new-width'),
-                  controller: _widthController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    labelText: strings.width,
-                    border: const OutlineInputBorder(),
+          if (!_tileset) ...[
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final size in const [16, 32, 64, 128])
+                  ActionChip(
+                    label: Text('$size × $size'),
+                    onPressed: () => _applySize(size),
                   ),
-                  validator: (value) => validateDimension(value, true),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  key: const ValueKey('project-tab-new-height'),
-                  controller: _heightController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    labelText: strings.height,
-                    border: const OutlineInputBorder(),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    key: const ValueKey('project-tab-new-width'),
+                    controller: _widthController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: strings.width,
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) => validateDimension(value, true),
                   ),
-                  validator: (value) => validateDimension(value, false),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    key: const ValueKey('project-tab-new-height'),
+                    controller: _heightController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: strings.height,
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) => validateDimension(value, false),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 24),
           Align(
             alignment: Alignment.centerRight,
@@ -306,9 +312,11 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher>
                 final project = items[index];
                 return ListTile(
                   key: ValueKey('project-tab-picker-${project.id}'),
-                  leading: const Icon(Icons.image_outlined),
+                  leading: Icon(project.type == ProjectType.proceduralTileset ? Icons.grid_view : Icons.image_outlined),
                   title: Text(project.name),
-                  subtitle: Text('${project.width} × ${project.height}'),
+                  subtitle: Text(project.type == ProjectType.proceduralTileset
+                      ? 'Tileset · ${project.tileWidth ?? 16}px tiles'
+                      : '${project.width} × ${project.height}'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).pop(project),
                 );

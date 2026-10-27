@@ -44,6 +44,7 @@ class NewProjectDialog extends StatefulWidget {
 class _NewProjectDialogState extends State<NewProjectDialog> {
   final _formKey = GlobalKey<FormState>(debugLabel: 'new-project-form');
   String _projectName = '';
+  bool _tileset = false;
   int _width = 16;
   int _height = 16;
   final _nameController = TextEditingController();
@@ -235,6 +236,19 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 16),
+              SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(value: false, label: Text('Pixel Art'), icon: Icon(Icons.brush)),
+                    ButtonSegment(value: true, label: Text('Tileset'), icon: Icon(Icons.grid_view)),
+                  ],
+                  selected: {
+                    _tileset
+                  },
+                  onSelectionChanged: (v) => setState(() {
+                        _tileset = v.first;
+                        if (_tileset) _template = null;
+                      })),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -252,8 +266,12 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
               ),
               const SizedBox(height: 16),
               // Canvas size comes from the template once one is chosen.
-              if (_template == null) _buildPixelArtOptions(context, maxCanvasSize),
-              _buildTemplatePicker(context, maxCanvasSize),
+              if (!_tileset && _template == null) _buildPixelArtOptions(context, maxCanvasSize),
+              if (!_tileset) _buildTemplatePicker(context, maxCanvasSize),
+              if (_tileset)
+                const Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: Text('Generate connected platform tiles, then edit and save your tileset.')),
             ],
           ),
         ),
@@ -275,9 +293,9 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
               }
               Navigator.of(context).pop((
                 name: _projectName,
-                width: _width,
-                height: _height,
-                type: ProjectType.pixelArt,
+                width: _tileset ? 16 : _width,
+                height: _tileset ? 16 : _height,
+                type: _tileset ? ProjectType.proceduralTileset : ProjectType.pixelArt,
                 // Tile-generator fields are not creatable from this dialog.
                 tileWidth: null as int?,
                 tileHeight: null as int?,

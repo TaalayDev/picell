@@ -938,13 +938,15 @@ class _ProjectInfoRow extends StatelessWidget {
           _InfoDot(cs: cs),
           _InfoChip(
               icon: Feather.film,
-              label: Strings.of(context).frameCountSimple(project.frames.length),
+              label: project.type == ProjectType.proceduralTileset ? 'Tileset' : Strings.of(context).frameCountSimple(project.frames.length),
               theme: theme,
               cs: cs),
           _InfoDot(cs: cs),
           _InfoChip(
             icon: Feather.layers,
-            label: Strings.of(context).layerCountSimple(project.frames.first.layers.length),
+            label: project.type == ProjectType.proceduralTileset
+                ? '${project.tileWidth ?? 16}×${project.tileHeight ?? 16} tiles'
+                : Strings.of(context).layerCountSimple(project.frames.isEmpty ? 0 : project.frames.first.layers.length),
             theme: theme,
             cs: cs,
           ),

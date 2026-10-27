@@ -22,14 +22,12 @@ class ProjectsTable extends Table {
   IntColumn get width => integer()();
   IntColumn get height => integer()();
   BlobColumn get thumbnail => blob().nullable()();
-  BoolColumn get isCloudSynced =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isCloudSynced => boolean().withDefault(const Constant(false))();
   IntColumn get remoteId => integer().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get editedAt => dateTime()();
   // version 6 - tilemap support
-  TextColumn get projectType =>
-      text().withDefault(const Constant('pixelArt'))();
+  TextColumn get projectType => text().withDefault(const Constant('pixelArt'))();
   IntColumn get tileWidth => integer().nullable()();
   IntColumn get tileHeight => integer().nullable()();
   IntColumn get gridColumns => integer().nullable()();
@@ -44,6 +42,8 @@ class ProjectsTable extends Table {
   IntColumn get selectedLayerId => integer().nullable()();
   // version 10 - bone rigs, JSON (see RigDocument)
   TextColumn get rigData => text().nullable()();
+  // version 11 - procedural tileset document
+  TextColumn get tilesetData => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -97,15 +97,18 @@ class FramesTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [ProjectsTable, FramesTable, LayersTable])
+@DriftDatabase(tables: [ProjectsTable, FramesTable, LayersTable, AnimationStateTable])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
+
+  /// Isolated executor for persistence and migration tests.
+  AppDatabase.forTesting(QueryExecutor executor) : super(executor);
   static final AppDatabase instance = AppDatabase._();
 
   factory AppDatabase() => instance;
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -159,6 +162,7 @@ class AppDatabase extends _$AppDatabase {
             projectsTable.selectedLayerId,
           ],
           if (from < 10) projectsTable.rigData,
+          if (from < 11) projectsTable.tilesetData,
         ];
         if (projectColumns.isNotEmpty) {
           await migrator.alterTable(TableMigration(
@@ -195,8 +199,7 @@ class AppDatabase extends _$AppDatabase {
     final projectStates = <int, int>{};
 
     // Only the id column: newer project columns don't exist yet.
-    final projectIds = await (selectOnly(projectsTable)
-          ..addColumns([projectsTable.id]))
+    final projectIds = await (selectOnly(projectsTable)..addColumns([projectsTable.id]))
         .map((row) => row.read(projectsTable.id)!)
         .get();
     for (final projectId in projectIds) {
@@ -218,9 +221,7 @@ class AppDatabase extends _$AppDatabase {
     ''');
 
     for (final project in projectStates.entries) {
-      final frames = await (select(framesTable)
-            ..where((tbl) => tbl.projectId.equals(project.key)))
-          .get();
+      final frames = await (select(framesTable)..where((tbl) => tbl.projectId.equals(project.key))).get();
       for (final frame in frames) {
         await update(framesTable).replace(FramesTableCompanion(
           id: Value(frame.id),
@@ -282,7 +283,8 @@ class AppDatabase extends _$AppDatabase {
             gridColumns: projectRow.gridColumns,
             gridRows: projectRow.gridRows,
             tilemapData: projectRow.tilemapData,
-      rigData: projectRow.rigData,
+            rigData: projectRow.rigData,
+            tilesetData: projectRow.tilesetData,
             frames: [],
             states: [],
           );
@@ -353,9 +355,8 @@ class AppDatabase extends _$AppDatabase {
               opacity: layer.opacity,
               order: layer.order,
               effects: _decodeEffects(layer.effects),
-              anchorPoint: layer.anchorX == null || layer.anchorY == null
-                  ? null
-                  : Offset(layer.anchorX!, layer.anchorY!),
+              anchorPoint:
+                  layer.anchorX == null || layer.anchorY == null ? null : Offset(layer.anchorX!, layer.anchorY!),
               stableKey: layer.stableKey,
             ));
       }
@@ -380,6 +381,7 @@ class AppDatabase extends _$AppDatabase {
         gridRows: project.gridRows,
         tilemapData: project.tilemapData,
         rigData: project.rigData,
+        tilesetData: project.tilesetData,
         states: [
           for (final state in stateRows)
             AnimationStateModel(
@@ -405,8 +407,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<Project> getProjectByRemoteId(int remoteId) async {
-    final query = select(projectsTable)
-      ..where((tbl) => tbl.remoteId.equals(remoteId));
+    final query = select(projectsTable)..where((tbl) => tbl.remoteId.equals(remoteId));
 
     final projectRow = await query.getSingleOrNull();
     if (projectRow == null) {
@@ -433,6 +434,7 @@ class AppDatabase extends _$AppDatabase {
       gridRows: projectRow.gridRows,
       tilemapData: projectRow.tilemapData,
       rigData: projectRow.rigData,
+      tilesetData: projectRow.tilesetData,
     );
   }
 
@@ -443,9 +445,7 @@ class AppDatabase extends _$AppDatabase {
   /// the previous download resulted in an owned sync or an unowned fork.
   Future<Project?> getProjectByOrigin(int communityProjectId) async {
     final query = select(projectsTable)
-      ..where((tbl) =>
-          tbl.remoteId.equals(communityProjectId) |
-          tbl.forkedFromId.equals(communityProjectId));
+      ..where((tbl) => tbl.remoteId.equals(communityProjectId) | tbl.forkedFromId.equals(communityProjectId));
 
     final projectRow = await query.getSingleOrNull();
     if (projectRow == null) return null;
@@ -470,6 +470,7 @@ class AppDatabase extends _$AppDatabase {
       gridRows: projectRow.gridRows,
       tilemapData: projectRow.tilemapData,
       rigData: projectRow.rigData,
+      tilesetData: projectRow.tilesetData,
     );
   }
 
@@ -492,6 +493,7 @@ class AppDatabase extends _$AppDatabase {
       gridColumns: Value(project.gridColumns),
       gridRows: Value(project.gridRows),
       tilemapData: Value(project.tilemapData),
+      tilesetData: Value(project.tilesetData),
       rigData: const Value(null),
     ));
 
@@ -524,8 +526,7 @@ class AppDatabase extends _$AppDatabase {
     int? selectedLayerId;
     for (final frame in project.frames) {
       // Map the frame's stateId to the new database stateId
-      final newStateId = stateIds[frame.stateId] ??
-          (states.isNotEmpty ? states.first.id : frame.stateId);
+      final newStateId = stateIds[frame.stateId] ?? (states.isNotEmpty ? states.first.id : frame.stateId);
       final frameId = await into(framesTable).insert(FramesTableCompanion(
         projectId: Value(projectId),
         stateId: Value(newStateId),
@@ -561,8 +562,7 @@ class AppDatabase extends _$AppDatabase {
         layers.add(layer.copyWith(layerId: layerId));
       }
 
-      frames.add(
-          frame.copyWith(id: frameId, stateId: newStateId, layers: layers));
+      frames.add(frame.copyWith(id: frameId, stateId: newStateId, layers: layers));
     }
 
     if (selectedFrameId != null && selectedLayerId != null) {
@@ -600,14 +600,13 @@ class AppDatabase extends _$AppDatabase {
       forkedFromId: Value(project.forkedFromId),
       selectedFrameId: Value(project.selectedFrameId),
       selectedLayerId: Value(project.selectedLayerId),
-      projectType: Value(project.type == ProjectType.tilemap
-          ? 'tileGenerator'
-          : project.type.name),
+      projectType: Value(project.type == ProjectType.tilemap ? 'tileGenerator' : project.type.name),
       tileWidth: Value(project.tileWidth),
       tileHeight: Value(project.tileHeight),
       gridColumns: Value(project.gridColumns),
       gridRows: Value(project.gridRows),
       tilemapData: Value(project.tilemapData),
+      tilesetData: Value(project.tilesetData),
       rigData: Value(project.rigData),
     ));
 
@@ -717,23 +716,17 @@ class AppDatabase extends _$AppDatabase {
     required int frameId,
     required int layerId,
   }) {
-    return (update(projectsTable)..where((row) => row.id.equals(projectId)))
-        .write(ProjectsTableCompanion(
+    return (update(projectsTable)..where((row) => row.id.equals(projectId))).write(ProjectsTableCompanion(
       selectedFrameId: Value(frameId),
       selectedLayerId: Value(layerId),
     ));
   }
 
   Future<void> deleteProject(int projectId) async {
-    await (delete(projectsTable)..where((tbl) => tbl.id.equals(projectId)))
-        .go();
-    await (delete(animationStateTable)
-          ..where((tbl) => tbl.projectId.equals(projectId)))
-        .go();
-    await (delete(framesTable)..where((tbl) => tbl.projectId.equals(projectId)))
-        .go();
-    await (delete(layersTable)..where((tbl) => tbl.projectId.equals(projectId)))
-        .go();
+    await (delete(projectsTable)..where((tbl) => tbl.id.equals(projectId))).go();
+    await (delete(animationStateTable)..where((tbl) => tbl.projectId.equals(projectId))).go();
+    await (delete(framesTable)..where((tbl) => tbl.projectId.equals(projectId))).go();
+    await (delete(layersTable)..where((tbl) => tbl.projectId.equals(projectId))).go();
   }
 
   Future<void> renameProject(int projectId, String name) async {
@@ -743,16 +736,14 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> markProjectAsSynced(int projectId, int? remoteProjectId) async {
-    await (update(projectsTable)..where((tbl) => tbl.id.equals(projectId)))
-        .write(ProjectsTableCompanion(
+    await (update(projectsTable)..where((tbl) => tbl.id.equals(projectId))).write(ProjectsTableCompanion(
       isCloudSynced: const Value(true),
       remoteId: Value(remoteProjectId),
     ));
   }
 
   Future<void> markProjectAsUnsynced(int projectId) async {
-    await (update(projectsTable)..where((tbl) => tbl.id.equals(projectId)))
-        .write(const ProjectsTableCompanion(
+    await (update(projectsTable)..where((tbl) => tbl.id.equals(projectId))).write(const ProjectsTableCompanion(
       isCloudSynced: Value(false),
       remoteId: Value(null),
     ));
@@ -789,10 +780,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteState(int stateId) async {
-    await (delete(animationStateTable)..where((tbl) => tbl.id.equals(stateId)))
-        .go();
-    await (delete(framesTable)..where((tbl) => tbl.stateId.equals(stateId)))
-        .go();
+    await (delete(animationStateTable)..where((tbl) => tbl.id.equals(stateId))).go();
+    await (delete(framesTable)..where((tbl) => tbl.stateId.equals(stateId))).go();
   }
 
   Future<AnimationFrame> insertFrame(
@@ -884,8 +873,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteFrame(int frameId) async {
     await (delete(framesTable)..where((tbl) => tbl.id.equals(frameId))).go();
-    await (delete(layersTable)..where((tbl) => tbl.frameId.equals(frameId)))
-        .go();
+    await (delete(layersTable)..where((tbl) => tbl.frameId.equals(frameId))).go();
   }
 
   Future<Layer> insertLayer(int projectId, int frameId, Layer layer) async {

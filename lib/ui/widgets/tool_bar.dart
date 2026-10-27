@@ -19,6 +19,7 @@ import '../../pixel/tools.dart';
 import '../../pixel/tools/texture_brush_tool.dart';
 import '../../providers/editor_settings_provider.dart';
 import 'app_icon.dart';
+import '../screens/tileset_generator/tileset_generator_screen.dart';
 import 'dialogs/editor_settings_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
 import 'effects/effect_animation_generator_dialog.dart';
@@ -50,6 +51,7 @@ class ToolBar extends ConsumerWidget {
   final VoidCallback? onShare;
   final VoidCallback? onEffects;
   final VoidCallback? onTemplates;
+  final VoidCallback? onTilesetGenerator;
   final Function(TexturePattern, BlendMode)? onTextureSelected;
   final Color currentColor;
   final Function() onColorPicker;
@@ -92,6 +94,7 @@ class ToolBar extends ConsumerWidget {
     this.onEffects,
     this.onTextureSelected,
     this.onTemplates,
+    this.onTilesetGenerator,
     required this.currentColor,
     required this.onColorPicker,
     this.showPrevFramesOpacity,
@@ -460,6 +463,11 @@ class ToolBar extends ConsumerWidget {
               ),
               const PopupMenuDivider(),
               _TopBarMenuItem(
+                value: _AddMenuAction.tileset,
+                icon: const Icon(Icons.grid_view, size: 18),
+                title: 'Tileset Generator',
+              ),
+              _TopBarMenuItem(
                 value: _AddMenuAction.templates,
                 icon: const AppIcon(AppIcons.gallery_wide, size: 18),
                 title: Strings.of(context).templateGallery,
@@ -474,6 +482,12 @@ class ToolBar extends ConsumerWidget {
                   openEffectSelector(EffectWorkspace.generators);
                 case _AddMenuAction.lighting:
                   openEffectSelector(EffectWorkspace.lighting);
+                case _AddMenuAction.tileset:
+                  if (onTilesetGenerator != null) {
+                    onTilesetGenerator!();
+                  } else {
+                    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TilesetGeneratorScreen()));
+                  }
                 case _AddMenuAction.templates:
                   onTemplates?.call();
               }
@@ -639,6 +653,7 @@ enum _ViewMenuAction {
 }
 
 enum _AddMenuAction {
+  tileset,
   materials,
   generators,
   lighting,

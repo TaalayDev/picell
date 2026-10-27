@@ -265,18 +265,24 @@ class ProjectUpload extends _$ProjectUpload {
   }
 
   Future<Uint8List> _generateThumbnail(Project project) async {
-    // Get the merged pixels from all visible layers
-    final pixels = ImageHelper.fixColorChannels(PixelUtils.mergeLayersPixels(
-      width: project.width,
-      height: project.height,
-      layers: project.frames.first.layers,
-    ));
+    final Uint8List rgba;
+    if (project.type == ProjectType.proceduralTileset) {
+      rgba = project.thumbnail ?? Uint8List(project.width * project.height * 4);
+      if (rgba.length != project.width * project.height * 4) {
+        throw const FormatException('Invalid tileset preview dimensions');
+      }
+    } else {
+      rgba = ImageHelper.fixColorChannels(PixelUtils.mergeLayersPixels(
+        width: project.width, height: project.height,
+        layers: project.frames.isEmpty ? [] : project.frames.first.layers,
+      )).buffer.asUint8List();
+    }
 
     // Convert to PNG bytes
     final img.Image image = img.Image.fromBytes(
       width: project.width,
       height: project.height,
-      bytes: pixels.buffer,
+      bytes: rgba.buffer,
       numChannels: 4,
     );
 

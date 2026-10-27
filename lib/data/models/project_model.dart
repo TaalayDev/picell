@@ -9,6 +9,9 @@ enum ProjectType {
   /// Standard pixel art project (default)
   pixelArt,
 
+  /// Connected procedural tileset workspace.
+  proceduralTileset,
+
   /// Tile generator project - generate a single tile then edit
   tileGenerator,
 
@@ -60,6 +63,9 @@ class Project with EquatableMixin {
   /// JSON document of the project's bone rigs (see `RigDocument`).
   final String? rigData;
 
+  /// Versioned procedural tileset document; independent of legacy tilemaps.
+  final String? tilesetData;
+
   Project({
     required this.id,
     required this.name,
@@ -82,6 +88,7 @@ class Project with EquatableMixin {
     this.gridRows,
     this.tilemapData,
     this.rigData,
+    this.tilesetData,
   });
 
   Project copyWith({
@@ -110,6 +117,8 @@ class Project with EquatableMixin {
     int? gridRows,
     String? tilemapData,
     bool clearTilemapData = false,
+    String? tilesetData,
+    bool clearTilesetData = false,
     String? rigData,
     bool clearRigData = false,
   }) {
@@ -122,14 +131,9 @@ class Project with EquatableMixin {
       frames: frames ?? this.frames,
       isCloudSynced: isCloudSynced ?? this.isCloudSynced,
       remoteId: clearRemoteId ? null : (remoteId ?? this.remoteId),
-      forkedFromId:
-          clearForkedFromId ? null : (forkedFromId ?? this.forkedFromId),
-      selectedFrameId: clearSelectedFrameId
-          ? null
-          : (selectedFrameId ?? this.selectedFrameId),
-      selectedLayerId: clearSelectedLayerId
-          ? null
-          : (selectedLayerId ?? this.selectedLayerId),
+      forkedFromId: clearForkedFromId ? null : (forkedFromId ?? this.forkedFromId),
+      selectedFrameId: clearSelectedFrameId ? null : (selectedFrameId ?? this.selectedFrameId),
+      selectedLayerId: clearSelectedLayerId ? null : (selectedLayerId ?? this.selectedLayerId),
       thumbnail: thumbnail ?? this.thumbnail,
       createdAt: createdAt ?? this.createdAt,
       editedAt: editedAt ?? this.editedAt,
@@ -139,6 +143,7 @@ class Project with EquatableMixin {
       gridColumns: gridColumns ?? this.gridColumns,
       gridRows: gridRows ?? this.gridRows,
       tilemapData: clearTilemapData ? null : (tilemapData ?? this.tilemapData),
+      tilesetData: clearTilesetData ? null : (tilesetData ?? this.tilesetData),
       rigData: clearRigData ? null : (rigData ?? this.rigData),
     );
   }
@@ -155,6 +160,7 @@ class Project with EquatableMixin {
       'gridColumns': gridColumns,
       'gridRows': gridRows,
       'tilemapData': tilemapData,
+      if (tilesetData != null) 'tilesetData': tilesetData,
       if (rigData != null) 'rigData': rigData,
       'states': states.map((state) => state.toJson()).toList(),
       'frames': frames.map((frame) => frame.toJson()).toList(),
@@ -187,10 +193,10 @@ class Project with EquatableMixin {
       gridRows: json['gridRows'] as int?,
       tilemapData: json['tilemapData'] as String?,
       rigData: json['rigData'] as String?,
+      tilesetData: json['tilesetData'] as String?,
       states: (json['states'] as List)
           .map(
-            (state) =>
-                AnimationStateModel.fromJson(state as Map<String, dynamic>),
+            (state) => AnimationStateModel.fromJson(state as Map<String, dynamic>),
           )
           .toList(),
       frames: (json['frames'] as List)
@@ -203,9 +209,7 @@ class Project with EquatableMixin {
       forkedFromId: json['forkedFromId'] as int?,
       selectedFrameId: json['selectedFrameId'] as int?,
       selectedLayerId: json['selectedLayerId'] as int?,
-      thumbnail: json['thumbnail'] != null
-          ? Uint8List.fromList(json['thumbnail'].cast<int>())
-          : null,
+      thumbnail: json['thumbnail'] != null ? Uint8List.fromList(json['thumbnail'].cast<int>()) : null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
       editedAt: DateTime.fromMillisecondsSinceEpoch(json['editedAt'] as int),
     );
@@ -224,6 +228,7 @@ class Project with EquatableMixin {
         gridRows,
         tilemapData,
         rigData,
+        tilesetData,
         frames,
         states,
         selectedFrameId,
