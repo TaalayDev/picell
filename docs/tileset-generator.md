@@ -42,6 +42,23 @@ That suite covers every registered entry for every base, perspective and tile si
 deterministic seeds, JSON round trips, isometric sprites, and the connection seam
 check across all 4,096 neighbourhoods.
 
+## Surface editor (layered surfaces)
+
+A set's surface is a stack of up to 6 layers, bottom first (`tileset_surface.dart`). Each layer has a pattern
+(12 shapes), optional noise (speckle, blotch, streak, grain), four palette slots (middle, dark, light,
+highlight), a rule for where it draws (everywhere, interior, border, exposed top, exposed sides), density, invert
+and a blend (replace, only on dark, only on light, tint). The first layer fills the tile; upper layers draw detail.
+The old material list survives as presets (`tileset_surface_presets.dart`) that open as editable layers.
+
+Seams are safe by construction: patterns use wrapped coordinates, noise ignores the tile and variation on border
+pixels, and neighbour-dependent areas only paint the interior. The editor shows the tile, a 3x3 repeat and a
+"Seamless" pill computed with `TilesetSurfaceSpec.isSeamless`. Custom surfaces are stored in the recipe as
+`surface: 'custom'` plus `surfaceSpec`. Edits are undoable (slider drags coalesce) and "Save as my surface"
+keeps a surface and its palette in SharedPreferences (`tileset.mySurfaces`).
+
+Not yet built: palette editor with suggested shades, pattern parameters (cell size, gap), solo layer,
+JSON import/export, Pro gating of presets, a mobile bottom-sheet inspector.
+
 ## Set configuration and generation
 
 **Perspective and tile size are chosen first, once per project**: in the New Project
