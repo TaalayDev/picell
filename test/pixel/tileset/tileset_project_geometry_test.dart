@@ -179,10 +179,9 @@ void main() {
       await tester.tap(find.text('Edit tileset'));
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
       await tester.pump(const Duration(milliseconds: 300));
-      expect(
-          find.descendant(
-              of: find.byKey(const ValueKey('set-geometry-summary')), matching: find.text('Top-Down · 16px')),
-          findsOneWidget);
+      final summary = find.byKey(const ValueKey('set-geometry-summary'));
+      expect(find.descendant(of: summary, matching: find.text('Top-Down')), findsOneWidget);
+      expect(find.descendant(of: summary, matching: find.text('16 × 16 px')), findsOneWidget);
     });
 
     testWidgets('the creation dialog needs both choices and returns them', (tester) async {

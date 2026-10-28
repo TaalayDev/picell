@@ -486,9 +486,20 @@ class TilesetWorkspaceState extends State<TilesetWorkspace> {
       };
 
   Widget _toolbar(TilesetWorkspaceColors colors, bool wide) {
-    Widget button(String tip, IconData icon, VoidCallback? onTap, {bool selected = false, Key? key}) =>
-        IconButton(key: key, tooltip: tip, isSelected: selected, onPressed: onTap, icon: Icon(icon, size: 20));
-    final divider = SizedBox(height: 24, child: VerticalDivider(width: 12, color: colors.divider));
+    Widget button(String tip, IconData icon, VoidCallback? onTap, {bool selected = false, Key? key}) => IconButton(
+        key: key,
+        tooltip: tip,
+        isSelected: selected,
+        onPressed: onTap,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+        style: IconButton.styleFrom(
+            foregroundColor: colors.textMuted,
+            backgroundColor: selected ? colors.primary.withValues(alpha: 0.16) : null,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+        selectedIcon: Icon(icon, size: 18, color: colors.primary),
+        icon: Icon(icon, size: 18));
+    final divider = SizedBox(height: 18, child: VerticalDivider(width: 10, color: colors.divider));
     final inspector = button(
         wide ? (_rightOpen ? 'Hide inspector' : 'Show inspector') : 'Inspector',
         Icons.view_sidebar_outlined,
@@ -504,10 +515,11 @@ class TilesetWorkspaceState extends State<TilesetWorkspace> {
     return Material(
         color: colors.surface.withValues(alpha: 0.96),
         elevation: 2,
-        borderRadius: BorderRadius.circular(12),
+        // borderRadius: BorderRadius.circular(10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: colors.divider)),
         child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.all(3),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               button(
                   wide ? (_leftOpen ? 'Hide tilesets' : 'Show tilesets') : 'Tilesets',
@@ -538,9 +550,11 @@ class TilesetWorkspaceState extends State<TilesetWorkspace> {
               divider,
               button('Zoom out', Icons.remove, () => _zoomAround(_viewport.center(Offset.zero), _zoom / 1.25)),
               SizedBox(
-                  width: 48,
+                  width: 44,
                   child: Text('${(_zoom * 100).round()}%',
-                      key: const ValueKey('canvas-zoom'), textAlign: TextAlign.center)),
+                      key: const ValueKey('canvas-zoom'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.text))),
               button('Zoom in', Icons.add, () => _zoomAround(_viewport.center(Offset.zero), _zoom * 1.25)),
               if (wide) ...[divider, inspector],
             ])));
@@ -586,22 +600,31 @@ class TilesetWorkspaceState extends State<TilesetWorkspace> {
                                   atlas: _atlas)))))),
           if (empty)
             Center(
-                child: Card(
-                    child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(mainAxisSize: MainAxisSize.min, children: [
-                          const Icon(Icons.collections_outlined, size: 56),
-                          const SizedBox(height: 12),
-                          Text('Build your tileset board', style: Theme.of(context).textTheme.titleLarge),
-                          const SizedBox(height: 8),
-                          const Text('Create ground, walls, floors and paths, then arrange them here.',
-                              textAlign: TextAlign.center),
-                          const SizedBox(height: 16),
-                          OutlinedButton(
-                              key: const ValueKey('canvas-empty-create'),
-                              onPressed: _enabled ? widget.onCreate : null,
-                              child: const Text('Create your first tileset')),
-                        ]))))
+                child: Container(
+                    constraints: const BoxConstraints(maxWidth: 360),
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                        color: colors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: colors.divider)),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.collections_outlined, size: 40, color: colors.primary),
+                      const SizedBox(height: 10),
+                      Text('Build your tileset board',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.text)),
+                      const SizedBox(height: 6),
+                      Text('Create ground, walls, floors and paths, then arrange them here.',
+                          textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: colors.textMuted)),
+                      const SizedBox(height: 14),
+                      FilledButton.icon(
+                          key: const ValueKey('canvas-empty-create'),
+                          style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 34), visualDensity: VisualDensity.compact),
+                          onPressed: _enabled ? widget.onCreate : null,
+                          icon: const Icon(Icons.add, size: 16),
+                          label: const Text('Create your first tileset')),
+                    ])))
           else if (_canvas.items.isEmpty)
             Center(
                 child: IgnorePointer(
@@ -653,11 +676,11 @@ class TilesetWorkspaceState extends State<TilesetWorkspace> {
           CallbackShortcuts(bindings: _shortcuts, child: Focus(focusNode: _focus, child: _canvasArea(colors, wide)));
       if (wide) {
         return Row(children: [
-          if (_leftOpen) SizedBox(width: 288, child: _setsPanel(colors)),
+          if (_leftOpen) SizedBox(width: 264, child: _setsPanel(colors)),
           if (_leftOpen) VerticalDivider(width: 1, color: colors.divider),
           Expanded(child: canvas),
           if (_rightOpen) VerticalDivider(width: 1, color: colors.divider),
-          if (_rightOpen) SizedBox(width: 304, child: _inspector(colors)),
+          if (_rightOpen) SizedBox(width: 280, child: _inspector(colors)),
         ]);
       }
       final panelWidth = math.min(constraints.maxWidth * 0.88, 340.0);

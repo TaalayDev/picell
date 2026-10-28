@@ -2,14 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_theme_geometry.dart';
 import 'flagship/retro_wave_flagship.dart';
 import 'theme.dart';
 
 AppTheme buildRetroWaveTheme() {
-  final baseTextTheme = GoogleFonts.sourceCodeProTextTheme();
+  final baseTextTheme = appBaseTextTheme();
 
   return AppTheme(
     type: ThemeType.retroWave,

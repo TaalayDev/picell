@@ -1141,7 +1141,7 @@ packages:
     source: hosted
     version: "2.1.1"
   mcp_server:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: mcp_server
       sha256: a98090ccefc85811f91d3a72768b05775ba863b9e40e0cc0ade122077c421d17

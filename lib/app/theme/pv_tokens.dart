@@ -128,15 +128,22 @@ class PvTokens extends ThemeExtension<PvTokens> {
       GoogleFonts.pressStart2p(fontSize: size, height: 1.2, color: color ?? textPrimary);
 
   /// Pixel label face for section headers, buttons and badges.
-  TextStyle pixelLabel({double size = 12, Color? color, FontWeight weight = FontWeight.w700}) =>
-      GoogleFonts.silkscreen(fontSize: size, fontWeight: weight, color: color ?? textPrimary);
+  /// Tests run offline, where google_fonts cannot download the design fonts, and turn this off.
+  @visibleForTesting
+  static bool useDesignFonts = true;
 
-  TextStyle body({double size = 14, Color? color, FontWeight weight = FontWeight.w500}) =>
-      GoogleFonts.inter(fontSize: size, fontWeight: weight, color: color ?? textPrimary);
+  TextStyle pixelLabel({double size = 12, Color? color, FontWeight weight = FontWeight.w700}) => useDesignFonts
+      ? GoogleFonts.silkscreen(fontSize: size, fontWeight: weight, color: color ?? textPrimary)
+      : TextStyle(fontSize: size, fontWeight: weight, color: color ?? textPrimary, letterSpacing: 1);
+
+  TextStyle body({double size = 14, Color? color, FontWeight weight = FontWeight.w500}) => useDesignFonts
+      ? GoogleFonts.inter(fontSize: size, fontWeight: weight, color: color ?? textPrimary)
+      : TextStyle(fontSize: size, fontWeight: weight, color: color ?? textPrimary);
 
   /// Monospace for numbers, frame indices and bone names.
-  TextStyle mono({double size = 12, Color? color, FontWeight weight = FontWeight.w500}) =>
-      GoogleFonts.jetBrainsMono(fontSize: size, fontWeight: weight, color: color ?? textPrimary);
+  TextStyle mono({double size = 12, Color? color, FontWeight weight = FontWeight.w500}) => useDesignFonts
+      ? GoogleFonts.jetBrainsMono(fontSize: size, fontWeight: weight, color: color ?? textPrimary)
+      : TextStyle(fontSize: size, fontWeight: weight, color: color ?? textPrimary, fontFamily: 'monospace');
 
   @override
   PvTokens copyWith({LinearGradient? gradient}) => PvTokens(
@@ -200,3 +207,7 @@ extension PvTokensContext on BuildContext {
   /// when the surrounding [ThemeData] was not built from an [AppTheme].
   PvTokens get pv => Theme.of(this).extension<PvTokens>() ?? PvTokens.fromTheme(AppTheme.defaultTheme);
 }
+
+/// Body text theme shared by every app theme; plain text when [PvTokens.useDesignFonts] is off.
+TextTheme appBaseTextTheme() =>
+    PvTokens.useDesignFonts ? GoogleFonts.sourceCodeProTextTheme() : Typography.material2021().black;

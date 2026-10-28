@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../../../app/theme/pv_tokens.dart';
 import '../../../core/utils/file_utils.dart';
+import '../../widgets/pv/pv_compact_controls.dart';
 import '../../../pixel/tileset/tileset_collection.dart';
 import '../../../pixel/tileset/tileset_generator.dart';
 import 'tileset_generator_screen.dart';
@@ -47,7 +48,6 @@ class TilesetCollectionScreenState extends State<TilesetCollectionScreen> {
   TilesetPerspective? _pendingPerspective;
   int? _pendingSize;
   bool get _dirty => _changed || _draftDirty;
-  Color get _surface => Theme.of(context).extension<PvTokens>()?.surface ?? Theme.of(context).colorScheme.surface;
   @override
   void initState() {
     super.initState();
@@ -346,6 +346,156 @@ class TilesetCollectionScreenState extends State<TilesetCollectionScreen> {
     _notify();
   }
 
+  int get _tileCount => _collection.entries.fold<int>(0, (n, e) => n + e.document.tiles.length);
+
+  Widget _backButton() => Tooltip(
+      message: _editingEntry == null ? 'Discard the new tileset and return' : 'Return without saving this tileset',
+      child: TextButton.icon(
+          onPressed: _busy ? null : _backToCollection,
+          style: TextButton.styleFrom(
+              minimumSize: const Size(0, 32),
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.pv.buttonRadius))),
+          icon: const Icon(Icons.arrow_back, size: 16),
+          label: const Text('Back to collection')));
+
+  Widget _geometryControls(PvTokens pv) {
+    final locked = _collection.entries.isNotEmpty;
+    return Container(
+        key: const ValueKey('tileset-geometry-chip'),
+        height: 32,
+        padding: const EdgeInsets.only(left: 10),
+        decoration: BoxDecoration(
+            color: pv.background,
+            borderRadius: BorderRadius.circular(pv.buttonRadius.clamp(4, 10)),
+            border: Border.all(color: pv.divider)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.grid_view, size: 14, color: pv.primary),
+          const SizedBox(width: 6),
+          Text('${_collection.perspective.label} · ${_collection.tileSize}px',
+              style: pv.mono(size: 11, weight: FontWeight.w600)),
+          const SizedBox(width: 2),
+          IconButton(
+              key: const ValueKey('tileset-geometry-change'),
+              tooltip: locked ? 'Geometry is locked once the project has tilesets' : 'Change perspective and tile size',
+              onPressed: _busy || _loadError != null || locked ? null : _changeGeometry,
+              padding: EdgeInsets.zero,
+              iconSize: 15,
+              constraints: const BoxConstraints.tightFor(width: 30, height: 30),
+              icon: Icon(locked ? Icons.lock_outline : Icons.tune)),
+        ]));
+  }
+
+  Widget _stats(PvTokens pv) => Row(mainAxisSize: MainAxisSize.min, children: [
+        Text('${_collection.entries.length} sets · $_tileCount tiles',
+            style: pv.body(size: 11, color: pv.textSecondary)),
+        if (_dirty) ...[
+          const SizedBox(width: 8),
+          Tooltip(
+              message: 'Unsaved changes',
+              child: Container(
+                  key: const ValueKey('collection-dirty'),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                      color: pv.warn.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: pv.warn.withValues(alpha: 0.5))),
+                  child: Text('Unsaved', style: pv.body(size: 10, color: pv.warn, weight: FontWeight.w700)))),
+        ],
+      ]);
+
+  /// One compact bar: title, name, geometry, stats and file actions. Narrow
+  /// screens move the name and geometry onto a second row.
+  Widget _header() {
+    final pv = context.pv;
+    final enabled = !_busy && _loadError == null;
+    Widget action(String tip, IconData icon, VoidCallback? onTap) => IconButton(
+        tooltip: tip,
+        onPressed: onTap,
+        iconSize: 18,
+        visualDensity: VisualDensity.compact,
+        constraints: const BoxConstraints.tightFor(width: 34, height: 34),
+        padding: EdgeInsets.zero,
+        icon: Icon(icon));
+    final name = PvTextField(
+        controller: _name,
+        enabled: enabled,
+        hint: 'Collection name',
+        prefixIcon: Icons.edit_outlined,
+        maxLength: 100,
+        onChanged: (_) {
+          setState(() => _changed = true);
+          _notify();
+        });
+    final actions = Row(mainAxisSize: MainAxisSize.min, children: [
+      action('Open collection or legacy tileset', Icons.folder_open_outlined, _busy ? null : _open),
+      action('Save collection', _dirty ? Icons.save_outlined : Icons.save, enabled ? _save : null),
+    ]);
+    return Material(
+        color: pv.surface,
+        child: DecoratedBox(
+            decoration: BoxDecoration(border: Border(bottom: BorderSide(color: pv.divider))),
+            child: LayoutBuilder(builder: (context, box) {
+              final wide = box.maxWidth >= 760;
+              final title = Row(mainAxisSize: MainAxisSize.min, children: [
+                if (!widget.embedded)
+                  action('Back', Icons.arrow_back, () => Navigator.of(context).maybePop())
+                else
+                  Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Icon(Icons.collections_outlined, size: 18, color: pv.primary)),
+                const SizedBox(width: 4),
+                Text('Tileset collection', style: pv.pixelLabel(size: 12)),
+              ]);
+              final geometry = _geometryPending ? null : _geometryControls(pv);
+              if (wide) {
+                return SizedBox(
+                    height: 48,
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Row(children: [
+                          title,
+                          if (!_geometryPending) ...[
+                            const SizedBox(width: 12),
+                            const SizedBox(height: 20, child: VerticalDivider(width: 1)),
+                            const SizedBox(width: 12),
+                            SizedBox(width: 240, child: name),
+                            const SizedBox(width: 8),
+                            geometry!,
+                            const SizedBox(width: 12),
+                            Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: _stats(pv))),
+                          ],
+                          const Spacer(),
+                          actions,
+                        ])));
+              }
+              return Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 6),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    SizedBox(
+                        height: 36,
+                        child: Row(children: [
+                          title,
+                          const SizedBox(width: 8),
+                          if (!_geometryPending)
+                            Expanded(
+                                child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: FittedBox(fit: BoxFit.scaleDown, child: _stats(pv))))
+                          else
+                            const Spacer(),
+                          actions,
+                        ])),
+                    if (!_geometryPending) ...[
+                      const SizedBox(height: 4),
+                      Row(children: [Expanded(child: name), const SizedBox(width: 6), geometry!]),
+                    ],
+                  ]));
+            })));
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_editing) {
@@ -354,31 +504,18 @@ class TilesetCollectionScreenState extends State<TilesetCollectionScreen> {
           onPopInvokedWithResult: (didPop, _) {
             if (!didPop && !widget.embedded) _backToCollection();
           },
-          child: Column(children: [
-            Material(
-                color: _surface,
-                child: Row(children: [
-                  TextButton.icon(
-                      onPressed: _busy ? null : _backToCollection,
-                      icon: const Icon(Icons.arrow_back),
-                      label: const Text('Back to collection')),
-                  Expanded(
-                      child: Text(_editingEntry == null ? 'New tileset' : 'Edit tileset',
-                          overflow: TextOverflow.ellipsis)),
-                ])),
-            Expanded(
-                child: TilesetGeneratorScreen(
-                    configuration: _configuration,
-                    key: _editorKey,
-                    embedded: true,
-                    recipeMode: true,
-                    initialDocument: _editingEntry == null ? null : jsonEncode(_editingEntry!.document.toJson()),
-                    onSaveProject: _commit,
-                    onDirtyChanged: (dirty) {
-                      _draftDirty = dirty;
-                      _notify();
-                    }))
-          ]));
+          child: TilesetGeneratorScreen(
+              configuration: _configuration,
+              key: _editorKey,
+              embedded: true,
+              recipeMode: true,
+              leading: _backButton(),
+              initialDocument: _editingEntry == null ? null : jsonEncode(_editingEntry!.document.toJson()),
+              onSaveProject: _commit,
+              onDirtyChanged: (dirty) {
+                _draftDirty = dirty;
+                _notify();
+              }));
     }
     return PopScope(
         canPop: widget.embedded || !_dirty,
@@ -395,69 +532,38 @@ class TilesetCollectionScreenState extends State<TilesetCollectionScreen> {
           }
         },
         child: Scaffold(
-            backgroundColor: Theme.of(context).extension<PvTokens>()?.background,
-            appBar:
-                AppBar(automaticallyImplyLeading: !widget.embedded, title: const Text('Tileset collection'), actions: [
-              IconButton(
-                  tooltip: 'Open collection or legacy tileset',
-                  onPressed: _busy ? null : _open,
-                  icon: const Icon(Icons.folder_open_outlined)),
-              IconButton(
-                  tooltip: 'Save collection',
-                  onPressed: _busy || _loadError != null ? null : _save,
-                  icon: const Icon(Icons.save_outlined)),
-            ]),
-            body: _geometryPending
-                ? _pendingGeometry()
-                : Column(children: [
-                    if (_busy) const LinearProgressIndicator(),
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                            child: Wrap(
-                                spacing: 16,
-                                runSpacing: 8,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  SizedBox(
-                                      width: 260,
-                                      child: TextField(
-                                          controller: _name,
-                                          enabled: !_busy && _loadError == null,
-                                          decoration: const InputDecoration(labelText: 'Collection name'),
-                                          onChanged: (_) {
-                                            setState(() => _changed = true);
-                                            _notify();
-                                          })),
-                                  Chip(
-                                      key: const ValueKey('tileset-geometry-chip'),
-                                      avatar: const Icon(Icons.grid_view, size: 16),
-                                      label: Text('${_collection.perspective.label} · ${_collection.tileSize}px')),
-                                  IconButton(
-                                      key: const ValueKey('tileset-geometry-change'),
-                                      tooltip: _collection.entries.isEmpty
-                                          ? 'Change perspective and tile size'
-                                          : 'Geometry is locked once the project has tilesets',
-                                      onPressed: _busy || _loadError != null || _collection.entries.isNotEmpty
-                                          ? null
-                                          : _changeGeometry,
-                                      icon: const Icon(Icons.tune)),
-                                  Text(
-                                      '${_collection.entries.length} sets · ${_collection.entries.fold<int>(0, (n, e) => n + e.document.tiles.length)} tiles${_dirty ? ' · Unsaved changes' : ''}'),
-                                ]))),
-                    if (_loadError != null) Padding(padding: const EdgeInsets.all(24), child: Text(_loadError!)),
-                    Expanded(
-                        child: TilesetWorkspace(
-                            collection: _collection,
-                            enabled: !_busy && _loadError == null,
-                            onCanvasChanged: _setCanvas,
-                            onCreate: () => _edit(),
-                            onEdit: _edit,
-                            onRename: _rename,
-                            onDuplicate: _duplicate,
-                            onDelete: _delete)),
-                  ])));
+            backgroundColor: context.pv.background,
+            body: SafeArea(
+                child: Column(children: [
+              _header(),
+              SizedBox(height: 2, child: _busy ? const LinearProgressIndicator(minHeight: 2) : null),
+              if (_loadError != null)
+                Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                        color: context.pv.err.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(context.pv.buttonRadius),
+                        border: Border.all(color: context.pv.err.withValues(alpha: 0.5))),
+                    child: Row(children: [
+                      Icon(Icons.error_outline, size: 16, color: context.pv.err),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(_loadError!, style: context.pv.body(size: 12))),
+                    ])),
+              Expanded(
+                  child: _geometryPending
+                      ? _pendingGeometry()
+                      : TilesetWorkspace(
+                          collection: _collection,
+                          enabled: !_busy && _loadError == null,
+                          onCanvasChanged: _setCanvas,
+                          onCreate: () => _edit(),
+                          onEdit: _edit,
+                          onRename: _rename,
+                          onDuplicate: _duplicate,
+                          onDelete: _delete)),
+            ]))));
   }
 }
 
@@ -479,8 +585,18 @@ class _RenameTilesetDialogState extends State<_RenameTilesetDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
           title: const Text('Rename tileset'),
-          content:
-              TextField(controller: _controller, autofocus: true, maxLength: 100, onChanged: (_) => setState(() {})),
+          content: SizedBox(
+              width: 320,
+              child: PvTextField(
+                  controller: _controller,
+                  autofocus: true,
+                  maxLength: 100,
+                  height: 40,
+                  hint: 'Tileset name',
+                  onChanged: (_) => setState(() {}),
+                  onSubmitted: (value) {
+                    if (value.trim().isNotEmpty) Navigator.pop(context, value.trim());
+                  })),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             FilledButton(

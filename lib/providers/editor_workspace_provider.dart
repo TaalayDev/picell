@@ -2,6 +2,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../data/models/project_model.dart';
 
+/// Tracks mounted workspace routes for commands that must reveal an editor.
+/// No reactive state is needed: the MCP navigation callback reads this on demand.
+class EditorWorkspacePresence {
+  static Future<void> Function(Project)? openProject;
+}
+
 class ProjectEditorTab {
   const ProjectEditorTab({
     required this.project,
@@ -50,7 +56,12 @@ class EditorWorkspaceState {
 class EditorWorkspaceNotifier extends StateNotifier<EditorWorkspaceState> {
   EditorWorkspaceNotifier() : super(const EditorWorkspaceState());
 
+  final _automationProjects = <int, Project>{};
+  void pinAutomationProject(Project project) => _automationProjects[project.id] = project;
+  void unpinAutomationProject(int id) => _automationProjects.remove(id);
+
   void startWorkspace(Project project) {
+    project = _automationProjects[project.id] ?? project;
     state = EditorWorkspaceState(
       tabs: [ProjectEditorTab(project: project)],
       activeProjectId: project.id,
@@ -58,6 +69,7 @@ class EditorWorkspaceNotifier extends StateNotifier<EditorWorkspaceState> {
   }
 
   void openProject(Project project) {
+    project = _automationProjects[project.id] ?? project;
     final existing = state.tabs.indexWhere(
       (tab) => tab.projectId == project.id,
     );

@@ -23,49 +23,28 @@ extension _RecipeControls on TilesetGeneratorScreenState {
         });
   }
 
-  List<Widget> _recipeControls() => [
-        const _TgLabel('2 · SURFACE'),
-        const SizedBox(height: 8),
-        ..._surfaceEditor(),
-        const SizedBox(height: 16),
-        const _TgLabel('3 · MODIFIERS'),
-        for (final modifier in TilesetModifiers.all) ..._modifierControls(modifier),
-        const SizedBox(height: 12),
-        const _TgLabel('4 · CONNECTION PARTS'),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-            onPressed: _busy ? null : _chooseParts,
-            icon: const Icon(Icons.grid_view, size: 16),
-            label: Text('Select parts · ${_parts.length} / 47')),
-        const SizedBox(height: 5),
-        Text('${_parts.length} parts × $_variations variations = ${_parts.length * _variations} tiles',
-            style: _tg.mono),
-      ];
-
   List<Widget> _modifierControls(TilesetModifier modifier) {
     final available = modifier.applies(_recipe.base, _perspective);
     final intensity = _recipe.modifierIntensity(modifier.id);
     return [
-      SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-          title: Text(modifier.label, style: const TextStyle(fontSize: 12)),
-          subtitle: Text(available ? modifier.description : modifier.unavailable, style: const TextStyle(fontSize: 10)),
+      PvSwitchTile(
+          title: modifier.label,
+          subtitle: available ? modifier.description : modifier.unavailable,
           value: intensity != null,
           onChanged: _busy || !available
               ? null
               : (on) => _changeRecipe(_recipe.withModifier(modifier.id,
                   on ? (modifier.id == 'vegetation' ? _recipe.vegetationDensity : modifier.defaultIntensity) : null))),
       if (intensity != null && modifier.hasIntensity) ...[
-        Text('${modifier.label} ${modifier.intensityLabel} · $intensity%', style: _tg.mono),
-        Slider(
-            value: intensity.toDouble(),
-            min: 0,
-            max: 100,
-            onChanged: _busy ? null : (v) => _changeRecipe(_recipe.withModifier(modifier.id, v.round()))),
+        Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: _slider(_capitalized(modifier.intensityLabel!), '$intensity%', intensity.toDouble(), 0, 100,
+                (v) => _changeRecipe(_recipe.withModifier(modifier.id, v.round())))),
       ],
     ];
   }
+
+  String _capitalized(String text) => text.isEmpty ? text : '${text[0].toUpperCase()}${text.substring(1)}';
 
   Future<void> _chooseParts() async {
     final draft = Set<int>.of(_parts);

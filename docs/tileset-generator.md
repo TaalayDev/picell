@@ -56,8 +56,20 @@ pixels, and neighbour-dependent areas only paint the interior. The editor shows 
 `surface: 'custom'` plus `surfaceSpec`. Edits are undoable (slider drags coalesce) and "Save as my surface"
 keeps a surface and its palette in SharedPreferences (`tileset.mySurfaces`).
 
-Not yet built: palette editor with suggested shades, pattern parameters (cell size, gap), solo layer,
-JSON import/export, Pro gating of presets, a mobile bottom-sheet inspector.
+Pattern parameters: each layer has a cell size (small, normal, large; every step keeps the pattern periodic
+over the 16 px grid) and a grout width (1-2 px) for bricks, planks and tiles. "Edit palette" opens a dialog with the
+eight labelled slots, a picker, palette presets, "Suggest shades" (`tileset_palette_tools.dart`) and a warning when
+Light, Mid and Dark are too close. Below 1100 px wide the live tile/3x3 card is pinned above the list and layer
+rows open the inspector as a draggable bottom sheet.
+
+The panel follows `design_prototype/SE Editor.dc.html`: name row with the seam pill, a Preset / Palette / Undo /
+Redo row, the layer stack (drag handle, swatch, eye, solo, blend chip), a Pattern / Noise / Color / Rules inspector,
+and the pinned "Generate tileset" button. Presets live in a searchable gallery with tags; blends that have nothing to
+sit on are disabled with a reason. Solo previews one layer without changing the surface. Tests run without network
+fonts: `PvTokens.useDesignFonts` is switched off in `test/pixel/tileset/flutter_test_config.dart`.
+
+Not yet built: JSON import/export, Pro gating of presets, the empty/generating state sheet and the seam-mismatch
+outline on the map.
 
 ## Set configuration and generation
 

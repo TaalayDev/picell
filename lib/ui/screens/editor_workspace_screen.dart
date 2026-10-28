@@ -43,6 +43,11 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
   bool _allowExit = false;
   bool _exiting = false;
 
+  /// Lets an evicted editor unmount before the next one mounts. A window that
+  /// is hidden or occluded produces no frames, so the wait must be bounded.
+  Future<void> _settleFrame() =>
+      WidgetsBinding.instance.endOfFrame.timeout(const Duration(milliseconds: 500), onTimeout: () {});
+
   Future<bool> _flushEditor(ProjectEditorTab tab) async {
     if (tab.project.type == ProjectType.proceduralTileset) {
       return await _tilesetKeys[tab.projectId]?.currentState?.flushPendingSave() ?? false;
@@ -87,12 +92,19 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
   @override
   void initState() {
     super.initState();
+    EditorWorkspacePresence.openProject = _openProject;
     _residentProjectIds.add(widget.initialProject.id);
     _recentProjectIds.add(widget.initialProject.id);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.read(editorWorkspaceProvider.notifier).startWorkspace(widget.initialProject);
     });
+  }
+
+  @override
+  void dispose() {
+    EditorWorkspacePresence.openProject = null;
+    super.dispose();
   }
 
   Future<void> _showProjectPicker() async {
@@ -147,7 +159,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
         _residentProjectIds.remove(victimId);
         _recentProjectIds.remove(victimId);
       });
-      await WidgetsBinding.instance.endOfFrame;
+      await _settleFrame();
       if (!mounted) return false;
     }
 
@@ -237,7 +249,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
           _residentProjectIds.remove(victimId);
           _recentProjectIds.remove(victimId);
         });
-        await WidgetsBinding.instance.endOfFrame;
+        await _settleFrame();
         if (!mounted) return;
       }
 

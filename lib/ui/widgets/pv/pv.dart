@@ -5,3 +5,4 @@ export 'pv_pixel_button.dart';
 export 'pv_pressable.dart';
 export 'pv_section_header.dart';
 export 'pv_shimmer.dart';
+export 'pv_compact_controls.dart';

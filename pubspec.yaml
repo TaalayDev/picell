@@ -38,6 +38,8 @@ dependencies:
   # utils
   logging: ^1.2.0
   flutter_mcp: ^2.0.2
+  # Direct transport API used by the app's MCP server (also used by flutter_mcp).
+  mcp_server: ^2.2.4
   path_provider: ^2.1.4
   url_launcher: ^6.0.3
   image_cropper: ^8.0.2

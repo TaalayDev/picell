@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../app/theme/pv_tokens.dart';
+import '../../widgets/pv/pv_compact_controls.dart';
 import '../../../pixel/tileset/tileset_canvas.dart';
 import '../../../pixel/tileset/tileset_collection.dart';
 import '../../../pixel/tileset/tileset_generator.dart';
@@ -6,23 +8,65 @@ import 'tileset_atlas_cache.dart';
 import 'tileset_canvas_painter.dart';
 
 class _PanelFrame extends StatelessWidget {
-  const _PanelFrame({required this.title, required this.colors, required this.child, this.onClose});
+  const _PanelFrame({required this.title, required this.colors, required this.child, this.onClose, this.trailing});
   final String title;
   final TilesetWorkspaceColors colors;
   final Widget child;
   final VoidCallback? onClose;
+  final Widget? trailing;
   @override
   Widget build(BuildContext context) => Material(
       color: colors.surface,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+        Container(
+            height: 38,
+            padding: EdgeInsets.fromLTRB(14, 0, onClose == null ? 14 : 4, 0),
+            decoration: BoxDecoration(border: Border(bottom: BorderSide(color: colors.divider))),
             child: Row(children: [
-              Expanded(child: Text(title, style: Theme.of(context).textTheme.titleSmall)),
+              Expanded(
+                  child: Text(title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.text))),
+              if (trailing != null) trailing!,
               if (onClose != null)
-                IconButton(tooltip: 'Close panel', onPressed: onClose, icon: const Icon(Icons.close, size: 18)),
+                IconButton(
+                    tooltip: 'Close panel',
+                    onPressed: onClose,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.close, size: 16)),
             ])),
         Expanded(child: child),
+      ]));
+}
+
+/// Shared compact button styles for the side panels.
+ButtonStyle _outlined(BuildContext context, {Color? foreground}) => OutlinedButton.styleFrom(
+    minimumSize: const Size(0, 30),
+    visualDensity: VisualDensity.compact,
+    foregroundColor: foreground,
+    padding: const EdgeInsets.symmetric(horizontal: 10),
+    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.pv.buttonRadius)));
+
+ButtonStyle _filled(BuildContext context) => FilledButton.styleFrom(
+    minimumSize: const Size(0, 34),
+    visualDensity: VisualDensity.compact,
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.pv.buttonRadius)));
+
+/// Muted "label value" row for the inspector.
+class _Fact extends StatelessWidget {
+  const _Fact(this.label, this.value, {required this.colors});
+  final String label, value;
+  final TilesetWorkspaceColors colors;
+  @override
+  Widget build(BuildContext context) => Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(width: 72, child: Text(label, style: TextStyle(fontSize: 11, color: colors.textMuted))),
+        Expanded(child: Text(value, style: TextStyle(fontSize: 12, color: colors.text))),
       ]));
 }
 
@@ -67,20 +111,23 @@ class TilesetSetsPanel extends StatelessWidget {
         title: 'Tilesets',
         colors: colors,
         onClose: onClose,
+        trailing: Text('${collection.entries.length}', style: context.pv.mono(size: 11, color: colors.textMuted)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
               child: FilledButton.icon(
                   key: const ValueKey('workspace-new-tileset'),
+                  style: _filled(context),
                   onPressed: enabled ? onCreate : null,
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(Icons.add, size: 16),
                   label: const Text('New tileset'))),
           Expanded(
               child: collection.entries.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('No tilesets yet. Create one to start filling the canvas.'))
-                  : ListView(children: [
+                  ? Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Text('No tilesets yet. Create one to start filling the canvas.',
+                          style: TextStyle(fontSize: 12, color: colors.textMuted)))
+                  : ListView(padding: const EdgeInsets.only(bottom: 8), children: [
                       for (final entry in collection.entries)
                         _SetTile(
                             key: ValueKey('set-tile-${entry.id}'),
@@ -129,24 +176,46 @@ class _SetTile extends StatelessWidget {
     final d = entry.document, mismatch = !collection.matchesGeometry(entry);
     return ExpansionTile(
         maintainState: false,
-        tilePadding: const EdgeInsets.only(left: 12, right: 4),
-        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-        leading: SizedBox(
-            width: 36,
-            height: 36,
-            child: CustomPaint(painter: TilesetThumbPainter(atlas, entry, null, colors.checkerA))),
-        title: Text(d.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        dense: true,
+        visualDensity: VisualDensity.compact,
+        shape: const Border(),
+        collapsedShape: const Border(),
+        tilePadding: const EdgeInsets.only(left: 10, right: 0),
+        childrenPadding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+        minTileHeight: 44,
+        leading: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: SizedBox(
+                width: 30,
+                height: 30,
+                child: CustomPaint(painter: TilesetThumbPainter(atlas, entry, null, colors.checkerA)))),
+        title: Text(d.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(onCanvas ? _setSummary(entry) : '${_setSummary(entry)} · not on canvas',
-              maxLines: 1, overflow: TextOverflow.ellipsis),
+          Row(children: [
+            if (!onCanvas) ...[
+              Tooltip(
+                  message: 'Not on canvas',
+                  child: Icon(Icons.visibility_off_outlined, size: 11, color: colors.textMuted)),
+              const SizedBox(width: 4),
+            ],
+            Expanded(
+                child: Text(onCanvas ? _setSummary(entry) : '${_setSummary(entry)} · not on canvas',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11, color: colors.textMuted))),
+          ]),
           if (mismatch)
             Text('Different geometry · regenerate',
                 key: ValueKey('geometry-mismatch-${entry.id}'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: colors.warn, fontSize: 12)),
+                style: TextStyle(color: colors.warn, fontSize: 11)),
         ]),
         trailing: PopupMenuButton<String>(
+            iconSize: 18,
             tooltip: 'Manage ${d.name}',
             enabled: enabled,
             onSelected: (action) {
@@ -180,16 +249,17 @@ class _SetTile extends StatelessWidget {
                     style: TextStyle(color: colors.warn, fontSize: 12))),
           Align(
               alignment: Alignment.centerLeft,
-              child: Wrap(spacing: 4, runSpacing: 4, children: [
+              child: Wrap(spacing: 3, runSpacing: 3, children: [
                 for (final tile in d.tiles)
                   Tooltip(
                       message:
                           '${tile.nameFor(d.settings.perspective, type: d.settings.type)} · v${tile.variation + 1}',
                       child: InkWell(
                           onTap: enabled ? () => onAddTile(entry, tile) : null,
+                          borderRadius: BorderRadius.circular(3),
                           child: SizedBox(
-                              width: 32,
-                              height: 32,
+                              width: 30,
+                              height: 30,
                               child:
                                   CustomPaint(painter: TilesetThumbPainter(atlas, entry, tile.id, colors.checkerA))))),
               ])),
@@ -197,7 +267,7 @@ class _SetTile extends StatelessWidget {
           Align(
               alignment: Alignment.centerLeft,
               child: Text('Tap a tile to place a copy on the canvas.',
-                  style: TextStyle(color: colors.textMuted, fontSize: 12))),
+                  style: TextStyle(color: colors.textMuted, fontSize: 11))),
         ]);
   }
 }
@@ -245,22 +315,24 @@ class TilesetInspectorPanel extends StatelessWidget {
       body = _CanvasInfo(collection: collection, colors: colors, zoom: zoom);
     } else if (selection.length > 1) {
       title = '${selection.length} items selected';
-      body = ListView(padding: const EdgeInsets.all(16), children: [
-        Wrap(spacing: 8, runSpacing: 8, children: [
+      body = ListView(padding: const EdgeInsets.all(12), children: [
+        Wrap(spacing: 6, runSpacing: 6, children: [
           OutlinedButton.icon(
+              style: _outlined(context),
               onPressed: enabled ? () => onAlign(true) : null,
-              icon: const Icon(Icons.align_horizontal_left, size: 18),
+              icon: const Icon(Icons.align_horizontal_left, size: 15),
               label: const Text('Align left')),
           OutlinedButton.icon(
+              style: _outlined(context),
               onPressed: enabled ? () => onAlign(false) : null,
-              icon: const Icon(Icons.align_vertical_top, size: 18),
+              icon: const Icon(Icons.align_vertical_top, size: 15),
               label: const Text('Align top')),
+          OutlinedButton.icon(
+              style: _outlined(context),
+              onPressed: enabled ? onRemoveFromCanvas : null,
+              icon: const Icon(Icons.remove_circle_outline, size: 15),
+              label: const Text('Remove from canvas')),
         ]),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-            onPressed: enabled ? onRemoveFromCanvas : null,
-            icon: const Icon(Icons.remove_circle_outline, size: 18),
-            label: const Text('Remove from canvas')),
       ]);
     } else {
       final item = selection.single, entry = entries[item.entryId];
@@ -315,16 +387,18 @@ class _CanvasInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = collection.canvas.items;
     int count(TilesetCanvasKind kind) => items.where((i) => i.kind == kind).length;
-    final muted = TextStyle(color: colors.textMuted, fontSize: 13);
-    return ListView(padding: const EdgeInsets.all(16), children: [
-      Text('${collection.perspective.label} · ${collection.tileSize}px'),
-      const SizedBox(height: 4),
-      Text('${count(TilesetCanvasKind.set)} sets · ${count(TilesetCanvasKind.tile)} tiles · '
-          '${count(TilesetCanvasKind.note)} notes on canvas'),
-      Text('Zoom ${(zoom * 100).round()}%', style: muted),
-      const SizedBox(height: 16),
-      Text('Canvas controls', style: Theme.of(context).textTheme.titleSmall),
-      const SizedBox(height: 8),
+    final muted = TextStyle(color: colors.textMuted, fontSize: 11, height: 1.35);
+    return ListView(padding: const EdgeInsets.all(12), children: [
+      _Fact('Geometry', '${collection.perspective.label} · ${collection.tileSize}px', colors: colors),
+      _Fact(
+          'On canvas',
+          '${count(TilesetCanvasKind.set)} sets · ${count(TilesetCanvasKind.tile)} tiles · '
+              '${count(TilesetCanvasKind.note)} notes',
+          colors: colors),
+      _Fact('Zoom', '${(zoom * 100).round()}%', colors: colors),
+      const SizedBox(height: 12),
+      Text('Canvas controls', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.text)),
+      const SizedBox(height: 6),
       for (final tip in const [
         'Drag an item to move it. Items snap to the tile grid.',
         'Drag empty space to select several items. Hold Shift to add to the selection.',
@@ -333,7 +407,14 @@ class _CanvasInfo extends StatelessWidget {
         'Double-click a tileset to edit it.',
         'Delete removes items from the canvas only; sets stay in the project.',
       ])
-        Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('• $tip', style: muted)),
+        Padding(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Padding(
+                  padding: const EdgeInsets.only(top: 5, right: 6),
+                  child: Container(width: 3, height: 3, color: colors.textMuted)),
+              Expanded(child: Text(tip, style: muted)),
+            ])),
     ]);
   }
 }
@@ -359,44 +440,60 @@ class _SetDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = entry.document, recipe = TilesetRecipe.fromSettings(d.settings);
     final config = entry.resolvedConfiguration;
-    return ListView(padding: const EdgeInsets.all(16), children: [
-      Text(d.name, style: Theme.of(context).textTheme.titleMedium),
-      const SizedBox(height: 4),
-      Text('${recipe.base.label} · ${recipe.surface.label}'
-          '${recipe.platform ? ' · Platform' : ''}${recipe.vegetation ? ' · Vegetation' : ''}'),
-      Text('${d.settings.parts.length} parts × ${d.settings.variations} variations = ${d.tiles.length} tiles'),
-      Text('${d.tiles.where((t) => t.protected).length} protected · seed ${config.seed}',
-          style: TextStyle(color: colors.textMuted)),
+    return ListView(padding: const EdgeInsets.all(12), children: [
+      Text(d.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+      const SizedBox(height: 8),
+      _Fact(
+          'Recipe',
+          '${recipe.base.label} · ${recipe.surface.label}'
+              '${recipe.platform ? ' · Platform' : ''}${recipe.vegetation ? ' · Vegetation' : ''}',
+          colors: colors),
+      _Fact('Tiles', '${d.settings.parts.length} parts × ${d.settings.variations} variations = ${d.tiles.length}',
+          colors: colors),
+      _Fact('Protected', '${d.tiles.where((t) => t.protected).length}', colors: colors),
+      _Fact('Seed', '${config.seed}', colors: colors),
       if (!collection.matchesGeometry(entry))
         Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
                 'Generated as ${d.settings.perspective.label} · ${d.settings.size}px. '
                 'Regenerate to match the project.',
-                style: TextStyle(color: colors.warn))),
-      const SizedBox(height: 12),
-      Wrap(spacing: 4, runSpacing: 4, children: [
+                style: TextStyle(color: colors.warn, fontSize: 12))),
+      const SizedBox(height: 8),
+      Row(children: [
         for (final color in d.settings.palette)
-          Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(color: Color(color), border: Border.all(color: colors.divider))),
+          Expanded(
+              child: Container(
+                  height: 18,
+                  margin: const EdgeInsets.only(right: 2),
+                  decoration: BoxDecoration(
+                      color: Color(color),
+                      borderRadius: BorderRadius.circular(3),
+                      border: Border.all(color: colors.divider)))),
       ]),
-      const SizedBox(height: 16),
+      const SizedBox(height: 12),
       FilledButton.icon(
           key: const ValueKey('inspector-edit'),
+          style: _filled(context),
           onPressed: enabled ? () => onEdit(entry) : null,
-          icon: const Icon(Icons.edit_outlined, size: 18),
+          icon: const Icon(Icons.edit_outlined, size: 16),
           label: const Text('Edit tileset')),
-      const SizedBox(height: 8),
-      Wrap(spacing: 8, runSpacing: 8, children: [
-        OutlinedButton(onPressed: enabled ? () => onRename(entry) : null, child: const Text('Rename')),
-        OutlinedButton(onPressed: enabled ? () => onDuplicate(entry) : null, child: const Text('Duplicate')),
-        OutlinedButton(onPressed: enabled ? onRemoveFromCanvas : null, child: const Text('Remove from canvas')),
+      const SizedBox(height: 6),
+      Wrap(spacing: 6, runSpacing: 6, children: [
+        OutlinedButton(
+            style: _outlined(context), onPressed: enabled ? () => onRename(entry) : null, child: const Text('Rename')),
+        OutlinedButton(
+            style: _outlined(context),
+            onPressed: enabled ? () => onDuplicate(entry) : null,
+            child: const Text('Duplicate')),
+        OutlinedButton(
+            style: _outlined(context),
+            onPressed: enabled ? onRemoveFromCanvas : null,
+            child: const Text('Remove from canvas')),
         OutlinedButton(
             key: const ValueKey('inspector-delete'),
             onPressed: enabled ? () => onDelete(entry) : null,
-            style: OutlinedButton.styleFrom(foregroundColor: colors.warn),
+            style: _outlined(context, foreground: colors.warn),
             child: const Text('Delete tileset')),
       ]),
     ]);
@@ -421,22 +518,29 @@ class _TileDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = entry.document.settings;
-    return ListView(padding: const EdgeInsets.all(16), children: [
+    return ListView(padding: const EdgeInsets.all(12), children: [
       AspectRatio(
           aspectRatio: s.spriteWidth / s.spriteHeight,
           child: DecoratedBox(
-              decoration: BoxDecoration(border: Border.all(color: colors.divider)),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(context.pv.buttonRadius),
+                  border: Border.all(color: colors.divider)),
               child: CustomPaint(painter: TilesetThumbPainter(atlas, entry, tile.id, colors.checkerA)))),
-      const SizedBox(height: 12),
-      Text(tile.nameFor(s.perspective, type: s.type), style: Theme.of(context).textTheme.titleSmall),
-      Text('${tile.groupFor(s.perspective, type: s.type)} · variation ${tile.variation + 1}'),
-      Text('Mask ${tile.mask} · revision ${tile.revision}${tile.protected ? ' · protected' : ''}',
-          style: TextStyle(color: colors.textMuted)),
-      Text('From ${entry.document.name}', style: TextStyle(color: colors.textMuted)),
-      const SizedBox(height: 16),
-      Wrap(spacing: 8, runSpacing: 8, children: [
-        OutlinedButton(onPressed: enabled ? onOpenSet : null, child: const Text('Select tileset')),
-        OutlinedButton(onPressed: enabled ? onRemoveFromCanvas : null, child: const Text('Remove from canvas')),
+      const SizedBox(height: 10),
+      Text(tile.nameFor(s.perspective, type: s.type),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+      const SizedBox(height: 6),
+      _Fact('Group', '${tile.groupFor(s.perspective, type: s.type)} · variation ${tile.variation + 1}', colors: colors),
+      _Fact('Mask', '${tile.mask} · revision ${tile.revision}${tile.protected ? ' · protected' : ''}', colors: colors),
+      _Fact('From', entry.document.name, colors: colors),
+      const SizedBox(height: 10),
+      Wrap(spacing: 6, runSpacing: 6, children: [
+        OutlinedButton(
+            style: _outlined(context), onPressed: enabled ? onOpenSet : null, child: const Text('Select tileset')),
+        OutlinedButton(
+            style: _outlined(context),
+            onPressed: enabled ? onRemoveFromCanvas : null,
+            child: const Text('Remove from canvas')),
       ]),
     ]);
   }
@@ -476,31 +580,36 @@ class _NoteDetailsState extends State<_NoteDetails> {
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
-    Widget stepper(String label, int value, void Function(int) set) => Row(children: [
-          Expanded(child: Text('$label $value')),
-          IconButton(
-              tooltip: 'Decrease ${label.toLowerCase()}',
-              onPressed: widget.enabled && value > 1 ? () => set(value - 1) : null,
-              icon: const Icon(Icons.remove)),
-          IconButton(
-              tooltip: 'Increase ${label.toLowerCase()}',
-              onPressed: widget.enabled && value < 64 ? () => set(value + 1) : null,
-              icon: const Icon(Icons.add)),
-        ]);
-    return ListView(padding: const EdgeInsets.all(16), children: [
-      TextField(
-          key: const ValueKey('note-text'),
+    Widget stepper(String label, int value, void Function(int) set) => PvStepper(
+        label: label,
+        value: value,
+        min: 1,
+        max: 64,
+        decreaseTooltip: 'Decrease ${label.toLowerCase()}',
+        increaseTooltip: 'Increase ${label.toLowerCase()}',
+        onChanged: widget.enabled ? set : null);
+    return ListView(padding: const EdgeInsets.all(12), children: [
+      PvTextField(
+          fieldKey: const ValueKey('note-text'),
           controller: _text,
           enabled: widget.enabled,
+          hint: 'Note text',
           maxLines: 5,
           maxLength: 500,
-          decoration: const InputDecoration(labelText: 'Text', border: OutlineInputBorder()),
           onChanged: (value) => widget.onText(item, value)),
-      stepper('Width', item.width, (v) => widget.onSize(item, v, item.height)),
-      stepper('Height', item.height, (v) => widget.onSize(item, item.width, v)),
       const SizedBox(height: 8),
-      OutlinedButton(
-          onPressed: widget.enabled ? widget.onRemoveFromCanvas : null, child: const Text('Remove from canvas')),
+      Row(children: [
+        stepper('W', item.width, (v) => widget.onSize(item, v, item.height)),
+        const SizedBox(width: 6),
+        stepper('H', item.height, (v) => widget.onSize(item, item.width, v)),
+      ]),
+      const SizedBox(height: 10),
+      Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton(
+              style: _outlined(context),
+              onPressed: widget.enabled ? widget.onRemoveFromCanvas : null,
+              child: const Text('Remove from canvas'))),
     ]);
   }
 }

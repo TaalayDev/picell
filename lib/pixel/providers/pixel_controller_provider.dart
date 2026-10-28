@@ -337,6 +337,9 @@ class PixelDrawController extends _$PixelDrawController {
     ));
   }
 
+  /// Whether newer edits still need to be persisted after the current write.
+  bool get hasPendingProjectSave => _pendingProjectSave != null;
+
   /// Writes the most recent pending project snapshot immediately.
   Future<bool> flushPendingProjectSave() {
     _projectSaveTimer?.cancel();
@@ -371,6 +374,11 @@ class PixelDrawController extends _$PixelDrawController {
       return true;
     } catch (error, stack) {
       ErrorReportService.instance.report(error, stack, operation: 'editor.saveProject');
+      // Preserve a failed snapshot for an explicit retry, without replacing a
+      // newer edit that arrived while this write was in flight.
+      if (_pendingProjectSave == null && generation == _projectSaveGeneration) {
+        _pendingProjectSave = pending;
+      }
       workspace.setUnsavedChanges(project.id, true);
       return false;
     }
@@ -395,6 +403,21 @@ class PixelDrawController extends _$PixelDrawController {
     _activeBuffer = Uint32List.fromList(currentLayer.pixels);
     return true;
   }
+
+  /// Commits explicit automation pixels independently of UI tool/selection state.
+  /// Validation happens before history capture so a failed call has no side effects.
+  void applyAutomationPixels(Uint32List pixels) {
+    if (_isBatching) throw StateError('A drawing gesture is in progress');
+    if (currentLayer.isLocked) throw StateError('The layer is locked');
+    if (currentLayerIsProcedural) throw StateError('The layer is procedural');
+    if (pixels.length != state.width * state.height) {
+      throw ArgumentError('Pixel buffer does not match the canvas');
+    }
+    _beginPixelUndo();
+    _updateCurrentLayerPixels(Uint32List.fromList(pixels));
+  }
+
+  bool get automationBusy => _isBatching;
 
   void batchSetPixel(int x, int y) {
     if (!_isBatching || _activeBuffer == null) return;

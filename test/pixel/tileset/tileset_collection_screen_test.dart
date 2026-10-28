@@ -5,6 +5,7 @@ import 'package:picell/pixel/tileset/tileset_collection.dart';
 import 'package:picell/pixel/tileset/tileset_generator.dart';
 import 'package:picell/ui/screens/tileset_generator/tileset_collection_screen.dart';
 import 'package:picell/ui/screens/tileset_generator/tileset_generator_screen.dart';
+import 'package:picell/ui/widgets/pv/pv_compact_controls.dart';
 
 Future<void> waitForWork(WidgetTester tester) async {
   await tester.pump();
@@ -37,15 +38,15 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('workspace-new-tileset')));
     await tester.pumpAndSettle();
     expect(find.byType(TilesetGeneratorScreen), findsOneWidget);
-    expect(find.text('2 · SURFACE'), findsOneWidget);
+    expect(find.text('SURFACE EDITOR'), findsOneWidget);
     expect(find.byKey(const ValueKey('set-geometry-summary')), findsOneWidget);
     final settingsList = find.byWidgetPredicate((w) => w is Scrollable && w.axisDirection == AxisDirection.down).first;
     await tester.scrollUntilVisible(find.text('Vegetation'), 200, scrollable: settingsList);
-    final platform = find.ancestor(of: find.text('Platform'), matching: find.byType(SwitchListTile));
+    final platform = find.ancestor(of: find.text('Platform'), matching: find.byType(PvSwitchTile));
     await tester.ensureVisible(platform);
     await tester.tap(platform);
     await tester.pump();
-    final vegetation = find.ancestor(of: find.text('Vegetation'), matching: find.byType(SwitchListTile));
+    final vegetation = find.ancestor(of: find.text('Vegetation'), matching: find.byType(PvSwitchTile));
     await tester.ensureVisible(vegetation);
     await tester.tap(vegetation);
     await tester.pump();
@@ -61,7 +62,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Use 2 parts'));
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.text('Generate selected parts')));
+    await tester.runAsync(() => tester.tap(find.text('GENERATE TILESET')));
     await waitForWork(tester);
     expect(find.textContaining('8 tiles · 2 connection shapes'), findsOneWidget);
     expect(find.text('Generate missing parts'), findsOneWidget);

@@ -2,13 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'flagship/cosmic_flagship.dart';
 import 'theme.dart';
 
 AppTheme buildCosmicTheme() {
-  final baseTextTheme = GoogleFonts.sourceCodeProTextTheme();
+  final baseTextTheme = appBaseTextTheme();
 
   return AppTheme(
     type: ThemeType.cosmic,

@@ -162,7 +162,9 @@ class TilesetLayer {
       this.density = 1,
       this.blend = TilesetLayerBlend.replace,
       this.visible = true,
-      this.invert = false});
+      this.invert = false,
+      this.cell = 0,
+      this.gap = 1});
   final TilesetPattern pattern;
   final TilesetLayerColors colors;
   final TilesetNoise? noise;
@@ -173,6 +175,13 @@ class TilesetLayer {
   final TilesetLayerBlend blend;
   final bool visible, invert;
 
+  /// Pattern cell size: -1 smaller, 0 normal, 1 larger. Every step keeps the
+  /// pattern periodic over the 16 px grid, so tiles still join.
+  final int cell;
+
+  /// Width in pixels (1-2) of the grout lines in bricks, planks and tiles.
+  final int gap;
+
   TilesetLayer copyWith(
           {TilesetPattern? pattern,
           TilesetLayerColors? colors,
@@ -181,7 +190,9 @@ class TilesetLayer {
           double? density,
           TilesetLayerBlend? blend,
           bool? visible,
-          bool? invert}) =>
+          bool? invert,
+          int? cell,
+          int? gap}) =>
       TilesetLayer(
           pattern: pattern ?? this.pattern,
           colors: colors ?? this.colors,
@@ -190,7 +201,9 @@ class TilesetLayer {
           density: density ?? this.density,
           blend: blend ?? this.blend,
           visible: visible ?? this.visible,
-          invert: invert ?? this.invert);
+          invert: invert ?? this.invert,
+          cell: cell ?? this.cell,
+          gap: gap ?? this.gap);
 
   static const _keep = Object();
 
@@ -203,6 +216,8 @@ class TilesetLayer {
         'blend': blend.name,
         'visible': visible,
         'invert': invert,
+        if (cell != 0) 'cell': cell,
+        if (gap != 1) 'gap': gap,
       };
   factory TilesetLayer.fromJson(Map<String, dynamic> json) {
     T named<T extends Enum>(List<T> values, Object? name, String what) {
@@ -214,6 +229,9 @@ class TilesetLayer {
 
     final density = json['density'] ?? 1;
     if (density is! num || density < 0 || density > 1) throw const FormatException('Invalid layer density');
+    final cell = json['cell'] ?? 0, gap = json['gap'] ?? 1;
+    if (cell is! int || cell < -1 || cell > 1) throw const FormatException('Invalid layer cell size');
+    if (gap is! int || gap < 1 || gap > 2) throw const FormatException('Invalid layer gap');
     return TilesetLayer(
         pattern: named(TilesetPattern.values, json['pattern'], 'pattern'),
         colors: TilesetLayerColors.fromJson((json['colors'] as Map?)?.cast<String, dynamic>() ?? const {}),
@@ -222,7 +240,9 @@ class TilesetLayer {
         density: density.toDouble(),
         blend: named(TilesetLayerBlend.values, json['blend'] ?? 'replace', 'blend'),
         visible: json['visible'] as bool? ?? true,
-        invert: json['invert'] as bool? ?? false);
+        invert: json['invert'] as bool? ?? false,
+        cell: cell,
+        gap: gap);
   }
 
   @override
@@ -235,9 +255,11 @@ class TilesetLayer {
       other.density == density &&
       other.blend == blend &&
       other.visible == visible &&
-      other.invert == invert;
+      other.invert == invert &&
+      other.cell == cell &&
+      other.gap == gap;
   @override
-  int get hashCode => Object.hash(pattern, colors, noise, area, density, blend, visible, invert);
+  int get hashCode => Object.hash(pattern, colors, noise, area, density, blend, visible, invert, cell, gap);
 }
 
 const tilesetMaxLayers = 6;
@@ -286,7 +308,7 @@ class TilesetSurfaceSpec {
       final layer = layers[index];
       if (!layer.visible) continue;
       final base = index == 0;
-      final role = _patternRole(layer.pattern, q);
+      final role = _patternRole(layer, q);
       if (!base && role == 0) continue;
       if (!_inArea(layer, q)) continue;
       final salt = q.seed * 7919 + index * 7727 + 9;
@@ -330,6 +352,21 @@ class TilesetSurfaceSpec {
       }
     }
     return pixels;
+  }
+
+  /// Whether the layers below [index] leave light and dark pixels for a layer to sit on.
+  ({bool light, bool dark}) toneBelow(List<int> palette, int index, {int size = 16}) {
+    if (index <= 0) return (light: false, dark: false);
+    final below = TilesetSurfaceSpec(name: name, layers: layers.sublist(0, index.clamp(1, layers.length)));
+    var light = false, dark = false;
+    for (final pixel in below.renderSample(palette, size: size)) {
+      if (_luminance(pixel) >= 90) {
+        light = true;
+      } else {
+        dark = true;
+      }
+    }
+    return (light: light, dark: dark);
   }
 
   /// True when two variations of this surface agree on every shared border
@@ -411,26 +448,34 @@ class TilesetSurfaceSpec {
 }
 
 /// Role of a pattern pixel: 0 middle, 1 dark, 2 light, 3 highlight.
-int _patternRole(TilesetPattern pattern, MaterialPixel q) {
-  final a = q.x * 16 ~/ q.size, y = q.y * 16 ~/ q.size;
-  switch (pattern) {
+int _patternRole(TilesetLayer layer, MaterialPixel q) {
+  var a = q.x * 16 ~/ q.size, y = q.y * 16 ~/ q.size;
+  final cell = layer.cell, gap = layer.gap;
+  if (cell > 0) {
+    a ~/= 2;
+    y ~/= 2;
+  } else if (cell < 0) {
+    a = a * 2 % 16;
+    y = y * 2 % 16;
+  }
+  switch (layer.pattern) {
     case TilesetPattern.solid:
       return 0;
     case TilesetPattern.bricks:
       final u = (a + (y >> 2) % 2 * 4) % 8, v = y % 4;
-      return v == 3 || u == 7
+      return v > 3 - gap || u > 7 - gap
           ? 1
           : v == 0
               ? 2
               : 0;
     case TilesetPattern.planks:
       final v = y % 4;
-      if (v == 3) return 1;
+      if (v > 3 - gap) return 1;
       if (v == 0) return 2;
       return a == ((y >> 2) * 5 + 3) % 16 && v == 1 ? 1 : 0;
     case TilesetPattern.tiles:
       final u = a % 8, v = y % 8;
-      if (u == 7 || v == 7) return 1;
+      if (u > 7 - gap || v > 7 - gap) return 1;
       if (u == 0 && v == 0) return 3;
       return u == 0 || v == 0 ? 2 : 0;
     case TilesetPattern.diagonal:
@@ -441,7 +486,7 @@ int _patternRole(TilesetPattern pattern, MaterialPixel q) {
               ? 0
               : 1;
     case TilesetPattern.cobble:
-      final (edge, shade) = _voronoi(4, 7, (q.x + 0.5) * 16 / q.size, (q.y + 0.5) * 16 / q.size);
+      final (edge, shade) = _voronoi(4 - cell, 7, (q.x + 0.5) * 16 / q.size, (q.y + 0.5) * 16 / q.size);
       if (edge < 1.15) return 1;
       return shade > 0.7 ? 2 : 0;
     case TilesetPattern.scales:
@@ -468,7 +513,7 @@ int _patternRole(TilesetPattern pattern, MaterialPixel q) {
       if (a % 4 == 1 && y % 4 == 1) return 2;
       return a % 4 == 2 && y % 4 == 2 ? 1 : 0;
     case TilesetPattern.cells:
-      final (edge, shade) = _voronoi(3, 3, (q.x + 0.5) * 16 / q.size, (q.y + 0.5) * 16 / q.size);
+      final (edge, shade) = _voronoi(3 - cell, 3, (q.x + 0.5) * 16 / q.size, (q.y + 0.5) * 16 / q.size);
       if (edge < 0.9) return 1;
       return shade > 0.5 ? 2 : 0;
     case TilesetPattern.checker:

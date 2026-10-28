@@ -3,14 +3,18 @@
 ## Goal and current scope
 
 Let a connected AI assistant create and edit projects inside PixelVerse using
-typed MCP tools. This does not create Flutter source-code projects. Adding the
-dependency is preparation only: no server, model connection, or tools start yet.
+typed MCP tools. This does not create Flutter source-code projects. The first
+milestone is implemented behind the desktop AI connection control; it remains
+stopped until the user starts it. See [mcp-usage.md](mcp-usage.md) for connection
+details, tool arguments, limits, and verification.
 
 `flutter_mcp: ^2.0.2` is the integration dependency. Its transitive `mcp_bundle`
 dependency requires archive 3.x, while existing PixelVerse export code uses
 archive 4.x APIs. The manifest retains archive 4.x through an explicit override.
-Treat bundle installation/packing compatibility and platform builds as release
-gates before enabling the runtime; remove the override when upstream supports 4.x.
+Bundle installation/packing is not used by the app's server. Treat compatibility
+with those features as a separate gate; remove the override when upstream
+supports 4.x. The server uses the direct `mcp_server` transport API underneath
+`flutter_mcp`, without initializing embedded LLMs or background platform services.
 
 ## 1. Connection and command layer
 

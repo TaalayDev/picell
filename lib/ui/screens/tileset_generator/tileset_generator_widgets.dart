@@ -29,6 +29,17 @@ class _Tg {
   Color get shadowColor =>
       tokens?.shadowColor ?? theme.cardTheme.shadowColor ?? theme.shadowColor.withValues(alpha: 0.15);
   double get shadowBlur => 4 + (tokens?.cardElevation ?? theme.cardTheme.elevation ?? 0) * 3;
+
+  /// Silkscreen-style label for short titles, tabs and badges.
+  TextStyle pixel(double size, {Color? color}) =>
+      tokens?.pixelLabel(size: size, color: color ?? text) ??
+      TextStyle(fontSize: size, fontWeight: FontWeight.w700, letterSpacing: 1, color: color ?? text);
+
+  /// Monospace numerals for sizes, seeds and values.
+  TextStyle monoAt(double size, {Color? color, FontWeight weight = FontWeight.w500}) =>
+      tokens?.mono(size: size, color: color ?? text, weight: weight) ??
+      TextStyle(fontSize: size, fontWeight: weight, fontFamily: 'monospace', color: color ?? text);
+
   TextStyle get mono => (theme.textTheme.bodySmall ?? const TextStyle()).copyWith(fontSize: 11, color: muted);
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../mcp/mcp_control.dart';
 import '../core/services/subscription_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:picell/ui/widgets/ad_wrapper.dart';
@@ -26,6 +27,7 @@ class PixelVerseApp extends ConsumerStatefulWidget {
 }
 
 class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindingObserver {
+  final _navigatorKey = GlobalKey<NavigatorState>();
   @override
   void initState() {
     super.initState();
@@ -80,6 +82,7 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: MaterialApp(
+        navigatorKey: _navigatorKey,
         theme: appTheme.themeData,
         darkTheme: appTheme.themeData,
         themeMode: appTheme.isDark ? ThemeMode.dark : ThemeMode.light,
@@ -90,7 +93,7 @@ class _PixelVerseAppState extends ConsumerState<PixelVerseApp> with WidgetsBindi
         locale: _getLocale(ref),
         home: const PushNotifications(child: ProgressionNotifications(child: ProjectsScreen())),
         builder: (context, child) {
-          return AdWrapper(child: child!);
+          return McpControl(navigatorKey: _navigatorKey, child: AdWrapper(child: child!));
         },
       ),
     );

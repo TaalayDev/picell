@@ -39,8 +39,14 @@ TilesetSurfaceSpec randomSpec(Random r) {
           area: pick(TilesetLayerArea.values),
           density: pick([1.0, 0.7, 0.3]),
           blend: pick(TilesetLayerBlend.values),
-          invert: r.nextInt(4) == 0)
+          invert: r.nextInt(4) == 0,
+          cell: pick([-1, 0, 1]),
+          gap: pick([1, 2]))
   ]);
+}
+
+extension _Let<T> on T {
+  R let<R>(R Function(T) f) => f(this);
 }
 
 void main() {
@@ -94,7 +100,38 @@ void main() {
               ])),
           throwsFormatException);
       expect(() => TilesetSurfaceSpec.fromJson(doc([for (var i = 0; i < 7; i++) layer({})])), throwsFormatException);
+      expect(
+          () => TilesetSurfaceSpec.fromJson(doc([
+                layer({'cell': 2})
+              ])),
+          throwsFormatException);
+      expect(
+          () => TilesetSurfaceSpec.fromJson(doc([
+                layer({'gap': 0})
+              ])),
+          throwsFormatException);
       expect(() => TilesetSurfaceSpec(layers: const []), throwsArgumentError);
+    });
+  });
+
+  group('pattern parameters', () {
+    test('cell size and gap survive JSON and change the artwork', () {
+      const layer = TilesetLayer(pattern: TilesetPattern.bricks, cell: 1, gap: 2);
+      final spec = TilesetSurfaceSpec(layers: [layer]);
+      final restored = TilesetSurfaceSpec.fromJson(jsonDecode(jsonEncode(spec.toJson())) as Map<String, dynamic>);
+      expect(restored.layers.single.cell, 1);
+      expect(restored.layers.single.gap, 2);
+      List<int> pixels(TilesetLayer l) =>
+          settingsFor(TilesetSurfaceSpec(layers: [l]), TilesetBase.floor, TilesetPerspective.topDown, 16, single: true)
+              .let((s) => generateTileset(s).single.pixels.toList());
+      final seen = {
+        for (final cell in [-1, 0, 1])
+          for (final pattern in [TilesetPattern.bricks, TilesetPattern.cobble])
+            '${pattern.name}$cell': pixels(TilesetLayer(pattern: pattern, cell: cell)).join(',')
+      };
+      expect(seen.values.toSet().length, 6);
+      expect(pixels(const TilesetLayer(pattern: TilesetPattern.tiles, gap: 2)),
+          isNot(pixels(const TilesetLayer(pattern: TilesetPattern.tiles))));
     });
   });
 
