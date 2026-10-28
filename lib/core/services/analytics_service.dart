@@ -41,7 +41,11 @@ class AnalyticsService {
   Future<void>? _flushFuture;
   Timer? _timer;
 
-  bool get enabled => _storage.analyticsEnabled;
+  /// Analytics are never collected or sent from debug builds.
+  @visibleForTesting
+  static bool disabledInDebug = kDebugMode;
+
+  bool get enabled => !disabledInDebug && _storage.analyticsEnabled;
 
   /// Current subscription tier: `free`, `pro` or `ultimate`.
   set plan(String value) => _plan = value;

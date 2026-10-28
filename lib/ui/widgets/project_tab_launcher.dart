@@ -6,8 +6,11 @@ import '../../config/constants.dart';
 import '../../data/models/project_model.dart';
 import '../../data/models/subscription_model.dart';
 import '../../l10n/strings.dart';
+import '../../pixel/tileset/tileset_generator.dart';
+import '../../pixel/tileset/tileset_project.dart';
 import '../../providers/projects_provider.dart';
 import '../../providers/subscription_provider.dart';
+import '../screens/tileset_generator/tileset_geometry_picker.dart';
 
 class ProjectTabLauncher extends ConsumerStatefulWidget {
   const ProjectTabLauncher({super.key, required this.showDragHandle});
@@ -74,6 +77,9 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher> with Si
   late final TabController _tabController;
   bool _isCreating = false;
   bool _tileset = false;
+  TilesetPerspective? _perspective;
+  int? _tilesetSize;
+  bool get _geometryChosen => !_tileset || (_perspective != null && _tilesetSize != null);
 
   @override
   void initState() {
@@ -91,21 +97,25 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher> with Si
   }
 
   Future<void> _createProject() async {
-    if (_isCreating || !_formKey.currentState!.validate()) return;
+    if (_isCreating || !_geometryChosen || !_formKey.currentState!.validate()) return;
 
     setState(() => _isCreating = true);
     try {
       final now = DateTime.now();
+      final name = _nameController.text.trim();
       final project = await ref.read(projectsProvider.notifier).addProject(
-            Project(
-              id: 0,
-              name: _nameController.text.trim(),
-              type: _tileset ? ProjectType.proceduralTileset : ProjectType.pixelArt,
-              width: _tileset ? 16 : int.parse(_widthController.text),
-              height: _tileset ? 16 : int.parse(_heightController.text),
-              createdAt: now,
-              editedAt: now,
-            ),
+            _tileset
+                ? newTilesetProject(name: name, geometry: (perspective: _perspective!, size: _tilesetSize!), now: now)
+                : Project(
+                    id: 0,
+                    name: name,
+                    type: ProjectType.pixelArt,
+                    width: int.parse(_widthController.text),
+                    height: int.parse(_heightController.text),
+                    createdAt: now,
+                    editedAt: now,
+                  ),
+            source: _tileset ? 'tileset' : 'blank',
           );
       if (mounted) Navigator.of(context).pop(project);
     } catch (_) {
@@ -224,9 +234,21 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher> with Si
               prefixIcon: const Icon(Icons.edit_outlined),
               border: const OutlineInputBorder(),
             ),
-            validator: (value) => value == null || value.trim().isEmpty ? strings.projectNameRequired : null,
+            validator: (value) => value == null || value.trim().isEmpty
+                ? strings.projectNameRequired
+                : _tileset && value.trim().length > 100
+                    ? 'Use a name up to 100 characters'
+                    : null,
           ),
           const SizedBox(height: 16),
+          if (_tileset) ...[
+            TilesetGeometryPicker(
+              perspective: _perspective,
+              size: _tilesetSize,
+              onPerspective: (value) => setState(() => _perspective = value),
+              onSize: (value) => setState(() => _tilesetSize = value),
+            ),
+          ],
           if (!_tileset) ...[
             Wrap(
               spacing: 8,
@@ -278,7 +300,7 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher> with Si
             alignment: Alignment.centerRight,
             child: FilledButton.icon(
               key: const ValueKey('project-tab-create'),
-              onPressed: _isCreating ? null : _createProject,
+              onPressed: _isCreating || !_geometryChosen ? null : _createProject,
               icon: _isCreating
                   ? const SizedBox.square(
                       dimension: 16,

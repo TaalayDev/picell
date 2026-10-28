@@ -55,7 +55,8 @@ Iterable<TilesetPlacement> tilesetPlacements(TilesetDocument doc) sync* {
     final mask = tileMaskAt(doc.cells, doc.columns, doc.rows, cell.column, cell.row);
     final variant = tileHash(cell.column, cell.row, doc.settings.seed) % doc.settings.variations;
     final origin = layout.origin(cell.column, cell.row);
-    yield (column: cell.column, row: cell.row, x: origin.x, y: origin.y, tile: byId['$mask:$variant']!);
+    final tile = byId['$mask:$variant'];
+    if (tile != null) yield (column: cell.column, row: cell.row, x: origin.x, y: origin.y, tile: tile);
   }
 }
 
@@ -98,4 +99,15 @@ Iterable<TilesetPlacement> tilesetPlacements(TilesetDocument doc) sync* {
     }
   }
   return (width: layout.width, height: layout.height, rgba: rgba);
+}
+
+Set<int> missingTilesetParts(TilesetDocument doc) {
+  final present = doc.tiles.map((t) => t.mask).toSet();
+  return {
+    for (var y = 0; y < doc.rows; y++)
+      for (var x = 0; x < doc.columns; x++)
+        if (doc.cells[y * doc.columns + x] != 0 &&
+            !present.contains(tileMaskAt(doc.cells, doc.columns, doc.rows, x, y)))
+          tileMaskAt(doc.cells, doc.columns, doc.rows, x, y),
+  };
 }

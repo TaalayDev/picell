@@ -7,6 +7,7 @@ import 'package:picell/data/database/project_database.dart';
 import 'package:picell/data/models/project_model.dart';
 import 'package:picell/pixel/tileset/tileset_generator.dart';
 import 'package:picell/pixel/tileset/tileset_project.dart';
+import 'package:picell/pixel/tileset/tileset_collection.dart';
 
 Project blank() =>
     Project(id: 1, name: 'Before', width: 16, height: 16, createdAt: DateTime(2026), editedAt: DateTime(2026));
@@ -44,6 +45,21 @@ void main() {
     expect(restored.type, ProjectType.proceduralTileset);
     expect(restored.copyWith(name: 'Copy').tilesetData, result.tilesetData);
     expect(restored.copyWith(clearTilesetData: true).tilesetData, isNull);
+  });
+
+  test('collection cover handles partial sets and clearing the final entry', () {
+    final settings = TilesetSettings(parts: [255], variations: 1);
+    final partial = TilesetDocument(
+        name: 'Partial', settings: settings, tiles: generateTileset(settings), cells: [1], columns: 1, rows: 1);
+    final collection = TilesetCollection(name: 'World', entries: [TilesetEntry(id: 'one', document: partial)]);
+    final project = projectWithTilesetCollection((project: blank(), collection: collection));
+    expect(project.name, 'World');
+    expect(project.thumbnail!.any((v) => v != 0), isTrue);
+    expect(
+        TilesetCollection.fromJson(jsonDecode(project.tilesetData!) as Map<String, dynamic>).entries.single.id, 'one');
+    final cleared = projectWithTilesetCollection((project: project, collection: TilesetCollection(name: 'Empty')));
+    expect(cleared.thumbnail!.every((v) => v == 0), isTrue);
+    expect(cleared.thumbnail!.length, cleared.width * cleared.height * 4);
   });
 
   test('database creates, updates, lists and duplicates tileset documents without frames', () async {

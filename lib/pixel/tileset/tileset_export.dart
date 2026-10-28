@@ -24,10 +24,16 @@ Map<String, dynamic> tilesetManifest(TilesetDocument document, String imageName)
   final size = document.settings.size;
   final spriteWidth = document.settings.spriteWidth, spriteHeight = document.settings.spriteHeight;
   return {
-    'version': document.settings.perspective == TilesetPerspective.isometric ? 2 : 1,
+    'version': document.settings.recipe != null || document.settings.parts.length != 47
+        ? 3
+        : document.settings.perspective == TilesetPerspective.isometric
+            ? 2
+            : 1,
     'image': imageName,
     'perspective': document.settings.perspective.id,
     'type': document.settings.type.name,
+    'partCount': document.settings.parts.length,
+    'complete': document.settings.parts.length == 47,
     'tileSize': size,
     'columns': 8,
     'width': 8 * spriteWidth,

@@ -19,7 +19,7 @@ import '../../pixel/tools.dart';
 import '../../pixel/tools/texture_brush_tool.dart';
 import '../../providers/editor_settings_provider.dart';
 import 'app_icon.dart';
-import '../screens/tileset_generator/tileset_generator_screen.dart';
+import '../screens/tileset_generator/tileset_collection_screen.dart';
 import 'dialogs/editor_settings_dialog.dart';
 import 'dialogs/keyboard_shortcuts_dialog.dart';
 import 'effects/effect_animation_generator_dialog.dart';
@@ -486,7 +486,8 @@ class ToolBar extends ConsumerWidget {
                   if (onTilesetGenerator != null) {
                     onTilesetGenerator!();
                   } else {
-                    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TilesetGeneratorScreen()));
+                    Navigator.of(context)
+                        .push(MaterialPageRoute<void>(builder: (_) => const TilesetCollectionScreen()));
                   }
                 case _AddMenuAction.templates:
                   onTemplates?.call();

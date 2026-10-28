@@ -13,8 +13,8 @@ class ReportAdapter implements HttpClientAdapter {
   final requests = <RequestOptions>[];
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options,
-      Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+  Future<ResponseBody> fetch(
+      RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
     requests.add(options);
     return ResponseBody.fromString(
       jsonEncode({'success': status == 201}),
@@ -34,6 +34,7 @@ void main() {
   late LocalStorage storage;
 
   setUpAll(() async {
+    ErrorReportService.disabledInDebug = false;
     SharedPreferences.setMockInitialValues({});
     PackageInfo.setMockInitialValues(
       appName: 'Picell',
@@ -49,8 +50,7 @@ void main() {
     storage.setString(ErrorReportService.storageKey, '[]');
   });
 
-  test('redacts credentials, URLs, email and home paths, limits Unicode safely',
-      () {
+  test('redacts credentials, URLs, email and home paths, limits Unicode safely', () {
     final text = ErrorReportService.sanitize(
       'Bearer abc password=123 token=xyz https://example.com?a=secret '
       'person@example.com /Users/name/project.dart',
@@ -64,21 +64,15 @@ void main() {
     expect(ErrorReportService.sanitize('😀😀😀', 2), '😀😀');
   });
 
-  test(
-      'retains offline reports, retries after restart, deduplicates and clears on success',
-      () async {
+  test('retains offline reports, retries after restart, deduplicates and clears on success', () async {
     final adapter = ReportAdapter();
-    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
-      ..httpClientAdapter = adapter;
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))..httpClientAdapter = adapter;
     final reporter = ErrorReportService(dio: dio);
     await reporter.initialize(storage);
-    reporter.report(StateError('frame save failed'), StackTrace.current,
-        operation: 'editor.updateFrame');
-    reporter.report(StateError('frame save failed'), StackTrace.current,
-        operation: 'editor.updateFrame');
+    reporter.report(StateError('frame save failed'), StackTrace.current, operation: 'editor.updateFrame');
+    reporter.report(StateError('frame save failed'), StackTrace.current, operation: 'editor.updateFrame');
     await reporter.flush();
-    expect(jsonDecode(storage.getString(ErrorReportService.storageKey)!),
-        hasLength(1));
+    expect(jsonDecode(storage.getString(ErrorReportService.storageKey)!), hasLength(1));
     expect(adapter.requests, hasLength(1));
     final firstId = adapter.requests.first.data['report_id'];
     reporter.dispose();
@@ -88,39 +82,30 @@ void main() {
     await restarted.initialize(storage);
     await restarted.flush();
     expect(adapter.requests.last.data['report_id'], firstId);
-    expect(
-        jsonDecode(storage.getString(ErrorReportService.storageKey)!), isEmpty);
+    expect(jsonDecode(storage.getString(ErrorReportService.storageKey)!), isEmpty);
     restarted.dispose();
   });
 
-  test('failed reporting never replaces the original operation error',
-      () async {
+  test('failed reporting never replaces the original operation error', () async {
     final reporter = ErrorReportService();
     final error = StateError('cannot create project');
-    await expectLater(
-        reporter.guard('project.create', () => Future<void>.error(error)),
-        throwsA(same(error)));
+    await expectLater(reporter.guard('project.create', () => Future<void>.error(error)), throwsA(same(error)));
     reporter.dispose();
   });
 
-  test('offline queue is bounded and rejected payloads are discarded',
-      () async {
+  test('offline queue is bounded and rejected payloads are discarded', () async {
     final adapter = ReportAdapter();
-    final reporter = ErrorReportService(
-        dio: Dio(BaseOptions(baseUrl: 'https://example.test'))
-          ..httpClientAdapter = adapter);
+    final reporter =
+        ErrorReportService(dio: Dio(BaseOptions(baseUrl: 'https://example.test'))..httpClientAdapter = adapter);
     await reporter.initialize(storage);
     for (var i = 0; i < 40; i++) {
-      reporter.report(StateError('error $i'), StackTrace.current,
-          operation: 'editor.save');
+      reporter.report(StateError('error $i'), StackTrace.current, operation: 'editor.save');
     }
     await reporter.flush();
-    expect(jsonDecode(storage.getString(ErrorReportService.storageKey)!),
-        hasLength(30));
+    expect(jsonDecode(storage.getString(ErrorReportService.storageKey)!), hasLength(30));
     adapter.status = 422;
     await reporter.flush();
-    expect(
-        jsonDecode(storage.getString(ErrorReportService.storageKey)!), isEmpty);
+    expect(jsonDecode(storage.getString(ErrorReportService.storageKey)!), isEmpty);
     reporter.dispose();
   });
 }

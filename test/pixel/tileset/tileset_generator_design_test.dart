@@ -7,6 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:picell/pixel/tileset/tileset_generator.dart';
 import 'package:picell/ui/screens/tileset_generator/tileset_generator_screen.dart';
+import 'package:picell/ui/screens/tileset_generator/tileset_collection_screen.dart';
+import 'package:picell/pixel/tileset/tileset_canvas.dart';
+import 'package:picell/pixel/tileset/tileset_collection.dart';
 
 void main() {
   testWidgets('ready desktop workspace groups variants and renders the design without overflow', (tester) async {
@@ -37,6 +40,7 @@ void main() {
       final loader = FontLoader('MaterialIcons')..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
       await loader.load();
     });
+    final theme = ThemeData.dark();
     final s = TilesetSettings();
     final rows = [
       '........................',
@@ -62,6 +66,7 @@ void main() {
             rows.expand((r) => r.padRight(24, '.').substring(0, 24).split('').map((c) => c == '#' ? 1 : 0)).toList());
     final boundary = GlobalKey();
     await tester.runAsync(() => tester.pumpWidget(MaterialApp(
+        theme: theme,
         home: RepaintBoundary(
             key: boundary,
             child: TilesetGeneratorScreen(
@@ -89,9 +94,9 @@ void main() {
         try {
           final rgba = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
           for (final sample in [
-            (x: 5, y: 5, color: const Color(0xff1a1b1f)), // Header.
-            (x: 5, y: 300, color: const Color(0xff1a1b1f)), // Settings sidebar.
-            (x: 300, y: 55, color: const Color(0xff141518)), // Preview toolbar.
+            (x: 5, y: 5, color: theme.colorScheme.surface), // Header.
+            (x: 5, y: 300, color: theme.colorScheme.surface), // Settings sidebar.
+            (x: 300, y: 55, color: theme.scaffoldBackgroundColor), // Preview toolbar.
           ]) {
             final offset = (sample.y * image.width + sample.x) * 4;
             final actual = Color.fromARGB(
@@ -107,11 +112,61 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('tileset-variant-110:3')));
     await tester.pump();
     expect(tester.takeException(), isNull);
+    await tester.runAsync(() => tester.pumpWidget(MaterialApp(
+        theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.brown), fontFamily: 'Inter'),
+        home: RepaintBoundary(
+            key: boundary,
+            child: TilesetGeneratorScreen(
+                embedded: true, initialDocument: jsonEncode(doc.toJson()), onSaveProject: (_) async {})))));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      final render = boundary.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await render.toImage(pixelRatio: 1);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      await File('${Directory.systemTemp.path}/pv_tileset_light_ui.png').writeAsBytes(bytes!.buffer.asUint8List());
+      image.dispose();
+    });
+    expect(tester.takeException(), isNull);
     tester.view.physicalSize = const Size(320, 740);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Tiles'));
     await tester.pumpAndSettle();
     expect(find.text('Edit Pixels'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    tester.view.physicalSize = const Size(1440, 1000);
+    final entries = [
+      TilesetEntry(id: 'one', document: doc),
+      TilesetEntry(
+          id: 'two',
+          document: TilesetDocument(
+              name: 'Stone walls',
+              settings: TilesetSettings(type: TilesetType.walls, variations: 1),
+              tiles: generateTileset(TilesetSettings(type: TilesetType.walls, variations: 1)),
+              cells: [1],
+              columns: 1,
+              rows: 1)),
+    ];
+    final collection = TilesetCollection(name: 'Meadow world', entries: entries)
+        .copyWith(canvas: autoLayoutTilesetCanvas(entries, 16));
+    await tester.runAsync(() => tester.pumpWidget(MaterialApp(
+        theme: theme.copyWith(textTheme: theme.textTheme.apply(fontFamily: 'Inter')),
+        home: RepaintBoundary(
+            key: boundary,
+            child: TilesetCollectionScreen(
+                embedded: true, initialDocument: jsonEncode(collection.toJson()), onSaveCollection: (_) async {})))));
+    await tester.pumpAndSettle();
+    Future<void> capture(String name) => tester.runAsync(() async {
+          final render = boundary.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final image = await render.toImage(pixelRatio: 1);
+          final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+          await File('${Directory.systemTemp.path}/$name.png').writeAsBytes(bytes!.buffer.asUint8List());
+          image.dispose();
+        });
+    await capture('pv_tileset_collection');
+    await tester.tap(find.byKey(const ValueKey('workspace-new-tileset')));
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle();
+    await capture('pv_tileset_recipe');
     expect(tester.takeException(), isNull);
   });
 }

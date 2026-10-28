@@ -14,7 +14,8 @@ class _Adapter implements HttpClientAdapter {
   final bodies = <Map<String, dynamic>>[];
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+  Future<ResponseBody> fetch(
+      RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
     if (status == 0) {
       throw DioException.connectionError(requestOptions: options, reason: 'offline');
     }
@@ -35,6 +36,7 @@ void main() {
   late AnalyticsService analytics;
 
   setUpAll(() async {
+    AnalyticsService.disabledInDebug = false;
     SharedPreferences.setMockInitialValues({});
     PackageInfo.setMockInitialValues(
       appName: 'Picell',
@@ -50,7 +52,8 @@ void main() {
     storage.setString(AnalyticsService.storageKey, '[]');
     storage.analyticsEnabled = true;
     adapter = _Adapter();
-    analytics = AnalyticsService(storage, dio: Dio(BaseOptions(baseUrl: 'https://example.test'))..httpClientAdapter = adapter);
+    analytics =
+        AnalyticsService(storage, dio: Dio(BaseOptions(baseUrl: 'https://example.test'))..httpClientAdapter = adapter);
   });
 
   tearDown(() => analytics.dispose());

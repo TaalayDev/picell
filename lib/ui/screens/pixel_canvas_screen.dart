@@ -52,6 +52,8 @@ import '../widgets/selection_mode_toggle.dart';
 import '../widgets/selection_options_button.dart';
 import '../widgets/tool_bar.dart';
 import '../widgets/tool_menu.dart';
+import '../../pixel/tileset/tileset_project.dart';
+import 'tileset_generator/tileset_geometry_picker.dart';
 import '../widgets/tools_bottom_bar.dart';
 import '../widgets/wand_options_bar.dart';
 
@@ -527,11 +529,11 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   onCutSelection: cutSelectionToClipboard,
                   onPasteSelection: pasteFromClipboard,
                   onTilesetGenerator: widget.onOpenProject == null ? null : () async {
+                    final geometry = await showTilesetGeometryDialog(context);
+                    if (geometry == null || !context.mounted) return;
                     try {
-                      final now = DateTime.now();
                       final tileset = await ref.read(projectsProvider.notifier).addProject(
-                        Project(id: 0, name: 'New Tileset', width: 16, height: 16,
-                          type: ProjectType.proceduralTileset, createdAt: now, editedAt: now),
+                        newTilesetProject(name: 'New Tileset', geometry: geometry, now: DateTime.now()),
                         source: 'tileset',
                       );
                       if (mounted) widget.onOpenProject?.call(tileset);

@@ -68,7 +68,7 @@ void main() {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
       await tester.pump(const Duration(milliseconds: 20));
     }
-    final name = find.byWidgetPredicate((w) => w is TextField && w.decoration?.labelText == 'Tileset name');
+    final name = find.byWidgetPredicate((w) => w is TextField && w.decoration?.labelText == 'Collection name');
     expect(name, findsOneWidget);
     await tester.enterText(name, 'Changed Platforms');
     await tester.pump();

@@ -8,13 +8,18 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/utils/file_utils.dart';
 import '../../../pixel/tileset/tileset_generator.dart';
+import '../../../pixel/tileset/tileset_configuration.dart';
+import '../../../app/theme/pv_tokens.dart';
 import '../../../pixel/tileset/tileset_export.dart';
 import '../../../pixel/tileset/tileset_geometry.dart';
 
 part 'tileset_generator_widgets.dart';
+part 'tileset_recipe_controls.dart';
+part 'tileset_surface_editor.dart';
 
 List<GeneratedTile> _generate(TilesetSettings settings) => generateTileset(settings);
 
@@ -26,21 +31,37 @@ class TilesetGeneratorScreen extends StatefulWidget {
       this.initialDocument,
       this.onSaveProject,
       this.onDirtyChanged,
-      this.embedded = false});
+      this.embedded = false,
+      this.recipeMode = false,
+      this.configuration});
   final String? projectName;
   final String? initialDocument;
   final Future<void> Function(TilesetDocument document)? onSaveProject;
   final ValueChanged<bool>? onDirtyChanged;
   final bool embedded;
+  final bool recipeMode;
+  final TilesetConfiguration? configuration;
   @override
   State<TilesetGeneratorScreen> createState() => TilesetGeneratorScreenState();
 }
 
 class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
+  _Tg get _tg => _Tg.of(context);
+  void _updateDraft(VoidCallback update) => setState(update);
   final _name = TextEditingController(text: 'Meadow Platforms');
   final _seed = TextEditingController(text: '48213');
   var _perspective = TilesetPerspective.side;
   var _type = TilesetType.platforms;
+  var _recipe = const TilesetRecipe();
+  final _specName = TextEditingController();
+  final List<TilesetSurfaceSpec> _specUndo = [], _specRedo = [];
+  var _layer = 0, _layerTab = 0;
+  String? _editKey;
+  DateTime? _editAt;
+  int? _liveKey;
+  Uint32List? _liveTile;
+  var _liveSeamless = true;
+  Set<int> _parts = platformMasks.toSet();
   var _size = 16, _variations = 4;
   var _density = 45.0;
   var _material = 'Grass & Dirt';
@@ -66,6 +87,17 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.recipeMode) {
+      if (widget.initialDocument == null) {
+        final start = TilesetSurfacePresets.grass;
+        _recipe = _recipe.copyWith(surface: TilesetMaterial.custom(start.spec));
+        _palette = List.of(start.palette);
+      }
+      _type = _recipe.rendererFor(_perspective);
+      _specName.text = _customSpec?.name ?? '';
+      if (widget.initialDocument == null && widget.projectName == null) _name.text = 'Ground tileset';
+    }
+    if (widget.configuration != null) _applyConfiguration(widget.configuration!);
     if (widget.projectName != null) _name.text = widget.projectName!;
     if (widget.initialDocument != null) {
       _busy = true;
@@ -73,6 +105,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
         try {
           final doc = TilesetDocument.fromJson(jsonDecode(widget.initialDocument!) as Map<String, dynamic>);
           await _restore(doc);
+          if (mounted && widget.configuration != null) setState(() => _applyConfiguration(widget.configuration!));
           if (mounted && widget.projectName != null) _name.text = widget.projectName!;
         } catch (error) {
           if (mounted) setState(() => _loadError = 'Could not load this tileset: $error');
@@ -84,9 +117,9 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
   }
 
   /// Workspace eviction and navigation must await this before disposing a tab.
-  Future<bool> flushPendingSave() async {
+  Future<bool> flushPendingSave({bool force = false}) async {
     if (_busy) return false;
-    if (!_dirty) return true;
+    if (!_dirty && !force) return true;
     if (_loadError != null) return false;
     if (widget.onSaveProject == null) return false;
     if (_tiles.isEmpty) {
@@ -121,6 +154,8 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
       _seed.text = '${doc.settings.seed}';
       _perspective = doc.settings.perspective;
       _type = doc.settings.type;
+      _recipe = TilesetRecipe.fromSettings(doc.settings);
+      _parts = doc.settings.parts.toSet();
       _size = doc.settings.size;
       _background = _defaultBackground(_perspective, _type);
       _density = doc.settings.density.toDouble();
@@ -135,6 +170,18 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
       _redo.clear();
       _loadError = null;
     });
+  }
+
+  void _applyConfiguration(TilesetConfiguration config) {
+    _name.text = config.name;
+    _perspective = config.perspective;
+    _size = config.size;
+    _seed.text = '${config.seed}';
+    _material = config.material;
+    _palette = List.of(config.palette);
+    if (!TilesetRecipe.basesFor(_perspective).contains(_recipe.base)) _recipe = const TilesetRecipe();
+    if (!_recipe.canPlatform(_perspective)) _recipe = _recipe.copyWith(platform: false);
+    _type = _recipe.rendererFor(_perspective);
   }
 
   String _background = 'Sky';
@@ -173,7 +220,13 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
     if (perspective == _perspective) return;
     setState(() {
       _perspective = perspective;
-      _type = defaultTilesetType(perspective);
+      if (widget.recipeMode) {
+        if (!TilesetRecipe.basesFor(perspective).contains(_recipe.base)) _recipe = const TilesetRecipe();
+        if (!_recipe.canPlatform(perspective)) _recipe = _recipe.copyWith(platform: false);
+        _type = _recipe.rendererFor(perspective);
+      } else {
+        _type = defaultTilesetType(perspective);
+      }
       if (_tiles.isEmpty) {
         _cells = _sampleFor(perspective, _type);
         _background = _defaultBackground(perspective, _type);
@@ -226,6 +279,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
   @override
   void dispose() {
     _name.dispose();
+    _specName.dispose();
     _seed.dispose();
     for (final image in _images.values) {
       image.dispose();
@@ -299,6 +353,10 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
       _message('Enter a seed between 0 and 2147483647.');
       return;
     }
+    if (_parts.isEmpty) {
+      _message('Select at least one connection part.');
+      return;
+    }
     final protected = _tiles.where((t) => t.protected).toList();
     if (protected.isNotEmpty && _generatedSettings!.perspective != _perspective) {
       _message('Save your tileset, then unlock protected tiles before changing perspective.');
@@ -308,8 +366,10 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
       _message('Save your tileset, then unlock protected tiles before changing tileset type.');
       return;
     }
-    if (protected.any((t) => _generatedSettings!.size != _size || t.variation >= _variations)) {
-      _message('Save your tileset, then unlock protected tiles before changing their size or removing variations.');
+    if (protected
+        .any((t) => _generatedSettings!.size != _size || t.variation >= _variations || !_parts.contains(t.mask))) {
+      _message(
+          'Save your tileset, then unlock protected tiles before changing their size or removing protected parts/variations.');
       return;
     }
     setState(() {
@@ -325,7 +385,9 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
           density: _density.round(),
           variations: _variations,
           material: _material,
-          palette: _palette);
+          palette: _palette,
+          parts: _parts.toList(),
+          recipe: widget.recipeMode ? _recipe : _generatedSettings?.recipe);
       final generated = await compute(_generate, settings);
       final kept = {for (final t in protected) t.id: t};
       final changedPerspective = _generatedSettings != null &&
@@ -396,6 +458,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
       if (bytes == null || bytes.length > 30 * 1024 * 1024) throw const FormatException('File missing or too large');
       final doc = TilesetDocument.fromJson(jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>);
       await _restore(doc);
+      if (mounted && widget.configuration != null) setState(() => _applyConfiguration(widget.configuration!));
       if (mounted) setState(() => _dirty = widget.onSaveProject != null);
     } catch (e) {
       _message('Could not open tileset: $e');
@@ -404,12 +467,16 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
     }
   }
 
+  Future<bool> confirmLeave() async => !_busy && (!_dirty || await _confirmDiscard());
+
   Future<bool> _confirmDiscard() async =>
       await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
                   title: const Text('Leave this tileset?'),
-                  content: const Text('Save a .pvtiles document first to keep this session.'),
+                  content: Text(widget.recipeMode
+                      ? 'Add this result to the collection before leaving to keep your changes.'
+                      : 'Save a .pvtiles document first to keep this session.'),
                   actions: [
                     TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep editing')),
                     TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Discard session')),
@@ -475,7 +542,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
     final pixels = await showDialog<Uint32List>(
         context: context,
         builder: (_) => Theme(
-            data: _Tg.theme(),
+            data: Theme.of(context),
             child: _PixelDialog(
                 tile: tile,
                 width: _generatedSettings!.spriteWidth,
@@ -499,7 +566,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
 
   @override
   Widget build(BuildContext context) => Theme(
-      data: _Tg.theme(),
+      data: Theme.of(context),
       child: Builder(
           builder: (context) => PopScope(
                 canPop: widget.embedded || (!_dirty && !_busy),
@@ -513,7 +580,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                   }
                 },
                 child: Scaffold(
-                    backgroundColor: _Tg.background,
+                    backgroundColor: _tg.background,
                     body: SafeArea(child: LayoutBuilder(builder: (context, constraints) {
                       final wide = constraints.maxWidth >= 1100;
                       return Column(children: [
@@ -522,11 +589,11 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                             (_generatedSettings!.perspective != _perspective || _generatedSettings!.type != _type))
                           Container(
                               width: double.infinity,
-                              color: const Color(0xff302a1c),
+                              color: _tg.tint,
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
                               child: Text(
                                   'Showing ${_generatedSettings!.perspective.label} · ${_generatedSettings!.type.label}. Generate to apply ${_perspective.label} · ${_type.label}.',
-                                  style: const TextStyle(fontSize: 12, color: _Tg.amber))),
+                                  style: TextStyle(fontSize: 12, color: _tg.amber))),
                         if (_loadError != null)
                           MaterialBanner(content: Text(_loadError!), actions: [
                             TextButton(onPressed: _busy ? null : _open, child: const Text('Open replacement document'))
@@ -534,7 +601,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                         Expanded(
                             child: wide
                                 ? Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                                    SizedBox(width: 296, child: _settings()),
+                                    SizedBox(width: widget.recipeMode ? 420 : 296, child: _settings()),
                                     const VerticalDivider(width: 1),
                                     Expanded(child: _preview()),
                                     const VerticalDivider(width: 1),
@@ -543,10 +610,11 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                                 : DefaultTabController(
                                     length: 3,
                                     child: Column(children: [
-                                      const TabBar(
-                                          labelColor: _Tg.highlight,
-                                          indicatorColor: _Tg.accent,
-                                          tabs: [Tab(text: 'Settings'), Tab(text: 'Preview'), Tab(text: 'Tiles')]),
+                                      TabBar(labelColor: _tg.highlight, indicatorColor: _tg.accent, tabs: const [
+                                        Tab(text: 'Settings'),
+                                        Tab(text: 'Preview'),
+                                        Tab(text: 'Tiles')
+                                      ]),
                                       Expanded(child: TabBarView(children: [_settings(), _preview(), _browser()])),
                                     ]))),
                         _footer(constraints.maxWidth),
@@ -571,20 +639,20 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
   Widget _statusBadge({bool compact = false}) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-          color: _Tg.elevated,
+          color: _tg.elevated,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
               color: _busy
-                  ? _Tg.accent
+                  ? _tg.accent
                   : _tiles.isEmpty
-                      ? _Tg.border
-                      : const Color(0xff2f5a43))),
+                      ? _tg.border
+                      : _tg.green.withValues(alpha: 0.4))),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (_busy)
           const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2))
         else
           Icon(_tiles.isEmpty ? Icons.circle_outlined : Icons.check_circle,
-              size: 14, color: _tiles.isEmpty ? _Tg.muted : _Tg.green),
+              size: 14, color: _tiles.isEmpty ? _tg.muted : _tg.green),
         const SizedBox(width: 6),
         Flexible(
             child: Text(
@@ -603,12 +671,12 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
     final small = width < 900;
     final logo = Row(mainAxisSize: MainAxisSize.min, children: [
       ClipRRect(
-          borderRadius: BorderRadius.circular(4), child: const CustomPaint(size: Size.square(24), painter: _TgLogo())),
+          borderRadius: BorderRadius.circular(_tg.buttonRadius),
+          child: CustomPaint(size: const Size.square(24), painter: _TgLogo(_tg.accent, _tg.highlight))),
       if (width >= 500) const SizedBox(width: 10),
       if (width >= 500)
         Text(small ? 'TILESET' : 'TILESET GENERATOR',
-            style: const TextStyle(
-                fontFamily: 'monospace', fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.4)),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.4)),
     ]);
     final actions = Row(mainAxisSize: MainAxisSize.min, children: [
       _TgIconButton(label: 'Open .pvtiles document', icon: Icons.folder_open_outlined, onPressed: _busy ? null : _open),
@@ -618,14 +686,18 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
               ? null
               : () async {
                   if (widget.onSaveProject != null) {
-                    await flushPendingSave();
+                    await flushPendingSave(force: widget.recipeMode);
                   } else {
                     await _save('document');
                   }
                 },
           icon: Icon(_dirty ? Icons.save_outlined : Icons.save, size: 16),
           style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
-          label: width < 360 ? const SizedBox.shrink() : const Text('Save')),
+          label: width < 360
+              ? const SizedBox.shrink()
+              : Text(widget.recipeMode
+                  ? (widget.initialDocument == null ? 'Add to collection' : 'Save to collection')
+                  : 'Save')),
       const SizedBox(width: 8),
       PopupMenuButton<String>(
           enabled: !_busy && _tiles.isNotEmpty,
@@ -648,16 +720,16 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
               height: 34,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                  color: _tiles.isEmpty || _busy ? _Tg.accent.withValues(alpha: 0.35) : _Tg.accent,
-                  borderRadius: BorderRadius.circular(8)),
-              child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                Text('Export', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                SizedBox(width: 5),
-                Icon(Icons.expand_more, size: 16)
+                  color: _tiles.isEmpty || _busy ? _tg.accent.withValues(alpha: 0.35) : _tg.accent,
+                  borderRadius: BorderRadius.circular(_tg.buttonRadius)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('Export', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _tg.ink)),
+                const SizedBox(width: 5),
+                Icon(Icons.expand_more, size: 16, color: _tg.ink)
               ]))),
     ]);
     return Container(
-        decoration: const BoxDecoration(color: _Tg.panel, border: Border(bottom: BorderSide(color: _Tg.border))),
+        decoration: BoxDecoration(color: _tg.panel, border: Border(bottom: BorderSide(color: _tg.border))),
         padding: EdgeInsets.symmetric(horizontal: small ? 10 : 16),
         child: Column(children: [
           SizedBox(
@@ -675,12 +747,17 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                   const SizedBox(width: 16),
                   SizedBox(width: 190, child: _nameField())
                 ],
-                const Spacer(),
+                if (!small) const Spacer(),
                 if (width >= 1200) ...[
                   ConstrainedBox(constraints: const BoxConstraints(maxWidth: 252), child: _statusBadge()),
                   const SizedBox(width: 12)
                 ],
-                actions,
+                if (small)
+                  Expanded(
+                      child: Align(
+                          alignment: Alignment.centerRight, child: FittedBox(fit: BoxFit.scaleDown, child: actions)))
+                else
+                  actions,
               ])),
           if (small)
             Padding(
@@ -695,192 +772,222 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
       child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 5),
           child: Row(children: [
-            Icon(icon, color: _Tg.highlight, size: 21),
+            Icon(icon, color: _tg.highlight, size: 21),
             const SizedBox(width: 10),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 3),
-              Text(subtitle, style: const TextStyle(fontSize: 11, color: _Tg.muted))
+              Text(subtitle, style: TextStyle(fontSize: 11, color: _tg.muted))
             ])
           ])));
 
   Widget _footer(double width) {
     final status = _tiles.isEmpty
         ? 'Choose perspective and type, then generate.'
-        : '${_tiles.length} tiles · 47 connection shapes · ${_tiles.where((t) => t.protected).length} protected · ${_dirty ? 'Unsaved changes' : 'All changes saved'}';
+        : '${_tiles.length} tiles · ${_generatedSettings!.parts.length} connection shapes · ${_tiles.where((t) => t.protected).length} protected · ${_dirty ? 'Unsaved changes' : 'All changes saved'}';
     final layout = _generatedSettings == null ? null : TilesetLayout(_generatedSettings!, _columns, _rows);
     return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-        decoration: const BoxDecoration(color: _Tg.panel, border: Border(top: BorderSide(color: _Tg.border))),
+        decoration: BoxDecoration(color: _tg.panel, border: Border(top: BorderSide(color: _tg.border))),
         child: Row(children: [
           Expanded(
               child: Text(status,
                   key: const ValueKey('tileset-session-status'),
                   maxLines: width < 700 ? 2 : 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 10, color: _Tg.muted))),
+                  style: TextStyle(fontSize: 10, color: _tg.muted))),
           if (width >= 900 && layout != null) ...[
             const SizedBox(width: 16),
-            Text('$_columns×$_rows tiles · ${layout.width}×${layout.height} px', style: _Tg.mono)
+            Text('$_columns×$_rows tiles · ${layout.width}×${layout.height} px', style: _tg.mono)
           ],
         ]));
   }
 
   Widget _settings() => ColoredBox(
-      color: _Tg.panel,
+      color: _tg.panel,
       child: Column(children: [
         Expanded(
             child: ListView(padding: const EdgeInsets.fromLTRB(16, 14, 16, 16), children: [
-          const _TgLabel('1 · PERSPECTIVE'),
-          const SizedBox(height: 9),
-          LayoutBuilder(
-              builder: (context, constraints) => Row(children: [
-                    for (final perspective in TilesetPerspective.values) ...[
-                      if (perspective != TilesetPerspective.values.first) const SizedBox(width: 8),
-                      Expanded(
-                          child: ChoiceChip(
-                              selected: _perspective == perspective,
-                              showCheckmark: false,
-                              side: BorderSide(
-                                  color: _perspective == perspective ? _Tg.accent : _Tg.border,
-                                  width: _perspective == perspective ? 2 : 1),
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                              labelPadding: EdgeInsets.zero,
-                              onSelected: _busy ? null : (_) => _selectPerspective(perspective),
-                              label: SizedBox(
-                                  width: (constraints.maxWidth - 16) / 3 - 12,
-                                  child: Stack(children: [
-                                    Column(mainAxisSize: MainAxisSize.min, children: [
-                                      ClipRRect(
-                                          borderRadius: BorderRadius.circular(4),
-                                          child: CustomPaint(
-                                              size: const Size(64, 43), painter: _TgPerspectiveArt(perspective))),
-                                      const SizedBox(height: 7),
-                                      Text(perspective.label,
-                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-                                          maxLines: 1),
-                                    ]),
-                                    if (_perspective == perspective)
-                                      const Positioned(
-                                          right: 0,
-                                          top: 0,
-                                          child: DecoratedBox(
-                                              decoration: BoxDecoration(color: _Tg.accent, shape: BoxShape.circle),
-                                              child: Icon(Icons.check, size: 13))),
-                                  ])))),
-                    ]
-                  ])),
-          const SizedBox(height: 18),
-          const _TgLabel('2 · TILESET TYPE'),
-          const SizedBox(height: 5),
-          Wrap(spacing: 6, runSpacing: 0, children: [
-            for (final type in supportedTilesetTypes(_perspective))
-              ChoiceChip(
-                  label: Text(type.label),
-                  selected: _type == type,
-                  side: BorderSide(color: _type == type ? _Tg.accent : _Tg.border),
-                  onSelected: _busy ? null : (_) => _selectType(type))
-          ]),
-          const SizedBox(height: 4),
-          Text(tilesetTypeDescription(_perspective, _type),
-              style: const TextStyle(fontSize: 11, height: 1.4, color: _Tg.muted)),
+          if (widget.configuration == null) ...[
+            const _TgLabel('1 · PERSPECTIVE'),
+            const SizedBox(height: 9),
+            LayoutBuilder(
+                builder: (context, constraints) => Row(children: [
+                      for (final perspective in TilesetPerspective.values) ...[
+                        if (perspective != TilesetPerspective.values.first) const SizedBox(width: 8),
+                        Expanded(
+                            child: ChoiceChip(
+                                selectedColor: _tg.tint,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_tg.chipRadius)),
+                                selected: _perspective == perspective,
+                                showCheckmark: false,
+                                side: BorderSide(
+                                    color: _perspective == perspective ? _tg.accent : _tg.border,
+                                    width: _perspective == perspective ? 2 : 1),
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                labelPadding: EdgeInsets.zero,
+                                onSelected: _busy ? null : (_) => _selectPerspective(perspective),
+                                label: SizedBox(
+                                    width: (constraints.maxWidth - 16) / 3 - 12,
+                                    child: Stack(children: [
+                                      Column(mainAxisSize: MainAxisSize.min, children: [
+                                        ClipRRect(
+                                            borderRadius: BorderRadius.circular(_tg.buttonRadius),
+                                            child: CustomPaint(
+                                                size: const Size(64, 43), painter: _TgPerspectiveArt(perspective))),
+                                        const SizedBox(height: 7),
+                                        Text(perspective.label,
+                                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                                            maxLines: 1),
+                                      ]),
+                                      if (_perspective == perspective)
+                                        Positioned(
+                                            right: 0,
+                                            top: 0,
+                                            child: DecoratedBox(
+                                                decoration: BoxDecoration(color: _tg.accent, shape: BoxShape.circle),
+                                                child: const Icon(Icons.check, size: 13))),
+                                    ])))),
+                      ]
+                    ])),
+            const SizedBox(height: 18),
+          ] else ...[
+            const _TgLabel('PROJECT GEOMETRY'),
+            const SizedBox(height: 8),
+            ListTile(
+                key: const ValueKey('set-geometry-summary'),
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.lock_outline, size: 18),
+                title: Text('${_perspective.label} · ${_size}px'),
+                subtitle: const Text('Shared by every tileset in this project.', style: TextStyle(fontSize: 11))),
+            if (_perspective == TilesetPerspective.isometric)
+              Text('Size is the logical diamond height. Sprite width is twice this value.',
+                  style: TextStyle(fontSize: 11, color: _tg.muted)),
+            const SizedBox(height: 18),
+          ],
+          if (widget.recipeMode)
+            ..._recipeControls()
+          else ...[
+            const _TgLabel('2 · TILESET TYPE'),
+            const SizedBox(height: 5),
+            Wrap(spacing: 6, runSpacing: 0, children: [
+              for (final type in supportedTilesetTypes(_perspective))
+                ChoiceChip(
+                    selectedColor: _tg.tint,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_tg.chipRadius)),
+                    label: Text(type.label),
+                    selected: _type == type,
+                    side: BorderSide(color: _type == type ? _tg.accent : _tg.border),
+                    onSelected: _busy ? null : (_) => _selectType(type))
+            ]),
+            const SizedBox(height: 4),
+            Text(tilesetTypeDescription(_perspective, _type),
+                style: TextStyle(fontSize: 11, height: 1.4, color: _tg.muted)),
+          ],
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 14),
-          const Text('Material preset', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          DropdownButtonFormField<String>(
-              initialValue: _material,
-              key: ValueKey(_material),
-              isExpanded: true,
-              style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: _Tg.text),
-              decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
-              items: materialPalettes.keys.map((k) => DropdownMenuItem(value: k, child: Text(k))).toList(),
-              onChanged: _busy
-                  ? null
-                  : (v) => setState(() {
-                        _material = v!;
-                        _palette = List.of(materialPalettes[v]!);
-                      })),
-          const SizedBox(height: 14),
-          const Text('Tile size', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 7),
-          SizedBox(
-              height: 32,
-              child: SegmentedButton<int>(
-                  showSelectedIcon: false,
-                  style: SegmentedButton.styleFrom(
-                      textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 11),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      side: const BorderSide(color: _Tg.border),
-                      selectedBackgroundColor: const Color(0xff2c2f38),
-                      selectedForegroundColor: _Tg.text,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7))),
-                  segments: [
-                    for (final size in [16, 32, 48]) ButtonSegment(value: size, label: Text('${size}px'))
-                  ],
-                  selected: {_size},
-                  onSelectionChanged: _busy ? null : (v) => setState(() => _size = v.first))),
-          if (_perspective == TilesetPerspective.isometric)
-            Padding(
-                padding: const EdgeInsets.only(top: 7),
-                child: Text(
-                    '2:1 grid · ${_size * 2}×${_size + (_type == TilesetType.walls ? _size : _type == TilesetType.raisedBlocks ? _size ~/ 2 : 0)}px sprites',
-                    style: _Tg.mono)),
-          const SizedBox(height: 14),
-          Row(children: [
-            const Text('Palette', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-            const Spacer(),
-            Text('#${(_palette[_swatch] & 0xffffff).toRadixString(16).padLeft(6, '0').toUpperCase()}', style: _Tg.mono)
-          ]),
-          const SizedBox(height: 7),
-          Row(children: [
-            for (var i = 0; i < (_type == TilesetType.terrain ? 4 : 8); i++) ...[
-              if (i > 0) const SizedBox(width: 4),
+          ...[
+            const Text('Material preset', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            DropdownButtonFormField<String>(
+                initialValue: _material,
+                key: ValueKey(_material),
+                isExpanded: true,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12, color: _tg.text),
+                decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
+                items: materialPalettes.keys.map((k) => DropdownMenuItem(value: k, child: Text(k))).toList(),
+                onChanged: _busy
+                    ? null
+                    : (v) => setState(() {
+                          _material = v!;
+                          _palette = List.of(materialPalettes[v]!);
+                        })),
+            const SizedBox(height: 14),
+            if (widget.configuration == null) ...[
+              const Text('Tile size', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 7),
+              ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 32),
+                  child: SegmentedButton<int>(
+                      showSelectedIcon: false,
+                      style: SegmentedButton.styleFrom(
+                          textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 11),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          side: BorderSide(color: _tg.border),
+                          selectedBackgroundColor: _tg.tint,
+                          selectedForegroundColor: _tg.text,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_tg.buttonRadius))),
+                      segments: [
+                        for (final size in [16, 32, 48]) ButtonSegment(value: size, label: Text('${size}px'))
+                      ],
+                      selected: {_size},
+                      onSelectionChanged: _busy ? null : (v) => setState(() => _size = v.first))),
+              if (_perspective == TilesetPerspective.isometric)
+                Padding(
+                    padding: const EdgeInsets.only(top: 7),
+                    child: Text(
+                        '2:1 grid · ${_size * 2}×${_size + (_type == TilesetType.walls ? _size : _type == TilesetType.raisedBlocks ? _size ~/ 2 : 0)}px sprites',
+                        style: _tg.mono)),
+            ],
+            const SizedBox(height: 14),
+            Row(children: [
+              const Text('Palette', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              const Spacer(),
+              Text('#${(_palette[_swatch] & 0xffffff).toRadixString(16).padLeft(6, '0').toUpperCase()}',
+                  style: _tg.mono)
+            ]),
+            const SizedBox(height: 7),
+            Row(children: [
+              for (var i = 0; i < (_type == TilesetType.terrain ? 4 : 8); i++) ...[
+                if (i > 0) const SizedBox(width: 4),
+                Expanded(
+                    child: Tooltip(
+                        message: 'Edit palette color ${i + 1}',
+                        child: InkWell(
+                            onTap: _busy ? null : () => _choosePalette(i),
+                            borderRadius: BorderRadius.circular(_tg.buttonRadius),
+                            child: Container(
+                                height: 30,
+                                decoration: BoxDecoration(
+                                    color: Color(_palette[i]),
+                                    borderRadius: BorderRadius.circular(_tg.buttonRadius),
+                                    border: Border.all(color: _swatch == i ? _tg.text : _tg.background, width: 2))))))
+              ]
+            ]),
+            const SizedBox(height: 14),
+            const Text('Seed', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            Row(children: [
               Expanded(
-                  child: Tooltip(
-                      message: 'Edit palette color ${i + 1}',
-                      child: InkWell(
-                          onTap: _busy ? null : () => _choosePalette(i),
-                          borderRadius: BorderRadius.circular(5),
-                          child: Container(
-                              height: 30,
-                              decoration: BoxDecoration(
-                                  color: Color(_palette[i]),
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(color: _swatch == i ? _Tg.text : _Tg.background, width: 2))))))
-            ]
-          ]),
-          const SizedBox(height: 14),
-          const Text('Seed', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          Row(children: [
-            Expanded(
-                child: SizedBox(
-                    height: 34,
-                    child: TextField(
-                        controller: _seed,
-                        enabled: !_busy,
-                        keyboardType: TextInputType.number,
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-                        decoration: const InputDecoration(
-                            labelText: 'Seed', floatingLabelBehavior: FloatingLabelBehavior.never)))),
-            const SizedBox(width: 6),
-            DecoratedBox(
-                decoration:
-                    BoxDecoration(border: Border.all(color: _Tg.strongBorder), borderRadius: BorderRadius.circular(7)),
-                child: _TgIconButton(
-                    label: 'Shuffle seed',
-                    icon: Icons.shuffle,
-                    onPressed:
-                        _busy ? null : () => setState(() => _seed.text = '${math.Random().nextInt(0x7fffffff)}')))
-          ]),
+                  child: SizedBox(
+                      height: 34,
+                      child: TextField(
+                          controller: _seed,
+                          enabled: !_busy,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(fontSize: 12),
+                          decoration: const InputDecoration(
+                              labelText: 'Seed', floatingLabelBehavior: FloatingLabelBehavior.never)))),
+              const SizedBox(width: 6),
+              DecoratedBox(
+                  decoration: BoxDecoration(
+                      border: Border.all(color: _tg.strongBorder),
+                      borderRadius: BorderRadius.circular(_tg.buttonRadius)),
+                  child: _TgIconButton(
+                      label: 'Shuffle seed',
+                      icon: Icons.shuffle,
+                      onPressed:
+                          _busy ? null : () => setState(() => _seed.text = '${math.Random().nextInt(0x7fffffff)}')))
+            ]),
+          ],
           const SizedBox(height: 15),
           Row(children: [
             const Text('Texture density', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
             const Spacer(),
-            Text('${_density.round()}%', style: _Tg.mono)
+            Text('${_density.round()}%', style: _tg.mono)
           ]),
           SizedBox(
               height: 28,
@@ -895,9 +1002,9 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
             const Expanded(child: Text('Variation count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
             DecoratedBox(
                 decoration: BoxDecoration(
-                    color: _Tg.background,
-                    border: Border.all(color: _Tg.border),
-                    borderRadius: BorderRadius.circular(8)),
+                    color: _tg.background,
+                    border: Border.all(color: _tg.border),
+                    borderRadius: BorderRadius.circular(_tg.buttonRadius)),
                 child: Row(children: [
                   _TgIconButton(
                       label: 'Fewer variations',
@@ -907,7 +1014,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                       width: 24,
                       child: Text('$_variations',
                           textAlign: TextAlign.center,
-                          style: _Tg.mono.copyWith(color: _Tg.text, fontWeight: FontWeight.w600))),
+                          style: _tg.mono.copyWith(color: _tg.text, fontWeight: FontWeight.w600))),
                   _TgIconButton(
                       label: 'More variations',
                       icon: Icons.add,
@@ -917,28 +1024,32 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
         ])),
         Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-            decoration: const BoxDecoration(border: Border(top: BorderSide(color: _Tg.border))),
+            decoration: BoxDecoration(border: Border(top: BorderSide(color: _tg.border))),
             child: Column(children: [
               SizedBox(
                   width: double.infinity,
                   height: 46,
                   child: DecoratedBox(
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), boxShadow: [
-                        BoxShadow(color: _Tg.accent.withValues(alpha: 0.2), blurRadius: 18, offset: const Offset(0, 5))
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(_tg.cardRadius), boxShadow: [
+                        BoxShadow(color: _tg.shadowColor, blurRadius: _tg.shadowBlur, offset: const Offset(0, 2))
                       ]),
                       child: FilledButton.icon(
                           onPressed: _busy ? null : _generateTiles,
                           icon: const Icon(Icons.auto_awesome, size: 19),
-                          label: Text(_tiles.isEmpty ? 'Generate Tileset' : 'Regenerate Tileset',
-                              style: const TextStyle(
-                                  fontFamily: 'monospace', fontSize: 13, fontWeight: FontWeight.w700))))),
+                          label: Text(
+                              widget.recipeMode
+                                  ? 'Generate selected parts'
+                                  : _tiles.isEmpty
+                                      ? 'Generate Tileset'
+                                      : 'Regenerate Tileset',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))))),
               const SizedBox(height: 8),
               Text(
                   _tiles.any((t) => t.protected)
                       ? 'Protected tiles are kept on regenerate'
                       : 'Same seed always gives the same tileset',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 11, height: 1.4, color: _Tg.muted)),
+                  style: TextStyle(fontSize: 11, height: 1.4, color: _tg.muted)),
             ])),
       ]));
 
@@ -948,7 +1059,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
     final picked = await showDialog<Color>(
         context: context,
         builder: (context) => Theme(
-            data: _Tg.theme(),
+            data: Theme.of(context),
             child: AlertDialog(
                 title: const Text('Palette color'),
                 content: SingleChildScrollView(
@@ -960,11 +1071,61 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
     if (picked != null && mounted) setState(() => _palette[index] = picked.toARGB32());
   }
 
+  Future<void> _generateMissingParts() async {
+    final current = _generatedSettings;
+    final missing = _missingParts;
+    if (_busy || current == null || missing.isEmpty) return;
+    TilesetSettings withParts(List<int> parts) => TilesetSettings(
+        perspective: current.perspective,
+        type: current.type,
+        size: current.size,
+        seed: current.seed,
+        density: current.density,
+        variations: current.variations,
+        material: current.material,
+        palette: current.palette,
+        recipe: current.recipe,
+        parts: parts);
+    setState(() {
+      _busy = true;
+      _activity = 'Generating missing parts';
+    });
+    try {
+      final added = await compute(_generate, withParts(missing.toList()));
+      final all = [..._tiles, ...added]
+        ..sort((a, b) => a.mask == b.mask ? a.variation.compareTo(b.variation) : a.mask.compareTo(b.mask));
+      final next = withParts({...current.parts, ...missing}.toList());
+      await _replace(all, next);
+      if (mounted) {
+        setState(() {
+          _parts = next.parts.toSet();
+          _dirty = true;
+        });
+      }
+    } catch (e) {
+      _message('Could not generate missing parts: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Set<int> get _missingParts => _generatedSettings == null ? {} : missingTilesetParts(_document);
+
   Widget _preview() => Column(children: [
         _previewToolbar(),
+        if (_missingParts.isNotEmpty && !_atlas)
+          Container(
+              color: _tg.tint,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Row(children: [
+                Expanded(
+                    child: Text('${_missingParts.length} connection shapes missing from this sample',
+                        style: TextStyle(fontSize: 11, color: _tg.text))),
+                TextButton(onPressed: _busy ? null : _generateMissingParts, child: const Text('Generate missing parts'))
+              ])),
         Expanded(
             child: ColoredBox(
-                color: _Tg.canvas,
+                color: _tg.canvas,
                 child: Stack(children: [
                   Positioned.fill(
                       child: _tiles.isEmpty
@@ -981,39 +1142,39 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                             child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                                 decoration: BoxDecoration(
-                                    color: _Tg.panel.withValues(alpha: 0.95),
-                                    border: Border.all(color: _Tg.strongBorder),
-                                    borderRadius: BorderRadius.circular(8)),
+                                    color: _tg.panel.withValues(alpha: 0.95),
+                                    border: Border.all(color: _tg.strongBorder),
+                                    borderRadius: BorderRadius.circular(_tg.buttonRadius)),
                                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                  const Icon(Icons.auto_fix_high, size: 15, color: _Tg.highlight),
+                                  Icon(Icons.auto_fix_high, size: 15, color: _tg.highlight),
                                   const SizedBox(width: 6),
                                   Text(
                                       _erase
                                           ? 'Drag to erase. Neighbours reconnect.'
                                           : 'Draw shapes. Edges and corners connect.',
-                                      style: const TextStyle(fontSize: 10, color: _Tg.muted))
+                                      style: TextStyle(fontSize: 10, color: _tg.muted))
                                 ])))),
                   ],
                   if (_busy)
                     Positioned.fill(
                         child: ColoredBox(
-                            color: _Tg.canvas.withValues(alpha: 0.8),
+                            color: _tg.canvas.withValues(alpha: 0.8),
                             child: Center(
                                 child: Container(
                                     width: 320,
                                     margin: const EdgeInsets.all(16),
                                     padding: const EdgeInsets.all(20),
                                     decoration: BoxDecoration(
-                                        color: _Tg.panel,
-                                        borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(color: _Tg.strongBorder),
-                                        boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 32)]),
+                                        color: _tg.panel,
+                                        borderRadius: BorderRadius.circular(_tg.cardRadius),
+                                        border: Border.all(color: _tg.strongBorder),
+                                        boxShadow: [BoxShadow(color: _tg.shadowColor, blurRadius: _tg.shadowBlur)]),
                                     child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Row(children: [
-                                            const Icon(Icons.auto_awesome, size: 18, color: _Tg.highlight),
+                                            Icon(Icons.auto_awesome, size: 18, color: _tg.highlight),
                                             const SizedBox(width: 10),
                                             Expanded(
                                                 child: Text(_activity,
@@ -1023,20 +1184,22 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                                           const LinearProgressIndicator(
                                               minHeight: 4, borderRadius: BorderRadius.all(Radius.circular(4))),
                                           const SizedBox(height: 12),
-                                          const Text('Preparing a complete, connected tileset.',
-                                              style: TextStyle(fontSize: 11, color: _Tg.muted)),
+                                          Text('Preparing a complete, connected tileset.',
+                                              style: TextStyle(fontSize: 11, color: _tg.muted)),
                                         ]))))),
                 ]))),
       ]);
 
   Widget _previewToolbar() => Container(
-      decoration: const BoxDecoration(color: _Tg.background, border: Border(bottom: BorderSide(color: _Tg.border))),
+      decoration: BoxDecoration(color: _tg.background, border: Border(bottom: BorderSide(color: _tg.border))),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       child: LayoutBuilder(builder: (context, constraints) {
         final tabs = Container(
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-                color: _Tg.panel, border: Border.all(color: _Tg.border), borderRadius: BorderRadius.circular(8)),
+                color: _tg.panel,
+                border: Border.all(color: _tg.border),
+                borderRadius: BorderRadius.circular(_tg.buttonRadius)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               _viewTab(_renderPerspective == TilesetPerspective.side ? 'Sample Level' : 'Sample Map',
                   Icons.landscape_outlined, !_atlas, () => setState(() => _atlas = false)),
@@ -1044,7 +1207,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
             ]));
         final controls = Row(mainAxisSize: MainAxisSize.min, children: [
           if (constraints.maxWidth > 680) ...[
-            const Text('Background', style: TextStyle(fontSize: 11, color: _Tg.muted)),
+            Text('Background', style: TextStyle(fontSize: 11, color: _tg.muted)),
             const SizedBox(width: 6)
           ],
           for (final background in ['Sky', 'Dusk', 'Checker', 'Flat'])
@@ -1054,21 +1217,21 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                     message: '$background background',
                     child: InkWell(
                         onTap: () => setState(() => _background = background),
-                        borderRadius: BorderRadius.circular(5),
+                        borderRadius: BorderRadius.circular(_tg.buttonRadius),
                         child: Container(
                             width: 22,
                             height: 24,
                             decoration: BoxDecoration(
                                 border: Border.all(
-                                    color: _background == background ? _Tg.accent : _Tg.strongBorder, width: 2),
-                                borderRadius: BorderRadius.circular(5)),
+                                    color: _background == background ? _tg.accent : _tg.strongBorder, width: 2),
+                                borderRadius: BorderRadius.circular(_tg.buttonRadius)),
                             child: ClipRRect(
                                 borderRadius: BorderRadius.circular(3),
                                 child: background == 'Checker'
-                                    ? const CustomPaint(painter: _TgChecker())
+                                    ? CustomPaint(painter: _TgChecker(_tg.checkerA, _tg.checkerB))
                                     : DecoratedBox(
                                         decoration: BoxDecoration(
-                                            color: background == 'Flat' ? const Color(0xff1c1e24) : null,
+                                            color: background == 'Flat' ? _tg.elevated : null,
                                             gradient: background == 'Sky'
                                                 ? const LinearGradient(
                                                     begin: Alignment.topCenter,
@@ -1086,22 +1249,23 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
               child: OutlinedButton.icon(
                   onPressed: () => setState(() => _grid = !_grid),
                   style: OutlinedButton.styleFrom(
-                      backgroundColor: _grid ? _Tg.tint : null,
-                      foregroundColor: _grid ? _Tg.highlight : _Tg.muted,
+                      backgroundColor: _grid ? _tg.tint : null,
+                      foregroundColor: _grid ? _tg.highlight : _tg.muted,
                       minimumSize: const Size(0, 30),
                       padding: const EdgeInsets.symmetric(horizontal: 8)),
                   icon: Icon(_grid ? Icons.grid_on : Icons.grid_off, size: 15),
                   label: const Text('Grid', style: TextStyle(fontSize: 11)))),
           const SizedBox(width: 8),
           DecoratedBox(
-              decoration: BoxDecoration(border: Border.all(color: _Tg.border), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(
+                  border: Border.all(color: _tg.border), borderRadius: BorderRadius.circular(_tg.buttonRadius)),
               child: Row(children: [
                 _TgIconButton(
                     size: 28,
                     label: 'Zoom out',
                     icon: Icons.zoom_out,
                     onPressed: () => setState(() => _zoom = math.max(1, _zoom - 1))),
-                Text('${_zoom.toInt()}×', style: _Tg.mono.copyWith(color: _Tg.text)),
+                Text('${_zoom.toInt()}×', style: _tg.mono.copyWith(color: _tg.text)),
                 _TgIconButton(
                     size: 28,
                     label: 'Zoom in',
@@ -1135,11 +1299,11 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
   Widget _viewTab(String title, IconData icon, bool selected, VoidCallback onPressed) => TextButton.icon(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-          backgroundColor: selected ? const Color(0xff2c2f38) : null,
-          foregroundColor: selected ? _Tg.text : _Tg.muted,
+          backgroundColor: selected ? _tg.tint : null,
+          foregroundColor: selected ? _tg.text : _tg.muted,
           minimumSize: const Size(0, 28),
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_tg.buttonRadius))),
       icon: Icon(icon, size: 15),
       label: Text(title, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)));
 
@@ -1150,32 +1314,32 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
               constraints: const BoxConstraints(maxWidth: 520),
               padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
-                  color: _Tg.background,
-                  border: Border.all(color: _Tg.strongBorder),
-                  borderRadius: BorderRadius.circular(16)),
+                  color: _tg.background,
+                  border: Border.all(color: _tg.strongBorder),
+                  borderRadius: BorderRadius.circular(_tg.cardRadius)),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const CustomPaint(size: Size(240, 120), painter: _TgEmptyArt()),
+                CustomPaint(size: const Size(240, 120), painter: _TgEmptyArt(_tg.border, _tg.elevated, _tg.background)),
                 const SizedBox(height: 16),
                 const Text('One click, one matching tileset',
                     textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                     'Pick a perspective and type, tune the look, then generate. Fill, edges, corners and caps share one palette, light direction and texture scale.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, height: 1.6, color: _Tg.muted)),
+                    style: TextStyle(fontSize: 12, height: 1.6, color: _tg.muted)),
                 const SizedBox(height: 20),
                 for (final line in ['Perspective: ${_perspective.label}', 'Type: ${_type.label}'])
                   Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.check_circle, size: 16, color: _Tg.green),
+                        Icon(Icons.check_circle, size: 16, color: _tg.green),
                         const SizedBox(width: 8),
                         Flexible(child: Text(line, style: const TextStyle(fontSize: 12)))
                       ])),
-                const Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.radio_button_unchecked, size: 16, color: _Tg.highlight),
-                  SizedBox(width: 8),
-                  Flexible(child: Text('Generate tileset', style: TextStyle(fontSize: 12, color: _Tg.muted)))
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.radio_button_unchecked, size: 16, color: _tg.highlight),
+                  const SizedBox(width: 8),
+                  Flexible(child: Text('Generate tileset', style: TextStyle(fontSize: 12, color: _tg.muted)))
                 ]),
               ]))));
 
@@ -1189,8 +1353,9 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                       child: Padding(
                           padding: const EdgeInsets.all(24),
                           child: DecoratedBox(
-                              decoration: BoxDecoration(border: Border.all(color: _Tg.border), boxShadow: const [
-                                BoxShadow(color: Colors.black38, blurRadius: 32, offset: Offset(0, 12))
+                              decoration: BoxDecoration(border: Border.all(color: _tg.border), boxShadow: [
+                                BoxShadow(
+                                    color: _tg.shadowColor, blurRadius: _tg.shadowBlur, offset: const Offset(0, 4))
                               ]),
                               child: MouseRegion(
                                   cursor: SystemMouseCursors.precise,
@@ -1211,16 +1376,17 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                                             images: _images,
                                             grid: _grid,
                                             background: _background,
-                                            selected: _selected)),
+                                            selected: _selected,
+                                            colors: _tg)),
                                   )))))))));
 
   Widget _canvasTools() => Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-          color: _Tg.panel.withValues(alpha: 0.96),
-          border: Border.all(color: _Tg.strongBorder),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 14)]),
+          color: _tg.panel.withValues(alpha: 0.96),
+          border: Border.all(color: _tg.strongBorder),
+          borderRadius: BorderRadius.circular(_tg.cardRadius),
+          boxShadow: [BoxShadow(color: _tg.shadowColor, blurRadius: _tg.shadowBlur)]),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _TgIconButton(
             size: 36,
@@ -1286,15 +1452,15 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
         message: '${_tileName(tile)} · ${variants.length} variations',
         child: InkWell(
             onTap: () => setState(() => _selected = tile.id),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(_tg.buttonRadius),
             child: Column(children: [
               Expanded(
                   child: DecoratedBox(
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: active ? _Tg.accent : _Tg.border, width: active ? 2 : 1),
+                          borderRadius: BorderRadius.circular(_tg.buttonRadius),
+                          border: Border.all(color: active ? _tg.accent : _tg.border, width: active ? 2 : 1),
                           boxShadow: active
-                              ? [BoxShadow(color: _Tg.accent.withValues(alpha: 0.22), blurRadius: 0, spreadRadius: 2)]
+                              ? [BoxShadow(color: _tg.accent.withValues(alpha: 0.22), blurRadius: 0, spreadRadius: 2)]
                               : null),
                       child: Stack(fit: StackFit.expand, children: [
                         _TgPixelFrame(image: _images[tile.id], padding: atlas ? 8 : 6),
@@ -1305,22 +1471,22 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                               child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                   decoration: BoxDecoration(
-                                      color: _Tg.panel,
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: _Tg.strongBorder)),
+                                      color: _tg.panel,
+                                      borderRadius: BorderRadius.circular(_tg.buttonRadius),
+                                      border: Border.all(color: _tg.strongBorder)),
                                   child: Text('×${variants.length}',
-                                      style: _Tg.mono.copyWith(fontSize: 9, color: _Tg.text)))),
+                                      style: _tg.mono.copyWith(fontSize: 9, color: _tg.text)))),
                         if (protected)
                           Positioned(
                               left: 2,
                               top: 2,
                               child: Container(
                                   padding: const EdgeInsets.all(2),
-                                  decoration: BoxDecoration(color: _Tg.panel, borderRadius: BorderRadius.circular(4)),
-                                  child: const Icon(Icons.lock, size: 12, color: _Tg.amber))),
+                                  decoration: BoxDecoration(
+                                      color: _tg.panel, borderRadius: BorderRadius.circular(_tg.buttonRadius)),
+                                  child: Icon(Icons.lock, size: 12, color: _tg.amber))),
                         if (active)
-                          const Positioned(
-                              right: 2, top: 2, child: Icon(Icons.check_circle, size: 14, color: _Tg.highlight)),
+                          Positioned(right: 2, top: 2, child: Icon(Icons.check_circle, size: 14, color: _tg.highlight)),
                       ]))),
               const SizedBox(height: 5),
               Text(_shortLabel(tile),
@@ -1328,14 +1494,15 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                       fontSize: 10,
-                      color: active ? _Tg.text : const Color(0xffb4b9c6),
+                      color: active ? _tg.text : _tg.muted,
                       fontWeight: active ? FontWeight.w600 : FontWeight.w400)),
             ])));
   }
 
   Widget _atlasPreview() => ListView(padding: const EdgeInsets.all(20), children: [
-        Text('47 shapes · ${_tiles.length} tiles with variations · shared palette, light and texture scale',
-            style: const TextStyle(fontSize: 11, color: _Tg.muted)),
+        Text(
+            '${_generatedSettings?.parts.length ?? _parts.length} shapes · ${_tiles.length} tiles with variations · shared palette, light and texture scale',
+            style: TextStyle(fontSize: 11, color: _tg.muted)),
         const SizedBox(height: 20),
         for (final group in tilesetGroups(_renderPerspective, type: _renderType)) ...[
           _TgLabel(group.toUpperCase()),
@@ -1352,21 +1519,21 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
   Widget _browser() {
     final selected = _tiles.where((t) => t.id == _selected).firstOrNull;
     return ColoredBox(
-        color: _Tg.panel,
+        color: _tg.panel,
         child: Column(children: [
           Container(
               height: 44,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: _Tg.border))),
+              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: _tg.border))),
               child: Row(children: [
                 const Expanded(child: _TgLabel('GENERATED TILES')),
                 if (_tiles.any((t) => t.protected)) ...[
-                  const Icon(Icons.lock, size: 12, color: _Tg.amber),
+                  Icon(Icons.lock, size: 12, color: _tg.amber),
                   const SizedBox(width: 3),
-                  Text('${_tiles.where((t) => t.protected).length}', style: _Tg.mono),
+                  Text('${_tiles.where((t) => t.protected).length}', style: _tg.mono),
                   const SizedBox(width: 10)
                 ],
-                Text(_tiles.isEmpty ? '—' : '47 shapes', style: _Tg.mono)
+                Text(_tiles.isEmpty ? '—' : '${_generatedSettings!.parts.length} shapes', style: _tg.mono)
               ])),
           Expanded(
               child: ListView(padding: const EdgeInsets.all(16), children: [
@@ -1374,10 +1541,10 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
               Row(children: [
                 Expanded(
                     child: Text(group,
-                        style: const TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5, color: _Tg.muted))),
+                        style: TextStyle(
+                            fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5, color: _tg.muted))),
                 Text('${_primaryRepresentatives.where((t) => _tileGroup(t) == group).length}',
-                    style: _Tg.mono.copyWith(fontSize: 10))
+                    style: _tg.mono.copyWith(fontSize: 10))
               ]),
               const SizedBox(height: 8),
               if (_tiles.isEmpty)
@@ -1391,9 +1558,9 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                                     padding: const EdgeInsets.only(right: 6),
                                     child: Container(
                                         decoration: BoxDecoration(
-                                            color: _Tg.background,
-                                            border: Border.all(color: _Tg.border),
-                                            borderRadius: BorderRadius.circular(8))))))))
+                                            color: _tg.background,
+                                            border: Border.all(color: _tg.border),
+                                            borderRadius: BorderRadius.circular(_tg.buttonRadius))))))))
               else
                 GridView.count(
                     crossAxisCount: 4,
@@ -1411,10 +1578,10 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
             ExpansionTile(
                 tilePadding: EdgeInsets.zero,
                 childrenPadding: EdgeInsets.zero,
-                title: const Text('Additional connections',
-                    style: TextStyle(fontFamily: 'Inter', fontSize: 11, color: _Tg.muted)),
-                subtitle: const Text('27 combined corner shapes',
-                    style: TextStyle(fontFamily: 'Inter', fontSize: 10, color: _Tg.muted)),
+                title: Text('Additional connections', style: TextStyle(fontSize: 11, color: _tg.muted)),
+                subtitle: Text(
+                    '${_representatives.where((t) => !_Tg.primaryMasks.contains(t.mask)).length} combined corner shapes',
+                    style: TextStyle(fontSize: 10, color: _tg.muted)),
                 children: [
                   GridView.count(
                       crossAxisCount: 4,
@@ -1435,10 +1602,9 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
             Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
-                decoration:
-                    const BoxDecoration(color: Color(0xff1e2025), border: Border(top: BorderSide(color: _Tg.border))),
-                child: const Text('Select a generated tile to inspect, edit or regenerate it.',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 12, height: 1.5, color: _Tg.muted))),
+                decoration: BoxDecoration(color: _tg.elevated, border: Border(top: BorderSide(color: _tg.border))),
+                child: Text('Select a generated tile to inspect, edit or regenerate it.',
+                    textAlign: TextAlign.center, style: TextStyle(fontSize: 12, height: 1.5, color: _tg.muted))),
         ]));
   }
 
@@ -1447,7 +1613,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
     final used = tilesetPlacements(_document).where((p) => p.tile.id == selected.id).length;
     return Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        decoration: const BoxDecoration(color: Color(0xff1e2025), border: Border(top: BorderSide(color: _Tg.border))),
+        decoration: BoxDecoration(color: _tg.elevated, border: Border(top: BorderSide(color: _tg.border))),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             SizedBox(
@@ -1456,7 +1622,8 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                 child: Stack(fit: StackFit.expand, children: [
                   DecoratedBox(
                       decoration: BoxDecoration(
-                          border: Border.all(color: _Tg.strongBorder), borderRadius: BorderRadius.circular(9)),
+                          border: Border.all(color: _tg.strongBorder),
+                          borderRadius: BorderRadius.circular(_tg.cardRadius)),
                       child: _TgPixelFrame(image: _images[selected.id], padding: 8)),
                   if (selected.protected)
                     Positioned(
@@ -1465,13 +1632,13 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                         child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
                             decoration: BoxDecoration(
-                                color: _Tg.panel,
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: _Tg.amber)),
-                            child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                              Icon(Icons.lock, size: 11, color: _Tg.amber),
-                              SizedBox(width: 3),
-                              Text('Edited', style: TextStyle(fontSize: 9, color: _Tg.amber))
+                                color: _tg.panel,
+                                borderRadius: BorderRadius.circular(_tg.buttonRadius),
+                                border: Border.all(color: _tg.amber)),
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              Icon(Icons.lock, size: 11, color: _tg.amber),
+                              const SizedBox(width: 3),
+                              Text('Edited', style: TextStyle(fontSize: 9, color: _tg.amber))
                             ]))),
                 ])),
             const SizedBox(width: 12),
@@ -1483,11 +1650,11 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                   style: const TextStyle(fontSize: 12, height: 1.3, fontWeight: FontWeight.w600)),
               const SizedBox(height: 3),
               Text('${_tileGroup(selected)} · ${variants.length} variations',
-                  style: const TextStyle(fontSize: 10, color: _Tg.muted)),
+                  style: TextStyle(fontSize: 10, color: _tg.muted)),
               const SizedBox(height: 7),
               Row(children: [
                 Text(_renderPerspective == TilesetPerspective.isometric ? 'Grid' : 'Sockets',
-                    style: const TextStyle(fontSize: 10, color: _Tg.muted)),
+                    style: TextStyle(fontSize: 10, color: _tg.muted)),
                 const SizedBox(width: 5),
                 for (var i = 0; i < 4; i++)
                   Padding(
@@ -1504,23 +1671,22 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                               height: 19,
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                  color: selected.mask & (1 << i) != 0 ? _Tg.tint : _Tg.background,
+                                  color: selected.mask & (1 << i) != 0 ? _tg.tint : _tg.background,
                                   border:
-                                      Border.all(color: selected.mask & (1 << i) != 0 ? _Tg.accent : _Tg.strongBorder),
-                                  borderRadius: BorderRadius.circular(4)),
-                              child: Text(['N', 'E', 'S', 'W'][i],
-                                  style: const TextStyle(fontFamily: 'monospace', fontSize: 9)))))
+                                      Border.all(color: selected.mask & (1 << i) != 0 ? _tg.accent : _tg.strongBorder),
+                                  borderRadius: BorderRadius.circular(_tg.buttonRadius)),
+                              child: Text(['N', 'E', 'S', 'W'][i], style: const TextStyle(fontSize: 9)))))
               ]),
               const SizedBox(height: 7),
               Text('Used $used in ${_renderPerspective == TilesetPerspective.side ? 'level' : 'map'}',
-                  style: const TextStyle(fontSize: 11, color: _Tg.muted)),
+                  style: TextStyle(fontSize: 11, color: _tg.muted)),
             ]))
           ]),
           if (variants.length > 1)
             Padding(
                 padding: const EdgeInsets.only(top: 10),
                 child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 6, children: [
-                  const Text('Variations', style: TextStyle(fontSize: 10, color: _Tg.muted)),
+                  Text('Variations', style: TextStyle(fontSize: 10, color: _tg.muted)),
                   const SizedBox(width: 8),
                   for (final variant in variants)
                     Padding(
@@ -1534,9 +1700,9 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                                     width: 27,
                                     height: 27,
                                     decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(5),
+                                        borderRadius: BorderRadius.circular(_tg.buttonRadius),
                                         border: Border.all(
-                                            color: _selected == variant.id ? _Tg.accent : _Tg.strongBorder, width: 2)),
+                                            color: _selected == variant.id ? _tg.accent : _tg.strongBorder, width: 2)),
                                     child: _TgPixelFrame(image: _images[variant.id], padding: 2)))))
                 ])),
           const SizedBox(height: 12),
@@ -1557,12 +1723,12 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
           Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
               decoration: BoxDecoration(
-                  color: _Tg.background,
-                  border: Border.all(color: selected.protected ? const Color(0xff6b5a2a) : _Tg.border),
-                  borderRadius: BorderRadius.circular(8)),
+                  color: _tg.background,
+                  border: Border.all(color: selected.protected ? _tg.amber : _tg.border),
+                  borderRadius: BorderRadius.circular(_tg.buttonRadius)),
               child: Row(children: [
                 Icon(selected.protected ? Icons.lock : Icons.lock_open,
-                    size: 16, color: selected.protected ? _Tg.amber : _Tg.muted),
+                    size: 16, color: selected.protected ? _tg.amber : _tg.muted),
                 const SizedBox(width: 8),
                 Expanded(
                     child: Text(
@@ -1575,7 +1741,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                         scale: 0.72,
                         child: Switch(
                             value: selected.protected,
-                            activeThumbColor: _Tg.amber,
+                            activeThumbColor: _tg.amber,
                             onChanged: _busy
                                 ? null
                                 : (v) => setState(() {
@@ -1598,7 +1764,8 @@ class _LevelPainter extends CustomPainter {
       required this.images,
       required this.grid,
       required this.background,
-      required this.selected});
+      required this.selected,
+      required this.colors});
   final List<int> cells;
   final int columns, rows;
   final TilesetSettings settings;
@@ -1606,6 +1773,7 @@ class _LevelPainter extends CustomPainter {
   final bool grid;
   final String background;
   final String? selected;
+  final _Tg colors;
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..filterQuality = FilterQuality.none;
@@ -1621,9 +1789,9 @@ class _LevelPainter extends CustomPainter {
     } else {
       // Custom painters share a canvas with the surrounding workspace.
       // drawColor fills the entire canvas clip, not this painter's bounds.
-      canvas.drawRect(Offset.zero & size, Paint()..color = const Color(0xff202228));
+      canvas.drawRect(Offset.zero & size, Paint()..color = colors.elevated);
       if (background == 'Checker') {
-        paint.color = const Color(0xff30333b);
+        paint.color = colors.checkerB;
         for (var y = 0; y < size.height; y += 12) {
           for (var x = 0; x < size.width; x += 12) {
             if ((x ~/ 12 + y ~/ 12).isEven) canvas.drawRect(Rect.fromLTWH(x.toDouble(), y.toDouble(), 12, 12), paint);
@@ -1640,16 +1808,25 @@ class _LevelPainter extends CustomPainter {
       final mask = tileMaskAt(cells, columns, rows, x, y);
       final variant = tileHash(x, y, settings.seed) % settings.variations;
       final id = '$mask:$variant', image = images[id];
-      if (image == null) continue;
       final origin = layout.origin(x, y);
       final rect = Rect.fromLTWH(
           origin.x * scale, origin.y * scale, settings.spriteWidth * scale, settings.spriteHeight * scale);
+      if (image == null) {
+        final missing = Paint()..color = colors.amber.withValues(alpha: 0.25);
+        canvas.drawRect(rect, missing);
+        missing
+          ..color = colors.amber
+          ..strokeWidth = 1;
+        canvas.drawLine(rect.topLeft, rect.bottomRight, missing);
+        canvas.drawLine(rect.topRight, rect.bottomLeft, missing);
+        continue;
+      }
       paint.color = Colors.white;
       canvas.drawImageRect(
           image, Rect.fromLTWH(0, 0, settings.spriteWidth.toDouble(), settings.spriteHeight.toDouble()), rect, paint);
       if (id == selected) {
         final outline = Paint()
-          ..color = Colors.white70
+          ..color = colors.highlight
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2;
         if (layout.isometric) {
@@ -1675,7 +1852,7 @@ class _LevelPainter extends CustomPainter {
       }
     }
     if (grid) {
-      paint.color = Colors.white24;
+      paint.color = colors.text.withValues(alpha: 0.2);
       paint.strokeWidth = 1;
       for (var x = 0; x <= columns; x++) {
         final a = layout.vertex(x.toDouble(), 0), b = layout.vertex(x.toDouble(), rows.toDouble());
@@ -1702,6 +1879,7 @@ class _PixelDialog extends StatefulWidget {
 }
 
 class _PixelDialogState extends State<_PixelDialog> {
+  _Tg get _tg => _Tg.of(context);
   late final pixels = Uint32List.fromList(widget.tile.pixels);
   late int color = widget.palette[1];
   void _draw(Offset point, double extent) {
@@ -1727,7 +1905,7 @@ class _PixelDialogState extends State<_PixelDialog> {
                             height: 28,
                             decoration: BoxDecoration(
                                 color: Color(c),
-                                border: Border.all(color: color == c ? Colors.white : Colors.grey, width: 2)),
+                                border: Border.all(color: color == c ? _tg.accent : _tg.border, width: 2)),
                             child: c == 0 ? const Icon(Icons.close, size: 18) : null))
                 ]),
                 const SizedBox(height: 12),
@@ -1739,7 +1917,7 @@ class _PixelDialogState extends State<_PixelDialog> {
                       child: CustomPaint(
                           key: const ValueKey('tileset-pixel-editor'),
                           size: Size(extent, extent * widget.height / widget.width),
-                          painter: _PixelsPainter(pixels, widget.width, widget.height)));
+                          painter: _PixelsPainter(pixels, widget.width, widget.height, _tg.checkerA, _tg.checkerB)));
                 }),
               ]))),
           actions: [
@@ -1749,7 +1927,8 @@ class _PixelDialogState extends State<_PixelDialog> {
 }
 
 class _PixelsPainter extends CustomPainter {
-  _PixelsPainter(this.pixels, this.width, this.height);
+  _PixelsPainter(this.pixels, this.width, this.height, this.checkerA, this.checkerB);
+  final Color checkerA, checkerB;
   final Uint32List pixels;
   final int width, height;
   @override
@@ -1758,7 +1937,7 @@ class _PixelsPainter extends CustomPainter {
     for (var y = 0; y < height; y++) {
       for (var x = 0; x < width; x++) {
         paint.color = Color(pixels[y * width + x]);
-        if (paint.color.a == 0) paint.color = (x + y).isEven ? Colors.grey.shade700 : Colors.grey.shade800;
+        if (paint.color.a == 0) paint.color = (x + y).isEven ? checkerA : checkerB;
         canvas.drawRect(Rect.fromLTWH(x * unit, y * unit, unit, unit), paint);
       }
     }

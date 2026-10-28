@@ -1,6 +1,11 @@
 import 'dart:typed_data';
 import 'dart:math' as math;
 
+part 'tileset_recipe.dart';
+part 'tileset_materials.dart';
+part 'tileset_surface.dart';
+part 'tileset_surface_presets.dart';
+
 /// Diagonals only affect topology when both adjoining cardinal cells exist.
 /// Bits: N E S W NE SE SW NW. A set bit means connected terrain.
 int normalizeTileMask(int mask) {
@@ -70,6 +75,30 @@ const materialPalettes = <String, List<int>>{
   'Grass & Dirt': [0xff1c1420, 0xffb8f060, 0xff5cc04a, 0xff2f8a3c, 0xffa8693f, 0xff80482f, 0xff5a3224, 0xffcfa77a],
   'Snow & Ice': [0xff161d2e, 0xffffffff, 0xffd5ecff, 0xff8fb8e0, 0xff7f95c4, 0xff586c9c, 0xff3a4878, 0xffb6c9e8],
   'Desert Sand': [0xff2a1810, 0xfffff0b0, 0xfff0c870, 0xffc8944a, 0xffdcae66, 0xffb27c42, 0xff845428, 0xfff6dca0],
+  'Red Clay': [0xff2a1410, 0xffe6a07a, 0xffc9744e, 0xff9c4f32, 0xffc06a44, 0xffa4543a, 0xff6e3322, 0xffe8b090],
+  'Granite Rock': [0xff14161c, 0xffb8c0cc, 0xff8a94a4, 0xff5c6676, 0xff8c96a6, 0xff6a7484, 0xff3c4452, 0xffc8d0dc],
+  'Plaster': [0xff2a2220, 0xfffff4e0, 0xffe8d8bc, 0xffbfa88a, 0xffddc9a8, 0xffcdb794, 0xff8c7458, 0xfffff8ec],
+  'Slate Tile': [0xff12141c, 0xff9ab0c8, 0xff6a84a4, 0xff3c4e6c, 0xff7a8aa2, 0xff56647e, 0xff30394c, 0xffaebdd2],
+  'Oak Planks': [0xff1c1210, 0xffe8c088, 0xffc89860, 0xff98683a, 0xffb8824c, 0xff966238, 0xff5c3820, 0xffd8a870],
+  'Gravel': [0xff1a1816, 0xffd8d0c0, 0xffb0a690, 0xff7e7664, 0xffa49a86, 0xff857c6c, 0xff4e483e, 0xffe0d8c8],
+  'Asphalt': [0xff0c0c10, 0xffe8e8f0, 0xffb0b4c0, 0xff6c7080, 0xff565a68, 0xff3e414d, 0xff2a2c35, 0xff8c90a0],
+  'Deep Water': [0xff0c1428, 0xffe0f4ff, 0xff7cc4f0, 0xff2c6cb0, 0xff5cb0e8, 0xff2f7cc4, 0xff1c4a8c, 0xffd8f0ff],
+  'Lava': [0xff1c0808, 0xfffff0a0, 0xffffc840, 0xffe87818, 0xffffb430, 0xffe8601c, 0xff5a1c14, 0xffffe888],
+  'Swamp': [0xff101a12, 0xffc8e8a0, 0xff8cc060, 0xff4c8040, 0xff6c9c48, 0xff4a7438, 0xff2c4a2c, 0xffd8f0b0],
+  'Dungeon Stone': [0xff0a0a12, 0xff9ca4c8, 0xff6c7498, 0xff444c70, 0xff5c6486, 0xff444c6c, 0xff2c3050, 0xff8890b4],
+  'Cave Brown': [0xff120c08, 0xffd0b898, 0xff9c8466, 0xff6c5840, 0xff846c50, 0xff5e4a36, 0xff3a2c20, 0xffb89c78],
+  'Crystal': [0xff120824, 0xffffffff, 0xffd8a0ff, 0xff8a4ccc, 0xffa86ce8, 0xff7438b8, 0xff4a2088, 0xfff0d0ff],
+  'Obsidian': [0xff08060c, 0xffc0a8ff, 0xff7c68b8, 0xff3c3068, 0xff3c3450, 0xff1e1a2c, 0xff0e0c18, 0xff8c80b0],
+  'Steel': [0xff0c0e14, 0xffdce6f4, 0xffa8b8cc, 0xff6a7c94, 0xff9aa8bc, 0xff748498, 0xff3c4858, 0xffdce6f4],
+  'Circuit': [0xff04100c, 0xff80ffc0, 0xff30d890, 0xff108860, 0xff1c4a3c, 0xff143428, 0xff08201a, 0xffe0fff0],
+  'Hazard': [0xff0c0c0c, 0xffffffe0, 0xffffe060, 0xffc89c20, 0xfff0c020, 0xffb08818, 0xff1c1c1c, 0xfffff0a0],
+  'Concrete': [0xff101014, 0xffe0e0e4, 0xffb8b8c0, 0xff808088, 0xffa0a0a8, 0xff888890, 0xff585860, 0xffc8c8d0],
+  'Roof Shingle': [0xff0c0c10, 0xffffffff, 0xffc8c8c8, 0xff808080, 0xff8a6a58, 0xff6a4c3e, 0xff3c2a22, 0xffb49484],
+  'Terracotta': [0xff0c0c10, 0xffffffff, 0xffc8c8c8, 0xff808080, 0xffe8784c, 0xffc4502e, 0xff7c2818, 0xfff8b088],
+  'Thatch': [0xff0c0c10, 0xffffffff, 0xffc8c8c8, 0xff808080, 0xffe8c868, 0xffc49c44, 0xff6c4a22, 0xfff8e8a0],
+  'Slate Roof': [0xff0c0c10, 0xffffffff, 0xffc8c8c8, 0xff808080, 0xff6a7e96, 0xff4e6078, 0xff2c3848, 0xff90a4bc],
+  'Red Carpet': [0xff0c0c10, 0xffffffff, 0xffc8c8c8, 0xff808080, 0xffb82c3c, 0xff8c1c2c, 0xff4c0c18, 0xffe8c050],
+  'Canvas': [0xff0c0c10, 0xffffffff, 0xffc8c8c8, 0xff808080, 0xffe8dcc0, 0xffcfc0a0, 0xff8c7c5c, 0xfff8f0dc],
   'Mossy Cave Stone': [0xff14121a, 0xff8fd0b8, 0xff4f9a86, 0xff2e6560, 0xff9088a0, 0xff665e76, 0xff463f56, 0xffbdb4c8],
 };
 
@@ -160,11 +189,22 @@ class TilesetSettings {
       this.density = 45,
       this.variations = 4,
       this.material = 'Grass & Dirt',
-      List<int>? palette})
+      List<int>? palette,
+      List<int>? parts,
+      this.recipe})
       : type = type ?? defaultTilesetType(perspective),
+        parts = List.unmodifiable((parts ?? platformMasks).toList()..sort()),
         palette = List.unmodifiable(palette ?? materialPalettes[material] ?? materialPalettes.values.first) {
     if (!supportedTilesetTypes(perspective).contains(this.type)) {
       throw ArgumentError('Unsupported perspective and tileset type combination');
+    }
+    if (this.parts.isEmpty ||
+        this.parts.length != this.parts.toSet().length ||
+        this.parts.any((m) => !platformMasks.contains(m))) {
+      throw ArgumentError('Select at least one valid connection part');
+    }
+    if (recipe != null && recipe!.rendererFor(perspective) != this.type) {
+      throw ArgumentError('Recipe does not match renderer');
     }
     if (![16, 32, 48].contains(size) ||
         variations < 1 ||
@@ -194,6 +234,8 @@ class TilesetSettings {
   final int size, seed, density, variations;
   final String material;
   final List<int> palette;
+  final List<int> parts;
+  final TilesetRecipe? recipe;
   Map<String, dynamic> toJson() => {
         'perspective': perspective.id,
         'type': type.name,
@@ -202,7 +244,9 @@ class TilesetSettings {
         'density': density,
         'variations': variations,
         'material': material,
-        'palette': palette
+        'palette': palette,
+        if (parts.length != 47) 'parts': parts,
+        if (recipe != null) 'recipe': recipe!.toJson(),
       };
   factory TilesetSettings.fromJson(Map<String, dynamic> json) => TilesetSettings(
       perspective: TilesetPerspective.parse(json['perspective'] as String? ?? 'side'),
@@ -212,7 +256,9 @@ class TilesetSettings {
       density: json['density'] as int,
       variations: json['variations'] as int,
       material: json['material'] as String,
-      palette: (json['palette'] as List).cast<int>());
+      palette: (json['palette'] as List).cast<int>(),
+      parts: (json['parts'] as List?)?.cast<int>(),
+      recipe: json['recipe'] == null ? null : TilesetRecipe.fromJson(json['recipe'] as Map<String, dynamic>));
 }
 
 class GeneratedTile {
@@ -481,6 +527,7 @@ GeneratedTile generateIsometricTile(TilesetSettings s, int mask, int variation, 
   final surface = TilesetSettings(
       perspective: TilesetPerspective.topDown,
       type: s.type == TilesetType.walls ? TilesetType.walls : TilesetType.terrain,
+      recipe: s.recipe?.copyWith(platform: false),
       size: s.size,
       seed: s.seed,
       density: s.density,
@@ -503,6 +550,7 @@ GeneratedTile generateIsometricTile(TilesetSettings s, int mask, int variation, 
       var color = s.palette[right ? 6 : 5];
       if (noise % 100 < s.density ~/ 4) color = s.palette[right ? 5 : 4];
       if (s.type == TilesetType.walls &&
+          (s.recipe == null || s.recipe!.surface.faceMortar) &&
           (faceY.floor() % (n ~/ 4) == 0 || (x + ((faceY.floor() ~/ (n ~/ 4)).isOdd ? n ~/ 4 : 0)) % (n ~/ 2) == 0)) {
         color = s.palette[0];
       }
@@ -526,15 +574,30 @@ GeneratedTile generateTilesetTile(TilesetSettings settings, int mask, int variat
   if (settings.perspective == TilesetPerspective.isometric) {
     return generateIsometricTile(settings, mask, variation, revision: revision);
   }
-  return switch (settings.type) {
-    TilesetType.platforms => generatePlatformTile(settings, mask, variation, revision: revision),
-    TilesetType.terrain => generateTerrainTile(settings, mask, variation, revision: revision),
-    _ => _generateStructuredTile(settings, mask, variation, revision: revision),
-  };
+  return _applyRecipe(
+      settings,
+      switch (settings.type) {
+        TilesetType.platforms => settings.recipe == null
+            ? generatePlatformTile(settings, mask, variation, revision: revision)
+            : _generateStructuredTile(
+                TilesetSettings(
+                    type: TilesetType.ground,
+                    size: settings.size,
+                    seed: settings.seed,
+                    density: settings.density,
+                    variations: settings.variations,
+                    material: settings.material,
+                    palette: settings.palette),
+                mask,
+                variation,
+                revision: revision),
+        TilesetType.terrain => generateTerrainTile(settings, mask, variation, revision: revision),
+        _ => _generateStructuredTile(settings, mask, variation, revision: revision),
+      });
 }
 
 List<GeneratedTile> generateTileset(TilesetSettings settings) => [
-      for (final mask in platformMasks)
+      for (final mask in settings.parts)
         for (var variation = 0; variation < settings.variations; variation++)
           generateTilesetTile(settings, mask, variation),
     ];
@@ -553,7 +616,11 @@ class TilesetDocument {
   final List<int> cells;
   final int columns, rows;
   Map<String, dynamic> toJson() => {
-        'version': settings.perspective == TilesetPerspective.isometric ? 3 : 2,
+        'version': settings.recipe != null || settings.parts.length != 47
+            ? 4
+            : settings.perspective == TilesetPerspective.isometric
+                ? 3
+                : 2,
         'generatorVersion': 1,
         'perspective': settings.perspective.id,
         'type': settings.type.name,
@@ -565,7 +632,7 @@ class TilesetDocument {
         'tiles': tiles.map((t) => t.toJson()).toList()
       };
   factory TilesetDocument.fromJson(Map<String, dynamic> json) {
-    if (![1, 2, 3].contains(json['version']) || json['generatorVersion'] != 1) {
+    if (![1, 2, 3, 4].contains(json['version']) || json['generatorVersion'] != 1) {
       throw const FormatException('Unsupported tileset document');
     }
     final settings = TilesetSettings.fromJson(json['settings'] as Map<String, dynamic>);
@@ -575,8 +642,11 @@ class TilesetDocument {
             (settings.perspective != TilesetPerspective.side || settings.type != TilesetType.platforms))) {
       throw const FormatException('Conflicting tileset perspective/type metadata');
     }
-    if (settings.perspective == TilesetPerspective.isometric && json['version'] != 3) {
+    if (settings.perspective == TilesetPerspective.isometric && ![3, 4].contains(json['version'])) {
       throw const FormatException('Isometric documents require version 3');
+    }
+    if (json['version'] != 4 && (settings.recipe != null || settings.parts.length != 47)) {
+      throw const FormatException('Recipes and partial sets require version 4');
     }
     final columns = json['columns'] as int, rows = json['rows'] as int;
     final cells = (json['cells'] as List).cast<int>();
@@ -588,7 +658,8 @@ class TilesetDocument {
         rows > 128 ||
         cells.length != columns * rows ||
         cells.any((v) => v != 0 && v != 1) ||
-        tiles.length != 47 * settings.variations ||
+        tiles.length != settings.parts.length * settings.variations ||
+        tiles.any((t) => !settings.parts.contains(t.mask)) ||
         tiles.map((t) => t.id).toSet().length != tiles.length) {
       throw const FormatException('Incomplete tileset document');
     }

@@ -12,9 +12,9 @@ import '../widgets/project_tabs_bar.dart';
 import '../widgets/project_tab_launcher.dart';
 import '../widgets/project_workspace_shortcuts.dart';
 import 'pixel_canvas_screen.dart';
-import 'tileset_generator/tileset_generator_screen.dart';
+import 'tileset_generator/tileset_collection_screen.dart';
 import '../../pixel/tileset/tileset_project.dart';
-import '../../pixel/tileset/tileset_generator.dart';
+import '../../pixel/tileset/tileset_collection.dart';
 
 class EditorWorkspaceScreen extends ConsumerStatefulWidget {
   const EditorWorkspaceScreen({
@@ -39,7 +39,7 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
   final List<int> _recentProjectIds = [];
   bool _isChangingResidency = false;
   int? _loadingProjectId;
-  final _tilesetKeys = <int, GlobalKey<TilesetGeneratorScreenState>>{};
+  final _tilesetKeys = <int, GlobalKey<TilesetCollectionScreenState>>{};
   bool _allowExit = false;
   bool _exiting = false;
 
@@ -50,9 +50,9 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
     return ref.read(pixelCanvasNotifierProvider(tab.project).notifier).flushPendingProjectSave();
   }
 
-  Future<void> _saveTileset(int projectId, TilesetDocument document) async {
+  Future<void> _saveTileset(int projectId, TilesetCollection collection) async {
     final project = ref.read(editorWorkspaceProvider).tabs.firstWhere((t) => t.projectId == projectId).project;
-    final updated = await compute(projectWithTileset, (project: project, document: document));
+    final updated = await compute(projectWithTilesetCollection, (project: project, collection: collection));
     final repo = ref.read(projectRepo);
     await repo.updateProject(updated);
     // The legacy write queue logs failures rather than propagating them.
@@ -327,13 +327,13 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
                               for (final tab in workspace.tabs)
                                 if (_residentProjectIds.contains(tab.projectId))
                                   if (tab.project.type == ProjectType.proceduralTileset)
-                                    TilesetGeneratorScreen(
+                                    TilesetCollectionScreen(
                                       key: _tilesetKeys.putIfAbsent(
-                                          tab.projectId, () => GlobalKey<TilesetGeneratorScreenState>()),
+                                          tab.projectId, () => GlobalKey<TilesetCollectionScreenState>()),
                                       embedded: true,
                                       projectName: tab.project.name,
                                       initialDocument: tab.project.tilesetData,
-                                      onSaveProject: (doc) => _saveTileset(tab.projectId, doc),
+                                      onSaveCollection: (doc) => _saveTileset(tab.projectId, doc),
                                       onDirtyChanged: (dirty) => ref
                                           .read(editorWorkspaceProvider.notifier)
                                           .setUnsavedChanges(tab.projectId, dirty),

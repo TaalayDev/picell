@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:picell/data/models/project_model.dart';
 import 'package:picell/l10n/strings.dart';
+import 'package:picell/pixel/tileset/tileset_collection.dart';
+import 'package:picell/pixel/tileset/tileset_generator.dart';
 import 'package:picell/providers/projects_provider.dart';
 import 'package:picell/ui/widgets/project_tab_launcher.dart';
 
@@ -74,6 +77,7 @@ void main() {
       find.byKey(const ValueKey('project-tab-new-name')),
       'Created project',
     );
+    await tester.ensureVisible(find.byKey(const ValueKey('project-tab-create')));
     await tester.tap(find.byKey(const ValueKey('project-tab-create')));
     await tester.pumpAndSettle();
 
@@ -90,9 +94,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('project-tab-new-width')), findsNothing);
     await tester.enterText(find.byKey(const ValueKey('project-tab-new-name')), 'Platforms');
+    FilledButton create() => tester.widget(find.byKey(const ValueKey('project-tab-create')));
+    expect(create().onPressed, isNull, reason: 'perspective and tile size must be chosen first');
+    await tester.ensureVisible(find.byKey(const ValueKey('tileset-perspective-top')));
+    await tester.tap(find.byKey(const ValueKey('tileset-perspective-top')));
+    await tester.pump();
+    expect(create().onPressed, isNull);
+    await tester.ensureVisible(find.byKey(const ValueKey('tileset-size-32')));
+    await tester.tap(find.byKey(const ValueKey('tileset-size-32')));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const ValueKey('project-tab-create')));
     await tester.tap(find.byKey(const ValueKey('project-tab-create')));
     await tester.pumpAndSettle();
     expect(result?.type, ProjectType.proceduralTileset);
+    final collection = TilesetCollection.fromJson(jsonDecode(result!.tilesetData!) as Map<String, dynamic>);
+    expect((collection.perspective, collection.tileSize), (TilesetPerspective.topDown, 32));
     expect(result?.name, 'Platforms');
   });
 

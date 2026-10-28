@@ -14,6 +14,10 @@ import '../../data/storage/local_storage.dart';
 class ErrorReportService {
   static final instance = ErrorReportService();
   static const storageKey = 'pending_error_reports';
+
+  /// Error reports are never recorded or sent from debug builds.
+  @visibleForTesting
+  static bool disabledInDebug = kDebugMode;
   final Dio _dio;
   final List<Map<String, dynamic>> _pending = [];
   final Map<String, DateTime> _recent = {};
@@ -112,7 +116,7 @@ class ErrorReportService {
 
   void report(Object error, StackTrace stack, {required String operation}) {
     try {
-      if (shouldIgnore(error)) return;
+      if (disabledInDebug || shouldIgnore(error)) return;
       final message = sanitize(error.toString(), 4000);
       final key = '$operation:$message';
       final now = DateTime.now();
@@ -153,7 +157,7 @@ class ErrorReportService {
   }
 
   Future<void> flush() {
-    if (_storage == null) return Future<void>.value();
+    if (_storage == null || disabledInDebug) return Future<void>.value();
     return _flushFuture ??= _send().whenComplete(() => _flushFuture = null);
   }
 
