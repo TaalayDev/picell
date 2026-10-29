@@ -359,7 +359,9 @@ void main() {
     await menuOn(2, 'reverse');
     expect(reversed, {1, 2, 3});
     await menuOn(1, 'move-99');
-    expect(moved, ({1, 2, 3}, 99, false));
+    // Records compare Set fields by identity, so check each field.
+    expect(moved?.$1, {1, 2, 3});
+    expect((moved?.$2, moved?.$3), (99, false));
 
     // A frame outside the selection is acted on alone, and single frames
     // can't be reversed.
@@ -391,7 +393,8 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('frame-menu-input')), '250');
     await tester.tap(find.byKey(const ValueKey('frame-menu-confirm')));
     await tester.pumpAndSettle();
-    expect(duration, ({1, 2}, 250));
+    expect(duration?.$1, {1, 2});
+    expect(duration?.$2, 250);
   });
 
   testWidgets('the duration field commits on Enter, not on every keystroke', (tester) async {
@@ -409,7 +412,8 @@ void main() {
 
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-    expect(commits.first, ({1}, 150));
+    expect(commits.first.$1, {1});
+    expect(commits.first.$2, 150);
   });
 
   testWidgets('dragging shows an insertion marker and fades every dragged frame', (tester) async {

@@ -2653,20 +2653,64 @@ class PixelDrawController extends _$PixelDrawController {
 
   // Undo/Redo operations
   void undo() {
+    final before = state;
     final previousState = _undoRedoService.undo(state);
     if (previousState != null) {
       state = previousState;
       _dropStaleSelectionCapture();
+      _syncRowsAfterHistoryStep(before, state);
       _updateProject();
     }
   }
 
   void redo() {
+    final before = state;
     final nextState = _undoRedoService.redo(state);
     if (nextState != null) {
       state = nextState;
       _dropStaleSelectionCapture();
+      _syncRowsAfterHistoryStep(before, state);
       _updateProject();
+    }
+  }
+
+  /// Frame and layer ops write their rows right away (create, delete), but
+  /// undo and redo only swap the in-memory state, and the project save only
+  /// updates rows that exist. This mirrors a history step in the database:
+  /// frames and layers it dropped are deleted, ones it brought back are
+  /// rewritten under their old ids. Ids are never reused (AUTOINCREMENT), and
+  /// the repo queues these writes in order with the project save.
+  void _syncRowsAfterHistoryStep(PixelCanvasState before, PixelCanvasState after) {
+    if (identical(before.frames, after.frames)) return;
+    void run(Future<void> write, String what) {
+      unawaited(write.catchError((Object error, StackTrace stack) {
+        ErrorReportService.instance.report(error, stack, operation: 'editor.history.$what');
+      }));
+    }
+
+    final beforeFrames = {for (final frame in before.frames) frame.id: frame};
+    final afterIds = {for (final frame in after.frames) frame.id};
+    for (final id in beforeFrames.keys) {
+      if (id != 0 && !afterIds.contains(id)) run(_projectRepo.deleteFrame(id), 'deleteFrame');
+    }
+    for (final frame in after.frames) {
+      if (frame.id == 0) continue;
+      final old = beforeFrames[frame.id];
+      if (old == null) {
+        run(_projectRepo.restoreFrame(project.id, frame), 'restoreFrame');
+        continue;
+      }
+      if (identical(old.layers, frame.layers)) continue;
+      final oldLayerIds = {for (final layer in old.layers) layer.layerId};
+      final newLayerIds = {for (final layer in frame.layers) layer.layerId};
+      for (final id in oldLayerIds.difference(newLayerIds)) {
+        if (id != 0) run(_projectRepo.deleteLayer(id), 'deleteLayer');
+      }
+      for (final layer in frame.layers) {
+        if (layer.layerId != 0 && !oldLayerIds.contains(layer.layerId)) {
+          run(_projectRepo.restoreLayer(project.id, frame.id, layer), 'restoreLayer');
+        }
+      }
     }
   }
 

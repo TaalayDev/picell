@@ -711,6 +711,47 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  /// Writes [frame] and its layers under their existing ids, inserting rows
+  /// that are missing (a delete that was undone) and overwriting the rest.
+  /// [updateProject] only updates existing rows, so it can't bring them back.
+  Future<void> upsertFrame(int projectId, AnimationFrame frame) {
+    return transaction(() async {
+      await into(framesTable).insertOnConflictUpdate(FramesTableCompanion(
+        id: Value(frame.id),
+        projectId: Value(projectId),
+        stateId: Value(frame.stateId),
+        name: Value(frame.name),
+        duration: Value(frame.duration),
+        createdAt: Value(frame.createdAt),
+        editedAt: Value(frame.editedAt),
+        order: Value(frame.order),
+      ));
+      for (final layer in frame.layers) {
+        if (layer.layerId != 0) await upsertLayer(projectId, frame.id, layer);
+      }
+    });
+  }
+
+  /// Writes [layer] under its existing id, inserting the row when missing.
+  Future<void> upsertLayer(int projectId, int frameId, Layer layer) async {
+    await into(layersTable).insertOnConflictUpdate(LayersTableCompanion(
+      id: Value(layer.layerId),
+      projectId: Value(projectId),
+      frameId: Value(frameId),
+      layerId: Value(layer.id),
+      name: Value(layer.name),
+      pixels: Value(layer.pixels.buffer.asUint8List()),
+      isVisible: Value(layer.isVisible),
+      isLocked: Value(layer.isLocked),
+      opacity: Value(layer.opacity),
+      order: Value(layer.order),
+      anchorX: Value(layer.anchorPoint?.dx),
+      anchorY: Value(layer.anchorPoint?.dy),
+      stableKey: Value(layer.stableKey),
+      effects: Value(_encodeEffects(layer.effects)),
+    ));
+  }
+
   Future<void> updateProjectSelection(
     int projectId, {
     required int frameId,

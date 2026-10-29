@@ -818,7 +818,10 @@ class _FramesGridState extends State<_FramesGrid> {
           children: [
             Icon(icon, size: 16),
             const SizedBox(width: 10),
-            Text(label, style: const TextStyle(fontSize: 13)),
+            // Animation names can be long; the menu is at most 280px wide.
+            Flexible(
+              child: Text(label, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+            ),
           ],
         ),
       );
@@ -873,32 +876,59 @@ class _FramesGridState extends State<_FramesGrid> {
     required String initial,
     bool numeric = false,
   }) {
-    final controller = TextEditingController(text: initial);
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title, style: const TextStyle(fontSize: 16)),
-        content: TextField(
-          key: const ValueKey('frame-menu-input'),
-          controller: controller,
-          autofocus: true,
-          keyboardType: numeric ? TextInputType.number : TextInputType.text,
-          inputFormatters: numeric ? [FilteringTextInputFormatter.digitsOnly] : null,
-          onSubmitted: (value) => Navigator.of(context).pop(value),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(Strings.of(context).cancel),
-          ),
-          TextButton(
-            key: const ValueKey('frame-menu-confirm'),
-            onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('OK'),
-          ),
-        ],
+      builder: (context) => _TextPromptDialog(title: title, initial: initial, numeric: numeric),
+    );
+  }
+}
+
+/// A one-field dialog for the frame menu. It owns its controller so the
+/// controller outlives the dialog's closing animation.
+class _TextPromptDialog extends StatefulWidget {
+  const _TextPromptDialog({required this.title, required this.initial, required this.numeric});
+
+  final String title;
+  final String initial;
+  final bool numeric;
+
+  @override
+  State<_TextPromptDialog> createState() => _TextPromptDialogState();
+}
+
+class _TextPromptDialogState extends State<_TextPromptDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title, style: const TextStyle(fontSize: 16)),
+      content: TextField(
+        key: const ValueKey('frame-menu-input'),
+        controller: _controller,
+        autofocus: true,
+        keyboardType: widget.numeric ? TextInputType.number : TextInputType.text,
+        inputFormatters: widget.numeric ? [FilteringTextInputFormatter.digitsOnly] : null,
+        onSubmitted: (value) => Navigator.of(context).pop(value),
       ),
-    ).whenComplete(controller.dispose);
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(Strings.of(context).cancel),
+        ),
+        TextButton(
+          key: const ValueKey('frame-menu-confirm'),
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: const Text('OK'),
+        ),
+      ],
+    );
   }
 }
 

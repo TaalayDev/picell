@@ -77,13 +77,15 @@ void main() {
 
   late ProviderContainer container;
   late PixelDrawController controller;
+  late _LayerRepo repo;
 
   PixelCanvasState read() => container.read(pixelDrawControllerProvider(project));
   List<String> names() => [for (final l in read().currentFrame.layers) l.name];
 
   setUp(() {
+    repo = _LayerRepo();
     container = ProviderContainer(overrides: [
-      projectRepo.overrideWithValue(_LayerRepo()),
+      projectRepo.overrideWithValue(repo),
       templateAPIRepoProvider.overrideWithValue(_FakeTemplateRepo()),
     ]);
     container.listen(pixelDrawControllerProvider(project), (_, __) {});
@@ -181,6 +183,30 @@ void main() {
     });
   });
 
+  group('undo and redo keep layer rows in step', () {
+    test('undoing a merge restores the merged-away layer row', () async {
+      controller.selectLayer(1);
+      await controller.mergeLayerDown();
+      expect(repo.deletedLayers, [2]);
+
+      controller.undo();
+      expect(repo.restoredLayers.map((r) => (r.$1, r.$2.layerId)), [(10, 2)]);
+      expect(repo.restoredLayers.single.$2.pixels, [halfRed, green]);
+
+      repo.deletedLayers.clear();
+      controller.redo();
+      expect(repo.deletedLayers, [2]);
+    });
+
+    test('undoing a layer duplicate deletes the copies', () async {
+      await controller.duplicateLayers([0]);
+      final copyId = repo.createdLayers.single.layerId;
+
+      controller.undo();
+      expect(repo.deletedLayers, [copyId]);
+    });
+  });
+
   group('duplicateLayers', () {
     test('copies go in one block above the topmost selected layer', () async {
       await controller.duplicateLayers([0, 1]);
@@ -197,7 +223,4 @@ class _FakeTemplateRepo extends Fake implements TemplateAPIRepo {}
 class _LayerRepo extends FakeProjectRepo {
   @override
   Future<void> updateLayer(int projectId, int frameId, Layer layer) async {}
-
-  @override
-  Future<void> deleteLayer(int layerId) async {}
 }

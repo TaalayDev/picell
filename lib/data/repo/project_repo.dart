@@ -34,6 +34,13 @@ abstract class ProjectRepo {
   Future<Layer> createLayer(int projectId, int frameId, Layer layer);
   Future<void> updateLayer(int projectId, int frameId, Layer layer);
   Future<void> deleteLayer(int layerId);
+
+  /// Writes [frame] and its layers under their existing ids, recreating rows
+  /// that were deleted. Used when undo or redo brings a frame back.
+  Future<void> restoreFrame(int projectId, AnimationFrame frame);
+
+  /// Like [restoreFrame], for one layer of an existing frame.
+  Future<void> restoreLayer(int projectId, int frameId, Layer layer);
 }
 
 /// Merges the first frame's layers and converts them to raw RGBA bytes.
@@ -173,6 +180,16 @@ class ProjectLocalRepo extends ProjectRepo {
   @override
   Future<void> deleteFrame(int frameId) {
     return queueManager.add(() => db.deleteFrame(frameId));
+  }
+
+  @override
+  Future<void> restoreFrame(int projectId, AnimationFrame frame) {
+    return queueManager.add(() => db.upsertFrame(projectId, frame));
+  }
+
+  @override
+  Future<void> restoreLayer(int projectId, int frameId, Layer layer) {
+    return queueManager.add(() => db.upsertLayer(projectId, frameId, layer));
   }
 
   @override

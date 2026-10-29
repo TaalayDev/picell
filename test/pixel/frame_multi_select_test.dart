@@ -176,6 +176,44 @@ void main() {
       expect(identical(idle[3].layers.single.pixels, idle[2].layers.single.pixels), isFalse);
     });
   });
+
+  group('undo and redo keep the database in step', () {
+    test('undoing a delete restores the rows, redoing deletes them again', () async {
+      await controller.removeFramesByIds({11, 13});
+      expect(repo.deletedFrames.toSet(), {11, 13});
+
+      controller.undo();
+      expect(repo.restoredFrames.map((f) => f.id).toSet(), {11, 13});
+      expect(repo.restoredFrames.firstWhere((f) => f.id == 11).layers.single.pixels, [11, 0]);
+
+      repo.deletedFrames.clear();
+      controller.redo();
+      expect(repo.deletedFrames.toSet(), {11, 13});
+    });
+
+    test('undoing a duplicate deletes the copies', () async {
+      await controller.duplicateFramesByIds({11});
+      final copyId = repo.createdFrames.last.id;
+
+      controller.undo();
+      expect(repo.deletedFrames, [copyId]);
+      expect(repo.restoredFrames, isEmpty);
+
+      controller.redo();
+      expect(repo.restoredFrames.map((f) => f.id), [copyId]);
+    });
+
+    test('undoing a reorder writes no rows', () async {
+      await controller.reorderFramesByIds({10}, 13);
+      controller.undo();
+      controller.redo();
+
+      expect(repo.deletedFrames, isEmpty);
+      expect(repo.restoredFrames, isEmpty);
+      expect(repo.deletedLayers, isEmpty);
+      expect(repo.restoredLayers, isEmpty);
+    });
+  });
 }
 
 class _FakeTemplateRepo extends Fake implements TemplateAPIRepo {}

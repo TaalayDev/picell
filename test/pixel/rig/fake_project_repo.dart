@@ -14,6 +14,9 @@ class FakeProjectRepo extends Fake implements ProjectRepo {
   final updatedFrames = <AnimationFrame>[];
   final deletedFrames = <int>[];
   final createdLayers = <Layer>[];
+  final deletedLayers = <int>[];
+  final restoredFrames = <AnimationFrame>[];
+  final restoredLayers = <(int frameId, Layer layer)>[];
 
   @override
   Future<AnimationStateModel> createState(int projectId, AnimationStateModel state) async {
@@ -53,4 +56,13 @@ class FakeProjectRepo extends Fake implements ProjectRepo {
     createdLayers.add(created);
     return created;
   }
+
+  @override
+  Future<void> deleteLayer(int layerId) async => deletedLayers.add(layerId);
+
+  @override
+  Future<void> restoreFrame(int projectId, AnimationFrame frame) async => restoredFrames.add(frame);
+
+  @override
+  Future<void> restoreLayer(int projectId, int frameId, Layer layer) async => restoredLayers.add((frameId, layer));
 }
