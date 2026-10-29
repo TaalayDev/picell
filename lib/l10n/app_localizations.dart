@@ -8638,6 +8638,18 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Clear'**
   String get gradientRampClear;
+
+  /// No description provided for @whatsNewGradientTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gradient tool'**
+  String get whatsNewGradientTitle;
+
+  /// No description provided for @whatsNewGradientBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pixel-art gradients in five shapes, banded and dithered so only your colors are used, including your own color ramps. Drag, adjust the handles, press Enter. Shortcut: Shift+G.'**
+  String get whatsNewGradientBody;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

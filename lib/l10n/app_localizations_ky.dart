@@ -4767,4 +4767,11 @@ class StringsKy extends Strings {
 
   @override
   String get gradientRampClear => 'Тазалоо';
+
+  @override
+  String get whatsNewGradientTitle => 'Градиент куралы';
+
+  @override
+  String get whatsNewGradientBody =>
+      'Беш формадагы пиксел-арт градиенттер: тилкелер жана дизеринг сиздин түстөрүңүздү гана колдонот, өзүңүздүн түс шкалаңызды да. Сүйрөңүз, туткаларды тууралаңыз, Enter басыңыз. Тез баскыч: Shift+G.';
 }

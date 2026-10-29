@@ -4724,4 +4724,11 @@ class StringsJa extends Strings {
 
   @override
   String get gradientRampClear => 'クリア';
+
+  @override
+  String get whatsNewGradientTitle => 'グラデーションツール';
+
+  @override
+  String get whatsNewGradientBody =>
+      '5種類の形のピクセルアート向けグラデーション。バンドとディザで指定した色だけを使い、独自のカラーランプにも対応。ドラッグしてハンドルを調整し、Enterで確定。ショートカット: Shift+G。';
 }

@@ -2155,5 +2155,7 @@
     "gradientRampAddSecondary": "セカンダリカラーを追加",
     "gradientRampFromPalette": "読み込んだパレットを使用",
     "gradientRampReverse": "反転",
-    "gradientRampClear": "クリア"
+    "gradientRampClear": "クリア",
+    "whatsNewGradientTitle": "グラデーションツール",
+    "whatsNewGradientBody": "5種類の形のピクセルアート向けグラデーション。バンドとディザで指定した色だけを使い、独自のカラーランプにも対応。ドラッグしてハンドルを調整し、Enterで確定。ショートカット: Shift+G。"
 }

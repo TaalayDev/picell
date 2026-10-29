@@ -49,6 +49,23 @@ void main() {
     tool.onEnd(at(x1, y1));
   }
 
+  test('pressing previews nothing until the drag has a direction', () {
+    tool.onStart(at(4, 4));
+    expect(log, isEmpty, reason: 'a zero-length preview floods the canvas');
+    tool.onMove(at(4.2, 4.1));
+    expect(log, isEmpty);
+    tool.onMove(at(8, 4));
+    expect(log, ['preview 4.0,4.0->8.0,4.0']);
+  });
+
+  test('pressing elsewhere keeps the pending gradient on screen', () {
+    drag(2, 2, 10, 2);
+    log.clear();
+    tool.onStart(at(6, 12));
+    expect(log, isEmpty);
+    expect(tool.isActive, isTrue);
+  });
+
   test('a drag leaves a pending gradient without applying', () {
     drag(2, 2, 10, 2);
     expect(tool.hasPendingGradient, isTrue);

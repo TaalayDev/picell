@@ -5028,4 +5028,11 @@ class StringsRu extends Strings {
 
   @override
   String get gradientRampClear => 'Очистить';
+
+  @override
+  String get whatsNewGradientTitle => 'Инструмент «Градиент»';
+
+  @override
+  String get whatsNewGradientBody =>
+      'Пиксельные градиенты пяти форм: полосы и дизеринг используют только ваши цвета, включая собственные цветовые шкалы. Протяните, подправьте ручки и нажмите Enter. Сочетание клавиш: Shift+G.';
 }

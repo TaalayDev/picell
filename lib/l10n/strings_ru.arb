@@ -2082,5 +2082,7 @@
     "gradientRampAddSecondary": "Добавить дополнительный цвет",
     "gradientRampFromPalette": "Взять импортированную палитру",
     "gradientRampReverse": "Обратить",
-    "gradientRampClear": "Очистить"
+    "gradientRampClear": "Очистить",
+    "whatsNewGradientTitle": "Инструмент «Градиент»",
+    "whatsNewGradientBody": "Пиксельные градиенты пяти форм: полосы и дизеринг используют только ваши цвета, включая собственные цветовые шкалы. Протяните, подправьте ручки и нажмите Enter. Сочетание клавиш: Shift+G."
 }

@@ -4958,4 +4958,11 @@ class StringsEn extends Strings {
 
   @override
   String get gradientRampClear => 'Clear';
+
+  @override
+  String get whatsNewGradientTitle => 'Gradient tool';
+
+  @override
+  String get whatsNewGradientBody =>
+      'Pixel-art gradients in five shapes, banded and dithered so only your colors are used, including your own color ramps. Drag, adjust the handles, press Enter. Shortcut: Shift+G.';
 }

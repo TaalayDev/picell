@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -6,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../app/theme/theme.dart';
 import '../../../data/models/discovery_api_models.dart';
 import '../../../l10n/strings.dart';
+import '../../../pixel/gradient/gradient_renderer.dart';
 import '../../../providers/discovery_providers.dart';
 
 /// Scrollable list of recent news / release notes, backed by [newsItemsProvider]
@@ -37,6 +40,8 @@ class WhatsNewList extends ConsumerWidget {
       controller: controller,
       padding: padding,
       children: [
+        const GradientToolBanner(),
+        const SizedBox(height: 12),
         BoneRigBanner(onOpenExample: onOpenBoneRigExample),
         const SizedBox(height: 12),
         if (news.isLoading && items.isEmpty)
@@ -128,6 +133,101 @@ class BoneRigBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Feature banner for the gradient tool. Its thumbnail is rendered by the
+/// gradient engine itself: a banded, dithered radial gradient.
+class GradientToolBanner extends StatelessWidget {
+  const GradientToolBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final strings = Strings.of(context);
+
+    return Container(
+      key: const ValueKey('whats-new-gradient-banner'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: [scheme.tertiary.withValues(alpha: 0.22), scheme.primary.withValues(alpha: 0.18)],
+        ),
+        border: Border.all(color: scheme.tertiary.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: const SizedBox(
+              width: 72,
+              height: 72,
+              child: CustomPaint(
+                key: ValueKey('whats-new-gradient-image'),
+                painter: _GradientThumbnailPainter(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  strings.whatsNewGradientTitle,
+                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: scheme.onSurface),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  strings.whatsNewGradientBody,
+                  style: textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GradientThumbnailPainter extends CustomPainter {
+  const _GradientThumbnailPainter();
+
+  static const _size = 18;
+
+  // A sunset ramp, drawn as 18×18 pixel art.
+  static final Uint32List _pixels = GradientRenderer.render(
+    base: Uint32List(_size * _size),
+    width: _size,
+    height: _size,
+    spec: const GradientSpec(
+      type: GradientType.radial,
+      start: Offset(6, 6),
+      end: Offset(18, 18),
+      stops: [0xFFFFE08A, 0xFFF5934C, 0xFFC4425A, 0xFF5B2A6E, 0xFF1E1B3A],
+      steps: 5,
+      dither: GradientDither.bayer4,
+      ditherSpread: 0.6,
+    ),
+  );
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cell = size.width / _size;
+    final paint = Paint();
+    for (var y = 0; y < _size; y++) {
+      for (var x = 0; x < _size; x++) {
+        paint.color = Color(_pixels[y * _size + x]);
+        canvas.drawRect(Rect.fromLTWH(x * cell, y * cell, cell + 0.5, cell + 0.5), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GradientThumbnailPainter oldDelegate) => false;
 }
 
 class _Message extends StatelessWidget {
@@ -227,13 +327,15 @@ class WhatsNewSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
+        const GradientToolBanner(),
+        const SizedBox(height: 10),
         BoneRigBanner(onOpenExample: onOpenBoneRigExample),
       ],
     );
   }
 }
 
-/// Compact list of the latest item titles (the bone rigger plus server news).
+/// Compact list of the latest item titles (built-in features plus server news).
 /// Tapping any row opens the full "What's new" sheet.
 class WhatsNewTitles extends ConsumerWidget {
   final VoidCallback? onOpenBoneRigExample;
@@ -245,7 +347,11 @@ class WhatsNewTitles extends ConsumerWidget {
     final pv = context.pv;
     final strings = Strings.of(context);
     final news = ref.watch(newsItemsProvider).valueOrNull ?? const <NewsItemModel>[];
-    final titles = [strings.whatsNewBoneRigTitle, ...news.map((n) => n.title)].take(maxItems).toList();
+    final titles = [
+      strings.whatsNewGradientTitle,
+      strings.whatsNewBoneRigTitle,
+      ...news.map((n) => n.title),
+    ].take(maxItems).toList();
 
     return Column(
       key: const ValueKey('whats-new-titles'),

@@ -4722,4 +4722,10 @@ class StringsZh extends Strings {
 
   @override
   String get gradientRampClear => '清除';
+
+  @override
+  String get whatsNewGradientTitle => '渐变工具';
+
+  @override
+  String get whatsNewGradientBody => '五种形状的像素风渐变，通过色带和抖动只使用你的颜色，也支持自定义色阶。拖动、调整控制点，按 Enter 确认。快捷键：Shift+G。';
 }

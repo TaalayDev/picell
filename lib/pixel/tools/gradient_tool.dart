@@ -95,10 +95,12 @@ class GradientTool extends Tool {
       }
     }
 
+    // Nothing is previewed until the drag has a direction: a zero-length
+    // gradient would flood the whole area with the first colour. Any pending
+    // gradient stays on screen until then.
     _drag = _GradientDrag.newGradient;
     _start = p;
     _end = p;
-    onGradientPreview(p, p);
   }
 
   @override
@@ -111,6 +113,7 @@ class GradientTool extends Tool {
     } else {
       _end = _constrain(_start!, p);
     }
+    if (drag == _GradientDrag.newGradient && _isTooShort) return;
     onGradientPreview(_start!, _end!);
   }
 
@@ -123,7 +126,7 @@ class GradientTool extends Tool {
 
     if (drag != _GradientDrag.newGradient) return;
 
-    final isClick = (_end! - _start!).distance < minDragLength;
+    final isClick = _isTooShort;
     final newStart = _start!, newEnd = _end!;
     final prevStart = _prevStart, prevEnd = _prevEnd;
     _prevStart = _prevEnd = null;
@@ -183,6 +186,8 @@ class GradientTool extends Tool {
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
+
+  bool get _isTooShort => (_end! - _start!).distance < minDragLength;
 
   Offset _constrain(Offset anchor, Offset p) =>
       HardwareKeyboard.instance.isShiftPressed ? snapAngle(anchor, p) : p;

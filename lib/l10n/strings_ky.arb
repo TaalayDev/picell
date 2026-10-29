@@ -2093,5 +2093,7 @@
     "gradientRampAddSecondary": "Кошумча түстү кошуу",
     "gradientRampFromPalette": "Импорттолгон палитраны колдонуу",
     "gradientRampReverse": "Тескери буруу",
-    "gradientRampClear": "Тазалоо"
+    "gradientRampClear": "Тазалоо",
+    "whatsNewGradientTitle": "Градиент куралы",
+    "whatsNewGradientBody": "Беш формадагы пиксел-арт градиенттер: тилкелер жана дизеринг сиздин түстөрүңүздү гана колдонот, өзүңүздүн түс шкалаңызды да. Сүйрөңүз, туткаларды тууралаңыз, Enter басыңыз. Тез баскыч: Shift+G."
 }
