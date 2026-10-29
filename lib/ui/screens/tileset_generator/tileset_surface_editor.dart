@@ -22,6 +22,47 @@ const _blendIcons = {
 final _recentSurfaces = <TilesetSurfacePreset>[];
 
 extension _SurfaceEditor on TilesetGeneratorScreenState {
+  Future<void> _restoreCreatorLayout() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    final raw = prefs.getString('tileset.creatorLayout');
+    if (raw == null) return;
+    try {
+      final layout = jsonDecode(raw) as Map<String, dynamic>;
+      _updateDraft(() {
+        _creatorEditorOpen = layout['libraryOpen'] as bool? ?? true;
+        _creatorEditorHeight = (layout['libraryHeight'] as num? ?? 230).toDouble().clamp(100, 500);
+        _creatorDockOpen = layout['dockOpen'] as bool? ?? true;
+        _creatorDockWidth = (layout['dockWidth'] as num? ?? 340).toDouble().clamp(300, 440);
+        _creatorLayerSplit = (layout['layerSplit'] as num? ?? 0.4).toDouble().clamp(0.2, 0.65);
+        final category = layout['category'] as String?;
+        if (category == 'All' || TilesetSurfacePresets.all.any((p) => p.tag == category)) {
+          _creatorLibraryCategory = category!;
+        }
+      });
+    } catch (_) {/* Ignore invalid view preferences; project content is unaffected. */}
+  }
+
+  Future<void> _saveCreatorLayout() async {
+    final layout = jsonEncode({
+      'libraryOpen': _creatorEditorOpen,
+      'libraryHeight': _creatorEditorHeight,
+      'dockOpen': _creatorDockOpen,
+      'dockWidth': _creatorDockWidth,
+      'layerSplit': _creatorLayerSplit,
+      'category': _creatorLibraryCategory,
+    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('tileset.creatorLayout', layout);
+    } catch (_) {/* View preferences must not interrupt editing. */}
+  }
+
+  void _changeCreatorLayout(VoidCallback change) {
+    _updateDraft(change);
+    unawaited(_saveCreatorLayout());
+  }
+
   TilesetSurfaceSpec? get _customSpec => _recipe.surface.spec;
 
   bool get _hasEightColors => _palette.length >= 8;
@@ -263,34 +304,40 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
           size: Size(w, h),
           painter: _SurfacePreviewPainter((pixels: pixels, width: width, height: height), _tg.checkerA)));
 
-  /// The tile and its 3x2 repeat, as shown beside the sample map.
-  Widget _tileCard(TilesetSurfaceSpec spec, {bool framed = true}) {
+  /// The tile and its 3x2 repeat, as shown in the creator workbench or pinned preview.
+  Widget _tileCard(TilesetSurfaceSpec spec, {bool framed = true, bool large = false}) {
     final info = _liveInfo(spec);
     if (info == null) return const SizedBox.shrink();
     final n = info.size, tile = info.tile;
-    final repeated = Uint32List(n * 3 * n * 2);
-    for (var y = 0; y < n * 2; y++) {
-      for (var x = 0; x < n * 3; x++) {
-        repeated[y * n * 3 + x] = tile[(y % n) * n + x % n];
+    final cols = large && _creatorRepeat == 5 ? 5 : 3;
+    final rows = large && _creatorRepeat == 5 ? 3 : 2;
+    final repeated = Uint32List(n * cols * n * rows);
+    for (var y = 0; y < n * rows; y++) {
+      for (var x = 0; x < n * cols; x++) {
+        repeated[y * n * cols + x] = tile[(y % n) * n + x % n];
       }
     }
+    final scale = large ? _creatorZoom : 1.0;
+    final tileExtent = (large ? 96.0 : 64.0) * scale;
+    final repeatW = (large ? (cols == 5 ? 192.0 : 144.0) : 96.0) * scale;
+    final repeatH = (large ? (rows == 3 ? 116.0 : 96.0) : 64.0) * scale;
     final content = Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
       Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
         Text('TILE $n×$n', style: _tg.pixel(10)),
         const SizedBox(height: 6),
-        _liveArt(tile, n, n, 64, 64),
+        _liveArt(tile, n, n, tileExtent, tileExtent),
       ]),
-      const SizedBox(width: 12),
+      SizedBox(width: large ? 20 : 12),
       Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
         Text('3×3 REPEAT', style: _tg.pixel(10)),
         const SizedBox(height: 6),
-        _liveArt(repeated, n * 3, n * 2, 96, 64),
+        _liveArt(repeated, n * cols, n * rows, repeatW, repeatH),
       ]),
     ]);
     if (!framed) return content;
     return Container(
         key: const ValueKey('tile-card'),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: large ? 18 : 12, vertical: large ? 16 : 10),
         decoration: BoxDecoration(
             color: _tg.panel,
             borderRadius: BorderRadius.circular(_tg.cardRadius),
@@ -338,14 +385,729 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
         ]));
   }
 
-  /// Floating cards over the sample map (wide layout).
-  List<Widget> _surfaceOverlays() {
+  /// Top-level workspace mode tabs in the Surface Editor header: [Tile Creator] and [Map].
+  Widget _workspaceSwitcher() => Container(
+      key: const ValueKey('workspace-tabs'),
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+          color: _tg.background,
+          borderRadius: BorderRadius.circular(_tg.buttonRadius),
+          border: Border.all(color: _tg.border)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        _workspaceTabButton(
+            key: 'workspace-tab-creator',
+            label: 'Tile Creator',
+            icon: Icons.auto_fix_high_outlined,
+            selected: _workspaceTab == 0,
+            onTap: () => _updateDraft(() => _workspaceTab = 0)),
+        const SizedBox(width: 2),
+        _workspaceTabButton(
+            key: 'workspace-tab-map',
+            label: 'Map',
+            icon: Icons.map_outlined,
+            selected: _workspaceTab == 1,
+            badge: _tiles.isEmpty ? null : '${_tiles.length}',
+            stale: _settingsStale,
+            onTap: () => _updateDraft(() => _workspaceTab = 1)),
+      ]));
+
+  Widget _workspaceTabButton({
+    required String key,
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+    String? badge,
+    bool stale = false,
+  }) =>
+      InkWell(
+          key: ValueKey(key),
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(math.max(0, _tg.buttonRadius - 2)),
+          child: Container(
+              height: 28,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                  color: selected ? _tg.tint : null,
+                  borderRadius: BorderRadius.circular(math.max(0, _tg.buttonRadius - 2)),
+                  border: selected ? Border.all(color: _tg.accent) : null),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(icon, size: 15, color: selected ? _tg.highlight : _tg.muted),
+                const SizedBox(width: 6),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                        color: selected ? _tg.text : _tg.muted)),
+                if (badge != null) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                          color: _tg.panel,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: stale ? _tg.amber : _tg.border)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        if (stale) ...[
+                          Icon(Icons.circle, size: 6, color: _tg.amber),
+                          const SizedBox(width: 4),
+                        ],
+                        Text(badge, style: _tg.monoAt(10, color: stale ? _tg.amber : _tg.text)),
+                      ])),
+                ],
+              ])));
+
+  Future<void> _testOnMap() async {
+    if (_tiles.isEmpty || _settingsStale) await _generateTiles();
+    if (mounted && _tiles.isNotEmpty && !_settingsStale) {
+      _updateDraft(() => _workspaceTab = 1);
+    }
+  }
+
+  /// Prototype layout: tools, canvas, right Layers/Properties, bottom Library.
+  Widget _tileCreatorWorkspace() => LayoutBuilder(builder: (context, box) {
+        final height = _creatorEditorHeight.clamp(100.0, math.max(100.0, box.maxHeight * 0.32)).toDouble();
+        final wide = box.maxWidth >= 1000;
+        return Column(children: [
+          Expanded(
+              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            SizedBox(
+                width: 48,
+                child: ColoredBox(
+                    color: _tg.panel,
+                    child: SingleChildScrollView(
+                      child: Column(children: [
+                        _TgIconButton(
+                            label: 'Hand',
+                            icon: Icons.pan_tool_outlined,
+                            selected: _creatorCanvasTool == 'hand',
+                            onPressed: () => _setCreatorCanvasTool('hand')),
+                        _TgIconButton(
+                            label: 'Zoom tool (Z)',
+                            icon: Icons.zoom_in,
+                            selected: _creatorCanvasTool == 'zoom',
+                            onPressed: () => _setCreatorCanvasTool('zoom')),
+                        _TgIconButton(
+                            label: 'Eyedropper (I)',
+                            icon: Icons.colorize,
+                            selected: _creatorCanvasTool == 'pick',
+                            onPressed: () => _setCreatorCanvasTool('pick')),
+                        _TgIconButton(
+                            label: 'Palette',
+                            icon: Icons.palette_outlined,
+                            onPressed: () => _updateDraft(() {
+                                  _creatorDockOpen = true;
+                                  _creatorCompactDockOpen = true;
+                                  _creatorTool = 'palette';
+                                })),
+                        _TgIconButton(
+                            label: 'Layers and properties',
+                            icon: Icons.layers_outlined,
+                            selected: wide ? _creatorDockOpen : _creatorCompactDockOpen,
+                            onPressed: () => _changeCreatorLayout(() {
+                                  if (wide) {
+                                    _creatorDockOpen = !_creatorDockOpen;
+                                  } else {
+                                    _creatorCompactDockOpen = !_creatorCompactDockOpen;
+                                  }
+                                })),
+                      ]),
+                    ))),
+            Expanded(
+                child: Stack(children: [
+              Positioned.fill(
+                  child: DragTarget<TilesetSurfacePreset>(
+                onAcceptWithDetails: (details) {
+                  if (!_busy) _usePreset(details.data, add: true);
+                },
+                builder: (context, candidates, rejected) => DecoratedBox(
+                    decoration:
+                        BoxDecoration(border: candidates.isEmpty ? null : Border.all(color: _tg.highlight, width: 2)),
+                    child: _creatorWorkbench()),
+              )),
+              if (!wide && _creatorCompactDockOpen)
+                Positioned(
+                    top: 0,
+                    bottom: 0,
+                    right: 0,
+                    width: math.min(380, box.maxWidth - 48),
+                    child: Material(elevation: 12, child: _creatorPropertiesDock(compact: true))),
+            ])),
+            if (wide && _creatorDockOpen) ...[
+              MouseRegion(
+                  cursor: SystemMouseCursors.resizeColumn,
+                  child: GestureDetector(
+                    key: const ValueKey('creator-dock-resize'),
+                    behavior: HitTestBehavior.opaque,
+                    onHorizontalDragUpdate: (details) => _updateDraft(() => _creatorDockWidth =
+                        (_creatorDockWidth - details.delta.dx).clamp(300.0, math.min(440.0, box.maxWidth * 0.4))),
+                    onHorizontalDragEnd: (_) => unawaited(_saveCreatorLayout()),
+                    child: const SizedBox(width: 6),
+                  )),
+              SizedBox(width: _creatorDockWidth, child: _creatorPropertiesDock()),
+            ],
+          ])),
+          Row(children: [
+            const SizedBox(width: 12),
+            Text('LIBRARY', style: _tg.pixel(11)),
+            const Spacer(),
+            _TgIconButton(
+                label: _creatorEditorOpen ? 'Collapse library' : 'Expand library',
+                icon: _creatorEditorOpen ? Icons.expand_more : Icons.expand_less,
+                onPressed: () => _changeCreatorLayout(() => _creatorEditorOpen = !_creatorEditorOpen)),
+          ]),
+          if (_creatorEditorOpen) ...[
+            MouseRegion(
+                cursor: SystemMouseCursors.resizeRow,
+                child: GestureDetector(
+                  key: const ValueKey('creator-editor-resize'),
+                  behavior: HitTestBehavior.opaque,
+                  onVerticalDragUpdate: (details) => _updateDraft(() => _creatorEditorHeight =
+                      (height - details.delta.dy).clamp(100.0, math.max(100.0, box.maxHeight * 0.32))),
+                  onVerticalDragEnd: (_) => unawaited(_saveCreatorLayout()),
+                  child: Container(
+                      height: 10,
+                      color: _tg.background,
+                      alignment: Alignment.center,
+                      child: Container(width: 40, height: 3, color: _tg.strongBorder)),
+                )),
+            SizedBox(height: height, child: _creatorLibrary()),
+          ],
+          _generateCtaFooter(),
+        ]);
+      });
+
+  Widget _creatorPropertiesDock({bool compact = false}) => LayoutBuilder(
+      builder: (context, bounds) => ColoredBox(
+            key: const ValueKey('creator-properties-dock'),
+            color: _tg.panel,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Row(children: [
+                const SizedBox(width: 12),
+                Expanded(child: Text('LAYERS', style: _tg.pixel(11))),
+                _TgIconButton(
+                    label: 'Close properties',
+                    icon: Icons.close,
+                    onPressed: () => _changeCreatorLayout(() {
+                          if (compact) {
+                            _creatorCompactDockOpen = false;
+                          } else {
+                            _creatorDockOpen = false;
+                          }
+                        }))
+              ]),
+              SizedBox(
+                  height: math.max(60, (bounds.maxHeight - 100) * _creatorLayerSplit),
+                  child: ListView(
+                      key: const PageStorageKey('creator-layers'),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      children: [if (_customSpec case final spec?) ..._layersSection(spec) else ..._classicBanner()])),
+              MouseRegion(
+                  cursor: SystemMouseCursors.resizeRow,
+                  child: GestureDetector(
+                    key: const ValueKey('creator-properties-split'),
+                    behavior: HitTestBehavior.opaque,
+                    onVerticalDragUpdate: (details) => _updateDraft(() => _creatorLayerSplit =
+                        (_creatorLayerSplit + details.delta.dy / math.max(1, bounds.maxHeight)).clamp(0.2, 0.65)),
+                    onVerticalDragEnd: (_) => unawaited(_saveCreatorLayout()),
+                    child: Container(
+                        height: 8,
+                        alignment: Alignment.center,
+                        color: _tg.background,
+                        child: Container(width: 40, height: 2, color: _tg.strongBorder)),
+                  )),
+              SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(children: [
+                    for (final tool in const ['surface', 'layers', 'palette', 'shape', 'output'])
+                      TextButton(
+                        key: ValueKey('creator-tool-$tool'),
+                        onPressed: () => _updateDraft(() => _creatorTool = tool),
+                        style: TextButton.styleFrom(foregroundColor: _creatorTool == tool ? _tg.highlight : _tg.muted),
+                        child: Text(tool == 'layers' ? 'Properties' : tool[0].toUpperCase() + tool.substring(1)),
+                      ),
+                  ])),
+              Expanded(child: _creatorToolEditor(bounds.maxWidth)),
+            ]),
+          ));
+
+  Widget _creatorLibrary() {
+    final categories = ['All', ...TilesetSurfacePresets.all.map((p) => p.tag).toSet()];
+    final presets = TilesetSurfacePresets.all
+        .where((p) =>
+            (_creatorLibraryCategory == 'All' || p.tag == _creatorLibraryCategory) &&
+            '${p.name} ${p.tag}'.toLowerCase().contains(_creatorLibraryQuery.toLowerCase()))
+        .toList();
+    return Column(children: [
+      SizedBox(
+          height: 42,
+          child: TextField(
+              key: const ValueKey('creator-library-search'),
+              onChanged: (value) => _updateDraft(() => _creatorLibraryQuery = value),
+              decoration: const InputDecoration(
+                  isDense: true,
+                  prefixIcon: Icon(Icons.search, size: 18),
+                  hintText: 'Search surface presets…',
+                  contentPadding: EdgeInsets.all(8)))),
+      Expanded(
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        SizedBox(
+            width: 100,
+            child: ListView(children: [
+              for (final category in categories)
+                TextButton(
+                  onPressed: () => _changeCreatorLayout(() => _creatorLibraryCategory = category),
+                  style: TextButton.styleFrom(
+                      foregroundColor: _creatorLibraryCategory == category ? _tg.highlight : _tg.muted),
+                  child: Align(
+                      alignment: Alignment.centerLeft, child: Text(category, style: const TextStyle(fontSize: 11))),
+                )
+            ])),
+        const VerticalDivider(width: 1),
+        Expanded(
+            child: presets.isEmpty
+                ? const Center(child: Text('No matching presets'))
+                : GridView.builder(
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 150, mainAxisExtent: 112, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                    itemCount: presets.length,
+                    itemBuilder: (context, index) {
+                      final preset = presets[index];
+                      final swatch =
+                          (pixels: preset.spec.renderSample(preset.palette, size: 16), width: 16, height: 16);
+                      final card = Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                              color: _tg.panel,
+                              border: Border.all(color: _tg.border),
+                              borderRadius: BorderRadius.circular(_tg.cardRadius)),
+                          child: Column(children: [
+                            CustomPaint(
+                                size: const Size(40, 40), painter: _SurfacePreviewPainter(swatch, _tg.checkerA)),
+                            const SizedBox(height: 4),
+                            Text(preset.name,
+                                maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11)),
+                            Text('Add / Replace', style: TextStyle(fontSize: 9, color: _tg.muted))
+                          ]));
+                      return Draggable<TilesetSurfacePreset>(
+                          data: preset,
+                          maxSimultaneousDrags: _busy ? 0 : 1,
+                          feedback: Material(child: SizedBox(width: 120, height: 112, child: card)),
+                          child: PopupMenuButton<String>(
+                              key: ValueKey('library-preset-${preset.id}'),
+                              enabled: !_busy,
+                              tooltip: '${preset.name}: add layers or replace surface',
+                              onSelected: (action) => _usePreset(preset, add: action == 'add'),
+                              itemBuilder: (_) => [
+                                    PopupMenuItem(
+                                        value: 'add',
+                                        enabled: _customSpec == null || _customSpec!.layers.length < tilesetMaxLayers,
+                                        child: const Text('Add as layers')),
+                                    const PopupMenuItem(value: 'replace', child: Text('Replace surface'))
+                                  ],
+                              child: card));
+                    },
+                  )),
+      ])),
+    ]);
+  }
+
+  Widget _creatorToolEditor(double width) {
     final spec = _customSpec;
-    if (spec == null || !_hasEightColors) return const [];
-    return [
-      Positioned(right: 16, top: 16, child: _tileCard(spec)),
-      Positioned(left: 0, right: 0, bottom: 20, child: Center(child: _seamToggle(spec))),
+    Widget scroll(List<Widget> children) =>
+        ListView(key: PageStorageKey('creator-$_creatorTool'), padding: const EdgeInsets.all(12), children: children);
+    if (_creatorTool == 'layers' && spec != null) {
+      return scroll([_inspector(spec, spec.layers[_layer])]);
+    }
+    return scroll(switch (_creatorTool) {
+      'surface' => [
+          if (spec != null) _nameRow(spec),
+          const SizedBox(height: 8),
+          _presetRow(),
+          if (spec == null) ..._classicBanner(),
+          if (spec != null) ...[const SizedBox(height: 12), _layerBreakdownStrip(spec)]
+        ],
+      'palette' => [_paletteRow()],
+      'shape' => _moreSection(),
+      'output' => _outputSection(),
+      _ => _classicBanner(),
+    });
+  }
+
+  Widget _generateCtaFooter() => Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      decoration: BoxDecoration(color: _tg.panel, border: Border(top: BorderSide(color: _tg.border))),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        PvPixelButton(
+            key: const ValueKey('surface-generate'),
+            label: _tiles.isEmpty ? 'GENERATE TILESET' : 'REGENERATE TILESET',
+            icon: Icons.auto_awesome,
+            height: 44,
+            expand: true,
+            onPressed: _busy ? null : _generateTiles),
+        if (_settingsStale)
+          Padding(
+              key: const ValueKey('surface-stale-hint'),
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(Icons.circle, size: 8, color: _tg.amber),
+                const SizedBox(width: 6),
+                Flexible(
+                    child: Text('Settings changed. Regenerate to apply.',
+                        style: TextStyle(fontSize: 11, color: _tg.amber))),
+              ])),
+      ]));
+
+  /// Center live studio workbench in the Tile Creator tab.
+  Widget _creatorWorkbench() {
+    final spec = _customSpec;
+    if (spec == null || !_hasEightColors) {
+      return ColoredBox(
+          color: _tg.canvas,
+          child: Stack(children: [
+            Positioned.fill(child: _emptyPreview()),
+            if (_busy) _busyOverlay(),
+          ]));
+    }
+    return ColoredBox(
+        color: _tg.canvas,
+        child: Stack(children: [
+          Positioned.fill(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            SizedBox(
+                height: 42,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(children: [
+                    const SizedBox(width: 12),
+                    Text('${_perspective.label} · $_size × $_size px',
+                        style: TextStyle(fontSize: 11, color: _tg.muted)),
+                    const SizedBox(width: 16),
+                    SizedBox(
+                        width: 155,
+                        child: TextField(
+                            key: const ValueKey('creator-options-seed'),
+                            controller: _seed,
+                            enabled: !_busy,
+                            keyboardType: TextInputType.number,
+                            style: _tg.monoAt(11),
+                            onChanged: (_) => _updateDraft(() {}),
+                            decoration: const InputDecoration(
+                                isDense: true, labelText: 'Seed', contentPadding: EdgeInsets.all(8)))),
+                    IconButton(
+                        tooltip: 'Randomize creator seed',
+                        icon: const Icon(Icons.casino_outlined, size: 18),
+                        onPressed: _busy
+                            ? null
+                            : () => _updateDraft(() => _seed.text = '${math.Random().nextInt(0x7fffffff)}')),
+                  ]),
+                )),
+            Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(color: _tg.background, border: Border(bottom: BorderSide(color: _tg.border))),
+                child: Row(children: [
+                  Expanded(
+                      child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                Icon(Icons.grid_on, size: 16, color: _tg.highlight),
+                                const SizedBox(width: 8),
+                                Text('LIVE TILE WORKBENCH', style: _tg.pixel(11)),
+                                const SizedBox(width: 10),
+                                _Pill(
+                                    key: const ValueKey('workbench-repeat-2'),
+                                    tg: _tg,
+                                    label: '2×2',
+                                    selected: _creatorRepeat == 2,
+                                    height: 26,
+                                    radius: 13,
+                                    onTap: () => _updateDraft(() => _creatorRepeat = 2)),
+                                const SizedBox(width: 6),
+                                _Pill(
+                                    key: const ValueKey('workbench-repeat-3'),
+                                    tg: _tg,
+                                    label: '3×3',
+                                    selected: _creatorRepeat == 3,
+                                    height: 26,
+                                    radius: 13,
+                                    onTap: () => _updateDraft(() => _creatorRepeat = 3)),
+                                const SizedBox(width: 10),
+                                DecoratedBox(
+                                    decoration: BoxDecoration(
+                                        border: Border.all(color: _tg.border),
+                                        borderRadius: BorderRadius.circular(_tg.buttonRadius)),
+                                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                      _TgIconButton(
+                                          size: 26,
+                                          label: 'Workbench zoom out',
+                                          icon: Icons.remove,
+                                          onPressed: () => _creatorZoomTo(_creatorZoom / 1.25)),
+                                      Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                                          child: ValueListenableBuilder<Matrix4>(
+                                              valueListenable: _creatorTransform,
+                                              builder: (context, matrix, _) => Text(
+                                                  '${(matrix.getMaxScaleOnAxis() * 100).round()}%',
+                                                  style: _tg.monoAt(10)))),
+                                      _TgIconButton(
+                                          size: 26,
+                                          label: 'Workbench zoom in',
+                                          icon: Icons.add,
+                                          onPressed: () => _creatorZoomTo(_creatorZoom * 1.25)),
+                                    ])),
+                                const SizedBox(width: 10),
+                                for (final background in const ['Sky', 'Dusk', 'Checker', 'Flat'])
+                                  Padding(
+                                      padding: const EdgeInsets.only(right: 4),
+                                      child: Tooltip(
+                                          message: '$background backdrop',
+                                          child: InkWell(
+                                              key: ValueKey('workbench-bg-$background'),
+                                              onTap: () => _updateDraft(() => _background = background),
+                                              borderRadius: BorderRadius.circular(_tg.buttonRadius),
+                                              child: Container(
+                                                  width: 20,
+                                                  height: 22,
+                                                  decoration: BoxDecoration(
+                                                      border: Border.all(
+                                                          color:
+                                                              _background == background ? _tg.accent : _tg.strongBorder,
+                                                          width: 2),
+                                                      borderRadius: BorderRadius.circular(_tg.buttonRadius)),
+                                                  child: ClipRRect(
+                                                      borderRadius: BorderRadius.circular(3),
+                                                      child: background == 'Checker'
+                                                          ? CustomPaint(painter: _TgChecker(_tg.checkerA, _tg.checkerB))
+                                                          : DecoratedBox(
+                                                              decoration: BoxDecoration(
+                                                                  color: background == 'Flat' ? _tg.elevated : null,
+                                                                  gradient: background == 'Sky'
+                                                                      ? const LinearGradient(
+                                                                          begin: Alignment.topCenter,
+                                                                          end: Alignment.bottomCenter,
+                                                                          colors: [
+                                                                              Color(0xff5eb4ee),
+                                                                              Color(0xffd4effc)
+                                                                            ])
+                                                                      : background == 'Dusk'
+                                                                          ? const LinearGradient(
+                                                                              begin: Alignment.topCenter,
+                                                                              end: Alignment.bottomCenter,
+                                                                              colors: [
+                                                                                  Color(0xff2b2a63),
+                                                                                  Color(0xfff0966f)
+                                                                                ])
+                                                                          : null))))))),
+                              ])))),
+                  ...[
+                    const SizedBox(width: 8),
+                    _Pill(
+                        key: const ValueKey('workbench-open-map'),
+                        tg: _tg,
+                        label: 'Test on Map',
+                        icon: Icons.map_outlined,
+                        iconColor: _tg.highlight,
+                        height: 28,
+                        radius: 14,
+                        onTap: _busy ? null : _testOnMap),
+                  ],
+                ])),
+            SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  for (final view in const ['Single Tile', 'Repeat', 'Connection Shapes'])
+                    Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: _Pill(
+                            key: ValueKey('creator-view-$view'),
+                            tg: _tg,
+                            label: view,
+                            selected: _creatorView == view,
+                            onTap: () => _updateDraft(() => _creatorView = view))),
+                  TextButton(onPressed: _fitCreatorCanvas, child: const Text('Fit')),
+                  TextButton(
+                      key: const ValueKey('creator-actual-pixels'),
+                      onPressed: () => _creatorZoomTo(1),
+                      child: const Text('1:1')),
+                  _Pill(
+                      key: const ValueKey('creator-pixel-grid'),
+                      tg: _tg,
+                      label: 'Grid',
+                      selected: _creatorPixelGrid,
+                      onTap: () => _updateDraft(() => _creatorPixelGrid = !_creatorPixelGrid)),
+                ])),
+            Expanded(
+                child: LayoutBuilder(
+                    builder: (context, bounds) => CustomPaint(
+                        painter: _background == 'Checker' ? _TgChecker(_tg.checkerA, _tg.checkerB) : null,
+                        child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: _background == 'Flat' ? _tg.elevated : null,
+                              gradient: _background == 'Sky'
+                                  ? const LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [Color(0xff5eb4ee), Color(0xffd4effc)])
+                                  : _background == 'Dusk'
+                                      ? const LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [Color(0xff2b2a63), Color(0xfff0966f)])
+                                      : null,
+                            ),
+                            child: _creatorView == 'Connection Shapes'
+                                ? Center(child: SingleChildScrollView(child: _shapePreviewStrip()))
+                                : _creatorCanvas(spec))))),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: _creatorCanvasStatus()),
+            Padding(padding: const EdgeInsets.all(8), child: _seamToggle(spec, compact: true)),
+          ])),
+          if (_busy) _busyOverlay(),
+        ]));
+  }
+
+  List<({int mask, String label, _Swatch swatch})> _liveShapePreviews() {
+    final seed = (int.tryParse(_seed.text) ?? 48213).clamp(0, 0x7fffffff);
+    final key = Object.hash(_recipe, Object.hashAll(_palette), _size, _perspective, seed);
+    if (_shapePreviewKey != key) {
+      _shapePreviewKey = key;
+      final settings = TilesetSettings(
+          perspective: _perspective,
+          type: _recipe.rendererFor(_perspective),
+          size: _size,
+          seed: seed,
+          density: _density.round(),
+          variations: 1,
+          material: _material,
+          palette: _palette,
+          parts: const [110, 38, 255, 0],
+          recipe: _recipe);
+      const shapes = [
+        (110, 'TOP SURFACE'),
+        (38, 'OUTER CORNER'),
+        (255, 'INNER FILL'),
+        (0, 'ISLAND TILE'),
+      ];
+      _shapePreviews = [
+        for (final (mask, label) in shapes)
+          (
+            mask: mask,
+            label: label,
+            swatch: (
+              pixels: generateTilesetTile(settings, mask, 0).pixels,
+              width: settings.spriteWidth,
+              height: settings.spriteHeight,
+            ),
+          )
+      ];
+    }
+    return _shapePreviews;
+  }
+
+  Widget _shapePreviewStrip() {
+    final previews = _liveShapePreviews();
+    final activeMods = [
+      for (final m in TilesetModifiers.all)
+        if (_recipe.modifierIntensity(m.id) != null) m.label,
     ];
+    return Container(
+        key: const ValueKey('workbench-shape-strip'),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+            color: _tg.panel,
+            borderRadius: BorderRadius.circular(_tg.cardRadius),
+            border: Border.all(color: _tg.border)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+          Wrap(spacing: 12, runSpacing: 6, children: [
+            Text('AUTOTILE SHAPE PREVIEW', style: _tg.pixel(10, color: _tg.muted)),
+            Text(
+                activeMods.isEmpty
+                    ? '${_recipe.base.label} · no modifiers'
+                    : '${_recipe.base.label} · ${activeMods.join(', ')}',
+                style: TextStyle(fontSize: 11, color: _tg.muted)),
+          ]),
+          const SizedBox(height: 8),
+          Wrap(spacing: 10, runSpacing: 8, children: [
+            for (final item in previews)
+              Container(
+                  key: ValueKey('workbench-shape-${item.mask}'),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                      color: _tg.background,
+                      borderRadius: BorderRadius.circular(_tg.chipRadius),
+                      border: Border.all(color: _tg.border)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: CustomPaint(
+                            size: const Size(38, 38), painter: _SurfacePreviewPainter(item.swatch, _tg.checkerA))),
+                    const SizedBox(width: 8),
+                    Text(item.label, style: _tg.pixel(9, color: _tg.text)),
+                  ])),
+          ]),
+        ]));
+  }
+
+  Widget _layerBreakdownStrip(TilesetSurfaceSpec spec) {
+    final count = spec.layers.length;
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+            color: _tg.panel,
+            borderRadius: BorderRadius.circular(_tg.cardRadius),
+            border: Border.all(color: _tg.border)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+          Wrap(spacing: 8, runSpacing: 4, children: [
+            Text('LAYER STACK PREVIEW', style: _tg.pixel(10, color: _tg.muted)),
+            if (_solo != null)
+              Text('Soloing Layer ${_solo! + 1}',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _tg.highlight))
+            else
+              Text('Click a card to inspect layer', style: TextStyle(fontSize: 11, color: _tg.muted)),
+          ]),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (var i = 0; i < count; i++) _layerBreakdownCard(spec, i),
+          ]),
+        ]));
+  }
+
+  Widget _layerBreakdownCard(TilesetSurfaceSpec spec, int index) {
+    final layer = spec.layers[index];
+    final selected = _layer == index;
+    final soloed = _solo == index;
+    final swatch = _swatchOf(TilesetSurfaceSpec(layers: [layer.copyWith(visible: true)]));
+    return InkWell(
+        key: ValueKey('workbench-layer-$index'),
+        borderRadius: BorderRadius.circular(_tg.chipRadius),
+        onTap: () => _updateDraft(() => _layer = index),
+        child: Container(
+            width: 116,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+                color: selected ? _tg.elevated : _tg.background,
+                borderRadius: BorderRadius.circular(_tg.chipRadius),
+                border: Border.all(color: selected ? _tg.highlight : _tg.border, width: selected ? 2 : 1)),
+            child: Row(children: [
+              ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child:
+                      CustomPaint(size: const Size.square(32), painter: _SurfacePreviewPainter(swatch, _tg.checkerA))),
+              const SizedBox(width: 8),
+              Expanded(
+                  child:
+                      Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                Text('L${index + 1}', style: _tg.monoAt(10, color: soloed ? _tg.highlight : _tg.muted)),
+                Text(layer.pattern.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              ])),
+            ])));
   }
 
   /// Phone layout: the tile, its repeat and the seam check pinned above the list.
@@ -370,7 +1132,7 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
 
   // ------------------------------------------------------------------ panel
 
-  /// Left column of the editor: surface name, layer stack, inspector and global settings.
+  /// Left column of the editor: surface name, layer stack, palette and global settings.
   Widget _surfacePanel() {
     final spec = _customSpec;
     final wide = _wideLayout;
@@ -398,7 +1160,6 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
                             _presetRow(),
                             const SizedBox(height: 8),
                             ..._layersSection(spec),
-                            if (wide) ...[const SizedBox(height: 8), _inspector(spec, spec.layers[_layer])],
                           ] else
                             ..._classicBanner(),
                           const SizedBox(height: 12),
@@ -418,29 +1179,7 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
               if (sheet) Positioned.fill(child: _inspectorSheet(spec)),
             ]);
           })),
-          Container(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-              decoration: BoxDecoration(color: _tg.panel, border: Border(top: BorderSide(color: _tg.border))),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                PvPixelButton(
-                    key: const ValueKey('surface-generate'),
-                    label: _tiles.isEmpty ? 'GENERATE TILESET' : 'REGENERATE TILESET',
-                    icon: Icons.auto_awesome,
-                    height: 44,
-                    expand: true,
-                    onPressed: _busy ? null : _generateTiles),
-                if (_settingsStale)
-                  Padding(
-                      key: const ValueKey('surface-stale-hint'),
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Icon(Icons.circle, size: 8, color: _tg.amber),
-                        const SizedBox(width: 6),
-                        Flexible(
-                            child: Text('Settings changed. Regenerate to apply.',
-                                style: TextStyle(fontSize: 11, color: _tg.amber))),
-                      ])),
-              ])),
+          if (!wide) _generateCtaFooter(),
         ]));
   }
 
@@ -1221,17 +1960,17 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
       Text('Connection parts', style: _label),
       const SizedBox(height: 6),
       Row(children: [
-        _Pill(
-            tg: _tg,
-            label: 'Select parts · ${_parts.length} / 47',
-            icon: Icons.grid_view,
-            iconColor: _tg.highlight,
-            radius: _tg.chipRadius,
-            onTap: _busy ? null : _chooseParts),
-        const SizedBox(width: 10),
-        Expanded(
-            child: Text('${_parts.length} × $_variations = ${_parts.length * _variations} tiles',
-                textAlign: TextAlign.right, style: _tg.mono)),
+        Flexible(
+            child: _Pill(
+                tg: _tg,
+                label: 'Select parts · ${_parts.length} / 47',
+                icon: Icons.grid_view,
+                iconColor: _tg.highlight,
+                radius: _tg.chipRadius,
+                onTap: _busy ? null : _chooseParts)),
+        const SizedBox(width: 8),
+        Text('${_parts.length} × $_variations = ${_parts.length * _variations} tiles',
+            textAlign: TextAlign.right, style: _tg.mono),
       ]),
     ];
   }

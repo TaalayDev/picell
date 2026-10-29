@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/theme/pv_tokens.dart';
 import '../../../pixel/tileset/tileset_collection.dart';
 import '../../../pixel/tileset/tileset_generator.dart';
 
@@ -26,8 +27,9 @@ class TilesetGeometryPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final pv = context.pv;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-      Text('Perspective', style: theme.textTheme.titleSmall),
+      Text('Perspective', style: theme.textTheme.titleSmall?.copyWith(color: pv.textPrimary)),
       const SizedBox(height: 8),
       Wrap(spacing: 8, runSpacing: 8, children: [
         for (final value in TilesetPerspective.values)
@@ -53,12 +55,13 @@ class TilesetGeometryPicker extends StatelessWidget {
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                 Icon(_icons[value], color: perspective == value ? theme.colorScheme.primary : null),
                                 const SizedBox(height: 8),
-                                Text(value.label, style: theme.textTheme.titleSmall),
-                                Text(_hints[value]!, style: theme.textTheme.bodySmall),
+                                Text(value.label, style: theme.textTheme.titleSmall?.copyWith(color: pv.textPrimary)),
+                                Text(_hints[value]!,
+                                    style: theme.textTheme.bodySmall?.copyWith(color: pv.textSecondary)),
                               ])))))),
       ]),
       const SizedBox(height: 16),
-      Text('Tile size', style: theme.textTheme.titleSmall),
+      Text('Tile size', style: theme.textTheme.titleSmall?.copyWith(color: pv.textPrimary)),
       const SizedBox(height: 8),
       Wrap(spacing: 8, children: [
         for (final value in tilesetTileSizes)
@@ -69,11 +72,13 @@ class TilesetGeometryPicker extends StatelessWidget {
               onSelected: (_) => onSize(value)),
       ]),
       if (perspective == TilesetPerspective.isometric)
-        const Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: Text('Size is the logical diamond height. Sprite width is twice this value.')),
+        Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text('Size is the logical diamond height. Sprite width is twice this value.',
+                style: theme.textTheme.bodySmall?.copyWith(color: pv.textSecondary))),
       const SizedBox(height: 8),
-      Text('Every tileset in this project uses these values.', style: theme.textTheme.bodySmall),
+      Text('Every tileset in this project uses these values.',
+          style: theme.textTheme.bodySmall?.copyWith(color: pv.textSecondary)),
     ]);
   }
 }

@@ -272,9 +272,10 @@ class TilesetCollectionScreenState extends State<TilesetCollectionScreen> {
           child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text('Set up your tileset project', style: Theme.of(context).textTheme.headlineSmall),
+                Text('Set up your tileset project', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: context.pv.textPrimary)),
                 const SizedBox(height: 8),
-                const Text('Choose the perspective and tile size first. They apply to every tileset in this project.'),
+                Text('Choose the perspective and tile size first. They apply to every tileset in this project.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: context.pv.textSecondary)),
                 const SizedBox(height: 20),
                 TilesetGeometryPicker(
                     perspective: _pendingPerspective,

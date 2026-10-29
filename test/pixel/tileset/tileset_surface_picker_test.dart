@@ -19,6 +19,11 @@ void main() {
         home: TilesetGeneratorScreen(
             embedded: true, recipeMode: true, configuration: TilesetConfiguration(perspective: perspective))));
     await tester.pumpAndSettle();
+    if (size.width < 1000) {
+      await tester.tap(find.byTooltip('Collapse library'));
+      await tester.tap(find.byTooltip('Layers and properties'));
+      await tester.pumpAndSettle();
+    }
   }
 
   SemanticsNode node(WidgetTester tester, String key) => tester.getSemantics(find.byKey(ValueKey(key)));
@@ -26,17 +31,26 @@ void main() {
   bool enabled(WidgetTester tester, String key) => node(tester, key).flagsCollection.isEnabled == Tristate.isTrue;
 
   Future<void> reveal(WidgetTester tester, Finder finder) async {
-    final list = find.byWidgetPredicate((w) => w is Scrollable && w.axisDirection == AxisDirection.down).first;
-    for (var i = 0; i < 40 && finder.evaluate().isEmpty; i++) {
-      await tester.drag(list, const Offset(0, 120));
-      await tester.pump();
+    final target = finder.description;
+    String? tool;
+    if (target.contains('surface-') || target.contains('seam-pill')) tool = 'surface';
+    if (target.contains('palette-edit')) tool = 'palette';
+    if (target.contains('layer-') ||
+        target.contains('pattern-') ||
+        target.contains('noise-') ||
+        target.contains('blend-') ||
+        target.contains('area-')) tool = 'layers';
+    if (tool != null && finder.evaluate().isEmpty) {
+      if (find.byKey(const ValueKey('creator-properties-dock')).evaluate().isEmpty) {
+        await tester.tap(find.byTooltip('Layers and properties'));
+        await tester.pumpAndSettle();
+      }
+      final button = find.byKey(ValueKey('creator-tool-$tool'));
+      await tester.ensureVisible(button);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
     }
-    if (finder.evaluate().isEmpty) await tester.scrollUntilVisible(finder, 120, scrollable: list);
-    final box = tester.getRect(finder), view = tester.getRect(list);
-    final dy = view.center.dy - box.center.dy;
-    // A drag shorter than the touch slop would land as a tap on whatever sits at the list's center.
-    if (dy.abs() < 24) return;
-    await tester.drag(list, Offset(0, dy));
+    await tester.ensureVisible(finder);
     await tester.pump();
   }
 
@@ -54,6 +68,7 @@ void main() {
     await open(tester, TilesetPerspective.topDown);
     expect(key('layer-row-0'), findsOneWidget);
     expect(find.byKey(Key('layer-row-${grass - 1}')), findsOneWidget);
+    await reveal(tester, key('seam-pill'));
     expect(key('seam-pill'), findsOneWidget);
     expect(find.text('SEAMLESS'), findsOneWidget);
     expect(find.text('SURFACE EDITOR'), findsOneWidget);
@@ -62,12 +77,10 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('wide layout shows the tile card and seam check over the sample map', (tester) async {
+  testWidgets('wide layout shows one large preview and seam check', (tester) async {
     final semantics = tester.ensureSemantics();
     await open(tester, TilesetPerspective.topDown);
-    expect(key('tile-card'), findsOneWidget);
-    expect(find.text('TILE 16×16'), findsOneWidget);
-    expect(find.text('3×3 REPEAT'), findsOneWidget);
+    expect(key('creator-preview-Repeat'), findsOneWidget);
     expect(find.text('all seams match'), findsOneWidget);
     await tester.tap(find.descendant(of: key('seam-check'), matching: find.byType(GestureDetector)).first);
     await tester.pump();
@@ -117,6 +130,7 @@ void main() {
     await tester.tap(find.byTooltip('Redo surface edit'));
     await tester.pump();
     expect(find.byTooltip('Show layer ${grass + 1}'), findsOneWidget);
+    await reveal(tester, key('seam-pill'));
     expect(find.text('SEAMLESS'), findsOneWidget);
     semantics.dispose();
   });
@@ -143,7 +157,15 @@ void main() {
       await tap(tester, key('layer-add'));
     }
     await reveal(tester, key('layer-add'));
+    await tester.scrollUntilVisible(find.textContaining('Layer limit reached'), 100,
+        scrollable: find
+            .descendant(of: find.byKey(const PageStorageKey('creator-layers')), matching: find.byType(Scrollable))
+            .first);
     expect(find.textContaining('Layer limit reached'), findsOneWidget);
+    await tester.scrollUntilVisible(key('layer-add'), -100,
+        scrollable: find
+            .descendant(of: find.byKey(const PageStorageKey('creator-layers')), matching: find.byType(Scrollable))
+            .first);
     expect(enabled(tester, 'layer-add'), isFalse);
     semantics.dispose();
   });
@@ -193,6 +215,7 @@ void main() {
     await choose('dots');
     expect(key('gap-2'), findsNothing);
     expect(key('cell-large'), findsOneWidget);
+    await reveal(tester, key('seam-pill'));
     expect(find.text('SEAMLESS'), findsOneWidget);
     semantics.dispose();
   });
@@ -262,29 +285,67 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(key('preset-add-brick'));
     await tester.pumpAndSettle();
+    await tester.tap(key('creator-tool-layers'));
+    await tester.pumpAndSettle();
     expect(find.byKey(Key('layer-row-${TilesetSurfacePresets.ice.spec.layers.length}')), findsOneWidget);
     semantics.dispose();
   });
 
-  testWidgets('on a phone the preview is pinned and the inspector is a bottom sheet', (tester) async {
+  testWidgets('on a phone the preview stays above the expandable editor', (tester) async {
     final semantics = tester.ensureSemantics();
     await open(tester, TilesetPerspective.topDown, size: const Size(390, 844));
-    expect(key('pinned-preview'), findsOneWidget);
-    expect(key('layer-sheet'), findsOneWidget);
-    expect(key('sheet-handle'), findsOneWidget);
-    expect(key('layer-tab-noise'), findsOneWidget);
-    expect(key('tile-card'), findsNothing);
+    expect(key('creator-preview-Repeat'), findsOneWidget);
+    expect(key('creator-properties-dock'), findsOneWidget);
     expect(tester.getSize(key('layer-row-0')).height, greaterThanOrEqualTo(56));
 
-    await tester.tap(key('layer-tab-pattern'));
+    await tap(tester, key('layer-tab-pattern'));
     await tester.pump();
-    await tester.tap(key('pattern-change'));
+    await tap(tester, key('pattern-change'));
     await tester.pumpAndSettle();
     await tester.tap(key('pattern-planks'));
     await tester.pump();
     await tester.tap(key('pattern-use'));
     await tester.pumpAndSettle();
     expect(find.text('Planks'), findsWidgets);
+    semantics.dispose();
+  });
+
+  testWidgets('workspace tabs switch between Tile Creator workbench and Map with generated tiles sidebar',
+      (tester) async {
+    final semantics = tester.ensureSemantics();
+    await open(tester, TilesetPerspective.topDown);
+    expect(key('workspace-tab-creator'), findsOneWidget);
+    expect(key('workspace-tab-map'), findsOneWidget);
+    expect(find.text('LIVE TILE WORKBENCH'), findsOneWidget);
+    expect(key('creator-editor-resize'), findsOneWidget);
+    await tester.tap(key('creator-view-Connection Shapes'));
+    await tester.pump();
+    expect(key('workbench-shape-strip'), findsOneWidget);
+    expect(key('workbench-shape-110'), findsOneWidget);
+    expect(find.text('GENERATED TILES'), findsNothing);
+
+    // Toggle repeat grid, zoom, background, and layer breakdown selection in Tile Creator workbench.
+    await tester.tap(key('workbench-repeat-3'));
+    await tester.pump();
+    expect(selected(tester, 'workbench-repeat-3'), isTrue);
+    await tester.tap(find.byTooltip('Workbench zoom in'));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('creator-zoom-status')), findsOneWidget);
+    await tester.tap(key('workbench-bg-Dusk'));
+    await tester.pump();
+    await tester.tap(key('layer-row-0'));
+    await tester.pump();
+
+    // Switch to Map workspace tab: shows sample map preview and Generated Tiles sidebar.
+    await tester.tap(key('workspace-tab-map'));
+    await tester.pumpAndSettle();
+    expect(find.text('GENERATED TILES'), findsOneWidget);
+    expect(find.text('LIVE TILE WORKBENCH'), findsNothing);
+
+    // Switch back to Tile Creator workspace tab.
+    await tester.tap(key('workspace-tab-creator'));
+    await tester.pumpAndSettle();
+    expect(find.text('LIVE TILE WORKBENCH'), findsOneWidget);
     semantics.dispose();
   });
 }

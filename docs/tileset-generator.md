@@ -59,14 +59,17 @@ keeps a surface and its palette in SharedPreferences (`tileset.mySurfaces`).
 Pattern parameters: each layer has a cell size (small, normal, large; every step keeps the pattern periodic
 over the 16 px grid) and a grout width (1-2 px) for bricks, planks and tiles. "Edit palette" opens a dialog with the
 eight labelled slots, a picker, palette presets, "Suggest shades" (`tileset_palette_tools.dart`) and a warning when
-Light, Mid and Dark are too close. Below 1100 px wide the live tile/3x3 card is pinned above the list and layer
-rows open the inspector as a draggable bottom sheet.
+Light, Mid and Dark are too close. The same two workspace tabs are available at every screen size.
 
-The panel follows `design_prototype/SE Editor.dc.html`: name row with the seam pill, a Preset / Palette / Undo /
-Redo row, the layer stack (drag handle, swatch, eye, solo, blend chip), a Pattern / Noise / Color / Rules inspector,
-and the pinned "Generate tileset" button. Presets live in a searchable gallery with tags; blends that have nothing to
-sit on are disabled with a reason. Solo previews one layer without changing the surface. Tests run without network
-fonts: `PvTokens.useDesignFonts` is switched off in `test/pixel/tileset/flutter_test_config.dart`.
+The Surface Editor workspace has two top-level tabs that retain their widget state while switching:
+- **Tile Creator**: Uses the web prototype's arrangement: a left tool rail, a large live canvas with geometry/seed options, a right Layers/Properties dock, and a searchable bottom Library with categories and preset thumbnails. The Library supports Add as layers, Replace surface, and dragging presets onto the canvas to append layers. The right dock has adjustable width and Layers/Properties split; its Surface, Properties, Palette, Shape, and Output tabs retain existing controls. Below 1000 px the dock opens over the canvas. Library collapse/height, right-dock visibility/width/split, and Library category are saved as view preferences. Single Tile, Repeat, Connection Shapes, Fit, seam checks, Generate, and Test on Map remain available. Generation stays in the current tab.
+- **Map**: Sample Level / Sample Map and Tileset Atlas views, paint/erase tools, and a stale-recipe regeneration banner, paired with Generated Tiles for inspecting, regenerating, or pixel-editing tiles. The tile sidebar can be resized or collapsed; below 700 px it becomes a collapsible bottom panel. Editor height and sidebar width are retained during the session.
+
+Presets live in a searchable gallery with tags; blends that have nothing to sit on are disabled with a reason. Solo previews one layer without changing the surface. Tests run without network fonts: `PvTokens.useDesignFonts` is switched off in `test/pixel/tileset/flutter_test_config.dart`.
+
+Map sample layouts include Default, Islands, Corners, Repeat, and Empty. Loading a layout is undoable; Reset reloads the last chosen layout. Generated Tiles supports search by shape name, group, or mask number, a group filter, and an edited-shapes filter (including shapes with an edited variation). The selected tile inspector scrolls within a bounded height so browsing remains available on small screens.
+
+Tile Creator renders native pixel dimensions through one viewport transform. Single Tile is 1×1; Repeat offers 2×2 and 3×3. Toolbar zoom, wheel/pinch zoom, Fit, actual pixels, hover picking, and the percentage readout share that transform. Grid lines appear at 6× zoom and above. The eyedropper samples the visible surface and exposes a copyable color without changing palette entries. Click the canvas to focus shortcuts: H = Hand, Z = Zoom tool (Alt-click zooms out), I = Eyedropper, Space-drag = temporary pan, +/− = zoom, 0 = Fit, 1 = actual pixels, G = grid. Typing fields retain their keyboard behavior. View changes are outside surface undo history.
 
 Not yet built: JSON import/export, Pro gating of presets, the empty/generating state sheet and the seam-mismatch
 outline on the map.

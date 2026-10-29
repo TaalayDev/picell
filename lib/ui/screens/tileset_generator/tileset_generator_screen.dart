@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,6 +24,7 @@ import '../../widgets/pv/pv_pixel_button.dart';
 part 'tileset_generator_widgets.dart';
 part 'tileset_recipe_controls.dart';
 part 'tileset_surface_editor.dart';
+part 'tileset_creator_canvas.dart';
 
 List<GeneratedTile> _generate(TilesetSettings settings) => generateTileset(settings);
 
@@ -56,6 +58,38 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
   _Tg get _tg => _Tg.of(context);
   void _updateDraft(VoidCallback update) => setState(update);
   var _wideLayout = true;
+  var _workspaceTab = 0;
+  var _creatorTool = 'layers';
+  var _creatorEditorOpen = true;
+  var _creatorEditorHeight = 230.0;
+  var _creatorDockOpen = true;
+  var _creatorCompactDockOpen = false;
+  var _creatorDockWidth = 340.0;
+  var _creatorLayerSplit = 0.4;
+  var _creatorLibraryQuery = '';
+  var _creatorLibraryCategory = 'All';
+  var _creatorCanvasTool = 'hand';
+  var _creatorSpaceDown = false;
+  var _creatorPixelGrid = true;
+  final _creatorFocus = FocusNode(debugLabel: 'Surface canvas');
+  Size _creatorViewportSize = Size.zero;
+  var _creatorCanvasInitialized = false;
+  ({int x, int y, int color})? _creatorHover;
+  int? _creatorPickedColor;
+  _Swatch? _creatorSwatch;
+  int? _creatorSwatchKey;
+  var _creatorView = 'Repeat';
+  final _creatorTransform = TransformationController();
+  var _mapTilesOpen = true;
+  var _mapTilesWidth = 320.0;
+  final _tileSearch = TextEditingController();
+  var _protectedTilesOnly = false;
+  String? _tileGroupFilter;
+  var _sampleLayout = 'Default';
+  var _creatorRepeat = 3;
+  double get _creatorZoom => _creatorTransform.value.getMaxScaleOnAxis();
+  int? _shapePreviewKey;
+  List<({int mask, String label, _Swatch swatch})> _shapePreviews = const [];
   // Open accordion group in the surface editor panel: 'look', 'shape', 'output' or '' for none.
   var _openSection = 'look';
   int? _solo;
@@ -100,6 +134,7 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
   void initState() {
     super.initState();
     if (widget.recipeMode) {
+      unawaited(_restoreCreatorLayout());
       if (widget.initialDocument == null) {
         final start = TilesetSurfacePresets.grass;
         _recipe = _recipe.copyWith(surface: TilesetMaterial.custom(start.spec));
@@ -220,6 +255,29 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
         return island && !pond || peninsula || smallIsland ? 1 : 0;
       });
 
+  void _loadSampleLayout(String layout) {
+    if (_busy) return;
+    final next = List<int>.generate(_columns * _rows, (i) {
+      final x = i % _columns, y = i ~/ _columns;
+      return switch (layout) {
+        'Islands' => x % 6 >= 1 && x % 6 <= 3 && y % 5 >= 1 && y % 5 <= 3 ? 1 : 0,
+        'Corners' =>
+          x > 1 && x < _columns - 2 && y > 1 && y < _rows - 2 && !(x >= _columns ~/ 2 && y >= _rows ~/ 2) ? 1 : 0,
+        'Repeat' => x > 0 && x < _columns - 1 && y > 0 && y < _rows - 1 ? 1 : 0,
+        _ => 0,
+      };
+    });
+    setState(() {
+      _undo.add(List.of(_cells));
+      if (_undo.length > 60) _undo.removeAt(0);
+      _redo.clear();
+      _sampleLayout = layout;
+      _cells =
+          layout == 'Default' && _columns == 24 && _rows == 14 ? _sampleFor(_renderPerspective, _renderType) : next;
+      _dirty = true;
+    });
+  }
+
   TilesetPerspective get _renderPerspective => _generatedSettings?.perspective ?? _perspective;
   TilesetType get _renderType => _generatedSettings?.type ?? _type;
   String _tileName(GeneratedTile tile) {
@@ -290,6 +348,9 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
 
   @override
   void dispose() {
+    _creatorFocus.dispose();
+    _tileSearch.dispose();
+    _creatorTransform.dispose();
     _name.dispose();
     _specName.dispose();
     _seed.dispose();
@@ -346,6 +407,9 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
       _tiles = tiles;
       _images = images;
       _generatedSettings = settings;
+      if (!tilesetGroups(settings.perspective, type: settings.type).contains(_tileGroupFilter)) {
+        _tileGroupFilter = null;
+      }
       if (!tiles.any((t) => t.id == _selected)) {
         _selected = tiles.firstWhere((t) => t.mask == 110 && t.variation == 0, orElse: () => tiles.first).id;
       }
@@ -408,7 +472,11 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
       if (changedPerspective && mounted) {
         setState(() => _background = _defaultBackground(_perspective, _type));
       }
-      if (mounted) setState(() => _dirty = true);
+      if (mounted) {
+        setState(() {
+          _dirty = true;
+        });
+      }
     } catch (e) {
       _message('Generation failed: $e');
     } finally {
@@ -607,29 +675,32 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                               child: Text(
                                   'Showing ${_generatedSettings!.perspective.label} · ${_generatedSettings!.type.label}. Generate to apply ${_perspective.label} · ${_type.label}.',
                                   style: TextStyle(fontSize: 12, color: _tg.amber))),
+                        if (widget.recipeMode && _missingParts.isNotEmpty && !_atlas) _missingPartsBanner(),
                         if (_loadError != null)
                           MaterialBanner(content: Text(_loadError!), actions: [
                             TextButton(onPressed: _busy ? null : _open, child: const Text('Open replacement document'))
                           ]),
                         Expanded(
-                            child: wide
-                                ? Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                                    SizedBox(width: widget.recipeMode ? 384 : 288, child: _settings()),
-                                    const VerticalDivider(width: 1),
-                                    Expanded(child: _preview()),
-                                    const VerticalDivider(width: 1),
-                                    SizedBox(width: 300, child: _browser()),
+                            child: widget.recipeMode
+                                ? IndexedStack(index: _workspaceTab, children: [
+                                    _tileCreatorWorkspace(),
+                                    _mapWorkspace(),
                                   ])
-                                : DefaultTabController(
-                                    length: 3,
-                                    child: Column(children: [
-                                      TabBar(labelColor: _tg.highlight, indicatorColor: _tg.accent, tabs: const [
-                                        Tab(text: 'Settings'),
-                                        Tab(text: 'Preview'),
-                                        Tab(text: 'Tiles')
-                                      ]),
-                                      Expanded(child: TabBarView(children: [_settings(), _preview(), _browser()])),
-                                    ]))),
+                                : wide
+                                    ? Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                                        SizedBox(width: 288, child: _settings()),
+                                        const VerticalDivider(width: 1),
+                                        Expanded(child: _preview()),
+                                        const VerticalDivider(width: 1),
+                                        SizedBox(width: 300, child: _browser()),
+                                      ])
+                                    : DefaultTabController(
+                                        length: 3,
+                                        child: Column(children: [
+                                          const TabBar(
+                                              tabs: [Tab(text: 'Settings'), Tab(text: 'Preview'), Tab(text: 'Tiles')]),
+                                          Expanded(child: TabBarView(children: [_settings(), _preview(), _browser()])),
+                                        ]))),
                         _footer(constraints.maxWidth),
                       ]);
                     }))),
@@ -733,10 +804,14 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                   const SizedBox(width: 12),
                   // The name takes what the fixed pieces leave, up to 240 px.
                   Expanded(
-                      child: Align(
-                          alignment: Alignment.centerLeft,
-                          child:
-                              ConstrainedBox(constraints: const BoxConstraints(maxWidth: 240), child: _nameField()))),
+                      child: Row(children: [
+                    Flexible(
+                        child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 240), child: _nameField())),
+                    if (widget.recipeMode && width >= 1100) ...[
+                      const SizedBox(width: 16),
+                      _workspaceSwitcher(),
+                    ],
+                  ])),
                   const SizedBox(width: 12),
                 ],
                 if (small)
@@ -747,6 +822,8 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                   actions,
               ])),
           if (small) Padding(padding: const EdgeInsets.only(bottom: 8), child: _nameField()),
+          if (widget.recipeMode && width < 1100)
+            Padding(padding: const EdgeInsets.only(bottom: 8), child: _workspaceSwitcher()),
         ]));
   }
 
@@ -1106,18 +1183,83 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
 
   Set<int> get _missingParts => _generatedSettings == null ? {} : missingTilesetParts(_document);
 
+  Widget _missingPartsBanner() => Container(
+      color: _tg.tint,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(children: [
+        Expanded(
+            child: Text('${_missingParts.length} connection shapes missing from this sample',
+                style: TextStyle(fontSize: 11, color: _tg.text))),
+        TextButton(onPressed: _busy ? null : _generateMissingParts, child: const Text('Generate missing parts'))
+      ]));
+
+  Widget _mapWorkspace() => LayoutBuilder(
+      builder: (context, box) => Column(children: [
+            Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, children: [
+              PopupMenuButton<String>(
+                key: const ValueKey('map-sample-layout'),
+                tooltip: 'Load sample layout (undoable)',
+                enabled: !_busy,
+                onSelected: _loadSampleLayout,
+                itemBuilder: (_) => [
+                  for (final layout in const ['Default', 'Islands', 'Corners', 'Repeat', 'Empty'])
+                    PopupMenuItem(value: layout, child: Text(layout))
+                ],
+                child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text('Sample: $_sampleLayout ▾', style: TextStyle(color: _tg.highlight, fontSize: 12))),
+              ),
+              TextButton.icon(
+                key: const ValueKey('map-toggle-tiles'),
+                onPressed: () => setState(() => _mapTilesOpen = !_mapTilesOpen),
+                icon: Icon(_mapTilesOpen ? Icons.chevron_right : Icons.view_sidebar_outlined),
+                label: const Text('Generated Tiles'),
+              ),
+            ]),
+            if (_settingsStale)
+              Container(
+                  key: const ValueKey('map-stale-banner'),
+                  color: _tg.tint,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  child: Row(children: [
+                    Icon(Icons.info_outline, size: 15, color: _tg.amber),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: Text('Surface recipe changed since last generation.',
+                            style: TextStyle(fontSize: 11, color: _tg.amber, fontWeight: FontWeight.w600))),
+                    TextButton(
+                        key: const ValueKey('map-edit-creator'),
+                        onPressed: () => setState(() => _workspaceTab = 0),
+                        child: const Text('Back to Tile Creator')),
+                    const SizedBox(width: 6),
+                    FilledButton.tonalIcon(
+                        key: const ValueKey('map-regenerate-stale'),
+                        onPressed: _busy ? null : _generateTiles,
+                        icon: const Icon(Icons.auto_awesome, size: 15),
+                        label: const Text('Regenerate now', style: TextStyle(fontSize: 11))),
+                  ])),
+            Expanded(
+                child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Expanded(child: _preview()),
+              if (_mapTilesOpen && box.maxWidth >= 700) ...[
+                MouseRegion(
+                    cursor: SystemMouseCursors.resizeColumn,
+                    child: GestureDetector(
+                      key: const ValueKey('map-sidebar-resize'),
+                      behavior: HitTestBehavior.opaque,
+                      onHorizontalDragUpdate: (details) => setState(() => _mapTilesWidth =
+                          (_mapTilesWidth - details.delta.dx).clamp(260.0, math.min(480.0, box.maxWidth * 0.45))),
+                      child: SizedBox(width: 8, child: Center(child: VerticalDivider(width: 1, color: _tg.border))),
+                    )),
+                SizedBox(width: _mapTilesWidth.clamp(260.0, math.max(260.0, box.maxWidth * 0.45)), child: _browser()),
+              ],
+            ])),
+            if (_mapTilesOpen && box.maxWidth < 700) SizedBox(height: box.maxHeight * 0.42, child: _browser()),
+          ]));
+
   Widget _preview() => Column(children: [
         _previewToolbar(),
-        if (_missingParts.isNotEmpty && !_atlas)
-          Container(
-              color: _tg.tint,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              child: Row(children: [
-                Expanded(
-                    child: Text('${_missingParts.length} connection shapes missing from this sample',
-                        style: TextStyle(fontSize: 11, color: _tg.text))),
-                TextButton(onPressed: _busy ? null : _generateMissingParts, child: const Text('Generate missing parts'))
-              ])),
+        if (!widget.recipeMode && _missingParts.isNotEmpty && !_atlas) _missingPartsBanner(),
         Expanded(
             child: ColoredBox(
                 color: _tg.canvas,
@@ -1128,7 +1270,6 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                           : _atlas
                               ? _atlasPreview()
                               : _mapPreview()),
-                  if (widget.recipeMode && _wideLayout && !_atlas) ..._surfaceOverlays(),
                   if (_tiles.isNotEmpty && !_atlas) ...[
                     Positioned(left: 12, top: 12, child: _canvasTools()),
                     Positioned(
@@ -1151,40 +1292,35 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                                       style: TextStyle(fontSize: 10, color: _tg.muted))
                                 ])))),
                   ],
-                  if (_busy)
-                    Positioned.fill(
-                        child: ColoredBox(
-                            color: _tg.canvas.withValues(alpha: 0.8),
-                            child: Center(
-                                child: Container(
-                                    width: 320,
-                                    margin: const EdgeInsets.all(16),
-                                    padding: const EdgeInsets.all(20),
-                                    decoration: BoxDecoration(
-                                        color: _tg.panel,
-                                        borderRadius: BorderRadius.circular(_tg.cardRadius),
-                                        border: Border.all(color: _tg.strongBorder),
-                                        boxShadow: [BoxShadow(color: _tg.shadowColor, blurRadius: _tg.shadowBlur)]),
-                                    child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(children: [
-                                            Icon(Icons.auto_awesome, size: 18, color: _tg.highlight),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                                child: Text(_activity,
-                                                    style: const TextStyle(fontWeight: FontWeight.w600)))
-                                          ]),
-                                          const SizedBox(height: 16),
-                                          const LinearProgressIndicator(
-                                              minHeight: 4, borderRadius: BorderRadius.all(Radius.circular(4))),
-                                          const SizedBox(height: 12),
-                                          Text('Preparing a complete, connected tileset.',
-                                              style: TextStyle(fontSize: 11, color: _tg.muted)),
-                                        ]))))),
+                  if (_busy) _busyOverlay(),
                 ]))),
       ]);
+
+  Widget _busyOverlay() => Positioned.fill(
+      child: ColoredBox(
+          color: _tg.canvas.withValues(alpha: 0.8),
+          child: Center(
+              child: Container(
+                  width: 320,
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                      color: _tg.panel,
+                      borderRadius: BorderRadius.circular(_tg.cardRadius),
+                      border: Border.all(color: _tg.strongBorder),
+                      boxShadow: [BoxShadow(color: _tg.shadowColor, blurRadius: _tg.shadowBlur)]),
+                  child:
+                      Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      Icon(Icons.auto_awesome, size: 18, color: _tg.highlight),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(_activity, style: const TextStyle(fontWeight: FontWeight.w600)))
+                    ]),
+                    const SizedBox(height: 16),
+                    const LinearProgressIndicator(minHeight: 4, borderRadius: BorderRadius.all(Radius.circular(4))),
+                    const SizedBox(height: 12),
+                    Text('Preparing a complete, connected tileset.', style: TextStyle(fontSize: 11, color: _tg.muted)),
+                  ])))));
 
   Widget _previewToolbar() => Container(
       decoration: BoxDecoration(color: _tg.background, border: Border(bottom: BorderSide(color: _tg.border))),
@@ -1402,14 +1538,16 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
             icon: Icons.restart_alt,
             onPressed: _busy
                 ? null
-                : () => setState(() {
-                      _undo.add(List.of(_cells));
-                      _redo.clear();
-                      _cells = _columns == 24 && _rows == 14
-                          ? _sampleFor(_renderPerspective, _renderType)
-                          : List.filled(_columns * _rows, 0);
-                      _dirty = true;
-                    })),
+                : widget.recipeMode
+                    ? () => _loadSampleLayout(_sampleLayout)
+                    : () => setState(() {
+                          _undo.add(List.of(_cells));
+                          _redo.clear();
+                          _cells = _columns == 24 && _rows == 14
+                              ? _sampleFor(_renderPerspective, _renderType)
+                              : List.filled(_columns * _rows, 0);
+                          _dirty = true;
+                        })),
         const SizedBox(height: 4),
         const SizedBox(width: 24, child: Divider()),
         const SizedBox(height: 4),
@@ -1514,71 +1652,80 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
 
   Widget _browser() {
     final selected = _tiles.where((t) => t.id == _selected).firstOrNull;
-    return ColoredBox(
-        color: _tg.panel,
-        child: Column(children: [
-          Container(
-              height: 38,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: _tg.border))),
-              child: Row(children: [
-                const Expanded(child: _TgLabel('GENERATED TILES')),
-                if (_tiles.any((t) => t.protected)) ...[
-                  Icon(Icons.lock, size: 12, color: _tg.amber),
-                  const SizedBox(width: 3),
-                  Text('${_tiles.where((t) => t.protected).length}', style: _tg.mono),
-                  const SizedBox(width: 10)
-                ],
-                Text(_tiles.isEmpty ? '—' : '${_generatedSettings!.parts.length} shapes', style: _tg.mono)
-              ])),
-          Expanded(
-              child: ListView(padding: const EdgeInsets.fromLTRB(12, 12, 12, 8), children: [
-            for (final group in tilesetGroups(_renderPerspective, type: _renderType)) ...[
-              Row(children: [
-                Expanded(
-                    child: Text(group,
-                        style: TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5, color: _tg.muted))),
-                Text('${_primaryRepresentatives.where((t) => _tileGroup(t) == group).length}',
-                    style: _tg.mono.copyWith(fontSize: 10))
-              ]),
-              const SizedBox(height: 8),
-              if (_tiles.isEmpty)
-                SizedBox(
-                    height: 58,
-                    child: Row(
-                        children: List.generate(
-                            4,
-                            (_) => Expanded(
-                                child: Padding(
-                                    padding: const EdgeInsets.only(right: 6),
-                                    child: Container(
-                                        decoration: BoxDecoration(
-                                            color: _tg.background,
-                                            border: Border.all(color: _tg.border),
-                                            borderRadius: BorderRadius.circular(_tg.buttonRadius))))))))
-              else
-                GridView.count(
-                    crossAxisCount: 4,
-                    childAspectRatio: 0.78,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 9,
-                    children: _primaryRepresentatives
-                        .where((t) => _tileGroup(t) == group)
-                        .map((t) => _thumbnail(t))
-                        .toList()),
-              const SizedBox(height: 16),
-            ],
-            ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: EdgeInsets.zero,
-                title: Text('Additional connections', style: TextStyle(fontSize: 11, color: _tg.muted)),
-                subtitle: Text(
-                    '${_representatives.where((t) => !_Tg.primaryMasks.contains(t.mask)).length} combined corner shapes',
-                    style: TextStyle(fontSize: 10, color: _tg.muted)),
-                children: [
+    final query = _tileSearch.text.trim().toLowerCase();
+    final filtered = query.isNotEmpty || _protectedTilesOnly || _tileGroupFilter != null;
+    final matches = _representatives
+        .where((tile) =>
+            (!_protectedTilesOnly || _tiles.any((t) => t.mask == tile.mask && t.protected)) &&
+            (_tileGroupFilter == null || _tileGroup(tile) == _tileGroupFilter) &&
+            (query.isEmpty || '${_tileName(tile)} ${_tileGroup(tile)} ${tile.mask}'.toLowerCase().contains(query)))
+        .toList();
+    return LayoutBuilder(
+        builder: (context, bounds) => ColoredBox(
+            color: _tg.panel,
+            child: Column(children: [
+              Container(
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(border: Border(bottom: BorderSide(color: _tg.border))),
+                  child: Row(children: [
+                    const Expanded(child: _TgLabel('GENERATED TILES')),
+                    if (_tiles.any((t) => t.protected)) ...[
+                      Icon(Icons.lock, size: 12, color: _tg.amber),
+                      const SizedBox(width: 3),
+                      Text('${_tiles.where((t) => t.protected).length}', style: _tg.mono),
+                      const SizedBox(width: 10)
+                    ],
+                    Text(_tiles.isEmpty ? '—' : '${_generatedSettings!.parts.length} shapes', style: _tg.mono)
+                  ])),
+              if (widget.recipeMode)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  child: Column(children: [
+                    TextField(
+                      key: const ValueKey('generated-tiles-search'),
+                      controller: _tileSearch,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                          isDense: true,
+                          hintText: 'Search shapes or mask…',
+                          prefixIcon: const Icon(Icons.search, size: 18),
+                          suffixIcon: query.isEmpty
+                              ? null
+                              : IconButton(
+                                  tooltip: 'Clear tile search',
+                                  onPressed: () => setState(_tileSearch.clear),
+                                  icon: const Icon(Icons.close, size: 18))),
+                    ),
+                    Row(children: [
+                      Expanded(
+                          child: DropdownButton<String>(
+                        key: const ValueKey('generated-tiles-group'),
+                        value: _tileGroupFilter,
+                        isExpanded: true,
+                        hint: const Text('All shapes'),
+                        items: [
+                          const DropdownMenuItem<String>(value: null, child: Text('All shapes')),
+                          for (final group in tilesetGroups(_renderPerspective, type: _renderType))
+                            DropdownMenuItem(value: group, child: Text(group))
+                        ],
+                        onChanged: (value) => setState(() => _tileGroupFilter = value),
+                      )),
+                      IconButton(
+                          key: const ValueKey('generated-tiles-protected'),
+                          tooltip: 'Show edited shapes',
+                          isSelected: _protectedTilesOnly,
+                          onPressed: () => setState(() => _protectedTilesOnly = !_protectedTilesOnly),
+                          icon: const Icon(Icons.lock_outline, size: 18)),
+                    ]),
+                  ]),
+                ),
+              Expanded(
+                  child: ListView(padding: const EdgeInsets.fromLTRB(12, 12, 12, 8), children: [
+                if (widget.recipeMode && filtered) ...[
+                  Text('${matches.length} matching shapes', style: TextStyle(color: _tg.muted, fontSize: 11)),
+                  const SizedBox(height: 8),
+                  if (matches.isEmpty) const Padding(padding: EdgeInsets.all(16), child: Text('No matching tiles')),
                   GridView.count(
                       crossAxisCount: 4,
                       childAspectRatio: 0.78,
@@ -1586,22 +1733,80 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 9,
-                      children: _representatives
-                          .where((t) => !_Tg.primaryMasks.contains(t.mask))
-                          .map((t) => _thumbnail(t))
-                          .toList())
-                ])
-          ])),
-          if (selected != null)
-            _inspector(selected)
-          else
-            Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(color: _tg.elevated, border: Border(top: BorderSide(color: _tg.border))),
-                child: Text('Select a generated tile to inspect, edit or regenerate it.',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 12, height: 1.5, color: _tg.muted))),
-        ]));
+                      children: matches.map((t) => _thumbnail(t)).toList()),
+                ] else ...[
+                  for (final group in tilesetGroups(_renderPerspective, type: _renderType)) ...[
+                    Row(children: [
+                      Expanded(
+                          child: Text(group,
+                              style: TextStyle(
+                                  fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5, color: _tg.muted))),
+                      Text('${_primaryRepresentatives.where((t) => _tileGroup(t) == group).length}',
+                          style: _tg.mono.copyWith(fontSize: 10))
+                    ]),
+                    const SizedBox(height: 8),
+                    if (_tiles.isEmpty)
+                      SizedBox(
+                          height: 58,
+                          child: Row(
+                              children: List.generate(
+                                  4,
+                                  (_) => Expanded(
+                                      child: Padding(
+                                          padding: const EdgeInsets.only(right: 6),
+                                          child: Container(
+                                              decoration: BoxDecoration(
+                                                  color: _tg.background,
+                                                  border: Border.all(color: _tg.border),
+                                                  borderRadius: BorderRadius.circular(_tg.buttonRadius))))))))
+                    else
+                      GridView.count(
+                          crossAxisCount: 4,
+                          childAspectRatio: 0.78,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 9,
+                          children: _primaryRepresentatives
+                              .where((t) => _tileGroup(t) == group)
+                              .map((t) => _thumbnail(t))
+                              .toList()),
+                    const SizedBox(height: 16),
+                  ],
+                  ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      childrenPadding: EdgeInsets.zero,
+                      title: Text('Additional connections', style: TextStyle(fontSize: 11, color: _tg.muted)),
+                      subtitle: Text(
+                          '${_representatives.where((t) => !_Tg.primaryMasks.contains(t.mask)).length} combined corner shapes',
+                          style: TextStyle(fontSize: 10, color: _tg.muted)),
+                      children: [
+                        GridView.count(
+                            crossAxisCount: 4,
+                            childAspectRatio: 0.78,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 9,
+                            children: _representatives
+                                .where((t) => !_Tg.primaryMasks.contains(t.mask))
+                                .map((t) => _thumbnail(t))
+                                .toList())
+                      ]),
+                ],
+              ])),
+              if (selected != null)
+                ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: bounds.maxHeight * 0.45),
+                    child: SingleChildScrollView(child: _inspector(selected)))
+              else
+                Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(color: _tg.elevated, border: Border(top: BorderSide(color: _tg.border))),
+                    child: Text('Select a generated tile to inspect, edit or regenerate it.',
+                        textAlign: TextAlign.center, style: TextStyle(fontSize: 12, height: 1.5, color: _tg.muted))),
+            ])));
   }
 
   ButtonStyle get _compactOutlined => OutlinedButton.styleFrom(
