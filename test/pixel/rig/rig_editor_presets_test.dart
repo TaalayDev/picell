@@ -291,10 +291,10 @@ void main() {
       final r = c.applyMotion(MotionPresets.walk);
       final clip = c.rig.clips.single;
       expect(r.matched.length, 11);
-      expect(clip.length, 8);
-      expect(clip.fps, 10);
+      expect(clip.length, 12);
+      expect(clip.fps, 15);
       expect(clip.loop, isTrue);
-      expect(c.keyTimes(named('thigh_l').id), {for (var i = 0; i < 8; i++) i});
+      expect(c.keyTimes(named('thigh_l').id), {for (var i = 0; i < 12; i++) i});
       expect(c.keyTimes(named('hand_l').id), isEmpty, reason: 'a walk does not use the hands');
     });
 
@@ -410,8 +410,8 @@ void main() {
       simple.commitPlacement();
       simple.mode = RigMode.animate;
       simple.applyMotion(groundedFrontIdle, mirror: true, intensity: .5);
-      expect(simple.activeClip.ikKeyframes.where((k) => k.planted), hasLength(32));
-      expect(simple.activeClip.freezes, hasLength(64));
+      expect(simple.activeClip.ikKeyframes.where((k) => k.planted), hasLength(48));
+      expect(simple.activeClip.freezes, hasLength(96));
       expect(simple.rig.ikChains, hasLength(2));
       expect(simple.rig.ikChains.every((chain) => chain.boneCount == 2), isTrue);
       final saved = Rig.fromJson(simple.rig.toJson());
@@ -458,9 +458,9 @@ void main() {
       c.setPose(named('foot_l').id, rotation: 7);
       c.applyMotion(MotionPresets.jump);
       expect(c.rig.clips.single.loop, isFalse);
-      expect(c.rig.clips.single.length, 12);
+      expect(c.rig.clips.single.length, 16);
       expect(c.keyAt(named('foot_l').id, 30), isNull, reason: 'frame 30 no longer exists');
-      expect(c.time, lessThanOrEqualTo(11));
+      expect(c.time, lessThanOrEqualTo(15));
     });
 
     test('is one undo step', () {
@@ -526,7 +526,7 @@ void main() {
     test('baking and the editor agree: the walk is a real animation the baker accepts', () {
       c.applyMotion(MotionPresets.walk);
       expect(c.rig.clips.single.keyframes, isNotEmpty);
-      expect(c.activeClip.keyframes.every((k) => k.time >= 0 && k.time < 8), isTrue);
+      expect(c.activeClip.keyframes.every((k) => k.time >= 0 && k.time < 12), isTrue);
     });
   });
 }

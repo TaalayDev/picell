@@ -10,6 +10,8 @@ import '../../providers/feedback_providers.dart';
 import '../../l10n/strings.dart';
 import '../widgets/feedback/feedback_chat_view.dart';
 import '../widgets/notifications/app_notification.dart';
+import '../widgets/pv/pv.dart';
+import '../../app/theme/theme.dart';
 
 /// The feedback survey, and afterwards the conversation about it: once a
 /// feedback is sent this screen opens on its chat, where the team replies.
@@ -43,6 +45,7 @@ class FeedbackScreen extends HookConsumerWidget {
     final state = ref.watch(feedbackNotifierProvider);
     final notifier = ref.read(feedbackNotifierProvider.notifier);
     final theme = Theme.of(context);
+    final pv = context.pv;
     final s = Strings.of(context);
     final latestThread = ref.watch(feedbackThreadsProvider.select((threads) => threads.isEmpty ? null : threads.last));
     // With a conversation already going, open on it; "New feedback" switches
@@ -75,37 +78,15 @@ class FeedbackScreen extends HookConsumerWidget {
         appBar: AppBar(
           title: Text(s.feedback_title),
         ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.check_circle_outline,
-                  size: 80,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  s.feedback_thank_you,
-                  style: theme.textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  s.feedback_thank_you_message,
-                  style: theme.textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                FilledButton.icon(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back),
-                  label: Text(s.feedback_return),
-                ),
-              ],
-            ),
+        body: PvEmptyState(
+          icon: Icons.check_circle_outline,
+          color: context.pv.ok,
+          title: s.feedback_thank_you,
+          message: s.feedback_thank_you_message,
+          action: FilledButton.icon(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.arrow_back),
+            label: Text(s.feedback_return),
           ),
         ),
       );
@@ -125,12 +106,11 @@ class FeedbackScreen extends HookConsumerWidget {
       body: Stack(
         children: [
           ListView(
-            padding: const EdgeInsets.all(16),
+            padding: _listPadding(context),
             children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
+              PvCard(
+                color: Color.alphaBlend(pv.primary.withValues(alpha: 0.08), pv.surface),
+                child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
@@ -170,9 +150,8 @@ class FeedbackScreen extends HookConsumerWidget {
                       ],
                     ],
                   ),
-                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: PvSpace.lg),
               ...feedbackQuestions.map((question) {
                 return _QuestionCard(
                   question: question,
@@ -183,11 +162,9 @@ class FeedbackScreen extends HookConsumerWidget {
               if (state.errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: Card(
+                  child: PvCard(
                     color: theme.colorScheme.errorContainer,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
+                    child: Row(
                         children: [
                           Icon(
                             Icons.error_outline,
@@ -204,7 +181,6 @@ class FeedbackScreen extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                    ),
                   ),
                 ),
               SizedBox(
@@ -212,12 +188,12 @@ class FeedbackScreen extends HookConsumerWidget {
                 child: FilledButton.icon(
                   onPressed: state.isSubmitting ? null : () => _submitFeedback(context, ref, feedbackQuestions, state),
                   icon: state.isSubmitting
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
                           ),
                         )
                       : const Icon(Icons.send),
@@ -233,6 +209,13 @@ class FeedbackScreen extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Keeps the survey a readable column on wide windows.
+  EdgeInsets _listPadding(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final side = ((width - PvBreakpoints.readableWidth) / 2).clamp(context.pvGutter, double.infinity);
+    return EdgeInsets.fromLTRB(side, PvSpace.lg, side, PvSpace.lg);
   }
 
   double _getCompletionProgress(List<FeedbackQuestion> feedbackQuestions, FeedbackState state) {
@@ -364,10 +347,9 @@ class _QuestionCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final s = Strings.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: PvSpace.lg),
+      child: PvCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -383,23 +365,9 @@ class _QuestionCard extends ConsumerWidget {
                   ),
                 ),
                 if (question.isRequired)
-                  Container(
-                    margin: const EdgeInsets.only(left: 8),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      s.feedback_required,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: PvSpace.sm),
+                    child: PvChip(label: s.feedback_required, color: context.pv.accent, dense: true),
                   ),
               ],
             ),
@@ -447,6 +415,7 @@ class _RatingInput extends ConsumerWidget {
     final notifier = ref.read(feedbackNotifierProvider.notifier);
     final currentRating = state.getAnswer(questionId) as int?;
     final theme = Theme.of(context);
+    final pv = context.pv;
     final s = Strings.of(context);
 
     return Column(
@@ -457,16 +426,18 @@ class _RatingInput extends ConsumerWidget {
             final rating = index + 1;
             final isSelected = currentRating == rating;
 
-            return GestureDetector(
+            return PvPressable(
               onTap: () => notifier.setAnswer(questionId, rating),
-              child: Container(
+              semanticLabel: '$rating',
+              builder: (context, hovered) => AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: isSelected ? theme.colorScheme.primaryContainer : theme.colorScheme.surfaceVariant,
-                  borderRadius: BorderRadius.circular(12),
+                  color: isSelected ? theme.colorScheme.primaryContainer : pv.surfaceHigh,
+                  borderRadius: BorderRadius.circular(pv.buttonRadius.clamp(8, 16)),
                   border: Border.all(
-                    color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+                    color: isSelected ? pv.primary : (hovered ? pv.accent.withValues(alpha: 0.6) : pv.divider),
                     width: 2,
                   ),
                 ),
@@ -565,7 +536,6 @@ class _SingleChoiceInput extends ConsumerWidget {
 
     return Column(
       children: options.map((option) {
-        final isSelected = selectedOption == option;
         return RadioListTile<String>(
           value: option,
           groupValue: selectedOption,

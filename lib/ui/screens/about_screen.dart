@@ -9,32 +9,45 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../config/assets.dart';
 import '../../config/constants.dart';
+import '../../app/theme/theme.dart';
+import '../widgets/pv/pv.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final pv = context.pv;
     return Scaffold(
+      backgroundColor: pv.background,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close),
+          tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          Strings.of(context).aboutTitle,
-        ),
-        foregroundColor: const Color.fromARGB(255, 222, 222, 224),
-        backgroundColor: const Color(0xFF0d0f21),
+        title: Text(Strings.of(context).aboutTitle),
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: PvSpace.xxl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildHeader(context),
-            _buildInfoSection(context),
-            _buildFeaturesList(context),
-            _buildFooter(context),
+            PvContentWidth(
+              maxWidth: PvBreakpoints.readableWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: PvSpace.xl),
+                  _buildInfoSection(context),
+                  const SizedBox(height: PvSpace.lg),
+                  _buildFeaturesList(context),
+                  const SizedBox(height: PvSpace.lg),
+                  _buildFooter(context),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -42,102 +55,82 @@ class AboutScreen extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    const headerColor = Color(0xFF0d0f21);
+    final pv = context.pv;
     return Container(
-      height: 200,
+      padding: const EdgeInsets.symmetric(vertical: PvSpace.xxl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            headerColor,
-            headerColor.withValues(alpha: 0.99),
+            Color.alphaBlend(pv.primary.withValues(alpha: 0.22), pv.surface),
+            pv.background,
           ],
         ),
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const PixelArtLogo(),
-            const SizedBox(height: 16),
-            Text(
-              Strings.of(context).appName,
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                shadows: [
-                  Shadow(
-                    blurRadius: 10.0,
-                    color: Colors.black.withValues(alpha: 0.5),
-                    offset: const Offset(2, 2),
-                  ),
-                ],
-              ),
-            ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.3, end: 0),
-            VersionTextBuilder(builder: (context, version, isLoading) {
-              return Text(
-                Strings.of(context).version(version),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white.withValues(alpha: 0.8),
-                ),
-              ).animate().fadeIn(delay: 300.ms, duration: 600.ms);
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const PixelArtLogo(),
+          const SizedBox(height: PvSpace.lg),
           Text(
-            Strings.of(context).welcome,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-          ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.2, end: 0),
-          const SizedBox(height: 8),
-          Text(
-            Strings.of(context).aboutAppDescription,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ).animate().fadeIn(delay: 300.ms, duration: 600.ms),
+            Strings.of(context).appName,
+            style: pv.pixelTitle(size: 24),
+          ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.3, end: 0),
+          const SizedBox(height: PvSpace.sm),
+          VersionTextBuilder(builder: (context, version, isLoading) {
+            return PvChip(label: Strings.of(context).version(version), icon: Icons.tag, color: pv.accent)
+                .animate()
+                .fadeIn(delay: 300.ms, duration: 600.ms);
+          }),
         ],
       ),
     );
   }
 
+  Widget _buildInfoSection(BuildContext context) {
+    final pv = context.pv;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          Strings.of(context).welcome,
+          style: pv.body(size: 22, weight: FontWeight.w700),
+        ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.1, end: 0),
+        const SizedBox(height: PvSpace.sm),
+        Text(
+          Strings.of(context).aboutAppDescription,
+          style: pv.body(size: 15, color: pv.textSecondary, weight: FontWeight.w400).copyWith(height: 1.5),
+        ).animate().fadeIn(delay: 300.ms, duration: 600.ms),
+      ],
+    );
+  }
+
   Widget _buildFeaturesList(BuildContext context) {
+    final pv = context.pv;
     final features =
         Strings.of(context).features.split('\n').map((line) => line.trim()).where((line) => line.isNotEmpty).toList();
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return PvCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            Strings.of(context).featuresTitle,
-            style: Theme.of(context).textTheme.titleLarge,
-          ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.2, end: 0),
-          const SizedBox(height: 8),
+          PvSectionHeader(
+            title: Strings.of(context).featuresTitle,
+            icon: Icons.auto_awesome_outlined,
+            padding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: PvSpace.xs),
           ...features.asMap().entries.map((entry) {
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              padding: const EdgeInsets.symmetric(vertical: PvSpace.xs + 2),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.check, color: Colors.green),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(entry.value)),
+                  Icon(Icons.check_circle_rounded, size: 18, color: pv.ok),
+                  const SizedBox(width: PvSpace.md),
+                  Expanded(child: Text(entry.value, style: pv.body(size: 14, weight: FontWeight.w400))),
                 ],
-              ).animate().fadeIn(delay: (300 + entry.key * 100).ms, duration: 600.ms),
+              ).animate().fadeIn(delay: (300 + entry.key * 80).ms, duration: 500.ms),
             );
           }),
         ],
@@ -146,70 +139,43 @@ class AboutScreen extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Text(
-            Strings.of(context).visitWebsite,
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () {
-              launchUrlString('https://taalaydev.github.io');
-            },
-            child: Text(
-              'https://taalaydev.github.io',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
-          const _AnalyticsToggle(),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+    final pv = context.pv;
+    final linkStyle = pv.body(size: 12, color: pv.primary, weight: FontWeight.w600);
+    return Column(
+      children: [
+        PvCard(
+          padding: const EdgeInsets.symmetric(vertical: PvSpace.sm),
+          child: Column(
             children: [
-              InkWell(
-                onTap: () {
-                  // Launch terms of service URL
-                  launchUrlString(Constants.termsOfServiceUrl);
-                },
-                child: Text(
-                  'Terms of Service',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 12,
-                  ),
-                ),
+              ListTile(
+                leading: Icon(Icons.public, color: pv.accent),
+                title: Text(Strings.of(context).visitWebsite, style: pv.body(size: 14)),
+                subtitle: Text('taalaydev.github.io', style: pv.body(size: 12, color: pv.textSecondary)),
+                trailing: Icon(Icons.open_in_new, size: 18, color: pv.textSecondary),
+                onTap: () => launchUrlString('https://taalaydev.github.io'),
               ),
-              Text(
-                ' • ',
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                  fontSize: 12,
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  // Launch privacy policy URL
-                  launchUrlString(Constants.privacyPolicyUrl);
-                },
-                child: Text(
-                  'Privacy Policy',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
+              Divider(height: 1, color: pv.divider, indent: PvSpace.lg, endIndent: PvSpace.lg),
+              const _AnalyticsToggle(),
             ],
           ),
-        ],
-      ).animate().fadeIn(delay: 1000.ms, duration: 600.ms),
+        ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
+        const SizedBox(height: PvSpace.lg),
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () => launchUrlString(Constants.termsOfServiceUrl),
+              child: Text('Terms of Service', style: linkStyle),
+            ),
+            Text('•', style: pv.body(size: 12, color: pv.textSecondary)),
+            TextButton(
+              onPressed: () => launchUrlString(Constants.privacyPolicyUrl),
+              child: Text('Privacy Policy', style: linkStyle),
+            ),
+          ],
+        ).animate().fadeIn(delay: 1000.ms, duration: 600.ms),
+      ],
     );
   }
 }
@@ -226,10 +192,12 @@ class _AnalyticsToggleState extends ConsumerState<_AnalyticsToggle> {
 
   @override
   Widget build(BuildContext context) {
+    final pv = context.pv;
     return SwitchListTile(
-      dense: true,
-      title: const Text('Share anonymous usage data'),
-      subtitle: const Text('Helps improve Picell. No projects or personal data are sent.'),
+      secondary: Icon(Icons.insights_outlined, color: pv.accent),
+      title: Text('Share anonymous usage data', style: pv.body(size: 14)),
+      subtitle: Text('Helps improve Picell. No projects or personal data are sent.',
+          style: pv.body(size: 12, color: pv.textSecondary, weight: FontWeight.w400)),
       value: _storage.analyticsEnabled,
       onChanged: (value) {
         setState(() => _storage.analyticsEnabled = value);

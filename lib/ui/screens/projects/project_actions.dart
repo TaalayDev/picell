@@ -205,46 +205,18 @@ mixin _ProjectsScreenActions {
     }
   }
 
-  /// Creates a project from the layered "Simple Hero" template and opens it
-  /// straight in the bone rig editor, with the skeleton and animations set up.
+  /// Opens the bundled Friendly Robot project directly in the bone rig editor.
   Future<void> _openBoneRigExample(BuildContext context, WidgetRef ref) async {
     final strings = Strings.of(context);
     final navigator = Navigator.of(context);
     final loader = showLoader(context, loadingText: strings.creatingProject);
     try {
-      final templates = await ref.read(templateServiceProvider).loadAssetTemplates();
-      final template = templates.firstWhere((t) => t.tags.contains('rig') && t.tags.contains('example'));
-      final layers =
-          template.layers.isEmpty ? [TemplateLayer(name: template.name, pixels: template.pixels)] : template.layers;
-      final project = Project(
+      final json = await rootBundle.loadString('assets/data/FriendlyRobot.pxv');
+      final now = DateTime.now();
+      final project = Project.fromJson(jsonDecode(json) as Map<String, dynamic>).copyWith(
         id: 0,
-        name: template.name,
-        width: template.width,
-        height: template.height,
-        createdAt: DateTime.now(),
-        editedAt: DateTime.now(),
-        states: const [AnimationStateModel(id: 0, name: 'Animation', frameRate: 24)],
-        frames: [
-          AnimationFrame(
-            id: 0,
-            stateId: 0,
-            name: 'Frame 1',
-            duration: 100,
-            layers: [
-              for (final (index, layer) in layers.indexed)
-                Layer(
-                  layerId: 0,
-                  id: const Uuid().v4(),
-                  name: layer.name,
-                  pixels: Uint32List.fromList(layer.pixels),
-                  order: index,
-                  isVisible: layer.isVisible,
-                  isLocked: layer.isLocked,
-                  opacity: layer.opacity,
-                ),
-            ],
-          ),
-        ],
+        createdAt: now,
+        editedAt: now,
       );
       final newProject = await ref.read(projectsProvider.notifier).addProject(project, source: 'template');
       loader.remove();

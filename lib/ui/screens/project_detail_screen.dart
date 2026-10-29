@@ -539,10 +539,10 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 label: Text(formatCount(project.likeCount)),
                 style: OutlinedButton.styleFrom(
                   minimumSize: buttonSize,
-                  foregroundColor: liked ? Colors.red : theme.textPrimary,
-                  backgroundColor: liked ? Colors.red.withValues(alpha: 0.1) : null,
+                  foregroundColor: liked ? theme.error : theme.textPrimary,
+                  backgroundColor: liked ? theme.error.withValues(alpha: 0.1) : null,
                   side: BorderSide(
-                    color: liked ? Colors.red.withValues(alpha: 0.4) : theme.divider,
+                    color: liked ? theme.error.withValues(alpha: 0.4) : theme.divider,
                   ),
                 ),
               ),
@@ -658,7 +658,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
           IconButton(
             icon: Icon(
               currentProject.isLiked == true ? Icons.favorite : Icons.favorite_border,
-              color: currentProject.isLiked == true ? Colors.red : theme.activeIcon,
+              color: currentProject.isLiked == true ? theme.error : theme.activeIcon,
             ),
             onPressed: () {
               _toggleLike(context, ref, currentProject);
@@ -865,7 +865,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
+            color: theme.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.18),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),
@@ -879,8 +879,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
             CustomPaint(
               painter: CheckerboardPainter(
                 cellSize: cellSize,
-                color1: Colors.grey.shade100,
-                color2: Colors.grey.shade50,
+                color1: context.pv.checkerA,
+                color2: context.pv.checkerB,
               ),
             ),
             CachedNetworkImage(
@@ -1449,14 +1449,14 @@ class ProjectDetailScreen extends HookConsumerWidget {
                 },
                 icon: Icon(
                   currentProject.isLiked == true ? Icons.favorite : Icons.favorite_border,
-                  color: currentProject.isLiked == true ? Colors.red : null,
+                  color: currentProject.isLiked == true ? theme.error : null,
                 ),
                 label: Text(Strings.of(context).likeCountLabel(formatCount(currentProject.likeCount))),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.1) : theme.surface,
-                  foregroundColor: currentProject.isLiked == true ? Colors.red : theme.textPrimary,
+                  backgroundColor: currentProject.isLiked == true ? theme.error.withValues(alpha: 0.1) : theme.surface,
+                  foregroundColor: currentProject.isLiked == true ? theme.error : theme.textPrimary,
                   side: BorderSide(
-                    color: currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.3) : theme.divider,
+                    color: currentProject.isLiked == true ? theme.error.withValues(alpha: 0.3) : theme.divider,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -1515,15 +1515,15 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     },
                     icon: Icon(
                       currentProject.isLiked == true ? Icons.favorite : Icons.favorite_border,
-                      color: currentProject.isLiked == true ? Colors.red : null,
+                      color: currentProject.isLiked == true ? theme.error : null,
                     ),
                     label: Text(formatCount(currentProject.likeCount)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
-                          currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.1) : theme.surface,
-                      foregroundColor: currentProject.isLiked == true ? Colors.red : theme.textPrimary,
+                          currentProject.isLiked == true ? theme.error.withValues(alpha: 0.1) : theme.surface,
+                      foregroundColor: currentProject.isLiked == true ? theme.error : theme.textPrimary,
                       side: BorderSide(
-                        color: currentProject.isLiked == true ? Colors.red.withValues(alpha: 0.3) : theme.divider,
+                        color: currentProject.isLiked == true ? theme.error.withValues(alpha: 0.3) : theme.divider,
                       ),
                     ),
                   ),
@@ -1809,7 +1809,8 @@ class ProjectDetailScreen extends HookConsumerWidget {
   ) async {
     final s = Strings.of(context);
     final makePublic = !currentProject.isPublic;
-    final accent = makePublic ? Colors.green : Colors.orange;
+    final theme = ref.read(themeProvider).theme;
+    final accent = makePublic ? theme.success : theme.warning;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -1836,7 +1837,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     child: Text(
                       makePublic ? s.projectWillBePublic : s.projectWillBePrivate,
                       style: TextStyle(
-                        color: accent.shade700,
+                        color: Color.lerp(accent, theme.textPrimary, 0.25)!,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1975,15 +1976,15 @@ class ProjectDetailScreen extends HookConsumerWidget {
                     runSpacing: 12,
                     children: [
                       _buildAnalyticsCard(
-                          s.views, formatCount(currentProject.viewCount), Icons.visibility, Colors.blue),
+                          s.views, formatCount(currentProject.viewCount), Icons.visibility, theme.primaryColor),
                       _buildAnalyticsCard(
-                          s.totalLikes, formatCount(currentProject.likeCount), Icons.favorite, Colors.red),
+                          s.totalLikes, formatCount(currentProject.likeCount), Icons.favorite, theme.error),
                       _buildAnalyticsCard(
-                          s.comments, formatCount(currentProject.commentCount), Icons.comment, Colors.green),
+                          s.comments, formatCount(currentProject.commentCount), Icons.comment, theme.success),
                       _buildAnalyticsCard(
-                          s.downloads, formatCount(currentProject.downloadCount), Icons.download, Colors.orange),
+                          s.downloads, formatCount(currentProject.downloadCount), Icons.download, theme.warning),
                       _buildAnalyticsCard(
-                          s.forks, formatCount(currentProject.forkCount), Feather.git_branch, Colors.purple),
+                          s.forks, formatCount(currentProject.forkCount), Feather.git_branch, theme.accentColor),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -2020,8 +2021,9 @@ class ProjectDetailScreen extends HookConsumerWidget {
     String title,
     String value,
     IconData icon,
-    Color color,
-  ) {
+    Color color, {
+    Color? labelColor,
+  }) {
     return Container(
       width: 140,
       padding: const EdgeInsets.all(14),
@@ -2047,7 +2049,7 @@ class ProjectDetailScreen extends HookConsumerWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, color: Colors.grey),
+            style: TextStyle(fontSize: 13, color: labelColor ?? color.withValues(alpha: 0.75)),
           ),
         ],
       ),
@@ -2143,7 +2145,7 @@ class _ReportDialogState extends State<_ReportDialog> {
         TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(s.cancel)),
         TextButton(
           onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
-          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
           child: Text(s.report),
         ),
       ],
@@ -2289,6 +2291,7 @@ class _DeleteProjectDialogState extends State<_DeleteProjectDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final danger = Theme.of(context).colorScheme.error;
     final s = Strings.of(context);
     return AlertDialog(
       title: Text(s.deleteProject),
@@ -2304,13 +2307,13 @@ class _DeleteProjectDialogState extends State<_DeleteProjectDialog> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
+                  color: danger.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                  border: Border.all(color: danger.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.warning, color: Colors.red, size: 20),
+                    Icon(Icons.warning, color: danger, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -2318,8 +2321,8 @@ class _DeleteProjectDialogState extends State<_DeleteProjectDialog> {
                         children: [
                           Text(
                             s.thisWillPermanentlyDelete,
-                            style: const TextStyle(
-                              color: Colors.red,
+                            style: TextStyle(
+                              color: danger,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -2328,7 +2331,7 @@ class _DeleteProjectDialogState extends State<_DeleteProjectDialog> {
                           Text(
                             s.deleteProjectConsequences,
                             style: TextStyle(
-                              color: Colors.red.shade700,
+                              color: danger.withValues(alpha: 0.85),
                               fontSize: 11,
                             ),
                           ),
@@ -2365,7 +2368,7 @@ class _DeleteProjectDialogState extends State<_DeleteProjectDialog> {
         ),
         TextButton(
           onPressed: _matches ? () => Navigator.of(context).pop(true) : null,
-          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
           child: Text(s.deleteForever),
         ),
       ],

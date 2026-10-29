@@ -7,6 +7,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core.dart';
+import '../../core/utils/feature_flags.dart';
 import '../../data.dart';
 import '../../l10n/strings.dart';
 import '../../config/assets.dart';
@@ -462,11 +463,12 @@ class ToolBar extends ConsumerWidget {
                 shortcut: _alt('6'),
               ),
               const PopupMenuDivider(),
-              _TopBarMenuItem(
-                value: _AddMenuAction.tileset,
-                icon: const Icon(Icons.grid_view, size: 18),
-                title: 'Tileset Generator',
-              ),
+              if (kTilesetGeneratorEnabled)
+                _TopBarMenuItem(
+                  value: _AddMenuAction.tileset,
+                  icon: const Icon(Icons.grid_view, size: 18),
+                  title: 'Tileset Generator',
+                ),
               _TopBarMenuItem(
                 value: _AddMenuAction.templates,
                 icon: const AppIcon(AppIcons.gallery_wide, size: 18),

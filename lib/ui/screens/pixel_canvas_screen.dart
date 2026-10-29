@@ -16,6 +16,7 @@ import '../../data/models/selection_region.dart';
 import '../../l10n/strings.dart';
 import '../../pixel/pixel_canvas_state.dart';
 import '../../pixel/services/pixel_transform_service.dart';
+import '../../pixel/providers/editor_selection_provider.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/animation_frame_controller.dart' hide AnimationController;
 import '../../pixel/canvas/pixel_viewport_controller.dart';
@@ -337,6 +338,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     final height = project.height;
 
     final state = ref.watch(provider);
+    final editorSelection = ref.watch(editorSelectionProvider(project.id));
 
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -587,134 +589,137 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                           ),
                         ),
                       Expanded(
-                        child: ClipRect(
-                          child: CanvasDropTarget(
-                            enabled: widget.isActive,
-                            onImageDropped: (result) => _handleDroppedImage(result, notifier),
-                            onAsepriteDropped: (result) => _handleDroppedAseprite(context, result),
-                            child: PixelViewportGestureLayer(
-                              controller: viewportController,
-                              child: Stack(
-                                clipBehavior: Clip.hardEdge,
-                                children: [
-                                  Positioned.fill(
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        final viewportWidth = constraints.maxWidth;
-                                        final viewportHeight = constraints.maxHeight;
+                        child: Listener(
+                          onPointerDown: (_) => notifier.setSelectionTarget(EditorSelectionTarget.canvas),
+                          child: ClipRect(
+                            child: CanvasDropTarget(
+                              enabled: widget.isActive,
+                              onImageDropped: (result) => _handleDroppedImage(result, notifier),
+                              onAsepriteDropped: (result) => _handleDroppedAseprite(context, result),
+                              child: PixelViewportGestureLayer(
+                                controller: viewportController,
+                                child: Stack(
+                                  clipBehavior: Clip.hardEdge,
+                                  children: [
+                                    Positioned.fill(
+                                      child: LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          final viewportWidth = constraints.maxWidth;
+                                          final viewportHeight = constraints.maxHeight;
 
-                                        double canvasWidth = viewportWidth;
-                                        double canvasHeight = canvasWidth * height / width;
+                                          double canvasWidth = viewportWidth;
+                                          double canvasHeight = canvasWidth * height / width;
 
-                                        if (canvasHeight > viewportHeight) {
-                                          canvasHeight = viewportHeight;
-                                          canvasWidth = canvasHeight * width / height;
-                                        }
+                                          if (canvasHeight > viewportHeight) {
+                                            canvasHeight = viewportHeight;
+                                            canvasWidth = canvasHeight * width / height;
+                                          }
 
-                                        // The canvas is centred and scaled about its own
-                                        // top-left corner; tell the gesture layer where
-                                        // that corner is so pinch zoom anchors correctly.
-                                        viewportController.origin = Offset(
-                                          (viewportWidth - canvasWidth) / 2,
-                                          (viewportHeight - canvasHeight) / 2,
-                                        );
+                                          // The canvas is centred and scaled about its own
+                                          // top-left corner; tell the gesture layer where
+                                          // that corner is so pinch zoom anchors correctly.
+                                          viewportController.origin = Offset(
+                                            (viewportWidth - canvasWidth) / 2,
+                                            (viewportHeight - canvasHeight) / 2,
+                                          );
 
-                                        return Center(
-                                          child: OverflowBox(
-                                            minWidth: 0,
-                                            minHeight: 0,
-                                            maxWidth: double.infinity,
-                                            maxHeight: double.infinity,
-                                            alignment: Alignment.center,
-                                            child: PixelViewportTransform(
-                                              controller: viewportController,
-                                              child: TiledCanvasWrap(
-                                                enabled: tileModeEnabled.value,
-                                                layers: state.currentFrame.layers,
-                                                width: width,
-                                                height: height,
-                                                canvasWidth: canvasWidth,
-                                                canvasHeight: canvasHeight,
-                                                child: SizedBox(
-                                                  width: canvasWidth,
-                                                  height: canvasHeight,
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.all(8.0),
-                                                    child: PixelCanvasSceneHost(
-                                                      project: project,
-                                                      state: state,
-                                                      notifier: notifier,
-                                                      viewportController: viewportController,
-                                                      currentTool: currentTool.value,
-                                                      modifier: currentModifier.value,
-                                                      currentColor: state.currentColor,
-                                                      brushSize: brushSize.value,
-                                                      sprayIntensity: sprayIntensity.value,
-                                                      mirrorAxis: MirrorAxis.vertical,
-                                                      eventStream: notifier.eventStream,
-                                                      editorSettings: editorSettings,
-                                                      enableMultiTouchViewportNavigation: false,
-                                                      showPrevFrames: showPrevFrames.value,
-                                                      selectionMode: selectionMode.value,
-                                                      onionSkinOpacity: onionSkinOpacity.value,
-                                                      onToolAutoSwitch: (tool) {
-                                                        currentTool.value = tool;
-                                                      },
+                                          return Center(
+                                            child: OverflowBox(
+                                              minWidth: 0,
+                                              minHeight: 0,
+                                              maxWidth: double.infinity,
+                                              maxHeight: double.infinity,
+                                              alignment: Alignment.center,
+                                              child: PixelViewportTransform(
+                                                controller: viewportController,
+                                                child: TiledCanvasWrap(
+                                                  enabled: tileModeEnabled.value,
+                                                  layers: state.currentFrame.layers,
+                                                  width: width,
+                                                  height: height,
+                                                  canvasWidth: canvasWidth,
+                                                  canvasHeight: canvasHeight,
+                                                  child: SizedBox(
+                                                    width: canvasWidth,
+                                                    height: canvasHeight,
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: PixelCanvasSceneHost(
+                                                        project: project,
+                                                        state: state,
+                                                        notifier: notifier,
+                                                        viewportController: viewportController,
+                                                        currentTool: currentTool.value,
+                                                        modifier: currentModifier.value,
+                                                        currentColor: state.currentColor,
+                                                        brushSize: brushSize.value,
+                                                        sprayIntensity: sprayIntensity.value,
+                                                        mirrorAxis: MirrorAxis.vertical,
+                                                        eventStream: notifier.eventStream,
+                                                        editorSettings: editorSettings,
+                                                        enableMultiTouchViewportNavigation: false,
+                                                        showPrevFrames: showPrevFrames.value,
+                                                        selectionMode: selectionMode.value,
+                                                        onionSkinOpacity: onionSkinOpacity.value,
+                                                        onToolAutoSwitch: (tool) {
+                                                          currentTool.value = tool;
+                                                        },
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  if (MediaQuery.sizeOf(context).width < 1000) ...[
-                                    Positioned(
-                                      left: 16,
-                                      right: 16,
-                                      top: 16,
-                                      child: _ToolElements(
-                                        currentTool: currentTool,
-                                        brushSize: brushSize,
-                                        sprayIntensity: sprayIntensity,
-                                        selectionMode: selectionMode,
+                                          );
+                                        },
                                       ),
                                     ),
-                                    if (screenSize.isMobile)
+                                    if (MediaQuery.sizeOf(context).width < 1000) ...[
                                       Positioned(
-                                        right: 26,
-                                        bottom: 26,
-                                        child: currentTool.value == PixelTool.pen
-                                            ? PenPathActions(
-                                                isFloating: true,
-                                                onFinish: () => notifier.pushEvent(const ClosePenPathEvent()),
-                                                onCancel: () => notifier.pushEvent(const CancelPenPathEvent()),
-                                              )
-                                            : SelectionOptionsButton(
-                                                hasSelection: hasSelection,
-                                                isFloating: true,
-                                                onClearSelection: () => notifier.clearSelection(),
-                                                onDelete: () => notifier.clearSelectionArea(),
-                                                onCutToNewLayer: () => notifier.cutToNewLayer(),
-                                                onCopyToNewLayer: () => notifier.copyToNewLayer(),
-                                                onCopy: copySelectionToClipboard,
-                                                onCut: cutSelectionToClipboard,
-                                                onPaste: clipboard != null ? pasteFromClipboard : null,
-                                                onInvert: () => notifier.invertSelection(),
-                                                onGrow: () => notifier.growSelection(),
-                                                onShrink: () => notifier.shrinkSelection(),
-                                                onRotate90: () =>
-                                                    notifier.transformSelection(PixelTransform.rotate90Clockwise),
-                                                onRotate180: () =>
-                                                    notifier.transformSelection(PixelTransform.rotate180),
-                                                onFlipHorizontal: () => notifier.flipSelection(horizontal: true),
-                                                onFlipVertical: () => notifier.flipSelection(horizontal: false),
-                                              ),
+                                        left: 16,
+                                        right: 16,
+                                        top: 16,
+                                        child: _ToolElements(
+                                          currentTool: currentTool,
+                                          brushSize: brushSize,
+                                          sprayIntensity: sprayIntensity,
+                                          selectionMode: selectionMode,
+                                        ),
                                       ),
+                                      if (screenSize.isMobile)
+                                        Positioned(
+                                          right: 26,
+                                          bottom: 26,
+                                          child: currentTool.value == PixelTool.pen
+                                              ? PenPathActions(
+                                                  isFloating: true,
+                                                  onFinish: () => notifier.pushEvent(const ClosePenPathEvent()),
+                                                  onCancel: () => notifier.pushEvent(const CancelPenPathEvent()),
+                                                )
+                                              : SelectionOptionsButton(
+                                                  hasSelection: hasSelection,
+                                                  isFloating: true,
+                                                  onClearSelection: () => notifier.clearSelection(),
+                                                  onDelete: () => notifier.clearSelectionArea(),
+                                                  onCutToNewLayer: () => notifier.cutToNewLayer(),
+                                                  onCopyToNewLayer: () => notifier.copyToNewLayer(),
+                                                  onCopy: copySelectionToClipboard,
+                                                  onCut: cutSelectionToClipboard,
+                                                  onPaste: clipboard != null ? pasteFromClipboard : null,
+                                                  onInvert: () => notifier.invertSelection(),
+                                                  onGrow: () => notifier.growSelection(),
+                                                  onShrink: () => notifier.shrinkSelection(),
+                                                  onRotate90: () =>
+                                                      notifier.transformSelection(PixelTransform.rotate90Clockwise),
+                                                  onRotate180: () =>
+                                                      notifier.transformSelection(PixelTransform.rotate180),
+                                                  onFlipHorizontal: () => notifier.flipSelection(horizontal: true),
+                                                  onFlipVertical: () => notifier.flipSelection(horizontal: false),
+                                                ),
+                                        ),
+                                    ],
                                   ],
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -740,6 +745,13 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   height: height,
                   // itemsHeight: 80,
                   onSelectFrame: notifier.selectFrame,
+                  selectedFrameIds: editorSelection.resolveFrames(state),
+                  onSelectFrames: notifier.selectFrames,
+                  onSelectAllFrames: notifier.selectAllFrames,
+                  onInteract: () => notifier.setSelectionTarget(EditorSelectionTarget.frames),
+                  onRenameFrame: notifier.renameFrame,
+                  onReverseFrames: notifier.reverseFrames,
+                  onMoveFramesToState: (ids, stateId, copy) => notifier.moveFramesToState(ids, stateId, copy: copy),
                   onAddFrame: () {
                     notifier.addFrame('Frame ${state.currentFrames.length + 1}');
                   },

@@ -310,11 +310,17 @@ abstract final class PixelUtils {
     final cosAngle = math.cos(-angle);
     final sinAngle = math.sin(-angle);
 
+    // Map pixel centres, not corners: the samplers take source coordinates
+    // where integer values are pixel centres (as in [resize]). Mapping
+    // corners shifted every pixel by up to one cell, so a half turn pushed
+    // a small selection right out of its own buffer.
+    const centerBias = 0.5;
+
     for (int y = 0; y < targetHeight; y++) {
       for (int x = 0; x < targetWidth; x++) {
-        // Destination pixel in world coordinates
-        final worldDestX = rotatedBounds.left + x;
-        final worldDestY = rotatedBounds.top + y;
+        // Destination pixel centre in world coordinates
+        final worldDestX = rotatedBounds.left + x + centerBias;
+        final worldDestY = rotatedBounds.top + y + centerBias;
 
         // Offset from rotation center
         final dx = worldDestX - center.dx;
@@ -324,9 +330,9 @@ abstract final class PixelUtils {
         final sourceWorldX = center.dx + dx * cosAngle - dy * sinAngle;
         final sourceWorldY = center.dy + dx * sinAngle + dy * cosAngle;
 
-        // Convert to source image local coordinates
-        final sourceX = sourceWorldX - originalBounds.left;
-        final sourceY = sourceWorldY - originalBounds.top;
+        // Convert to source image local (pixel-centre) coordinates
+        final sourceX = sourceWorldX - originalBounds.left - centerBias;
+        final sourceY = sourceWorldY - originalBounds.top - centerBias;
 
         final color = interpolation == 0
             ? _sampleNearest(pixels, srcWidth, srcHeight, sourceX, sourceY, backgroundMode)

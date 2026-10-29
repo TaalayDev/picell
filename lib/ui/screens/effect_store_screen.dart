@@ -15,10 +15,12 @@ import '../../pixel/effects/effects.dart';
 import '../../providers/ad/reward_video_ad_controller.dart';
 import '../../providers/progression_provider.dart';
 import '../../providers/subscription_provider.dart';
+import '../../app/theme/theme.dart';
 import '../widgets/effects/effect_icon_preview.dart';
 import '../widgets/effects/effect_pack_l10n.dart';
 import '../widgets/notifications/app_notification.dart';
 import '../widgets/progression/quests_view.dart';
+import '../widgets/pv/pv.dart';
 import 'subscription_screen.dart';
 
 enum EffectStoreTab { packs, quests }
@@ -205,42 +207,52 @@ class _UltimateBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = Strings.of(context);
-    final colors = Theme.of(context).colorScheme;
+    final pv = context.pv;
 
-    return Material(
-      color: colors.primaryContainer,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => SubscriptionOfferScreen.show(context, featurePrompt: SubscriptionFeature.effects),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(MaterialCommunityIcons.crown, color: colors.onPrimaryContainer, size: 32),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.effectStoreUltimateTitle,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colors.onPrimaryContainer,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      s.effectStoreUltimateSubtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.onPrimaryContainer),
-                    ),
-                  ],
-                ),
+    return PvPressable(
+      onTap: () => SubscriptionOfferScreen.show(context, featurePrompt: SubscriptionFeature.effects),
+      builder: (context, hovered) => AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.all(PvSpace.lg),
+        decoration: BoxDecoration(
+          gradient: pv.gradient,
+          borderRadius: BorderRadius.circular(pv.cardRadius),
+          boxShadow: [
+            BoxShadow(
+              color: pv.primary.withValues(alpha: hovered ? 0.4 : 0.22),
+              blurRadius: hovered ? 18 : 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: ShapeDecoration(shape: const PixelCutBorder(), color: pv.ink.withValues(alpha: 0.16)),
+              child: Icon(MaterialCommunityIcons.crown, color: pv.ink, size: 28),
+            ),
+            const SizedBox(width: PvSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(s.effectStoreUltimateTitle, style: pv.body(size: 16, weight: FontWeight.w800, color: pv.ink)),
+                  const SizedBox(height: PvSpace.xxs),
+                  Text(
+                    s.effectStoreUltimateSubtitle,
+                    style: pv.body(size: 13, weight: FontWeight.w400, color: pv.ink.withValues(alpha: 0.85)),
+                  ),
+                ],
               ),
-              Icon(Icons.chevron_right, color: colors.onPrimaryContainer),
-            ],
-          ),
+            ),
+            AnimatedSlide(
+              duration: const Duration(milliseconds: 150),
+              offset: Offset(hovered ? 0.15 : 0, 0),
+              child: Icon(Icons.chevron_right, color: pv.ink),
+            ),
+          ],
         ),
       ),
     );
@@ -252,21 +264,17 @@ class _AllPacksUnlockedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.secondaryContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    final pv = context.pv;
+    return PvCard(
+      color: pv.tint(pv.ok, 0.12),
       child: Row(
         children: [
-          Icon(Icons.verified, color: colors.onSecondaryContainer),
-          const SizedBox(width: 12),
+          Icon(Icons.verified, color: pv.ok),
+          const SizedBox(width: PvSpace.md),
           Expanded(
             child: Text(
               Strings.of(context).effectStoreAllUnlocked,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: colors.onSecondaryContainer),
+              style: pv.body(size: 14, weight: FontWeight.w700),
             ),
           ),
         ],
@@ -296,18 +304,20 @@ class _EffectPackCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = Strings.of(context);
     final pack = EffectPackCatalog.forId(packId);
-    final secondaryText = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
+    final pv = context.pv;
+    final secondaryText = pv.textSecondary;
     final owned = _ownsPackPermanently(ref, packId);
     final onTrial = !owned && ref.watch(effectPackAccessProvider(packId));
     final price = _packPrice(ref, packId);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
+    // Card margins used to live here; the gap keeps the same slack in
+    // [heightFor] so large text scales still fit.
+    return Padding(
+      padding: const EdgeInsets.all(PvSpace.xs),
+      child: PvCard(
         onTap: () => EffectStoreScreen.show(context, pack: packId),
-        child: Padding(
-          padding: const EdgeInsets.all(_padding),
-          child: Column(
+        padding: const EdgeInsets.all(_padding),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
@@ -319,7 +329,7 @@ class _EffectPackCard extends ConsumerWidget {
                         child: AspectRatio(
                           aspectRatio: 1,
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(pv.chipRadius.clamp(6, 10)),
                             child: EffectIconPreview(
                               key: ValueKey('pack-preview-${type.name}'),
                               effect: EffectsManager.createEffect(type),
@@ -337,7 +347,7 @@ class _EffectPackCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       packId.localizedName(context),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      style: pv.body(size: 16, weight: FontWeight.w700),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -373,7 +383,6 @@ class _EffectPackCard extends ConsumerWidget {
               ),
             ],
           ),
-        ),
       ),
     );
   }
@@ -389,15 +398,19 @@ class _PackStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final background = owned ? colors.secondaryContainer : colors.primary.withValues(alpha: 0.12);
-    final foreground = owned ? colors.onSecondaryContainer : colors.primary;
+    final pv = context.pv;
+    final foreground = owned ? pv.ok : pv.primary;
+    final background = foreground.withValues(alpha: 0.14);
     final textStyle = (dense ? Theme.of(context).textTheme.labelSmall : Theme.of(context).textTheme.labelMedium)
         ?.copyWith(fontWeight: FontWeight.bold);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: dense ? 6 : 10, vertical: dense ? 2 : 4),
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(pv.chipRadius.clamp(4, 12)),
+        border: Border.all(color: foreground.withValues(alpha: 0.35)),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -689,11 +702,9 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(0, 16, 16, 24),
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+      child: PvCard(
+        padding: const EdgeInsets.all(PvSpace.xl - 4),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
@@ -716,7 +727,6 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
               ..._buildPurchaseActions(context, price),
             ],
           ),
-        ),
       ),
     );
   }
@@ -725,7 +735,7 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
   Widget _buildBottomBar(BuildContext context, String? price) {
     return Material(
       elevation: 8,
-      color: Theme.of(context).colorScheme.surface,
+      color: context.pv.surface,
       child: SafeArea(
         child: Center(
           heightFactor: 1,

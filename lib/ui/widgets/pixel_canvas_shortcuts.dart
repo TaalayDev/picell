@@ -163,10 +163,30 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       onNewLayer: () {
         notifier.addLayer('Layer ${state.layers.length + 1}');
       },
-      onDeleteLayer: () {
-        if (state.layers.length > 1) {
-          notifier.removeLayer(state.currentLayerIndex);
+      // Clears the selected pixels, or deletes the selected frames or layers,
+      // depending on where the user worked last. On the canvas without a
+      // pixel selection it deletes the selected layers.
+      onDelete: () async {
+        if (!await notifier.deleteSelected()) {
+          await notifier.removeLayers(notifier.effectLayerIndices);
         }
+      },
+      onSelectAdjacentLayer: notifier.selectAdjacentLayer,
+      onMoveLayers: notifier.moveSelectedLayers,
+      onMergeLayers: () {
+        final selected = notifier.effectLayerIndices;
+        if (selected.length > 1) {
+          notifier.mergeLayers(selected);
+        } else {
+          notifier.mergeLayerDown();
+        }
+      },
+      onPreviousFrame: notifier.prevFrame,
+      onNextFrame: notifier.nextFrame,
+      onExtendFrameSelection: notifier.extendFrameSelection,
+      onMoveFrames: notifier.moveSelectedFrames,
+      onNewFrame: () {
+        notifier.addFrame('Frame ${state.currentFrames.length + 1}');
       },
       onSelectAll: notifier.selectAll,
       onDeselectAll: () {
@@ -194,20 +214,20 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       onCopy: onCopySelection,
       onPaste: onPasteSelection,
       onCut: onCutSelection,
-      onDuplicate: () {
-        if (state.selectionState != null) {
-          // Duplicate the selection into a new layer (matches the
-          // "Copy to New Layer" menu action).
-          notifier.copyToNewLayer();
-        } else {
-          notifier.duplicateLayer(state.currentLayerIndex);
+      // Copies the selected pixels to a new layer (like "Copy to New
+      // Layer"), or duplicates the selected frames or layers, depending on
+      // where the user worked last. On the canvas without a pixel selection
+      // it duplicates the selected layers.
+      onDuplicate: () async {
+        if (!await notifier.duplicateSelected()) {
+          await notifier.duplicateLayers(notifier.effectLayerIndices);
         }
       },
       onTransform: (transform) {
         if (state.selectionState != null) {
           notifier.transformSelection(transform);
         } else {
-          notifier.transformLayers([state.currentLayerIndex], transform);
+          notifier.transformLayers(notifier.effectLayerIndices, transform);
         }
       },
       onCtrlEnter: () {

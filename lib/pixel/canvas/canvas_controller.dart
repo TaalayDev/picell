@@ -127,8 +127,17 @@ class PixelCanvasController extends ChangeNotifier {
   void updateLayers(List<Layer> layers) {
     if (!listEquals(_layers, layers)) {
       final bool needsFullCache = _layers.length != layers.length;
+      // Edits can touch layers other than the current one (multi-layer
+      // selection transforms, undo of them); re-cache any layer whose
+      // instance changed.
+      final previous = {for (final l in _layers) l.layerId: l};
+      final changedLayerIds = {
+        for (final l in layers)
+          if (!identical(previous[l.layerId], l)) l.layerId,
+      };
       _layers = List.from(layers);
-      _updateCachedPixels(cacheAll: needsFullCache);
+      _updateCachedPixels(
+          cacheAll: needsFullCache, changedLayerIds: changedLayerIds);
 
       scheduleMicrotask(() {
         // Clear preview pixels after canvas is updated
@@ -292,7 +301,8 @@ class PixelCanvasController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _updateCachedPixels({bool cacheAll = false}) {
+  void _updateCachedPixels(
+      {bool cacheAll = false, Set<int> changedLayerIds = const {}}) {
     // Existing implementation unchanged for now
     // Later phases (composite cache) will replace this entirely
     _cachedPixels = Uint32List(width * height);
@@ -307,7 +317,9 @@ class PixelCanvasController extends ChangeNotifier {
       final processedPixels = layer.processedPixels(width, height);
       _cachedPixels = _mergePixels(_cachedPixels, processedPixels);
 
-      if (i == _currentLayerIndex || cacheAll) {
+      if (i == _currentLayerIndex ||
+          cacheAll ||
+          changedLayerIds.contains(layer.layerId)) {
         cacheManager.updateLayer(layer.layerId, processedPixels, width, height);
       }
     }

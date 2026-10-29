@@ -19,6 +19,8 @@ import '../widgets/community_project_card.dart';
 import '../widgets/effects/effect_pack_l10n.dart';
 import '../widgets/notifications/app_notification.dart';
 import '../widgets/progression/quests_view.dart';
+import '../widgets/pv/pv.dart';
+import '../../app/theme/theme.dart';
 import 'project_detail_screen.dart';
 
 /// A challenge: its theme, how to join, rewards, the user's entries, the
@@ -161,7 +163,8 @@ class ChallengeScreen extends HookConsumerWidget {
           },
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final horizontal = math.max(16.0, (constraints.maxWidth - _maxContentWidth) / 2);
+              final horizontal =
+                  math.max(PvBreakpoints.gutterFor(constraints.maxWidth), (constraints.maxWidth - _maxContentWidth) / 2);
               final contentWidth = constraints.maxWidth - horizontal * 2;
               final columns = switch (contentWidth) {
                 < 500 => 2,
@@ -301,14 +304,11 @@ class ChallengeScreen extends HookConsumerWidget {
                   constraints: const BoxConstraints(maxWidth: 560),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                    child: FilledButton.icon(
+                    child: PvPixelButton(
                       key: const ValueKey('challenge-start-drawing'),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        minimumSize: const Size.fromHeight(48),
-                      ),
-                      icon: const Icon(Icons.brush_outlined),
-                      label: Text(s.challengeStartDrawing),
+                      expand: true,
+                      icon: Icons.brush_outlined,
+                      label: s.challengeStartDrawing,
                       onPressed: () {
                         Navigator.of(context).pop();
                         onStartDrawing!();
@@ -334,6 +334,7 @@ class _ChallengeHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = Strings.of(context);
     final textTheme = Theme.of(context).textTheme;
+    final pv = context.pv;
     final canJoin = challenge.status == 'active' || challenge.status == 'scheduled';
 
     return Column(
@@ -344,31 +345,22 @@ class _ChallengeHeader extends StatelessWidget {
           runSpacing: 6,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Chip(
-              label: Text(challengeCadenceLabel(context, challenge.cadence)),
-              visualDensity: VisualDensity.compact,
-            ),
+            PvChip(label: challengeCadenceLabel(context, challenge.cadence), icon: Icons.event_repeat, color: pv.accent),
             if (challenge.isCompetition)
-              Chip(
-                avatar: const Icon(Icons.emoji_events_outlined, size: 16),
-                label: Text(s.challengeCompetition),
-                visualDensity: VisualDensity.compact,
-              ),
-            Text(_statusText(context), style: textTheme.bodySmall),
-            Text(s.challengeEntries(challenge.entryCount), style: textTheme.bodySmall),
-            if (challenge.joined)
-              Chip(
-                avatar: const Icon(Icons.check, size: 16),
-                label: Text(s.challengeJoined),
-                visualDensity: VisualDensity.compact,
-              ),
+              PvChip(label: s.challengeCompetition, icon: Icons.emoji_events_outlined, color: pv.warn),
+            if (challenge.joined) PvChip(label: s.challengeJoined, icon: Icons.check, color: pv.ok),
+            PvChip(label: _statusText(context), icon: Icons.schedule),
+            PvChip(label: s.challengeEntries(challenge.entryCount), icon: Icons.collections_outlined),
           ],
         ),
         const SizedBox(height: 12),
-        Text(challenge.title, style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+        Text(challenge.title, style: pv.body(size: 24, weight: FontWeight.w800).copyWith(height: 1.2)),
         if (challenge.description.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(challenge.description, style: textTheme.bodyMedium),
+          const SizedBox(height: PvSpace.sm),
+          Text(
+            challenge.description,
+            style: pv.body(size: 15, color: pv.textSecondary, weight: FontWeight.w400).copyWith(height: 1.5),
+          ),
         ],
         if (canJoin) ...[
           _SectionTitle(s.challengeHowToJoin),
@@ -443,9 +435,16 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pv = context.pv;
     return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 8),
-      child: Text(text, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+      padding: const EdgeInsets.only(top: PvSpace.xl, bottom: PvSpace.sm),
+      child: Row(
+        children: [
+          Container(width: 3, height: 14, color: pv.accent),
+          const SizedBox(width: PvSpace.sm),
+          Expanded(child: Text(text.toUpperCase(), style: pv.pixelLabel(size: 13).copyWith(letterSpacing: 1))),
+        ],
+      ),
     );
   }
 }
@@ -458,13 +457,17 @@ class _Bullet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final pv = context.pv;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: PvSpace.xs + 2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('•  ', style: textTheme.bodyMedium),
-          Expanded(child: Text(text, style: textTheme.bodyMedium)),
+          Padding(
+            padding: const EdgeInsets.only(top: 7, right: PvSpace.sm + 2),
+            child: Container(width: 5, height: 5, color: pv.accent),
+          ),
+          Expanded(child: Text(text, style: textTheme.bodyMedium?.copyWith(height: 1.45))),
         ],
       ),
     );
@@ -485,7 +488,8 @@ class _TagBox extends StatelessWidget {
       padding: const EdgeInsets.only(left: 14),
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(context.pv.buttonRadius.clamp(6, 14)),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
@@ -610,10 +614,9 @@ class _MyRewardsState extends ConsumerState<_MyRewards> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, size: 18, color: Colors.green.shade600),
+                      Icon(Icons.check_circle, size: 18, color: context.pv.ok),
                       const SizedBox(width: 4),
-                      Text(s.challengeRewardClaimed,
-                          style: textTheme.bodyMedium?.copyWith(color: Colors.green.shade700)),
+                      Text(s.challengeRewardClaimed, style: textTheme.bodyMedium?.copyWith(color: context.pv.ok)),
                     ],
                   ),
               ],
@@ -709,7 +712,10 @@ class _PlacedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final pv = context.pv;
+    // Gold for the winners, the theme accent for the rest of the placings.
+    final ribbon = highlight ? const Color(0xFFE0A100) : pv.primary;
+    final ink = highlight ? Colors.black : pv.ink;
     return Stack(
       children: [
         child,
@@ -719,18 +725,16 @@ class _PlacedCard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: highlight ? Colors.amber.shade700 : colors.primary,
-              borderRadius: BorderRadius.circular(10),
+              color: ribbon,
+              borderRadius: BorderRadius.circular(pv.chipRadius.clamp(4, 10)),
+              boxShadow: [BoxShadow(color: ribbon.withValues(alpha: 0.35), blurRadius: 6, offset: const Offset(0, 2))],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.emoji_events, size: 12, color: Colors.white),
+                Icon(Icons.emoji_events, size: 12, color: ink),
                 const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                ),
+                Text(label, style: pv.body(size: 11, color: ink, weight: FontWeight.w800)),
               ],
             ),
           ),
@@ -773,7 +777,7 @@ class _EntriesHeader extends StatelessWidget {
                 TextSpan(text: s.challengeEntriesTitle),
                 TextSpan(
                   text: '  $count',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+                  style: TextStyle(color: context.pv.textSecondary),
                 ),
               ],
             ),
@@ -801,23 +805,7 @@ class _EmptyEntries extends StatelessWidget {
   final String message;
 
   @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      child: Column(
-        children: [
-          Icon(Icons.brush_outlined, size: 40, color: colors.onSurface.withValues(alpha: 0.35)),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurface.withValues(alpha: 0.7)),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => PvEmptyState(icon: Icons.brush_outlined, title: message, compact: true);
 }
 
 class _ErrorView extends StatelessWidget {
@@ -828,17 +816,14 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.cloud_off_outlined, size: 40, color: Theme.of(context).colorScheme.error),
-          const SizedBox(height: 8),
-          Text(message, textAlign: TextAlign.center),
-          const SizedBox(height: 12),
-          OutlinedButton(onPressed: onRetry, child: Text(Strings.of(context).tryAgain)),
-        ],
+    return PvEmptyState(
+      icon: Icons.cloud_off_outlined,
+      color: context.pv.err,
+      title: message,
+      action: OutlinedButton.icon(
+        onPressed: onRetry,
+        icon: const Icon(Icons.refresh),
+        label: Text(Strings.of(context).tryAgain),
       ),
     );
   }

@@ -15,6 +15,7 @@ import '../pixel_canvas_state.dart';
 import '../services/effect_stack_service.dart';
 import '../services/pixel_transform_service.dart';
 import '../tools.dart';
+import 'editor_selection_provider.dart';
 import 'pixel_controller_provider.dart';
 
 part 'pixel_canvas_provider.g.dart';
@@ -137,6 +138,23 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
           Iterable<int> frameIds, int duration) =>
       _controller.updateFramesDurationByIds(frameIds, duration);
   void selectFrame(int frameId) => _controller.selectFrame(frameId);
+  Set<int> get selectedFrameIds => _controller.selectedFrameIds;
+  void selectFrames(int frameId, {bool toggle = false, bool extendRange = false}) =>
+      _controller.selectFrames(frameId, toggle: toggle, extendRange: extendRange);
+  void selectAllFrames() => _controller.selectAllFrames();
+  void renameFrame(int frameId, String name) => _controller.renameFrame(frameId, name);
+  Future<void> reverseFrames(Iterable<int> frameIds) => _controller.reverseFrames(frameIds);
+  Future<void> moveFramesToState(Iterable<int> frameIds, int stateId, {bool copy = false}) =>
+      _controller.moveFramesToState(frameIds, stateId, copy: copy);
+  void extendFrameSelection(int delta) => _controller.extendFrameSelection(delta);
+  Future<void> moveSelectedFrames(int delta) => _controller.moveSelectedFrames(delta);
+  Future<void> moveSelectedLayers(int delta) => _controller.moveSelectedLayers(delta);
+  Future<bool> mergeLayers(Iterable<int> indices) => _controller.mergeLayers(indices);
+  Future<bool> mergeLayerDown() => _controller.mergeLayerDown();
+  void selectAdjacentLayer(int delta) => _controller.selectAdjacentLayer(delta);
+  void setSelectionTarget(EditorSelectionTarget target) => _controller.setSelectionTarget(target);
+  Future<bool> deleteSelected() => _controller.deleteSelected();
+  Future<bool> duplicateSelected() => _controller.duplicateSelected();
   void nextFrame() => _controller.nextFrame();
   void prevFrame() => _controller.previousFrame();
 
@@ -164,8 +182,14 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
       );
 
   /// Layers multi-selected in the layers panel (frame indices). Reported by
-  /// the panel; use [effectLayerIndices] to read it safely.
-  List<int> selectedLayerIndices = const [];
+  /// the panel; use [effectLayerIndices] to read it safely. Selection edits
+  /// (move, scale, rotate, flip, delete, cut) act on all of them.
+  List<int> _selectedLayerIndices = const [];
+  List<int> get selectedLayerIndices => _selectedLayerIndices;
+  set selectedLayerIndices(List<int> indices) {
+    _selectedLayerIndices = indices;
+    _controller.selectedLayerIndices = indices;
+  }
 
   /// The layers an effect should act on: the multi-selection when it is
   /// valid for the current frame and contains the active layer, otherwise

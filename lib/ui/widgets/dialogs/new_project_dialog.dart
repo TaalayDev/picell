@@ -3,10 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 import '../../../config/constants.dart';
+import '../../../core/utils/feature_flags.dart';
+import '../../../app/theme/pv_tokens.dart';
 import '../../../data/models/project_model.dart';
 import '../../../data/models/subscription_model.dart';
 import '../../../data/models/template.dart';
 import '../../../l10n/strings.dart';
+import '../pv/pv.dart';
 import 'templates_dialog.dart';
 
 const kMaxPixelWidth = 5024;
@@ -229,50 +232,60 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
               color: Theme.of(context).colorScheme.primary,
             ),
       ),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 16),
-              SegmentedButton<bool>(
-                  segments: const [
-                    ButtonSegment(value: false, label: Text('Pixel Art'), icon: Icon(Icons.brush)),
-                    ButtonSegment(value: true, label: Text('Tileset'), icon: Icon(Icons.grid_view)),
-                  ],
-                  selected: {
-                    _tileset
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 400, maxWidth: 440),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 8),
+                if (kTilesetGeneratorEnabled) ...[
+                  PvProjectTypeSwitch(
+                    isTileset: _tileset,
+                    onChanged: (v) => setState(() {
+                      _tileset = v;
+                      if (_tileset) _template = null;
+                    }),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: Strings.of(context).projectName,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.create),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return Strings.of(context).projectNameRequired;
+                    }
+                    return null;
                   },
-                  onSelectionChanged: (v) => setState(() {
-                        _tileset = v.first;
-                        if (_tileset) _template = null;
-                      })),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: Strings.of(context).projectName,
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.create),
+                  onSaved: (value) => _projectName = value!,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return Strings.of(context).projectNameRequired;
-                  }
-                  return null;
-                },
-                onSaved: (value) => _projectName = value!,
-              ),
-              const SizedBox(height: 16),
-              // Canvas size comes from the template once one is chosen.
-              if (!_tileset && _template == null) _buildPixelArtOptions(context, maxCanvasSize),
-              if (!_tileset) _buildTemplatePicker(context, maxCanvasSize),
-              if (_tileset)
-                const Padding(
-                    padding: EdgeInsets.only(top: 16),
-                    child: Text('Generate connected platform tiles, then edit and save your tileset.')),
-            ],
+                const SizedBox(height: 16),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.topCenter,
+                  child: _tileset
+                      ? _buildTilesetInfo(context)
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Canvas size comes from the template once one is chosen.
+                            if (_template == null) _buildPixelArtOptions(context, maxCanvasSize),
+                            _buildTemplatePicker(context, maxCanvasSize),
+                          ],
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -307,6 +320,50 @@ class _NewProjectDialogState extends State<NewProjectDialog> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildTilesetInfo(BuildContext context) {
+    final pv = context.pv;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: pv.tint(pv.primary, pv.isDark ? 0.10 : 0.06),
+        borderRadius: BorderRadius.circular(pv.cardRadius.clamp(8.0, 14.0)),
+        border: Border.all(color: pv.primary.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_awesome_mosaic_outlined, size: 18, color: pv.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Tileset Studio',
+                  style: pv.body(size: 13, weight: FontWeight.w700, color: pv.textPrimary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Generate connected platform, top-down, or isometric tiles, then edit and save your tileset.',
+            style: pv.body(size: 12, color: pv.textSecondary),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              PvChip(label: 'Side / Top-Down / Iso', icon: Icons.terrain, color: pv.primary, dense: true),
+              PvChip(label: 'Auto-tiling', icon: Icons.grid_4x4, color: pv.accent, dense: true),
+              PvChip(label: 'Seamless preview', icon: Icons.visibility_outlined, color: pv.ok, dense: true),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

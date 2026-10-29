@@ -23,6 +23,7 @@ class CanvasSelectionHandleGeometry {
     this.rotationHandleCenter,
     this.moveHandleCenter,
     this.anchorHandleCenter,
+    this.handleScale = 1.0,
   });
 
   static const double centerHandleSize = 18.0;
@@ -36,6 +37,15 @@ class CanvasSelectionHandleGeometry {
   final Offset? rotationHandleCenter;
   final Offset? moveHandleCenter;
   final Offset? anchorHandleCenter;
+
+  /// Converts the screen-space handle constants into the canvas-local space
+  /// the handles live in. Pass `1 / zoomLevel` so handles keep a constant
+  /// on-screen size regardless of canvas zoom.
+  final double handleScale;
+
+  double get scaledCenterHandleRadius => centerHandleRadius * handleScale;
+
+  double get scaledHandleSize => handleSize * handleScale;
 
   Iterable<Offset> get transformHandleCenters => transformHandleRects.values.map((rect) => rect.center);
 
@@ -96,6 +106,7 @@ class CanvasSelectionHandleGeometry {
     required bool showSelectionTransformHandles,
     required bool showSelectionAnchorHandle,
     Offset? selectionAnchorPoint,
+    double handleScale = 1.0,
   }) {
     final selectionRect = selectionScreenRect(
       selectionRegion: selectionRegion,
@@ -108,6 +119,7 @@ class CanvasSelectionHandleGeometry {
       return null;
     }
 
+    final size = handleSize * handleScale;
     final transformHandleRects = <CanvasSelectionHandle, Rect>{};
     Offset? rotationHandleCenter;
     Offset? moveHandleCenter;
@@ -117,51 +129,54 @@ class CanvasSelectionHandleGeometry {
       transformHandleRects.addAll({
         CanvasSelectionHandle.topLeft: Rect.fromCenter(
           center: selectionRect.topLeft,
-          width: handleSize,
-          height: handleSize,
+          width: size,
+          height: size,
         ),
         CanvasSelectionHandle.topRight: Rect.fromCenter(
           center: selectionRect.topRight,
-          width: handleSize,
-          height: handleSize,
+          width: size,
+          height: size,
         ),
         CanvasSelectionHandle.bottomLeft: Rect.fromCenter(
           center: selectionRect.bottomLeft,
-          width: handleSize,
-          height: handleSize,
+          width: size,
+          height: size,
         ),
         CanvasSelectionHandle.bottomRight: Rect.fromCenter(
           center: selectionRect.bottomRight,
-          width: handleSize,
-          height: handleSize,
+          width: size,
+          height: size,
         ),
         CanvasSelectionHandle.topCenter: Rect.fromCenter(
           center: Offset(selectionRect.center.dx, selectionRect.top),
-          width: handleSize,
-          height: handleSize,
+          width: size,
+          height: size,
         ),
         CanvasSelectionHandle.bottomCenter: Rect.fromCenter(
           center: Offset(selectionRect.center.dx, selectionRect.bottom),
-          width: handleSize,
-          height: handleSize,
+          width: size,
+          height: size,
         ),
         CanvasSelectionHandle.leftCenter: Rect.fromCenter(
           center: Offset(selectionRect.left, selectionRect.center.dy),
-          width: handleSize,
-          height: handleSize,
+          width: size,
+          height: size,
         ),
         CanvasSelectionHandle.rightCenter: Rect.fromCenter(
           center: Offset(selectionRect.right, selectionRect.center.dy),
-          width: handleSize,
-          height: handleSize,
+          width: size,
+          height: size,
         ),
       });
 
-      rotationHandleCenter = Offset(selectionRect.center.dx, selectionRect.top - rotationHandleDistance);
+      rotationHandleCenter = Offset(selectionRect.center.dx, selectionRect.top - rotationHandleDistance * handleScale);
     }
 
     if (showSelectionMoveHandle) {
-      moveHandleCenter = Offset(selectionRect.center.dx - moveHandleOffsetX, selectionRect.top - moveHandleDistance);
+      moveHandleCenter = Offset(
+        selectionRect.center.dx - moveHandleOffsetX * handleScale,
+        selectionRect.top - moveHandleDistance * handleScale,
+      );
     }
 
     if (showSelectionAnchorHandle) {
@@ -180,10 +195,12 @@ class CanvasSelectionHandleGeometry {
       rotationHandleCenter: rotationHandleCenter,
       moveHandleCenter: moveHandleCenter,
       anchorHandleCenter: anchorHandleCenter,
+      handleScale: handleScale,
     );
   }
 
   CanvasSelectionHandle? hitTest(Offset localPosition) {
+    final centerHandleRadius = scaledCenterHandleRadius;
     if (anchorHandleCenter != null && (localPosition - anchorHandleCenter!).distance <= centerHandleRadius) {
       return CanvasSelectionHandle.anchor;
     }

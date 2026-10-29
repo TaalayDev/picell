@@ -2,11 +2,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:picell/app/theme/pv_tokens.dart';
+import 'package:picell/core/utils/feature_flags.dart';
 import 'package:picell/data/models/project_model.dart';
+import 'package:picell/data/models/subscription_model.dart';
 import 'package:picell/l10n/strings.dart';
 import 'package:picell/pixel/tileset/tileset_collection.dart';
 import 'package:picell/pixel/tileset/tileset_generator.dart';
 import 'package:picell/providers/projects_provider.dart';
+import 'package:picell/ui/widgets/dialogs/new_project_dialog.dart';
 import 'package:picell/ui/widgets/project_tab_launcher.dart';
 
 class _FakeProjects extends Projects {
@@ -29,6 +33,7 @@ class _FakeProjects extends Projects {
 }
 
 void main() {
+  setUpAll(() => PvTokens.useDesignFonts = false);
   Future<void> pumpHost(
     WidgetTester tester, {
     required Size size,
@@ -110,7 +115,7 @@ void main() {
     final collection = TilesetCollection.fromJson(jsonDecode(result!.tilesetData!) as Map<String, dynamic>);
     expect((collection.perspective, collection.tileSize), (TilesetPerspective.topDown, 32));
     expect(result?.name, 'Platforms');
-  });
+  }, skip: !kTilesetGeneratorEnabled);
 
   testWidgets('shows a bottom sheet on mobile and selects an existing project', (tester) async {
     Project? result;
@@ -130,4 +135,44 @@ void main() {
 
     expect(result?.id, 1);
   });
+
+  testWidgets('NewProjectDialog switches between Pixel Art and Tileset modes', (tester) async {
+    dynamic result;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: Strings.localizationsDelegates,
+        supportedLocales: Strings.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: FilledButton(
+              onPressed: () async {
+                result = await showDialog<dynamic>(
+                  context: context,
+                  builder: (_) => const NewProjectDialog(subscription: UserSubscription.free()),
+                );
+              },
+              child: const Text('Open new project'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open new project'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('project-type-pixel-art')), findsOneWidget);
+    expect(find.byKey(const ValueKey('project-type-tileset')), findsOneWidget);
+    expect(find.text('Tileset Studio'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('project-type-tileset')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tileset Studio'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).first, 'World Tiles');
+    await tester.tap(find.text('Create'));
+    await tester.pumpAndSettle();
+
+    expect(result?.name, 'World Tiles');
+    expect(result?.type, ProjectType.proceduralTileset);
+  }, skip: !kTilesetGeneratorEnabled);
 }

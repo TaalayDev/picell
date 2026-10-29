@@ -5,7 +5,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data/models/challenge_models.dart';
 import '../../l10n/strings.dart';
 import '../../providers/challenges_provider.dart';
+import '../../app/theme/theme.dart';
 import '../widgets/challenges/challenges_banner.dart';
+import '../widgets/pv/pv.dart';
 import 'challenge_screen.dart';
 
 /// Every challenge the user entered, newest first, with each entry's review
@@ -34,29 +36,36 @@ class MyChallengeEntriesScreen extends ConsumerWidget {
       body: entries.when(
         skipLoadingOnRefresh: true,
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => _Message(
+        error: (_, __) => PvEmptyState(
           icon: Icons.cloud_off_outlined,
-          text: s.myChallengeEntriesLoadFailed,
-          action: OutlinedButton(onPressed: refresh, child: Text(s.tryAgain)),
+          color: context.pv.err,
+          title: s.myChallengeEntriesLoadFailed,
+          action: OutlinedButton.icon(onPressed: refresh, icon: const Icon(Icons.refresh), label: Text(s.tryAgain)),
         ),
         data: (entries) {
           final groups = _groupByChallenge(entries);
           return RefreshIndicator(
             onRefresh: refresh,
             child: groups.isEmpty
-                ? ListView(
+                ? CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      _Message(icon: Icons.emoji_events_outlined, text: s.myChallengeEntriesEmpty),
+                    slivers: [
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: PvEmptyState(icon: Icons.emoji_events_outlined, title: s.myChallengeEntriesEmpty),
+                      ),
                     ],
                   )
                 : LayoutBuilder(
                     builder: (context, constraints) {
-                      const maxWidth = 720.0;
-                      final horizontal = constraints.maxWidth > maxWidth + 32 ? (constraints.maxWidth - maxWidth) / 2 : 16.0;
+                      const maxWidth = PvBreakpoints.readableWidth;
+                      final gutter = PvBreakpoints.gutterFor(constraints.maxWidth);
+                      final horizontal = constraints.maxWidth > maxWidth + gutter * 2
+                          ? (constraints.maxWidth - maxWidth) / 2
+                          : gutter;
                       return ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 24),
+                        padding: EdgeInsets.fromLTRB(horizontal, PvSpace.md, horizontal, PvSpace.xl),
                         itemCount: groups.length,
                         itemBuilder: (context, index) => _ChallengeGroup(entries: groups[index]),
                       );
@@ -87,9 +96,9 @@ class _ChallengeGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = Strings.of(context);
-    final theme = Theme.of(context);
     final first = entries.first;
-    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.65);
+    final pv = context.pv;
+    final muted = pv.textSecondary;
 
     final String? stage = switch (first.challengeStatus) {
       'active' when first.endsAt != null && first.endsAt!.isAfter(DateTime.now()) =>
@@ -99,14 +108,12 @@ class _ChallengeGroup extends StatelessWidget {
       _ => null,
     };
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: PvSpace.md),
+      child: PvCard(
         onTap: () => ChallengeScreen.open(context, challengeId: first.challengeId),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
+        padding: const EdgeInsets.all(PvSpace.md),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -117,7 +124,7 @@ class _ChallengeGroup extends StatelessWidget {
                       children: [
                         Text(
                           first.challengeTitle.isEmpty ? '#${first.tag}' : first.challengeTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          style: pv.body(size: 16, weight: FontWeight.w700),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -127,7 +134,7 @@ class _ChallengeGroup extends StatelessWidget {
                             '#${first.tag}',
                             if (stage != null) stage,
                           ].join('  ·  '),
-                          style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                          style: pv.body(size: 12, color: muted, weight: FontWeight.w400),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -137,11 +144,12 @@ class _ChallengeGroup extends StatelessWidget {
                   Icon(Icons.chevron_right, color: muted),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: PvSpace.sm),
+              Divider(height: 1, color: pv.divider),
+              const SizedBox(height: PvSpace.xs),
               for (final entry in entries) _EntryRow(entry: entry),
             ],
           ),
-        ),
       ),
     );
   }
@@ -170,16 +178,18 @@ class _EntryRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
+            borderRadius: BorderRadius.circular(context.pv.chipRadius.clamp(6, 10)),
+            child: SizedBox(
               width: 56,
               height: 56,
-              color: colors.surfaceContainerHighest,
-              child: CachedNetworkImage(
+              child: PvCheckerboard(
+                cell: 7,
+                child: CachedNetworkImage(
                 imageUrl: entry.thumbnailUrl,
                 fit: BoxFit.contain,
                 filterQuality: FilterQuality.none,
-                errorWidget: (_, __, ___) => Icon(Icons.image_not_supported_outlined, color: colors.outline),
+                  errorWidget: (_, __, ___) => Icon(Icons.image_not_supported_outlined, color: colors.outline),
+                ),
               ),
             ),
           ),
@@ -219,31 +229,6 @@ class _EntryRow extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Message extends StatelessWidget {
-  const _Message({required this.icon, required this.text, this.action});
-
-  final IconData icon;
-  final String text;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 64, 32, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 44, color: colors.outline),
-          const SizedBox(height: 12),
-          Text(text, textAlign: TextAlign.center),
-          if (action != null) ...[const SizedBox(height: 12), action!],
         ],
       ),
     );

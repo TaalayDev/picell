@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core/utils/cursor_manager.dart';
 import '../widgets/version_text.dart';
+import '../../app/theme/theme.dart';
 import 'projects_screen.dart';
 
 import '../widgets/theme_selector.dart';
@@ -108,6 +109,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final theme = ref.watch(themeProvider).theme;
+    final pv = PvTokens.fromTheme(theme);
 
     return Scaffold(
       backgroundColor: theme.background,
@@ -125,11 +127,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                       duration: const Duration(milliseconds: 500),
                       child: Text(
                         'PICELL',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                        style: pv.pixelTitle(size: 28).copyWith(
                           letterSpacing: 4,
-                          color: theme.textPrimary,
                           shadows: [
                             Shadow(
                               blurRadius: 10.0,
@@ -146,11 +145,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                       duration: const Duration(milliseconds: 500),
                       child: Text(
                         'CREATE • ANIMATE • PIXELATE',
-                        style: TextStyle(
-                          fontSize: 12,
-                          letterSpacing: 2,
-                          color: theme.textSecondary,
-                        ),
+                        style: pv.pixelLabel(size: 12, color: theme.textSecondary, weight: FontWeight.w400)
+                            .copyWith(letterSpacing: 2),
                       ),
                     ),
                     const SizedBox(height: 60),

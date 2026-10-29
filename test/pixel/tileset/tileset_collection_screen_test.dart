@@ -39,7 +39,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(TilesetGeneratorScreen), findsOneWidget);
     expect(find.text('SURFACE EDITOR'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('section-output')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('set-geometry-summary')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('section-shape')));
+    await tester.pumpAndSettle();
     final settingsList = find.byWidgetPredicate((w) => w is Scrollable && w.axisDirection == AxisDirection.down).first;
     await tester.scrollUntilVisible(find.text('Vegetation'), 200, scrollable: settingsList);
     final platform = find.ancestor(of: find.text('Platform'), matching: find.byType(PvSwitchTile));

@@ -304,17 +304,17 @@ void main() {
     test('waves give one key per frame for each bone found', () {
       final r = build(MotionPresets.walk, humanoid);
       final thigh = keysOf(r, named('thigh_l'));
-      expect(thigh.map((k) => k.time), [for (var i = 0; i < 8; i++) i]);
-      expect(r.frames, 8);
-      expect(r.fps, 10);
+      expect(thigh.map((k) => k.time), [for (var i = 0; i < 12; i++) i]);
+      expect(r.frames, 12);
+      expect(r.fps, 15);
       expect(r.loop, isTrue);
     });
 
     test('the two legs of a walk are half a stride apart', () {
       final r = build(MotionPresets.walk, humanoid);
       final left = keysOf(r, named('thigh_l')), right = keysOf(r, named('thigh_r'));
-      for (var i = 0; i < 8; i++) {
-        expect(left[i].rotation, closeTo(right[(i + 4) % 8].rotation, 1e-9), reason: 'frame $i');
+      for (var i = 0; i < 12; i++) {
+        expect(left[i].rotation, closeTo(right[(i + 6) % 12].rotation, 1e-9), reason: 'frame $i');
       }
       expect(left.map((k) => k.rotation).reduce(math.max), greaterThan(20));
       expect(left.map((k) => k.rotation).reduce(math.min), lessThan(-20));
@@ -331,7 +331,7 @@ void main() {
       final normal = keysOf(build(MotionPresets.walk, humanoid), named('thigh_l'));
       final half = keysOf(build(MotionPresets.walk, humanoid, intensity: 0.5), named('thigh_l'));
       final double2 = keysOf(build(MotionPresets.walk, humanoid, intensity: 2), named('thigh_l'));
-      for (var i = 0; i < 8; i++) {
+      for (var i = 0; i < 12; i++) {
         expect(half[i].rotation, closeTo(normal[i].rotation / 2, 1e-9));
         expect(double2[i].rotation, closeTo(normal[i].rotation * 2, 1e-9));
       }

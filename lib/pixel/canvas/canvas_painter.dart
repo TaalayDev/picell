@@ -466,21 +466,28 @@ class PixelCanvasPaintDelegate {
       showSelectionTransformHandles: showSelectionTransformHandles,
       showSelectionAnchorHandle: showSelectionAnchorHandle,
       selectionAnchorPoint: selectionAnchorPoint,
+      handleScale: 1.0 / controller.zoomLevel,
     );
     if (geometry == null) {
       return;
     }
 
+    final scale = geometry.handleScale;
+    _handleShadowPaint.maskFilter =
+        MaskFilter.blur(BlurStyle.normal, 2.0 * scale);
+    final radius = geometry.scaledCenterHandleRadius;
+
     if (showSelectionTransformHandles) {
       for (final position in geometry.transformHandleCenters) {
-        _drawSquareHandle(canvas, position);
+        _drawSquareHandle(canvas, position, geometry.scaledHandleSize, scale);
       }
 
       if (geometry.rotationHandleCenter != null) {
         _drawCircleHandle(
           canvas,
           geometry.rotationHandleCenter!,
-          CanvasSelectionHandleGeometry.centerHandleRadius,
+          radius,
+          scale,
           Colors.green.shade300,
         );
       }
@@ -490,7 +497,8 @@ class PixelCanvasPaintDelegate {
       _drawCircleHandle(
         canvas,
         geometry.moveHandleCenter!,
-        CanvasSelectionHandleGeometry.centerHandleRadius,
+        radius,
+        scale,
         Colors.blue.shade400,
       );
     }
@@ -499,41 +507,39 @@ class PixelCanvasPaintDelegate {
       _drawCircleHandle(
         canvas,
         geometry.anchorHandleCenter!,
-        CanvasSelectionHandleGeometry.centerHandleRadius,
+        radius,
+        scale,
         Colors.orange.withValues(alpha: 0.8),
       );
     }
   }
 
-  void _drawSquareHandle(Canvas canvas, Offset position) {
-    final rect = Rect.fromCenter(
-      center: position,
-      width: CanvasSelectionHandleGeometry.handleSize,
-      height: CanvasSelectionHandleGeometry.handleSize,
-    );
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(2));
+  void _drawSquareHandle(
+      Canvas canvas, Offset position, double size, double scale) {
+    final rect = Rect.fromCenter(center: position, width: size, height: size);
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(2.0 * scale));
 
-    canvas.drawRRect(rrect.shift(const Offset(0, 1)), _handleShadowPaint);
+    canvas.drawRRect(rrect.shift(Offset(0, scale)), _handleShadowPaint);
 
     _handleFillPaint.color = Colors.white;
     canvas.drawRRect(rrect, _handleFillPaint);
 
     _handleBorderPaint
       ..color = Colors.blue
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 1.5 * scale;
     canvas.drawRRect(rrect, _handleBorderPaint);
   }
 
-  void _drawCircleHandle(
-      Canvas canvas, Offset center, double radius, Color fillColor) {
-    canvas.drawCircle(center + const Offset(0, 1), radius, _handleShadowPaint);
+  void _drawCircleHandle(Canvas canvas, Offset center, double radius,
+      double scale, Color fillColor) {
+    canvas.drawCircle(center + Offset(0, scale), radius, _handleShadowPaint);
 
     _handleFillPaint.color = fillColor;
     canvas.drawCircle(center, radius, _handleFillPaint);
 
     _handleBorderPaint
       ..color = Colors.white
-      ..strokeWidth = 2.0;
+      ..strokeWidth = 2.0 * scale;
     canvas.drawCircle(center, radius, _handleBorderPaint);
   }
 

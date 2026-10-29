@@ -27,11 +27,17 @@ class LayersPanel extends HookConsumerWidget {
   final Function(int oldIndex, int newIndex) onLayerReordered;
   final Function(List<int>, double) onLayersOpacityChanged;
   final Function(List<int>, PixelTransform)? onLayersTransformed;
+
+  /// Merges the given layers into the lowest of them.
+  final Function(List<int>)? onLayersMerged;
   final Function(Layer)? onLayerEffectsChanged;
   final Function(Layer) onLayerUpdated;
   final Function(Layer) onLayerToTemplate;
   final VoidCallback? onAutoSelect;
   final ValueChanged<List<int>>? onSelectionChanged;
+
+  /// Any pointer down inside the panel.
+  final VoidCallback? onInteract;
   final ScrollController? scrollController;
 
   const LayersPanel({
@@ -49,10 +55,12 @@ class LayersPanel extends HookConsumerWidget {
     required this.onLayerReordered,
     required this.onLayersOpacityChanged,
     this.onLayersTransformed,
+    this.onLayersMerged,
     required this.onLayerUpdated,
     required this.onLayerToTemplate,
     this.onAutoSelect,
     this.onSelectionChanged,
+    this.onInteract,
     this.onLayerEffectsChanged,
     this.scrollController,
   });
@@ -116,6 +124,7 @@ class LayersPanel extends HookConsumerWidget {
           for (var index = 0; index < layers.length; index++) index,
         ]);
       },
+      onPointerDown: onInteract,
       child: Column(
         children: [
           const SizedBox(height: 4),
@@ -128,6 +137,7 @@ class LayersPanel extends HookConsumerWidget {
             onLayersDuplicated: onLayersDuplicated,
             onLayersOpacityChanged: onLayersOpacityChanged,
             onLayersTransformed: onLayersTransformed,
+            onLayersMerged: onLayersMerged,
             onLayerUpdated: onLayerUpdated,
             onLayerToTemplate: onLayerToTemplate,
             onAutoSelect: onAutoSelect,
@@ -196,6 +206,7 @@ class _ActionButtonsBar extends StatelessWidget {
   final Function(List<int>) onLayersDuplicated;
   final Function(List<int>, double) onLayersOpacityChanged;
   final Function(List<int>, PixelTransform)? onLayersTransformed;
+  final Function(List<int>)? onLayersMerged;
   final Function(Layer) onLayerUpdated;
   final Function(Layer) onLayerToTemplate;
   final VoidCallback? onAutoSelect;
@@ -209,6 +220,7 @@ class _ActionButtonsBar extends StatelessWidget {
     required this.onLayersDuplicated,
     required this.onLayersOpacityChanged,
     this.onLayersTransformed,
+    this.onLayersMerged,
     required this.onLayerUpdated,
     required this.onLayerToTemplate,
     this.onAutoSelect,
@@ -360,6 +372,31 @@ class _ActionButtonsBar extends StatelessWidget {
                                     onLayersTransformed!(selectedLayerIndices, transform);
                                   },
                                 ),
+                            if (onLayersMerged != null && selectedLayerIndices.length > 1)
+                              ListTile(
+                                key: const ValueKey('merge-selected-layers'),
+                                leading: const Icon(Icons.layers, color: Colors.deepPurple, size: 18),
+                                title: Text(
+                                  'Merge ${selectedLayerIndices.length} layers',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                contentPadding: EdgeInsets.zero,
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  onLayersMerged!(selectedLayerIndices);
+                                },
+                              )
+                            else if (onLayersMerged != null && activeLayerIndex > 0)
+                              ListTile(
+                                key: const ValueKey('merge-layer-down'),
+                                leading: const Icon(Icons.vertical_align_bottom, color: Colors.deepPurple, size: 18),
+                                title: const Text('Merge down', style: TextStyle(fontSize: 14)),
+                                contentPadding: EdgeInsets.zero,
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  onLayersMerged!([activeLayerIndex - 1, activeLayerIndex]);
+                                },
+                              ),
                             ListTile(
                               leading: const Icon(Icons.checklist_outlined, color: Colors.green, size: 18),
                               title: Text(s.addToTemplate, style: const TextStyle(fontSize: 14)),

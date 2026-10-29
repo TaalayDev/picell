@@ -90,7 +90,7 @@ class BoneRigBanner extends StatelessWidget {
               height: 72,
               color: scheme.surface.withValues(alpha: 0.5),
               child: Image.asset(
-                'assets/images/templates/simple_hero_rig.png',
+                'assets/data/BoneJumpAnim.gif',
                 key: const ValueKey('whats-new-bone-rig-image'),
                 fit: BoxFit.contain,
                 filterQuality: FilterQuality.none,

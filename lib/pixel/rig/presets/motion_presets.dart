@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import '../../../data/models/rig/rig.dart';
+import '../pose_interpolator.dart';
 import 'name_tokens.dart';
 
 /// How a repeating motion rises and falls over one cycle.
@@ -19,6 +20,11 @@ enum WaveShape {
 
 /// A repeating value: `bias + amplitude * shape(sin(2π (cycles·t + phase)))`
 /// over a clip, where `t` runs 0..1.
+///
+/// An [overtone] adds a second swing at twice the speed (as a fraction of
+/// the first), shifted by [overtonePhase] of its own cycle. It skews the
+/// plain sine so one half of a swing is quicker than the other: a leg that
+/// whips forward and pushes back slowly, a wing that beats down hard.
 class Wave {
   final double amplitude;
   final double cycles;
@@ -27,11 +33,23 @@ class Wave {
   final double phase;
   final double bias;
   final WaveShape shape;
+  final double overtone;
+  final double overtonePhase;
 
-  const Wave({this.amplitude = 0, this.cycles = 1, this.phase = 0, this.bias = 0, this.shape = WaveShape.sine});
+  const Wave({
+    this.amplitude = 0,
+    this.cycles = 1,
+    this.phase = 0,
+    this.bias = 0,
+    this.shape = WaveShape.sine,
+    this.overtone = 0,
+    this.overtonePhase = 0,
+  });
 
   double at(double t, {double phaseShift = 0, double amplitudeScale = 1}) {
-    final s = math.sin(2 * math.pi * (cycles * t + phase + phaseShift));
+    final turn = cycles * t + phase + phaseShift;
+    var s = math.sin(2 * math.pi * turn);
+    if (overtone != 0) s += overtone * math.sin(2 * math.pi * (2 * turn + overtonePhase));
     final shaped = switch (shape) {
       WaveShape.sine => s,
       WaveShape.lift => math.max(0.0, s),
@@ -215,7 +233,46 @@ abstract final class MotionBuilder {
       final explicit = bones.where((b) => b.id == roleBindings[role]).firstOrNull;
       if (explicit != null) found[role] = explicit;
     }
-    return (matched: found.values.map((b) => b.id).toSet().length, total: roles.length);
+    // Parts the rig lacks but whose motion folds into a bone it has (a
+    // one-bone leg takes the knee bend) need no bone of their own.
+    final present = {
+      for (final r in roles)
+        if (found[mirror ? _swapSide(r) : r] != null) r
+    };
+    final folded = roles.where((r) => !present.contains(r) && _foldInto(r, present).isNotEmpty).length;
+    return (matched: found.values.map((b) => b.id).toSet().length, total: roles.length - folded);
+  }
+
+  /// Where a part's rotation goes when the rig has no bone for it, as
+  /// (role, share). Simple rigs draw a limb as one bone: half the knee or
+  /// elbow bend turns that bone so the hand or foot ends up about where the
+  /// two-bone limb would put it. A missing spine leans the body from the hips
+  /// and turns the legs back the other way, so they stay where they were.
+  static const _folds = <String, List<(String, double)>>{
+    'forearm_l': [('arm_l', .5)],
+    'forearm_r': [('arm_r', .5)],
+    'hand_l': [('forearm_l', .5)],
+    'hand_r': [('forearm_r', .5)],
+    'shin_l': [('thigh_l', .5)],
+    'shin_r': [('thigh_r', .5)],
+    'foot_l': [('shin_l', .5)],
+    'foot_r': [('shin_r', .5)],
+    'neck': [('head', 1)],
+    'spine': [('hips', 1), ('thigh_l', -1), ('thigh_r', -1)],
+  };
+
+  /// The present roles [role]'s rotation lands on, with their shares,
+  /// following the chain past other missing parts (hand -> forearm -> arm).
+  static List<(String, double)> _foldInto(String role, Set<String> present, [double share = 1, int depth = 0]) {
+    final targets = _folds[role];
+    if (targets == null || depth > 3) return const [];
+    // The spine's counter-turn of the legs only makes sense when the body
+    // itself can lean.
+    if (role == 'spine' && !present.contains('hips')) return const [];
+    return [
+      for (final (target, s) in targets)
+        if (present.contains(target)) (target, share * s) else ..._foldInto(target, present, share * s, depth + 1),
+    ];
   }
 
   /// Fits [preset] to [bones].
@@ -271,8 +328,25 @@ abstract final class MotionBuilder {
       }
     }
 
+    // Motion of parts the rig lacks, gathered onto the bones that stand in.
+    final extras = <String, List<(MotionTrack, double)>>{};
+    if (preset.target == MotionTarget.roles) {
+      final present = {for (final a in assignments) a.track.role};
+      final tracksByRole = {for (final t in preset.tracks) t.role: t};
+      for (final role in missing) {
+        final track = tracksByRole[role];
+        if (track == null) continue;
+        for (final (target, share) in _foldInto(role, present)) {
+          extras.putIfAbsent(target, () => []).add((track, share));
+        }
+      }
+    }
+
     for (final a in assignments) {
-      if (a.track.keys.isNotEmpty) {
+      final folded = extras[a.track.role];
+      if (folded != null) {
+        keys.addAll(_combinedFrames(preset, a.track, folded, a.bone, canvasHeight, intensity, sign));
+      } else if (a.track.keys.isNotEmpty) {
         keys.addAll(_keyedFrames(preset, a.track, a.bone, canvasHeight, intensity, sign));
       } else {
         keys.addAll(_sampledFrames(preset, a.track, a.bone, a.depth, canvasHeight, intensity, sign));
@@ -345,6 +419,71 @@ abstract final class MotionBuilder {
       );
     }
     return byFrame.values.toList();
+  }
+
+  /// One key per frame for a bone that also carries the rotation of parts
+  /// the rig lacks: its own track plus each folded track times its share.
+  static List<RigKeyframe> _combinedFrames(
+    MotionPreset preset,
+    MotionTrack track,
+    List<(MotionTrack, double)> folded,
+    Bone bone,
+    double canvasHeight,
+    double intensity,
+    double sign,
+  ) {
+    return [
+      for (var i = 0; i < preset.frames; i++)
+        () {
+          var rotation = _valueAt(preset, track, i, (k) => k.rotation, (w) => w.rotation);
+          for (final (other, share) in folded) {
+            rotation += share * _valueAt(preset, other, i, (k) => k.rotation, (w) => w.rotation);
+          }
+          return RigKeyframe(
+            time: i,
+            boneId: bone.id,
+            rotation: rotation * intensity * sign,
+            translation: Offset(
+              _pixels(_valueAt(preset, track, i, (k) => k.tx, (w) => w.tx) * intensity * sign, canvasHeight),
+              _pixels(_valueAt(preset, track, i, (k) => k.ty, (w) => w.ty) * intensity, canvasHeight),
+            ),
+          );
+        }(),
+    ];
+  }
+
+  /// [track]'s value at [frame], the way playback would show it: a wave
+  /// sampled, or keyed poses eased between as the clip's keyframes would be.
+  static double _valueAt(
+    MotionPreset preset,
+    MotionTrack track,
+    int frame,
+    double Function(MotionKey) keyValue,
+    Wave? Function(MotionTrack) wave,
+  ) {
+    if (track.keys.isEmpty) return wave(track)?.at(frame / preset.frames) ?? 0;
+    final n = preset.frames;
+    // Key positions in frames, as [_keyedFrames] places them; a looping clip
+    // runs on from its last key back round to its first.
+    final byFrame = <int, double>{};
+    for (final k in track.keys) {
+      final f = preset.loop ? (k.t * n).round() % n : (k.t * (n - 1)).round().clamp(0, n - 1);
+      byFrame[f] = keyValue(k);
+    }
+    final frames = byFrame.keys.toList()..sort();
+    if (byFrame.containsKey(frame)) return byFrame[frame]!;
+    var before = frames.lastWhere((f) => f < frame, orElse: () => -1);
+    var after = frames.firstWhere((f) => f > frame, orElse: () => -1);
+    if (preset.loop) {
+      if (before < 0) before = frames.last - n;
+      if (after < 0) after = frames.first + n;
+    } else {
+      if (before < 0) return byFrame[after]!;
+      if (after < 0) return byFrame[before]!;
+    }
+    final from = byFrame[(before % n + n) % n]!, to = byFrame[after % n]!;
+    final progress = PoseInterpolator.ease(track.easing, (frame - before) / (after - before));
+    return from + (to - from) * progress;
   }
 
   /// A shift in pixels. Shifts between a quarter and a whole pixel become a

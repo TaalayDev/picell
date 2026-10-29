@@ -373,6 +373,7 @@ class PixelCanvasInputAdapter {
       showSelectionTransformHandles: isSelectionTool,
       showSelectionAnchorHandle: isSelectionTool,
       selectionAnchorPoint: _config.selectionState?.anchorPoint,
+      handleScale: 1.0 / controller.zoomLevel,
     );
     if (geometry == null) {
       return null;

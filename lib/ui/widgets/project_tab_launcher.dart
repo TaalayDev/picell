@@ -6,11 +6,13 @@ import '../../config/constants.dart';
 import '../../data/models/project_model.dart';
 import '../../data/models/subscription_model.dart';
 import '../../l10n/strings.dart';
+import '../../core/utils/feature_flags.dart';
 import '../../pixel/tileset/tileset_generator.dart';
 import '../../pixel/tileset/tileset_project.dart';
 import '../../providers/projects_provider.dart';
 import '../../providers/subscription_provider.dart';
 import '../screens/tileset_generator/tileset_geometry_picker.dart';
+import 'pv/pv_compact_controls.dart';
 
 class ProjectTabLauncher extends ConsumerStatefulWidget {
   const ProjectTabLauncher({super.key, required this.showDragHandle});
@@ -214,103 +216,106 @@ class _ProjectTabLauncherState extends ConsumerState<ProjectTabLauncher> with Si
 
     return Form(
       key: _formKey,
-      child: ListView(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        children: [
-          SegmentedButton<bool>(segments: const [
-            ButtonSegment(value: false, label: Text('Pixel Art')),
-            ButtonSegment(value: true, label: Text('Tileset')),
-          ], selected: {
-            _tileset
-          }, onSelectionChanged: _isCreating ? null : (v) => setState(() => _tileset = v.first)),
-          const SizedBox(height: 16),
-          TextFormField(
-            key: const ValueKey('project-tab-new-name'),
-            controller: _nameController,
-            autofocus: !widget.showDragHandle,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: strings.projectName,
-              prefixIcon: const Icon(Icons.edit_outlined),
-              border: const OutlineInputBorder(),
-            ),
-            validator: (value) => value == null || value.trim().isEmpty
-                ? strings.projectNameRequired
-                : _tileset && value.trim().length > 100
-                    ? 'Use a name up to 100 characters'
-                    : null,
-          ),
-          const SizedBox(height: 16),
-          if (_tileset) ...[
-            TilesetGeometryPicker(
-              perspective: _perspective,
-              size: _tilesetSize,
-              onPerspective: (value) => setState(() => _perspective = value),
-              onSize: (value) => setState(() => _tilesetSize = value),
-            ),
-          ],
-          if (!_tileset) ...[
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final size in const [16, 32, 64, 128])
-                  ActionChip(
-                    label: Text('$size × $size'),
-                    onPressed: () => _applySize(size),
-                  ),
-              ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (kTilesetGeneratorEnabled) ...[
+              PvProjectTypeSwitch(
+                isTileset: _tileset,
+                onChanged: _isCreating ? null : (v) => setState(() => _tileset = v),
+              ),
+              const SizedBox(height: 16),
+            ],
+            TextFormField(
+              key: const ValueKey('project-tab-new-name'),
+              controller: _nameController,
+              autofocus: !widget.showDragHandle,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: strings.projectName,
+                prefixIcon: const Icon(Icons.edit_outlined),
+                border: const OutlineInputBorder(),
+              ),
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? strings.projectNameRequired
+                  : _tileset && value.trim().length > 100
+                      ? 'Use a name up to 100 characters'
+                      : null,
             ),
             const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    key: const ValueKey('project-tab-new-width'),
-                    controller: _widthController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      labelText: strings.width,
-                      border: const OutlineInputBorder(),
+            if (_tileset) ...[
+              TilesetGeometryPicker(
+                perspective: _perspective,
+                size: _tilesetSize,
+                onPerspective: (value) => setState(() => _perspective = value),
+                onSize: (value) => setState(() => _tilesetSize = value),
+              ),
+            ],
+            if (!_tileset) ...[
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final size in const [16, 32, 64, 128])
+                    ActionChip(
+                      label: Text('$size × $size'),
+                      onPressed: () => _applySize(size),
                     ),
-                    validator: (value) => validateDimension(value, true),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    key: const ValueKey('project-tab-new-height'),
-                    controller: _heightController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      labelText: strings.height,
-                      border: const OutlineInputBorder(),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      key: const ValueKey('project-tab-new-width'),
+                      controller: _widthController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        labelText: strings.width,
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) => validateDimension(value, true),
                     ),
-                    validator: (value) => validateDimension(value, false),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      key: const ValueKey('project-tab-new-height'),
+                      controller: _heightController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        labelText: strings.height,
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) => validateDimension(value, false),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 24),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.icon(
+                key: const ValueKey('project-tab-create'),
+                onPressed: _isCreating || !_geometryChosen ? null : _createProject,
+                icon: _isCreating
+                    ? const SizedBox.square(
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.add),
+                label: Text(strings.create),
+              ),
             ),
           ],
-          const SizedBox(height: 24),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FilledButton.icon(
-              key: const ValueKey('project-tab-create'),
-              onPressed: _isCreating || !_geometryChosen ? null : _createProject,
-              icon: _isCreating
-                  ? const SizedBox.square(
-                      dimension: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.add),
-              label: Text(strings.create),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

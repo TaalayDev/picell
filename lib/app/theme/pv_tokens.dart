@@ -124,8 +124,9 @@ class PvTokens extends ThemeExtension<PvTokens> {
 
   // ── Type ──────────────────────────────────────────────────────────────────
   /// Pixel display face for logos and hero headings. Use sparingly.
-  TextStyle pixelTitle({double size = 16, Color? color}) =>
-      GoogleFonts.pressStart2p(fontSize: size, height: 1.2, color: color ?? textPrimary);
+  TextStyle pixelTitle({double size = 16, Color? color}) => useDesignFonts
+      ? GoogleFonts.pressStart2p(fontSize: size, height: 1.2, color: color ?? textPrimary)
+      : TextStyle(fontSize: size, height: 1.2, fontWeight: FontWeight.w900, color: color ?? textPrimary);
 
   /// Pixel label face for section headers, buttons and badges.
   /// Tests run offline, where google_fonts cannot download the design fonts, and turn this off.

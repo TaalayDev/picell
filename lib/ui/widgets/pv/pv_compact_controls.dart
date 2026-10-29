@@ -209,7 +209,7 @@ class PvTextField extends StatelessWidget {
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       decoration: InputDecoration(
-        isDense: true,
+        isDense: !single,
         filled: true,
         fillColor: pv.background,
         // A never-floating label reads like a placeholder but also names the field for assistive tech.
@@ -229,7 +229,7 @@ class PvTextField extends StatelessWidget {
                 ]),
               )
             : null,
-        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+        prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: single ? height : 0),
         suffixIcon: suffix,
         suffixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0, maxHeight: height),
         border: border(pv.divider),
@@ -300,6 +300,148 @@ class PvStepper extends StatelessWidget {
         ),
         step(Icons.add, increaseTooltip ?? 'Increase', value < max ? value + 1 : null),
       ]),
+    );
+  }
+}
+
+/// Two-option mode switch for choosing between Pixel Art and Tileset projects.
+class PvProjectTypeSwitch extends StatelessWidget {
+  const PvProjectTypeSwitch({
+    super.key,
+    required this.isTileset,
+    required this.onChanged,
+  });
+
+  final bool isTileset;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final pv = context.pv;
+    final outerRadius = pv.cardRadius.clamp(8.0, 14.0);
+    final innerRadius = (outerRadius - 3).clamp(6.0, 11.0);
+
+    Widget option({
+      required bool tileset,
+      required IconData icon,
+      required String title,
+      required String subtitle,
+    }) {
+      final selected = isTileset == tileset;
+      final enabled = onChanged != null;
+      return Expanded(
+        child: Semantics(
+          button: true,
+          selected: selected,
+          enabled: enabled,
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              key: ValueKey(tileset ? 'project-type-tileset' : 'project-type-pixel-art'),
+              borderRadius: BorderRadius.circular(innerRadius),
+              onTap: enabled ? () => onChanged!(tileset) : null,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: selected ? pv.tint(pv.primary, pv.isDark ? 0.18 : 0.12) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(innerRadius),
+                  border: Border.all(
+                    color: selected ? pv.primary : Colors.transparent,
+                    width: 1.5,
+                  ),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: pv.primary.withValues(alpha: 0.16),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.easeOutCubic,
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        gradient: selected ? pv.gradient : null,
+                        color: selected ? null : pv.surfaceHigh,
+                        borderRadius: BorderRadius.circular((innerRadius - 2).clamp(4.0, 8.0)),
+                        border: selected ? null : Border.all(color: pv.divider),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 15,
+                        color: selected ? pv.ink : pv.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: pv.body(
+                              size: 12,
+                              weight: FontWeight.w700,
+                              color: selected ? pv.textPrimary : pv.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: pv.body(
+                              size: 10,
+                              weight: FontWeight.w500,
+                              color: pv.textSecondary.withValues(alpha: selected ? 0.9 : 0.65),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: pv.background,
+        borderRadius: BorderRadius.circular(outerRadius),
+        border: Border.all(color: pv.divider),
+      ),
+      child: Row(
+        children: [
+          option(
+            tileset: false,
+            icon: Icons.brush_rounded,
+            title: 'Pixel Art',
+            subtitle: 'Sprites & animations',
+          ),
+          const SizedBox(width: 6),
+          option(
+            tileset: true,
+            icon: Icons.grid_view_rounded,
+            title: 'Tileset',
+            subtitle: 'Connected terrain',
+          ),
+        ],
+      ),
     );
   }
 }

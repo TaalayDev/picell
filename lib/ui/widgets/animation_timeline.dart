@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
@@ -46,6 +47,13 @@ class AnimationTimeline extends HookWidget {
     required this.onSelectedStateChanged,
     this.onOpenRig,
     this.rigLocked = false,
+    this.selectedFrameIds,
+    this.onSelectFrames,
+    this.onSelectAllFrames,
+    this.onInteract,
+    this.onRenameFrame,
+    this.onReverseFrames,
+    this.onMoveFramesToState,
   });
 
   final int width;
@@ -83,53 +91,97 @@ class AnimationTimeline extends HookWidget {
   /// Marks the rig button as a Pro feature.
   final bool rigLocked;
 
+  /// Frames selected for bulk actions. Defaults to only [selectedFrameId].
+  final Set<int>? selectedFrameIds;
+
+  /// Handles a frame click with its modifiers (Ctrl/Cmd-click or long-press
+  /// toggles, Shift-click extends a range). Without it the timeline only
+  /// single-selects through [onSelectFrame].
+  final void Function(int frameId, {required bool toggle, required bool extendRange})? onSelectFrames;
+
+  /// Ctrl/Cmd+A inside the timeline.
+  final VoidCallback? onSelectAllFrames;
+
+  /// Any pointer down inside the timeline.
+  final VoidCallback? onInteract;
+
+  // Frame context menu actions; each item is hidden when its callback is null.
+  final void Function(int frameId, String name)? onRenameFrame;
+  final void Function(Set<int> frameIds)? onReverseFrames;
+
+  /// Moves the frames to the animation, or copies them there when `copy`.
+  final void Function(Set<int> frameIds, int stateId, bool copy)? onMoveFramesToState;
+
   @override
   Widget build(BuildContext context) {
     final activeFrame = frames.firstWhere((f) => f.id == selectedFrameId);
-    final selectedIds = useState<Set<int>>({selectedFrameId});
-    final anchor = useRef<int?>(selectedFrameId);
     final stateFrameIds =
         frames.where((frame) => frame.stateId == activeFrame.stateId).map((frame) => frame.id).toSet();
-    var effectiveSelection = selectedIds.value.intersection(stateFrameIds);
+    var effectiveSelection = (selectedFrameIds ?? const {}).intersection(stateFrameIds);
     if (!effectiveSelection.contains(selectedFrameId)) {
       effectiveSelection = {selectedFrameId};
     }
 
-    void selectFrame(int frameId, List<AnimationFrame> orderedFrames) {
+    // [forceToggle] is the touch equivalent of Ctrl/Cmd-click (long-press).
+    // Modifiers only apply within the active animation; a frame of another
+    // animation is always selected alone.
+    void selectFrame(int frameId, {bool forceToggle = false}) {
+      final onSelectFrames = this.onSelectFrames;
+      if (onSelectFrames == null) {
+        onSelectFrame(frameId);
+        return;
+      }
       final clickedFrame = frames.firstWhere((frame) => frame.id == frameId);
       final sameState = clickedFrame.stateId == activeFrame.stateId;
-      final result = updateMultiSelection(
-        orderedItems: orderedFrames.map((frame) => frame.id).toList(),
-        selected: sameState ? effectiveSelection : {frameId},
-        active: sameState ? selectedFrameId : frameId,
-        clicked: frameId,
-        anchor: sameState ? anchor.value : frameId,
-        toggle: sameState && isMultiSelectTogglePressed,
+      onSelectFrames(
+        frameId,
+        toggle: sameState && (forceToggle || isMultiSelectTogglePressed),
         extendRange: sameState && isRangeSelectPressed,
       );
-      selectedIds.value = result.selected;
-      anchor.value = result.anchor;
-      onSelectFrame(result.active);
     }
 
     final textController = useTextEditingController(
       text: activeFrame.duration.toString(),
     );
+    final durationFocus = useFocusNode();
+    // Show the active frame's duration unless the user is typing one.
+    useEffect(() {
+      if (!durationFocus.hasFocus) textController.text = '${activeFrame.duration}';
+      return null;
+    }, [activeFrame.id, activeFrame.duration]);
+
+    // The duration applies to every selected frame on Enter or when the field
+    // loses focus, as one undo step; invalid input reverts.
+    void commitDuration() {
+      final duration = int.tryParse(textController.text);
+      if (duration == null || duration <= 0) {
+        textController.text = '${activeFrame.duration}';
+        return;
+      }
+      onDurationChanged(effectiveSelection, duration);
+    }
+
+    final commitRef = useRef(commitDuration)..value = commitDuration;
+    useEffect(() {
+      void onFocusChange() {
+        if (!durationFocus.hasFocus) commitRef.value();
+      }
+
+      durationFocus.addListener(onFocusChange);
+      return () => durationFocus.removeListener(onFocusChange);
+    }, [durationFocus]);
 
     return PanelSelectAllRegion(
-      onSelectAll: () {
-        selectedIds.value = stateFrameIds;
-        anchor.value = selectedFrameId;
-      },
+      onSelectAll: () => onSelectAllFrames?.call(),
+      onPointerDown: onInteract,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildMainControlBar(context, textController, effectiveSelection),
+          _buildMainControlBar(context, textController, durationFocus, commitDuration, effectiveSelection),
           AppExpandable(
             expand: isExpanded,
             child: _buildExpandedTimeline(
               context,
-              textController,
               effectiveSelection,
               selectFrame,
             ),
@@ -142,6 +194,8 @@ class AnimationTimeline extends HookWidget {
   Widget _buildMainControlBar(
     BuildContext context,
     TextEditingController textController,
+    FocusNode durationFocus,
+    VoidCallback commitDuration,
     Set<int> selectedFrameIds,
   ) {
     return Container(
@@ -227,7 +281,9 @@ class AnimationTimeline extends HookWidget {
             SizedBox(
               width: 64,
               child: TextFormField(
+                key: const ValueKey('frame-duration-field'),
                 controller: textController,
+                focusNode: durationFocus,
                 decoration: const InputDecoration(
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 8,
@@ -241,12 +297,8 @@ class AnimationTimeline extends HookWidget {
                 ),
                 style: const TextStyle(fontSize: 12),
                 keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  final duration = int.tryParse(value);
-                  if (duration != null) {
-                    onDurationChanged(selectedFrameIds, duration);
-                  }
-                },
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onFieldSubmitted: (_) => commitDuration(),
               ),
             ),
             const SizedBox(width: 8),
@@ -297,9 +349,8 @@ class AnimationTimeline extends HookWidget {
 
   Widget _buildExpandedTimeline(
     BuildContext context,
-    TextEditingController controller,
     Set<int> selectedFrameIds,
-    void Function(int, List<AnimationFrame>) selectFrame,
+    void Function(int, {bool forceToggle}) selectFrame,
   ) {
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -318,14 +369,19 @@ class AnimationTimeline extends HookWidget {
         selectedFrameIds: selectedFrameIds,
         width: width,
         height: height,
-        onSelectFrame: (frameId, orderedFrames) {
-          selectFrame(frameId, orderedFrames);
-
-          final index = frames.indexWhere((e) => e.id == frameId);
-          controller.text = frames[index].duration.toString();
-        },
+        onSelectFrame: (frameId, {bool forceToggle = false}) => selectFrame(frameId, forceToggle: forceToggle),
         copyFrame: copyFrame,
         onReorderFrame: onFrameReordered,
+        menu: _FrameMenuActions(
+          states: states,
+          onDuplicate: copyFrame,
+          onDelete: onDeleteFrame,
+          onDurationChanged: onDurationChanged,
+          onToggle: onSelectFrames == null ? null : (frameId) => selectFrame(frameId, forceToggle: true),
+          onRename: onRenameFrame,
+          onReverse: onReverseFrames,
+          onMoveToState: onMoveFramesToState,
+        ),
       ),
     );
   }
@@ -392,6 +448,7 @@ class _StatesPanel extends StatelessWidget {
     required this.onSelectFrame,
     required this.copyFrame,
     required this.onReorderFrame,
+    required this.menu,
   });
 
   final List<AnimationStateModel> states;
@@ -406,9 +463,10 @@ class _StatesPanel extends StatelessWidget {
   final Function(int) onDeleteState;
   final Function(int, String) onRenameState;
   final Function(int) onSelectedStateChanged;
-  final void Function(int, List<AnimationFrame>) onSelectFrame;
+  final void Function(int, {bool forceToggle}) onSelectFrame;
   final Function(Set<int>) copyFrame;
   final void Function(Set<int> draggedIds, int targetId) onReorderFrame;
+  final _FrameMenuActions menu;
 
   @override
   Widget build(BuildContext context) {
@@ -471,13 +529,14 @@ class _StatesPanel extends StatelessWidget {
                             .toList(),
                         selectedFrameId: selectedFrameId,
                         selectedFrameIds: selectedFrameIds,
-                        onSelectFrame: (frameId) {
+                        onSelectFrame: (frameId, {bool forceToggle = false}) {
                           if (state.id != selectedStateId) {
                             onSelectedStateChanged(state.id);
                           }
-                          onSelectFrame(frameId, frames.where((f) => f.stateId == state.id).toList());
+                          onSelectFrame(frameId, forceToggle: forceToggle);
                         },
                         onReorderFrame: onReorderFrame,
+                        menu: menu,
                         width: width,
                         height: height,
                       ),
@@ -546,13 +605,37 @@ class _StatesPanel extends StatelessWidget {
   }
 }
 
-class _FramesGrid extends StatelessWidget {
+/// What the frame context menu can do. A null callback hides its item.
+class _FrameMenuActions {
+  const _FrameMenuActions({
+    required this.states,
+    required this.onDuplicate,
+    required this.onDelete,
+    required this.onDurationChanged,
+    this.onToggle,
+    this.onRename,
+    this.onReverse,
+    this.onMoveToState,
+  });
+
+  final List<AnimationStateModel> states;
+  final void Function(Set<int> frameIds) onDuplicate;
+  final void Function(Set<int> frameIds) onDelete;
+  final void Function(Set<int> frameIds, int duration) onDurationChanged;
+  final void Function(int frameId)? onToggle;
+  final void Function(int frameId, String name)? onRename;
+  final void Function(Set<int> frameIds)? onReverse;
+  final void Function(Set<int> frameIds, int stateId, bool copy)? onMoveToState;
+}
+
+class _FramesGrid extends StatefulWidget {
   const _FramesGrid({
     required this.frames,
     required this.selectedFrameId,
     required this.selectedFrameIds,
     required this.onSelectFrame,
     required this.onReorderFrame,
+    required this.menu,
     required this.width,
     required this.height,
   });
@@ -560,18 +643,35 @@ class _FramesGrid extends StatelessWidget {
   final List<AnimationFrame> frames;
   final int selectedFrameId;
   final Set<int> selectedFrameIds;
-  final Function(int) onSelectFrame;
+  final void Function(int frameId, {bool forceToggle}) onSelectFrame;
   final void Function(Set<int> draggedIds, int targetId) onReorderFrame;
+  final _FrameMenuActions menu;
   final int width;
   final int height;
 
   @override
+  State<_FramesGrid> createState() => _FramesGridState();
+}
+
+class _FramesGridState extends State<_FramesGrid> {
+  // Frames being dragged; all of them fade, not only the one under the
+  // pointer.
+  Set<int> _dragging = const {};
+
+  void _setDragging(Set<int> ids) {
+    if (mounted) setState(() => _dragging = ids);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final frames = widget.frames;
     if (frames.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final aspectRatio = (width > 0 && height > 0) ? (width / height).clamp(0.5, 2.0) : 1.0;
+    final aspectRatio = (widget.width > 0 && widget.height > 0) ? (widget.width / widget.height).clamp(0.5, 2.0) : 1.0;
+    final frameIds = {for (final frame in frames) frame.id};
+    final primary = Theme.of(context).colorScheme.primary;
 
     return ListView.separated(
       scrollDirection: Axis.horizontal,
@@ -580,61 +680,113 @@ class _FramesGrid extends StatelessWidget {
       separatorBuilder: (context, index) => const SizedBox(width: 6),
       itemBuilder: (context, index) {
         final frame = frames[index];
-        final isSelected = selectedFrameIds.contains(frame.id);
-        final isActive = frame.id == selectedFrameId;
+        final isSelected = widget.selectedFrameIds.contains(frame.id);
+        final isActive = frame.id == widget.selectedFrameId;
 
-        final thumbnail = _FrameThumbnail(
-          frame: frame,
-          isSelected: isSelected,
-          isActive: isActive,
-          width: width,
-          height: height,
+        final thumbnail = Opacity(
+          opacity: _dragging.contains(frame.id) ? 0.3 : 1,
+          child: _FrameThumbnail(
+            frame: frame,
+            isSelected: isSelected,
+            isActive: isActive,
+            width: widget.width,
+            height: widget.height,
+          ),
         );
 
         return AspectRatio(
           aspectRatio: aspectRatio,
           child: DragTarget<Set<int>>(
             key: ValueKey(frame.id),
-            onWillAcceptWithDetails: (details) => !details.data.contains(frame.id),
-            onAcceptWithDetails: (details) => onReorderFrame(details.data, frame.id),
+            // Only frames of this animation can be dropped here.
+            onWillAcceptWithDetails: (details) =>
+                !details.data.contains(frame.id) && details.data.every(frameIds.contains),
+            onAcceptWithDetails: (details) => widget.onReorderFrame(details.data, frame.id),
             builder: (context, candidates, _) {
-              final draggedIds = isSelected ? selectedFrameIds : {frame.id};
+              final draggedIds = isSelected ? widget.selectedFrameIds : {frame.id};
+              // The block lands after this frame when it comes from before it,
+              // otherwise before it (see reorderFramesByIds).
+              final hovering = candidates.whereType<Set<int>>().firstOrNull;
+              bool? insertAfter;
+              if (hovering != null) {
+                final first = frames.indexWhere((f) => hovering.contains(f.id));
+                insertAfter = first >= 0 && first < index;
+              }
               return Draggable<Set<int>>(
                 data: draggedIds,
-                onDragStarted: isSelected ? null : () => onSelectFrame(frame.id),
+                onDragStarted: () {
+                  if (!isSelected) widget.onSelectFrame(frame.id);
+                  _setDragging(draggedIds);
+                },
+                onDragEnd: (_) => _setDragging(const {}),
                 feedback: SizedBox(
                   width: (36 * aspectRatio).clamp(24.0, 72.0),
                   height: 36,
                   child: Material(
                     color: Colors.transparent,
-                    child: _FrameThumbnail(
-                      frame: frame,
-                      isSelected: true,
-                      isActive: true,
-                      width: width,
-                      height: height,
+                    child: Badge(
+                      key: const ValueKey('dragged-frame-count'),
+                      isLabelVisible: draggedIds.length > 1,
+                      label: Text('${draggedIds.length}'),
+                      child: _FrameThumbnail(
+                        frame: frame,
+                        isSelected: true,
+                        isActive: true,
+                        width: widget.width,
+                        height: widget.height,
+                      ),
                     ),
                   ),
                 ),
-                childWhenDragging: Opacity(opacity: 0.3, child: thumbnail),
+                childWhenDragging: Opacity(
+                  opacity: 0.3,
+                  child: _FrameThumbnail(
+                    frame: frame,
+                    isSelected: isSelected,
+                    isActive: isActive,
+                    width: widget.width,
+                    height: widget.height,
+                  ),
+                ),
                 child: Tooltip(
                   message: '${frame.name.isNotEmpty ? frame.name : 'Frame ${index + 1}'} (${frame.duration}ms)',
                   waitDuration: const Duration(milliseconds: 600),
-                  child: InkWell(
-                    onTap: () => onSelectFrame(frame.id),
-                    borderRadius: BorderRadius.circular(4),
-                    child: candidates.isNotEmpty
-                        ? DecoratedBox(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 2,
+                  child: Builder(
+                    builder: (itemContext) => GestureDetector(
+                      onSecondaryTapUp: (details) => _openMenu(itemContext, frame, details.globalPosition),
+                      child: InkWell(
+                        onTap: () => widget.onSelectFrame(frame.id),
+                        // Touch has no right-click: long-press opens the menu,
+                        // which also offers adding the frame to the selection.
+                        onLongPress: () {
+                          final box = itemContext.findRenderObject() as RenderBox;
+                          _openMenu(itemContext, frame, box.localToGlobal(box.size.center(Offset.zero)));
+                        },
+                        borderRadius: BorderRadius.circular(4),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          fit: StackFit.expand,
+                          children: [
+                            thumbnail,
+                            if (insertAfter != null)
+                              Positioned(
+                                key: const ValueKey('frame-insert-marker'),
+                                top: 0,
+                                bottom: 0,
+                                left: insertAfter ? null : -4.5,
+                                right: insertAfter ? -4.5 : null,
+                                width: 3,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: primary,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
                               ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: thumbnail,
-                          )
-                        : thumbnail,
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -643,6 +795,110 @@ class _FramesGrid extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Shows the frame menu at [position]. Actions apply to the selection when
+  /// [frame] is part of it, otherwise to [frame] alone.
+  Future<void> _openMenu(BuildContext context, AnimationFrame frame, Offset position) async {
+    final menu = widget.menu;
+    final isSelected = widget.selectedFrameIds.contains(frame.id);
+    final ids = isSelected ? widget.selectedFrameIds : {frame.id};
+    final count = ids.length;
+    final s = Strings.of(context);
+    // Frames of another animation can't join this selection.
+    final inActiveAnimation = widget.frames.any((f) => f.id == widget.selectedFrameId);
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    PopupMenuItem<VoidCallback> item(String key, IconData icon, String label, VoidCallback action) {
+      return PopupMenuItem<VoidCallback>(
+        key: ValueKey('frame-menu-$key'),
+        value: action,
+        height: 36,
+        child: Row(
+          children: [
+            Icon(icon, size: 16),
+            const SizedBox(width: 10),
+            Text(label, style: const TextStyle(fontSize: 13)),
+          ],
+        ),
+      );
+    }
+
+    final otherStates = menu.states.where((state) => state.id != frame.stateId).toList();
+    final action = await showMenu<VoidCallback>(
+      context: context,
+      position: RelativeRect.fromRect(position & const Size(1, 1), Offset.zero & overlay.size),
+      items: [
+        if (menu.onToggle != null && inActiveAnimation && !isSelected)
+          item('select', Icons.add_box_outlined, 'Add to selection', () => menu.onToggle!(frame.id)),
+        if (menu.onToggle != null && isSelected && count > 1)
+          item('deselect', Icons.indeterminate_check_box_outlined, 'Remove from selection',
+              () => menu.onToggle!(frame.id)),
+        item('duplicate', Feather.copy, count > 1 ? 'Duplicate $count frames' : s.copyFrame,
+            () => menu.onDuplicate(ids)),
+        item('duration', Icons.timer_outlined, 'Set duration…', () async {
+          final value = await _promptText(
+            context,
+            title: count > 1 ? 'Duration of $count frames (ms)' : 'Duration (ms)',
+            initial: '${frame.duration}',
+            numeric: true,
+          );
+          final duration = int.tryParse(value ?? '');
+          if (duration != null && duration > 0) menu.onDurationChanged(ids, duration);
+        }),
+        if (menu.onRename != null && count == 1)
+          item('rename', Icons.edit_outlined, 'Rename…', () async {
+            final name = await _promptText(context, title: 'Rename frame', initial: frame.name);
+            if (name != null && name.trim().isNotEmpty) menu.onRename!(frame.id, name.trim());
+          }),
+        if (menu.onReverse != null && count > 1)
+          item('reverse', Icons.swap_horiz, 'Reverse order', () => menu.onReverse!(ids)),
+        if (menu.onMoveToState != null)
+          for (final state in otherStates) ...[
+            item('move-${state.id}', Icons.drive_file_move_outline, 'Move to ${state.name}',
+                () => menu.onMoveToState!(ids, state.id, false)),
+            item('copy-${state.id}', Icons.copy_all_outlined, 'Copy to ${state.name}',
+                () => menu.onMoveToState!(ids, state.id, true)),
+          ],
+        const PopupMenuDivider(),
+        item('delete', Feather.trash, count > 1 ? 'Delete $count frames' : s.deleteFrame, () => menu.onDelete(ids)),
+      ],
+    );
+    action?.call();
+  }
+
+  Future<String?> _promptText(
+    BuildContext context, {
+    required String title,
+    required String initial,
+    bool numeric = false,
+  }) {
+    final controller = TextEditingController(text: initial);
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: const TextStyle(fontSize: 16)),
+        content: TextField(
+          key: const ValueKey('frame-menu-input'),
+          controller: controller,
+          autofocus: true,
+          keyboardType: numeric ? TextInputType.number : TextInputType.text,
+          inputFormatters: numeric ? [FilteringTextInputFormatter.digitsOnly] : null,
+          onSubmitted: (value) => Navigator.of(context).pop(value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(Strings.of(context).cancel),
+          ),
+          TextButton(
+            key: const ValueKey('frame-menu-confirm'),
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    ).whenComplete(controller.dispose);
   }
 }
 

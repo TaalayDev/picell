@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:picell/pixel/tileset/tileset_generator.dart';
 import 'package:picell/ui/screens/tileset_generator/tileset_generator_screen.dart';
 import 'package:picell/ui/screens/tileset_generator/tileset_collection_screen.dart';
+import 'package:picell/ui/widgets/pv/pv_compact_controls.dart';
 import 'package:picell/pixel/tileset/tileset_canvas.dart';
 import 'package:picell/pixel/tileset/tileset_collection.dart';
 
@@ -167,6 +168,17 @@ void main() {
     await tester.pumpAndSettle();
     await tester.pumpAndSettle();
     await capture('pv_tileset_recipe');
+    for (final field in find.byType(PvTextField).evaluate()) {
+      final widget = field.widget as PvTextField;
+      if (widget.maxLines == 1) {
+        final decorator = find.descendant(of: find.byWidget(widget), matching: find.byType(InputDecorator));
+        // InputDecorator's last child RenderBox is the painted border/fill container.
+        final render = tester.renderObject(decorator);
+        RenderBox? container;
+        render.visitChildren((child) => container = child as RenderBox);
+        expect(container!.size.height, widget.height);
+      }
+    }
     expect(tester.takeException(), isNull);
   });
 }

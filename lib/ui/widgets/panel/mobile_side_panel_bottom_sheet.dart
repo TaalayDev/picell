@@ -5,6 +5,7 @@ import '../../../data/models/layer.dart';
 import '../../../l10n/strings.dart';
 import '../../../pixel/effects/effects.dart';
 import '../../../pixel/pixel_canvas_state.dart';
+import '../../../pixel/providers/editor_selection_provider.dart';
 import '../../../pixel/providers/pixel_canvas_provider.dart';
 import '../app_icon.dart';
 import '../dialogs/layer_template_dialog.dart';
@@ -445,6 +446,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                             },
                             onLayersOpacityChanged: widget.notifier.setLayersOpacity,
                             onLayersTransformed: widget.notifier.transformLayers,
+                            onLayersMerged: widget.notifier.mergeLayers,
                             onLayerEffectsChanged: widget.notifier.updateLayer,
                             onLayerToTemplate: (layer) {
                               Navigator.of(context).pop();
@@ -458,6 +460,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
                             },
                             onAutoSelect: widget.notifier.autoSelectLayer,
                             onSelectionChanged: widget.onLayerSelectionChanged,
+                            onInteract: () => widget.notifier.setSelectionTarget(EditorSelectionTarget.layers),
                           ),
                         )
                       else if (currentLayer != null)

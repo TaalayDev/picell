@@ -31,7 +31,15 @@ class ShortcutsWrapper extends StatefulWidget {
     this.onLayerChanged,
     this.onColorPicker,
     this.onNewLayer,
-    this.onDeleteLayer,
+    this.onDelete,
+    this.onSelectAdjacentLayer,
+    this.onMoveLayers,
+    this.onMergeLayers,
+    this.onPreviousFrame,
+    this.onNextFrame,
+    this.onExtendFrameSelection,
+    this.onMoveFrames,
+    this.onNewFrame,
     this.onExport,
     this.onImport,
     this.onSelectAll,
@@ -87,7 +95,21 @@ class ShortcutsWrapper extends StatefulWidget {
   // Layer actions
   final Function(int)? onLayerChanged;
   final VoidCallback? onNewLayer;
-  final VoidCallback? onDeleteLayer;
+  final void Function(int delta)? onSelectAdjacentLayer;
+  final void Function(int delta)? onMoveLayers;
+
+  /// Ctrl+Shift+E: merges the selected layers, or the active one down.
+  final VoidCallback? onMergeLayers;
+
+  /// Delete / Backspace: deletes whatever the user is working on.
+  final VoidCallback? onDelete;
+
+  // Frame actions
+  final VoidCallback? onPreviousFrame;
+  final VoidCallback? onNextFrame;
+  final void Function(int delta)? onExtendFrameSelection;
+  final void Function(int delta)? onMoveFrames;
+  final VoidCallback? onNewFrame;
 
   // File actions
   final VoidCallback? onExport;
@@ -268,7 +290,11 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       LogicalKeySet(LogicalKeyboardKey.minus): const ZoomOutIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.minus): const ZoomOutIntent(),
       LogicalKeySet(LogicalKeyboardKey.digit0): const ZoomFitIntent(),
-      LogicalKeySet(LogicalKeyboardKey.digit1): const Zoom100Intent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.digit0):
+          const ZoomFitIntent(),
+      // Plain 1-9 pick layers.
+      LogicalKeySet(controlKey, LogicalKeyboardKey.digit1):
+          const Zoom100Intent(),
 
       // View toggles
       LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyT):
@@ -301,7 +327,35 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       // Layer management
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyN):
           const NewLayerIntent(),
-      LogicalKeySet(LogicalKeyboardKey.delete): const DeleteLayerIntent(),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.bracketLeft):
+          const LayerStepIntent(-1),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.bracketRight):
+          const LayerStepIntent(1),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.bracketLeft):
+          const MoveLayersIntent(-1),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.bracketRight):
+          const MoveLayersIntent(1),
+      LogicalKeySet(
+              controlKey, LogicalKeyboardKey.shift, LogicalKeyboardKey.keyE):
+          const MergeLayersIntent(),
+
+      // Frames
+      LogicalKeySet(LogicalKeyboardKey.comma): const FrameStepIntent(-1),
+      LogicalKeySet(LogicalKeyboardKey.period): const FrameStepIntent(1),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.comma):
+          const ExtendFrameSelectionIntent(-1),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.period):
+          const ExtendFrameSelectionIntent(1),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.arrowLeft):
+          const MoveFramesIntent(-1),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.arrowRight):
+          const MoveFramesIntent(1),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyN):
+          const NewFrameIntent(),
+
+      // Deletes the selected pixels, layers or frames
+      LogicalKeySet(LogicalKeyboardKey.delete): const DeleteIntent(),
+      LogicalKeySet(LogicalKeyboardKey.backspace): const DeleteIntent(),
 
       // Selection
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyA):
@@ -356,10 +410,10 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       ImportIntent: CallbackAction<ImportIntent>(
         onInvoke: (intent) => widget.onImport?.call(),
       ),
-      ToolIntent: CallbackAction<ToolIntent>(
+      ToolIntent: _OutsideTextAction<ToolIntent>(
         onInvoke: (intent) => widget.onToolChanged?.call(intent.tool),
       ),
-      BrushSizeIntent: CallbackAction<BrushSizeIntent>(
+      BrushSizeIntent: _OutsideTextAction<BrushSizeIntent>(
         onInvoke: (intent) {
           final newSize = (widget.currentBrushSize + intent.delta)
               .clamp(1, widget.maxBrushSize);
@@ -367,37 +421,37 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           return null;
         },
       ),
-      ZoomInIntent: CallbackAction<ZoomInIntent>(
+      ZoomInIntent: _OutsideTextAction<ZoomInIntent>(
         onInvoke: (intent) => widget.onZoomIn?.call(),
       ),
-      ZoomOutIntent: CallbackAction<ZoomOutIntent>(
+      ZoomOutIntent: _OutsideTextAction<ZoomOutIntent>(
         onInvoke: (intent) => widget.onZoomOut?.call(),
       ),
-      ZoomFitIntent: CallbackAction<ZoomFitIntent>(
+      ZoomFitIntent: _OutsideTextAction<ZoomFitIntent>(
         onInvoke: (intent) => widget.onZoomFit?.call(),
       ),
       Zoom100Intent: CallbackAction<Zoom100Intent>(
         onInvoke: (intent) => widget.onZoom100?.call(),
       ),
-      ToggleTileModeIntent: CallbackAction<ToggleTileModeIntent>(
+      ToggleTileModeIntent: _OutsideTextAction<ToggleTileModeIntent>(
         onInvoke: (intent) => widget.onToggleTileMode?.call(),
       ),
       ToggleGridIntent: CallbackAction<ToggleGridIntent>(
         onInvoke: (intent) => widget.onToggleGrid?.call(),
       ),
-      ToggleOnionSkinIntent: CallbackAction<ToggleOnionSkinIntent>(
+      ToggleOnionSkinIntent: _OutsideTextAction<ToggleOnionSkinIntent>(
         onInvoke: (intent) => widget.onToggleOnionSkin?.call(),
       ),
-      SwapColorsIntent: CallbackAction<SwapColorsIntent>(
+      SwapColorsIntent: _OutsideTextAction<SwapColorsIntent>(
         onInvoke: (intent) => widget.onSwapColors?.call(),
       ),
-      DefaultColorsIntent: CallbackAction<DefaultColorsIntent>(
+      DefaultColorsIntent: _OutsideTextAction<DefaultColorsIntent>(
         onInvoke: (intent) => widget.onDefaultColors?.call(),
       ),
-      ColorPickerIntent: CallbackAction<ColorPickerIntent>(
+      ColorPickerIntent: _OutsideTextAction<ColorPickerIntent>(
         onInvoke: (intent) => widget.onColorPicker?.call(),
       ),
-      ToggleUIIntent: CallbackAction<ToggleUIIntent>(
+      ToggleUIIntent: _OutsideTextAction<ToggleUIIntent>(
         onInvoke: (intent) => widget.onToggleUI?.call(),
       ),
       PanStartIntent: CallbackAction<PanStartIntent>(
@@ -409,7 +463,7 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           return null;
         },
       ),
-      LayerIntent: CallbackAction<LayerIntent>(
+      LayerIntent: _OutsideTextAction<LayerIntent>(
         onInvoke: (intent) {
           if (intent.layerIndex < widget.maxLayers) {
             widget.onLayerChanged?.call(intent.layerIndex);
@@ -420,22 +474,46 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       NewLayerIntent: CallbackAction<NewLayerIntent>(
         onInvoke: (intent) => widget.onNewLayer?.call(),
       ),
-      DeleteLayerIntent: CallbackAction<DeleteLayerIntent>(
-        onInvoke: (intent) => widget.onDeleteLayer?.call(),
+      DeleteIntent: _OutsideTextAction<DeleteIntent>(
+        onInvoke: (intent) => widget.onDelete?.call(),
       ),
-      SelectAllIntent: CallbackAction<SelectAllIntent>(
+      LayerStepIntent: _OutsideTextAction<LayerStepIntent>(
+        onInvoke: (intent) => widget.onSelectAdjacentLayer?.call(intent.delta),
+      ),
+      MoveLayersIntent: CallbackAction<MoveLayersIntent>(
+        onInvoke: (intent) => widget.onMoveLayers?.call(intent.delta),
+      ),
+      MergeLayersIntent: CallbackAction<MergeLayersIntent>(
+        onInvoke: (intent) => widget.onMergeLayers?.call(),
+      ),
+      FrameStepIntent: _OutsideTextAction<FrameStepIntent>(
+        onInvoke: (intent) => intent.delta < 0
+            ? widget.onPreviousFrame?.call()
+            : widget.onNextFrame?.call(),
+      ),
+      ExtendFrameSelectionIntent:
+          _OutsideTextAction<ExtendFrameSelectionIntent>(
+        onInvoke: (intent) => widget.onExtendFrameSelection?.call(intent.delta),
+      ),
+      MoveFramesIntent: _OutsideTextAction<MoveFramesIntent>(
+        onInvoke: (intent) => widget.onMoveFrames?.call(intent.delta),
+      ),
+      NewFrameIntent: _OutsideTextAction<NewFrameIntent>(
+        onInvoke: (intent) => widget.onNewFrame?.call(),
+      ),
+      SelectAllIntent: _OutsideTextAction<SelectAllIntent>(
         onInvoke: (intent) => widget.onSelectAll?.call(),
       ),
-      DeselectAllIntent: CallbackAction<DeselectAllIntent>(
+      DeselectAllIntent: _OutsideTextAction<DeselectAllIntent>(
         onInvoke: (intent) => widget.onDeselectAll?.call(),
       ),
-      CopyIntent: CallbackAction<CopyIntent>(
+      CopyIntent: _OutsideTextAction<CopyIntent>(
         onInvoke: (intent) => widget.onCopy?.call(),
       ),
-      PasteIntent: CallbackAction<PasteIntent>(
+      PasteIntent: _OutsideTextAction<PasteIntent>(
         onInvoke: (intent) => widget.onPaste?.call(),
       ),
-      CutIntent: CallbackAction<CutIntent>(
+      CutIntent: _OutsideTextAction<CutIntent>(
         onInvoke: (intent) => widget.onCut?.call(),
       ),
       DuplicateIntent: CallbackAction<DuplicateIntent>(
@@ -450,7 +528,7 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       ShrinkSelectionIntent: CallbackAction<ShrinkSelectionIntent>(
         onInvoke: (intent) => widget.onShrinkSelection?.call(),
       ),
-      TransformIntent: CallbackAction<TransformIntent>(
+      TransformIntent: _OutsideTextAction<TransformIntent>(
         onInvoke: (intent) => widget.onTransform?.call(intent.transform),
       ),
       CallbackIntent: CallbackAction<CallbackIntent>(
@@ -547,8 +625,55 @@ class NewLayerIntent extends Intent {
   const NewLayerIntent();
 }
 
-class DeleteLayerIntent extends Intent {
-  const DeleteLayerIntent();
+class DeleteIntent extends Intent {
+  const DeleteIntent();
+}
+
+class LayerStepIntent extends Intent {
+  const LayerStepIntent(this.delta);
+  final int delta;
+}
+
+class MoveLayersIntent extends Intent {
+  const MoveLayersIntent(this.delta);
+  final int delta;
+}
+
+class MergeLayersIntent extends Intent {
+  const MergeLayersIntent();
+}
+
+class FrameStepIntent extends Intent {
+  const FrameStepIntent(this.delta);
+  final int delta;
+}
+
+class ExtendFrameSelectionIntent extends Intent {
+  const ExtendFrameSelectionIntent(this.delta);
+  final int delta;
+}
+
+class MoveFramesIntent extends Intent {
+  const MoveFramesIntent(this.delta);
+  final int delta;
+}
+
+class NewFrameIntent extends Intent {
+  const NewFrameIntent();
+}
+
+/// A [CallbackAction] that stands down while a text field has focus, so keys
+/// like digits, letters, Backspace and Ctrl+C keep editing the text.
+class _OutsideTextAction<T extends Intent> extends CallbackAction<T> {
+  _OutsideTextAction({required super.onInvoke});
+
+  @override
+  bool isEnabled(T intent) {
+    final context = FocusManager.instance.primaryFocus?.context;
+    if (context == null) return true;
+    return context.widget is! EditableText &&
+        context.findAncestorWidgetOfExactType<EditableText>() == null;
+  }
 }
 
 class SelectAllIntent extends Intent {

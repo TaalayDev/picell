@@ -7,10 +7,15 @@ class PanelSelectAllRegion extends StatefulWidget {
   const PanelSelectAllRegion({
     super.key,
     required this.onSelectAll,
+    this.onPointerDown,
     required this.child,
   });
 
   final VoidCallback onSelectAll;
+
+  /// Called on every pointer down inside the panel, e.g. to mark it as the
+  /// editor area the user is working in.
+  final VoidCallback? onPointerDown;
   final Widget child;
 
   @override
@@ -41,6 +46,7 @@ class _PanelSelectAllRegionState extends State<PanelSelectAllRegion> {
           behavior: HitTestBehavior.translucent,
           onPointerDown: (_) {
             if (_focusNode.canRequestFocus) _focusNode.requestFocus();
+            widget.onPointerDown?.call();
           },
           child: widget.child,
         ),

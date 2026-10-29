@@ -23,6 +23,7 @@ import '../../providers/imported_palette_provider.dart';
 import '../../providers/progression_provider.dart';
 import '../../providers/project_upload_provider.dart';
 import '../../data/models/progression_model.dart';
+import '../effects/effect_target.dart';
 import '../effects/effects.dart';
 import '../services/animation_service.dart';
 import '../services/clipboard_placement_service.dart';
@@ -31,6 +32,7 @@ import '../services/editor_selection_service.dart';
 import '../services/effect_stack_service.dart';
 import '../services/frame_service.dart';
 import '../services/import_export_service.dart';
+import '../services/layer_merge_service.dart';
 import '../services/layer_service.dart';
 import '../services/pixel_transform_service.dart';
 import '../services/selection_service.dart';
@@ -40,6 +42,8 @@ import '../rig/rig_bake.dart';
 import '../rig/stable_layer_keys.dart';
 import '../pixel_canvas_state.dart';
 import '../tools.dart';
+import '../../ui/utils/multi_selection.dart';
+import 'editor_selection_provider.dart';
 
 part 'pixel_controller_provider.g.dart';
 
@@ -79,6 +83,8 @@ class PixelDrawController extends _$PixelDrawController {
   @override
   PixelCanvasState build(Project project) {
     _rigData = project.rigData;
+    // Keep the timeline selection alive for as long as the project is open.
+    ref.listen(editorSelectionProvider(project.id), (_, __) {});
     // Initialize services
     _layerService = LayerService(ref.read(projectRepo));
     _frameService = FrameService(ref.read(projectRepo));
@@ -627,9 +633,96 @@ class PixelDrawController extends _$PixelDrawController {
     _originalPixels = null;
   }
 
+  // Layers multi-selected in the layers panel (frame indices), reported by
+  // the canvas notifier. Selection edits act on all of them; see
+  // [_selectionTargetIndices].
+  List<int> _selectedLayerIndices = const [];
+
+  set selectedLayerIndices(List<int> indices) {
+    if (listEquals(indices, _selectedLayerIndices)) return;
+    // Transform caches hold one buffer per target layer; a different set of
+    // targets must recapture.
+    _detachSelectionFromLayer();
+    _selectedLayerIndices = List.unmodifiable(indices);
+  }
+
+  /// Layers selected in the layers panel (frame indices, sorted, active
+  /// included). Without a multi-selection this is only the active layer.
+  List<int> get selectedLayerIndices => EffectTarget.resolveSelection(
+        selected: _selectedLayerIndices,
+        activeIndex: state.currentLayerIndex,
+        layerCount: currentFrame.layers.length,
+      );
+
+  /// Frame indices of the layers a selection edit acts on, sorted bottom to
+  /// top. The active layer is always included when the multi-selection holds
+  /// it; other selected layers are skipped when locked, hidden or procedural.
+  /// Without a valid multi-selection this is only the active layer.
+  List<int> get _selectionTargetIndices {
+    final active = state.currentLayerIndex;
+    final layers = currentFrame.layers;
+    return [
+      for (final i in EffectTarget.resolveSelection(
+        selected: _selectedLayerIndices,
+        activeIndex: active,
+        layerCount: layers.length,
+      ))
+        if (i == active || _isSelectionEditable(layers[i])) i,
+    ];
+  }
+
+  bool _isSelectionEditable(Layer layer) =>
+      layer.isVisible && !layer.isLocked && !EffectStackService.isProcedural(layer) && layer.pixels.isNotEmpty;
+
+  /// The extra (non-active) layers a selection edit acts on.
+  List<int> get _extraSelectionTargets => [
+        for (final i in _selectionTargetIndices)
+          if (i != state.currentLayerIndex) i,
+      ];
+
+  /// Replaces the pixels of several current-frame layers in one state update
+  /// and persists them. Callers record undo with [_saveState] first.
+  void _updateLayersPixels(Map<int, Uint32List> pixelsByIndex) {
+    _dropStaleSelectionCapture();
+    final updated = List<Layer>.from(currentFrame.layers);
+    for (final MapEntry(key: index, value: pixels) in pixelsByIndex.entries) {
+      updated[index] = updated[index].copyWith(pixels: pixels);
+    }
+    _updateCurrentFrame(currentFrame.copyWith(layers: updated));
+    for (final index in pixelsByIndex.keys) {
+      _layerService.updateLayer(
+        projectId: project.id,
+        frameId: currentFrame.id,
+        layer: updated[index],
+      );
+    }
+    _updateProject();
+  }
+
+  /// The selected layers' pixels composited top-over-bottom, as they look.
+  Uint32List _mergedSelectionTargetPixels(List<int> targets) => PixelUtils.mergeLayersPixels(
+        width: state.width,
+        height: state.height,
+        layers: [for (final i in targets) currentFrame.layers[i]],
+      );
+
+  /// Clears the selected pixels from every target layer as one undo step.
+  void _clearSelectionOnLayers(SelectionRegion sel, List<int> targets) {
+    _saveState();
+    _updateLayersPixels({
+      for (final i in targets)
+        i: _selectionService.clearPixelsInSelection(sel, currentFrame.layers[i].pixels, state.width, state.height),
+    });
+  }
+
   void clearSelectionArea() {
     final sel = state.selectionState?.region;
     if (sel == null || currentLayer.pixels.isEmpty) return;
+    if (_extraSelectionTargets.isNotEmpty) {
+      _detachSelectionFromLayer();
+      _clearSelectionOnLayers(sel, _selectionTargetIndices);
+      return;
+    }
     _beginPixelUndo();
     final clearedPixels = _selectionService.clearPixelsInSelection(
       sel,
@@ -645,13 +738,25 @@ class PixelDrawController extends _$PixelDrawController {
   Uint32List? copySelectionPixels() {
     final sel = state.selectionState?.region;
     if (sel == null || currentLayer.pixels.isEmpty) return null;
+    final targets = _selectionTargetIndices;
+    if (targets.length > 1) {
+      return _selectionService.copySelectedPixels(sel, _mergedSelectionTargetPixels(targets));
+    }
     return _selectionService.copySelectedPixels(sel, currentLayer.pixels);
   }
 
-  /// Clears the selected pixels from the current layer and returns their data.
+  /// Clears the selected pixels from the current layer (every selected layer
+  /// when several are selected) and returns their data.
   Uint32List? cutSelectionPixels() {
     final sel = state.selectionState?.region;
     if (sel == null || currentLayer.pixels.isEmpty) return null;
+    final targets = _selectionTargetIndices;
+    if (targets.length > 1) {
+      _detachSelectionFromLayer();
+      final copied = _selectionService.copySelectedPixels(sel, _mergedSelectionTargetPixels(targets));
+      _clearSelectionOnLayers(sel, targets);
+      return copied;
+    }
     _beginPixelUndo();
     final copied = _selectionService.copySelectedPixels(sel, currentLayer.pixels);
     final cleared = _selectionService.clearPixelsInSelection(
@@ -697,9 +802,10 @@ class PixelDrawController extends _$PixelDrawController {
     if (sel == null || currentLayer.pixels.isEmpty) return;
 
     final layerId = const Uuid().v4();
+    final targets = _selectionTargetIndices;
     final newLayerPixels = _selectionService.extractPixels(
       sel,
-      currentLayer.pixels,
+      targets.length > 1 ? _mergedSelectionTargetPixels(targets) : currentLayer.pixels,
       state.width,
       state.height,
     );
@@ -708,9 +814,14 @@ class PixelDrawController extends _$PixelDrawController {
     bool hasPixels = newLayerPixels.any((p) => p != 0);
     if (!hasPixels) return;
 
-    _saveState();
+    if (clearSource && targets.length > 1) {
+      _detachSelectionFromLayer();
+      _clearSelectionOnLayers(sel, targets);
+    } else {
+      _saveState();
+    }
 
-    if (clearSource) {
+    if (clearSource && targets.length == 1) {
       final clearedPixels = _selectionService.clearPixelsInSelection(
         sel,
         currentLayer.pixels,
@@ -743,29 +854,48 @@ class PixelDrawController extends _$PixelDrawController {
   Offset _totalMoveOffset = Offset.zero;
   bool _transformPreviewDirty = false;
 
+  // The other selected layers transformed along with the active one. Their
+  // geometry (bounds, offset, scale, rotation) is the active layer's; only
+  // the pixel buffers differ. Empty for a single-layer transform.
+  List<_LayerTransformCache> _extraTransformLayers = const [];
+
   void startTransformSelection(SelectionRegion region) {
     if (currentLayer.pixels.isEmpty) return;
 
     final bounds = region.bounds;
     if (bounds.width <= 0 || bounds.height <= 0) return;
 
+    // One snapshot covers every target layer, so one undo reverts them all.
     _saveState();
     _transformCachedRegion = region;
     _transformCachedAnchor = state.selectionState?.effectiveAnchor ?? region.bounds.center;
 
     final cachedSelectionPixels = state.selectionState?.capturedPixels;
     final cachedSelectionBounds = state.selectionState?.capturedBounds;
+    final extraTargets = _extraSelectionTargets;
+    final extrasMatch = listEquals(
+      [for (final c in _extraTransformLayers) c.layerIndex],
+      extraTargets,
+    );
 
     if (_transformCachedLayerWithoutSelection == null ||
         cachedSelectionPixels == null ||
-        cachedSelectionBounds == null) {
+        cachedSelectionBounds == null ||
+        !extrasMatch) {
       final capture = _captureOpaqueSelection(region, currentLayer.pixels);
       _transformCachedPixels = capture.selectionPixels;
       _transformCachedBounds = capture.bounds;
       _transformCachedLayerWithoutSelection = capture.basePixels;
+      _extraTransformLayers = [
+        for (final i in extraTargets)
+          _LayerTransformCache.capture(i, _captureOpaqueSelection(region, currentFrame.layers[i].pixels)),
+      ];
     } else {
       _transformCachedPixels = Uint32List.fromList(cachedSelectionPixels);
       _transformCachedBounds = cachedSelectionBounds;
+      for (final c in _extraTransformLayers) {
+        c.source = c.floating;
+      }
     }
     _totalMoveOffset = Offset.zero;
     _transformPreviewDirty = false;
@@ -788,6 +918,14 @@ class PixelDrawController extends _$PixelDrawController {
       if (anchor != null && currentLayer.anchorPoint != anchor) {
         _updateCurrentLayer(currentLayer.copyWith(anchorPoint: () => anchor));
       }
+      for (final c in _extraTransformLayers) {
+        if (c.layerIndex >= currentFrame.layers.length) continue;
+        _layerService.updateLayer(
+          projectId: project.id,
+          frameId: currentFrame.id,
+          layer: currentFrame.layers[c.layerIndex],
+        );
+      }
       _persistCurrentLayer();
     }
 
@@ -809,6 +947,16 @@ class PixelDrawController extends _$PixelDrawController {
   /// a switch would stamp the old layer's content onto the new one. The
   /// selection region and anchor survive (standard editor behavior); the
   /// next transform recaptures from the new layer.
+  /// Drops the transform caches after layer pixels changed outside a
+  /// transform (delete, a stroke, undo). The cached "layer without
+  /// selection" and floating pixels describe the layer as it was, so the
+  /// next drag would stamp that old content back over the edit. The next
+  /// transform recaptures from the current pixels instead.
+  void _dropStaleSelectionCapture() {
+    if (state.selectionState?.isTransforming == true) return;
+    _detachSelectionFromLayer();
+  }
+
   void _detachSelectionFromLayer() {
     if (state.selectionState?.isTransforming == true) {
       endTransformSelection();
@@ -975,6 +1123,8 @@ class PixelDrawController extends _$PixelDrawController {
       activeIndex = requested.reduce((a, b) => a < b ? a : b).clamp(0, reordered.length - 1);
     }
     state = state.copyWith(currentLayerIndex: activeIndex);
+    // The stored indices now point at other layers.
+    _selectedLayerIndices = const [];
     _updateProject();
   }
 
@@ -1021,13 +1171,12 @@ class PixelDrawController extends _$PixelDrawController {
 
     _detachSelectionFromLayer();
     _saveState();
-    final originalIds = [for (final index in sourceIds) currentFrame.layers[index].id];
     var layers = List<Layer>.from(currentFrame.layers);
+    // The copies go in one block above the topmost source, in stack order.
+    var insertIndex = sourceIds.last + 1;
     String? lastCreatedId;
 
-    for (final sourceId in originalIds) {
-      final sourceIndex = layers.indexWhere((layer) => layer.id == sourceId);
-      final source = layers[sourceIndex];
+    for (final source in [for (final index in sourceIds) layers[index]]) {
       final created = await _layerService.createLayer(
         projectId: project.id,
         frameId: currentFrame.id,
@@ -1044,7 +1193,7 @@ class PixelDrawController extends _$PixelDrawController {
         opacity: source.opacity,
         anchorPoint: () => source.anchorPoint,
       );
-      layers.insert(sourceIndex + 1, copy);
+      layers.insert(insertIndex++, copy);
       lastCreatedId = copy.id;
     }
 
@@ -1100,22 +1249,129 @@ class PixelDrawController extends _$PixelDrawController {
     await _updateLayerAndFrame(index, updatedLayer);
   }
 
+  /// Layers panel drag: moves the layer at [oldIndex] to [newIndex] as one
+  /// undo step. When it is part of a multi-selection, the other selected
+  /// layers move with it, gathered into one block in their stacking order.
   Future<void> reorderLayers(int oldIndex, int newIndex) async {
+    // Commit any floating selection first: it rewrites the current layers.
     _detachSelectionFromLayer();
-    final reorderedLayers = _layerService.reorderLayers(
-      currentFrame.layers,
-      oldIndex,
-      newIndex,
-    );
+    final count = currentFrame.layers.length;
+    if (oldIndex < 0 || oldIndex >= count) return;
+    final selected = selectedLayerIndices;
+    final group = selected.length > 1 && selected.contains(oldIndex) ? selected : [oldIndex];
+    // The stack as if the dragged layer moved alone; the block lands where it
+    // would, after the same number of unselected layers.
+    final single = List<int>.generate(count, (i) => i)
+      ..remove(oldIndex)
+      ..insert(newIndex.clamp(0, count - 1), oldIndex);
+    final before = single.takeWhile((i) => i != oldIndex).where((i) => !group.contains(i)).length;
+    final others = [
+      for (final i in single)
+        if (!group.contains(i)) i
+    ];
+    _applyLayerOrder([...others.take(before), ...group, ...others.skip(before)], group.toSet());
+  }
 
-    final updatedFrame = currentFrame.copyWith(layers: reorderedLayers);
-    _updateCurrentFrame(updatedFrame);
-
-    final newCurrentIndex = oldIndex == state.currentLayerIndex ? newIndex : state.currentLayerIndex;
-
-    state = state.copyWith(currentLayerIndex: newCurrentIndex);
+  /// Applies a new stacking order as one undo step. [moved] maps each new
+  /// position to an old layer index; [selected] (old indices) stays selected.
+  /// Does nothing when the order is unchanged. Callers detach the floating
+  /// selection first.
+  void _applyLayerOrder(List<int> moved, Set<int> selected) {
+    if (Iterable.generate(moved.length).every((i) => moved[i] == i)) return;
+    _saveState();
+    final layers = currentFrame.layers;
+    final activeLayerId = currentLayer.id;
+    final reordered = [
+      for (final (index, oldIndex) in moved.indexed) layers[oldIndex].copyWith(order: index),
+    ];
+    _updateCurrentFrame(currentFrame.copyWith(layers: reordered));
+    _selectedLayerIndices = [
+      for (final (index, oldIndex) in moved.indexed)
+        if (selected.contains(oldIndex)) index,
+    ];
+    state = state.copyWith(currentLayerIndex: reordered.indexWhere((layer) => layer.id == activeLayerId));
     _updateProject();
   }
+
+  /// Merges the layers at [indices] into the lowest of them as one undo
+  /// step. That layer keeps its identity and name and gets the composite of
+  /// all of them, with effects and opacity baked in; the others are deleted.
+  /// Hidden and locked layers are left out. Returns false when fewer than two
+  /// layers can merge.
+  Future<bool> mergeLayers(Iterable<int> indices) async {
+    // Commit any floating selection first so it is part of the merge.
+    _detachSelectionFromLayer();
+    final layers = currentFrame.layers;
+    final merging = indices
+        .toSet()
+        .where((i) => i >= 0 && i < layers.length && layers[i].isVisible && !layers[i].isLocked)
+        .toList()
+      ..sort();
+    if (merging.length < 2) return false;
+
+    _saveState();
+    final targetIndex = merging.first;
+    final removed = merging.skip(1).toSet();
+    final activeLayerId = currentLayer.id;
+    final merged = layers[targetIndex].copyWith(
+      pixels: LayerMergeService.composite([for (final i in merging) layers[i]], state.width, state.height),
+      effects: const [],
+      opacity: 1.0,
+    );
+    await Future.wait(removed.map((i) => _layerService.deleteLayer(layers[i].layerId)));
+
+    final remaining = [
+      for (final (index, layer) in layers.indexed)
+        if (index == targetIndex) merged else if (!removed.contains(index)) layer,
+    ];
+    final reordered = [
+      for (final (index, layer) in remaining.indexed) layer.copyWith(order: index),
+    ];
+    _updateCurrentFrame(currentFrame.copyWith(layers: reordered));
+    // The merged layer becomes active when the active one was merged into it;
+    // removed layers were all above it, so its index is unchanged.
+    final activeIndex = reordered.indexWhere((layer) => layer.id == activeLayerId);
+    _selectedLayerIndices = const [];
+    state = state.copyWith(currentLayerIndex: activeIndex >= 0 ? activeIndex : targetIndex);
+    _updateProject();
+    return true;
+  }
+
+  /// Merges the active layer into the one below it. Returns false when there
+  /// is none, or either is hidden or locked.
+  Future<bool> mergeLayerDown() => mergeLayers([state.currentLayerIndex - 1, state.currentLayerIndex]);
+
+  /// Moves the selected layers one step up ([delta] > 0) or down as one undo
+  /// step, keeping their relative order. A layer already at the top (or
+  /// bottom), or blocked by another selected layer there, stays put.
+  Future<void> moveSelectedLayers(int delta) async {
+    // Commit any floating selection first: it rewrites the current layers.
+    _detachSelectionFromLayer();
+    final layers = currentFrame.layers;
+    final selected = selectedLayerIndices.toSet();
+    // Position in the new stack -> index in the old one.
+    final moved = List<int>.generate(layers.length, (i) => i);
+    void swap(int a, int b) {
+      final t = moved[a];
+      moved[a] = moved[b];
+      moved[b] = t;
+    }
+
+    if (delta > 0) {
+      for (var i = moved.length - 2; i >= 0; i--) {
+        if (selected.contains(moved[i]) && !selected.contains(moved[i + 1])) swap(i, i + 1);
+      }
+    } else {
+      for (var i = 1; i < moved.length; i++) {
+        if (selected.contains(moved[i]) && !selected.contains(moved[i - 1])) swap(i, i - 1);
+      }
+    }
+    _applyLayerOrder(moved, selected);
+  }
+
+  /// Activates the layer [delta] steps above (positive) or below the active
+  /// one, stopping at the top and bottom.
+  void selectAdjacentLayer(int delta) => selectLayer(state.currentLayerIndex + delta);
 
   void updateLayer(Layer updatedLayer) {
     final layerIndex = currentFrame.layers.indexWhere(
@@ -1322,15 +1578,24 @@ class PixelDrawController extends _$PixelDrawController {
       currentFrameIndex: activeIndex,
       currentLayerIndex: _safeLayerIndex(newCurrentFrames[activeIndex]),
     );
+    _collapseFrameSelection();
     _updateProject();
   }
 
+  /// Copies [frameIds] as one undo step. Each animation's copies are placed
+  /// right after its last copied frame, in timeline order; the active frame
+  /// stays active.
   Future<void> duplicateFramesByIds(Iterable<int> frameIds) async {
     final ids = frameIds.toSet();
+    if (!state.frames.any((frame) => ids.contains(frame.id))) return;
+    // Commit any floating selection first so the copies include it.
+    _detachSelectionFromLayer();
     final sources = state.frames.where((frame) => ids.contains(frame.id)).toList();
-    if (sources.isEmpty) return;
     _saveState();
-    final createdFrames = <AnimationFrame>[];
+    final activeId = currentFrame.id;
+    final copiesByState = <int, List<AnimationFrame>>{};
+    final lastSourceByState = <int, int>{};
+    var nextOrder = _frameService.calculateNextFrameOrder(state.frames);
     for (final source in sources) {
       var created = await _frameService.createFrame(
         projectId: project.id,
@@ -1339,36 +1604,205 @@ class PixelDrawController extends _$PixelDrawController {
         width: state.width,
         height: state.height,
         copyFromFrame: source,
-        order: _frameService.calculateNextFrameOrder([...state.frames, ...createdFrames]),
+        order: nextOrder++,
       );
       created = created.copyWith(duration: source.duration);
       await _frameService.updateFrame(projectId: project.id, frame: created);
-      createdFrames.add(created);
+      copiesByState.putIfAbsent(source.stateId, () => []).add(created);
+      lastSourceByState[source.stateId] = source.id;
     }
-    state = state.copyWith(frames: [...state.frames, ...createdFrames]);
+    final inserted = [
+      for (final frame in state.frames) ...[
+        frame,
+        if (lastSourceByState[frame.stateId] == frame.id) ...copiesByState[frame.stateId]!,
+      ],
+    ];
+    final nextOrderByState = <int, int>{};
+    final updatedFrames = [
+      for (final frame in inserted)
+        if (copiesByState.containsKey(frame.stateId))
+          frame.copyWith(order: nextOrderByState.update(frame.stateId, (o) => o + 1, ifAbsent: () => 0))
+        else
+          frame,
+    ];
+    state = state.copyWith(
+      frames: updatedFrames,
+      currentFrameIndex: updatedFrames
+          .where((f) => f.stateId == state.currentAnimationState.id)
+          .toList()
+          .indexWhere((f) => f.id == activeId),
+    );
     _updateProject();
   }
 
+  /// Sets the duration of [frameIds] as one undo step. Does nothing when
+  /// none of them changes.
   Future<void> updateFramesDurationByIds(Iterable<int> frameIds, int duration) async {
     final ids = frameIds.toSet();
+    final value = math.max(1, duration);
+    if (!state.frames.any((frame) => ids.contains(frame.id) && frame.duration != value)) return;
+    _saveState();
     final updated = [
       for (final frame in state.frames)
-        if (ids.contains(frame.id)) frame.copyWith(duration: duration) else frame,
+        if (ids.contains(frame.id)) frame.copyWith(duration: value) else frame,
     ];
+    state = state.copyWith(frames: updated);
     await Future.wait(updated
         .where((frame) => ids.contains(frame.id))
         .map((frame) => _frameService.updateFrame(projectId: project.id, frame: frame)));
-    state = state.copyWith(frames: updated);
     _updateProject();
   }
 
+  /// Renames [frameId] as one undo step.
+  void renameFrame(int frameId, String name) {
+    final trimmed = name.trim();
+    final index = state.frames.indexWhere((frame) => frame.id == frameId);
+    if (index < 0 || trimmed.isEmpty || state.frames[index].name == trimmed) return;
+    _saveState();
+    state = state.copyWith(frames: [
+      for (final frame in state.frames)
+        if (frame.id == frameId) frame.copyWith(name: trimmed) else frame,
+    ]);
+    _updateProject();
+  }
+
+  /// Reverses the order of [frameIds] within each animation as one undo
+  /// step: the selected slots keep their positions and the frames in them
+  /// swap end to end. Unselected frames don't move.
+  Future<void> reverseFrames(Iterable<int> frameIds) async {
+    final ids = frameIds.toSet();
+    final reversedByState = <int, List<AnimationFrame>>{};
+    for (final frame in state.frames) {
+      if (ids.contains(frame.id)) reversedByState.putIfAbsent(frame.stateId, () => []).add(frame);
+    }
+    reversedByState.removeWhere((_, frames) => frames.length < 2);
+    if (reversedByState.isEmpty) return;
+
+    // The active frame keeps its identity but changes index.
+    _detachSelectionFromLayer();
+    _saveState();
+    final activeId = currentFrame.id;
+    final cursors = <int, int>{};
+    final swapped = [
+      for (final frame in state.frames)
+        if (reversedByState[frame.stateId] case final group? when ids.contains(frame.id))
+          () {
+            final i = cursors.update(frame.stateId, (c) => c + 1, ifAbsent: () => 0);
+            return group[group.length - 1 - i];
+          }()
+        else
+          frame,
+    ];
+    final nextOrder = <int, int>{};
+    final updated = [
+      for (final frame in swapped)
+        if (reversedByState.containsKey(frame.stateId))
+          frame.copyWith(order: nextOrder.update(frame.stateId, (o) => o + 1, ifAbsent: () => 0))
+        else
+          frame,
+    ];
+    state = state.copyWith(
+      frames: updated,
+      currentFrameIndex: updated
+          .where((f) => f.stateId == state.currentAnimationState.id)
+          .toList()
+          .indexWhere((f) => f.id == activeId),
+    );
+    _updateProject();
+  }
+
+  /// Moves [frameIds] to the end of animation [stateId] as one undo step,
+  /// keeping their order. With [copy], copies them there instead. Frames
+  /// already in that animation are skipped. A move never empties an
+  /// animation: like delete, it leaves that animation's active (or first)
+  /// frame behind. The active frame stays valid; when it moved away, the
+  /// nearest remaining frame becomes active.
+  Future<void> moveFramesToState(Iterable<int> frameIds, int stateId, {bool copy = false}) async {
+    if (!state.animationStates.any((s) => s.id == stateId)) return;
+    final ids = frameIds.toSet();
+    var sources = [
+      for (final frame in state.frames)
+        if (ids.contains(frame.id) && frame.stateId != stateId) frame,
+    ];
+    if (!copy) {
+      for (final animationState in state.animationStates) {
+        final stateFrames = state.frames.where((f) => f.stateId == animationState.id).toList();
+        final leaving = sources.where((f) => f.stateId == animationState.id).toList();
+        if (stateFrames.isNotEmpty && leaving.length == stateFrames.length) {
+          final keepId = animationState.id == state.currentAnimationState.id ? currentFrame.id : stateFrames.first.id;
+          sources = [
+            for (final f in sources)
+              if (f.id != keepId) f
+          ];
+        }
+      }
+    }
+    if (sources.isEmpty) return;
+
+    _detachSelectionFromLayer();
+    _saveState();
+    final oldCurrentFrames = state.currentFrames;
+    final oldActiveId = currentFrame.id;
+    final firstMovedIndex = oldCurrentFrames.indexWhere((f) => sources.any((s) => s.id == f.id));
+    final List<AnimationFrame> arriving;
+    if (copy) {
+      arriving = [];
+      var nextOrder = _frameService.calculateNextFrameOrder(state.frames);
+      for (final source in sources) {
+        var created = await _frameService.createFrame(
+          projectId: project.id,
+          name: source.name,
+          stateId: stateId,
+          width: state.width,
+          height: state.height,
+          copyFromFrame: source,
+          order: nextOrder++,
+        );
+        created = created.copyWith(duration: source.duration);
+        await _frameService.updateFrame(projectId: project.id, frame: created);
+        arriving.add(created);
+      }
+    } else {
+      arriving = [for (final source in sources) source.copyWith(stateId: stateId)];
+    }
+    final movedIds = {for (final source in sources) source.id};
+    final touchedStates = {stateId, if (!copy) ...sources.map((f) => f.stateId)};
+    final nextOrderByState = <int, int>{};
+    final updatedFrames = [
+      for (final frame in [
+        for (final frame in state.frames)
+          if (copy || !movedIds.contains(frame.id)) frame,
+        ...arriving,
+      ])
+        if (touchedStates.contains(frame.stateId))
+          frame.copyWith(order: nextOrderByState.update(frame.stateId, (o) => o + 1, ifAbsent: () => 0))
+        else
+          frame,
+    ];
+    final newCurrentFrames = updatedFrames.where((f) => f.stateId == state.currentAnimationState.id).toList();
+    var activeIndex = newCurrentFrames.indexWhere((f) => f.id == oldActiveId);
+    if (activeIndex < 0) activeIndex = firstMovedIndex.clamp(0, newCurrentFrames.length - 1);
+    state = state.copyWith(
+      frames: updatedFrames,
+      currentFrameIndex: activeIndex,
+      currentLayerIndex: _safeLayerIndex(newCurrentFrames[activeIndex]),
+    );
+    _collapseFrameSelection();
+    _updateProject();
+  }
+
+  /// Moves [draggedIds] as a block next to [targetId] (after it when the block
+  /// came from before it, otherwise before it), as one undo step. Only frames
+  /// in the target's animation move.
   Future<void> reorderFramesByIds(Set<int> draggedIds, int targetId) async {
     final targetIndexInAll = state.frames.indexWhere((frame) => frame.id == targetId);
-    if (targetIndexInAll < 0) return;
+    if (targetIndexInAll < 0 || draggedIds.contains(targetId)) return;
+    // Commit any floating selection first: it rewrites the current frame.
+    _detachSelectionFromLayer();
     final target = state.frames[targetIndexInAll];
     final stateFrames = state.frames.where((f) => f.stateId == target.stateId).toList();
     final dragged = stateFrames.where((f) => draggedIds.contains(f.id)).toList();
-    if (dragged.isEmpty || draggedIds.contains(targetId)) return;
+    if (dragged.isEmpty) return;
     final oldActiveId = currentFrame.id;
     final targetIndex = stateFrames.indexWhere((f) => f.id == targetId);
     final firstDraggedIndex = stateFrames.indexWhere((f) => draggedIds.contains(f.id));
@@ -1376,6 +1810,8 @@ class PixelDrawController extends _$PixelDrawController {
     var insertIndex = remaining.indexWhere((f) => f.id == targetId);
     if (firstDraggedIndex < targetIndex) insertIndex++;
     remaining.insertAll(insertIndex, dragged);
+    if (Iterable.generate(remaining.length).every((i) => remaining[i].id == stateFrames[i].id)) return;
+    _saveState();
     final reordered = [
       for (final (index, frame) in remaining.indexed) frame.copyWith(order: index),
     ];
@@ -1392,17 +1828,133 @@ class PixelDrawController extends _$PixelDrawController {
     _updateProject();
   }
 
+  /// Makes [frameId] the only selected frame and the active one.
   void selectFrame(int frameId) {
+    if (_activateFrame(frameId)) _collapseFrameSelection();
+  }
+
+  bool _activateFrame(int frameId) {
     final index = state.currentFrames.indexWhere((frame) => frame.id == frameId);
-    if (index >= 0) {
-      _detachSelectionFromLayer();
-      final targetFrame = state.currentFrames[index];
-      state = state.copyWith(
-        currentFrameIndex: index,
-        currentLayerIndex: _safeLayerIndex(targetFrame),
-      );
-      _persistEditorSelection();
+    if (index < 0) return false;
+    _detachSelectionFromLayer();
+    final targetFrame = state.currentFrames[index];
+    state = state.copyWith(
+      currentFrameIndex: index,
+      currentLayerIndex: _safeLayerIndex(targetFrame),
+    );
+    _persistEditorSelection();
+    return true;
+  }
+
+  // Timeline multi-selection and the last-used editor area; see
+  // [EditorSelection].
+  EditorSelectionNotifier get _editorSelectionNotifier => ref.read(editorSelectionProvider(project.id).notifier);
+  EditorSelection get editorSelection => ref.read(editorSelectionProvider(project.id));
+
+  /// Frames selected in the timeline: frames of the current animation, always
+  /// including the active one.
+  Set<int> get selectedFrameIds => editorSelection.resolveFrames(state);
+
+  void setSelectionTarget(EditorSelectionTarget target) =>
+      _editorSelectionNotifier.modify((s) => s.copyWith(target: target));
+
+  /// A timeline click on [frameId]. [toggle] adds or removes it (Ctrl/Cmd-click
+  /// or long-press), [extendRange] selects from the anchor to it (Shift-click),
+  /// otherwise it becomes the only selected frame. Either way it becomes
+  /// active. A frame of another animation switches to that animation and is
+  /// selected alone.
+  void selectFrames(int frameId, {bool toggle = false, bool extendRange = false}) {
+    final clicked = state.frames.where((frame) => frame.id == frameId).firstOrNull;
+    if (clicked == null) return;
+    if (clicked.stateId != state.currentAnimationState.id) {
+      selectAnimationState(clicked.stateId);
+      toggle = false;
+      extendRange = false;
     }
+    final result = updateMultiSelection(
+      orderedItems: [for (final frame in state.currentFrames) frame.id],
+      selected: selectedFrameIds,
+      active: currentFrame.id,
+      clicked: frameId,
+      anchor: editorSelection.frameAnchorId,
+      toggle: toggle,
+      extendRange: extendRange,
+    );
+    _activateFrame(result.active);
+    _editorSelectionNotifier.modify((s) => s.copyWith(
+          frameIds: result.selected,
+          frameAnchorId: () => result.anchor,
+          target: EditorSelectionTarget.frames,
+        ));
+  }
+
+  /// Shift+, / Shift+.: extends the frame selection from the anchor to the
+  /// frame [delta] steps from the active one, stopping at either end.
+  void extendFrameSelection(int delta) {
+    final frames = state.currentFrames;
+    final index = (state.currentFrameIndex + delta).clamp(0, frames.length - 1);
+    if (index == state.currentFrameIndex) return;
+    selectFrames(frames[index].id, extendRange: true);
+  }
+
+  /// Moves the selected frames one step left ([delta] < 0) or right as one
+  /// undo step. A non-contiguous selection is gathered into one block.
+  Future<void> moveSelectedFrames(int delta) async {
+    final ids = selectedFrameIds;
+    final frames = state.currentFrames;
+    final positions = [
+      for (final (index, frame) in frames.indexed)
+        if (ids.contains(frame.id)) index,
+    ];
+    final target = delta < 0 ? positions.first - 1 : positions.last + 1;
+    if (target < 0 || target >= frames.length) return;
+    await reorderFramesByIds(ids, frames[target].id);
+  }
+
+  void selectAllFrames() {
+    _editorSelectionNotifier.modify((s) => s.copyWith(
+          frameIds: {for (final frame in state.currentFrames) frame.id},
+          frameAnchorId: () => currentFrame.id,
+          target: EditorSelectionTarget.frames,
+        ));
+  }
+
+  void _collapseFrameSelection() {
+    final active = currentFrame.id;
+    _editorSelectionNotifier.modify((s) => s.copyWith(frameIds: {active}, frameAnchorId: () => active));
+  }
+
+  /// Deletes what the last-used editor area has selected: the selected pixels
+  /// on the canvas, the selected layers or the selected frames. Returns false
+  /// when there was nothing to act on (the canvas without a pixel selection),
+  /// so callers can fall back to another action.
+  Future<bool> deleteSelected() async {
+    switch (editorSelection.target) {
+      case EditorSelectionTarget.frames:
+        await removeFramesByIds(selectedFrameIds);
+      case EditorSelectionTarget.layers:
+        await removeLayers(selectedLayerIndices);
+      case EditorSelectionTarget.canvas:
+        if (state.selectionState == null) return false;
+        clearSelectionArea();
+    }
+    return true;
+  }
+
+  /// Duplicates what the last-used editor area has selected: the selected
+  /// pixels into a new layer, the selected layers or the selected frames.
+  /// Returns false when there was nothing to act on.
+  Future<bool> duplicateSelected() async {
+    switch (editorSelection.target) {
+      case EditorSelectionTarget.frames:
+        await duplicateFramesByIds(selectedFrameIds);
+      case EditorSelectionTarget.layers:
+        await duplicateLayers(selectedLayerIndices);
+      case EditorSelectionTarget.canvas:
+        if (state.selectionState == null) return false;
+        await selectionToNewLayer();
+    }
+    return true;
   }
 
   void nextFrame() {
@@ -1413,6 +1965,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentFrameIndex: nextIndex,
       currentLayerIndex: _safeLayerIndex(targetFrame),
     );
+    _collapseFrameSelection();
     _persistEditorSelection();
   }
 
@@ -1424,6 +1977,7 @@ class PixelDrawController extends _$PixelDrawController {
       currentFrameIndex: prevIndex,
       currentLayerIndex: _safeLayerIndex(targetFrame),
     );
+    _collapseFrameSelection();
     _persistEditorSelection();
   }
 
@@ -1572,14 +2126,20 @@ class PixelDrawController extends _$PixelDrawController {
       for (final source in template.layers) {
         final order = _layerService.calculateNextLayerOrder(currentFrame.layers);
         final layer = await _layerService.createLayer(
-          projectId: project.id, frameId: currentFrame.id,
-          name: source.name, width: state.width, height: state.height, order: order);
+            projectId: project.id,
+            frameId: currentFrame.id,
+            name: source.name,
+            width: state.width,
+            height: state.height,
+            order: order);
         final pixels = _templateService.applyTemplateToLayer(
-          template: Template(name: source.name, width: template.width,
-            height: template.height, pixels: source.pixels),
-          layerPixels: layer.pixels, layerWidth: state.width, layerHeight: state.height);
-        _insertLayerAboveCurrent(layer.copyWith(pixels: pixels,
-          isVisible: source.isVisible, isLocked: source.isLocked, opacity: source.opacity));
+            template:
+                Template(name: source.name, width: template.width, height: template.height, pixels: source.pixels),
+            layerPixels: layer.pixels,
+            layerWidth: state.width,
+            layerHeight: state.height);
+        _insertLayerAboveCurrent(layer.copyWith(
+            pixels: pixels, isVisible: source.isVisible, isLocked: source.isLocked, opacity: source.opacity));
       }
       _updateProject();
       _recordProgress(ProgressionEvent.templateUsed);
@@ -1622,7 +2182,10 @@ class PixelDrawController extends _$PixelDrawController {
         currentFrameIndex: 0,
         currentLayerIndex: layerIndex,
       );
-      if (targetFrames.isNotEmpty) _persistEditorSelection();
+      if (targetFrames.isNotEmpty) {
+        _collapseFrameSelection();
+        _persistEditorSelection();
+      }
     }
   }
 
@@ -1675,12 +2238,24 @@ class PixelDrawController extends _$PixelDrawController {
     if (cached == null || cachedLayer == null || cachedBounds == null || cachedRegion == null) {
       // Fallback when transform was not explicitly started (e.g. external call)
       _saveState();
-      final newPixels = _selectionService.moveSelectedPixels(
-        region: sel.region,
-        layerPixels: currentLayer.pixels,
-        delta: delta,
-      );
-      _updateCurrentLayerPixels(newPixels);
+      final extraTargets = _extraSelectionTargets;
+      if (extraTargets.isNotEmpty) {
+        _updateLayersPixels({
+          for (final i in [state.currentLayerIndex, ...extraTargets])
+            i: _selectionService.moveSelectedPixels(
+              region: sel.region,
+              layerPixels: currentFrame.layers[i].pixels,
+              delta: delta,
+            ),
+        });
+      } else {
+        final newPixels = _selectionService.moveSelectedPixels(
+          region: sel.region,
+          layerPixels: currentLayer.pixels,
+          delta: delta,
+        );
+        _updateCurrentLayerPixels(newPixels);
+      }
       state = state.copyWith(
         selectionState: sel.copyWith(
           region: sel.region.shifted(delta),
@@ -1694,28 +2269,17 @@ class PixelDrawController extends _$PixelDrawController {
     _totalMoveOffset += delta;
 
     // Re-apply from scratch: start with cleared layer, stamp pixels at new position
-    final result = Uint32List.fromList(cachedLayer);
     final dx = _totalMoveOffset.dx.round();
     final dy = _totalMoveOffset.dy.round();
-    final bw = cachedBounds.width.ceil();
-    final bh = cachedBounds.height.ceil();
-    final origLeft = cachedBounds.left.floor();
-    final origTop = cachedBounds.top.floor();
     final movedRegion = cachedRegion.shifted(_totalMoveOffset);
+    final result = _stampMovedPixels(cachedLayer, cached, cachedBounds, dx, dy);
 
-    for (int ly = 0; ly < bh; ly++) {
-      for (int lx = 0; lx < bw; lx++) {
-        final srcIdx = ly * bw + lx;
-        if (srcIdx >= cached.length || cached[srcIdx] == 0) continue;
-        final nx = origLeft + lx + dx;
-        final ny = origTop + ly + dy;
-        if (nx >= 0 && nx < state.width && ny >= 0 && ny < state.height) {
-          result[ny * state.width + nx] = cached[srcIdx];
-        }
-      }
-    }
-
-    _updateCurrentLayerPreviewPixels(result);
+    _updateCurrentLayerPreviewPixels(
+      result,
+      extra: {
+        for (final c in _extraTransformLayers) c.layerIndex: _stampMovedPixels(c.base, c.source, cachedBounds, dx, dy),
+      },
+    );
     state = state.copyWith(
       selectionState: sel.copyWith(
         region: movedRegion,
@@ -1791,7 +2355,13 @@ class PixelDrawController extends _$PixelDrawController {
       targetH,
     );
 
-    _updateCurrentLayerPreviewPixels(resultPixels);
+    final extra = <int, Uint32List>{};
+    for (final c in _extraTransformLayers) {
+      c.floating = PixelUtils.resize(c.source, srcW, srcH, targetW, targetH, _selectionTransformInterpolation, 0);
+      extra[c.layerIndex] = _placeTransformedPixels(c.base, c.floating, constrainedTargetBounds, targetW, targetH);
+    }
+
+    _updateCurrentLayerPreviewPixels(resultPixels, extra: extra);
     state = state.copyWith(
       selectionState: sel.copyWith(
         region: newRegion,
@@ -1874,7 +2444,25 @@ class PixelDrawController extends _$PixelDrawController {
       targetH,
     );
 
-    _updateCurrentLayerPreviewPixels(resultPixels);
+    final extra = <int, Uint32List>{};
+    for (final c in _extraTransformLayers) {
+      final rotated = PixelUtils.applyRotationWithBounds(
+        c.source,
+        srcW,
+        srcH,
+        angle,
+        cachedBounds,
+        rotatedBounds,
+        rotCenter,
+        _selectionTransformInterpolation,
+        0,
+      );
+      if (rotated.isEmpty) continue;
+      c.floating = rotated;
+      extra[c.layerIndex] = _placeTransformedPixels(c.base, rotated, bufferBounds, targetW, targetH);
+    }
+
+    _updateCurrentLayerPreviewPixels(resultPixels, extra: extra);
     state = state.copyWith(
       selectionState: sel.copyWith(
         region: newRegion,
@@ -1990,7 +2578,26 @@ class PixelDrawController extends _$PixelDrawController {
     if (result == null) return;
 
     _saveState();
-    _updateCurrentLayerPixels(result.pixels);
+    final extraTargets = _extraSelectionTargets;
+    if (extraTargets.isEmpty) {
+      _updateCurrentLayerPixels(result.pixels);
+    } else {
+      // The region's geometry is the same for every layer, so each result
+      // lands in the same [result.region].
+      _updateLayersPixels({
+        state.currentLayerIndex: result.pixels,
+        for (final i in extraTargets)
+          if (PixelTransformService.transformSelection(
+            layerPixels: currentFrame.layers[i].pixels,
+            canvasWidth: state.width,
+            canvasHeight: state.height,
+            region: region,
+            transform: transform,
+          )
+              case final r?)
+            i: r.pixels,
+      });
+    }
     setSelection(result.region);
   }
 
@@ -2049,6 +2656,7 @@ class PixelDrawController extends _$PixelDrawController {
     final previousState = _undoRedoService.undo(state);
     if (previousState != null) {
       state = previousState;
+      _dropStaleSelectionCapture();
       _updateProject();
     }
   }
@@ -2057,6 +2665,7 @@ class PixelDrawController extends _$PixelDrawController {
     final nextState = _undoRedoService.redo(state);
     if (nextState != null) {
       state = nextState;
+      _dropStaleSelectionCapture();
       _updateProject();
     }
   }
@@ -2250,6 +2859,7 @@ class PixelDrawController extends _$PixelDrawController {
     final undoPreState = _pendingUndoPreState;
     final undoPrePixels = _pendingUndoPrePixels;
     _clearPendingPixelUndo();
+    _dropStaleSelectionCapture();
 
     final updatedLayer = currentLayer.copyWith(pixels: newPixels);
     final updatedLayers = List<Layer>.from(currentFrame.layers);
@@ -2275,9 +2885,43 @@ class PixelDrawController extends _$PixelDrawController {
     _updateProject();
   }
 
-  void _updateCurrentLayerPreviewPixels(Uint32List newPixels) {
+  /// Shows a transform frame: [newPixels] on the active layer and [extra]
+  /// (frame index → pixels) on the other transformed layers, in one update.
+  void _updateCurrentLayerPreviewPixels(Uint32List newPixels, {Map<int, Uint32List> extra = const {}}) {
     _transformPreviewDirty = true;
-    _updateCurrentLayer(currentLayer.copyWith(pixels: newPixels));
+    if (extra.isEmpty) {
+      _updateCurrentLayer(currentLayer.copyWith(pixels: newPixels));
+      return;
+    }
+    final updated = List<Layer>.from(currentFrame.layers);
+    updated[state.currentLayerIndex] = currentLayer.copyWith(pixels: newPixels);
+    for (final MapEntry(key: index, value: pixels) in extra.entries) {
+      if (index < updated.length) updated[index] = updated[index].copyWith(pixels: pixels);
+    }
+    _updateCurrentFrame(currentFrame.copyWith(layers: updated));
+  }
+
+  /// [base] with the floating [floating] pixels (laid out over [bounds])
+  /// stamped [dx], [dy] away from where they were captured.
+  Uint32List _stampMovedPixels(Uint32List base, Uint32List floating, Rect bounds, int dx, int dy) {
+    final result = Uint32List.fromList(base);
+    final bw = bounds.width.ceil();
+    final bh = bounds.height.ceil();
+    final origLeft = bounds.left.floor();
+    final origTop = bounds.top.floor();
+
+    for (int ly = 0; ly < bh; ly++) {
+      for (int lx = 0; lx < bw; lx++) {
+        final srcIdx = ly * bw + lx;
+        if (srcIdx >= floating.length || floating[srcIdx] == 0) continue;
+        final nx = origLeft + lx + dx;
+        final ny = origTop + ly + dy;
+        if (nx >= 0 && nx < state.width && ny >= 0 && ny < state.height) {
+          result[ny * state.width + nx] = floating[srcIdx];
+        }
+      }
+    }
+    return result;
   }
 
   Future<void> _updateLayerAndFrame(int layerIndex, Layer updatedLayer) async {
@@ -2438,6 +3082,7 @@ class PixelDrawController extends _$PixelDrawController {
     _transformCachedAnchor = null;
     _totalMoveOffset = Offset.zero;
     _transformPreviewDirty = false;
+    _extraTransformLayers = const [];
   }
 
   Offset _remapAnchorToBounds(
@@ -2467,6 +3112,25 @@ class PixelDrawController extends _$PixelDrawController {
   int get _selectionTransformInterpolation {
     return ref.read(editorSettingsNotifierProvider).transformInterpolation.pixelUtilsValue;
   }
+}
+
+/// One extra layer of a multi-layer selection transform.
+class _LayerTransformCache {
+  _LayerTransformCache.capture(this.layerIndex, _SelectionCapture capture)
+      : base = capture.basePixels,
+        source = capture.selectionPixels,
+        floating = capture.selectionPixels;
+
+  final int layerIndex;
+
+  /// The layer's pixels with the selection cleared.
+  final Uint32List base;
+
+  /// The floating pixels this transform session started from.
+  Uint32List source;
+
+  /// The floating pixels as last transformed; the next session starts here.
+  Uint32List floating;
 }
 
 class _SelectionCapture {

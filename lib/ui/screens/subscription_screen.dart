@@ -761,7 +761,11 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
         color: pv.surface,
         border: Border(top: BorderSide(color: pv.divider)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 18, offset: const Offset(0, -6))
+          BoxShadow(
+            color: pv.shadowColor ?? Colors.black.withValues(alpha: pv.isDark ? 0.35 : 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, -6),
+          ),
         ],
       ),
       child: SafeArea(

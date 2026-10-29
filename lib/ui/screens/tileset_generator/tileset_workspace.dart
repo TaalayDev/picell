@@ -18,21 +18,24 @@ const _minZoom = 0.25, _maxZoom = 16.0, _undoLimit = 100;
 /// Project landing page body: a sets panel, an infinite canvas to arrange sets,
 /// single tiles and notes, and an inspector.
 class TilesetWorkspace extends StatefulWidget {
-  const TilesetWorkspace(
-      {super.key,
-      required this.collection,
-      required this.onCanvasChanged,
-      required this.onCreate,
-      required this.onEdit,
-      required this.onRename,
-      required this.onDuplicate,
-      required this.onDelete,
-      this.enabled = true});
+  const TilesetWorkspace({
+    super.key,
+    required this.collection,
+    required this.onCanvasChanged,
+    required this.onCreate,
+    required this.onEdit,
+    required this.onRename,
+    required this.onDuplicate,
+    required this.onDelete,
+    this.enabled = true,
+  });
+
   final TilesetCollection collection;
   final ValueChanged<TilesetCanvas> onCanvasChanged;
   final VoidCallback onCreate;
   final ValueChanged<TilesetEntry> onEdit, onRename, onDuplicate, onDelete;
   final bool enabled;
+
   @override
   State<TilesetWorkspace> createState() => TilesetWorkspaceState();
 }
@@ -513,51 +516,56 @@ class TilesetWorkspaceState extends State<TilesetWorkspace> {
         selected: wide ? _rightOpen : _overlay == _Overlay.inspector,
         key: const ValueKey('toggle-inspector-panel'));
     return Material(
-        color: colors.surface.withValues(alpha: 0.96),
-        elevation: 2,
-        // borderRadius: BorderRadius.circular(10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: colors.divider)),
-        child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.all(3),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              button(
-                  wide ? (_leftOpen ? 'Hide tilesets' : 'Show tilesets') : 'Tilesets',
-                  Icons.view_sidebar_outlined,
-                  () => setState(() {
-                        if (wide) {
-                          _leftOpen = !_leftOpen;
-                        } else {
-                          _overlay = _overlay == _Overlay.sets ? _Overlay.none : _Overlay.sets;
-                        }
-                      }),
-                  selected: wide ? _leftOpen : _overlay == _Overlay.sets,
-                  key: const ValueKey('toggle-sets-panel')),
-              if (!wide) inspector,
-              divider,
-              button('Select tool', Icons.near_me_outlined, () => setState(() => _handTool = false),
-                  selected: !_handTool, key: const ValueKey('tool-select')),
-              button('Hand tool', Icons.pan_tool_outlined, () => setState(() => _handTool = true),
-                  selected: _handTool, key: const ValueKey('tool-hand')),
-              divider,
-              button('Undo', Icons.undo, _undo.isEmpty || !_enabled ? null : undo, key: const ValueKey('canvas-undo')),
-              button('Redo', Icons.redo, _redo.isEmpty || !_enabled ? null : redo, key: const ValueKey('canvas-redo')),
-              divider,
-              button('Add note', Icons.sticky_note_2_outlined, _enabled ? _addNote : null,
-                  key: const ValueKey('canvas-add-note')),
-              button('Toggle grid', Icons.grid_on, () => setState(() => _grid = !_grid), selected: _grid),
-              button('Fit all', Icons.fit_screen_outlined, fit, key: const ValueKey('canvas-fit')),
-              divider,
-              button('Zoom out', Icons.remove, () => _zoomAround(_viewport.center(Offset.zero), _zoom / 1.25)),
-              SizedBox(
-                  width: 44,
-                  child: Text('${(_zoom * 100).round()}%',
-                      key: const ValueKey('canvas-zoom'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.text))),
-              button('Zoom in', Icons.add, () => _zoomAround(_viewport.center(Offset.zero), _zoom * 1.25)),
-              if (wide) ...[divider, inspector],
-            ])));
+      color: colors.surface.withValues(alpha: 0.96),
+      elevation: 2,
+      // borderRadius: BorderRadius.circular(10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: colors.divider)),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.all(3),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            button(
+                wide ? (_leftOpen ? 'Hide tilesets' : 'Show tilesets') : 'Tilesets',
+                Icons.view_sidebar_outlined,
+                () => setState(() {
+                      if (wide) {
+                        _leftOpen = !_leftOpen;
+                      } else {
+                        _overlay = _overlay == _Overlay.sets ? _Overlay.none : _Overlay.sets;
+                      }
+                    }),
+                selected: wide ? _leftOpen : _overlay == _Overlay.sets,
+                key: const ValueKey('toggle-sets-panel')),
+            if (!wide) inspector,
+            divider,
+            button('Select tool', Icons.near_me_outlined, () => setState(() => _handTool = false),
+                selected: !_handTool, key: const ValueKey('tool-select')),
+            button('Hand tool', Icons.pan_tool_outlined, () => setState(() => _handTool = true),
+                selected: _handTool, key: const ValueKey('tool-hand')),
+            divider,
+            button('Undo', Icons.undo, _undo.isEmpty || !_enabled ? null : undo, key: const ValueKey('canvas-undo')),
+            button('Redo', Icons.redo, _redo.isEmpty || !_enabled ? null : redo, key: const ValueKey('canvas-redo')),
+            divider,
+            button('Add note', Icons.sticky_note_2_outlined, _enabled ? _addNote : null,
+                key: const ValueKey('canvas-add-note')),
+            button('Toggle grid', Icons.grid_on, () => setState(() => _grid = !_grid), selected: _grid),
+            button('Fit all', Icons.fit_screen_outlined, fit, key: const ValueKey('canvas-fit')),
+            divider,
+            button('Zoom out', Icons.remove, () => _zoomAround(_viewport.center(Offset.zero), _zoom / 1.25)),
+            SizedBox(
+                width: 44,
+                child: Text('${(_zoom * 100).round()}%',
+                    key: const ValueKey('canvas-zoom'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.text))),
+            button('Zoom in', Icons.add, () => _zoomAround(_viewport.center(Offset.zero), _zoom * 1.25)),
+            if (wide) ...[divider, inspector],
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _canvasArea(TilesetWorkspaceColors colors, bool wide) => LayoutBuilder(builder: (context, constraints) {

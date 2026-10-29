@@ -56,6 +56,8 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
   _Tg get _tg => _Tg.of(context);
   void _updateDraft(VoidCallback update) => setState(update);
   var _wideLayout = true;
+  // Open accordion group in the surface editor panel: 'look', 'shape', 'output' or '' for none.
+  var _openSection = 'look';
   int? _solo;
   var _seamCheck = true;
   final _name = TextEditingController(text: 'Meadow Platforms');
@@ -641,38 +643,6 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
       maxLength: 100,
       onChanged: (_) => setState(() => _dirty = true));
 
-  Widget _statusBadge({bool compact = false}) => Container(
-      height: 26,
-      padding: const EdgeInsets.symmetric(horizontal: 9),
-      decoration: BoxDecoration(
-          color: _tg.elevated,
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(
-              color: _busy
-                  ? _tg.accent
-                  : _tiles.isEmpty
-                      ? _tg.border
-                      : _tg.green.withValues(alpha: 0.4))),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (_busy)
-          const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2))
-        else
-          Icon(_tiles.isEmpty ? Icons.circle_outlined : Icons.check_circle,
-              size: 14, color: _tiles.isEmpty ? _tg.muted : _tg.green),
-        const SizedBox(width: 6),
-        Flexible(
-            child: Text(
-                _busy
-                    ? 'Working…'
-                    : _tiles.isEmpty
-                        ? 'Not generated yet'
-                        : compact
-                            ? 'Ready'
-                            : 'Ready · ${_tiles.length} tiles · seed ${_generatedSettings!.seed}',
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500))),
-      ]));
-
   Widget _header(double width) {
     final small = width < 900;
     final logo = Row(mainAxisSize: MainAxisSize.min, children: [
@@ -692,8 +662,6 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
         _TgIconButton(label: 'Redo surface edit', icon: Icons.redo, onPressed: _specRedo.isEmpty ? null : _redoSpec),
         const SizedBox(width: 6),
       ],
-      _TgIconButton(label: 'Open .pvtiles document', icon: Icons.folder_open_outlined, onPressed: _busy ? null : _open),
-      const SizedBox(width: 6),
       OutlinedButton.icon(
           onPressed: _busy || _loadError != null || _tiles.isEmpty
               ? null
@@ -716,35 +684,30 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
               : Text(widget.recipeMode
                   ? (widget.initialDocument == null ? 'Add to collection' : 'Save to collection')
                   : 'Save')),
-      const SizedBox(width: 8),
+      const SizedBox(width: 4),
       PopupMenuButton<String>(
-          enabled: !_busy && _tiles.isNotEmpty,
-          onSelected: _save,
-          tooltip: 'Export tileset',
+          enabled: !_busy,
+          onSelected: (value) => value == 'open' ? _open() : _save(value),
+          tooltip: 'Open or export',
           offset: const Offset(0, 38),
+          icon: Icon(Icons.more_horiz, size: 20, color: _tg.text),
           itemBuilder: (_) => [
+                _exportItem('open', Icons.folder_open_outlined, 'Open .pvtiles document', 'Replace this session'),
+                const PopupMenuDivider(),
                 _exportItem(
                     'png',
                     Icons.grid_view,
-                    'PNG atlas',
+                    'Export PNG atlas',
                     _generatedSettings == null
-                        ? 'Pixel-perfect sprites'
-                        : '${8 * _generatedSettings!.spriteWidth} × ${((_tiles.length + 7) ~/ 8) * _generatedSettings!.spriteHeight} px · all variations'),
-                _exportItem('json', Icons.data_object, 'JSON connection data', 'Roles, sockets and variations'),
-                _exportItem('document', Icons.description_outlined, 'Editable .pvtiles document',
-                    'Pixels, settings and protected edits'),
-              ],
-          child: Container(
-              height: 32,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                  color: _tiles.isEmpty || _busy ? _tg.accent.withValues(alpha: 0.35) : _tg.accent,
-                  borderRadius: BorderRadius.circular(_tg.buttonRadius)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text('Export', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _tg.ink)),
-                const SizedBox(width: 5),
-                Icon(Icons.expand_more, size: 16, color: _tg.ink)
-              ]))),
+                        ? 'Generate a tileset first'
+                        : '${8 * _generatedSettings!.spriteWidth} × ${((_tiles.length + 7) ~/ 8) * _generatedSettings!.spriteHeight} px · all variations',
+                    enabled: _tiles.isNotEmpty),
+                _exportItem('json', Icons.data_object, 'Export JSON connection data', 'Roles, sockets and variations',
+                    enabled: _tiles.isNotEmpty),
+                _exportItem('document', Icons.description_outlined, 'Export editable .pvtiles',
+                    'Pixels, settings and protected edits',
+                    enabled: _tiles.isNotEmpty),
+              ]),
     ]);
     return Container(
         decoration: BoxDecoration(color: _tg.panel, border: Border(bottom: BorderSide(color: _tg.border))),
@@ -776,10 +739,6 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                               ConstrainedBox(constraints: const BoxConstraints(maxWidth: 240), child: _nameField()))),
                   const SizedBox(width: 12),
                 ],
-                if (width >= 1200) ...[
-                  ConstrainedBox(constraints: const BoxConstraints(maxWidth: 252), child: _statusBadge()),
-                  const SizedBox(width: 12)
-                ],
                 if (small)
                   Expanded(
                       child: Align(
@@ -787,32 +746,33 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                 else
                   actions,
               ])),
-          if (small)
-            Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                    children: [Expanded(child: _nameField()), const SizedBox(width: 8), _statusBadge(compact: true)])),
+          if (small) Padding(padding: const EdgeInsets.only(bottom: 8), child: _nameField()),
         ]));
   }
 
-  PopupMenuEntry<String> _exportItem(String value, IconData icon, String title, String subtitle) => PopupMenuItem(
-      value: value,
-      child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5),
-          child: Row(children: [
-            Icon(icon, color: _tg.highlight, size: 21),
-            const SizedBox(width: 10),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 3),
-              Text(subtitle, style: TextStyle(fontSize: 11, color: _tg.muted))
-            ])
-          ])));
+  PopupMenuEntry<String> _exportItem(String value, IconData icon, String title, String subtitle,
+          {bool enabled = true}) =>
+      PopupMenuItem(
+          value: value,
+          enabled: enabled,
+          child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(children: [
+                Icon(icon, color: _tg.highlight, size: 21),
+                const SizedBox(width: 10),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 3),
+                  Text(subtitle, style: TextStyle(fontSize: 11, color: _tg.muted))
+                ])
+              ])));
 
   Widget _footer(double width) {
-    final status = _tiles.isEmpty
-        ? 'Choose perspective and type, then generate.'
-        : '${_tiles.length} tiles · ${_generatedSettings!.parts.length} connection shapes · ${_tiles.where((t) => t.protected).length} protected · ${_dirty ? 'Unsaved changes' : 'All changes saved'}';
+    final status = _busy
+        ? '$_activity…'
+        : _tiles.isEmpty
+            ? 'Choose perspective and type, then generate.'
+            : '${_tiles.length} tiles · ${_generatedSettings!.parts.length} connection shapes · ${_tiles.where((t) => t.protected).length} protected · ${_dirty ? 'Unsaved changes' : 'All changes saved'}';
     final layout = _generatedSettings == null ? null : TilesetLayout(_generatedSettings!, _columns, _rows);
     return Container(
         width: double.infinity,
@@ -1051,11 +1011,13 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
                               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))))),
               const SizedBox(height: 6),
               Text(
-                  _tiles.any((t) => t.protected)
-                      ? 'Protected tiles are kept on regenerate'
-                      : 'Same seed always gives the same tileset',
+                  _settingsStale
+                      ? 'Settings changed. Regenerate to apply.'
+                      : _tiles.any((t) => t.protected)
+                          ? 'Protected tiles are kept on regenerate'
+                          : 'Same seed always gives the same tileset',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 11, height: 1.4, color: _tg.muted)),
+                  style: TextStyle(fontSize: 11, height: 1.4, color: _settingsStale ? _tg.amber : _tg.muted)),
             ])),
       ]));
 
@@ -1113,6 +1075,33 @@ class TilesetGeneratorScreenState extends State<TilesetGeneratorScreen> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  /// True when the draft settings differ from what produced the current tiles.
+  bool get _settingsStale {
+    final g = _generatedSettings;
+    if (g == null) return false;
+    if (g.perspective != _perspective ||
+        g.type != _type ||
+        g.size != _size ||
+        g.seed != (int.tryParse(_seed.text) ?? g.seed) ||
+        g.density != _density.round() ||
+        g.variations != _variations ||
+        g.material != _material ||
+        !listEquals(g.palette, _palette) ||
+        !setEquals(g.parts.toSet(), _parts)) {
+      return true;
+    }
+    if (!widget.recipeMode) return false;
+    final a = g.recipe, b = _recipe;
+    return a == null ||
+        a.base != b.base ||
+        a.surface.id != b.surface.id ||
+        a.surface.spec != b.surface.spec ||
+        a.platform != b.platform ||
+        a.vegetation != b.vegetation ||
+        a.vegetationDensity != b.vegetationDensity ||
+        !mapEquals(a.extraModifiers, b.extraModifiers);
   }
 
   Set<int> get _missingParts => _generatedSettings == null ? {} : missingTilesetParts(_document);

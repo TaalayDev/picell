@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../pixel/pixel_canvas_state.dart';
 import '../../../pixel/effects/effects.dart';
+import '../../../pixel/providers/editor_selection_provider.dart';
 import '../../../pixel/providers/pixel_canvas_provider.dart';
 import '../../../pixel/tools.dart';
 import 'color_palette_panel.dart';
@@ -306,6 +307,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
         },
         onLayersOpacityChanged: widget.notifier.setLayersOpacity,
         onLayersTransformed: widget.notifier.transformLayers,
+        onLayersMerged: widget.notifier.mergeLayers,
         onLayerEffectsChanged: widget.notifier.updateLayer,
         onLayersDuplicated: widget.notifier.duplicateLayers,
         onLayerToTemplate: (layer) {
@@ -319,6 +321,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
         },
         onAutoSelect: widget.notifier.autoSelectLayer,
         onSelectionChanged: widget.onLayerSelectionChanged,
+        onInteract: () => widget.notifier.setSelectionTarget(EditorSelectionTarget.layers),
       );
     }
 

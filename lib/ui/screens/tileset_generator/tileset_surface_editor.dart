@@ -379,26 +379,41 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
         child: Column(children: [
           if (!wide) _pinnedPreview(),
           Expanded(child: LayoutBuilder(builder: (context, box) {
-            final sheet = !wide && spec != null;
+            final sheet = !wide && spec != null && _openSection == 'look';
             return Stack(children: [
               Positioned.fill(
                   child: ListView(
                       padding: EdgeInsets.fromLTRB(12, 10, 12, 16 + (sheet ? box.maxHeight * 0.45 : 0)),
                       children: [
-                    if (spec != null) ...[
-                      _nameRow(spec),
-                      const SizedBox(height: 8),
-                      _presetRow(),
-                      const SizedBox(height: 8),
-                      ..._layersSection(spec),
-                      if (wide) ...[const SizedBox(height: 8), _inspector(spec, spec.layers[_layer])],
-                    ] else ...[
-                      ..._classicBanner(),
-                    ],
-                    const SizedBox(height: 12),
-                    ..._globalSection(),
-                    const SizedBox(height: 12),
-                    ..._moreSection(),
+                    _section(
+                        'look',
+                        'LOOK',
+                        spec == null
+                            ? '${_recipe.surface.label} · classic surface'
+                            : '${spec.name} · ${spec.layers.length} ${spec.layers.length == 1 ? 'layer' : 'layers'}',
+                        [
+                          if (spec != null) ...[
+                            _nameRow(spec),
+                            const SizedBox(height: 8),
+                            _presetRow(),
+                            const SizedBox(height: 8),
+                            ..._layersSection(spec),
+                            if (wide) ...[const SizedBox(height: 8), _inspector(spec, spec.layers[_layer])],
+                          ] else
+                            ..._classicBanner(),
+                          const SizedBox(height: 12),
+                          _paletteRow(),
+                        ]),
+                    _section(
+                        'shape',
+                        'SHAPE',
+                        '${_recipe.base.label} · ${TilesetModifiers.all.where((m) => _recipe.modifierIntensity(m.id) != null).length} modifiers · ${_parts.length}/47 parts',
+                        _moreSection()),
+                    _section(
+                        'output',
+                        'OUTPUT',
+                        'Seed ${_seed.text} · $_variations ${_variations == 1 ? 'variation' : 'variations'} · $_size px',
+                        _outputSection()),
                   ])),
               if (sheet) Positioned.fill(child: _inspectorSheet(spec)),
             ]);
@@ -406,14 +421,60 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
           Container(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
               decoration: BoxDecoration(color: _tg.panel, border: Border(top: BorderSide(color: _tg.border))),
-              child: PvPixelButton(
-                  key: const ValueKey('surface-generate'),
-                  label: _tiles.isEmpty ? 'GENERATE TILESET' : 'REGENERATE TILESET',
-                  icon: Icons.auto_awesome,
-                  height: 44,
-                  expand: true,
-                  onPressed: _busy ? null : _generateTiles)),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                PvPixelButton(
+                    key: const ValueKey('surface-generate'),
+                    label: _tiles.isEmpty ? 'GENERATE TILESET' : 'REGENERATE TILESET',
+                    icon: Icons.auto_awesome,
+                    height: 44,
+                    expand: true,
+                    onPressed: _busy ? null : _generateTiles),
+                if (_settingsStale)
+                  Padding(
+                      key: const ValueKey('surface-stale-hint'),
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Icon(Icons.circle, size: 8, color: _tg.amber),
+                        const SizedBox(width: 6),
+                        Flexible(
+                            child: Text('Settings changed. Regenerate to apply.',
+                                style: TextStyle(fontSize: 11, color: _tg.amber))),
+                      ])),
+              ])),
         ]));
+  }
+
+  /// One accordion group: a tappable header with a one-line summary, body only while open.
+  Widget _section(String id, String title, String summary, List<Widget> children) {
+    final open = _openSection == id;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      InkWell(
+          key: ValueKey('section-$id'),
+          borderRadius: BorderRadius.circular(_tg.chipRadius),
+          onTap: () => _updateDraft(() => _openSection = open ? '' : id),
+          child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(children: [
+                Icon(open ? Icons.expand_more : Icons.chevron_right, size: 20, color: _tg.highlight),
+                const SizedBox(width: 4),
+                Text(title, style: _tg.pixel(12)),
+                const SizedBox(width: 10),
+                if (!open)
+                  Expanded(
+                      child: Text(summary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 11, color: _tg.muted)))
+                else
+                  const Spacer(),
+              ]))),
+      if (open) ...[
+        Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children))
+      ],
+      Divider(height: 1, color: _tg.border),
+    ]);
   }
 
   Widget _nameRow(TilesetSurfaceSpec spec) {
@@ -428,7 +489,7 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
               enabled: !_busy,
               maxLength: 60,
               hint: 'Surface name',
-              prefixIcon: Icons.edit_outlined,
+              prefixIcon: Icons.layers_outlined,
               onChanged: (v) {
                 final current = _customSpec;
                 if (current != null && v.trim().isNotEmpty) {
@@ -1063,9 +1124,37 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
 
   // ----------------------------------------------------------------- global
 
-  List<Widget> _globalSection() => [
-        Text('GLOBAL', style: _tg.pixel(12)),
-        const SizedBox(height: 6),
+  Widget _paletteRow() => SizedBox(
+      height: 32,
+      child: Row(children: [
+        SizedBox(width: 54, child: Text('Palette', style: _label)),
+        Expanded(
+            child: Row(children: [
+          for (var i = 0; i < 8 && i < _palette.length; i++) ...[
+            if (i > 0) const SizedBox(width: 3),
+            Expanded(
+                child: Tooltip(
+                    message: 'Palette slot $i · ${tilesetSlotRoles[i]}',
+                    child: Container(
+                        height: 22,
+                        decoration: BoxDecoration(
+                            color: Color(_palette[i]),
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(color: _tg.border))))),
+          ]
+        ])),
+        const SizedBox(width: 8),
+        _Pill(
+            key: const ValueKey('palette-edit'),
+            tg: _tg,
+            label: 'Edit',
+            icon: Icons.palette_outlined,
+            height: 30,
+            radius: _tg.chipRadius,
+            onTap: _busy || !_hasEightColors ? null : _openPaletteEditor),
+      ]));
+
+  List<Widget> _outputSection() => [
         Row(key: const ValueKey('set-geometry-summary'), children: [
           Expanded(child: _ReadOnlyTile(tg: _tg, label: 'Projection', value: _perspective.label)),
           const SizedBox(width: 6),
@@ -1077,35 +1166,6 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
               child: Text('Size is the logical diamond height. Sprite width is twice this value.',
                   style: TextStyle(fontSize: 11, color: _tg.muted))),
         const SizedBox(height: 6),
-        SizedBox(
-            height: 32,
-            child: Row(children: [
-              SizedBox(width: 54, child: Text('Palette', style: _label)),
-              Expanded(
-                  child: Row(children: [
-                for (var i = 0; i < 8 && i < _palette.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 3),
-                  Expanded(
-                      child: Tooltip(
-                          message: 'Palette slot $i · ${tilesetSlotRoles[i]}',
-                          child: Container(
-                              height: 22,
-                              decoration: BoxDecoration(
-                                  color: Color(_palette[i]),
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(color: _tg.border))))),
-                ]
-              ])),
-              const SizedBox(width: 8),
-              _Pill(
-                  key: const ValueKey('palette-edit'),
-                  tg: _tg,
-                  label: 'Edit',
-                  icon: Icons.palette_outlined,
-                  height: 30,
-                  radius: _tg.chipRadius,
-                  onTap: _busy || !_hasEightColors ? null : _openPaletteEditor),
-            ])),
         const SizedBox(height: 6),
         Row(children: [
           Expanded(
@@ -1141,7 +1201,7 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
     final bases = TilesetRecipe.basesFor(_perspective);
     return [
       if (bases.length > 1) ...[
-        Text('USE AS', style: _tg.pixel(12)),
+        Text('Use as', style: _label),
         const SizedBox(height: 6),
         Wrap(spacing: 6, runSpacing: 6, children: [
           for (final base in bases)
@@ -1154,11 +1214,11 @@ extension _SurfaceEditor on TilesetGeneratorScreenState {
         ]),
         const SizedBox(height: 14),
       ],
-      Text('MODIFIERS', style: _tg.pixel(12)),
+      Text('Modifiers', style: _label),
       const SizedBox(height: 4),
       for (final modifier in TilesetModifiers.all) ..._modifierControls(modifier),
       const SizedBox(height: 12),
-      Text('CONNECTION PARTS', style: _tg.pixel(12)),
+      Text('Connection parts', style: _label),
       const SizedBox(height: 6),
       Row(children: [
         _Pill(

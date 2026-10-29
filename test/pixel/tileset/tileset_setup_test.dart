@@ -54,15 +54,21 @@ void main() {
     // Geometry is chosen once for the project and cannot be edited per set.
     expect(find.text('1 · PERSPECTIVE'), findsNothing);
     expect(find.byType(TilesetGeometryPicker), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('section-output')));
+    await tester.pumpAndSettle();
     final summary = find.byKey(const ValueKey('set-geometry-summary'));
     expect(find.descendant(of: summary, matching: find.text('Side View')), findsOneWidget);
     expect(find.descendant(of: summary, matching: find.text('16 × 16 px')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('section-look')));
+    await tester.pumpAndSettle();
     await reveal(tester, find.byKey(const ValueKey('surface-open-presets')));
     await tester.tap(find.byKey(const ValueKey('surface-open-presets')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('gallery-search')), 'ice');
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('preset-ice')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('section-output')));
     await tester.pumpAndSettle();
     await reveal(tester, find.byKey(const ValueKey('global-seed')));
     await tester.enterText(find.byKey(const ValueKey('global-seed')), '314');
