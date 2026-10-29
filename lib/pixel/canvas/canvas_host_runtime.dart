@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../../data.dart';
@@ -24,7 +26,8 @@ class PixelCanvasHostCallbacks {
     this.onPixelDrag,
     this.onPixelDragEnd,
     this.onUndo,
-    this.onGradientFromPoints,
+    this.renderGradientPreview,
+    this.onGradientApply,
   });
 
   final PixelTool Function() getCurrentTool;
@@ -38,7 +41,13 @@ class PixelCanvasHostCallbacks {
   final Function(Offset)? onPixelDrag;
   final Function(Offset)? onPixelDragEnd;
   final Function()? onUndo;
-  final void Function(Offset startPx, Offset endPx)? onGradientFromPoints;
+
+  /// Renders the current layer with the gradient applied, without committing.
+  final Uint32List? Function(Offset startPx, Offset endPx)?
+      renderGradientPreview;
+
+  /// Commits the gradient; returns whether the layer will change.
+  final bool Function(Offset startPx, Offset endPx)? onGradientApply;
 }
 
 class PixelCanvasHostRuntime {
@@ -129,9 +138,14 @@ class PixelCanvasHostRuntime {
       },
       onGradientPreview: (start, end) {
         controller.setGradient(start, end);
+        controller.setGradientPreviewPixels(
+            callbacks.renderGradientPreview?.call(start, end));
       },
       onGradientApply: (startPx, endPx) {
-        callbacks.onGradientFromPoints?.call(startPx, endPx);
+        final committed = callbacks.onGradientApply?.call(startPx, endPx);
+        // A committed gradient keeps its preview until the new layer pixels
+        // arrive (see updateLayers) so the canvas doesn't flash.
+        if (committed != true) controller.setGradientPreviewPixels(null);
       },
       onGradientClear: () {
         controller.setGradient(null, null);

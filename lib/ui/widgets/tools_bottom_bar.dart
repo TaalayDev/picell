@@ -71,7 +71,8 @@ class ToolsBottomBar extends HookWidget {
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: extraTools.entries.map((entry) {
+                  children: [
+                    ...extraTools.entries.map((entry) {
                     final tool = entry.key;
                     final iconData = entry.value.$1;
                     final label = entry.value.$2;
@@ -85,7 +86,20 @@ class ToolsBottomBar extends HookWidget {
                       },
                       tooltip: label,
                     );
-                  }).toList(),
+                  }),
+                    IconButton(
+                      key: const ValueKey('tools-bottom-bar-gradient'),
+                      icon: const Icon(Icons.gradient),
+                      color: currentTool.value == PixelTool.gradient
+                          ? Colors.blue
+                          : null,
+                      onPressed: () {
+                        currentTool.value = PixelTool.gradient;
+                        showExtraTools.value = false;
+                      },
+                      tooltip: Strings.of(context).gradient,
+                    ),
+                  ],
                 ).animate().fadeIn(duration: const Duration(milliseconds: 200)),
               ),
             if (showExtraTools.value)

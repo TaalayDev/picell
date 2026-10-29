@@ -4,13 +4,35 @@
     {
       "name": "flutter-web",
       "runtimeExecutable": "flutter",
-      "runtimeArgs": ["run", "-d", "chrome", "--web-port=8765"],
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "chrome",
+        "--web-port=8765"
+      ],
       "port": 8765
+    },
+    {
+      "name": "flutter-web-server",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "web-server",
+        "--web-port=8766"
+      ],
+      "port": 8766
     },
     {
       "name": "backend-php",
       "runtimeExecutable": "php",
-      "runtimeArgs": ["-S", "localhost:8080", "-t", "backend", "backend/router.php"],
+      "runtimeArgs": [
+        "-S",
+        "localhost:8080",
+        "-t",
+        "backend",
+        "backend/router.php"
+      ],
       "port": 8080
     }
   ]

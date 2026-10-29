@@ -84,7 +84,13 @@ abstract final class RigGif {
       throw StateError('The rig has no keyframes to preview.');
     }
     final clip = rig.activeClip!;
-    final frames = RigBaker(rig: rig, width: width, height: height, layers: restLayers).bakeClip(clip);
+    final frames = await RigBaker.bakeClipInBackground(
+      rig: rig,
+      clip: clip,
+      width: width,
+      height: height,
+      layers: restLayers,
+    );
     return compute(encodeRigGif, (
       frames: frames,
       width: width,

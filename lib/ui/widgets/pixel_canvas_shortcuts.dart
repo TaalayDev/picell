@@ -7,6 +7,7 @@ import '../../pixel/pixel_canvas_state.dart';
 import '../../pixel/providers/pixel_canvas_provider.dart';
 import '../../pixel/tools.dart';
 import '../../ui/widgets/dialogs/import_dialog.dart';
+import '../utils/color_swap.dart';
 import 'shortcuts_wrapper.dart';
 
 class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
@@ -122,8 +123,8 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       onToggleTileMode: onToggleTileMode,
       onToggleGrid: onToggleGrid,
       onToggleOnionSkin: onToggleOnionSkin,
-      onSwapColors: () {},
-      onDefaultColors: () {},
+      onSwapColors: () => swapPrimarySecondaryColors(ref, notifier),
+      onDefaultColors: () => resetDefaultColors(ref, notifier),
       onToggleUI: toggleUI,
       onPanStart: () {
         if (!isPanMode.value) {

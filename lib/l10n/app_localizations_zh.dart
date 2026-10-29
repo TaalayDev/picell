@@ -3752,6 +3752,21 @@ class StringsZh extends Strings {
   }
 
   @override
+  String get rigLayerRotation => '按图层';
+
+  @override
+  String get rigLayerRotationHint => '让部分图层使用不同的绘制方式，例如脸部保持清晰、四肢平滑转动';
+
+  @override
+  String get rigRotationAsRig => '跟随骨架设置';
+
+  @override
+  String get rigRotationNearest => '最近邻';
+
+  @override
+  String get rigRotationRotSprite => 'RotSprite';
+
+  @override
   String get rigFlipBone => '翻转所选骨骼';
 
   @override
@@ -4616,4 +4631,59 @@ class StringsZh extends Strings {
 
   @override
   String get planRestorePurchases => '恢复购买';
+
+  @override
+  String get gradient => '渐变';
+
+  @override
+  String get gradientLinear => '线性';
+
+  @override
+  String get gradientRadial => '径向';
+
+  @override
+  String get gradientBands => '色带';
+
+  @override
+  String get gradientSmooth => '平滑';
+
+  @override
+  String gradientStepsCount(int count) {
+    return '$count 级';
+  }
+
+  @override
+  String get gradientDitherNone => '无抖动';
+
+  @override
+  String gradientDitherBayer(String size) {
+    return '拜耳 $size';
+  }
+
+  @override
+  String get gradientDitherWidth => '抖动宽度';
+
+  @override
+  String get gradientTargetLayer => '整个图层';
+
+  @override
+  String get gradientTargetArea => '同色区域';
+
+  @override
+  String get gradientBlendOver => '叠加混合';
+
+  @override
+  String get gradientBlendReplace => '替换像素';
+
+  @override
+  String get gradientBlendLockAlpha => '保留透明度';
+
+  @override
+  String get gradientEndSecondary => '渐变到次要颜色';
+
+  @override
+  String get gradientEndTransparent => '渐变到透明';
+
+  @override
+  String get secondaryColorSwap => '次要颜色（点击交换，X）';
 }

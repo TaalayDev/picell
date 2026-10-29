@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import '../../data/models/layer.dart';
@@ -95,12 +96,82 @@ class RigBaker {
   /// One buffer per frame of [clip], times `0 .. length - 1`.
   List<Uint32List> bakeClip(RigClip clip) => [for (var t = 0; t < clip.length; t++) bakeFrame(clip, t.toDouble())];
 
+  /// Below this many canvas pixels times frames a clip bakes in a moment,
+  /// so it stays on the calling isolate; above it the UI would stall.
+  static const backgroundThreshold = 128 * 128 * 24;
+
+  /// [bakeClip] for [rig]'s [clip] without blocking the UI: big jobs run on
+  /// a background isolate, which sends the frames back one by one and
+  /// reports [onProgress] (0..1) as it goes. Small jobs bake right here.
+  static Future<List<Uint32List>> bakeClipInBackground({
+    required Rig rig,
+    required RigClip clip,
+    required int width,
+    required int height,
+    required List<Layer> layers,
+    void Function(double progress)? onProgress,
+  }) async {
+    if (width * height * clip.length <= backgroundThreshold) {
+      final frames = RigBaker(rig: rig, width: width, height: height, layers: layers).bakeClip(clip);
+      onProgress?.call(1);
+      return frames;
+    }
+
+    // The rig with this clip active, and the layers, travel as JSON.
+    final job = (
+      rig: rig.copyWith(clips: [clip], activeClipId: () => clip.id).toJson(),
+      layers: [for (final layer in layers) layer.toJson()],
+      width: width,
+      height: height,
+    );
+    final port = ReceivePort();
+    final frames = <Uint32List>[];
+    try {
+      await Isolate.spawn(_bakeOnIsolate, (port.sendPort, job), onError: port.sendPort, onExit: port.sendPort);
+      await for (final message in port) {
+        switch (message) {
+          case TransferableTypedData():
+            frames.add(message.materialize().asUint32List());
+            onProgress?.call(frames.length / clip.length);
+          case [final Object? error, final Object? stack]:
+            throw RemoteError('$error', '$stack');
+          case null:
+            break; // the isolate exited
+        }
+        if (message == null || frames.length == clip.length) break;
+      }
+    } finally {
+      port.close();
+    }
+    if (frames.length != clip.length) {
+      throw StateError('Baking stopped after ${frames.length} of ${clip.length} frames.');
+    }
+    return frames;
+  }
+
+  static void _bakeOnIsolate(
+    (SendPort, ({Map<String, dynamic> rig, List<Map<String, dynamic>> layers, int width, int height})) request,
+  ) {
+    final (port, job) = request;
+    final rig = Rig.fromJson(job.rig);
+    final clip = rig.activeClip!;
+    final baker = RigBaker(
+      rig: rig,
+      width: job.width,
+      height: job.height,
+      layers: [for (final json in job.layers) Layer.fromJson(json)],
+    );
+    for (var t = 0; t < clip.length; t++) {
+      port.send(TransferableTypedData.fromList([baker.bakeFrame(clip, t.toDouble())]));
+    }
+  }
+
   // Equal poses recur constantly (snapped angles, stepped easing, loops), so
   // a rasterized part is reused whenever its transform repeats. Cached
   // buffers are only read by bakeFrame, never handed out.
   Uint32List _rasterize(RigPart part, Layer layer, Affine2 transform) {
     final key = '${part.id}|${layer.id}|${transform.cacheKey}';
-    if (rig.settings.rotationMode == RigRotationMode.rotsprite) {
+    if (rig.settings.rotationModeFor(part.layerKey) == RigRotationMode.rotsprite) {
       // The enlarged image is built once per part; poses only sample it.
       final sprite = _sprites[part.id] ??=
           RotSpriteSource(layer.processedPixels(width, height), width, height, mask: part.mask);

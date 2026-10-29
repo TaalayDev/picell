@@ -4020,6 +4020,21 @@ class StringsRu extends Strings {
   }
 
   @override
+  String get rigLayerRotation => 'По слоям';
+
+  @override
+  String get rigLayerRotationHint => 'Рисовать некоторые слои иначе, например, лицо чётким, а конечности плавными';
+
+  @override
+  String get rigRotationAsRig => 'Как у рига';
+
+  @override
+  String get rigRotationNearest => 'Ближайший';
+
+  @override
+  String get rigRotationRotSprite => 'RotSprite';
+
+  @override
   String get rigFlipBone => 'Отразить выбранную кость';
 
   @override
@@ -4921,4 +4936,59 @@ class StringsRu extends Strings {
 
   @override
   String get planRestorePurchases => 'Восстановить покупки';
+
+  @override
+  String get gradient => 'Градиент';
+
+  @override
+  String get gradientLinear => 'Линейный';
+
+  @override
+  String get gradientRadial => 'Радиальный';
+
+  @override
+  String get gradientBands => 'Цветовые полосы';
+
+  @override
+  String get gradientSmooth => 'Плавный';
+
+  @override
+  String gradientStepsCount(int count) {
+    return 'Ступеней: $count';
+  }
+
+  @override
+  String get gradientDitherNone => 'Без дизеринга';
+
+  @override
+  String gradientDitherBayer(String size) {
+    return 'Байер $size';
+  }
+
+  @override
+  String get gradientDitherWidth => 'Ширина дизеринга';
+
+  @override
+  String get gradientTargetLayer => 'Весь слой';
+
+  @override
+  String get gradientTargetArea => 'Область того же цвета';
+
+  @override
+  String get gradientBlendOver => 'Наложение';
+
+  @override
+  String get gradientBlendReplace => 'Замена пикселей';
+
+  @override
+  String get gradientBlendLockAlpha => 'Сохранять прозрачность';
+
+  @override
+  String get gradientEndSecondary => 'К дополнительному цвету';
+
+  @override
+  String get gradientEndTransparent => 'К прозрачному';
+
+  @override
+  String get secondaryColorSwap => 'Дополнительный цвет (нажмите, чтобы поменять, X)';
 }

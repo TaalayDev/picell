@@ -239,10 +239,8 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost>
         }
       },
       onUndo: widget.notifier.undo,
-      onGradientFromPoints: (startPx, endPx) {
-        widget.notifier
-            .applyGradientFromPoints(startPx, endPx, Colors.transparent);
-      },
+      renderGradientPreview: widget.notifier.renderGradient,
+      onGradientApply: widget.notifier.applyGradient,
     );
   }
 
@@ -281,7 +279,6 @@ class _PixelCanvasSceneHostState extends ConsumerState<PixelCanvasSceneHost>
               color == Colors.transparent ? Colors.white : color;
           widget.onToolAutoSwitch?.call(PixelTool.pencil);
         },
-        onGradientApplied: widget.notifier.applyGradient,
         onStartPixelDrag: (_) {
           if (widget.currentTool == PixelTool.drag) {
             widget.notifier.startDrag();

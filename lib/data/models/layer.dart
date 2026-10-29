@@ -141,7 +141,45 @@ class Layer with EquatableMixin {
     };
   }
 
+  /// Serializes layer metadata for the binary `.pxv` manifest, storing a byte
+  /// slice pointer (`pixelsBlob`) instead of an inline JSON integer list.
+  Map<String, dynamic> toManifestJson({
+    required int pixelOffset,
+    required int pixelByteLength,
+  }) {
+    return {
+      'layerId': layerId,
+      'id': id,
+      'name': name,
+      'pixelsBlob': {
+        'offset': pixelOffset,
+        'byteLength': pixelByteLength,
+      },
+      'effects': effects
+          .map((e) => {
+                'type': e.type.name,
+                'parameters': e.parameters,
+              })
+          .toList(),
+      'isVisible': isVisible,
+      'isLocked': isLocked,
+      'opacity': opacity,
+      'order': order,
+      if (anchorPoint != null)
+        'anchorPoint': {'dx': anchorPoint!.dx, 'dy': anchorPoint!.dy},
+      if (stableKey != null) 'stableKey': stableKey,
+    };
+  }
+
   factory Layer.fromJson(Map<String, dynamic> json) {
+    return Layer.fromManifestJson(
+      json,
+      Uint32List.fromList((json['pixels'] as List).cast<int>()),
+    );
+  }
+
+  /// Reconstructs a [Layer] from a manifest JSON map and pre-decoded [pixels].
+  factory Layer.fromManifestJson(Map<String, dynamic> json, Uint32List pixels) {
     List<Effect> effectsList = [];
     if (json.containsKey('effects') && json['effects'] != null) {
       final effectsData = json['effects'] as List;
@@ -161,11 +199,11 @@ class Layer with EquatableMixin {
       layerId: json['layerId'] as int,
       id: json['id'] as String,
       name: json['name'] as String,
-      pixels: Uint32List.fromList((json['pixels'] as List).cast<int>()),
+      pixels: pixels,
       effects: effectsList,
       isVisible: json['isVisible'] as bool,
       isLocked: json['isLocked'] as bool,
-      opacity: json['opacity'] as double,
+      opacity: (json['opacity'] as num).toDouble(),
       order: json['order'] as int? ?? 0,
       anchorPoint: json['anchorPoint'] != null
           ? Offset(

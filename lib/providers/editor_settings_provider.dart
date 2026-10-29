@@ -1,6 +1,10 @@
+import 'dart:ui';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../data/storage/local_storage.dart';
+import '../pixel/gradient/gradient_options.dart';
+import '../pixel/gradient/gradient_renderer.dart';
 import 'providers.dart';
 
 part 'editor_settings_provider.g.dart';
@@ -26,6 +30,9 @@ enum TransformInterpolation {
   int get pixelUtilsValue => this == rotSprite ? nearest.index : index;
 }
 
+/// Where the gradient ramp ends.
+enum GradientEnd { secondaryColor, transparent }
+
 /// Editor settings state
 class EditorSettings {
   const EditorSettings({
@@ -40,6 +47,14 @@ class EditorSettings {
     this.transformInterpolation = TransformInterpolation.bilinear,
     this.wandTolerance = 0,
     this.wandContiguous = true,
+    this.secondaryColor = const Color(0xFFFFFFFF),
+    this.gradientType = GradientType.linear,
+    this.gradientTarget = GradientTarget.layer,
+    this.gradientEnd = GradientEnd.secondaryColor,
+    this.gradientSteps = 6,
+    this.gradientDither = GradientDither.bayer4,
+    this.gradientDitherSpread = 0.5,
+    this.gradientBlend = GradientBlend.over,
   });
 
   /// Current input mode (standard or stylus-only)
@@ -77,6 +92,31 @@ class EditorSettings {
   /// matching color on the layer (false).
   final bool wandContiguous;
 
+  /// Background/secondary colour; X swaps it with the primary colour.
+  final Color secondaryColor;
+
+  final GradientType gradientType;
+  final GradientTarget gradientTarget;
+  final GradientEnd gradientEnd;
+
+  /// Solid colour bands, or 0 for a smooth gradient.
+  final int gradientSteps;
+  final GradientDither gradientDither;
+  final double gradientDitherSpread;
+  final GradientBlend gradientBlend;
+
+  GradientOptions get gradientOptions => GradientOptions(
+        type: gradientType,
+        target: gradientTarget,
+        endColor: gradientEnd == GradientEnd.transparent
+            ? const Color(0x00000000)
+            : secondaryColor,
+        steps: gradientSteps < 2 ? null : gradientSteps,
+        dither: gradientDither,
+        ditherSpread: gradientDitherSpread,
+        blend: gradientBlend,
+      );
+
   /// Whether stylus mode is active
   bool get isStylusMode => inputMode == InputMode.stylusOnly;
 
@@ -92,6 +132,14 @@ class EditorSettings {
     TransformInterpolation? transformInterpolation,
     int? wandTolerance,
     bool? wandContiguous,
+    Color? secondaryColor,
+    GradientType? gradientType,
+    GradientTarget? gradientTarget,
+    GradientEnd? gradientEnd,
+    int? gradientSteps,
+    GradientDither? gradientDither,
+    double? gradientDitherSpread,
+    GradientBlend? gradientBlend,
   }) {
     return EditorSettings(
       inputMode: inputMode ?? this.inputMode,
@@ -106,6 +154,14 @@ class EditorSettings {
           transformInterpolation ?? this.transformInterpolation,
       wandTolerance: wandTolerance ?? this.wandTolerance,
       wandContiguous: wandContiguous ?? this.wandContiguous,
+      secondaryColor: secondaryColor ?? this.secondaryColor,
+      gradientType: gradientType ?? this.gradientType,
+      gradientTarget: gradientTarget ?? this.gradientTarget,
+      gradientEnd: gradientEnd ?? this.gradientEnd,
+      gradientSteps: gradientSteps ?? this.gradientSteps,
+      gradientDither: gradientDither ?? this.gradientDither,
+      gradientDitherSpread: gradientDitherSpread ?? this.gradientDitherSpread,
+      gradientBlend: gradientBlend ?? this.gradientBlend,
     );
   }
 
@@ -123,11 +179,19 @@ class EditorSettings {
         other.pixelGridOpacity == pixelGridOpacity &&
         other.transformInterpolation == transformInterpolation &&
         other.wandTolerance == wandTolerance &&
-        other.wandContiguous == wandContiguous;
+        other.wandContiguous == wandContiguous &&
+        other.secondaryColor == secondaryColor &&
+        other.gradientType == gradientType &&
+        other.gradientTarget == gradientTarget &&
+        other.gradientEnd == gradientEnd &&
+        other.gradientSteps == gradientSteps &&
+        other.gradientDither == gradientDither &&
+        other.gradientDitherSpread == gradientDitherSpread &&
+        other.gradientBlend == gradientBlend;
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
         inputMode,
         showGrid,
         zoomSensitivity,
@@ -139,7 +203,15 @@ class EditorSettings {
         transformInterpolation,
         wandTolerance,
         wandContiguous,
-      );
+        secondaryColor,
+        gradientType,
+        gradientTarget,
+        gradientEnd,
+        gradientSteps,
+        gradientDither,
+        gradientDitherSpread,
+        gradientBlend,
+      ]);
 }
 
 // Storage keys for editor settings
@@ -154,6 +226,19 @@ const _kPixelGridOpacity = 'editor_pixel_grid_opacity';
 const _kTransformInterpolation = 'editor_transform_interpolation';
 const _kWandTolerance = 'editor_wand_tolerance';
 const _kWandContiguous = 'editor_wand_contiguous';
+const _kSecondaryColor = 'editor_secondary_color';
+const _kGradientType = 'editor_gradient_type';
+const _kGradientTarget = 'editor_gradient_target';
+const _kGradientEnd = 'editor_gradient_end';
+const _kGradientSteps = 'editor_gradient_steps';
+const _kGradientDither = 'editor_gradient_dither';
+const _kGradientDitherSpread = 'editor_gradient_dither_spread';
+const _kGradientBlend = 'editor_gradient_blend';
+
+T _enumAt<T>(List<T> values, int? index, T fallback) =>
+    index == null || index < 0 || index >= values.length
+        ? fallback
+        : values[index];
 
 @riverpod
 class EditorSettingsNotifier extends _$EditorSettingsNotifier {
@@ -179,6 +264,7 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
             TransformInterpolation.bilinear.index;
     final wandTolerance = _storage.getInt(_kWandTolerance) ?? 0;
     final wandContiguous = _storage.getBool(_kWandContiguous) ?? true;
+    const defaults = EditorSettings();
 
     return EditorSettings(
       inputMode: InputMode
@@ -197,6 +283,25 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
       )],
       wandTolerance: wandTolerance.clamp(0, 100),
       wandContiguous: wandContiguous,
+      secondaryColor: Color(
+          _storage.getInt(_kSecondaryColor) ??
+              defaults.secondaryColor.toARGB32()),
+      gradientType: _enumAt(GradientType.values,
+          _storage.getInt(_kGradientType), defaults.gradientType),
+      gradientTarget: _enumAt(GradientTarget.values,
+          _storage.getInt(_kGradientTarget), defaults.gradientTarget),
+      gradientEnd: _enumAt(GradientEnd.values, _storage.getInt(_kGradientEnd),
+          defaults.gradientEnd),
+      gradientSteps: (_storage.getInt(_kGradientSteps) ??
+              defaults.gradientSteps)
+          .clamp(0, 32),
+      gradientDither: _enumAt(GradientDither.values,
+          _storage.getInt(_kGradientDither), defaults.gradientDither),
+      gradientDitherSpread: (_storage.getDouble(_kGradientDitherSpread) ??
+              defaults.gradientDitherSpread)
+          .clamp(0.0, 1.0),
+      gradientBlend: _enumAt(GradientBlend.values,
+          _storage.getInt(_kGradientBlend), defaults.gradientBlend),
     );
   }
 
@@ -215,6 +320,14 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
     );
     _storage.setInt(_kWandTolerance, state.wandTolerance);
     _storage.setBool(_kWandContiguous, state.wandContiguous);
+    _storage.setInt(_kSecondaryColor, state.secondaryColor.toARGB32());
+    _storage.setInt(_kGradientType, state.gradientType.index);
+    _storage.setInt(_kGradientTarget, state.gradientTarget.index);
+    _storage.setInt(_kGradientEnd, state.gradientEnd.index);
+    _storage.setInt(_kGradientSteps, state.gradientSteps);
+    _storage.setInt(_kGradientDither, state.gradientDither.index);
+    _storage.setDouble(_kGradientDitherSpread, state.gradientDitherSpread);
+    _storage.setInt(_kGradientBlend, state.gradientBlend.index);
   }
 
   void setInputMode(InputMode mode) {
@@ -274,6 +387,47 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
 
   void setWandContiguous(bool contiguous) {
     state = state.copyWith(wandContiguous: contiguous);
+    _saveSettings();
+  }
+
+  void setSecondaryColor(Color color) {
+    state = state.copyWith(secondaryColor: color);
+    _saveSettings();
+  }
+
+  void setGradientType(GradientType type) {
+    state = state.copyWith(gradientType: type);
+    _saveSettings();
+  }
+
+  void setGradientTarget(GradientTarget target) {
+    state = state.copyWith(gradientTarget: target);
+    _saveSettings();
+  }
+
+  void setGradientEnd(GradientEnd end) {
+    state = state.copyWith(gradientEnd: end);
+    _saveSettings();
+  }
+
+  /// 0 (or 1) means smooth.
+  void setGradientSteps(int steps) {
+    state = state.copyWith(gradientSteps: steps.clamp(0, 32));
+    _saveSettings();
+  }
+
+  void setGradientDither(GradientDither dither) {
+    state = state.copyWith(gradientDither: dither);
+    _saveSettings();
+  }
+
+  void setGradientDitherSpread(double spread) {
+    state = state.copyWith(gradientDitherSpread: spread.clamp(0.0, 1.0));
+    _saveSettings();
+  }
+
+  void setGradientBlend(GradientBlend blend) {
+    state = state.copyWith(gradientBlend: blend);
     _saveSettings();
   }
 

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
+import '../codec/project_binary_codec.dart';
 import 'animation_frame_model.dart';
 
 /// The type of project - determines which editor is used
@@ -214,6 +215,20 @@ class Project with EquatableMixin {
       editedAt: DateTime.fromMillisecondsSinceEpoch(json['editedAt'] as int),
     );
   }
+
+  /// Encodes this project into the compressed `PXV\x02` binary container.
+  Uint8List toBytes() => ProjectBinaryCodec.encodeSync(this);
+
+  /// Encodes this project into `PXV\x02` binary bytes in a background isolate.
+  Future<Uint8List> toBytesAsync() => ProjectBinaryCodec.encode(this);
+
+  /// Decodes a [Project] from either `PXV\x02` binary bytes or legacy UTF-8
+  /// JSON `.pxv` bytes.
+  factory Project.fromBytes(Uint8List bytes) => ProjectBinaryCodec.decodeSync(bytes);
+
+  /// Decodes a [Project] from either `PXV\x02` binary bytes or legacy UTF-8
+  /// JSON `.pxv` bytes in a background isolate.
+  static Future<Project> fromBytesAsync(Uint8List bytes) => ProjectBinaryCodec.decode(bytes);
 
   @override
   List<Object?> get props => [

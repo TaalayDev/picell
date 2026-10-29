@@ -17,7 +17,6 @@ class PixelCanvasCallbacks {
     this.onAnchorChanged,
     this.onAnchorChangeEnd,
     this.onColorPicked,
-    this.onGradientApplied,
     this.onStartPixelDrag,
     this.onPixelDrag,
     this.onPixelDragEnd,
@@ -38,7 +37,6 @@ class PixelCanvasCallbacks {
   /// Fired once when an anchor-handle drag ends.
   final VoidCallback? onAnchorChangeEnd;
   final Function(Color)? onColorPicked;
-  final Function(List<Color>)? onGradientApplied;
   final Function(Offset)? onStartPixelDrag;
   final Function(Offset)? onPixelDrag;
   final Function(Offset)? onPixelDragEnd;

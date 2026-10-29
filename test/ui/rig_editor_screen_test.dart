@@ -863,6 +863,8 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('ikcell-ik-2')));
       await tester.pump();
       expect(find.text('3 / 8'), findsOneWidget);
+      // The pose section above it is tall; the panel builds lazily.
+      await inPanel(tester, find.text('Chain'));
       expect(find.text('Chain'), findsOneWidget);
       expect(find.textContaining('Off: drag the ring'), findsOneWidget);
 

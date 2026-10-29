@@ -1840,6 +1840,11 @@
     "rigRelative": "相対",
     "rigRelativeHint": "入力した値を選択した各ボーンのポーズに加えます",
     "rigBonesSelected": "{count} 本のボーン",
+    "rigLayerRotation": "レイヤーごと",
+    "rigLayerRotationHint": "一部のレイヤーだけ描き方を変えます（例：手足は滑らかに、顔はくっきり）",
+    "rigRotationAsRig": "リグの設定",
+    "rigRotationNearest": "ニアレスト",
+    "rigRotationRotSprite": "RotSprite",
     "rigFlipBone": "選択したボーンを反転",
     "rigSelectMultiple": "複数のボーンを選択",
     "rigSnapping": "関節スナップ（Alt で無効）",
@@ -2107,5 +2112,36 @@
     "planStoreUnavailableBody": "購入はAndroid、iOS、デスクトップ版のPixelVerseアプリで行います。プランは自動で同期されます。",
     "planOpenAppToPurchase": "購入にはアプリを開いてください。価格は参考です。",
     "planRetry": "再試行",
-    "planRestorePurchases": "購入を復元"
+    "planRestorePurchases": "購入を復元",
+    "gradient": "グラデーション",
+    "gradientLinear": "線形",
+    "gradientRadial": "円形",
+    "gradientBands": "カラーバンド",
+    "gradientSmooth": "なめらか",
+    "gradientStepsCount": "{count} 段階",
+    "@gradientStepsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "gradientDitherNone": "ディザなし",
+    "gradientDitherBayer": "ベイヤー {size}",
+    "@gradientDitherBayer": {
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "gradientDitherWidth": "ディザ幅",
+    "gradientTargetLayer": "レイヤー全体",
+    "gradientTargetArea": "同じ色の範囲",
+    "gradientBlendOver": "重ねる",
+    "gradientBlendReplace": "ピクセルを置き換え",
+    "gradientBlendLockAlpha": "透明部分を保護",
+    "gradientEndSecondary": "セカンダリカラーへ",
+    "gradientEndTransparent": "透明へ",
+    "secondaryColorSwap": "セカンダリカラー（タップで入れ替え、X）"
 }

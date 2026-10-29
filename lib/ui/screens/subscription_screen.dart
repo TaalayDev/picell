@@ -539,15 +539,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(s.whatsNewBoneRigTitle, style: pv.pixelLabel(size: 16)),
-                    PvChip(label: s.rigExperimental, icon: Icons.science_outlined, color: pv.warn, dense: true),
-                  ],
-                ),
+                Text(s.whatsNewBoneRigTitle, style: pv.pixelLabel(size: 16)),
                 const SizedBox(height: 4),
                 Text(s.whatsNewBoneRigBody,
                     style: pv.body(size: 13, color: pv.textSecondary, weight: FontWeight.w400).copyWith(height: 1.4)),

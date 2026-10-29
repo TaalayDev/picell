@@ -31,6 +31,7 @@ import 'pen_path_actions.dart';
 import 'selection_mode_toggle.dart';
 import 'selection_options_button.dart';
 import 'wand_options_bar.dart';
+import 'gradient_options_bar.dart';
 
 class ToolBar extends ConsumerWidget {
   final ValueNotifier<PixelTool> currentTool;
@@ -588,6 +589,10 @@ class ToolBar extends ConsumerWidget {
                         ],
                         if (tool == PixelTool.smartSelect) ...[
                           const WandOptionsBar(),
+                          const SizedBox(width: 8),
+                        ],
+                        if (tool == PixelTool.gradient) ...[
+                          const GradientOptionsBar(),
                           const SizedBox(width: 8),
                         ],
                         if (tool == PixelTool.pen && onFinishPenPath != null && onCancelPenPath != null) ...[

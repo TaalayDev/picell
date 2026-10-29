@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
@@ -80,38 +81,16 @@ class FileUtils {
     );
   }
 
-  Future<void> save(String name, String contents) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final String filePath = '${directory.path}/$name';
-
-    if (kIsWeb) {
-      final blob = html.Blob([contents]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.document.createElement('a') as html.AnchorElement
-        ..href = url
-        ..style.display = 'none'
-        ..download = name;
-      html.document.body!.children.add(anchor);
-      anchor.click();
-      html.document.body!.children.remove(anchor);
-      html.Url.revokeObjectUrl(url);
-    } else {
-      String? outputFile = await FilePicker.platform.saveFile(
-        dialogTitle: 'Please select an output file:',
-        fileName: name,
-      );
-
-      if (outputFile == null) {
-        return;
-      }
-
-      final File file = File(outputFile);
-      await file.writeAsString(contents);
-    }
+  Future<bool> save(String name, String contents) async {
+    return saveBinaryFile(Uint8List.fromList(utf8.encode(contents)), name);
   }
 
-  Future<String?> readProjectFileContents() async {
-    final completer = Completer<String?>();
+  Future<bool> saveProjectBytes(String name, Uint8List bytes) async {
+    return saveBinaryFile(bytes, name);
+  }
+
+  Future<Uint8List?> readProjectFileBytes() async {
+    final completer = Completer<Uint8List?>();
     if (kIsWeb) {
       final html.InputElement input = html.document.createElement('input') as html.InputElement
         ..type = 'file'
@@ -121,10 +100,18 @@ class FileUtils {
       input.onChange.listen((event) {
         final html.File file = input.files!.first;
         final reader = html.FileReader();
-        reader.readAsText(file);
+        reader.readAsArrayBuffer(file);
         reader.onLoadEnd.listen((event) {
-          final String contents = reader.result as String;
-          completer.complete(contents);
+          final result = reader.result;
+          if (result is Uint8List) {
+            completer.complete(result);
+          } else if (result is ByteBuffer) {
+            completer.complete(result.asUint8List());
+          } else if (result is List<int>) {
+            completer.complete(Uint8List.fromList(result));
+          } else {
+            completer.complete(null);
+          }
         });
       });
       html.document.body!.children.add(input);
@@ -144,11 +131,17 @@ class FileUtils {
           const FormatException('Please select a .pxv project file.'),
         );
       } else {
-        completer.complete(await File(path).readAsString());
+        completer.complete(await File(path).readAsBytes());
       }
     }
 
     return completer.future;
+  }
+
+  Future<String?> readProjectFileContents() async {
+    final bytes = await readProjectFileBytes();
+    if (bytes == null) return null;
+    return utf8.decode(bytes, allowMalformed: true);
   }
 
   /// Picks any file (.pxv, Aseprite or image) and returns its name and bytes.

@@ -6827,6 +6827,36 @@ abstract class Strings {
   /// **'{count} bones'**
   String rigBonesSelected(int count);
 
+  /// No description provided for @rigLayerRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Per layer'**
+  String get rigLayerRotation;
+
+  /// No description provided for @rigLayerRotationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw some layers differently, e.g. keep a face crisp while limbs turn smoothly'**
+  String get rigLayerRotationHint;
+
+  /// No description provided for @rigRotationAsRig.
+  ///
+  /// In en, this message translates to:
+  /// **'As the rig'**
+  String get rigRotationAsRig;
+
+  /// No description provided for @rigRotationNearest.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest'**
+  String get rigRotationNearest;
+
+  /// No description provided for @rigRotationRotSprite.
+  ///
+  /// In en, this message translates to:
+  /// **'RotSprite'**
+  String get rigRotationRotSprite;
+
   /// No description provided for @rigFlipBone.
   ///
   /// In en, this message translates to:
@@ -8434,6 +8464,108 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Restore purchases'**
   String get planRestorePurchases;
+
+  /// No description provided for @gradient.
+  ///
+  /// In en, this message translates to:
+  /// **'Gradient'**
+  String get gradient;
+
+  /// No description provided for @gradientLinear.
+  ///
+  /// In en, this message translates to:
+  /// **'Linear'**
+  String get gradientLinear;
+
+  /// No description provided for @gradientRadial.
+  ///
+  /// In en, this message translates to:
+  /// **'Radial'**
+  String get gradientRadial;
+
+  /// No description provided for @gradientBands.
+  ///
+  /// In en, this message translates to:
+  /// **'Color bands'**
+  String get gradientBands;
+
+  /// No description provided for @gradientSmooth.
+  ///
+  /// In en, this message translates to:
+  /// **'Smooth'**
+  String get gradientSmooth;
+
+  /// No description provided for @gradientStepsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} steps'**
+  String gradientStepsCount(int count);
+
+  /// No description provided for @gradientDitherNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No dither'**
+  String get gradientDitherNone;
+
+  /// No description provided for @gradientDitherBayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bayer {size}'**
+  String gradientDitherBayer(String size);
+
+  /// No description provided for @gradientDitherWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Dither width'**
+  String get gradientDitherWidth;
+
+  /// No description provided for @gradientTargetLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole layer'**
+  String get gradientTargetLayer;
+
+  /// No description provided for @gradientTargetArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Same-color area'**
+  String get gradientTargetArea;
+
+  /// No description provided for @gradientBlendOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Blend over'**
+  String get gradientBlendOver;
+
+  /// No description provided for @gradientBlendReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace pixels'**
+  String get gradientBlendReplace;
+
+  /// No description provided for @gradientBlendLockAlpha.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep transparency'**
+  String get gradientBlendLockAlpha;
+
+  /// No description provided for @gradientEndSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'To secondary color'**
+  String get gradientEndSecondary;
+
+  /// No description provided for @gradientEndTransparent.
+  ///
+  /// In en, this message translates to:
+  /// **'To transparent'**
+  String get gradientEndTransparent;
+
+  /// No description provided for @secondaryColorSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary color (tap to swap, X)'**
+  String get secondaryColorSwap;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

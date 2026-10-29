@@ -182,8 +182,7 @@ abstract final class PoseInterpolator {
     return last.target;
   }
 
-  static BonePose _fromKey(RigKeyframe k) =>
-      BonePose(
+  static BonePose _fromKey(RigKeyframe k) => BonePose(
         rotation: k.rotation,
         translation: k.translation,
         flipX: k.flipX,

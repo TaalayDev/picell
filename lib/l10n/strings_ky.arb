@@ -1778,6 +1778,11 @@
     "rigRelative": "Салыштырмалуу",
     "rigRelativeHint": "Киргизилген маанилер ар бир тандалган сөөктүн абалына кошулат",
     "rigBonesSelected": "{count} сөөк",
+    "rigLayerRotation": "Катмар боюнча",
+    "rigLayerRotationHint": "Айрым катмарларды башкача тартуу, мисалы, бетти так, колдорду жылмакай",
+    "rigRotationAsRig": "Ригдегидей",
+    "rigRotationNearest": "Жакынкы",
+    "rigRotationRotSprite": "RotSprite",
     "rigFlipBone": "Тандалган сөөктү оодаруу",
     "rigSelectMultiple": "Бир нече сөөктү тандоо",
     "rigSnapping": "Муундарды жабыштыруу (Alt өчүрөт)",
@@ -2045,5 +2050,36 @@
     "planStoreUnavailableBody": "Сатып алуу Android, iOS же компьютердик PixelVerse колдонмосунда жүргүзүлөт. План автоматтык түрдө шайкештелет.",
     "planOpenAppToPurchase": "Сатып алуу үчүн колдонмону ачыңыз. Баалар маалымат үчүн.",
     "planRetry": "Кайра аракет",
-    "planRestorePurchases": "Сатып алууларды калыбына келтирүү"
+    "planRestorePurchases": "Сатып алууларды калыбына келтирүү",
+    "gradient": "Градиент",
+    "gradientLinear": "Сызыктуу",
+    "gradientRadial": "Тегерек",
+    "gradientBands": "Түс тилкелери",
+    "gradientSmooth": "Жылмакай",
+    "gradientStepsCount": "Баскычтар: {count}",
+    "@gradientStepsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "gradientDitherNone": "Дизерингсиз",
+    "gradientDitherBayer": "Байер {size}",
+    "@gradientDitherBayer": {
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "gradientDitherWidth": "Дизеринг кеңдиги",
+    "gradientTargetLayer": "Бүт катмар",
+    "gradientTargetArea": "Бирдей түстөгү аймак",
+    "gradientBlendOver": "Үстүнө кошуу",
+    "gradientBlendReplace": "Пикселдерди алмаштыруу",
+    "gradientBlendLockAlpha": "Тунуктукту сактоо",
+    "gradientEndSecondary": "Кошумча түскө",
+    "gradientEndTransparent": "Тунукка",
+    "secondaryColorSwap": "Кошумча түс (алмаштыруу үчүн басыңыз, X)"
 }

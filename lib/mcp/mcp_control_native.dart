@@ -120,19 +120,23 @@ class _McpControlState extends State<McpControl> {
   Widget build(BuildContext context) {
     if (!supported) return widget.child;
     return Overlay.wrap(
-        child: Stack(children: [
-      widget.child,
-      Positioned(
-        right: 12,
-        bottom: 12,
-        child: SafeArea(
-            child: FloatingActionButton.small(
-          heroTag: 'mcp-connection',
-          tooltip: 'AI connection (MCP)',
-          onPressed: _panelOpen ? null : _showPanel,
-          child: Icon(_connection?.running == true ? Icons.link : Icons.link_off),
-        )),
-      )
-    ]));
+      child: Stack(
+        children: [
+          widget.child,
+          // Positioned(
+          //   right: 12,
+          //   bottom: 12,
+          //   child: SafeArea(
+          //     child: FloatingActionButton.small(
+          //       heroTag: 'mcp-connection',
+          //       tooltip: 'AI connection (MCP)',
+          //       onPressed: _panelOpen ? null : _showPanel,
+          //       child: Icon(_connection?.running == true ? Icons.link : Icons.link_off),
+          //     ),
+          //   ),
+          // )
+        ],
+      ),
+    );
   }
 }

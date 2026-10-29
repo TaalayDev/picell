@@ -6,7 +6,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/colors.dart';
 import '../../../l10n/strings.dart';
+import '../../../providers/editor_settings_provider.dart';
 import '../../../providers/imported_palette_provider.dart';
+import '../gradient_options_bar.dart';
 
 /// Utility class to generate different types of color palettes
 class ColorPaletteGenerator {
@@ -249,6 +251,24 @@ class ColorPalettePanel extends HookConsumerWidget {
                         ),
                       ),
                     ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              // Secondary colour; tap swaps it with the primary (same as X).
+              Tooltip(
+                message: Strings.of(context).secondaryColorSwap,
+                child: InkWell(
+                  key: const ValueKey('secondary-color-swatch'),
+                  onTap: () {
+                    final secondary = ref.read(editorSettingsNotifierProvider).secondaryColor;
+                    ref.read(editorSettingsNotifierProvider.notifier).setSecondaryColor(currentColor);
+                    onColorSelected(secondary);
+                  },
+                  child: ColorSwatchBox(
+                    color: ref.watch(editorSettingsNotifierProvider.select((s) => s.secondaryColor)),
+                    size: 26,
+                    borderRadius: 4,
                   ),
                 ),
               ),

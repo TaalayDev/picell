@@ -103,26 +103,9 @@ class BoneRigBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(
-                  spacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      strings.whatsNewBoneRigTitle,
-                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: scheme.onSurface),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: scheme.primary,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        strings.rigExperimental,
-                        style: textTheme.labelSmall?.copyWith(color: scheme.onPrimary),
-                      ),
-                    ),
-                  ],
+                Text(
+                  strings.whatsNewBoneRigTitle,
+                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: scheme.onSurface),
                 ),
                 const SizedBox(height: 4),
                 Text(

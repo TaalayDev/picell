@@ -372,8 +372,10 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
                   },
                   const SingleActivator(LogicalKeyboardKey.bracketLeft): () => _rotateBones(-1),
                   const SingleActivator(LogicalKeyboardKey.bracketRight): () => _rotateBones(1),
-                  const SingleActivator(LogicalKeyboardKey.bracketLeft, shift: true): () => _rotateBones(-1, coarse: true),
-                  const SingleActivator(LogicalKeyboardKey.bracketRight, shift: true): () => _rotateBones(1, coarse: true),
+                  const SingleActivator(LogicalKeyboardKey.bracketLeft, shift: true): () =>
+                      _rotateBones(-1, coarse: true),
+                  const SingleActivator(LogicalKeyboardKey.bracketRight, shift: true): () =>
+                      _rotateBones(1, coarse: true),
                   const SingleActivator(LogicalKeyboardKey.escape): _controller.cancelPlacement,
                   const SingleActivator(LogicalKeyboardKey.enter): _placeIfPlacing,
                   const SingleActivator(LogicalKeyboardKey.delete): _deleteSelected,
@@ -626,8 +628,6 @@ class _TopBar extends StatelessWidget {
                 style: pv.mono(size: 13),
               ),
             ),
-          const SizedBox(width: 8),
-          _ExperimentalBadge(compact: compact),
           const Spacer(),
           _RigModeTabs(controller: controller, compact: compact),
           const Spacer(),
@@ -697,42 +697,6 @@ class _TopBar extends StatelessWidget {
 }
 
 /// Compact tabs share the editor's surface, outline and accent palette.
-/// Marks bone rigging as a feature still in flux.
-class _ExperimentalBadge extends StatelessWidget {
-  const _ExperimentalBadge({required this.compact});
-
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final pv = context.pv;
-    final strings = Strings.of(context);
-    return Tooltip(
-      key: const ValueKey('rig-experimental'),
-      message: strings.rigExperimentalHint,
-      child: Container(
-        height: 24,
-        padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 8),
-        decoration: BoxDecoration(
-          color: pv.warn.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: pv.warn),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.science_outlined, size: 14, color: pv.warn),
-            if (!compact) ...[
-              const SizedBox(width: 4),
-              Text(strings.rigExperimental, style: pv.pixelLabel(size: 10, color: pv.warn)),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _RigModeTabs extends StatelessWidget {
   const _RigModeTabs({required this.controller, required this.compact});
   final RigEditorController controller;

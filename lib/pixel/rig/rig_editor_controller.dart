@@ -691,6 +691,16 @@ class RigEditorController extends ChangeNotifier {
     _commit(_rig.copyWith(settings: _rig.settings.copyWith(rotationMode: mode)));
   }
 
+  /// Draws the layer [layerKey] with [mode] instead of the rig's rotation
+  /// mode; null goes back to the rig's. One undo step.
+  void setLayerRotationMode(String layerKey, RigRotationMode? mode) {
+    final current = _rig.settings.layerRotationModes;
+    if (current[layerKey] == mode) return;
+    final next = {...current}..remove(layerKey);
+    if (mode != null) next[layerKey] = mode;
+    _commit(_rig.copyWith(settings: _rig.settings.copyWith(layerRotationModes: next)));
+  }
+
   /// Makes [parentId] the parent of [id] (null = root). Returns false, and
   /// changes nothing, if that would make a bone its own ancestor.
   bool reparent(String id, String? parentId, {BoneConnection connection = BoneConnection.implicit}) {

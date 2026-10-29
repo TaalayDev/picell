@@ -2135,6 +2135,11 @@
             }
         }
     },
+    "rigLayerRotation": "Per layer",
+    "rigLayerRotationHint": "Draw some layers differently, e.g. keep a face crisp while limbs turn smoothly",
+    "rigRotationAsRig": "As the rig",
+    "rigRotationNearest": "Nearest",
+    "rigRotationRotSprite": "RotSprite",
     "rigFlipBone": "Flip the selected bone",
     "rigSelectMultiple": "Select multiple bones",
     "rigSnapping": "Joint snapping (Alt bypasses)",
@@ -2433,5 +2438,36 @@
     "planStoreUnavailableBody": "Purchases happen in the PixelVerse app for Android, iOS or desktop. Your plan syncs automatically.",
     "planOpenAppToPurchase": "Open the app to purchase. Prices shown for reference.",
     "planRetry": "Retry",
-    "planRestorePurchases": "Restore purchases"
+    "planRestorePurchases": "Restore purchases",
+    "gradient": "Gradient",
+    "gradientLinear": "Linear",
+    "gradientRadial": "Radial",
+    "gradientBands": "Color bands",
+    "gradientSmooth": "Smooth",
+    "gradientStepsCount": "{count} steps",
+    "@gradientStepsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "gradientDitherNone": "No dither",
+    "gradientDitherBayer": "Bayer {size}",
+    "@gradientDitherBayer": {
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "gradientDitherWidth": "Dither width",
+    "gradientTargetLayer": "Whole layer",
+    "gradientTargetArea": "Same-color area",
+    "gradientBlendOver": "Blend over",
+    "gradientBlendReplace": "Replace pixels",
+    "gradientBlendLockAlpha": "Keep transparency",
+    "gradientEndSecondary": "To secondary color",
+    "gradientEndTransparent": "To transparent",
+    "secondaryColorSwap": "Secondary color (tap to swap, X)"
 }

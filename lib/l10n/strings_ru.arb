@@ -1767,6 +1767,11 @@
     "rigRelative": "Относительно",
     "rigRelativeHint": "Введённые значения добавляются к позе каждой выбранной кости",
     "rigBonesSelected": "Костей: {count}",
+    "rigLayerRotation": "По слоям",
+    "rigLayerRotationHint": "Рисовать некоторые слои иначе, например, лицо чётким, а конечности плавными",
+    "rigRotationAsRig": "Как у рига",
+    "rigRotationNearest": "Ближайший",
+    "rigRotationRotSprite": "RotSprite",
     "rigFlipBone": "Отразить выбранную кость",
     "rigSelectMultiple": "Выбрать несколько костей",
     "rigSnapping": "Привязка суставов (Alt — отключить)",
@@ -2034,5 +2039,36 @@
     "planStoreUnavailableBody": "Покупки совершаются в приложении PixelVerse для Android, iOS или компьютера. План синхронизируется автоматически.",
     "planOpenAppToPurchase": "Откройте приложение для покупки. Цены указаны для справки.",
     "planRetry": "Повторить",
-    "planRestorePurchases": "Восстановить покупки"
+    "planRestorePurchases": "Восстановить покупки",
+    "gradient": "Градиент",
+    "gradientLinear": "Линейный",
+    "gradientRadial": "Радиальный",
+    "gradientBands": "Цветовые полосы",
+    "gradientSmooth": "Плавный",
+    "gradientStepsCount": "Ступеней: {count}",
+    "@gradientStepsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "gradientDitherNone": "Без дизеринга",
+    "gradientDitherBayer": "Байер {size}",
+    "@gradientDitherBayer": {
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "gradientDitherWidth": "Ширина дизеринга",
+    "gradientTargetLayer": "Весь слой",
+    "gradientTargetArea": "Область того же цвета",
+    "gradientBlendOver": "Наложение",
+    "gradientBlendReplace": "Замена пикселей",
+    "gradientBlendLockAlpha": "Сохранять прозрачность",
+    "gradientEndSecondary": "К дополнительному цвету",
+    "gradientEndTransparent": "К прозрачному",
+    "secondaryColorSwap": "Дополнительный цвет (нажмите, чтобы поменять, X)"
 }

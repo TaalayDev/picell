@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
-import '../pixel_point.dart';
+import 'package:flutter/services.dart';
+
 import '../tools.dart';
 
 /// A two-point drag tool that applies a linear gradient between the start and
@@ -10,6 +11,8 @@ import '../tools.dart';
 /// 1. Press — anchors the gradient start.
 /// 2. Drag — updates the gradient end preview (via [onGradientPreview]).
 /// 3. Release — commits the gradient (via [onGradientApply]).
+///
+/// Holding Shift snaps the direction to 15° steps.
 ///
 /// Coordinates passed to the callbacks are in *canvas space* (pixel units),
 /// not screen pixels.  The host is responsible for the coordinate conversion.
@@ -41,20 +44,33 @@ class GradientTool extends Tool {
   @override
   void onMove(PixelDrawDetails details) {
     if (_startCanvas == null) return;
-    final end = _toCanvasOffset(details);
+    final end = _constrain(_startCanvas!, _toCanvasOffset(details));
     onGradientPreview(_startCanvas!, end);
   }
 
   @override
   void onEnd(PixelDrawDetails details) {
     if (_startCanvas == null) return;
-    final end = _toCanvasOffset(details);
+    final end = _constrain(_startCanvas!, _toCanvasOffset(details));
     onGradientApply(_startCanvas!, end);
     _startCanvas = null;
     onGradientClear();
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
+
+  Offset _constrain(Offset start, Offset end) =>
+      HardwareKeyboard.instance.isShiftPressed ? snapAngle(start, end) : end;
+
+  /// Rotates [end] around [start] to the nearest multiple of [stepDegrees],
+  /// keeping the drag length.
+  static Offset snapAngle(Offset start, Offset end, {double stepDegrees = 15}) {
+    final delta = end - start;
+    if (delta.distance == 0) return end;
+    final step = stepDegrees * math.pi / 180;
+    final angle = (delta.direction / step).round() * step;
+    return start + Offset.fromDirection(angle, delta.distance);
+  }
 
   /// Converts the widget-space [PixelDrawDetails.position] to canvas pixel
   /// coordinates (floating-point so the gradient endpoint can land between

@@ -28,7 +28,13 @@ class PixelCanvasPaintDelegate {
   final Paint _layerSavePaint = Paint();
   final Paint _imagePaint = Paint();
   final Paint _hoverBorderPaint = Paint()..style = PaintingStyle.stroke;
-  final Paint _gradientPaint = Paint();
+  final Paint _gradientGuideOutlinePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..color = Colors.black.withValues(alpha: 0.6);
+  final Paint _gradientGuidePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..color = Colors.white;
+  final Paint _gradientHandleFillPaint = Paint()..style = PaintingStyle.fill;
   final Paint _selectionOutlineBackgroundPaint = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.5
@@ -75,12 +81,6 @@ class PixelCanvasPaintDelegate {
   double _cachedDashPixelHeight = 0;
   Path? _cachedScaledSelectionPath;
   List<Path>? _cachedDashPhases;
-
-  Size? _cachedGradientSize;
-  Offset? _cachedGradientStart;
-  Offset? _cachedGradientEnd;
-  Shader? _cachedGradientShader;
-  Rect _cachedGradientRect = Rect.zero;
 
   PixelCanvasController get controller => _controller;
   LayerCacheManager get cacheManager => _cacheManager;
@@ -130,7 +130,7 @@ class PixelCanvasPaintDelegate {
     _drawLayers(canvas, size, pixelWidth, pixelHeight);
 
     // _drawSelectionRect(canvas, pixelWidth, pixelHeight);
-    _drawGradient(canvas, size);
+    _drawGradientGuide(canvas, pixelWidth, pixelHeight);
     _drawPenPath(canvas);
     _drawCurveGuides(canvas, size);
     _drawLassoPath(canvas, size);
@@ -161,7 +161,11 @@ class PixelCanvasPaintDelegate {
         canvas.saveLayer(canvasRect, _layerSavePaint);
       }
 
-      if (isCurrentLayer && controller.hasLivePreviewImage) {
+      final gradientPreview =
+          isCurrentLayer ? controller.gradientPreviewImage : null;
+      if (gradientPreview != null) {
+        _drawCachedLayer(canvas, gradientPreview, canvasRect);
+      } else if (isCurrentLayer && controller.hasLivePreviewImage) {
         _drawCachedLayer(canvas, controller.livePreviewImage!, canvasRect);
       } else {
         final cachedImage = cacheManager.getLayerImage(layer.layerId);
@@ -363,31 +367,34 @@ class PixelCanvasPaintDelegate {
     canvas.drawRect(rect, _hoverBorderPaint);
   }
 
-  void _drawGradient(Canvas canvas, Size size) {
+  /// Start → end guide line with endpoint handles. The gradient itself is
+  /// previewed pixel-exact through [PixelCanvasController.gradientPreviewImage].
+  void _drawGradientGuide(
+      Canvas canvas, double pixelWidth, double pixelHeight) {
     final gradientStart = controller.gradientStart;
     final gradientEnd = controller.gradientEnd;
-
     if (gradientStart == null || gradientEnd == null) return;
 
-    if (_cachedGradientSize != size ||
-        _cachedGradientStart != gradientStart ||
-        _cachedGradientEnd != gradientEnd) {
-      _cachedGradientSize = size;
-      _cachedGradientStart = gradientStart;
-      _cachedGradientEnd = gradientEnd;
-      _cachedGradientRect = Rect.fromLTWH(0, 0, size.width, size.height);
-      _cachedGradientShader = LinearGradient(
-        begin: Alignment(
-            gradientStart.dx / size.width, gradientStart.dy / size.height),
-        end: Alignment(
-            gradientEnd.dx / size.width, gradientEnd.dy / size.height),
-        colors: const [Colors.black, Colors.transparent],
-      ).createShader(_cachedGradientRect);
-    }
+    final start =
+        Offset(gradientStart.dx * pixelWidth, gradientStart.dy * pixelHeight);
+    final end =
+        Offset(gradientEnd.dx * pixelWidth, gradientEnd.dy * pixelHeight);
+    final unit = 1.0 / controller.zoomLevel;
 
-    _gradientPaint.shader = _cachedGradientShader;
-    canvas.drawRect(_cachedGradientRect, _gradientPaint);
-    _gradientPaint.shader = null;
+    _gradientGuideOutlinePaint.strokeWidth = 3 * unit;
+    _gradientGuidePaint.strokeWidth = 1.5 * unit;
+    canvas.drawLine(start, end, _gradientGuideOutlinePaint);
+    canvas.drawLine(start, end, _gradientGuidePaint);
+
+    for (final (point, color) in [
+      (start, currentColor),
+      (end, Colors.white),
+    ]) {
+      _gradientHandleFillPaint.color = color.withValues(alpha: 1);
+      canvas.drawCircle(point, 5 * unit, _gradientGuideOutlinePaint);
+      canvas.drawCircle(point, 4 * unit, _gradientHandleFillPaint);
+      canvas.drawCircle(point, 4 * unit, _gradientGuidePaint);
+    }
   }
 
   void _drawSelectionOutline(

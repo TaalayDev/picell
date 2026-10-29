@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -119,6 +120,49 @@ class RotSpriteSource {
         out[y * width + x] = _hi[sy * hw + sx];
       }
     }
+    // The original pixels fill whatever sampling left empty, so thin lines
+    // and joints never drop out (see PartRasterizer.fillDropped).
+    PartRasterizer.fillDropped(out, _base, width, height, transform);
     return out;
   }
+}
+
+/// RotSprite for a free-standing buffer, such as the floating pixels of a
+/// canvas selection. Same contract as `PixelUtils.applyRotationWithBounds`:
+/// [pixels] is the [srcWidth]×[srcHeight] content of [originalBounds]; the
+/// result is it rotated by [angle] radians (clockwise on screen) about
+/// [center], laid out for [rotatedBounds]. Both rectangles are in canvas
+/// coordinates and may be fractional.
+Uint32List rotSpriteWithBounds(
+  Uint32List pixels,
+  int srcWidth,
+  int srcHeight,
+  double angle,
+  Rect originalBounds,
+  Rect rotatedBounds,
+  Offset center,
+) {
+  final targetWidth = rotatedBounds.width.round();
+  final targetHeight = rotatedBounds.height.round();
+  if (targetWidth <= 0 || targetHeight <= 0 || srcWidth <= 0 || srcHeight <= 0) return Uint32List(0);
+
+  // RotSpriteSource draws into a buffer the size of its source. Give the
+  // source and the result their own origins (each rectangle's top-left) in a
+  // buffer big enough for either, and fold the offset into the transform.
+  final width = srcWidth > targetWidth ? srcWidth : targetWidth;
+  final height = srcHeight > targetHeight ? srcHeight : targetHeight;
+  final padded = Uint32List(width * height);
+  for (var y = 0; y < srcHeight; y++) {
+    padded.setRange(y * width, y * width + srcWidth, pixels, y * srcWidth);
+  }
+  final transform = Affine2.translation(originalBounds.left, originalBounds.top)
+      .then(Affine2.rotationAbout(angle * 180 / math.pi, center))
+      .thenTranslate(-rotatedBounds.left, -rotatedBounds.top);
+  final drawn = RotSpriteSource(padded, width, height).rasterize(transform);
+
+  final out = Uint32List(targetWidth * targetHeight);
+  for (var y = 0; y < targetHeight; y++) {
+    out.setRange(y * targetWidth, (y + 1) * targetWidth, drawn, y * width);
+  }
+  return out;
 }

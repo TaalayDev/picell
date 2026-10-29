@@ -3754,6 +3754,21 @@ class StringsJa extends Strings {
   }
 
   @override
+  String get rigLayerRotation => 'レイヤーごと';
+
+  @override
+  String get rigLayerRotationHint => '一部のレイヤーだけ描き方を変えます（例：手足は滑らかに、顔はくっきり）';
+
+  @override
+  String get rigRotationAsRig => 'リグの設定';
+
+  @override
+  String get rigRotationNearest => 'ニアレスト';
+
+  @override
+  String get rigRotationRotSprite => 'RotSprite';
+
+  @override
   String get rigFlipBone => '選択したボーンを反転';
 
   @override
@@ -4618,4 +4633,59 @@ class StringsJa extends Strings {
 
   @override
   String get planRestorePurchases => '購入を復元';
+
+  @override
+  String get gradient => 'グラデーション';
+
+  @override
+  String get gradientLinear => '線形';
+
+  @override
+  String get gradientRadial => '円形';
+
+  @override
+  String get gradientBands => 'カラーバンド';
+
+  @override
+  String get gradientSmooth => 'なめらか';
+
+  @override
+  String gradientStepsCount(int count) {
+    return '$count 段階';
+  }
+
+  @override
+  String get gradientDitherNone => 'ディザなし';
+
+  @override
+  String gradientDitherBayer(String size) {
+    return 'ベイヤー $size';
+  }
+
+  @override
+  String get gradientDitherWidth => 'ディザ幅';
+
+  @override
+  String get gradientTargetLayer => 'レイヤー全体';
+
+  @override
+  String get gradientTargetArea => '同じ色の範囲';
+
+  @override
+  String get gradientBlendOver => '重ねる';
+
+  @override
+  String get gradientBlendReplace => 'ピクセルを置き換え';
+
+  @override
+  String get gradientBlendLockAlpha => '透明部分を保護';
+
+  @override
+  String get gradientEndSecondary => 'セカンダリカラーへ';
+
+  @override
+  String get gradientEndTransparent => '透明へ';
+
+  @override
+  String get secondaryColorSwap => 'セカンダリカラー（タップで入れ替え、X）';
 }

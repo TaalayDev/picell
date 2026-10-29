@@ -80,6 +80,7 @@ class KeyboardShortcutsDialog extends StatelessWidget {
                       _ShortcutRow(s.moveDrag, 'H'),
                       _ShortcutRow(s.pen, 'P'),
                       _ShortcutRow(s.sprayPaint, 'S'),
+                      _ShortcutRow(s.gradient, 'Shift + G'),
                       _ShortcutRow(s.panHold, 'Space'),
                       _ShortcutRow(s.eyedropperHold, 'Alt'),
                       _ShortcutRow(s.colorPicker, 'C'),

@@ -96,13 +96,29 @@ Uint8List _encodeGifAnimation(
 }
 
 class ImportExportService {
+  /// Exports [project] to a `.pxv` file using the compressed `PXV\x02` binary
+  /// container by default, or legacy JSON text when [asJson] is true.
+  Future<bool> exportProject({
+    required BuildContext context,
+    required Project project,
+    bool asJson = false,
+  }) async {
+    final files = FileUtils(context);
+    final fileName = '${project.name}.pxv';
+    if (asJson) {
+      final jsonString = jsonEncode(project.toJson());
+      return files.save(fileName, jsonString);
+    }
+    final bytes = await project.toBytesAsync();
+    if (!context.mounted) return false;
+    return files.saveProjectBytes(fileName, bytes);
+  }
+
   Future<void> exportProjectAsJson({
     required BuildContext context,
     required Project project,
   }) async {
-    final json = project.toJson();
-    final jsonString = jsonEncode(json);
-    await FileUtils(context).save('${project.name}.pxv', jsonString);
+    await exportProject(context: context, project: project);
   }
 
   Future<void> exportImage({

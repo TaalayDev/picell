@@ -173,6 +173,7 @@ class RigBakeService {
     required List<AnimationFrame> frames,
     required int width,
     required int height,
+    void Function(double progress)? onProgress,
   }) async {
     if (!canBake(rig)) throw StateError('The rig has no keyframes to bake.');
     final clip = rig.activeClip!;
@@ -182,7 +183,15 @@ class RigBakeService {
     final restFrame = sourceFrames.isEmpty ? null : sourceFrames[rig.restFrameIndex.clamp(0, sourceFrames.length - 1)];
     if (source == null || restFrame == null) throw StateError('The rig\'s rest-pose animation no longer exists.');
 
-    final baked = RigBaker(rig: rig, width: width, height: height, layers: restFrame.layers).bakeClip(clip);
+    // Big canvases or long clips bake on a background isolate.
+    final baked = await RigBaker.bakeClipInBackground(
+      rig: rig,
+      clip: clip,
+      width: width,
+      height: height,
+      layers: restFrame.layers,
+      onProgress: onProgress,
+    );
 
     // Find or create the output animation.
     var outputState = states.where((s) => s.id == rig.outputStateId && s.id != rig.stateId).firstOrNull;

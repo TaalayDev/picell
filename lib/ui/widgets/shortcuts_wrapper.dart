@@ -299,6 +299,8 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       LogicalKeySet(LogicalKeyboardKey.keyI):
           const ToolIntent(PixelTool.eyedropper),
       LogicalKeySet(LogicalKeyboardKey.keyG): const ToolIntent(PixelTool.fill),
+      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.keyG):
+          const ToolIntent(PixelTool.gradient),
       LogicalKeySet(LogicalKeyboardKey.keyM):
           const ToolIntent(PixelTool.select),
       LogicalKeySet(LogicalKeyboardKey.keyL): const ToolIntent(PixelTool.line),

@@ -1823,6 +1823,11 @@
     "rigRelative": "相对",
     "rigRelativeHint": "输入的数值会加到每根所选骨骼的姿势上",
     "rigBonesSelected": "{count} 根骨骼",
+    "rigLayerRotation": "按图层",
+    "rigLayerRotationHint": "让部分图层使用不同的绘制方式，例如脸部保持清晰、四肢平滑转动",
+    "rigRotationAsRig": "跟随骨架设置",
+    "rigRotationNearest": "最近邻",
+    "rigRotationRotSprite": "RotSprite",
     "rigFlipBone": "翻转所选骨骼",
     "rigSelectMultiple": "选择多根骨骼",
     "rigSnapping": "关节吸附（按 Alt 跳过）",
@@ -2090,5 +2095,36 @@
     "planStoreUnavailableBody": "请在 Android、iOS 或桌面版 PixelVerse 应用中购买，您的方案会自动同步。",
     "planOpenAppToPurchase": "请打开应用购买，价格仅供参考。",
     "planRetry": "重试",
-    "planRestorePurchases": "恢复购买"
+    "planRestorePurchases": "恢复购买",
+    "gradient": "渐变",
+    "gradientLinear": "线性",
+    "gradientRadial": "径向",
+    "gradientBands": "色带",
+    "gradientSmooth": "平滑",
+    "gradientStepsCount": "{count} 级",
+    "@gradientStepsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "gradientDitherNone": "无抖动",
+    "gradientDitherBayer": "拜耳 {size}",
+    "@gradientDitherBayer": {
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "gradientDitherWidth": "抖动宽度",
+    "gradientTargetLayer": "整个图层",
+    "gradientTargetArea": "同色区域",
+    "gradientBlendOver": "叠加混合",
+    "gradientBlendReplace": "替换像素",
+    "gradientBlendLockAlpha": "保留透明度",
+    "gradientEndSecondary": "渐变到次要颜色",
+    "gradientEndTransparent": "渐变到透明",
+    "secondaryColorSwap": "次要颜色（点击交换，X）"
 }

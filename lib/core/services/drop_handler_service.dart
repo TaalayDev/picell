@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -231,23 +230,13 @@ class DropHandlerService {
     }
   }
 
-  /// Process a .pxv project file
+  /// Process a .pxv project file (supports both `PXV\x02` binary and legacy UTF-8 JSON formats).
   Future<DroppedFileResult> _processProjectFile(
     Uint8List bytes,
     String fileName,
   ) async {
     try {
-      final jsonString = String.fromCharCodes(bytes);
-      final jsonData = _parseJson(jsonString);
-      if (jsonData == null) {
-        return DroppedFileResult(
-          type: DroppedFileType.project,
-          fileName: fileName,
-          errorMessage: 'Invalid project file format',
-        );
-      }
-
-      final project = Project.fromJson(jsonData);
+      final project = await Project.fromBytesAsync(bytes);
       return DroppedFileResult(
         type: DroppedFileType.project,
         fileName: fileName,
@@ -440,13 +429,5 @@ class DropHandlerService {
       createdAt: DateTime.now(),
       editedAt: DateTime.now(),
     );
-  }
-
-  Map<String, dynamic>? _parseJson(String jsonString) {
-    try {
-      return jsonDecode(jsonString) as Map<String, dynamic>;
-    } catch (e) {
-      return null;
-    }
   }
 }

@@ -3791,6 +3791,21 @@ class StringsKy extends Strings {
   }
 
   @override
+  String get rigLayerRotation => 'Катмар боюнча';
+
+  @override
+  String get rigLayerRotationHint => 'Айрым катмарларды башкача тартуу, мисалы, бетти так, колдорду жылмакай';
+
+  @override
+  String get rigRotationAsRig => 'Ригдегидей';
+
+  @override
+  String get rigRotationNearest => 'Жакынкы';
+
+  @override
+  String get rigRotationRotSprite => 'RotSprite';
+
+  @override
   String get rigFlipBone => 'Тандалган сөөктү оодаруу';
 
   @override
@@ -4660,4 +4675,59 @@ class StringsKy extends Strings {
 
   @override
   String get planRestorePurchases => 'Сатып алууларды калыбына келтирүү';
+
+  @override
+  String get gradient => 'Градиент';
+
+  @override
+  String get gradientLinear => 'Сызыктуу';
+
+  @override
+  String get gradientRadial => 'Тегерек';
+
+  @override
+  String get gradientBands => 'Түс тилкелери';
+
+  @override
+  String get gradientSmooth => 'Жылмакай';
+
+  @override
+  String gradientStepsCount(int count) {
+    return 'Баскычтар: $count';
+  }
+
+  @override
+  String get gradientDitherNone => 'Дизерингсиз';
+
+  @override
+  String gradientDitherBayer(String size) {
+    return 'Байер $size';
+  }
+
+  @override
+  String get gradientDitherWidth => 'Дизеринг кеңдиги';
+
+  @override
+  String get gradientTargetLayer => 'Бүт катмар';
+
+  @override
+  String get gradientTargetArea => 'Бирдей түстөгү аймак';
+
+  @override
+  String get gradientBlendOver => 'Үстүнө кошуу';
+
+  @override
+  String get gradientBlendReplace => 'Пикселдерди алмаштыруу';
+
+  @override
+  String get gradientBlendLockAlpha => 'Тунуктукту сактоо';
+
+  @override
+  String get gradientEndSecondary => 'Кошумча түскө';
+
+  @override
+  String get gradientEndTransparent => 'Тунукка';
+
+  @override
+  String get secondaryColorSwap => 'Кошумча түс (алмаштыруу үчүн басыңыз, X)';
 }

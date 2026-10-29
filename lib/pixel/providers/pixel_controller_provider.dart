@@ -25,6 +25,9 @@ import '../../providers/project_upload_provider.dart';
 import '../../data/models/progression_model.dart';
 import '../effects/effect_target.dart';
 import '../effects/effects.dart';
+import '../gradient/gradient_mask.dart';
+import '../gradient/gradient_options.dart';
+import '../gradient/gradient_renderer.dart';
 import '../services/animation_service.dart';
 import '../services/clipboard_placement_service.dart';
 import '../services/drawing_service.dart';
@@ -32,7 +35,7 @@ import '../services/editor_selection_service.dart';
 import '../services/effect_stack_service.dart';
 import '../services/frame_service.dart';
 import '../services/import_export_service.dart';
-import '../rotsprite.dart';
+import '../rig/rotsprite.dart';
 import '../services/layer_merge_service.dart';
 import '../services/layer_service.dart';
 import '../services/pixel_transform_service.dart';
@@ -192,19 +195,25 @@ class PixelDrawController extends _$PixelDrawController {
     _pendingUndoPrePixels = null;
   }
 
-  void _updateProject() {
-    // After a canvas crop this controller's state is stale; the editor
-    // reopens with the cropped project.
-    if (_retired) return;
-    final updated = project.copyWith(
+  Project _currentProjectSnapshot() {
+    return project.copyWith(
       frames: state.frames,
       states: state.animationStates,
-      selectedFrameId: currentFrame.id,
-      selectedLayerId: currentLayer.layerId,
+      selectedFrameId: currentFrame.layers.isEmpty ? null : currentFrame.id,
+      clearSelectedFrameId: currentFrame.layers.isEmpty,
+      selectedLayerId: currentFrame.layers.isEmpty ? null : currentLayer.layerId,
+      clearSelectedLayerId: currentFrame.layers.isEmpty,
       rigData: _rigData,
       clearRigData: _rigData == null,
       editedAt: DateTime.now(),
     );
+  }
+
+  void _updateProject() {
+    // After a canvas crop this controller's state is stale; the editor
+    // reopens with the cropped project.
+    if (_retired) return;
+    final updated = _currentProjectSnapshot();
     _pendingProjectSave = updated;
     _projectSaveGeneration += 1;
     ref.read(editorWorkspaceProvider.notifier).setUnsavedChanges(project.id, true);
@@ -289,7 +298,9 @@ class PixelDrawController extends _$PixelDrawController {
   ///
   /// Returns the rig as stored (it now knows its output animation). If the
   /// bake fails the rig is still saved and the error is rethrown.
-  Future<Rig> applyRig(Rig rig, {bool bake = true}) async {
+  /// [onProgress] (0..1) follows the bake, which runs in the background for
+  /// big canvases and long clips.
+  Future<Rig> applyRig(Rig rig, {bool bake = true, void Function(double progress)? onProgress}) async {
     if (!bake || !RigBakeService.canBake(rig)) {
       saveRig(rig);
       return rig;
@@ -306,6 +317,7 @@ class PixelDrawController extends _$PixelDrawController {
         frames: state.frames,
         width: state.width,
         height: state.height,
+        onProgress: onProgress,
       );
     } catch (_) {
       _undoRedoService.discardLastSavedState();
@@ -582,33 +594,93 @@ class PixelDrawController extends _$PixelDrawController {
     );
   }
 
-  void applyGradientFromPoints(Offset startPx, Offset endPx, Color endColor) {
-    _beginPixelUndo();
-    final colors = _drawingService.computeLinearGradientColors(
+  // MARK: Gradient
+
+  GradientOptions? _gradientOptionsOverride;
+
+  /// Gradient tool settings; the primary colour supplies the first stop.
+  /// Comes from editor settings unless explicitly overridden (tests,
+  /// automation).
+  GradientOptions get gradientOptions =>
+      _gradientOptionsOverride ?? ref.read(editorSettingsNotifierProvider).gradientOptions;
+  set gradientOptions(GradientOptions? options) => _gradientOptionsOverride = options;
+
+  // The mask only depends on the seed pixel, the layer buffer and the
+  // selection, none of which change while a gradient is being dragged.
+  ({
+    Uint32List pixels,
+    SelectionRegion? selection,
+    GradientTarget target,
+    int seed,
+    Uint8List? mask,
+  })? _gradientMaskCache;
+
+  GradientSpec gradientSpecFor(Offset startPx, Offset endPx) => gradientOptions.toSpec(
+        start: startPx,
+        end: endPx,
+        primary: state.currentColor,
+      );
+
+  /// Renders the gradient onto a copy of the current layer without committing
+  /// it. Returns null when the layer can't take pixel edits.
+  Uint32List? renderGradient(Offset startPx, Offset endPx) {
+    if (currentLayerIsProcedural || currentLayer.isLocked) return null;
+    final pixels = currentLayer.pixels;
+    final selection = state.selectionState?.region;
+    final target = gradientOptions.target;
+    final seedX = startPx.dx.floor(), seedY = startPx.dy.floor();
+    final seed = seedY * state.width + seedX;
+
+    final cache = _gradientMaskCache;
+    final Uint8List? mask;
+    if (cache != null &&
+        identical(cache.pixels, pixels) &&
+        identical(cache.selection, selection) &&
+        cache.target == target &&
+        (target == GradientTarget.layer || cache.seed == seed)) {
+      mask = cache.mask;
+    } else {
+      mask = GradientMask.build(
+        pixels: pixels,
+        width: state.width,
+        height: state.height,
+        target: target,
+        seedX: seedX,
+        seedY: seedY,
+        selection: selection,
+      );
+      _gradientMaskCache = (
+        pixels: pixels,
+        selection: selection,
+        target: target,
+        seed: seed,
+        mask: mask,
+      );
+    }
+
+    return GradientRenderer.render(
+      base: pixels,
       width: state.width,
       height: state.height,
-      startPx: startPx,
-      endPx: endPx,
-      startColor: state.currentColor,
-      endColor: endColor,
-      selectionRegion: state.selectionState?.region,
+      spec: gradientSpecFor(startPx, endPx),
+      mask: mask,
     );
-    final newPixels = _drawingService.applyGradient(
-      pixels: currentLayer.pixels,
-      gradientColors: colors,
-    );
-    _updateCurrentLayerPixels(newPixels);
   }
 
-  void applyGradient(List<Color> gradientColors) {
+  /// Applies the gradient. Inside a drawing batch the result replaces the
+  /// batch buffer, so the gesture commits once (one undo step) on
+  /// [endBatchDrawing]. Returns whether pixels will be committed.
+  bool applyGradient(Offset startPx, Offset endPx) {
+    final newPixels = renderGradient(startPx, endPx);
+    _gradientMaskCache = null;
+    if (newPixels == null) return false;
+    if (_isBatching) {
+      _activeBuffer = newPixels;
+      return true;
+    }
     _beginPixelUndo();
-
-    final newPixels = _drawingService.applyGradient(
-      pixels: currentLayer.pixels,
-      gradientColors: gradientColors,
-    );
-
     _updateCurrentLayerPixels(newPixels);
+    return true;
   }
 
   // Drag operations
@@ -3025,10 +3097,13 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   // Import/Export operations
-  Future<void> exportProjectAsJson(BuildContext context) async {
-    await _importExportService.exportProjectAsJson(
+  Future<void> exportProjectAsJson(BuildContext context, {bool asJson = false}) async {
+    await flushPendingProjectSave();
+    if (!context.mounted) return;
+    await _importExportService.exportProject(
       context: context,
-      project: project,
+      project: _currentProjectSnapshot(),
+      asJson: asJson,
     );
     _logExport('pxv');
   }

@@ -60,6 +60,7 @@ import '../../pixel/tileset/tileset_project.dart';
 import 'tileset_generator/tileset_geometry_picker.dart';
 import '../widgets/tools_bottom_bar.dart';
 import '../widgets/wand_options_bar.dart';
+import '../widgets/gradient_options_bar.dart';
 
 enum _DroppedImageAction { newLayer, thisLayer, newProject }
 
@@ -1013,8 +1014,47 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     }
 
     if (!context.mounted) return;
+    // Long bakes run in the background; show how far along they are. Short
+    // ones finish before the dialog would be noticed, so it waits a moment.
+    final progress = ValueNotifier<double?>(null);
+    var dialogOpen = false;
+    final showProgress = bake
+        ? Timer(const Duration(milliseconds: 300), () {
+            if (!context.mounted) return;
+            dialogOpen = true;
+            showDialog<void>(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => PopScope(
+                canPop: false,
+                child: AlertDialog(
+                  title: const Text('Baking animation…'),
+                  content: ValueListenableBuilder<double?>(
+                    valueListenable: progress,
+                    builder: (_, value, __) => LinearProgressIndicator(
+                      key: const ValueKey('rig-bake-progress'),
+                      value: value,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          })
+        : null;
+    void closeProgress() {
+      showProgress?.cancel();
+      if (dialogOpen && context.mounted) Navigator.of(context, rootNavigator: true).pop();
+      dialogOpen = false;
+      progress.dispose();
+    }
+
     try {
-      final stored = await notifier.applyRig(rig, bake: bake);
+      final Rig stored;
+      try {
+        stored = await notifier.applyRig(rig, bake: bake, onProgress: (p) => progress.value = p);
+      } finally {
+        closeProgress();
+      }
       if (bake && stored.outputStateId != null && context.mounted) {
         AppNotification.show(
           context,
@@ -1127,6 +1167,16 @@ class _ToolElements extends StatelessWidget {
             const WandOptionsBar(),
           ],
         ],
+      );
+    }
+
+    if (currentTool.value == PixelTool.gradient) {
+      return const Align(
+        alignment: Alignment.centerLeft,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: GradientOptionsBar(),
+        ),
       );
     }
 

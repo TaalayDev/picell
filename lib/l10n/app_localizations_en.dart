@@ -3959,6 +3959,21 @@ class StringsEn extends Strings {
   }
 
   @override
+  String get rigLayerRotation => 'Per layer';
+
+  @override
+  String get rigLayerRotationHint => 'Draw some layers differently, e.g. keep a face crisp while limbs turn smoothly';
+
+  @override
+  String get rigRotationAsRig => 'As the rig';
+
+  @override
+  String get rigRotationNearest => 'Nearest';
+
+  @override
+  String get rigRotationRotSprite => 'RotSprite';
+
+  @override
   String get rigFlipBone => 'Flip the selected bone';
 
   @override
@@ -4851,4 +4866,59 @@ class StringsEn extends Strings {
 
   @override
   String get planRestorePurchases => 'Restore purchases';
+
+  @override
+  String get gradient => 'Gradient';
+
+  @override
+  String get gradientLinear => 'Linear';
+
+  @override
+  String get gradientRadial => 'Radial';
+
+  @override
+  String get gradientBands => 'Color bands';
+
+  @override
+  String get gradientSmooth => 'Smooth';
+
+  @override
+  String gradientStepsCount(int count) {
+    return '$count steps';
+  }
+
+  @override
+  String get gradientDitherNone => 'No dither';
+
+  @override
+  String gradientDitherBayer(String size) {
+    return 'Bayer $size';
+  }
+
+  @override
+  String get gradientDitherWidth => 'Dither width';
+
+  @override
+  String get gradientTargetLayer => 'Whole layer';
+
+  @override
+  String get gradientTargetArea => 'Same-color area';
+
+  @override
+  String get gradientBlendOver => 'Blend over';
+
+  @override
+  String get gradientBlendReplace => 'Replace pixels';
+
+  @override
+  String get gradientBlendLockAlpha => 'Keep transparency';
+
+  @override
+  String get gradientEndSecondary => 'To secondary color';
+
+  @override
+  String get gradientEndTransparent => 'To transparent';
+
+  @override
+  String get secondaryColorSwap => 'Secondary color (tap to swap, X)';
 }

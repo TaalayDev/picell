@@ -211,8 +211,51 @@ class _RotationSettings extends StatelessWidget {
             ],
           ),
         ),
+        ..._layerModes(context, settings),
       ],
     );
+  }
+
+  /// One row per layer a bone moves, to draw it unlike the rest of the rig.
+  List<Widget> _layerModes(BuildContext context, RigSettings settings) {
+    final s = Strings.of(context);
+    final theme = Theme.of(context);
+    final bound = {for (final part in controller.rig.parts) part.layerKey};
+    final layers = [
+      for (final layer in controller.restLayers)
+        if (layer.stableKey != null && bound.contains(layer.stableKey)) layer,
+    ];
+    if (layers.isEmpty) return const [];
+    String label(RigRotationMode mode) =>
+        mode == RigRotationMode.rotsprite ? s.rigRotationRotSprite : s.rigRotationNearest;
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+        child: Tooltip(
+          message: s.rigLayerRotationHint,
+          child: Text(s.rigLayerRotation, style: theme.textTheme.labelMedium),
+        ),
+      ),
+      for (final layer in layers)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(children: [
+            Expanded(
+              child: Text(layer.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall),
+            ),
+            DropdownButton<RigRotationMode?>(
+              key: ValueKey('rig-layer-rotation-${layer.stableKey}'),
+              isDense: true,
+              value: settings.layerRotationModes[layer.stableKey],
+              items: [
+                DropdownMenuItem(value: null, child: Text('${s.rigRotationAsRig} (${label(settings.rotationMode)})')),
+                for (final mode in RigRotationMode.values) DropdownMenuItem(value: mode, child: Text(label(mode))),
+              ],
+              onChanged: (mode) => controller.setLayerRotationMode(layer.stableKey!, mode),
+            ),
+          ]),
+        ),
+    ];
   }
 }
 

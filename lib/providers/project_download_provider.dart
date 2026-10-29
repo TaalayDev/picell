@@ -71,8 +71,7 @@ class ProjectDownloadNotifier extends StateNotifier<ProjectDownloadState> {
       state = state.copyWith(downloadProgress: 0.5);
       late Project projectData;
       try {
-        final projectJson = jsonDecode(fullApiProject.projectData!);
-        projectData = Project.fromJson(projectJson);
+        projectData = ProjectBinaryCodec.decodeStringOrBytes(fullApiProject.projectData!);
       } catch (e) {
         throw Exception('Invalid project data format: $e');
       }

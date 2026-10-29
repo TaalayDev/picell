@@ -42,6 +42,10 @@ class PixelCanvasController extends ChangeNotifier {
   bool _isDrawingPenPath = false;
   Offset? _gradientStart;
   Offset? _gradientEnd;
+  Uint32List? _gradientPreviewPixels;
+  ui.Image? _gradientPreviewImage;
+  int _gradientPreviewRevision = 0;
+  bool _gradientPreviewBuildRunning = false;
   bool _previewEffectsEnabled = true;
 
   // Curve state
@@ -106,6 +110,10 @@ class PixelCanvasController extends ChangeNotifier {
   bool get isDrawingPenPath => _isDrawingPenPath;
   Offset? get gradientStart => _gradientStart;
   Offset? get gradientEnd => _gradientEnd;
+
+  /// The current layer as it will look with the in-progress gradient applied
+  /// (effects included). Drawn in place of the layer's cached image.
+  ui.Image? get gradientPreviewImage => _gradientPreviewImage;
 
   bool get previewEffectsEnabled => _previewEffectsEnabled;
 
@@ -430,6 +438,55 @@ class PixelCanvasController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Sets the full-layer gradient preview (null clears it). Images are built
+  /// one at a time; moves that arrive mid-build collapse into the latest.
+  void setGradientPreviewPixels(Uint32List? pixels) {
+    _gradientPreviewPixels = pixels;
+    _gradientPreviewRevision++;
+    if (pixels == null) {
+      _clearGradientPreviewImage();
+      notifyListeners();
+      return;
+    }
+    if (!_gradientPreviewBuildRunning) _buildGradientPreviewImage();
+  }
+
+  Future<void> _buildGradientPreviewImage() async {
+    _gradientPreviewBuildRunning = true;
+    try {
+      while (_gradientPreviewPixels != null) {
+        final revision = _gradientPreviewRevision;
+        var pixels = _gradientPreviewPixels!;
+        final effects = currentLayer.effects;
+        if (_previewEffectsEnabled && effects.isNotEmpty) {
+          pixels = await EffectsManager.applyMultipleEffectsAsync(
+              pixels, width, height, effects);
+        }
+        final image =
+            await ImageHelper.createImageFromPixels(pixels, width, height);
+        if (revision != _gradientPreviewRevision ||
+            _gradientPreviewPixels == null) {
+          image.dispose();
+          if (_gradientPreviewPixels == null) break;
+          continue;
+        }
+        _gradientPreviewImage?.dispose();
+        _gradientPreviewImage = image;
+        notifyListeners();
+        break;
+      }
+    } catch (e) {
+      debugPrint('Gradient preview failed: $e');
+    } finally {
+      _gradientPreviewBuildRunning = false;
+    }
+  }
+
+  void _clearGradientPreviewImage() {
+    _gradientPreviewImage?.dispose();
+    _gradientPreviewImage = null;
+  }
+
   /// Transform screen position to canvas coordinates
   Offset transformPosition(Offset screenPosition) {
     return (screenPosition - _offset) / _zoomLevel;
@@ -490,6 +547,13 @@ class PixelCanvasController extends ChangeNotifier {
     _previewRevision++;
     _previewPixels = [];
     _gradientStart = null;
+    _clearGradientPreview();
+  }
+
+  void _clearGradientPreview() {
+    _gradientPreviewPixels = null;
+    _gradientPreviewRevision++;
+    _clearGradientPreviewImage();
   }
 
   void _clearDrawingState() {

@@ -68,6 +68,15 @@ class ToolMenu extends StatelessWidget {
                 onPressed: () => onSelectTool(PixelTool.fill),
               ),
               IconButton(
+                key: const ValueKey('tool-menu-gradient'),
+                tooltip: Strings.of(context).gradient,
+                icon: Icon(
+                  Icons.gradient,
+                  color: tool == PixelTool.gradient ? Colors.blue : null,
+                ),
+                onPressed: () => onSelectTool(PixelTool.gradient),
+              ),
+              IconButton(
                 icon: AppIcon(
                   AppIcons.eraser,
                   color: tool == PixelTool.eraser ? Colors.blue : null,

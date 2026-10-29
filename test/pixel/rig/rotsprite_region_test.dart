@@ -4,29 +4,12 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:picell/pixel/pixel_utils.dart';
-import 'package:picell/pixel/rotsprite.dart';
+import 'package:picell/pixel/rig/rotsprite.dart';
 
+// rotSpriteWithBounds rotates free-standing buffers such as a canvas
+// selection with the rig's RotSprite.
 void main() {
-  const r = 0xFFFF0000, g = 0xFF00FF00;
-
-  group('scale2x', () {
-    test('a lone pixel becomes a plain 2×2 block', () {
-      expect(scale2x(Uint32List.fromList([r]), 1, 1), [r, r, r, r]);
-    });
-
-    test('rounds off a staircase corner', () {
-      // r .
-      // g r   → the empty top-right gets no fill, the g corner is cut.
-      final out = scale2x(Uint32List.fromList([r, 0, g, r]), 2, 2);
-      expect(out.length, 16);
-      // Top-left pixel r: its bottom-right sub-pixel takes the neighbour
-      // below/right only when they match; here they differ, so it stays r.
-      expect(out[0], r);
-      // Bottom-left pixel g: up (r) == right (r), and they differ from the
-      // left/down (transparent), so its top-right sub-pixel becomes r.
-      expect(out[2 * 4 + 1], r);
-    });
-  });
+  const r = 0xFFFF0000;
 
   group('rotSpriteWithBounds', () {
     // A 3×1 red line at (0, 0), rotated around its middle pixel's centre so
@@ -70,6 +53,13 @@ void main() {
       for (final (x, y) in cells) {
         expect(cells.any((c) => c != (x, y) && (c.$1 - x).abs() <= 1 && (c.$2 - y).abs() <= 1), isTrue);
       }
+    });
+
+    test('fractional bounds sample like nearest-neighbour rotation does', () {
+      // A shifted, unrotated buffer must come back unchanged.
+      const shifted = Rect.fromLTWH(0.25, 0.25, 3, 1);
+      final out = rotSpriteWithBounds(line, 3, 1, 0, shifted, shifted, center);
+      expect(out, line);
     });
 
     test('empty bounds give an empty buffer', () {

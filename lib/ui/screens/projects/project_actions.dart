@@ -211,9 +211,9 @@ mixin _ProjectsScreenActions {
     final navigator = Navigator.of(context);
     final loader = showLoader(context, loadingText: strings.creatingProject);
     try {
-      final json = await rootBundle.loadString('assets/data/FriendlyRobot.pxv');
+      final rawData = await rootBundle.load('assets/data/FriendlyRobot.pxv');
       final now = DateTime.now();
-      final project = Project.fromJson(jsonDecode(json) as Map<String, dynamic>).copyWith(
+      final project = Project.fromBytes(rawData.buffer.asUint8List()).copyWith(
         id: 0,
         createdAt: now,
         editedAt: now,

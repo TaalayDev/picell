@@ -39,31 +39,56 @@ class RigSettings with EquatableMixin {
   /// How parts are drawn when they turn.
   final RigRotationMode rotationMode;
 
-  const RigSettings({this.snapAngleDegrees = 0, this.interpolation = 0, this.rotationMode = RigRotationMode.nearest});
+  /// Layers drawn differently from [rotationMode], by `Layer.stableKey`: a
+  /// face kept crisp with nearest sampling while limbs use RotSprite, say.
+  final Map<String, RigRotationMode> layerRotationModes;
 
-  RigSettings copyWith({double? snapAngleDegrees, int? interpolation, RigRotationMode? rotationMode}) => RigSettings(
+  const RigSettings({
+    this.snapAngleDegrees = 0,
+    this.interpolation = 0,
+    this.rotationMode = RigRotationMode.nearest,
+    this.layerRotationModes = const {},
+  });
+
+  /// How the parts of the layer [layerKey] are drawn when they turn.
+  RigRotationMode rotationModeFor(String layerKey) => layerRotationModes[layerKey] ?? rotationMode;
+
+  RigSettings copyWith({
+    double? snapAngleDegrees,
+    int? interpolation,
+    RigRotationMode? rotationMode,
+    Map<String, RigRotationMode>? layerRotationModes,
+  }) =>
+      RigSettings(
         snapAngleDegrees: snapAngleDegrees ?? this.snapAngleDegrees,
         interpolation: interpolation ?? this.interpolation,
         rotationMode: rotationMode ?? this.rotationMode,
+        layerRotationModes: layerRotationModes ?? this.layerRotationModes,
       );
 
   Map<String, dynamic> toJson() => {
         'snapAngleDegrees': snapAngleDegrees,
         'interpolation': interpolation,
         if (rotationMode != RigRotationMode.nearest) 'rotationMode': rotationMode.name,
+        if (layerRotationModes.isNotEmpty)
+          'layerRotationModes': {for (final e in layerRotationModes.entries) e.key: e.value.name},
       };
 
-  factory RigSettings.fromJson(Map<String, dynamic> json) => RigSettings(
-        snapAngleDegrees: (json['snapAngleDegrees'] as num?)?.toDouble() ?? 0,
-        interpolation: json['interpolation'] as int? ?? 0,
-        rotationMode: RigRotationMode.values.firstWhere(
-          (m) => m.name == json['rotationMode'],
-          orElse: () => RigRotationMode.nearest,
-        ),
-      );
+  factory RigSettings.fromJson(Map<String, dynamic> json) {
+    RigRotationMode? mode(Object? name) => RigRotationMode.values.where((m) => m.name == name).firstOrNull;
+    return RigSettings(
+      snapAngleDegrees: (json['snapAngleDegrees'] as num?)?.toDouble() ?? 0,
+      interpolation: json['interpolation'] as int? ?? 0,
+      rotationMode: mode(json['rotationMode']) ?? RigRotationMode.nearest,
+      layerRotationModes: {
+        for (final e in ((json['layerRotationModes'] as Map<String, dynamic>?) ?? const {}).entries)
+          if (mode(e.value) case final m?) e.key: m,
+      },
+    );
+  }
 
   @override
-  List<Object?> get props => [snapAngleDegrees, interpolation, rotationMode];
+  List<Object?> get props => [snapAngleDegrees, interpolation, rotationMode, layerRotationModes];
 }
 
 /// A skeleton, its bound parts and animation clips, linked to one animation
