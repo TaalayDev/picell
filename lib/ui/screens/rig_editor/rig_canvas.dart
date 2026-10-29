@@ -267,6 +267,30 @@ class RigCanvasState extends State<RigCanvas> {
                 sign: c.rotationSign(id),
               )
             : _PoseDrag.move(id, start: p, startTranslation: c.poseOf(id).translation);
+      case RigTool.scale:
+        final hit = c.hitTest(p, tolerance);
+        if (hit != null && !c.selectedBoneIds.contains(hit.boneId)) c.selectBone(hit.boneId);
+        final id = c.selectedBoneId;
+        final shown = id == null ? null : c.displayBone(id);
+        if (id == null || shown == null) return;
+        final axis = shown.tail - shown.head;
+        if (axis.distance < 1e-6) return;
+        final direction = axis / axis.distance;
+        // Measured from the joint. A grab right next to it would make the
+        // first pixel of movement a huge ratio, so it uses the tip instead.
+        final grab = p - shown.head;
+        final along = grab.dx * direction.dx + grab.dy * direction.dy;
+        c.beginGesture();
+        _poseDrag = _PoseDrag.scale(
+          id,
+          center: shown.head,
+          axis: direction,
+          startAlong: along.abs() < 1 ? axis.distance : along,
+          startDistance: grab.distance < 1 ? axis.distance : grab.distance,
+          startScales: {
+            for (final boneId in {id, ...c.selectedBoneIds}) boneId: (c.poseOf(boneId).scaleX, c.poseOf(boneId).scaleY),
+          },
+        );
       case RigTool.paintInfluence:
         if (!c.canPaintInfluence) return;
         c.beginGesture();
@@ -293,7 +317,7 @@ class RigCanvasState extends State<RigCanvas> {
     IkChain? chain;
     if (hit.part == RigHitPart.ikTarget) {
       chain = c.ikChain(hit.chainId);
-    } else if (c.tool != RigTool.select && c.isIkDriven(hit.boneId)) {
+    } else if ((c.tool == RigTool.rotate || c.tool == RigTool.move) && c.isIkDriven(hit.boneId)) {
       chain = c.ikChainsOf(hit.boneId).where((x) => c.ikTarget(x.id) != null).firstOrNull;
     }
     final handle = chain == null ? null : c.ikHandle(chain);
@@ -371,6 +395,25 @@ class RigCanvasState extends State<RigCanvas> {
   }
 
   void _updatePoseDrag(_PoseDrag drag, Offset p) {
+    if (drag.isScale) {
+      final offset = p - drag.center;
+      final keyboard = HardwareKeyboard.instance;
+      final double scaleX, scaleY;
+      if (keyboard.isShiftPressed) {
+        // Even: by how much further from the joint the pointer is.
+        scaleX = scaleY = offset.distance / drag.startDistance;
+      } else {
+        // Along the bone; past the joint it bottoms out instead of flipping.
+        final along = (offset.dx * drag.axis.dx + offset.dy * drag.axis.dy) / drag.startAlong;
+        scaleX = math.max(BonePose.minScale, along);
+        // Alt: squash and stretch keep the area, like a bouncing ball.
+        scaleY = keyboard.isAltPressed ? 1 / scaleX : 1;
+      }
+      for (final MapEntry(key: id, value: (x, y)) in drag.startScales.entries) {
+        c.setPose(id, scaleX: x * scaleX, scaleY: y * scaleY);
+      }
+      return;
+    }
     if (drag.isRotation) {
       final offset = p - drag.center;
       // Too close to the joint the angle is noise.
@@ -385,10 +428,17 @@ class RigCanvasState extends State<RigCanvas> {
       }
       drag.accumulated += step;
       drag.lastAngle = offset.direction;
+      // Shift snaps to 15° steps: the bone's own angle, or the group's turn.
+      final snap = HardwareKeyboard.instance.isShiftPressed;
+      double snapped(double degrees) => snap ? (degrees / 15).roundToDouble() * 15 : degrees;
       if (c.selectedBoneIds.length > 1) {
-        c.transformSelection(rotation: step * 180 / math.pi);
+        final total = snapped(drag.accumulated * 180 / math.pi);
+        if (total != drag.appliedDegrees) {
+          c.transformSelection(rotation: total - drag.appliedDegrees);
+          drag.appliedDegrees = total;
+        }
       } else {
-        c.setPose(drag.boneId, rotation: drag.startRotation + drag.sign * drag.accumulated * 180 / math.pi);
+        c.setPose(drag.boneId, rotation: snapped(drag.startRotation + drag.sign * drag.accumulated * 180 / math.pi));
       }
     } else {
       final total = p - drag.start;
@@ -585,19 +635,52 @@ class _PoseDrag {
     required this.startRotation,
     required this.sign,
   })  : isRotation = true,
+        isScale = false,
         lastAngle = startAngle,
         start = Offset.zero,
-        startTranslation = Offset.zero;
+        startTranslation = Offset.zero,
+        axis = Offset.zero,
+        startAlong = 1,
+        startDistance = 1,
+        startScales = const {};
 
   _PoseDrag.move(this.boneId, {required this.start, required this.startTranslation})
       : isRotation = false,
+        isScale = false,
         center = Offset.zero,
         lastAngle = 0,
         startRotation = 0,
-        sign = 1;
+        sign = 1,
+        axis = Offset.zero,
+        startAlong = 1,
+        startDistance = 1,
+        startScales = const {};
+
+  _PoseDrag.scale(
+    this.boneId, {
+    required this.center,
+    required this.axis,
+    required this.startAlong,
+    required this.startDistance,
+    required this.startScales,
+  })  : isRotation = false,
+        isScale = true,
+        lastAngle = 0,
+        startRotation = 0,
+        sign = 1,
+        start = Offset.zero,
+        startTranslation = Offset.zero;
 
   final String boneId;
   final bool isRotation;
+  final bool isScale;
+
+  // Scale: the posed bone's direction and where the grab started, measured
+  // from the joint ([center]); each scaled bone's scale before the drag.
+  final Offset axis;
+  final double startAlong;
+  final double startDistance;
+  final Map<String, (double, double)> startScales;
 
   // Rotation.
   final Offset center;
@@ -605,6 +688,9 @@ class _PoseDrag {
   final double sign;
   double lastAngle;
   double accumulated = 0;
+
+  /// Group rotation already applied, in degrees (multi-bone drags).
+  double appliedDegrees = 0;
 
   // Move.
   final Offset start;

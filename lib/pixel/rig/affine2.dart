@@ -25,6 +25,18 @@ class Affine2 {
   /// Mirrors horizontally about the vertical line `x = pivotX`.
   factory Affine2.flipX(double pivotX) => Affine2(-1, 0, 0, 1, 2 * pivotX, 0);
 
+  /// Mirrors vertically about the horizontal line `y = pivotY`.
+  factory Affine2.flipY(double pivotY) => Affine2(1, 0, 0, -1, 0, 2 * pivotY);
+
+  /// Scales by [sx] along the direction [degrees] and by [sy] across it,
+  /// about [pivot]. With [degrees] 0 that is plain x/y scaling.
+  factory Affine2.scaleAlong(double sx, double sy, double degrees, Offset pivot) =>
+      Affine2.translation(-pivot.dx, -pivot.dy)
+          .then(Affine2.rotation(-degrees))
+          .then(Affine2(sx, 0, 0, sy, 0, 0))
+          .then(Affine2.rotation(degrees))
+          .thenTranslate(pivot.dx, pivot.dy);
+
   /// Rotation by [degrees] about [pivot].
   factory Affine2.rotationAbout(double degrees, Offset pivot) =>
       Affine2.translation(-pivot.dx, -pivot.dy).then(Affine2.rotation(degrees)).thenTranslate(pivot.dx, pivot.dy);

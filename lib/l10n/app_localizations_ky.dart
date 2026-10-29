@@ -3765,6 +3765,32 @@ class StringsKy extends Strings {
   String get rigToolMove => 'Сөөктү жылдыруу (M)';
 
   @override
+  String get rigToolScale => 'Сөөктүн өлчөмүн өзгөртүү (S)';
+
+  @override
+  String get rigScaleLength => 'Узундугу %';
+
+  @override
+  String get rigScaleWidth => 'Туурасы %';
+
+  @override
+  String get rigFlipV => 'Тигинен чагылдыруу';
+
+  @override
+  String get rigFlipBoneVertical => 'Тандалган сөөктү тигинен чагылдыруу';
+
+  @override
+  String get rigRelative => 'Салыштырмалуу';
+
+  @override
+  String get rigRelativeHint => 'Киргизилген маанилер ар бир тандалган сөөктүн абалына кошулат';
+
+  @override
+  String rigBonesSelected(int count) {
+    return '$count сөөк';
+  }
+
+  @override
   String get rigFlipBone => 'Тандалган сөөктү оодаруу';
 
   @override

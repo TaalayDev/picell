@@ -3726,6 +3726,32 @@ class StringsZh extends Strings {
   String get rigToolMove => '移动骨骼 (M)';
 
   @override
+  String get rigToolScale => '缩放骨骼 (S)';
+
+  @override
+  String get rigScaleLength => '长度 %';
+
+  @override
+  String get rigScaleWidth => '宽度 %';
+
+  @override
+  String get rigFlipV => '垂直翻转';
+
+  @override
+  String get rigFlipBoneVertical => '垂直翻转所选骨骼';
+
+  @override
+  String get rigRelative => '相对';
+
+  @override
+  String get rigRelativeHint => '输入的数值会加到每根所选骨骼的姿势上';
+
+  @override
+  String rigBonesSelected(int count) {
+    return '$count 根骨骼';
+  }
+
+  @override
   String get rigFlipBone => '翻转所选骨骼';
 
   @override

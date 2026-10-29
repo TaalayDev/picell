@@ -2120,6 +2120,21 @@
     "rigAddSkeleton": "Add a ready-made skeleton",
     "rigToolRotate": "Rotate a bone (R)",
     "rigToolMove": "Move a bone (M)",
+    "rigToolScale": "Scale a bone (S)",
+    "rigScaleLength": "Length %",
+    "rigScaleWidth": "Width %",
+    "rigFlipV": "Flip vertically",
+    "rigFlipBoneVertical": "Flip the selected bone vertically",
+    "rigRelative": "Relative",
+    "rigRelativeHint": "Typed values are added to each selected bone's pose",
+    "rigBonesSelected": "{count} bones",
+    "@rigBonesSelected": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "rigFlipBone": "Flip the selected bone",
     "rigSelectMultiple": "Select multiple bones",
     "rigSnapping": "Joint snapping (Alt bypasses)",

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import '../../data/models/rig/rig.dart';
@@ -89,7 +90,18 @@ abstract final class PoseInterpolator {
       rotation: start.rotation + (end.rotation - start.rotation) * k,
       translation: Offset.lerp(start.translation, end.translation, k)!,
       flipX: start.flipX,
+      flipY: start.flipY,
+      scaleX: _lerpScale(start.scaleX, end.scaleX, k),
+      scaleY: _lerpScale(start.scaleY, end.scaleY, k),
     );
+  }
+
+  /// Scale changes evenly in ratio, not in difference: halfway from 0.5 to 2
+  /// is 1, so a squash and its stretch take the same time.
+  static double _lerpScale(double from, double to, double k) {
+    if (from == to) return from;
+    final a = math.max(BonePose.minScale, from), b = math.max(BonePose.minScale, to);
+    return math.exp(math.log(a) + (math.log(b) - math.log(a)) * k);
   }
 
   /// Where each IK chain's target is at [time], for the chains that have
@@ -170,5 +182,13 @@ abstract final class PoseInterpolator {
     return last.target;
   }
 
-  static BonePose _fromKey(RigKeyframe k) => BonePose(rotation: k.rotation, translation: k.translation, flipX: k.flipX);
+  static BonePose _fromKey(RigKeyframe k) =>
+      BonePose(
+        rotation: k.rotation,
+        translation: k.translation,
+        flipX: k.flipX,
+        flipY: k.flipY,
+        scaleX: k.scaleX,
+        scaleY: k.scaleY,
+      );
 }

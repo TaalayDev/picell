@@ -3994,6 +3994,32 @@ class StringsRu extends Strings {
   String get rigToolMove => 'Переместить кость (M)';
 
   @override
+  String get rigToolScale => 'Масштабировать кость (S)';
+
+  @override
+  String get rigScaleLength => 'Длина %';
+
+  @override
+  String get rigScaleWidth => 'Ширина %';
+
+  @override
+  String get rigFlipV => 'Отразить по вертикали';
+
+  @override
+  String get rigFlipBoneVertical => 'Отразить выбранную кость по вертикали';
+
+  @override
+  String get rigRelative => 'Относительно';
+
+  @override
+  String get rigRelativeHint => 'Введённые значения добавляются к позе каждой выбранной кости';
+
+  @override
+  String rigBonesSelected(int count) {
+    return 'Костей: $count';
+  }
+
+  @override
   String get rigFlipBone => 'Отразить выбранную кость';
 
   @override

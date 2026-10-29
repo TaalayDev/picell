@@ -3933,6 +3933,32 @@ class StringsEn extends Strings {
   String get rigToolMove => 'Move a bone (M)';
 
   @override
+  String get rigToolScale => 'Scale a bone (S)';
+
+  @override
+  String get rigScaleLength => 'Length %';
+
+  @override
+  String get rigScaleWidth => 'Width %';
+
+  @override
+  String get rigFlipV => 'Flip vertically';
+
+  @override
+  String get rigFlipBoneVertical => 'Flip the selected bone vertically';
+
+  @override
+  String get rigRelative => 'Relative';
+
+  @override
+  String get rigRelativeHint => 'Typed values are added to each selected bone\'s pose';
+
+  @override
+  String rigBonesSelected(int count) {
+    return '$count bones';
+  }
+
+  @override
   String get rigFlipBone => 'Flip the selected bone';
 
   @override

@@ -146,7 +146,8 @@ abstract final class RigSolver {
     return solve(rig, poses)[parent] ?? Affine2.identity;
   }
 
-  static Offset _flipped(Offset v, bool flip) => flip ? Offset(-v.dx, v.dy) : v;
+  /// [v] in the bone's own frame after its pose's mirroring.
+  static Offset _flipped(Offset v, BonePose pose) => Offset(pose.flipX ? -v.dx : v.dx, pose.flipY ? -v.dy : v.dy);
 
   static double _degrees(double radians) => radians * 180 / math.pi;
 
@@ -157,11 +158,11 @@ abstract final class RigSolver {
     final pose = start[bone.id] ?? BonePose.rest;
 
     final toTarget = inverse.apply(target) - bone.head - pose.translation;
-    final tail = _flipped((endpoint ?? bone.tail) - bone.head, pose.flipX);
+    final tail = _flipped((endpoint ?? bone.tail) - bone.head, pose);
     if (toTarget.distance < 1e-9 || tail.distance < 1e-9) return start;
 
     final rotation = _limit(bone, _nearest(_degrees(toTarget.direction - tail.direction), pose.rotation));
-    return {...start, bone.id: BonePose(rotation: rotation, translation: pose.translation, flipX: pose.flipX)};
+    return {...start, bone.id: pose.copyWith(rotation: rotation)};
   }
 
   /// Two bones, exactly. Works in the space the chain's root hangs in, where
@@ -186,7 +187,7 @@ abstract final class RigSolver {
     final p2 = start[lower.id] ?? BonePose.rest;
 
     final u = lower.head + p2.translation - upper.head;
-    final b = _flipped((endpoint ?? lower.tail) - lower.head, p2.flipX);
+    final b = _flipped((endpoint ?? lower.tail) - lower.head, p2);
     final v = inverse.apply(target) - upper.head - p1.translation;
     final lu = u.distance, lb = b.distance;
     if (lu < 1e-9 || lb < 1e-9) return null;
@@ -208,7 +209,7 @@ abstract final class RigSolver {
 
     // With the second angle fixed, the first one aims the whole limb.
     final reach = u + _rotated(b, second);
-    final f1 = _flipped(reach, p1.flipX);
+    final f1 = _flipped(reach, p1);
     var first = p1.rotation;
     if (distance > 1e-9 && f1.distance > 1e-9) {
       first = _limit(upper, _nearest(_degrees(v.direction - f1.direction), p1.rotation));
@@ -216,8 +217,8 @@ abstract final class RigSolver {
 
     return {
       ...start,
-      upper.id: BonePose(rotation: first, translation: p1.translation, flipX: p1.flipX),
-      lower.id: BonePose(rotation: second, translation: p2.translation, flipX: p2.flipX),
+      upper.id: p1.copyWith(rotation: first),
+      lower.id: p2.copyWith(rotation: second),
     };
   }
 
@@ -249,7 +250,7 @@ abstract final class RigSolver {
 
     void setRotation(Bone b, double r) {
       final p = pose(b);
-      poses[b.id] = BonePose(rotation: clamp(b, r), translation: p.translation, flipX: p.flipX);
+      poses[b.id] = p.copyWith(rotation: clamp(b, r));
     }
 
     // A straight chain can fold either way and the search would pick by
@@ -363,7 +364,18 @@ abstract final class RigSolver {
 
     final head = bone.head;
     var t = Affine2.identity;
+    // Scale first, in the bone's rest direction, so stretching follows the
+    // bone however it is then flipped or turned.
+    if (pose.isScaled) {
+      t = Affine2.scaleAlong(
+        math.max(BonePose.minScale, pose.scaleX),
+        math.max(BonePose.minScale, pose.scaleY),
+        bone.restAngle,
+        head,
+      );
+    }
     if (pose.flipX) t = t.then(Affine2.flipX(head.dx));
+    if (pose.flipY) t = t.then(Affine2.flipY(head.dy));
     t = t.then(Affine2.rotationAbout(rotation, head));
     return t.thenTranslate(pose.translation.dx, pose.translation.dy);
   }

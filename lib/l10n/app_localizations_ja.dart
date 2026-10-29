@@ -3728,6 +3728,32 @@ class StringsJa extends Strings {
   String get rigToolMove => 'ボーンを移動 (M)';
 
   @override
+  String get rigToolScale => 'ボーンを拡大縮小 (S)';
+
+  @override
+  String get rigScaleLength => '長さ %';
+
+  @override
+  String get rigScaleWidth => '幅 %';
+
+  @override
+  String get rigFlipV => '上下反転';
+
+  @override
+  String get rigFlipBoneVertical => '選択したボーンを上下反転';
+
+  @override
+  String get rigRelative => '相対';
+
+  @override
+  String get rigRelativeHint => '入力した値を選択した各ボーンのポーズに加えます';
+
+  @override
+  String rigBonesSelected(int count) {
+    return '$count 本のボーン';
+  }
+
+  @override
   String get rigFlipBone => '選択したボーンを反転';
 
   @override

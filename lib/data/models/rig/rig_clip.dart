@@ -78,6 +78,11 @@ class RigKeyframe with EquatableMixin {
   final double rotation;
   final Offset translation;
   final bool flipX;
+  final bool flipY;
+
+  /// See [BonePose.scaleX] / [BonePose.scaleY].
+  final double scaleX;
+  final double scaleY;
 
   /// Easing used to reach the next keyframe of the same bone.
   final RigEasing easing;
@@ -92,6 +97,9 @@ class RigKeyframe with EquatableMixin {
     this.rotation = 0,
     this.translation = Offset.zero,
     this.flipX = false,
+    this.flipY = false,
+    this.scaleX = 1,
+    this.scaleY = 1,
     this.easing = RigEasing.linear,
     this.curve,
   });
@@ -102,6 +110,9 @@ class RigKeyframe with EquatableMixin {
     double? rotation,
     Offset? translation,
     bool? flipX,
+    bool? flipY,
+    double? scaleX,
+    double? scaleY,
     RigEasing? easing,
     EasingCurve? Function()? curve,
   }) {
@@ -111,6 +122,9 @@ class RigKeyframe with EquatableMixin {
       rotation: rotation ?? this.rotation,
       translation: translation ?? this.translation,
       flipX: flipX ?? this.flipX,
+      flipY: flipY ?? this.flipY,
+      scaleX: scaleX ?? this.scaleX,
+      scaleY: scaleY ?? this.scaleY,
       easing: easing ?? this.easing,
       curve: curve != null ? curve() : this.curve,
     );
@@ -122,6 +136,10 @@ class RigKeyframe with EquatableMixin {
         'rotation': rotation,
         'translation': {'dx': translation.dx, 'dy': translation.dy},
         'flipX': flipX,
+        // Absent in rigs saved before these existed; only written when used.
+        if (flipY) 'flipY': true,
+        if (scaleX != 1) 'scaleX': scaleX,
+        if (scaleY != 1) 'scaleY': scaleY,
         'easing': easing.name,
         if (curve != null) 'curve': curve!.toJson(),
       };
@@ -134,6 +152,9 @@ class RigKeyframe with EquatableMixin {
       rotation: (json['rotation'] as num?)?.toDouble() ?? 0,
       translation: t == null ? Offset.zero : Offset((t['dx'] as num).toDouble(), (t['dy'] as num).toDouble()),
       flipX: json['flipX'] as bool? ?? false,
+      flipY: json['flipY'] as bool? ?? false,
+      scaleX: (json['scaleX'] as num?)?.toDouble() ?? 1,
+      scaleY: (json['scaleY'] as num?)?.toDouble() ?? 1,
       easing: RigEasing.values.firstWhere(
         (e) => e.name == json['easing'],
         orElse: () => RigEasing.linear,
@@ -143,7 +164,7 @@ class RigKeyframe with EquatableMixin {
   }
 
   @override
-  List<Object?> get props => [time, boneId, rotation, translation, flipX, easing, curve];
+  List<Object?> get props => [time, boneId, rotation, translation, flipX, flipY, scaleX, scaleY, easing, curve];
 }
 
 /// Where an [IkChain]'s target is on one frame, in canvas pixels. Between

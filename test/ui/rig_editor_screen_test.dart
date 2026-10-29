@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -633,6 +634,87 @@ void main() {
       expect(key.rotation, closeTo(90, 1));
     });
 
+    // Picks the spine by tapping its middle; returns its single saved key.
+    Future<RigKeyframe> saveSingleKey(WidgetTester tester) async {
+      await tapDone(tester);
+      await tester.pumpAndSettle();
+      return results.single!.clips.single.keyframes.single;
+    }
+
+    testWidgets('the scale tool stretches a bone along its length', (tester) async {
+      await openAnimate(tester);
+      await tester.tapAt(pixel(tester, 8.5, 9.5));
+      await tester.pump();
+      await tester.tap(find.byTooltip('Scale a bone (S)'));
+      await tester.pump();
+
+      // Grab the tip, 6px above the joint, and pull it to 9px above.
+      final g = await tester.startGesture(pixel(tester, 8.5, 6.5));
+      await g.moveTo(pixel(tester, 8.5, 5));
+      await g.moveTo(pixel(tester, 8.5, 3.5));
+      await g.up();
+      await tester.pump();
+
+      final key = await saveSingleKey(tester);
+      expect(key.scaleX, closeTo(1.5, 0.02));
+      expect(key.scaleY, 1);
+    });
+
+    testWidgets('Shift snaps a rotation drag to 15° steps', (tester) async {
+      await openAnimate(tester);
+      final joint = pixel(tester, 8.5, 12.5);
+      final up = pixel(tester, 8.5, 8.5);
+      await tester.tapAt(up);
+      await tester.pump();
+
+      // About 80° clockwise from straight up. Shift goes down mid-drag: at
+      // pointer-down it would add to the selection instead.
+      final radius = (up - joint).distance;
+      Offset at(double degrees) => joint + Offset.fromDirection(-math.pi / 2 + degrees * math.pi / 180, radius);
+      final g = await tester.startGesture(up);
+      await g.moveTo(at(40));
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await g.moveTo(at(80));
+      await g.up();
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.pump();
+
+      final key = await saveSingleKey(tester);
+      expect(key.rotation, 75);
+    });
+
+    testWidgets('Alt+arrows nudge and ] turns the selected bone', (tester) async {
+      await openAnimate(tester);
+      await tester.tapAt(pixel(tester, 8.5, 9.5));
+      await tester.pump();
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.altLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.bracketRight);
+      await tester.pump();
+      expect(find.text('1 / 8'), findsOneWidget, reason: 'Alt+arrows do not step frames');
+
+      final key = await saveSingleKey(tester);
+      expect(key.translation, const Offset(1, 10));
+      expect(key.rotation, 1);
+    });
+
+    testWidgets('the rail flips the selected bone vertically', (tester) async {
+      await openAnimate(tester);
+      await tester.tapAt(pixel(tester, 8.5, 9.5));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('rig-flip-vertical')));
+      await tester.pump();
+
+      final key = await saveSingleKey(tester);
+      expect(key.flipY, isTrue);
+      expect(key.flipX, isFalse);
+    });
+
     testWidgets('timeline cells move the playhead and the pose panel follows', (tester) async {
       await openAnimate(tester);
       await tester.tap(find.byKey(const ValueKey('cell-spine-3')));
@@ -640,11 +722,16 @@ void main() {
       expect(find.text('4 / 8'), findsOneWidget);
       expect(find.text('Pose · frame 4'), findsOneWidget);
 
+      // The pose section is taller than the panel; bring the button in.
+      await tester.ensureVisible(find.text('Add key'));
+      await tester.pump();
       await tester.tap(find.text('Add key'));
       await tester.pump();
       expect(find.byKey(const ValueKey('key-spine-3')), findsOneWidget);
       expect(find.text('Keyed on this frame'), findsOneWidget);
 
+      await tester.ensureVisible(find.text('Remove key'));
+      await tester.pump();
       await tester.tap(find.text('Remove key'));
       await tester.pump();
       expect(find.byKey(const ValueKey('key-spine-3')), findsNothing);

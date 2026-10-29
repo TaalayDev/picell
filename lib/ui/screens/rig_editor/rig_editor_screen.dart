@@ -354,11 +354,26 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
                   const SingleActivator(LogicalKeyboardKey.keyP): () => _controller.tool = RigTool.paintInfluence,
                   const SingleActivator(LogicalKeyboardKey.keyR): () => _controller.tool = RigTool.rotate,
                   const SingleActivator(LogicalKeyboardKey.keyM): () => _controller.tool = RigTool.move,
+                  const SingleActivator(LogicalKeyboardKey.keyS): () => _controller.tool = RigTool.scale,
                   const SingleActivator(LogicalKeyboardKey.space): _playPauseIfAnimating,
                   const SingleActivator(LogicalKeyboardKey.keyA): _toggleAutoKey,
                   const SingleActivator(LogicalKeyboardKey.keyK): _keyShortcut,
                   const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _stepFrame(-1),
                   const SingleActivator(LogicalKeyboardKey.arrowRight): () => _stepFrame(1),
+                  // Plain arrows step frames; Alt nudges the selected bones.
+                  for (final (key, delta) in const [
+                    (LogicalKeyboardKey.arrowLeft, Offset(-1, 0)),
+                    (LogicalKeyboardKey.arrowRight, Offset(1, 0)),
+                    (LogicalKeyboardKey.arrowUp, Offset(0, -1)),
+                    (LogicalKeyboardKey.arrowDown, Offset(0, 1)),
+                  ]) ...{
+                    SingleActivator(key, alt: true): () => _nudgeBones(delta),
+                    SingleActivator(key, alt: true, shift: true): () => _nudgeBones(delta * 10),
+                  },
+                  const SingleActivator(LogicalKeyboardKey.bracketLeft): () => _rotateBones(-1),
+                  const SingleActivator(LogicalKeyboardKey.bracketRight): () => _rotateBones(1),
+                  const SingleActivator(LogicalKeyboardKey.bracketLeft, shift: true): () => _rotateBones(-1, coarse: true),
+                  const SingleActivator(LogicalKeyboardKey.bracketRight, shift: true): () => _rotateBones(1, coarse: true),
                   const SingleActivator(LogicalKeyboardKey.escape): _controller.cancelPlacement,
                   const SingleActivator(LogicalKeyboardKey.enter): _placeIfPlacing,
                   const SingleActivator(LogicalKeyboardKey.delete): _deleteSelected,
@@ -493,6 +508,20 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
   void _keyShortcut() {
     final id = _controller.selectedBoneId;
     if (_controller.mode == RigMode.animate && id != null) _controller.keyBone(id);
+  }
+
+  void _nudgeBones(Offset delta) {
+    if (_controller.mode != RigMode.animate) return;
+    _stopPlayback();
+    _controller.nudgeSelectedBones(delta);
+  }
+
+  /// `[` / `]` turn by the snap step (one degree without snapping); Shift
+  /// turns by 15°.
+  void _rotateBones(int direction, {bool coarse = false}) {
+    if (_controller.mode != RigMode.animate) return;
+    _stopPlayback();
+    _controller.rotateSelectedBones(direction * (coarse ? 15.0 : _controller.rotationStep));
   }
 
   void _stepFrame(int delta) {
@@ -844,12 +873,21 @@ class _ToolRail extends StatelessWidget {
       if (animating) ...[
         tool(RigTool.rotate, Icons.rotate_right, Strings.of(context).rigToolRotate),
         tool(RigTool.move, Icons.open_with, Strings.of(context).rigToolMove),
+        tool(RigTool.scale, Icons.expand, Strings.of(context).rigToolScale),
         IconButton(
           tooltip: Strings.of(context).rigFlipBone,
           icon: const Icon(Icons.flip, size: 18),
           onPressed: selectedId == null
               ? null
-              : () => controller.setPose(selectedId, flipX: !controller.poseOf(selectedId).flipX),
+              : () => controller.transformSelectedBones(flipX: !controller.poseOf(selectedId).flipX),
+        ),
+        IconButton(
+          key: const ValueKey('rig-flip-vertical'),
+          tooltip: Strings.of(context).rigFlipBoneVertical,
+          icon: const RotatedBox(quarterTurns: 1, child: Icon(Icons.flip, size: 18)),
+          onPressed: selectedId == null
+              ? null
+              : () => controller.transformSelectedBones(flipY: !controller.poseOf(selectedId).flipY),
         ),
       ],
       if (!floating) ...[

@@ -38,6 +38,10 @@ enum RigTool {
 
   /// Animate: drag to translate the selected bone (and its children).
   move,
+
+  /// Animate: drag to stretch the selected bone along its length; Shift
+  /// scales evenly, Alt squashes as it stretches (keeping its area).
+  scale,
 }
 
 /// A bone as currently shown: at its rest position in setup, posed in animate.
@@ -173,7 +177,7 @@ class RigEditorController extends ChangeNotifier {
     // Tools that make no sense in the current mode are ignored.
     final animating = _mode == RigMode.animate;
     if (animating && (value == RigTool.createBone || value == RigTool.paintInfluence)) return;
-    if (!animating && (value == RigTool.rotate || value == RigTool.move)) return;
+    if (!animating && (value == RigTool.rotate || value == RigTool.move || value == RigTool.scale)) return;
     _tool = value;
     notifyListeners();
   }
@@ -197,7 +201,7 @@ class RigEditorController extends ChangeNotifier {
 
   bool _toolFitsMode(RigTool t) => _mode == RigMode.animate
       ? (t != RigTool.createBone && t != RigTool.paintInfluence)
-      : (t != RigTool.rotate && t != RigTool.move);
+      : (t != RigTool.rotate && t != RigTool.move && t != RigTool.scale);
 
   bool get canUndo => _undo.isNotEmpty;
   bool get canRedo => _redo.isNotEmpty;
@@ -1253,7 +1257,16 @@ class RigEditorController extends ChangeNotifier {
     ]);
   }
 
-  RigKeyframe _keyFor(Bone bone, BonePose base, {double? rotation, Offset? translation, bool? flipX}) {
+  RigKeyframe _keyFor(
+    Bone bone,
+    BonePose base, {
+    double? rotation,
+    Offset? translation,
+    bool? flipX,
+    bool? flipY,
+    double? scaleX,
+    double? scaleY,
+  }) {
     var r = rotation ?? base.rotation;
     final lo = bone.minAngle, hi = bone.maxAngle;
     if (lo != null && r < lo) r = lo;
@@ -1264,17 +1277,33 @@ class RigEditorController extends ChangeNotifier {
       rotation: r,
       translation: translation ?? base.translation,
       flipX: flipX ?? base.flipX,
+      flipY: flipY ?? base.flipY,
+      scaleX: _clampScale(scaleX ?? base.scaleX),
+      scaleY: _clampScale(scaleY ?? base.scaleY),
       easing: keyAt(bone.id, time)?.easing ?? RigEasing.linear,
       curve: keyAt(bone.id, time)?.curve,
     );
   }
 
+  /// Scales are kept within 1%..2000% and rounded to whole percents, so
+  /// typed and dragged values land on the same steps.
+  static double _clampScale(double scale) => (scale.clamp(BonePose.minScale, 20.0) * 100).roundToDouble() / 100;
+
   /// Poses [boneId] at the current frame, keying it there (auto-key). Values
   /// left null keep what the bone does at this frame now.
-  void setPose(String boneId, {double? rotation, Offset? translation, bool? flipX}) {
+  void setPose(
+    String boneId, {
+    double? rotation,
+    Offset? translation,
+    bool? flipX,
+    bool? flipY,
+    double? scaleX,
+    double? scaleY,
+  }) {
     final b = bone(boneId);
     if (b == null || jointFrozenAt(boneId, time)) return;
-    final key = _keyFor(b, poseOf(boneId), rotation: rotation, translation: translation, flipX: flipX);
+    final key = _keyFor(b, poseOf(boneId),
+        rotation: rotation, translation: translation, flipX: flipX, flipY: flipY, scaleX: scaleX, scaleY: scaleY);
     if (!_autoKey) {
       if (_unkeyed[boneId] == key || (!_unkeyed.containsKey(boneId) && keyAt(boneId, time) == key)) return;
       _unkeyed[boneId] = key;
@@ -1286,6 +1315,90 @@ class RigEditorController extends ChangeNotifier {
     if (keyAt(boneId, time) == key && !_unkeyed.containsKey(boneId)) return;
     _unkeyed.remove(boneId);
     _updateClip((clip) => _withKeys(clip, [key]));
+  }
+
+  /// Poses each of [boneIds] at the current frame with what [change] makes
+  /// of its current pose, as one undo step - or as previewed poses when
+  /// auto-key is off. Frozen joints are skipped.
+  void _poseBones(Iterable<String> boneIds, BonePose Function(String id, BonePose current) change) {
+    if (_mode != RigMode.animate) return;
+    final keys = <RigKeyframe>[
+      for (final id in boneIds)
+        if (bone(id) case final b? when !jointFrozenAt(id, time)) _keyFor(b, change(id, poseOf(id))),
+    ];
+    if (!_autoKey) {
+      if (keys.isEmpty) return;
+      for (final key in keys) {
+        _unkeyed[key.boneId] = key;
+      }
+      _view = null;
+      _previewRevision++;
+      notifyListeners();
+      return;
+    }
+    final changed = [
+      for (final key in keys)
+        if (keyAt(key.boneId, time) != key || _unkeyed.containsKey(key.boneId)) key,
+    ];
+    if (changed.isEmpty) return;
+    for (final key in changed) {
+      _unkeyed.remove(key.boneId);
+    }
+    _updateClip((clip) => _withKeys(clip, changed));
+  }
+
+  /// Pose panel: gives every selected bone these values at the current
+  /// frame, as one undo step. With [relative], rotation and offset are added
+  /// to each bone's own and scales multiply it; flips are always set.
+  void transformSelectedBones({
+    double? rotation,
+    Offset? translation,
+    double? scaleX,
+    double? scaleY,
+    bool? flipX,
+    bool? flipY,
+    bool relative = false,
+  }) {
+    _poseBones(
+      selectedBoneIds,
+      (_, p) => relative
+          ? p.copyWith(
+              rotation: p.rotation + (rotation ?? 0),
+              translation: p.translation + (translation ?? Offset.zero),
+              scaleX: p.scaleX * (scaleX ?? 1),
+              scaleY: p.scaleY * (scaleY ?? 1),
+              flipX: flipX,
+              flipY: flipY,
+            )
+          : p.copyWith(
+              rotation: rotation,
+              translation: translation,
+              scaleX: scaleX,
+              scaleY: scaleY,
+              flipX: flipX,
+              flipY: flipY,
+            ),
+    );
+  }
+
+  /// Alt+arrows: moves the selected bones by [delta] canvas pixels as one
+  /// undo step. Only the topmost selected bones move; their children ride
+  /// along instead of moving twice.
+  void nudgeSelectedBones(Offset delta) {
+    _poseBones(selectionRoots, (id, p) => p.copyWith(translation: p.translation + toLocalDelta(id, delta)));
+  }
+
+  /// `[` / `]`: turns every selected bone by [degrees] (clockwise on screen
+  /// when positive), as one undo step.
+  void rotateSelectedBones(double degrees) {
+    _poseBones(selectedBoneIds, (id, p) => p.copyWith(rotation: p.rotation + degrees * rotationSign(id)));
+  }
+
+  /// How far `[` and `]` turn a bone: the selected bone's snap angle, else
+  /// the rig's, else one degree.
+  double get rotationStep {
+    final snap = bone(_selectedBoneId)?.snapAngle ?? _rig.settings.snapAngleDegrees;
+    return snap > 0 ? snap : 1;
   }
 
   /// Keys [boneId] at the current frame exactly as it is posed now. Also
@@ -2226,9 +2339,8 @@ class RigEditorController extends ChangeNotifier {
   void mirrorPose({bool reflect = false}) {
     if (!canMirrorPose) return;
     final pairs = mirrorPairs;
-    BonePose flipped(BonePose p) => reflect
-        ? BonePose(rotation: -p.rotation, translation: Offset(-p.translation.dx, p.translation.dy), flipX: p.flipX)
-        : p;
+    BonePose flipped(BonePose p) =>
+        reflect ? p.copyWith(rotation: -p.rotation, translation: Offset(-p.translation.dx, p.translation.dy)) : p;
     final current = poses;
     final bones = <String, BonePose>{
       for (final e in pairs.entries) e.key: flipped(current[e.value] ?? BonePose.rest),

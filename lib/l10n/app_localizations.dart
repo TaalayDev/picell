@@ -6779,6 +6779,54 @@ abstract class Strings {
   /// **'Move a bone (M)'**
   String get rigToolMove;
 
+  /// No description provided for @rigToolScale.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale a bone (S)'**
+  String get rigToolScale;
+
+  /// No description provided for @rigScaleLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Length %'**
+  String get rigScaleLength;
+
+  /// No description provided for @rigScaleWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Width %'**
+  String get rigScaleWidth;
+
+  /// No description provided for @rigFlipV.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip vertically'**
+  String get rigFlipV;
+
+  /// No description provided for @rigFlipBoneVertical.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip the selected bone vertically'**
+  String get rigFlipBoneVertical;
+
+  /// No description provided for @rigRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'Relative'**
+  String get rigRelative;
+
+  /// No description provided for @rigRelativeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Typed values are added to each selected bone\'s pose'**
+  String get rigRelativeHint;
+
+  /// No description provided for @rigBonesSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bones'**
+  String rigBonesSelected(int count);
+
   /// No description provided for @rigFlipBone.
   ///
   /// In en, this message translates to:

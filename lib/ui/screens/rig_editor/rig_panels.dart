@@ -1012,10 +1012,21 @@ String rigEasingName(Strings strings, RigEasing easing) => switch (easing) {
     };
 
 /// The selected bone's pose on the current frame, and its key there.
-class _PoseSection extends StatelessWidget {
+class _PoseSection extends StatefulWidget {
   const _PoseSection({required this.controller});
 
   final RigEditorController controller;
+
+  @override
+  State<_PoseSection> createState() => _PoseSectionState();
+}
+
+class _PoseSectionState extends State<_PoseSection> {
+  // Typed values change each selected bone by that much instead of setting
+  // it; the fields then show the neutral value (0, or 100%).
+  bool _relative = false;
+
+  RigEditorController get controller => widget.controller;
 
   @override
   Widget build(BuildContext context) {
@@ -1052,7 +1063,12 @@ class _PoseSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
-        stat(Strings.of(context).rigSectionBone, bone.name),
+        stat(
+          Strings.of(context).rigSectionBone,
+          controller.selectedBoneIds.length > 1
+              ? Strings.of(context).rigBonesSelected(controller.selectedBoneIds.length)
+              : bone.name,
+        ),
         if (driven)
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 2, 10, 4),
@@ -1061,15 +1077,110 @@ class _PoseSection extends StatelessWidget {
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.tertiary),
             ),
           ),
-        stat(Strings.of(context).rigRotation, '${pose.rotation.toStringAsFixed(0)}°'),
-        stat(Strings.of(context).rigOffset,
-            '${pose.translation.dx.toStringAsFixed(0)}, ${pose.translation.dy.toStringAsFixed(0)}'),
+        Tooltip(
+          message: Strings.of(context).rigRelativeHint,
+          child: SwitchListTile(
+            key: const ValueKey('rig-pose-relative'),
+            dense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+            title: Text(Strings.of(context).rigRelative, style: theme.textTheme.bodySmall),
+            value: _relative,
+            onChanged: (on) => setState(() => _relative = on),
+          ),
+        ),
+        // Typed values apply to every selected bone. Absolute fields show the
+        // primary bone's pose; scale is a percent of the drawn bone, along it
+        // and across it.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 2, 10, 2),
+          child: Column(children: [
+            _BoneNumber(
+              label: '${Strings.of(context).rigRotation} °',
+              value: _relative ? 0 : pose.rotation,
+              step: 1,
+              onApply: (v) {
+                controller.transformSelectedBones(rotation: v, relative: _relative);
+                return _relative ? 0 : controller.poseOf(bone.id).rotation;
+              },
+            ),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(
+                child: _BoneNumber(
+                  label: '${Strings.of(context).rigOffset} X',
+                  value: _relative ? 0 : pose.translation.dx,
+                  step: 1,
+                  onApply: (v) {
+                    final t = controller.poseOf(bone.id).translation;
+                    controller.transformSelectedBones(
+                      translation: _relative ? Offset(v, 0) : Offset(v, t.dy),
+                      relative: _relative,
+                    );
+                    return _relative ? 0 : controller.poseOf(bone.id).translation.dx;
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _BoneNumber(
+                  label: '${Strings.of(context).rigOffset} Y',
+                  value: _relative ? 0 : pose.translation.dy,
+                  step: 1,
+                  onApply: (v) {
+                    final t = controller.poseOf(bone.id).translation;
+                    controller.transformSelectedBones(
+                      translation: _relative ? Offset(0, v) : Offset(t.dx, v),
+                      relative: _relative,
+                    );
+                    return _relative ? 0 : controller.poseOf(bone.id).translation.dy;
+                  },
+                ),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(
+                child: _BoneNumber(
+                  label: Strings.of(context).rigScaleLength,
+                  value: _relative ? 100 : pose.scaleX * 100,
+                  minimum: 1,
+                  step: 5,
+                  onApply: (v) {
+                    controller.transformSelectedBones(scaleX: v / 100, relative: _relative);
+                    return _relative ? 100 : controller.poseOf(bone.id).scaleX * 100;
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _BoneNumber(
+                  label: Strings.of(context).rigScaleWidth,
+                  value: _relative ? 100 : pose.scaleY * 100,
+                  minimum: 1,
+                  step: 5,
+                  onApply: (v) {
+                    controller.transformSelectedBones(scaleY: v / 100, relative: _relative);
+                    return _relative ? 100 : controller.poseOf(bone.id).scaleY * 100;
+                  },
+                ),
+              ),
+            ]),
+          ]),
+        ),
         SwitchListTile(
           dense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 10),
           title: Text(Strings.of(context).rigFlipH, style: theme.textTheme.bodySmall),
           value: pose.flipX,
-          onChanged: (on) => controller.setPose(bone.id, flipX: on),
+          onChanged: (on) => controller.transformSelectedBones(flipX: on),
+        ),
+        SwitchListTile(
+          key: const ValueKey('rig-pose-flip-v'),
+          dense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+          title: Text(Strings.of(context).rigFlipV, style: theme.textTheme.bodySmall),
+          value: pose.flipY,
+          onChanged: (on) => controller.transformSelectedBones(flipY: on),
         ),
         _DrawOrderRow(controller: controller, boneId: bone.id),
         Padding(
