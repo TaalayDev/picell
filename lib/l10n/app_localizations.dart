@@ -8566,6 +8566,78 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Secondary color (tap to swap, X)'**
   String get secondaryColorSwap;
+
+  /// No description provided for @gradientReflected.
+  ///
+  /// In en, this message translates to:
+  /// **'Reflected'**
+  String get gradientReflected;
+
+  /// No description provided for @gradientDiamond.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamond'**
+  String get gradientDiamond;
+
+  /// No description provided for @gradientAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Angle'**
+  String get gradientAngle;
+
+  /// No description provided for @gradientRamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Color ramp'**
+  String get gradientRamp;
+
+  /// No description provided for @gradientRampEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit color ramp'**
+  String get gradientRampEdit;
+
+  /// No description provided for @gradientRampHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Each color becomes one band, so only these colors are used. Tap a color to remove it.'**
+  String get gradientRampHint;
+
+  /// No description provided for @gradientRampEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No colors yet'**
+  String get gradientRampEmpty;
+
+  /// No description provided for @gradientRampAddCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Add current color'**
+  String get gradientRampAddCurrent;
+
+  /// No description provided for @gradientRampAddSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add secondary color'**
+  String get gradientRampAddSecondary;
+
+  /// No description provided for @gradientRampFromPalette.
+  ///
+  /// In en, this message translates to:
+  /// **'Use imported palette'**
+  String get gradientRampFromPalette;
+
+  /// No description provided for @gradientRampReverse.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse'**
+  String get gradientRampReverse;
+
+  /// No description provided for @gradientRampClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get gradientRampClear;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

@@ -169,6 +169,74 @@ void main() {
     controller.cancelBatchDrawing();
   });
 
+  test('apply_gradient paints exact colors, validates and undoes', () async {
+    var p = await create();
+    final controller = container.read(pixelDrawControllerProvider(repo.projects[1]!).notifier);
+    final bad = await commands.call('apply_gradient', {
+      ...target(p),
+      'startX': 0,
+      'startY': 1,
+      'endX': 2,
+      'endY': 1,
+      'colors': ['#FF000000', 'red'],
+    });
+    expect(bad.structuredContent!['code'], 'invalid_arguments');
+    final badType = await commands.call('apply_gradient', {
+      ...target(p),
+      'startX': 0,
+      'startY': 1,
+      'endX': 2,
+      'endY': 1,
+      'colors': ['#FF000000'],
+      'type': 'spiral',
+    });
+    expect(badType.structuredContent!['code'], 'invalid_arguments');
+    expect(controller.currentLayer.pixels, [0, 0, 0, 0]);
+
+    final ok = await commands.call('apply_gradient', {
+      ...target(p),
+      'startX': 0,
+      'startY': 1,
+      'endX': 2,
+      'endY': 1,
+      'colors': ['#FF000000', '#FFFFFFFF'],
+    });
+    expect(ok.isError, isNot(true), reason: '${ok.structuredContent}');
+    p = ok.structuredContent!;
+    expect(controller.currentLayer.pixels, [0xff000000, 0xffffffff, 0xff000000, 0xffffffff]);
+    p = (await commands.call('undo', {'projectId': 1, 'expectedRevision': p['revision']})).structuredContent!;
+    expect(controller.currentLayer.pixels, [0, 0, 0, 0]);
+  });
+
+  test('apply_gradient contiguous target and smooth steps', () async {
+    var p = await create();
+    p = (await commands.call('set_pixels', {
+      ...target(p),
+      'pixels': [
+        {'x': 1, 'y': 0, 'color': '#FF00FF00'},
+        {'x': 1, 'y': 1, 'color': '#FF00FF00'},
+      ]
+    }))
+        .structuredContent!;
+    final controller = container.read(pixelDrawControllerProvider(repo.projects[1]!).notifier);
+    final ok = await commands.call('apply_gradient', {
+      ...target(p),
+      'startX': 0.5,
+      'startY': 0.5,
+      'endX': 0.5,
+      'endY': 2,
+      'colors': ['#FFFF0000', '#FF0000FF'],
+      'steps': 0,
+      'target': 'contiguous',
+    });
+    expect(ok.isError, isNot(true), reason: '${ok.structuredContent}');
+    final px = controller.currentLayer.pixels;
+    expect(px[1], 0xff00ff00, reason: 'other colour area untouched');
+    expect(px[3], 0xff00ff00);
+    expect(px[0], 0xffff0000);
+    expect(px[2] & 0xff, greaterThan(0), reason: 'smooth blend towards blue');
+  });
+
   test('save failure is reported and can be retried', () async {
     final p = await create();
     await commands.call('fill_region', {...target(p), 'x': 0, 'y': 0, 'color': '#FF112233'});

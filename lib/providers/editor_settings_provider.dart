@@ -30,8 +30,20 @@ enum TransformInterpolation {
   int get pixelUtilsValue => this == rotSprite ? nearest.index : index;
 }
 
-/// Where the gradient ramp ends.
-enum GradientEnd { secondaryColor, transparent }
+/// Which colours the gradient uses. Persisted by index.
+enum GradientEnd {
+  /// Primary → secondary colour.
+  secondaryColor,
+
+  /// Primary → transparent.
+  transparent,
+
+  /// The saved colour ramp, used verbatim as the bands (no new colours).
+  ramp,
+}
+
+/// Most colours a gradient ramp may hold.
+const kMaxGradientRampColors = 16;
 
 /// Editor settings state
 class EditorSettings {
@@ -55,6 +67,7 @@ class EditorSettings {
     this.gradientDither = GradientDither.bayer4,
     this.gradientDitherSpread = 0.5,
     this.gradientBlend = GradientBlend.over,
+    this.gradientRamp = const [],
   });
 
   /// Current input mode (standard or stylus-only)
@@ -105,13 +118,26 @@ class EditorSettings {
   final double gradientDitherSpread;
   final GradientBlend gradientBlend;
 
+  /// Colours for [GradientEnd.ramp], first to last.
+  final List<Color> gradientRamp;
+
+  /// Ramp mode is only active with at least two colours; otherwise it falls
+  /// back to primary → secondary.
+  bool get usesGradientRamp =>
+      gradientEnd == GradientEnd.ramp && gradientRamp.length >= 2;
+
   GradientOptions get gradientOptions => GradientOptions(
         type: gradientType,
         target: gradientTarget,
         endColor: gradientEnd == GradientEnd.transparent
             ? const Color(0x00000000)
             : secondaryColor,
-        steps: gradientSteps < 2 ? null : gradientSteps,
+        stops: usesGradientRamp ? gradientRamp : null,
+        // A ramp always renders one band per colour, so only its own
+        // colours appear (dither mixes neighbours).
+        steps: usesGradientRamp
+            ? gradientRamp.length
+            : (gradientSteps < 2 ? null : gradientSteps),
         dither: gradientDither,
         ditherSpread: gradientDitherSpread,
         blend: gradientBlend,
@@ -140,6 +166,7 @@ class EditorSettings {
     GradientDither? gradientDither,
     double? gradientDitherSpread,
     GradientBlend? gradientBlend,
+    List<Color>? gradientRamp,
   }) {
     return EditorSettings(
       inputMode: inputMode ?? this.inputMode,
@@ -162,6 +189,7 @@ class EditorSettings {
       gradientDither: gradientDither ?? this.gradientDither,
       gradientDitherSpread: gradientDitherSpread ?? this.gradientDitherSpread,
       gradientBlend: gradientBlend ?? this.gradientBlend,
+      gradientRamp: gradientRamp ?? this.gradientRamp,
     );
   }
 
@@ -187,7 +215,8 @@ class EditorSettings {
         other.gradientSteps == gradientSteps &&
         other.gradientDither == gradientDither &&
         other.gradientDitherSpread == gradientDitherSpread &&
-        other.gradientBlend == gradientBlend;
+        other.gradientBlend == gradientBlend &&
+        _listEquals(other.gradientRamp, gradientRamp);
   }
 
   @override
@@ -211,7 +240,16 @@ class EditorSettings {
         gradientDither,
         gradientDitherSpread,
         gradientBlend,
+        Object.hashAll(gradientRamp),
       ]);
+}
+
+bool _listEquals<T>(List<T> a, List<T> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }
 
 // Storage keys for editor settings
@@ -234,6 +272,7 @@ const _kGradientSteps = 'editor_gradient_steps';
 const _kGradientDither = 'editor_gradient_dither';
 const _kGradientDitherSpread = 'editor_gradient_dither_spread';
 const _kGradientBlend = 'editor_gradient_blend';
+const _kGradientRamp = 'editor_gradient_ramp';
 
 T _enumAt<T>(List<T> values, int? index, T fallback) =>
     index == null || index < 0 || index >= values.length
@@ -302,6 +341,10 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
           .clamp(0.0, 1.0),
       gradientBlend: _enumAt(GradientBlend.values,
           _storage.getInt(_kGradientBlend), defaults.gradientBlend),
+      gradientRamp: [
+        for (final hex in _storage.getStringList(_kGradientRamp) ?? const [])
+          if (int.tryParse(hex, radix: 16) case final v?) Color(v),
+      ].take(kMaxGradientRampColors).toList(),
     );
   }
 
@@ -328,6 +371,9 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
     _storage.setInt(_kGradientDither, state.gradientDither.index);
     _storage.setDouble(_kGradientDitherSpread, state.gradientDitherSpread);
     _storage.setInt(_kGradientBlend, state.gradientBlend.index);
+    _storage.setStringList(_kGradientRamp, [
+      for (final c in state.gradientRamp) c.toARGB32().toRadixString(16),
+    ]);
   }
 
   void setInputMode(InputMode mode) {
@@ -428,6 +474,13 @@ class EditorSettingsNotifier extends _$EditorSettingsNotifier {
 
   void setGradientBlend(GradientBlend blend) {
     state = state.copyWith(gradientBlend: blend);
+    _saveSettings();
+  }
+
+  void setGradientRamp(List<Color> colors) {
+    state = state.copyWith(
+      gradientRamp: List.unmodifiable(colors.take(kMaxGradientRampColors)),
+    );
     _saveSettings();
   }
 

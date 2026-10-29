@@ -208,19 +208,36 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
       // Enter drops a moved/resized/rotated selection in place; Esc puts it
       // back. Without a transform both keep their old job: deselect.
       onCommit: () {
+        void commitSelection() {
+          if (!notifier.commitTransformSession() &&
+              state.selectionState != null) {
+            notifier.clearSelection();
+          }
+        }
+
         if (currentTool.value == PixelTool.pen) {
           notifier.pushEvent(const CancelPenPathEvent());
-        } else if (!notifier.commitTransformSession() &&
-            state.selectionState != null) {
-          notifier.clearSelection();
+        } else if (currentTool.value == PixelTool.gradient) {
+          // Enter bakes a pending gradient; otherwise the usual job.
+          notifier.pushEvent(CommitGradientEvent(orElse: commitSelection));
+        } else {
+          commitSelection();
         }
       },
       onCancel: () {
+        void cancelSelection() {
+          if (!notifier.cancelTransformSession() &&
+              state.selectionState != null) {
+            notifier.clearSelection();
+          }
+        }
+
         if (currentTool.value == PixelTool.pen) {
           notifier.pushEvent(const CancelPenPathEvent());
-        } else if (!notifier.cancelTransformSession() &&
-            state.selectionState != null) {
-          notifier.clearSelection();
+        } else if (currentTool.value == PixelTool.gradient) {
+          notifier.pushEvent(CancelGradientEvent(orElse: cancelSelection));
+        } else {
+          cancelSelection();
         }
       },
       onReselect: notifier.reselect,

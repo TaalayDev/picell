@@ -148,8 +148,15 @@ class PixelCanvasHostRuntime {
         if (committed != true) controller.setGradientPreviewPixels(null);
       },
       onGradientClear: () {
+        // The committed result arrives with the next layers update, which
+        // also drops the preview image (see updateLayers).
         controller.setGradient(null, null);
       },
+      onGradientCancel: () {
+        controller.setGradient(null, null);
+        controller.setGradientPreviewPixels(null);
+      },
+      gradientZoomLevel: () => controller.zoomLevel,
     );
 
     final gestureHandler = CanvasGestureHandler(
@@ -240,14 +247,23 @@ class PixelCanvasHostRuntime {
     int wandTolerance = 0,
     bool wandContiguous = true,
   }) {
+    var layersChanged = false;
     if (layers != _lastLayers) {
       controller.updateLayers(layers);
       _lastLayers = layers;
+      layersChanged = true;
     }
 
     if (currentLayerIndex != _lastCurrentLayerIndex) {
       controller.setCurrentLayerIndex(currentLayerIndex);
       _lastCurrentLayerIndex = currentLayerIndex;
+      layersChanged = true;
+    }
+
+    // A pending gradient previews the layer as it is now (undo, another
+    // layer, an edit elsewhere): re-render it.
+    if (layersChanged && toolManager.hasPendingGradient) {
+      toolManager.refreshGradient();
     }
 
     if (currentTool != _lastCurrentTool) {
@@ -262,6 +278,11 @@ class PixelCanvasHostRuntime {
       // visible to the user. Commit its current preview first.
       if (_lastCurrentTool == PixelTool.pen && currentTool != PixelTool.pen) {
         gestureHandler.finishPenDrawing();
+      }
+      // Same for a pending gradient: keep what the user sees.
+      if (_lastCurrentTool == PixelTool.gradient &&
+          currentTool != PixelTool.gradient) {
+        toolManager.commitGradient();
       }
       controller.setCurrentTool(currentTool);
       _lastCurrentTool = currentTool;

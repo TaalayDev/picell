@@ -29,6 +29,7 @@ macOS release builds include the server entitlement needed by the sandbox.
 | `get_preview` | `projectId`, optional `frameId`; returns inline PNG |
 | `set_pixels` | `projectId`, `frameId`, `layerId`, `expectedRevision`, `pixels` |
 | `fill_region` | same target/revision fields, `x`, `y`, `color` |
+| `apply_gradient` | same target/revision fields, `startX`, `startY`, `endX`, `endY`, `colors` (1–16); optional `type`, `steps`, `dither`, `ditherSpread`, `blend`, `target` |
 | `save_project` | `projectId`; awaits local persistence |
 | `undo`, `redo` | `projectId`, `expectedRevision` |
 
@@ -39,6 +40,15 @@ integer or array position. Pixel coordinates are zero-based and colors use
 `fill_region` uses the editor's normal source-over flood fill. Both ignore the
 UI drawing tool and selection. Finish any active drawing gesture and clear the
 selection before editing through MCP.
+
+`apply_gradient` paints through `colors` from start to end. Coordinates are
+canvas pixels as numbers (pixel `x,y` covers `x..x+1`, so `0.5` is a pixel
+centre). `type` is `linear` (default), `radial`, `reflected`, `diamond` or
+`angle`. `steps` defaults to the number of colors, so only those exact colors
+are painted; `0` gives a smooth blend. `dither` is `none` (default), `bayer2`,
+`bayer4` or `bayer8`, and `ditherSpread` (0–1) narrows the dithered band edge.
+`blend` is `replace` (default), `over` or `lockAlpha`; `target: "contiguous"`
+limits it to the same-colour area under the start point.
 
 Example creation arguments:
 

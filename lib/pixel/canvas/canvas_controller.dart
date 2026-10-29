@@ -150,6 +150,10 @@ class PixelCanvasController extends ChangeNotifier {
       scheduleMicrotask(() {
         // Clear preview pixels after canvas is updated
         clearPreviewPixels();
+        // A committed gradient's preview stood in for the layer until now.
+        if (_gradientStart == null && _gradientPreviewPixels != null) {
+          setGradientPreviewPixels(null);
+        }
       });
       notifyListeners();
     }
@@ -546,14 +550,6 @@ class PixelCanvasController extends ChangeNotifier {
     _clearLivePreviewImage();
     _previewRevision++;
     _previewPixels = [];
-    _gradientStart = null;
-    _clearGradientPreview();
-  }
-
-  void _clearGradientPreview() {
-    _gradientPreviewPixels = null;
-    _gradientPreviewRevision++;
-    _clearGradientPreviewImage();
   }
 
   void _clearDrawingState() {

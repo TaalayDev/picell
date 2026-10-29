@@ -80,6 +80,16 @@ class PixelCanvasEventDispatcher {
       return;
     }
 
+    if (event is canvas_events.CommitGradientEvent) {
+      if (!_toolManager.commitGradient()) event.orElse?.call();
+      return;
+    }
+
+    if (event is canvas_events.CancelGradientEvent) {
+      if (!_toolManager.cancelGradient()) event.orElse?.call();
+      return;
+    }
+
     if (event is canvas_events.TextureBrushPatternEvent) {
       unawaited(
         _toolManager.setTextureBrush(

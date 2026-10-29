@@ -2,7 +2,23 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
-enum GradientType { linear, radial }
+/// Gradient shapes. Persisted by index, so new values go at the end.
+enum GradientType {
+  /// Bands perpendicular to start → end.
+  linear,
+
+  /// Circles around start; end sets the radius.
+  radial,
+
+  /// Linear mirrored around start: end colour on both sides.
+  reflected,
+
+  /// Squares (rotated to the drag direction) around start.
+  diamond,
+
+  /// Sweeps once around start, beginning in the drag direction.
+  angle,
+}
 
 enum GradientDither {
   none(0),
@@ -114,10 +130,15 @@ class GradientRenderer {
         double t;
         if (lenSq == 0) {
           t = 0;
-        } else if (spec.type == GradientType.linear) {
-          t = (cx * dx + cy * dy) / lenSq;
         } else {
-          t = sqrt(cx * cx + cy * cy) / len;
+          t = switch (spec.type) {
+            GradientType.linear => (cx * dx + cy * dy) / lenSq,
+            GradientType.radial => sqrt(cx * cx + cy * cy) / len,
+            GradientType.reflected => ((cx * dx + cy * dy) / lenSq).abs(),
+            // |along| + |across| in units of the drag length.
+            GradientType.diamond => ((cx * dx + cy * dy).abs() + (cx * dy - cy * dx).abs()) / lenSq,
+            GradientType.angle => _sweep(cx, cy, dx, dy),
+          };
         }
         t = t.clamp(0.0, 1.0);
 
@@ -143,6 +164,13 @@ class GradientRenderer {
       }
     }
     return out;
+  }
+
+  /// Clockwise (in screen space) turn from the drag direction, 0..1.
+  static double _sweep(double cx, double cy, double dx, double dy) {
+    if (cx == 0 && cy == 0) return 0;
+    final a = atan2(dx * cy - dy * cx, dx * cx + dy * cy) / (2 * pi);
+    return a < 0 ? a + 1 : a;
   }
 
   /// Picks a band for position [t] in [0, 1] across [count] equal-width bands.

@@ -2469,5 +2469,17 @@
     "gradientBlendLockAlpha": "Keep transparency",
     "gradientEndSecondary": "To secondary color",
     "gradientEndTransparent": "To transparent",
-    "secondaryColorSwap": "Secondary color (tap to swap, X)"
+    "secondaryColorSwap": "Secondary color (tap to swap, X)",
+    "gradientReflected": "Reflected",
+    "gradientDiamond": "Diamond",
+    "gradientAngle": "Angle",
+    "gradientRamp": "Color ramp",
+    "gradientRampEdit": "Edit color ramp",
+    "gradientRampHint": "Each color becomes one band, so only these colors are used. Tap a color to remove it.",
+    "gradientRampEmpty": "No colors yet",
+    "gradientRampAddCurrent": "Add current color",
+    "gradientRampAddSecondary": "Add secondary color",
+    "gradientRampFromPalette": "Use imported palette",
+    "gradientRampReverse": "Reverse",
+    "gradientRampClear": "Clear"
 }

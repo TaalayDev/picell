@@ -2143,5 +2143,17 @@
     "gradientBlendLockAlpha": "透明部分を保護",
     "gradientEndSecondary": "セカンダリカラーへ",
     "gradientEndTransparent": "透明へ",
-    "secondaryColorSwap": "セカンダリカラー（タップで入れ替え、X）"
+    "secondaryColorSwap": "セカンダリカラー（タップで入れ替え、X）",
+    "gradientReflected": "反射",
+    "gradientDiamond": "ひし形",
+    "gradientAngle": "角度",
+    "gradientRamp": "カラーランプ",
+    "gradientRampEdit": "カラーランプを編集",
+    "gradientRampHint": "各色が1つのバンドになるため、これらの色だけが使われます。色をタップすると削除します。",
+    "gradientRampEmpty": "まだ色がありません",
+    "gradientRampAddCurrent": "現在の色を追加",
+    "gradientRampAddSecondary": "セカンダリカラーを追加",
+    "gradientRampFromPalette": "読み込んだパレットを使用",
+    "gradientRampReverse": "反転",
+    "gradientRampClear": "クリア"
 }

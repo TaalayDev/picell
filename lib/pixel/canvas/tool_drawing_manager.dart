@@ -39,6 +39,10 @@ class ToolDrawingManager {
   final void Function(Offset start, Offset end)? onGradientPreview;
   final void Function(Offset startPx, Offset endPx)? onGradientApply;
   final VoidCallback? onGradientClear;
+  final VoidCallback? onGradientCancel;
+
+  /// Viewport zoom, so gradient handles are grabbable at any zoom level.
+  final double Function()? gradientZoomLevel;
 
   late final SelectionService _selectionService;
   late final ShapeUtils _shapeUtils;
@@ -111,6 +115,8 @@ class ToolDrawingManager {
     this.onGradientPreview,
     this.onGradientApply,
     this.onGradientClear,
+    this.onGradientCancel,
+    this.gradientZoomLevel,
   }) {
     _initializeTools();
   }
@@ -215,6 +221,8 @@ class ToolDrawingManager {
       onGradientPreview: onGradientPreview ?? (_, __) {},
       onGradientApply: onGradientApply ?? (_, __) {},
       onGradientClear: onGradientClear ?? () {},
+      onGradientCancel: onGradientCancel,
+      zoomLevel: gradientZoomLevel,
     );
 
     _heartTool = HeartTool();
@@ -259,6 +267,24 @@ class ToolDrawingManager {
       _ => _pencilTool,
     };
   }
+
+  /// MARK: Gradient Tool Methods
+
+  /// Whether a released gradient is waiting for commit or cancel.
+  bool get hasPendingGradient => _gradientTool.hasPendingGradient;
+  bool get isGradientActive => _gradientTool.isActive;
+
+  /// Bakes the pending gradient in (Enter, tool switch).
+  bool commitGradient() => _gradientTool.commit();
+
+  /// Drops the pending gradient (Esc).
+  bool cancelGradient() => _gradientTool.cancel();
+
+  /// Aborts an in-progress gradient drag, restoring the previous pending one.
+  void cancelGradientDrag() => _gradientTool.cancelDrag();
+
+  /// Re-renders the pending gradient preview after the layer changed.
+  void refreshGradient() => _gradientTool.refresh();
 
   void handleTap(PixelTool toolType, PixelDrawDetails details) {
     final tool = _getTool(toolType);

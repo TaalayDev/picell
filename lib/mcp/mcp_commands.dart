@@ -7,6 +7,9 @@ import 'package:image/image.dart' as img;
 import 'package:mcp_server/mcp_server.dart' as mcp;
 
 import '../data/models/project_model.dart';
+import '../pixel/gradient/gradient_mask.dart';
+import '../pixel/gradient/gradient_options.dart';
+import '../pixel/gradient/gradient_renderer.dart';
 import '../pixel/pixel_canvas_state.dart';
 import '../pixel/pixel_utils.dart';
 import '../pixel/providers/pixel_controller_provider.dart';
@@ -37,6 +40,22 @@ String mcpString(Map<String, dynamic> args, String key, {int max = 120}) {
     throw McpCommandError('invalid_arguments', '$key must be a nonempty string, at most $max characters');
   }
   return value.trim();
+}
+
+double mcpNumber(Map<String, dynamic> args, String key, {double min = -4096, double max = 4096}) {
+  final value = args[key];
+  if (value is! num || !value.isFinite || value < min || value > max) {
+    throw McpCommandError('invalid_arguments', '$key must be a number in $min..$max');
+  }
+  return value.toDouble();
+}
+
+T mcpEnum<T extends Enum>(Map<String, dynamic> args, String key, List<T> values, T fallback) {
+  if (!args.containsKey(key)) return fallback;
+  for (final v in values) {
+    if (v.name == args[key]) return v;
+  }
+  throw McpCommandError('invalid_arguments', '$key must be one of ${values.map((v) => v.name).join(', ')}');
 }
 
 int mcpColor(Object? value) {
@@ -73,6 +92,9 @@ class McpCommands {
     'get_preview': 'Return the live composite as a PNG image.',
     'set_pixels': 'Atomically replace explicit pixels, including transparent pixels. Ignores UI tool and selection.',
     'fill_region': 'Flood fill a layer from x,y. Ignores UI tool and selection.',
+    'apply_gradient': 'Paint a gradient from start to end (canvas pixels; pixel x,y spans x..x+1) through the given '
+        'colors. steps defaults to the number of colors, so only those colors are used; 0 = smooth. '
+        'target contiguous limits it to the same-color area under the start. Ignores UI tool and selection.',
     'save_project': 'Flush pending local project changes to storage.',
     'undo': 'Undo one editor operation.',
     'redo': 'Redo one editor operation.',
@@ -99,10 +121,10 @@ class McpCommands {
       field('operationId', {'type': 'string', 'minLength': 1, 'maxLength': 120});
     } else {
       field('projectId', integer);
-      if (['set_pixels', 'fill_region', 'undo', 'redo'].contains(name)) {
+      if (['set_pixels', 'fill_region', 'apply_gradient', 'undo', 'redo'].contains(name)) {
         field('expectedRevision', integer);
       }
-      if (['set_pixels', 'fill_region'].contains(name)) {
+      if (['set_pixels', 'fill_region', 'apply_gradient'].contains(name)) {
         field('frameId', integer);
         field('layerId', {'type': 'string', 'minLength': 1});
       }
@@ -124,6 +146,19 @@ class McpCommands {
         field('x', integer);
         field('y', integer);
         field('color', color);
+      }
+      if (name == 'apply_gradient') {
+        for (final key in ['startX', 'startY', 'endX', 'endY']) {
+          field(key, {'type': 'number'});
+        }
+        field('colors', {'type': 'array', 'minItems': 1, 'maxItems': 16, 'items': color});
+        List<String> names(List<Enum> values) => [for (final v in values) v.name];
+        field('type', {'type': 'string', 'enum': names(GradientType.values)}, false);
+        field('steps', {'type': 'integer', 'minimum': 0, 'maximum': 32}, false);
+        field('dither', {'type': 'string', 'enum': names(GradientDither.values)}, false);
+        field('ditherSpread', {'type': 'number', 'minimum': 0, 'maximum': 1}, false);
+        field('blend', {'type': 'string', 'enum': names(GradientBlend.values)}, false);
+        field('target', {'type': 'string', 'enum': names(GradientTarget.values)}, false);
       }
     }
     return {'type': 'object', 'properties': properties, 'required': required, 'additionalProperties': false};
@@ -349,6 +384,8 @@ class McpCommands {
         final y = mcpInt(entry, 'y', max: state.height - 1);
         pixels[y * state.width + x] = mcpColor(entry['color']);
       }
+    } else if (name == 'apply_gradient') {
+      pixels.setAll(0, _gradient(args, pixels, state.width, state.height));
     } else {
       final x = mcpInt(args, 'x', max: state.width - 1);
       final y = mcpInt(args, 'y', max: state.height - 1);
@@ -366,6 +403,41 @@ class McpCommands {
     controller.selectLayer(layerIndex);
     controller.applyAutomationPixels(pixels);
     return _result({..._describe(session), 'saved': false});
+  }
+
+  Uint32List _gradient(Map<String, dynamic> args, Uint32List pixels, int width, int height) {
+    final colors = args['colors'];
+    if (colors is! List || colors.isEmpty || colors.length > 16) {
+      throw const McpCommandError('invalid_arguments', 'colors must contain 1..16 entries');
+    }
+    final stops = [for (final c in colors) mcpColor(c)];
+    final steps = args.containsKey('steps') ? mcpInt(args, 'steps', max: 32) : stops.length;
+    final start = Offset(mcpNumber(args, 'startX'), mcpNumber(args, 'startY'));
+    final end = Offset(mcpNumber(args, 'endX'), mcpNumber(args, 'endY'));
+    final target = mcpEnum(args, 'target', GradientTarget.values, GradientTarget.layer);
+    return GradientRenderer.render(
+      base: pixels,
+      width: width,
+      height: height,
+      spec: GradientSpec(
+        type: mcpEnum(args, 'type', GradientType.values, GradientType.linear),
+        start: start,
+        end: end,
+        stops: stops,
+        steps: steps < 2 ? null : steps,
+        dither: mcpEnum(args, 'dither', GradientDither.values, GradientDither.none),
+        ditherSpread: args.containsKey('ditherSpread') ? mcpNumber(args, 'ditherSpread', min: 0, max: 1) : 1,
+        blend: mcpEnum(args, 'blend', GradientBlend.values, GradientBlend.replace),
+      ),
+      mask: GradientMask.build(
+        pixels: pixels,
+        width: width,
+        height: height,
+        target: target,
+        seedX: start.dx.floor(),
+        seedY: start.dy.floor(),
+      ),
+    );
   }
 
   Future<void> close() async {

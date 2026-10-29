@@ -15,7 +15,7 @@ void main() {
     await LocalStorage.init();
   });
 
-  Future<ProviderContainer> pump(WidgetTester tester) async {
+  Future<ProviderContainer> pump(WidgetTester tester, {Color? primary}) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     // LocalStorage is initialised once per isolate, so settings leak
@@ -24,10 +24,12 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(
+        child: MaterialApp(
           localizationsDelegates: Strings.localizationsDelegates,
           supportedLocales: Strings.supportedLocales,
-          home: Scaffold(body: Center(child: GradientOptionsBar())),
+          home: Scaffold(
+            body: Center(child: GradientOptionsBar(primaryColor: primary)),
+          ),
         ),
       ),
     );
@@ -41,12 +43,14 @@ void main() {
 
   EditorSettings settings(ProviderContainer c) => c.read(editorSettingsNotifierProvider);
 
-  testWidgets('toggles shape and paint area', (tester) async {
+  testWidgets('picks shape and toggles paint area', (tester) async {
     final c = await pump(tester);
 
     await tester.tap(find.byKey(const ValueKey('gradient-type')));
     await tester.pumpAndSettle();
-    expect(settings(c).gradientType, GradientType.radial);
+    await tester.tap(menuRow('Diamond'));
+    await tester.pumpAndSettle();
+    expect(settings(c).gradientType, GradientType.diamond);
 
     await tester.tap(find.byKey(const ValueKey('gradient-target')));
     await tester.pumpAndSettle();
@@ -86,5 +90,47 @@ void main() {
     await tester.tap(menuRow('To transparent'));
     await tester.pumpAndSettle();
     expect(settings(c).gradientEnd, GradientEnd.transparent);
+  });
+
+  testWidgets('choosing a color ramp opens the editor and builds the ramp', (tester) async {
+    final c = await pump(tester, primary: const Color(0xFF112233));
+
+    await tester.tap(find.byKey(const ValueKey('gradient-end')));
+    await tester.pumpAndSettle();
+    await tester.tap(menuRow('Color ramp'));
+    await tester.pumpAndSettle();
+    expect(settings(c).gradientEnd, GradientEnd.ramp);
+    expect(find.text('No colors yet'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('gradient-ramp-add-primary')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('gradient-ramp-add-secondary')));
+    await tester.pump();
+    expect(settings(c).gradientRamp, const [Color(0xFF112233), Color(0xFFFFFFFF)]);
+
+    await tester.tap(find.byKey(const ValueKey('gradient-ramp-reverse')));
+    await tester.pump();
+    expect(settings(c).gradientRamp.first, const Color(0xFFFFFFFF));
+
+    await tester.tap(find.byKey(const ValueKey('gradient-ramp-color-0')));
+    await tester.pump();
+    expect(settings(c).gradientRamp, const [Color(0xFF112233)]);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    // With fewer than two colours the ramp falls back, so bands stay editable.
+    expect(find.byKey(const ValueKey('gradient-steps')), findsOneWidget);
+    expect(find.byKey(const ValueKey('gradient-ramp')), findsOneWidget);
+  });
+
+  testWidgets('a ramp of 2+ colors replaces the bands control', (tester) async {
+    final c = await pump(tester);
+    c.read(editorSettingsNotifierProvider.notifier)
+      ..setGradientRamp(const [Colors.red, Colors.green, Colors.blue])
+      ..setGradientEnd(GradientEnd.ramp);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('gradient-steps')), findsNothing);
+    expect(find.byKey(const ValueKey('gradient-dither')), findsOneWidget);
+    expect(find.byType(GradientRampStrip), findsOneWidget);
   });
 }

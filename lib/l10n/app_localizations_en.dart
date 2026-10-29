@@ -4921,4 +4921,41 @@ class StringsEn extends Strings {
 
   @override
   String get secondaryColorSwap => 'Secondary color (tap to swap, X)';
+
+  @override
+  String get gradientReflected => 'Reflected';
+
+  @override
+  String get gradientDiamond => 'Diamond';
+
+  @override
+  String get gradientAngle => 'Angle';
+
+  @override
+  String get gradientRamp => 'Color ramp';
+
+  @override
+  String get gradientRampEdit => 'Edit color ramp';
+
+  @override
+  String get gradientRampHint =>
+      'Each color becomes one band, so only these colors are used. Tap a color to remove it.';
+
+  @override
+  String get gradientRampEmpty => 'No colors yet';
+
+  @override
+  String get gradientRampAddCurrent => 'Add current color';
+
+  @override
+  String get gradientRampAddSecondary => 'Add secondary color';
+
+  @override
+  String get gradientRampFromPalette => 'Use imported palette';
+
+  @override
+  String get gradientRampReverse => 'Reverse';
+
+  @override
+  String get gradientRampClear => 'Clear';
 }

@@ -592,7 +592,7 @@ class ToolBar extends ConsumerWidget {
                           const SizedBox(width: 8),
                         ],
                         if (tool == PixelTool.gradient) ...[
-                          const GradientOptionsBar(),
+                          GradientOptionsBar(primaryColor: currentColor),
                           const SizedBox(width: 8),
                         ],
                         if (tool == PixelTool.pen && onFinishPenPath != null && onCancelPenPath != null) ...[

@@ -4688,4 +4688,40 @@ class StringsJa extends Strings {
 
   @override
   String get secondaryColorSwap => 'セカンダリカラー（タップで入れ替え、X）';
+
+  @override
+  String get gradientReflected => '反射';
+
+  @override
+  String get gradientDiamond => 'ひし形';
+
+  @override
+  String get gradientAngle => '角度';
+
+  @override
+  String get gradientRamp => 'カラーランプ';
+
+  @override
+  String get gradientRampEdit => 'カラーランプを編集';
+
+  @override
+  String get gradientRampHint => '各色が1つのバンドになるため、これらの色だけが使われます。色をタップすると削除します。';
+
+  @override
+  String get gradientRampEmpty => 'まだ色がありません';
+
+  @override
+  String get gradientRampAddCurrent => '現在の色を追加';
+
+  @override
+  String get gradientRampAddSecondary => 'セカンダリカラーを追加';
+
+  @override
+  String get gradientRampFromPalette => '読み込んだパレットを使用';
+
+  @override
+  String get gradientRampReverse => '反転';
+
+  @override
+  String get gradientRampClear => 'クリア';
 }

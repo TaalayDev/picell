@@ -93,6 +93,11 @@ class CanvasGestureHandler {
         tool == PixelTool.smartSelect;
   }
 
+  /// Tools whose gestures don't run inside a drawing batch: selections, and
+  /// the gradient, which commits itself (possibly long after release).
+  bool _isUnbatchedTool(PixelTool tool) =>
+      _isSelectionTool(tool) || tool == PixelTool.gradient;
+
   CanvasGestureHandler({
     required this.controller,
     required this.toolManager,
@@ -198,7 +203,7 @@ class CanvasGestureHandler {
       if (!toolManager.isCurveActive) {
         _finishDrawing();
       }
-    } else if (_isSelectionTool(currentTool)) {
+    } else if (_isUnbatchedTool(currentTool)) {
       toolManager.startDrawing(currentTool, drawDetails);
       _isDrawingActive = true;
     } else if (currentTool != PixelTool.drag) {
@@ -213,9 +218,9 @@ class CanvasGestureHandler {
       return;
     }
     if (!_shouldHandleDirectTap(currentTool) &&
-        !_isSelectionTool(currentTool)) {
+        !_isUnbatchedTool(currentTool)) {
       _finishDrawing();
-    } else if (_isSelectionTool(currentTool) && _isDrawingActive) {
+    } else if (_isUnbatchedTool(currentTool) && _isDrawingActive) {
       toolManager.endDrawing(currentTool, drawDetails);
       _isDrawingActive = false;
     }
@@ -241,7 +246,7 @@ class CanvasGestureHandler {
       _panStartPosition = details.localFocalPoint;
       _pixelDragDelta = Offset.zero;
       onStartPixelDrag?.call(Offset.zero);
-    } else if (_isSelectionTool(currentTool) && !_isDrawingActive) {
+    } else if (_isUnbatchedTool(currentTool) && !_isDrawingActive) {
       toolManager.startDrawing(currentTool, drawDetails);
       _isDrawingActive = true;
     } else if (!_isDrawingActive) {
@@ -270,7 +275,7 @@ class CanvasGestureHandler {
     _flushPendingMove();
     if (currentTool == PixelTool.drag) {
       onPixelDragEnd?.call(_pixelDragDelta);
-    } else if (_isSelectionTool(currentTool) && _isDrawingActive) {
+    } else if (_isUnbatchedTool(currentTool) && _isDrawingActive) {
       toolManager.endDrawing(currentTool, drawDetails);
     } else if (_isDrawingActive) {
       toolManager.endDrawing(currentTool, drawDetails);
@@ -280,7 +285,7 @@ class CanvasGestureHandler {
   }
 
   void _handleTwoFingerStart(ScaleStartDetails details, PixelTool currentTool) {
-    if (_isSelectionTool(currentTool) && _isDrawingActive) {
+    if (_isUnbatchedTool(currentTool) && _isDrawingActive) {
       _cancelSelectionDrawing(currentTool);
     }
     _twoFingerStartFocalPoint = details.localFocalPoint;
@@ -435,8 +440,8 @@ class CanvasGestureHandler {
       }
     } else if (currentTool == PixelTool.pen) {
       _handlePenTap(drawDetails);
-    } else if (_isSelectionTool(currentTool)) {
-      // Selection tools: don't save undo state, just start the selection gesture
+    } else if (_isUnbatchedTool(currentTool)) {
+      // Selection tools and the gradient: no batch / undo capture here
       toolManager.startDrawing(currentTool, drawDetails);
       _isSelectionDrawingActive = true;
     } else {
@@ -643,6 +648,9 @@ class CanvasGestureHandler {
     _discardPendingMove();
     if (currentTool == PixelTool.lasso) {
       toolManager.cancelLassoGesture();
+    }
+    if (currentTool == PixelTool.gradient) {
+      toolManager.cancelGradientDrag();
     }
     toolManager.cancelSelectionGesture();
     _isSelectionDrawingActive = false;

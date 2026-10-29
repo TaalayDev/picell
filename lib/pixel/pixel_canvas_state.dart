@@ -74,6 +74,20 @@ class CancelPenPathEvent extends PixelDrawEvent {
   const CancelPenPathEvent();
 }
 
+/// Bakes the pending gradient in; runs [orElse] when none is pending.
+class CommitGradientEvent extends PixelDrawEvent {
+  final VoidCallback? orElse;
+
+  const CommitGradientEvent({this.orElse});
+}
+
+/// Drops the pending gradient; runs [orElse] when none is pending.
+class CancelGradientEvent extends PixelDrawEvent {
+  final VoidCallback? orElse;
+
+  const CancelGradientEvent({this.orElse});
+}
+
 class TextureBrushPatternEvent extends PixelDrawEvent {
   final TexturePattern texture;
   final BlendMode blendMode;

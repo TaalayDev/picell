@@ -4730,4 +4730,41 @@ class StringsKy extends Strings {
 
   @override
   String get secondaryColorSwap => 'Кошумча түс (алмаштыруу үчүн басыңыз, X)';
+
+  @override
+  String get gradientReflected => 'Чагылдырылган';
+
+  @override
+  String get gradientDiamond => 'Ромб';
+
+  @override
+  String get gradientAngle => 'Бурчтук';
+
+  @override
+  String get gradientRamp => 'Түс шкаласы';
+
+  @override
+  String get gradientRampEdit => 'Түс шкаласын түзөтүү';
+
+  @override
+  String get gradientRampHint =>
+      'Ар бир түс бир тилке болот, ошондуктан ушул түстөр гана колдонулат. Өчүрүү үчүн түстү басыңыз.';
+
+  @override
+  String get gradientRampEmpty => 'Азырынча түстөр жок';
+
+  @override
+  String get gradientRampAddCurrent => 'Учурдагы түстү кошуу';
+
+  @override
+  String get gradientRampAddSecondary => 'Кошумча түстү кошуу';
+
+  @override
+  String get gradientRampFromPalette => 'Импорттолгон палитраны колдонуу';
+
+  @override
+  String get gradientRampReverse => 'Тескери буруу';
+
+  @override
+  String get gradientRampClear => 'Тазалоо';
 }

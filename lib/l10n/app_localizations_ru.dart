@@ -4991,4 +4991,41 @@ class StringsRu extends Strings {
 
   @override
   String get secondaryColorSwap => 'Дополнительный цвет (нажмите, чтобы поменять, X)';
+
+  @override
+  String get gradientReflected => 'Зеркальный';
+
+  @override
+  String get gradientDiamond => 'Ромб';
+
+  @override
+  String get gradientAngle => 'Угловой';
+
+  @override
+  String get gradientRamp => 'Цветовая шкала';
+
+  @override
+  String get gradientRampEdit => 'Изменить цветовую шкалу';
+
+  @override
+  String get gradientRampHint =>
+      'Каждый цвет становится одной полосой, поэтому используются только эти цвета. Нажмите на цвет, чтобы удалить его.';
+
+  @override
+  String get gradientRampEmpty => 'Цветов пока нет';
+
+  @override
+  String get gradientRampAddCurrent => 'Добавить текущий цвет';
+
+  @override
+  String get gradientRampAddSecondary => 'Добавить дополнительный цвет';
+
+  @override
+  String get gradientRampFromPalette => 'Взять импортированную палитру';
+
+  @override
+  String get gradientRampReverse => 'Обратить';
+
+  @override
+  String get gradientRampClear => 'Очистить';
 }

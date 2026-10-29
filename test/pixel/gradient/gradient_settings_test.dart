@@ -62,6 +62,42 @@ void main() {
     });
   });
 
+  group('color ramp', () {
+    const ramp = [Color(0xFF1A1C2C), Color(0xFF5D275D), Color(0xFFB13E53)];
+
+    test('ramp mode uses the colors verbatim as bands', () {
+      final o = const EditorSettings(
+        gradientEnd: GradientEnd.ramp,
+        gradientRamp: ramp,
+        gradientSteps: 0,
+      ).gradientOptions;
+      expect(o.stops, ramp);
+      expect(o.steps, 3);
+    });
+
+    test('a ramp with fewer than two colors falls back to secondary', () {
+      final o = const EditorSettings(
+        gradientEnd: GradientEnd.ramp,
+        gradientRamp: [Color(0xFF1A1C2C)],
+      ).gradientOptions;
+      expect(o.stops, isNull);
+      expect(o.endColor, const Color(0xFFFFFFFF));
+    });
+
+    test('ramp persists and is capped', () {
+      var container = ProviderContainer();
+      container.read(editorSettingsNotifierProvider.notifier).setGradientRamp([
+        for (var i = 0; i < kMaxGradientRampColors + 4; i++) Color(0xFF000000 | i),
+      ]);
+      container.dispose();
+      container = ProviderContainer();
+      final saved = container.read(editorSettingsNotifierProvider).gradientRamp;
+      expect(saved.length, kMaxGradientRampColors);
+      expect(saved[3], const Color(0xFF000003));
+      container.dispose();
+    });
+  });
+
   group('GradientTool.snapAngle', () {
     test('snaps to the nearest 15° and keeps length', () {
       const start = Offset(10, 10);

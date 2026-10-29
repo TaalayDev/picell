@@ -4686,4 +4686,40 @@ class StringsZh extends Strings {
 
   @override
   String get secondaryColorSwap => '次要颜色（点击交换，X）';
+
+  @override
+  String get gradientReflected => '对称';
+
+  @override
+  String get gradientDiamond => '菱形';
+
+  @override
+  String get gradientAngle => '角度';
+
+  @override
+  String get gradientRamp => '色阶';
+
+  @override
+  String get gradientRampEdit => '编辑色阶';
+
+  @override
+  String get gradientRampHint => '每种颜色成为一个色带，因此只会使用这些颜色。点击颜色可将其移除。';
+
+  @override
+  String get gradientRampEmpty => '还没有颜色';
+
+  @override
+  String get gradientRampAddCurrent => '添加当前颜色';
+
+  @override
+  String get gradientRampAddSecondary => '添加次要颜色';
+
+  @override
+  String get gradientRampFromPalette => '使用导入的调色板';
+
+  @override
+  String get gradientRampReverse => '反转';
+
+  @override
+  String get gradientRampClear => '清除';
 }

@@ -5,12 +5,16 @@ import '../../l10n/strings.dart';
 import '../../pixel/gradient/gradient_options.dart';
 import '../../pixel/gradient/gradient_renderer.dart';
 import '../../providers/editor_settings_provider.dart';
+import '../../providers/imported_palette_provider.dart';
 
 /// Gradient tool options: shape, colour bands, dither, paint area, blend and
-/// where the ramp ends. Reads and writes editor settings, so the values
-/// persist across sessions.
+/// which colours the ramp uses. Reads and writes editor settings, so the
+/// values persist across sessions.
 class GradientOptionsBar extends ConsumerWidget {
-  const GradientOptionsBar({super.key});
+  const GradientOptionsBar({super.key, this.primaryColor});
+
+  /// Current drawing colour, offered as "add" in the colour ramp editor.
+  final Color? primaryColor;
 
   static const stepChoices = [0, 2, 3, 4, 5, 6, 8, 10, 12, 16];
 
@@ -20,42 +24,81 @@ class GradientOptionsBar extends ConsumerWidget {
     final notifier = ref.read(editorSettingsNotifierProvider.notifier);
     final s = Strings.of(context);
     final accent = Theme.of(context).colorScheme.primary;
-    final isSmooth = settings.gradientSteps < 2;
-    final isRadial = settings.gradientType == GradientType.radial;
+    final usesRamp = settings.usesGradientRamp;
+    final isSmooth = !usesRamp && settings.gradientSteps < 2;
     final isArea = settings.gradientTarget == GradientTarget.contiguous;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _Pill(
+        _MenuPill<GradientType>(
           key: const ValueKey('gradient-type'),
           accent: accent,
-          tooltip: isRadial ? s.gradientRadial : s.gradientLinear,
-          onTap: () => notifier.setGradientType(
-            isRadial ? GradientType.linear : GradientType.radial,
-          ),
-          child: Icon(
-            isRadial ? Icons.blur_circular : Icons.gradient,
-            size: 16,
-            color: accent,
-          ),
+          tooltip: typeLabel(s, settings.gradientType),
+          selected: settings.gradientType,
+          items: {
+            for (final t in GradientType.values) t: typeLabel(s, t),
+          },
+          onSelected: notifier.setGradientType,
+          child: Icon(typeIcon(settings.gradientType), size: 16, color: accent),
         ),
         const SizedBox(width: 6),
-        _MenuPill<int>(
-          key: const ValueKey('gradient-steps'),
+        _MenuPill<GradientEnd>(
+          key: const ValueKey('gradient-end'),
           accent: accent,
-          tooltip: s.gradientBands,
-          selected: isSmooth ? 0 : settings.gradientSteps,
+          tooltip: _endLabel(s, settings.gradientEnd),
+          selected: settings.gradientEnd,
           items: {
-            for (final n in stepChoices) n: n == 0 ? s.gradientSmooth : s.gradientStepsCount(n),
+            for (final e in GradientEnd.values) e: _endLabel(s, e),
           },
-          onSelected: notifier.setGradientSteps,
-          child: _PillLabel(
-            icon: Icons.view_week_outlined,
-            text: isSmooth ? s.gradientSmooth : s.gradientStepsCount(settings.gradientSteps),
-            accent: accent,
+          onSelected: (end) {
+            notifier.setGradientEnd(end);
+            if (end == GradientEnd.ramp && settings.gradientRamp.length < 2) {
+              showGradientRampEditor(context, primaryColor: primaryColor);
+            }
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ColorSwatchBox(color: primaryColor ?? Colors.black, size: 16),
+              Icon(Icons.arrow_forward, size: 14, color: accent),
+              ColorSwatchBox(
+                color: settings.gradientEnd == GradientEnd.transparent ? Colors.transparent : settings.secondaryColor,
+                size: 16,
+              ),
+            ],
           ),
         ),
+        if (usesRamp || settings.gradientEnd == GradientEnd.ramp) ...[
+          const SizedBox(width: 6),
+          _Pill(
+            key: const ValueKey('gradient-ramp'),
+            accent: accent,
+            tooltip: s.gradientRampEdit,
+            onTap: () => showGradientRampEditor(context, primaryColor: primaryColor),
+            child: settings.gradientRamp.isEmpty
+                ? Icon(Icons.add, size: 16, color: accent)
+                : GradientRampStrip(colors: settings.gradientRamp),
+          ),
+        ],
+        if (!usesRamp) ...[
+          const SizedBox(width: 6),
+          _MenuPill<int>(
+            key: const ValueKey('gradient-steps'),
+            accent: accent,
+            tooltip: s.gradientBands,
+            selected: isSmooth ? 0 : settings.gradientSteps,
+            items: {
+              for (final n in stepChoices) n: n == 0 ? s.gradientSmooth : s.gradientStepsCount(n),
+            },
+            onSelected: notifier.setGradientSteps,
+            child: _PillLabel(
+              icon: Icons.view_week_outlined,
+              text: isSmooth ? s.gradientSmooth : s.gradientStepsCount(settings.gradientSteps),
+              accent: accent,
+            ),
+          ),
+        ],
         if (!isSmooth) ...[
           const SizedBox(width: 6),
           _DitherPill(accent: accent, settings: settings, notifier: notifier),
@@ -87,32 +130,31 @@ class GradientOptionsBar extends ConsumerWidget {
           onSelected: notifier.setGradientBlend,
           child: Icon(_blendIcon(settings.gradientBlend), size: 16, color: accent),
         ),
-        const SizedBox(width: 6),
-        _MenuPill<GradientEnd>(
-          key: const ValueKey('gradient-end'),
-          accent: accent,
-          tooltip: settings.gradientEnd == GradientEnd.transparent ? s.gradientEndTransparent : s.gradientEndSecondary,
-          selected: settings.gradientEnd,
-          items: {
-            GradientEnd.secondaryColor: s.gradientEndSecondary,
-            GradientEnd.transparent: s.gradientEndTransparent,
-          },
-          onSelected: notifier.setGradientEnd,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.arrow_forward, size: 14, color: accent),
-              const SizedBox(width: 4),
-              ColorSwatchBox(
-                color: settings.gradientEnd == GradientEnd.transparent ? Colors.transparent : settings.secondaryColor,
-                size: 16,
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
+
+  static String typeLabel(Strings s, GradientType type) => switch (type) {
+        GradientType.linear => s.gradientLinear,
+        GradientType.radial => s.gradientRadial,
+        GradientType.reflected => s.gradientReflected,
+        GradientType.diamond => s.gradientDiamond,
+        GradientType.angle => s.gradientAngle,
+      };
+
+  static IconData typeIcon(GradientType type) => switch (type) {
+        GradientType.linear => Icons.gradient,
+        GradientType.radial => Icons.blur_circular,
+        GradientType.reflected => Icons.flip,
+        GradientType.diamond => Icons.diamond_outlined,
+        GradientType.angle => Icons.rotate_right,
+      };
+
+  static String _endLabel(Strings s, GradientEnd end) => switch (end) {
+        GradientEnd.secondaryColor => s.gradientEndSecondary,
+        GradientEnd.transparent => s.gradientEndTransparent,
+        GradientEnd.ramp => s.gradientRamp,
+      };
 
   static String _blendLabel(Strings s, GradientBlend blend) => switch (blend) {
         GradientBlend.over => s.gradientBlendOver,
@@ -125,6 +167,132 @@ class GradientOptionsBar extends ConsumerWidget {
         GradientBlend.replace => Icons.swap_horiz,
         GradientBlend.lockAlpha => Icons.lock_outline,
       };
+}
+
+/// A compact row of ramp colours.
+class GradientRampStrip extends StatelessWidget {
+  const GradientRampStrip({super.key, required this.colors, this.height = 16});
+
+  final List<Color> colors;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(3),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final c in colors)
+            SizedBox(
+              width: colors.length > 8 ? 6 : 10,
+              height: height,
+              child: ColoredBox(color: c),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Edits the saved colour ramp: tap a colour to remove it; add the current
+/// colour, the secondary colour or the imported palette; reverse; clear.
+Future<void> showGradientRampEditor(BuildContext context, {Color? primaryColor}) {
+  return showDialog<void>(
+    context: context,
+    builder: (context) => _GradientRampEditor(primaryColor: primaryColor),
+  );
+}
+
+class _GradientRampEditor extends ConsumerWidget {
+  const _GradientRampEditor({this.primaryColor});
+
+  final Color? primaryColor;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = Strings.of(context);
+    final settings = ref.watch(editorSettingsNotifierProvider);
+    final notifier = ref.read(editorSettingsNotifierProvider.notifier);
+    final imported = ref.watch(importedPaletteProvider);
+    final ramp = settings.gradientRamp;
+    final full = ramp.length >= kMaxGradientRampColors;
+
+    void add(Color c) => notifier.setGradientRamp([...ramp, c]);
+
+    return AlertDialog(
+      title: Text(s.gradientRamp),
+      content: SizedBox(
+        width: 320,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(s.gradientRampHint, style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (var i = 0; i < ramp.length; i++)
+                  InkWell(
+                    key: ValueKey('gradient-ramp-color-$i'),
+                    onTap: () => notifier.setGradientRamp([...ramp]..removeAt(i)),
+                    child: ColorSwatchBox(color: ramp[i], size: 28),
+                  ),
+                if (ramp.isEmpty) Text(s.gradientRampEmpty, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                if (primaryColor != null)
+                  TextButton.icon(
+                    key: const ValueKey('gradient-ramp-add-primary'),
+                    onPressed: full ? null : () => add(primaryColor!),
+                    icon: ColorSwatchBox(color: primaryColor!, size: 14),
+                    label: Text(s.gradientRampAddCurrent),
+                  ),
+                TextButton.icon(
+                  key: const ValueKey('gradient-ramp-add-secondary'),
+                  onPressed: full ? null : () => add(settings.secondaryColor),
+                  icon: ColorSwatchBox(color: settings.secondaryColor, size: 14),
+                  label: Text(s.gradientRampAddSecondary),
+                ),
+                if (imported.length >= 2)
+                  TextButton.icon(
+                    onPressed: () => notifier.setGradientRamp(
+                      [...imported]..sort((a, b) => a.computeLuminance().compareTo(b.computeLuminance())),
+                    ),
+                    icon: const Icon(Icons.palette_outlined, size: 16),
+                    label: Text(s.gradientRampFromPalette),
+                  ),
+                TextButton.icon(
+                  key: const ValueKey('gradient-ramp-reverse'),
+                  onPressed: ramp.length < 2 ? null : () => notifier.setGradientRamp(ramp.reversed.toList()),
+                  icon: const Icon(Icons.swap_horiz, size: 16),
+                  label: Text(s.gradientRampReverse),
+                ),
+                TextButton.icon(
+                  onPressed: ramp.isEmpty ? null : () => notifier.setGradientRamp(const []),
+                  icon: const Icon(Icons.clear, size: 16),
+                  label: Text(s.gradientRampClear),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(MaterialLocalizations.of(context).okButtonLabel),
+        ),
+      ],
+    );
+  }
 }
 
 /// Dither pattern menu with a "dither width" slider.

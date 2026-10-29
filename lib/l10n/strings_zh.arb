@@ -2126,5 +2126,17 @@
     "gradientBlendLockAlpha": "保留透明度",
     "gradientEndSecondary": "渐变到次要颜色",
     "gradientEndTransparent": "渐变到透明",
-    "secondaryColorSwap": "次要颜色（点击交换，X）"
+    "secondaryColorSwap": "次要颜色（点击交换，X）",
+    "gradientReflected": "对称",
+    "gradientDiamond": "菱形",
+    "gradientAngle": "角度",
+    "gradientRamp": "色阶",
+    "gradientRampEdit": "编辑色阶",
+    "gradientRampHint": "每种颜色成为一个色带，因此只会使用这些颜色。点击颜色可将其移除。",
+    "gradientRampEmpty": "还没有颜色",
+    "gradientRampAddCurrent": "添加当前颜色",
+    "gradientRampAddSecondary": "添加次要颜色",
+    "gradientRampFromPalette": "使用导入的调色板",
+    "gradientRampReverse": "反转",
+    "gradientRampClear": "清除"
 }

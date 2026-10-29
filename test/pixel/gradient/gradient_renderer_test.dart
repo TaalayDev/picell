@@ -180,6 +180,59 @@ void main() {
   });
 
   group('geometry', () {
+    Uint32List shape(GradientType type, {Offset end = const Offset(8, 4)}) => _render(
+          GradientSpec(
+            type: type,
+            start: const Offset(4, 4),
+            end: end,
+            stops: const [_black, _white],
+            steps: 4,
+          ),
+          width: 8,
+          height: 8,
+        );
+
+    test('reflected mirrors around the start point', () {
+      final out = shape(GradientType.reflected);
+      for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 8; x++) {
+          expect(out[y * 8 + x], out[y * 8 + (7 - x)], reason: '($x,$y)');
+        }
+      }
+      expect(out[4 * 8 + 0], _white);
+      expect(out[4 * 8 + 4], _black);
+    });
+
+    test('diamond is constant along |dx| + |dy|', () {
+      final out = shape(GradientType.diamond);
+      // Pixel centres at equal Manhattan distance from (4, 4).
+      expect(out[4 * 8 + 6], out[6 * 8 + 4]);
+      expect(out[4 * 8 + 6], out[5 * 8 + 5]);
+      // The four pixels around (4, 4) are equidistant.
+      expect(out[3 * 8 + 3], out[4 * 8 + 4]);
+      expect(out[3 * 8 + 3], isNot(_white));
+      expect(out[0], _white);
+    });
+
+    test('angle sweeps once around the start', () {
+      final out = _render(
+        const GradientSpec(
+          type: GradientType.angle,
+          start: Offset(4, 4),
+          end: Offset(8, 4),
+          stops: [_black, _white],
+        ),
+        width: 8,
+        height: 8,
+      );
+      int lum(int x, int y) => out[y * 8 + x] & 0xFF;
+      // Starts dark just clockwise of the drag direction (→), brightens
+      // through ↓, ←, ↑ (screen space, y down).
+      expect(lum(7, 4), lessThan(lum(4, 7)));
+      expect(lum(4, 7), lessThan(lum(0, 4)));
+      expect(lum(0, 4), lessThan(lum(4, 0)));
+    });
+
     test('start == end fills with the first stop', () {
       final out = _render(
         const GradientSpec(

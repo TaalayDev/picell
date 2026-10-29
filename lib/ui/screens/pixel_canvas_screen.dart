@@ -770,6 +770,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                           brushSize: brushSize,
                                           sprayIntensity: sprayIntensity,
                                           selectionMode: selectionMode,
+                                          primaryColor: state.currentColor,
                                         ),
                                       ),
                                       if (screenSize.isMobile)
@@ -781,6 +782,14 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                                   isFloating: true,
                                                   onFinish: () => notifier.pushEvent(const ClosePenPathEvent()),
                                                   onCancel: () => notifier.pushEvent(const CancelPenPathEvent()),
+                                                )
+                                              // Touch has no Enter/Esc: apply or drop a pending gradient.
+                                              : currentTool.value == PixelTool.gradient
+                                              ? PenPathActions(
+                                                  key: const ValueKey('gradient-actions'),
+                                                  isFloating: true,
+                                                  onFinish: () => notifier.pushEvent(const CommitGradientEvent()),
+                                                  onCancel: () => notifier.pushEvent(const CancelGradientEvent()),
                                                 )
                                               // Touch has no Enter/Esc: drop or revert a moved,
                                               // resized or rotated selection here.
@@ -1133,12 +1142,14 @@ class _ToolElements extends StatelessWidget {
     required this.brushSize,
     required this.sprayIntensity,
     required this.selectionMode,
+    required this.primaryColor,
   });
 
   final ValueNotifier<PixelTool> currentTool;
   final ValueNotifier<int> brushSize;
   final ValueNotifier<int> sprayIntensity;
   final ValueNotifier<SelectionMode> selectionMode;
+  final Color primaryColor;
 
   static bool _isSelectionTool(PixelTool tool) {
     return tool == PixelTool.select ||
@@ -1171,11 +1182,11 @@ class _ToolElements extends StatelessWidget {
     }
 
     if (currentTool.value == PixelTool.gradient) {
-      return const Align(
+      return Align(
         alignment: Alignment.centerLeft,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: GradientOptionsBar(),
+          child: GradientOptionsBar(primaryColor: primaryColor),
         ),
       );
     }

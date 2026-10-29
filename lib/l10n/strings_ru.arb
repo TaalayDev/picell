@@ -2070,5 +2070,17 @@
     "gradientBlendLockAlpha": "Сохранять прозрачность",
     "gradientEndSecondary": "К дополнительному цвету",
     "gradientEndTransparent": "К прозрачному",
-    "secondaryColorSwap": "Дополнительный цвет (нажмите, чтобы поменять, X)"
+    "secondaryColorSwap": "Дополнительный цвет (нажмите, чтобы поменять, X)",
+    "gradientReflected": "Зеркальный",
+    "gradientDiamond": "Ромб",
+    "gradientAngle": "Угловой",
+    "gradientRamp": "Цветовая шкала",
+    "gradientRampEdit": "Изменить цветовую шкалу",
+    "gradientRampHint": "Каждый цвет становится одной полосой, поэтому используются только эти цвета. Нажмите на цвет, чтобы удалить его.",
+    "gradientRampEmpty": "Цветов пока нет",
+    "gradientRampAddCurrent": "Добавить текущий цвет",
+    "gradientRampAddSecondary": "Добавить дополнительный цвет",
+    "gradientRampFromPalette": "Взять импортированную палитру",
+    "gradientRampReverse": "Обратить",
+    "gradientRampClear": "Очистить"
 }

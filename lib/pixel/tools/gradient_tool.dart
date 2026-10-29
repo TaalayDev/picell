@@ -4,63 +4,196 @@ import 'package:flutter/services.dart';
 
 import '../tools.dart';
 
-/// A two-point drag tool that applies a linear gradient between the start and
-/// end positions.
+enum _GradientDrag { newGradient, startHandle, endHandle }
+
+/// A two-point drag tool for gradients that stay editable until committed.
 ///
 /// **Interaction:**
-/// 1. Press — anchors the gradient start.
-/// 2. Drag — updates the gradient end preview (via [onGradientPreview]).
-/// 3. Release — commits the gradient (via [onGradientApply]).
+/// 1. Drag — draws a new gradient from press to release (preview via
+///    [onGradientPreview]).
+/// 2. Release — the gradient stays *pending*: its start/end handles can be
+///    dragged to adjust it.
+/// 3. Commit — [commit] (Enter, switching tools) or starting a new gradient
+///    elsewhere bakes it in via [onGradientApply]. A plain click outside the
+///    handles commits without starting a new one. [cancel] (Esc) drops it.
+///
+/// The previous pending gradient is only committed when a new drag *ends*, so
+/// a drag cancelled midway (e.g. a second finger landing for pinch-zoom)
+/// restores it untouched.
 ///
 /// Holding Shift snaps the direction to 15° steps.
 ///
 /// Coordinates passed to the callbacks are in *canvas space* (pixel units),
-/// not screen pixels.  The host is responsible for the coordinate conversion.
+/// not screen pixels.
 class GradientTool extends Tool {
-  /// Called continuously during drag with the current start/end canvas
-  /// positions so the painter can draw a live preview line.
+  /// Called whenever the pending/dragged gradient changes.
   final void Function(Offset start, Offset end) onGradientPreview;
 
-  /// Called once on pointer-up to actually bake the gradient into the layer.
+  /// Called to bake a gradient into the layer.
   final void Function(Offset startPx, Offset endPx) onGradientApply;
 
-  /// Called when the gesture is cancelled or starts, to clear the preview.
+  /// Called after a commit: no gradient is pending any more.
   final VoidCallback onGradientClear;
 
-  Offset? _startCanvas;
+  /// Called when a gradient is dropped without committing.
+  final VoidCallback onGradientCancel;
+
+  /// Current viewport zoom, for screen-sized handle hit areas.
+  final double Function() zoomLevel;
+
+  /// Handle grab radius in screen pixels.
+  static const double handleHitRadius = 14;
+
+  /// Drags shorter than this (canvas pixels) count as a click.
+  static const double minDragLength = 0.5;
+
+  Offset? _start;
+  Offset? _end;
+  _GradientDrag? _drag;
+
+  // Pending gradient from before the current drag, restored on cancelDrag
+  // and committed when a new-gradient drag ends.
+  Offset? _prevStart;
+  Offset? _prevEnd;
 
   GradientTool({
     required this.onGradientPreview,
     required this.onGradientApply,
     required this.onGradientClear,
-  }) : super(PixelTool.gradient);
+    VoidCallback? onGradientCancel,
+    double Function()? zoomLevel,
+  })  : onGradientCancel = onGradientCancel ?? onGradientClear,
+        zoomLevel = zoomLevel ?? (() => 1.0),
+        super(PixelTool.gradient);
+
+  /// Whether a released gradient is waiting for commit or cancel.
+  bool get hasPendingGradient => _start != null && _drag == null;
+
+  /// Whether a gradient is visible (pending or being dragged).
+  bool get isActive => _start != null;
+
+  Offset? get start => _start;
+  Offset? get end => _end;
 
   @override
   void onStart(PixelDrawDetails details) {
-    _startCanvas = _toCanvasOffset(details);
-    onGradientPreview(_startCanvas!, _startCanvas!);
+    final p = _toCanvasOffset(details);
+    _prevStart = _start;
+    _prevEnd = _end;
+
+    if (_start != null) {
+      final radius = _hitRadius(details);
+      final dStart = (p - _start!).distance;
+      final dEnd = (p - _end!).distance;
+      if (dEnd <= radius && dEnd <= dStart) {
+        _drag = _GradientDrag.endHandle;
+        return;
+      }
+      if (dStart <= radius) {
+        _drag = _GradientDrag.startHandle;
+        return;
+      }
+    }
+
+    _drag = _GradientDrag.newGradient;
+    _start = p;
+    _end = p;
+    onGradientPreview(p, p);
   }
 
   @override
   void onMove(PixelDrawDetails details) {
-    if (_startCanvas == null) return;
-    final end = _constrain(_startCanvas!, _toCanvasOffset(details));
-    onGradientPreview(_startCanvas!, end);
+    final drag = _drag;
+    if (drag == null || _start == null) return;
+    final p = _toCanvasOffset(details);
+    if (drag == _GradientDrag.startHandle) {
+      _start = _constrain(_end!, p);
+    } else {
+      _end = _constrain(_start!, p);
+    }
+    onGradientPreview(_start!, _end!);
   }
 
   @override
   void onEnd(PixelDrawDetails details) {
-    if (_startCanvas == null) return;
-    final end = _constrain(_startCanvas!, _toCanvasOffset(details));
-    onGradientApply(_startCanvas!, end);
-    _startCanvas = null;
+    final drag = _drag;
+    if (drag == null) return;
+    onMove(details);
+    _drag = null;
+
+    if (drag != _GradientDrag.newGradient) return;
+
+    final isClick = (_end! - _start!).distance < minDragLength;
+    final newStart = _start!, newEnd = _end!;
+    final prevStart = _prevStart, prevEnd = _prevEnd;
+    _prevStart = _prevEnd = null;
+
+    if (prevStart != null && prevEnd != null) {
+      onGradientApply(prevStart, prevEnd);
+    }
+    if (isClick) {
+      _start = _end = null;
+      if (prevStart != null) {
+        onGradientClear();
+      } else {
+        onGradientCancel();
+      }
+      return;
+    }
+    // Re-preview against the layer as it is after the previous commit.
+    onGradientPreview(newStart, newEnd);
+  }
+
+  /// Bakes the pending gradient into the layer. Returns false if none.
+  bool commit() {
+    if (_start == null || _drag != null) return false;
+    final start = _start!, end = _end!;
+    _start = _end = null;
+    onGradientApply(start, end);
     onGradientClear();
+    return true;
+  }
+
+  /// Drops the pending (or in-progress) gradient. Returns false if none.
+  bool cancel() {
+    if (_start == null) return false;
+    _start = _end = _drag = _prevStart = _prevEnd = null;
+    onGradientCancel();
+    return true;
+  }
+
+  /// Aborts the current drag only, restoring the gradient that was pending
+  /// before it (if any).
+  void cancelDrag() {
+    if (_drag == null) return;
+    _drag = null;
+    _start = _prevStart;
+    _end = _prevEnd;
+    _prevStart = _prevEnd = null;
+    if (_start != null) {
+      onGradientPreview(_start!, _end!);
+    } else {
+      onGradientCancel();
+    }
+  }
+
+  /// Re-renders the pending gradient (e.g. after the layer changed).
+  void refresh() {
+    if (_start != null) onGradientPreview(_start!, _end!);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  Offset _constrain(Offset start, Offset end) =>
-      HardwareKeyboard.instance.isShiftPressed ? snapAngle(start, end) : end;
+  Offset _constrain(Offset anchor, Offset p) =>
+      HardwareKeyboard.instance.isShiftPressed ? snapAngle(anchor, p) : p;
+
+  /// Grab radius in canvas pixels.
+  double _hitRadius(PixelDrawDetails details) {
+    final screenPerPixel =
+        details.size.width / details.width * zoomLevel();
+    if (screenPerPixel <= 0) return 1;
+    return math.max(handleHitRadius / screenPerPixel, 0.75);
+  }
 
   /// Rotates [end] around [start] to the nearest multiple of [stepDegrees],
   /// keeping the drag length.

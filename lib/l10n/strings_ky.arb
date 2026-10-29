@@ -2081,5 +2081,17 @@
     "gradientBlendLockAlpha": "Тунуктукту сактоо",
     "gradientEndSecondary": "Кошумча түскө",
     "gradientEndTransparent": "Тунукка",
-    "secondaryColorSwap": "Кошумча түс (алмаштыруу үчүн басыңыз, X)"
+    "secondaryColorSwap": "Кошумча түс (алмаштыруу үчүн басыңыз, X)",
+    "gradientReflected": "Чагылдырылган",
+    "gradientDiamond": "Ромб",
+    "gradientAngle": "Бурчтук",
+    "gradientRamp": "Түс шкаласы",
+    "gradientRampEdit": "Түс шкаласын түзөтүү",
+    "gradientRampHint": "Ар бир түс бир тилке болот, ошондуктан ушул түстөр гана колдонулат. Өчүрүү үчүн түстү басыңыз.",
+    "gradientRampEmpty": "Азырынча түстөр жок",
+    "gradientRampAddCurrent": "Учурдагы түстү кошуу",
+    "gradientRampAddSecondary": "Кошумча түстү кошуу",
+    "gradientRampFromPalette": "Импорттолгон палитраны колдонуу",
+    "gradientRampReverse": "Тескери буруу",
+    "gradientRampClear": "Тазалоо"
 }
