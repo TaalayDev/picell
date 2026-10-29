@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../data/models/selection_region.dart';
 import '../../l10n/strings.dart';
 
-/// Segmented replace / add / subtract toggle for selection tools. The
-/// active-mode highlight doubles as the mode indicator; Shift/Alt override
-/// the toggle per gesture on desktop.
+/// Segmented replace / add / subtract / intersect toggle for selection
+/// tools. The active-mode highlight doubles as the mode indicator; Shift,
+/// Alt and Shift+Alt override the toggle per gesture on desktop.
 class SelectionModeToggle extends StatelessWidget {
   const SelectionModeToggle({super.key, required this.mode});
 
@@ -52,6 +52,14 @@ class SelectionModeToggle extends StatelessWidget {
                 tooltip: s.subtractFromSelectionAlt,
                 onTap: () => mode.value = SelectionMode.subtract,
               ),
+              _segment(
+                context,
+                key: const ValueKey('selection-mode-intersect'),
+                selected: current == SelectionMode.intersect,
+                icon: Icons.join_inner,
+                tooltip: 'Intersect with selection (Shift+Alt)',
+                onTap: () => mode.value = SelectionMode.intersect,
+              ),
             ],
           ),
         );
@@ -61,6 +69,7 @@ class SelectionModeToggle extends StatelessWidget {
 
   Widget _segment(
     BuildContext context, {
+    Key? key,
     required bool selected,
     required IconData icon,
     required String tooltip,
@@ -68,6 +77,7 @@ class SelectionModeToggle extends StatelessWidget {
   }) {
     final accentColor = Theme.of(context).colorScheme.primary;
     return Tooltip(
+      key: key,
       message: tooltip,
       child: Material(
         color: selected ? accentColor.withValues(alpha: 0.35) : Colors.transparent,

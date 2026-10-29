@@ -42,6 +42,18 @@ class FullStateEntry extends UndoEntry {
   int get sizeInBytes => state.width * state.height * 4;
 }
 
+/// A selection change (select, deselect, invert, grow...). Pixels and
+/// layers don't change, so only the selection is kept: it costs almost
+/// nothing against the history budget.
+class SelectionEntry extends UndoEntry {
+  /// The selection to restore, or null for "nothing selected".
+  final SelectionState? selection;
+  SelectionEntry(this.selection);
+
+  @override
+  int get sizeInBytes => 64;
+}
+
 /// Compact record of a drawing operation on a single layer. Stores only the
 /// changed cells — or the full before/after buffers when most of the layer
 /// changed — keeping deep undo histories orders of magnitude cheaper than
@@ -170,6 +182,18 @@ class UndoRedoService {
     _push(FullStateEntry(state.copyWith()));
   }
 
+  /// Records [selection] as the selection to restore on undo. Floating
+  /// pixels aren't kept: they belong to the transform that captured them.
+  void saveSelection(SelectionState? selection) {
+    _push(SelectionEntry(_settled(selection)));
+  }
+
+  static SelectionState? _settled(SelectionState? selection) => selection?.copyWith(
+        isTransforming: false,
+        capturedPixels: () => null,
+        capturedBounds: () => null,
+      );
+
   /// Records a drawing operation as a compact pixel diff between
   /// [prePixels] and [postPixels] on the layer that was current in
   /// [preState]. No-op strokes (no changed pixels) record nothing.
@@ -251,6 +275,9 @@ class UndoRedoService {
         entry.redoMeta = UndoMeta.fromState(currentState);
         _redoStack.add(entry);
         return entry.apply(currentState, forward: false).copyWith(canUndo: canUndo, canRedo: canRedo);
+      case SelectionEntry(:final selection):
+        _redoStack.add(SelectionEntry(_settled(currentState.selectionState)));
+        return currentState.copyWith(selectionState: selection, canUndo: canUndo, canRedo: canRedo);
     }
   }
 
@@ -269,6 +296,11 @@ class UndoRedoService {
         _undoStack.add(entry);
         _undoBytes += entry.sizeInBytes;
         return entry.apply(currentState, forward: true).copyWith(canUndo: canUndo, canRedo: canRedo);
+      case SelectionEntry(:final selection):
+        final snapshot = SelectionEntry(_settled(currentState.selectionState));
+        _undoStack.add(snapshot);
+        _undoBytes += snapshot.sizeInBytes;
+        return currentState.copyWith(selectionState: selection, canUndo: canUndo, canRedo: canRedo);
     }
   }
 
@@ -299,6 +331,7 @@ class UndoRedoService {
       FullStateEntry(:final state) => 'Full — Frame: ${state.currentFrameIndex}, Layer: ${state.currentLayerIndex}',
       PixelDiffEntry() =>
         'Diff — Frame id: ${entry.frameId}, Layer: ${entry.layerUuid}, changed: ${entry.oldValues.length}',
+      SelectionEntry(:final selection) => 'Selection — ${selection == null ? 'none' : selection.region.bounds}',
     };
   }
 }

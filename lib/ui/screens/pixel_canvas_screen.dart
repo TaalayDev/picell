@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -24,6 +25,8 @@ import '../../pixel/tools.dart';
 import '../../data.dart';
 import '../../data/models/subscription_model.dart';
 import '../../providers/editor_settings_provider.dart';
+import '../../providers/editor_workspace_provider.dart';
+import '../widgets/dialogs/selection_transform_dialog.dart';
 import '../../providers/projects_provider.dart';
 import '../../providers/editor_tool_memory_provider.dart';
 import '../../providers/pixel_clipboard_provider.dart';
@@ -420,7 +423,22 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       notifier.removeLayers(indices);
     }
 
-    Future<void> pasteFromClipboard() async {
+    // The selected area as the frame shows it, every visible layer merged.
+    void copyMergedToClipboard() {
+      final region = state.selectionState?.region;
+      final pixels = notifier.copyMergedSelectionPixels();
+      if (region == null || pixels == null) return;
+      clipboardNotifier.store(PixelClipboardData(
+        pixels: pixels,
+        width: width,
+        height: height,
+        region: region,
+      ));
+    }
+
+    // [inPlace] keeps the copied coordinates when the clipboard came from a
+    // canvas of another size (a plain paste centers it).
+    Future<void> pasteFromClipboard({bool inPlace = false}) async {
       final clip = clipboardNotifier.take();
       if (clip == null) return;
       final pasteErrorMessage = Strings.of(context).anErrorOccurred;
@@ -433,6 +451,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
               clip.region,
               sourceWidth: clip.width,
               sourceHeight: clip.height,
+              inPlace: inPlace,
             );
           case LayerClipboardData():
             await notifier.pasteLayers(
@@ -449,6 +468,62 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
             pasteErrorMessage,
           );
         }
+      }
+    }
+
+    // Typed position, size, rotation and flips. Flips go first: they end the
+    // transform session, which the move/resize and rotation then share.
+    Future<void> openTransformDialog() async {
+      final selection = state.selectionState;
+      if (selection == null) return;
+      final request = await showSelectionTransformDialog(context, bounds: selection.region.bounds);
+      if (request == null || !mounted) return;
+      if (request.flipHorizontal) notifier.flipSelection(horizontal: true);
+      if (request.flipVertical) notifier.flipSelection(horizontal: false);
+      final bounds = request.bounds;
+      if (bounds != null) notifier.setSelectionBounds(bounds);
+      if (request.angleDegrees != 0) notifier.rotateSelectionBy(request.angleDegrees * math.pi / 180);
+    }
+
+    void fillSelection() {
+      if (state.selectionState != null) notifier.fillSelection(state.currentColor);
+    }
+
+    void outlineSelection() {
+      if (state.selectionState != null) notifier.strokeSelection(state.currentColor);
+    }
+
+    // Cropping resizes the canvas, which an open editor can't do: the cropped
+    // project is saved and the workspace reopens the editor with it.
+    Future<void> cropToSelection() async {
+      if (!notifier.canCropToSelection) return;
+      final bounds = state.selectionState!.region.bounds;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Crop canvas to selection?'),
+          content: Text(
+            'Every frame and layer is cropped to '
+            '${bounds.width.ceil()}×${bounds.height.ceil()} px. '
+            'This clears the undo history and can\'t be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(Strings.of(context).cancel),
+            ),
+            TextButton(
+              key: const ValueKey('confirm-crop-canvas'),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Crop'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+      final cropped = await notifier.cropCanvasToSelection();
+      if (cropped != null && mounted) {
+        ref.read(editorWorkspaceProvider.notifier).updateProject(cropped);
       }
     }
 
@@ -469,6 +544,10 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       onCopySelection: copySelectionToClipboard,
       onCutSelection: cutSelectionToClipboard,
       onPasteSelection: pasteFromClipboard,
+      onCopyMerged: copyMergedToClipboard,
+      onPasteInPlace: () => pasteFromClipboard(inPlace: true),
+      onFillSelection: fillSelection,
+      onOpenTransform: openTransformDialog,
       onToggleTileMode: () => tileModeEnabled.value = !tileModeEnabled.value,
       onToggleGrid: () {
         ref.read(editorSettingsNotifierProvider.notifier).setShowPixelGrid(!editorSettings.showPixelGrid);
@@ -530,6 +609,12 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                   onCopySelection: copySelectionToClipboard,
                   onCutSelection: cutSelectionToClipboard,
                   onPasteSelection: pasteFromClipboard,
+                  onCopyMerged: copyMergedToClipboard,
+                  onPasteInPlace: clipboard != null ? () => pasteFromClipboard(inPlace: true) : null,
+                  onFillSelection: fillSelection,
+                  onOutlineSelection: outlineSelection,
+                  onCropToSelection: notifier.canCropToSelection ? cropToSelection : null,
+                  onOpenTransform: openTransformDialog,
                   onTilesetGenerator: widget.onOpenProject == null ? null : () async {
                     final geometry = await showTilesetGeometryDialog(context);
                     if (geometry == null || !context.mounted) return;
@@ -696,26 +781,44 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
                                                   onFinish: () => notifier.pushEvent(const ClosePenPathEvent()),
                                                   onCancel: () => notifier.pushEvent(const CancelPenPathEvent()),
                                                 )
-                                              : SelectionOptionsButton(
-                                                  hasSelection: hasSelection,
-                                                  isFloating: true,
-                                                  onClearSelection: () => notifier.clearSelection(),
-                                                  onDelete: () => notifier.clearSelectionArea(),
-                                                  onCutToNewLayer: () => notifier.cutToNewLayer(),
-                                                  onCopyToNewLayer: () => notifier.copyToNewLayer(),
-                                                  onCopy: copySelectionToClipboard,
-                                                  onCut: cutSelectionToClipboard,
-                                                  onPaste: clipboard != null ? pasteFromClipboard : null,
-                                                  onInvert: () => notifier.invertSelection(),
-                                                  onGrow: () => notifier.growSelection(),
-                                                  onShrink: () => notifier.shrinkSelection(),
-                                                  onRotate90: () =>
-                                                      notifier.transformSelection(PixelTransform.rotate90Clockwise),
-                                                  onRotate180: () =>
-                                                      notifier.transformSelection(PixelTransform.rotate180),
-                                                  onFlipHorizontal: () => notifier.flipSelection(horizontal: true),
-                                                  onFlipVertical: () => notifier.flipSelection(horizontal: false),
-                                                ),
+                                              // Touch has no Enter/Esc: drop or revert a moved,
+                                              // resized or rotated selection here.
+                                              : notifier.hasTransformSession
+                                                  ? PenPathActions(
+                                                      key: const ValueKey('transform-session-actions'),
+                                                      isFloating: true,
+                                                      onFinish: notifier.commitTransformSession,
+                                                      onCancel: notifier.cancelTransformSession,
+                                                    )
+                                                  : SelectionOptionsButton(
+                                                      hasSelection: hasSelection,
+                                                      isFloating: true,
+                                                      onClearSelection: () => notifier.clearSelection(),
+                                                      onDelete: () => notifier.clearSelectionArea(),
+                                                      onCutToNewLayer: () => notifier.cutToNewLayer(),
+                                                      onCopyToNewLayer: () => notifier.copyToNewLayer(),
+                                                      onCopy: copySelectionToClipboard,
+                                                      onCut: cutSelectionToClipboard,
+                                                      onPaste: clipboard != null ? pasteFromClipboard : null,
+                                                      onInvert: () => notifier.invertSelection(),
+                                                      onGrow: () => notifier.growSelection(),
+                                                      onShrink: () => notifier.shrinkSelection(),
+                                                      onRotate90: () =>
+                                                          notifier.transformSelection(PixelTransform.rotate90Clockwise),
+                                                      onRotate180: () =>
+                                                          notifier.transformSelection(PixelTransform.rotate180),
+                                                      onFlipHorizontal: () => notifier.flipSelection(horizontal: true),
+                                                      onFlipVertical: () => notifier.flipSelection(horizontal: false),
+                                                      onFill: fillSelection,
+                                                      onOpenTransform: openTransformDialog,
+                                                      onOutline: outlineSelection,
+                                                      onCropToSelection:
+                                                          notifier.canCropToSelection ? cropToSelection : null,
+                                                      onCopyMerged: copyMergedToClipboard,
+                                                      onPasteInPlace: clipboard != null
+                                                          ? () => pasteFromClipboard(inPlace: true)
+                                                          : null,
+                                                    ),
                                         ),
                                     ],
                                   ],

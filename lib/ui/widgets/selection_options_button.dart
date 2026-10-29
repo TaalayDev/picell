@@ -23,6 +23,12 @@ class SelectionOptionsButton extends ConsumerWidget {
   final VoidCallback? onInvert;
   final VoidCallback? onGrow;
   final VoidCallback? onShrink;
+  final VoidCallback? onFill;
+  final VoidCallback? onOpenTransform;
+  final VoidCallback? onOutline;
+  final VoidCallback? onCropToSelection;
+  final VoidCallback? onCopyMerged;
+  final VoidCallback? onPasteInPlace;
   final bool isFloating;
 
   const SelectionOptionsButton({
@@ -42,6 +48,12 @@ class SelectionOptionsButton extends ConsumerWidget {
     this.onInvert,
     this.onGrow,
     this.onShrink,
+    this.onFill,
+    this.onOpenTransform,
+    this.onOutline,
+    this.onCropToSelection,
+    this.onCopyMerged,
+    this.onPasteInPlace,
     this.isFloating = false,
   });
 
@@ -167,6 +179,9 @@ class SelectionOptionsButton extends ConsumerWidget {
   String _cmd(String key) =>
       defaultTargetPlatform == TargetPlatform.macOS ? 'Cmd + $key' : 'Ctrl + $key';
 
+  String _alt(String key) =>
+      defaultTargetPlatform == TargetPlatform.macOS ? 'Option + $key' : 'Alt + $key';
+
   List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context, AppTheme theme) {
     final s = Strings.of(context);
 
@@ -214,6 +229,29 @@ class SelectionOptionsButton extends ConsumerWidget {
           value: 'shrink',
           child: item(Icons.close_fullscreen, s.shrinkSelectionOnePixel, shortcut: _cmd('Shift + H')),
         ),
+      if (onFill != null || onOutline != null || onCropToSelection != null) PopupMenuDivider(color: theme.divider),
+      if (onFill != null)
+        PopupMenuItem<String>(
+          value: 'fill',
+          child: item(Icons.format_color_fill, 'Fill with color', shortcut: _alt('Backspace')),
+        ),
+      if (onOutline != null)
+        PopupMenuItem<String>(
+          value: 'outline',
+          child: item(Icons.border_style, 'Outline with color'),
+        ),
+      if (onCropToSelection != null)
+        PopupMenuItem<String>(
+          value: 'crop',
+          child: item(Icons.crop, 'Crop canvas to selection'),
+        ),
+      if (onOpenTransform != null) ...[
+        PopupMenuDivider(color: theme.divider),
+        PopupMenuItem<String>(
+          value: 'transform',
+          child: item(Icons.transform, 'Transform…', shortcut: _cmd('T')),
+        ),
+      ],
       if (onRotate90 != null) ...[
         PopupMenuDivider(color: theme.divider),
         PopupMenuItem<String>(
@@ -278,10 +316,20 @@ class SelectionOptionsButton extends ConsumerWidget {
           value: 'copy',
           child: item(Icons.content_copy, s.copy, shortcut: _cmd('C')),
         ),
+      if (onCopyMerged != null)
+        PopupMenuItem<String>(
+          value: 'copyMerged',
+          child: item(Icons.layers, 'Copy merged', shortcut: _cmd('Shift + C')),
+        ),
       if (onPaste != null)
         PopupMenuItem<String>(
           value: 'paste',
           child: item(Icons.content_paste, s.paste, shortcut: _cmd('V')),
+        ),
+      if (onPasteInPlace != null)
+        PopupMenuItem<String>(
+          value: 'pasteInPlace',
+          child: item(Icons.content_paste_go, 'Paste in place', shortcut: _cmd('Shift + V')),
         ),
       if (onDelete != null)
         PopupMenuItem<String>(
@@ -298,6 +346,24 @@ class SelectionOptionsButton extends ConsumerWidget {
         break;
       case 'invert':
         onInvert?.call();
+        break;
+      case 'fill':
+        onFill?.call();
+        break;
+      case 'transform':
+        onOpenTransform?.call();
+        break;
+      case 'outline':
+        onOutline?.call();
+        break;
+      case 'crop':
+        onCropToSelection?.call();
+        break;
+      case 'copyMerged':
+        onCopyMerged?.call();
+        break;
+      case 'pasteInPlace':
+        onPasteInPlace?.call();
         break;
       case 'grow':
         onGrow?.call();

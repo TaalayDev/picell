@@ -77,6 +77,60 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets('Ctrl/Cmd-click on a layer thumbnail selects its pixels', (tester) async {
+    final layers = List.generate(
+      2,
+      (index) => Layer(
+        layerId: index + 1,
+        id: 'layer-$index',
+        name: 'Layer $index',
+        pixels: Uint32List(4),
+        order: index,
+      ),
+    );
+    final selectedPixels = <int>[];
+    final selectedLayers = <int>[];
+
+    await tester.pumpWidget(
+      testApp(
+        LayersPanel(
+          width: 2,
+          height: 2,
+          layers: layers,
+          activeLayerIndex: 0,
+          onLayerAdded: (_) {},
+          onLayerSelected: selectedLayers.add,
+          onLayersDeleted: (_) {},
+          onLayersVisibilityChanged: (_, __) {},
+          onLayersLockedChanged: (_, __) {},
+          onLayersDuplicated: (_) {},
+          onLayerReordered: (_, __) {},
+          onLayersOpacityChanged: (_, __) {},
+          onLayerUpdated: (_) {},
+          onLayerToTemplate: (_) {},
+          onSelectLayerPixels: selectedPixels.add,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final thumbnail = find.byKey(const ValueKey('layer-thumbnail-layer-1'));
+    // The row's double-tap (rename) delays the tap; Ctrl counts from tap-down
+    // even when it is released before the tap fires.
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.tap(thumbnail);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(selectedPixels, [1]);
+    expect(selectedLayers, isEmpty, reason: 'Ctrl-click on the thumbnail does not toggle the layer');
+
+    await tester.tap(thumbnail);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(selectedPixels, [1]);
+    expect(selectedLayers, [1], reason: 'a plain click selects the layer');
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('Ctrl+A selects every effect in the focused effects panel',
       (tester) async {
     final layer = Layer(

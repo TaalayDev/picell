@@ -352,8 +352,10 @@ class _EditorWorkspaceScreenState extends ConsumerState<EditorWorkspaceScreen> {
                                     )
                                   else
                                     PixelCanvasScreen(
+                                      // The canvas size is fixed for an open
+                                      // editor; a crop reopens it.
                                       key: ValueKey(
-                                        'project-editor-${tab.projectId}',
+                                        'project-editor-${tab.projectId}-${tab.project.width}x${tab.project.height}',
                                       ),
                                       project: tab.project,
                                       isActive: tab.projectId == workspace.activeProjectId,

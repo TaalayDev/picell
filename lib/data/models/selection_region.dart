@@ -6,7 +6,7 @@ import 'package:vector_math/vector_math_64.dart';
 
 enum SelectionShape { rectangle, ellipse, lasso, wand, autoSelect, custom }
 
-enum SelectionMode { replace, add, subtract }
+enum SelectionMode { replace, add, subtract, intersect }
 
 class SelectionRegion {
   final Path path;
@@ -35,6 +35,9 @@ class SelectionRegion {
         break;
       case SelectionMode.subtract:
         combinedPath = Path.combine(PathOperation.difference, path, other.path);
+        break;
+      case SelectionMode.intersect:
+        combinedPath = Path.combine(PathOperation.intersect, path, other.path);
         break;
       case SelectionMode.replace:
         return other;

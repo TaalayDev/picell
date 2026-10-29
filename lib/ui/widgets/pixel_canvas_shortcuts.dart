@@ -27,6 +27,10 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
     required this.onCopySelection,
     required this.onCutSelection,
     required this.onPasteSelection,
+    this.onCopyMerged,
+    this.onPasteInPlace,
+    this.onFillSelection,
+    this.onOpenTransform,
     this.onToggleTileMode,
     this.onToggleGrid,
     this.onToggleOnionSkin,
@@ -52,6 +56,10 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
   final VoidCallback onCopySelection;
   final VoidCallback onCutSelection;
   final VoidCallback onPasteSelection;
+  final VoidCallback? onCopyMerged;
+  final VoidCallback? onPasteInPlace;
+  final VoidCallback? onFillSelection;
+  final VoidCallback? onOpenTransform;
   final VoidCallback? onToggleTileMode;
   final VoidCallback? onToggleGrid;
   final VoidCallback? onToggleOnionSkin;
@@ -195,6 +203,32 @@ class PixelCanvasShortcutsWrapper extends HookConsumerWidget {
         } else if (state.selectionState != null) {
           notifier.clearSelection();
         }
+      },
+      // Enter drops a moved/resized/rotated selection in place; Esc puts it
+      // back. Without a transform both keep their old job: deselect.
+      onCommit: () {
+        if (currentTool.value == PixelTool.pen) {
+          notifier.pushEvent(const CancelPenPathEvent());
+        } else if (!notifier.commitTransformSession() &&
+            state.selectionState != null) {
+          notifier.clearSelection();
+        }
+      },
+      onCancel: () {
+        if (currentTool.value == PixelTool.pen) {
+          notifier.pushEvent(const CancelPenPathEvent());
+        } else if (!notifier.cancelTransformSession() &&
+            state.selectionState != null) {
+          notifier.clearSelection();
+        }
+      },
+      onReselect: notifier.reselect,
+      onCopyMerged: onCopyMerged,
+      onPasteInPlace: onPasteInPlace,
+      onFillSelection: onFillSelection,
+      onOpenTransform: onOpenTransform,
+      onNudge: (delta) {
+        if (state.selectionState != null) notifier.nudgeSelection(delta);
       },
       onInvertSelection: () {
         if (state.selectionState != null) {

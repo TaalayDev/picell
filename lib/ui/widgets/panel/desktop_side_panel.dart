@@ -308,6 +308,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
         onLayersOpacityChanged: widget.notifier.setLayersOpacity,
         onLayersTransformed: widget.notifier.transformLayers,
         onLayersMerged: widget.notifier.mergeLayers,
+        onSelectLayerPixels: widget.notifier.selectLayerPixels,
         onLayerEffectsChanged: widget.notifier.updateLayer,
         onLayersDuplicated: widget.notifier.duplicateLayers,
         onLayerToTemplate: (layer) {

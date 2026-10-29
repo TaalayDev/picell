@@ -164,8 +164,8 @@ class ToolDrawingManager {
     cancelSelectionGesture();
 
     if (newRegion == null || newRegion.bounds == Rect.zero) {
-      // Degenerate new shape: replace clears as before; add/subtract keep
-      // the existing selection untouched.
+      // Degenerate new shape: replace clears as before; add, subtract and
+      // intersect keep the existing selection untouched.
       return mode == SelectionMode.replace ? newRegion : base;
     }
     if (mode == SelectionMode.replace || base == null) {

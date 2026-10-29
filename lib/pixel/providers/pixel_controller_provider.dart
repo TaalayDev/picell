@@ -32,6 +32,7 @@ import '../services/editor_selection_service.dart';
 import '../services/effect_stack_service.dart';
 import '../services/frame_service.dart';
 import '../services/import_export_service.dart';
+import '../rotsprite.dart';
 import '../services/layer_merge_service.dart';
 import '../services/layer_service.dart';
 import '../services/pixel_transform_service.dart';
@@ -106,6 +107,7 @@ class PixelDrawController extends _$PixelDrawController {
 
     ref.onDispose(() {
       _cloudSyncTimer?.cancel();
+      _nudgeTimer?.cancel();
       _lifecycleListener?.dispose();
       unawaited(flushPendingProjectSave());
     });
@@ -191,6 +193,9 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void _updateProject() {
+    // After a canvas crop this controller's state is stale; the editor
+    // reopens with the cropped project.
+    if (_retired) return;
     final updated = project.copyWith(
       frames: state.frames,
       states: state.animationStates,
@@ -347,6 +352,10 @@ class PixelDrawController extends _$PixelDrawController {
   bool get hasPendingProjectSave => _pendingProjectSave != null;
 
   /// Writes the most recent pending project snapshot immediately.
+  // Set by [cropCanvasToSelection]: nothing from this controller may be
+  // saved any more.
+  bool _retired = false;
+
   Future<bool> flushPendingProjectSave() {
     _projectSaveTimer?.cancel();
     _projectSaveTimer = null;
@@ -733,6 +742,150 @@ class PixelDrawController extends _$PixelDrawController {
     _updateCurrentLayerPixels(clearedPixels);
   }
 
+  /// The canvas indices inside [region].
+  List<bool> _selectionMask(SelectionRegion region) {
+    final mask = List<bool>.filled(state.width * state.height, false);
+    for (final i in region.getSelectedPixelIndices(state.width, state.height)) {
+      mask[i] = true;
+    }
+    return mask;
+  }
+
+  /// Sets [indices] to [color] on every selection target layer as one undo
+  /// step, the same way [clearSelectionArea] edits them.
+  void _paintSelectionTargets(List<int> indices, Color color) {
+    if (indices.isEmpty || currentLayer.pixels.isEmpty) return;
+    final value = color.toARGB32();
+    Uint32List paint(Uint32List source) {
+      final out = Uint32List.fromList(source);
+      for (final i in indices) {
+        if (i < out.length) out[i] = value;
+      }
+      return out;
+    }
+
+    if (_extraSelectionTargets.isNotEmpty) {
+      _detachSelectionFromLayer();
+      _saveState();
+      _updateLayersPixels({
+        for (final i in _selectionTargetIndices) i: paint(currentFrame.layers[i].pixels),
+      });
+      return;
+    }
+    _beginPixelUndo();
+    _updateCurrentLayerPixels(paint(currentLayer.pixels));
+  }
+
+  /// Alt+Backspace: fills the selection with [color] on every selected layer.
+  void fillSelection(Color color) {
+    final sel = state.selectionState?.region;
+    if (sel == null) return;
+    _paintSelectionTargets(sel.getSelectedPixelIndices(state.width, state.height), color);
+  }
+
+  /// Draws a 1-pixel outline of the selection in [color] on every selected
+  /// layer: along the inside of its edge, or with [inside] false just
+  /// outside it. The canvas border counts as outside the selection.
+  void strokeSelection(Color color, {bool inside = true}) {
+    final sel = state.selectionState?.region;
+    if (sel == null) return;
+    final w = state.width, h = state.height;
+    final mask = _selectionMask(sel);
+    bool selected(int x, int y) => x >= 0 && y >= 0 && x < w && y < h && mask[y * w + x];
+    final edge = <int>[];
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        if (mask[y * w + x] != inside) continue;
+        if (selected(x - 1, y) != inside ||
+            selected(x + 1, y) != inside ||
+            selected(x, y - 1) != inside ||
+            selected(x, y + 1) != inside) {
+          edge.add(y * w + x);
+        }
+      }
+    }
+    _paintSelectionTargets(edge, color);
+  }
+
+  /// Ctrl+Shift+C: the selected area as the frame looks, every visible layer
+  /// composited (canvas-sized; other pixels are 0). Null without a selection.
+  Uint32List? copyMergedSelectionPixels() {
+    final sel = state.selectionState?.region;
+    if (sel == null) return null;
+    final merged = LayerMergeService.composite(currentFrame.layers, state.width, state.height);
+    return _selectionService.copySelectedPixels(sel, merged);
+  }
+
+  /// The selection's bounds snapped out to whole pixels and clipped to the
+  /// canvas, or null when that leaves nothing.
+  Rect? get _selectionCropRect {
+    final bounds = state.selectionState?.region.bounds;
+    if (bounds == null) return null;
+    final rect = Rect.fromLTRB(
+      bounds.left.floorToDouble().clamp(0, state.width.toDouble()),
+      bounds.top.floorToDouble().clamp(0, state.height.toDouble()),
+      bounds.right.ceilToDouble().clamp(0, state.width.toDouble()),
+      bounds.bottom.ceilToDouble().clamp(0, state.height.toDouble()),
+    );
+    return rect.width < 1 || rect.height < 1 ? null : rect;
+  }
+
+  /// Whether [cropCanvasToSelection] can run: a selection that isn't the
+  /// whole canvas, and no bone rig (its coordinates aren't shifted yet).
+  bool get canCropToSelection {
+    final rect = _selectionCropRect;
+    return rect != null &&
+        _rigData == null &&
+        rect != Rect.fromLTWH(0, 0, state.width.toDouble(), state.height.toDouble());
+  }
+
+  /// Crops every frame and layer of the project to the selection's bounds and
+  /// saves it. Not undoable: the canvas size is fixed for an open editor, so
+  /// the caller reopens it with the returned project, and this controller
+  /// stops saving. Returns null when [canCropToSelection] is false.
+  Future<Project?> cropCanvasToSelection() async {
+    if (!canCropToSelection) return null;
+    final rect = _selectionCropRect!;
+    final left = rect.left.toInt(), top = rect.top.toInt();
+    final width = rect.width.toInt(), height = rect.height.toInt();
+    _detachSelectionFromLayer();
+    await flushPendingProjectSave();
+
+    Uint32List crop(Uint32List source) {
+      final out = Uint32List(width * height);
+      if (source.length != state.width * state.height) return out;
+      for (var y = 0; y < height; y++) {
+        final from = (top + y) * state.width + left;
+        out.setRange(y * width, (y + 1) * width, source, from);
+      }
+      return out;
+    }
+
+    final shift = Offset(left.toDouble(), top.toDouble());
+    final cropped = project.copyWith(
+      width: width,
+      height: height,
+      states: state.animationStates,
+      frames: [
+        for (final frame in state.frames)
+          frame.copyWith(layers: [
+            for (final layer in frame.layers)
+              layer.copyWith(
+                pixels: crop(layer.pixels),
+                anchorPoint: () => layer.anchorPoint == null ? null : layer.anchorPoint! - shift,
+              ),
+          ]),
+      ],
+      selectedFrameId: currentFrame.id,
+      selectedLayerId: currentLayer.layerId,
+      editedAt: DateTime.now(),
+    );
+    _retired = true;
+    _cloudSyncTimer?.cancel();
+    await _projectRepo.updateProject(cropped);
+    return cropped;
+  }
+
   /// Returns a pixel buffer containing only the selected pixels (canvas-sized).
   /// Returns null if there is no active selection.
   Uint32List? copySelectionPixels() {
@@ -770,11 +923,14 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   /// Pastes [pixels] as a floating new layer and selects it.
+  /// [inPlace] (Ctrl+Shift+V) keeps the copied coordinates even when the
+  /// source canvas had another size, instead of centering.
   Future<void> pastePixels(
     Uint32List pixels,
     SelectionRegion region, {
     required int sourceWidth,
     required int sourceHeight,
+    bool inPlace = false,
   }) async {
     final layerId = const Uuid().v4();
     final placement = placeClipboardPixels(
@@ -783,6 +939,7 @@ class PixelDrawController extends _$PixelDrawController {
       sourceHeight: sourceHeight,
       targetWidth: state.width,
       targetHeight: state.height,
+      inPlace: inPlace,
     );
     final newLayer = Layer(
       layerId: 0,
@@ -792,8 +949,8 @@ class PixelDrawController extends _$PixelDrawController {
       isVisible: true,
       order: state.currentFrame.layers.length,
     );
+    // Inserted above the current layer, which it becomes.
     await addLayerWithPixels(newLayer);
-    selectLayer(state.currentFrame.layers.length - 1);
     setSelection(region.shifted(placement.offset));
   }
 
@@ -840,10 +997,8 @@ class PixelDrawController extends _$PixelDrawController {
       order: state.currentFrame.layers.length, // Add to top
     );
 
+    // Inserted above the current layer, which it becomes.
     await addLayerWithPixels(newLayer);
-
-    // Select the new layer (it's added at the end)
-    selectLayer(state.currentFrame.layers.length - 1);
   }
 
   Uint32List? _transformCachedPixels;
@@ -859,12 +1014,35 @@ class PixelDrawController extends _$PixelDrawController {
   // the pixel buffers differ. Empty for a single-layer transform.
   List<_LayerTransformCache> _extraTransformLayers = const [];
 
+  // A transform session spans every drag and nudge applied to the same
+  // floating pixels, from the first one until the pixels are dropped
+  // (commit, a new selection, a layer/frame switch...). Esc cancels the
+  // whole session: [_transformSessionStart] is the state before its first
+  // step, [_transformSessionUndoDepth] the undo stack size then.
+  PixelCanvasState? _transformSessionStart;
+  int _transformSessionUndoDepth = 0;
+
+  // Arrow-key nudges keep one transform open so a burst of presses is one
+  // undo step; it ends after a pause or when anything else ends it.
+  static const _nudgeIdle = Duration(milliseconds: 600);
+  Timer? _nudgeTimer;
+  bool _nudging = false;
+
+  /// Whether a transform session is open, i.e. Enter would commit and Esc
+  /// would cancel.
+  bool get hasTransformSession => _transformSessionStart != null;
+
   void startTransformSelection(SelectionRegion region) {
+    if (_nudging) endTransformSelection();
     if (currentLayer.pixels.isEmpty) return;
 
     final bounds = region.bounds;
     if (bounds.width <= 0 || bounds.height <= 0) return;
 
+    if (_transformSessionStart == null) {
+      _transformSessionStart = state;
+      _transformSessionUndoDepth = _undoRedoService.undoStackSize;
+    }
     // One snapshot covers every target layer, so one undo reverts them all.
     _saveState();
     _transformCachedRegion = region;
@@ -911,6 +1089,13 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void endTransformSelection() {
+    _nudgeTimer?.cancel();
+    _nudgeTimer = null;
+    _nudging = false;
+    final rotSprite = _pendingRotSprite;
+    if (rotSprite != null) {
+      rotateSelectionNew(rotSprite.angle, pivot: rotSprite.pivot, region: rotSprite.region, finalPass: true);
+    }
     if (_transformPreviewDirty) {
       // Keep the layer's serialized anchor in sync with where the selection
       // (and its anchor) ended up — otherwise it goes stale after any move.
@@ -939,6 +1124,91 @@ class PixelDrawController extends _$PixelDrawController {
         ),
       );
     }
+  }
+
+  /// Enter: drops the floating pixels where they are and keeps the
+  /// selection. Returns false when no transform session is open.
+  bool commitTransformSession() {
+    if (_transformSessionStart == null) return false;
+    _detachSelectionFromLayer();
+    return true;
+  }
+
+  /// Esc: puts the pixels and the selection back as they were before the
+  /// session's first move, resize, rotate or nudge, and drops the undo steps
+  /// it recorded. Returns false when no transform session is open.
+  bool cancelTransformSession() {
+    final start = _transformSessionStart;
+    if (start == null) return false;
+    _pendingRotSprite = null;
+    if (state.selectionState?.isTransforming == true) endTransformSelection();
+    while (_undoRedoService.undoStackSize > _transformSessionUndoDepth) {
+      _undoRedoService.discardLastSavedState();
+    }
+    _resetSelectionTransformCache();
+    // Frames and layers can't change during a session (switching ends it), so
+    // only the pixels and the selection go back. The start state's buffers
+    // are the ones its undo snapshot held; transforms never write into them.
+    state = state.copyWith(
+      frames: start.frames,
+      selectionState: start.selectionState?.copyWith(
+        isTransforming: false,
+        capturedPixels: () => null,
+        capturedBounds: () => null,
+      ),
+      canUndo: canUndo,
+      canRedo: canRedo,
+    );
+    _updateProject();
+    return true;
+  }
+
+  /// Transform panel: moves and resizes the selected pixels to [bounds]
+  /// (kept on the canvas) as one step of the transform session, so Esc
+  /// reverts it with the rest.
+  void setSelectionBounds(Rect bounds) {
+    final selection = state.selectionState;
+    if (selection == null || selection.isTransforming || bounds == selection.region.bounds) return;
+    if (bounds.width < 1 || bounds.height < 1) return;
+    startTransformSelection(selection.region);
+    if (state.selectionState?.isTransforming != true) return;
+    resizeSelectionNew(bounds);
+    endTransformSelection();
+  }
+
+  /// Transform panel: rotates the selected pixels by [angle] radians around
+  /// the anchor as one step of the transform session. Rendered at the
+  /// interpolation setting's best quality (RotSprite when chosen).
+  void rotateSelectionBy(double angle) {
+    final selection = state.selectionState;
+    if (selection == null || selection.isTransforming || angle == 0) return;
+    final anchor = selection.effectiveAnchor;
+    final matrix = Matrix4.translationValues(anchor.dx, anchor.dy, 0)
+      ..rotateZ(angle)
+      ..multiply(Matrix4.translationValues(-anchor.dx, -anchor.dy, 0));
+    startTransformSelection(selection.region);
+    if (state.selectionState?.isTransforming != true) return;
+    rotateSelectionNew(angle, region: selection.region.transformed(matrix), finalPass: true);
+    endTransformSelection();
+  }
+
+  /// Arrow keys: moves the selected pixels by [delta]. Presses in a quick
+  /// burst share one transform, so they undo (and cancel) together.
+  void nudgeSelection(Offset delta) {
+    final selection = state.selectionState;
+    if (selection == null || delta == Offset.zero) return;
+    if (!_nudging) {
+      // A pointer drag owns the transform right now.
+      if (selection.isTransforming) return;
+      startTransformSelection(selection.region);
+      if (state.selectionState?.isTransforming != true) return;
+      _nudging = true;
+    }
+    moveSelection(delta);
+    _nudgeTimer?.cancel();
+    _nudgeTimer = Timer(_nudgeIdle, () {
+      if (_nudging) endTransformSelection();
+    });
   }
 
   /// Ends any in-progress transform and drops the transform caches before
@@ -2373,10 +2643,19 @@ class PixelDrawController extends _$PixelDrawController {
     );
   }
 
+  // The last RotSprite rotation previewed with nearest neighbour during a
+  // drag; [endTransformSelection] renders it properly once.
+  ({double angle, Offset? pivot, SelectionRegion? region})? _pendingRotSprite;
+
+  /// Rotates the floating pixels by [angle] from where the transform
+  /// started. With the RotSprite setting, drag previews ([finalPass] false)
+  /// use nearest neighbour, which is cheap enough per frame, and the drag's
+  /// end renders RotSprite once.
   void rotateSelectionNew(
     double angle, {
     Offset? pivot,
     SelectionRegion? region,
+    bool finalPass = false,
   }) {
     final sel = state.selectionState;
     if (sel == null) return;
@@ -2394,17 +2673,23 @@ class PixelDrawController extends _$PixelDrawController {
 
     final rotatedBounds = _computeRotatedBounds(cachedBounds, rotCenter, angle);
 
-    final rotatedPixels = PixelUtils.applyRotationWithBounds(
-      cached,
-      srcW,
-      srcH,
-      angle,
-      cachedBounds,
-      rotatedBounds,
-      rotCenter,
-      _selectionTransformInterpolation,
-      0,
-    );
+    final useRotSprite = _transformInterpolationSetting == TransformInterpolation.rotSprite;
+    _pendingRotSprite = useRotSprite && !finalPass ? (angle: angle, pivot: pivot, region: region) : null;
+    Uint32List rotate(Uint32List source) => useRotSprite && finalPass
+        ? rotSpriteWithBounds(source, srcW, srcH, angle, cachedBounds, rotatedBounds, rotCenter)
+        : PixelUtils.applyRotationWithBounds(
+            source,
+            srcW,
+            srcH,
+            angle,
+            cachedBounds,
+            rotatedBounds,
+            rotCenter,
+            _selectionTransformInterpolation,
+            0,
+          );
+
+    final rotatedPixels = rotate(cached);
     if (rotatedPixels.isEmpty) return;
 
     final constrainedDest = Rect.fromLTRB(
@@ -2446,17 +2731,7 @@ class PixelDrawController extends _$PixelDrawController {
 
     final extra = <int, Uint32List>{};
     for (final c in _extraTransformLayers) {
-      final rotated = PixelUtils.applyRotationWithBounds(
-        c.source,
-        srcW,
-        srcH,
-        angle,
-        cachedBounds,
-        rotatedBounds,
-        rotCenter,
-        _selectionTransformInterpolation,
-        0,
-      );
+      final rotated = rotate(c.source);
       if (rotated.isEmpty) continue;
       c.floating = rotated;
       extra[c.layerIndex] = _placeTransformedPixels(c.base, rotated, bufferBounds, targetW, targetH);
@@ -2503,23 +2778,50 @@ class PixelDrawController extends _$PixelDrawController {
     _updateProject();
   }
 
-  void autoSelectLayer() {
-    if (currentLayer.pixels.isEmpty) return;
+  // The selection the last deselect dropped, for Reselect.
+  SelectionRegion? _lastDeselectedRegion;
 
+  /// A selection change made by the user (a selection tool, select all,
+  /// deselect...), recorded as its own undo step. Internal ops that move or
+  /// replace the selection as part of a bigger edit use [setSelection].
+  void selectRegion(SelectionRegion? region) {
+    final current = state.selectionState?.region;
+    if (identical(region, current)) return;
+    _undoRedoService.saveSelection(state.selectionState);
+    if (region == null) _lastDeselectedRegion = current;
+    setSelection(region);
+    state = state.copyWith(canUndo: canUndo, canRedo: canRedo);
+  }
+
+  /// Whether [reselect] has a selection to bring back.
+  bool get canReselect => _lastDeselectedRegion != null;
+
+  /// Ctrl+Shift+D: selects again what the last deselect dropped.
+  void reselect() {
+    final region = _lastDeselectedRegion;
+    if (region != null) selectRegion(region);
+  }
+
+  /// Selects the opaque pixels of the layer at [index] (Ctrl/Cmd-click on a
+  /// layer thumbnail). Does nothing for an empty layer.
+  void selectLayerPixels(int index) {
+    if (index < 0 || index >= currentFrame.layers.length) return;
+    final layer = currentFrame.layers[index];
+    if (layer.pixels.isEmpty) return;
     final region = _selectionService.createAutoSelection(
-      pixels: currentLayer.pixels,
+      pixels: layer.processedPixels(state.width, state.height),
       w: state.width,
       h: state.height,
     );
-
     if (region.bounds == Rect.zero) return;
-
-    setSelection(region);
+    selectRegion(region);
   }
+
+  void autoSelectLayer() => selectLayerPixels(state.currentLayerIndex);
 
   void selectAll() {
     final region = _selectionService.selectAll();
-    setSelection(region);
+    selectRegion(region);
   }
 
   void invertSelectionRegion() {
@@ -2527,7 +2829,7 @@ class PixelDrawController extends _$PixelDrawController {
     if (sel == null) return;
 
     final inverted = _selectionService.invertSelection(sel.region);
-    setSelection(inverted);
+    selectRegion(inverted);
   }
 
   void growSelectionRegion({int by = 1}) {
@@ -2535,11 +2837,7 @@ class PixelDrawController extends _$PixelDrawController {
     if (sel == null) return;
 
     final grown = _selectionService.growSelection(sel.region, by: by);
-    if (grown.bounds.isEmpty) {
-      clearSelection();
-    } else {
-      setSelection(grown);
-    }
+    selectRegion(grown.bounds.isEmpty ? null : grown);
   }
 
   void shrinkSelectionRegion({int by = 1}) {
@@ -2547,11 +2845,7 @@ class PixelDrawController extends _$PixelDrawController {
     if (sel == null) return;
 
     final shrunk = _selectionService.shrinkSelection(sel.region, by: by);
-    if (shrunk.bounds.isEmpty) {
-      clearSelection();
-    } else {
-      setSelection(shrunk);
-    }
+    selectRegion(shrunk.bounds.isEmpty ? null : shrunk);
   }
 
   void flipSelectionPixels({required bool horizontal}) => transformSelection(
@@ -3119,6 +3413,8 @@ class PixelDrawController extends _$PixelDrawController {
   }
 
   void _resetSelectionTransformCache() {
+    _transformSessionStart = null;
+    _pendingRotSprite = null;
     _transformCachedPixels = null;
     _transformCachedLayerWithoutSelection = null;
     _transformCachedBounds = null;
@@ -3153,9 +3449,10 @@ class PixelDrawController extends _$PixelDrawController {
     _updateProject();
   }
 
-  int get _selectionTransformInterpolation {
-    return ref.read(editorSettingsNotifierProvider).transformInterpolation.pixelUtilsValue;
-  }
+  TransformInterpolation get _transformInterpolationSetting =>
+      ref.read(editorSettingsNotifierProvider).transformInterpolation;
+
+  int get _selectionTransformInterpolation => _transformInterpolationSetting.pixelUtilsValue;
 }
 
 /// One extra layer of a multi-layer selection transform.

@@ -234,15 +234,27 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
       _controller.selectAnimationState(stateId);
 
   // Selection operations
+  /// A selection the user made; undoable. See [PixelDrawController.selectRegion].
   void setSelection(SelectionRegion? region) =>
-      _controller.setSelection(region);
+      _controller.selectRegion(region);
   void moveSelection(Offset delta) => _controller.moveSelection(delta);
+  /// Deselect; undoable, and Reselect brings it back.
   void clearSelection() {
     _eventController.add(const ClearSelectionEvent());
-    _controller.clearSelection();
+    _controller.selectRegion(null);
   }
 
+  void reselect() => _controller.reselect();
+  bool get canReselect => _controller.canReselect;
+  void selectLayerPixels(int index) => _controller.selectLayerPixels(index);
+
   void clearSelectionArea() => _controller.clearSelectionArea();
+  bool get hasTransformSession => _controller.hasTransformSession;
+  bool commitTransformSession() => _controller.commitTransformSession();
+  bool cancelTransformSession() => _controller.cancelTransformSession();
+  void nudgeSelection(Offset delta) => _controller.nudgeSelection(delta);
+  void setSelectionBounds(Rect bounds) => _controller.setSelectionBounds(bounds);
+  void rotateSelectionBy(double angle) => _controller.rotateSelectionBy(angle);
   Future<void> cutToNewLayer() =>
       _controller.selectionToNewLayer(clearSource: true);
   Future<void> copyToNewLayer() =>
@@ -260,13 +272,20 @@ class PixelCanvasNotifier extends _$PixelCanvasNotifier {
     SelectionRegion region, {
     required int sourceWidth,
     required int sourceHeight,
+    bool inPlace = false,
   }) =>
       _controller.pastePixels(
         pixels,
         region,
         sourceWidth: sourceWidth,
         sourceHeight: sourceHeight,
+        inPlace: inPlace,
       );
+  Uint32List? copyMergedSelectionPixels() => _controller.copyMergedSelectionPixels();
+  void fillSelection(Color color) => _controller.fillSelection(color);
+  void strokeSelection(Color color, {bool inside = true}) => _controller.strokeSelection(color, inside: inside);
+  bool get canCropToSelection => _controller.canCropToSelection;
+  Future<Project?> cropCanvasToSelection() => _controller.cropCanvasToSelection();
   void selectAll() => _controller.selectAll();
   void invertSelection() => _controller.invertSelectionRegion();
   void growSelection() => _controller.growSelectionRegion();

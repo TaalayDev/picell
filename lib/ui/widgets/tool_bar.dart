@@ -67,6 +67,12 @@ class ToolBar extends ConsumerWidget {
   final VoidCallback? onCopySelection;
   final VoidCallback? onCutSelection;
   final VoidCallback? onPasteSelection;
+  final VoidCallback? onCopyMerged;
+  final VoidCallback? onPasteInPlace;
+  final VoidCallback? onFillSelection;
+  final VoidCallback? onOutlineSelection;
+  final VoidCallback? onCropToSelection;
+  final VoidCallback? onOpenTransform;
   final bool canPaste;
   final VoidCallback? onShowHistory;
   final ValueNotifier<SelectionMode>? selectionMode;
@@ -109,6 +115,12 @@ class ToolBar extends ConsumerWidget {
     this.onCopySelection,
     this.onCutSelection,
     this.onPasteSelection,
+    this.onCopyMerged,
+    this.onPasteInPlace,
+    this.onFillSelection,
+    this.onOutlineSelection,
+    this.onCropToSelection,
+    this.onOpenTransform,
     this.canPaste = false,
     this.onShowHistory,
     this.selectionMode,
@@ -603,6 +615,12 @@ class ToolBar extends ConsumerWidget {
                           onRotate180: () => notifier.transformSelection(PixelTransform.rotate180),
                           onFlipHorizontal: () => notifier.flipSelection(horizontal: true),
                           onFlipVertical: () => notifier.flipSelection(horizontal: false),
+                          onFill: onFillSelection,
+                          onOpenTransform: onOpenTransform,
+                          onOutline: onOutlineSelection,
+                          onCropToSelection: onCropToSelection,
+                          onCopyMerged: onCopyMerged,
+                          onPasteInPlace: canPaste ? onPasteInPlace : null,
                         ),
                     ],
                   );

@@ -11,6 +11,7 @@ import 'canvas_controller.dart';
 import 'canvas_gesture_handler.dart';
 import 'canvas_runtime_config.dart';
 import 'selection_handle_geometry.dart';
+import 'selection_transform_modifiers.dart';
 import 'tool_drawing_manager.dart';
 
 class PixelCanvasInputAdapter {
@@ -106,10 +107,13 @@ class PixelCanvasInputAdapter {
   }
 
   /// Combine mode for a selection gesture starting now: Shift adds, Alt
-  /// subtracts, otherwise the toolbar toggle applies. Computed once at
-  /// pointer-down — never per (frame-coalesced) move.
+  /// subtracts, both intersect, otherwise the toolbar toggle applies.
+  /// Computed once at pointer-down — never per (frame-coalesced) move.
   SelectionMode _effectiveSelectionMode() {
     final keyboard = HardwareKeyboard.instance;
+    if (keyboard.isShiftPressed && keyboard.isAltPressed) {
+      return SelectionMode.intersect;
+    }
     if (keyboard.isShiftPressed) return SelectionMode.add;
     if (keyboard.isAltPressed) return SelectionMode.subtract;
     return _config.selectionMode;
@@ -550,7 +554,11 @@ class PixelCanvasInputAdapter {
         final dx = scenePosition.dx - rotationCenterScreen.dx;
         final dy = scenePosition.dy - rotationCenterScreen.dy;
         final currentAngle = math.atan2(dy, dx);
-        final rotationAngle = currentAngle - _initialRotationAngle;
+        var rotationAngle = currentAngle - _initialRotationAngle;
+        // Shift snaps to 15° steps.
+        if (HardwareKeyboard.instance.isShiftPressed) {
+          rotationAngle = snapSelectionRotation(rotationAngle);
+        }
 
         final anchorPixel = _config.selectionState?.effectiveAnchor ??
             selectionRegion.bounds.center;
@@ -588,54 +596,24 @@ class PixelCanvasInputAdapter {
         final pixelDeltaX = screenDelta.dx / pixelWidth;
         final pixelDeltaY = screenDelta.dy / pixelHeight;
 
-        double newLeft = originalBounds.left;
-        double newTop = originalBounds.top;
-        double newRight = originalBounds.right;
-        double newBottom = originalBounds.bottom;
-
-        switch (handle) {
-          case CanvasSelectionHandle.topLeft:
-            newLeft += pixelDeltaX;
-            newTop += pixelDeltaY;
-            break;
-          case CanvasSelectionHandle.topRight:
-            newRight += pixelDeltaX;
-            newTop += pixelDeltaY;
-            break;
-          case CanvasSelectionHandle.bottomLeft:
-            newLeft += pixelDeltaX;
-            newBottom += pixelDeltaY;
-            break;
-          case CanvasSelectionHandle.bottomRight:
-            newRight += pixelDeltaX;
-            newBottom += pixelDeltaY;
-            break;
-          case CanvasSelectionHandle.topCenter:
-            newTop += pixelDeltaY;
-            break;
-          case CanvasSelectionHandle.bottomCenter:
-            newBottom += pixelDeltaY;
-            break;
-          case CanvasSelectionHandle.leftCenter:
-            newLeft += pixelDeltaX;
-            break;
-          case CanvasSelectionHandle.rightCenter:
-            newRight += pixelDeltaX;
-            break;
-          case CanvasSelectionHandle.move:
-          case CanvasSelectionHandle.rotate:
-          case CanvasSelectionHandle.anchor:
-            break;
-        }
-
-        if (newRight - newLeft < 1) newRight = newLeft + 1;
-        if (newBottom - newTop < 1) newBottom = newTop + 1;
-
+        // Shift keeps the aspect ratio, Alt resizes around the center. Read
+        // live so pressing or releasing them mid-drag takes effect.
+        final keyboard = HardwareKeyboard.instance;
+        final resized = resizeSelectionBounds(
+          original: originalBounds,
+          handle: handle,
+          dx: pixelDeltaX,
+          dy: pixelDeltaY,
+          keepAspect: keyboard.isShiftPressed,
+          fromCenter: keyboard.isAltPressed,
+        );
         final newRect = Rect.fromLTRB(
-          newLeft.roundToDouble(),
-          newTop.roundToDouble(),
-          newRight.roundToDouble(),
-          newBottom.roundToDouble(),
+          resized.left.roundToDouble(),
+          resized.top.roundToDouble(),
+          math.max(
+              resized.left.roundToDouble() + 1, resized.right.roundToDouble()),
+          math.max(
+              resized.top.roundToDouble() + 1, resized.bottom.roundToDouble()),
         );
         final newRegion = SelectionRegion(
           path: Path()..addRect(newRect),

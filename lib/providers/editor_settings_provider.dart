@@ -16,9 +16,14 @@ enum InputMode {
 
 enum TransformInterpolation {
   nearest,
-  bilinear;
+  bilinear,
 
-  int get pixelUtilsValue => index;
+  /// Nearest-neighbour resizing; RotSprite rotation (clean pixel-art
+  /// diagonals). Stored by index, so it must stay last.
+  rotSprite;
+
+  /// The `PixelUtils` sampler: RotSprite resizes with nearest neighbour.
+  int get pixelUtilsValue => this == rotSprite ? nearest.index : index;
 }
 
 /// Editor settings state

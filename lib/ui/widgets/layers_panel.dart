@@ -7,10 +7,12 @@ import 'package:animated_reorderable_list/animated_reorderable_list.dart';
 
 import '../../data.dart';
 import '../../l10n/strings.dart';
+import '../../pixel/image_painter.dart';
 import '../../pixel/services/pixel_transform_service.dart';
 import '../../providers/background_image_provider.dart';
 import '../utils/multi_selection.dart';
 import 'fancy_slider.dart';
+import 'layers_preview.dart';
 import 'panel_select_all_region.dart';
 
 class LayersPanel extends HookConsumerWidget {
@@ -30,6 +32,9 @@ class LayersPanel extends HookConsumerWidget {
 
   /// Merges the given layers into the lowest of them.
   final Function(List<int>)? onLayersMerged;
+
+  /// Ctrl/Cmd-click on a layer thumbnail: selects that layer's pixels.
+  final Function(int)? onSelectLayerPixels;
   final Function(Layer)? onLayerEffectsChanged;
   final Function(Layer) onLayerUpdated;
   final Function(Layer) onLayerToTemplate;
@@ -56,6 +61,7 @@ class LayersPanel extends HookConsumerWidget {
     required this.onLayersOpacityChanged,
     this.onLayersTransformed,
     this.onLayersMerged,
+    this.onSelectLayerPixels,
     required this.onLayerUpdated,
     required this.onLayerToTemplate,
     this.onAutoSelect,
@@ -176,6 +182,9 @@ class LayersPanel extends HookConsumerWidget {
                     onLayersLockedChanged(targets, !layer.isLocked);
                   },
                   onDoubleTap: () => _showRenameDialog(context, layer),
+                  onSelectPixels: onSelectLayerPixels,
+                  canvasWidth: width,
+                  canvasHeight: height,
                 );
               },
               enterTransition: [FlipInX(), ScaleIn()],
@@ -504,6 +513,75 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
+/// A small preview of one layer in its row.
+class _LayerThumbnail extends StatefulWidget {
+  const _LayerThumbnail({
+    required this.layer,
+    required this.canvasWidth,
+    required this.canvasHeight,
+    required this.onTap,
+  });
+
+  final Layer layer;
+  final int canvasWidth;
+  final int canvasHeight;
+
+  /// Whether Ctrl/Cmd was held when the tap started.
+  final void Function(bool withToggleKey) onTap;
+
+  @override
+  State<_LayerThumbnail> createState() => _LayerThumbnailState();
+}
+
+class _LayerThumbnailState extends State<_LayerThumbnail> {
+  static const double _height = 24;
+
+  // Read at pointer-down: the row's double-tap (rename) delays the tap
+  // callbacks, onTapDown included, until after the key may be released.
+  bool _toggleKeyAtDown = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final layer = widget.layer;
+    final canvasWidth = widget.canvasWidth;
+    final canvasHeight = widget.canvasHeight;
+    final aspect = canvasWidth > 0 && canvasHeight > 0 ? (canvasWidth / canvasHeight).clamp(0.5, 2.0) : 1.0;
+    return Tooltip(
+      message: 'Ctrl/Cmd-click to select pixels',
+      waitDuration: const Duration(milliseconds: 800),
+      child: Listener(
+        onPointerDown: (_) => _toggleKeyAtDown = isMultiSelectTogglePressed,
+        child: GestureDetector(
+          key: ValueKey('layer-thumbnail-${layer.id}'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => widget.onTap(_toggleKeyAtDown),
+          child: SizedBox(
+            width: _height * aspect,
+            height: _height,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.85),
+                border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.4)),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LayersPreview(
+                  width: canvasWidth,
+                  height: canvasHeight,
+                  layers: [layer],
+                  builder: (context, image) =>
+                      image != null ? CustomPaint(painter: ImagePainter(image)) : const SizedBox(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LayerTile extends StatelessWidget {
   final Layer layer;
   final int index;
@@ -513,6 +591,9 @@ class _LayerTile extends StatelessWidget {
   final Function(int) onLayerVisibilityChanged;
   final Function(int) onLayerLockedChanged;
   final VoidCallback? onDoubleTap;
+  final Function(int)? onSelectPixels;
+  final int canvasWidth;
+  final int canvasHeight;
 
   const _LayerTile({
     super.key,
@@ -524,6 +605,9 @@ class _LayerTile extends StatelessWidget {
     required this.onLayerVisibilityChanged,
     required this.onLayerLockedChanged,
     this.onDoubleTap,
+    this.onSelectPixels,
+    required this.canvasWidth,
+    required this.canvasHeight,
   });
 
   @override
@@ -565,6 +649,22 @@ class _LayerTile extends StatelessWidget {
                     size: 14,
                     color: contentColor,
                   ),
+                ),
+                const SizedBox(width: 6),
+                _LayerThumbnail(
+                  layer: layer,
+                  canvasWidth: canvasWidth,
+                  canvasHeight: canvasHeight,
+                  // Ctrl/Cmd-click selects the layer's pixels (as in other
+                  // editors); a plain click acts like the rest of the row.
+                  onTap: (withToggleKey) {
+                    final selectPixels = onSelectPixels;
+                    if (selectPixels != null && withToggleKey) {
+                      selectPixels(index);
+                    } else {
+                      onLayerSelected(index);
+                    }
+                  },
                 ),
                 const SizedBox(width: 8),
                 Expanded(

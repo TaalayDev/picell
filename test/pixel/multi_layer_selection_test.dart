@@ -129,6 +129,28 @@ void main() {
     expectUndoRestoresAll();
   });
 
+  test('Esc cancels a transform on every selected layer and Enter keeps it', () {
+    controller.startTransformSelection(region);
+    controller.moveSelection(const Offset(1, 0));
+    controller.endTransformSelection();
+    controller.nudgeSelection(const Offset(1, 0));
+
+    expect(controller.cancelTransformSession(), isTrue);
+    var now = layers();
+    expect(now[0], px({0: red}));
+    expect(now[1], px({4: green}));
+    expectUntouched(now);
+
+    controller.startTransformSelection(region);
+    controller.moveSelection(const Offset(1, 0));
+    controller.endTransformSelection();
+    expect(controller.commitTransformSession(), isTrue);
+    now = layers();
+    expect(now[0], px({1: red}));
+    expect(now[1], px({5: green}));
+    expectUntouched(now);
+  });
+
   test('scaling the selection scales every selected layer the same way', () {
     controller.startTransformSelection(region);
     controller.resizeSelectionNew(const Rect.fromLTWH(0, 0, 4, 2));

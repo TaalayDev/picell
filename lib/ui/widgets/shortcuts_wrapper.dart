@@ -52,6 +52,14 @@ class ShortcutsWrapper extends StatefulWidget {
     this.onCut,
     this.onDuplicate,
     this.onCtrlEnter,
+    this.onCommit,
+    this.onReselect,
+    this.onCopyMerged,
+    this.onPasteInPlace,
+    this.onFillSelection,
+    this.onOpenTransform,
+    this.onCancel,
+    this.onNudge,
     this.onTransform,
     this.currentBrushSize = 1,
     this.maxBrushSize = 10,
@@ -126,6 +134,30 @@ class ShortcutsWrapper extends StatefulWidget {
   final VoidCallback? onCut;
   final VoidCallback? onDuplicate;
   final VoidCallback? onCtrlEnter;
+
+  /// Enter. Falls back to [onDeselectAll].
+  final VoidCallback? onCommit;
+
+  /// Esc. Falls back to [onDeselectAll].
+  final VoidCallback? onCancel;
+
+  /// Ctrl+Shift+D: brings back the last deselected selection.
+  final VoidCallback? onReselect;
+
+  /// Ctrl+Shift+C: copies what every visible layer shows in the selection.
+  final VoidCallback? onCopyMerged;
+
+  /// Ctrl+Shift+V: pastes at the copied coordinates.
+  final VoidCallback? onPasteInPlace;
+
+  /// Alt+Backspace: fills the selection with the current color.
+  final VoidCallback? onFillSelection;
+
+  /// Ctrl+T: opens the typed transform panel.
+  final VoidCallback? onOpenTransform;
+
+  /// Arrow keys: 1 pixel, 10 with Shift.
+  final void Function(Offset delta)? onNudge;
 
   // Flip / rotate the selection, or the current layer when nothing is selected
   final void Function(PixelTransform transform)? onTransform;
@@ -362,9 +394,31 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
           const SelectAllIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyD):
           const DeselectAllIntent(),
-      LogicalKeySet(LogicalKeyboardKey.escape): const DeselectAllIntent(),
-      LogicalKeySet(LogicalKeyboardKey.enter): const DeselectAllIntent(),
-      LogicalKeySet(LogicalKeyboardKey.numpadEnter): const DeselectAllIntent(),
+      LogicalKeySet(
+              controlKey, LogicalKeyboardKey.shift, LogicalKeyboardKey.keyD):
+          const ReselectIntent(),
+      LogicalKeySet(
+              controlKey, LogicalKeyboardKey.shift, LogicalKeyboardKey.keyC):
+          const CopyMergedIntent(),
+      LogicalKeySet(
+              controlKey, LogicalKeyboardKey.shift, LogicalKeyboardKey.keyV):
+          const PasteInPlaceIntent(),
+      LogicalKeySet(LogicalKeyboardKey.alt, LogicalKeyboardKey.backspace):
+          const FillSelectionIntent(),
+      LogicalKeySet(controlKey, LogicalKeyboardKey.keyT):
+          const OpenTransformIntent(),
+      LogicalKeySet(LogicalKeyboardKey.escape): const CancelIntent(),
+      LogicalKeySet(LogicalKeyboardKey.enter): const CommitIntent(),
+      LogicalKeySet(LogicalKeyboardKey.numpadEnter): const CommitIntent(),
+      for (final (key, delta) in [
+        (LogicalKeyboardKey.arrowLeft, const Offset(-1, 0)),
+        (LogicalKeyboardKey.arrowRight, const Offset(1, 0)),
+        (LogicalKeyboardKey.arrowUp, const Offset(0, -1)),
+        (LogicalKeyboardKey.arrowDown, const Offset(0, 1)),
+      ]) ...{
+        LogicalKeySet(key): NudgeIntent(delta),
+        LogicalKeySet(LogicalKeyboardKey.shift, key): NudgeIntent(delta * 10),
+      },
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyC): const CopyIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyV): const PasteIntent(),
       LogicalKeySet(controlKey, LogicalKeyboardKey.keyX): const CutIntent(),
@@ -506,6 +560,30 @@ class _ShortcutsWrapperState extends State<ShortcutsWrapper> {
       ),
       DeselectAllIntent: _OutsideTextAction<DeselectAllIntent>(
         onInvoke: (intent) => widget.onDeselectAll?.call(),
+      ),
+      ReselectIntent: _OutsideTextAction<ReselectIntent>(
+        onInvoke: (intent) => widget.onReselect?.call(),
+      ),
+      CopyMergedIntent: _OutsideTextAction<CopyMergedIntent>(
+        onInvoke: (intent) => widget.onCopyMerged?.call(),
+      ),
+      PasteInPlaceIntent: _OutsideTextAction<PasteInPlaceIntent>(
+        onInvoke: (intent) => widget.onPasteInPlace?.call(),
+      ),
+      FillSelectionIntent: _OutsideTextAction<FillSelectionIntent>(
+        onInvoke: (intent) => widget.onFillSelection?.call(),
+      ),
+      OpenTransformIntent: _OutsideTextAction<OpenTransformIntent>(
+        onInvoke: (intent) => widget.onOpenTransform?.call(),
+      ),
+      CommitIntent: _OutsideTextAction<CommitIntent>(
+        onInvoke: (intent) => (widget.onCommit ?? widget.onDeselectAll)?.call(),
+      ),
+      CancelIntent: _OutsideTextAction<CancelIntent>(
+        onInvoke: (intent) => (widget.onCancel ?? widget.onDeselectAll)?.call(),
+      ),
+      NudgeIntent: _OutsideTextAction<NudgeIntent>(
+        onInvoke: (intent) => widget.onNudge?.call(intent.delta),
       ),
       CopyIntent: _OutsideTextAction<CopyIntent>(
         onInvoke: (intent) => widget.onCopy?.call(),
@@ -682,6 +760,39 @@ class SelectAllIntent extends Intent {
 
 class DeselectAllIntent extends Intent {
   const DeselectAllIntent();
+}
+
+class CopyMergedIntent extends Intent {
+  const CopyMergedIntent();
+}
+
+class PasteInPlaceIntent extends Intent {
+  const PasteInPlaceIntent();
+}
+
+class FillSelectionIntent extends Intent {
+  const FillSelectionIntent();
+}
+
+class OpenTransformIntent extends Intent {
+  const OpenTransformIntent();
+}
+
+class ReselectIntent extends Intent {
+  const ReselectIntent();
+}
+
+class CommitIntent extends Intent {
+  const CommitIntent();
+}
+
+class CancelIntent extends Intent {
+  const CancelIntent();
+}
+
+class NudgeIntent extends Intent {
+  const NudgeIntent(this.delta);
+  final Offset delta;
 }
 
 class CopyIntent extends Intent {

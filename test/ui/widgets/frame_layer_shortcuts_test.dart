@@ -29,6 +29,14 @@ void main() {
           onExtendFrameSelection: (d) => calls.add('extendFrames $d'),
           onMoveFrames: (d) => calls.add('moveFrames $d'),
           onNewFrame: () => calls.add('newFrame'),
+          onCommit: () => calls.add('commit'),
+          onCancel: () => calls.add('cancel'),
+          onReselect: () => calls.add('reselect'),
+          onCopyMerged: () => calls.add('copyMerged'),
+          onPasteInPlace: () => calls.add('pasteInPlace'),
+          onFillSelection: () => calls.add('fill'),
+          onDeselectAll: () => calls.add('deselect'),
+          onNudge: (d) => calls.add('nudge ${d.dx.toInt()},${d.dy.toInt()}'),
           child: withTextField ? TextField(key: const ValueKey('field'), controller: text) : const SizedBox.expand(),
         ),
       ),
@@ -93,6 +101,52 @@ void main() {
     expect(calls, ['layer 0', 'zoom100', 'zoomFit']);
   }, variant: macOS);
 
+  testWidgets('Enter commits, Esc cancels, Cmd+D deselects', (tester) async {
+    await pump(tester);
+    await press(tester, [LogicalKeyboardKey.enter]);
+    await press(tester, [LogicalKeyboardKey.numpadEnter]);
+    await press(tester, [LogicalKeyboardKey.escape]);
+    await press(tester, [cmd, LogicalKeyboardKey.keyD]);
+    await press(tester, [cmd, shift, LogicalKeyboardKey.keyD]);
+    expect(calls, ['commit', 'commit', 'cancel', 'deselect', 'reselect']);
+  }, variant: macOS);
+
+  testWidgets('arrows nudge by 1, Shift+arrows by 10; Cmd+arrows still move frames', (tester) async {
+    await pump(tester);
+    await press(tester, [LogicalKeyboardKey.arrowLeft]);
+    await press(tester, [LogicalKeyboardKey.arrowDown]);
+    await press(tester, [shift, LogicalKeyboardKey.arrowRight]);
+    await press(tester, [shift, LogicalKeyboardKey.arrowUp]);
+    await press(tester, [cmd, LogicalKeyboardKey.arrowRight]);
+    expect(calls, ['nudge -1,0', 'nudge 0,1', 'nudge 10,0', 'nudge 0,-10', 'moveFrames 1']);
+  }, variant: macOS);
+
+  testWidgets('Cmd+Shift+C copies merged, Cmd+Shift+V pastes in place, Option+Backspace fills', (tester) async {
+    await pump(tester);
+    await press(tester, [cmd, shift, LogicalKeyboardKey.keyC]);
+    await press(tester, [cmd, shift, LogicalKeyboardKey.keyV]);
+    await press(tester, [LogicalKeyboardKey.altLeft, LogicalKeyboardKey.backspace]);
+    await press(tester, [LogicalKeyboardKey.backspace]);
+    expect(calls, ['copyMerged', 'pasteInPlace', 'fill', 'delete']);
+  }, variant: macOS);
+
+  testWidgets('without commit/cancel handlers Enter and Esc deselect', (tester) async {
+    final deselected = <String>[];
+    await tester.pumpWidget(MaterialApp(
+      home: ShortcutsWrapper(
+        onUndo: () {},
+        onRedo: () {},
+        onSave: () {},
+        onDeselectAll: () => deselected.add('deselect'),
+        child: const SizedBox.expand(),
+      ),
+    ));
+    await tester.pump();
+    await press(tester, [LogicalKeyboardKey.enter]);
+    await press(tester, [LogicalKeyboardKey.escape]);
+    expect(deselected, ['deselect', 'deselect']);
+  }, variant: macOS);
+
   testWidgets('frame keys and Backspace leave a focused text field alone', (tester) async {
     await pump(tester, withTextField: true);
     await tester.tap(find.byKey(const ValueKey('field')));
@@ -103,6 +157,7 @@ void main() {
     await press(tester, [LogicalKeyboardKey.comma]);
     await press(tester, [LogicalKeyboardKey.delete]);
     await press(tester, [cmd, LogicalKeyboardKey.arrowLeft]);
+    await press(tester, [LogicalKeyboardKey.arrowLeft]);
 
     expect(calls, isEmpty);
     expect(text.text, '12', reason: 'Backspace still edits the field');

@@ -574,6 +574,11 @@ class _TransformInterpolationTile extends StatelessWidget {
                 value: TransformInterpolation.bilinear,
                 label: Text(s.bilinear),
               ),
+              const ButtonSegment<TransformInterpolation>(
+                value: TransformInterpolation.rotSprite,
+                label: Text('RotSprite'),
+                tooltip: 'Nearest for resizing; clean pixel-art rotation',
+              ),
             ],
             selected: {settings.transformInterpolation},
             onSelectionChanged: (selection) {
