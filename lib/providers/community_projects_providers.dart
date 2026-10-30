@@ -55,7 +55,9 @@ class CommunityProjects extends _$CommunityProjects {
           );
 
       if (response.success && response.data != null) {
-        final newProjects = response.data!.projects;
+        var newProjects = List<ApiProject>.from(response.data!.projects);
+        // randomize the order of projects to avoid showing the same ones at the top every time
+        newProjects.shuffle();
         final hasMore = state.currentPage < response.data!.pagination.totalPages;
 
         state = state.copyWith(

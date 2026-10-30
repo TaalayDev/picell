@@ -182,7 +182,7 @@
     "noCustomColors": "No custom colors added yet.\nAdd colors using the + button above.",
     "effects": "Effects",
     "effectWorkspaceFilters": "Filters",
-    "effectWorkspaceMaterials": "Materials",
+    "effectWorkspaceTextures": "Textures",
     "effectWorkspaceGenerators": "Generators",
     "effectWorkspaceAnimation": "Animation",
     "animationTransformers": "Transformers",

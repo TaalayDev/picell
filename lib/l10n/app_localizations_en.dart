@@ -449,7 +449,7 @@ class StringsEn extends Strings {
   String get effectWorkspaceFilters => 'Filters';
 
   @override
-  String get effectWorkspaceMaterials => 'Materials';
+  String get effectWorkspaceTextures => 'Textures';
 
   @override
   String get effectWorkspaceGenerators => 'Generators';

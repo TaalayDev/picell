@@ -1,561 +1,509 @@
 part of 'effects.dart';
 
-/// Effect that transforms pixels to look like various types of ice and frozen surfaces
+/// Smart silhouette-aware ice and frost material with Voronoi crystal facets,
+/// optical artwork refraction, trapped air bubbles, internal stress fractures,
+/// and directional 3D rim bevels.
 class IceEffect extends Effect {
-  IceEffect([Map<String, dynamic>? parameters])
-      : super(
-          EffectType.ice,
-          parameters ??
-              const {
-                'iceType': 0, // 0=clear ice, 1=frosted ice, 2=crystal ice, 3=glacial ice, 4=black ice, 5=snow ice
-                'transparency': 0.7, // Ice transparency (0-1)
-                'thickness': 0.5, // Ice thickness affecting opacity (0-1)
-                'frostiness': 0.3, // Amount of frost on surface (0-1)
-                'crackIntensity': 0.2, // Intensity of cracks and fractures (0-1)
-                'bubbleAmount': 0.3, // Air bubbles trapped in ice (0-1)
-                'refractionStrength': 0.4, // Light refraction/distortion (0-1)
-                'crystallization': 0.5, // Crystal formation patterns (0-1)
-                'shininess': 0.8, // Surface reflectivity (0-1)
-                'temperature': 0.2, // Visual temperature (0=very cold, 1=melting)
-                'iceAge': 0.3, // How old/weathered the ice is (0-1)
-                'randomSeed': 42, // Seed for pattern generation
-              },
-        );
+  IceEffect([Map<String, dynamic>? params])
+      : super(EffectType.ice, {..._defaults, ...?params});
+
+  static const iceTypeOptions = <int, String>{
+    0: 'Clear Ice',
+    1: 'Frosted Ice',
+    2: 'Crystal Ice',
+    3: 'Glacial Ice',
+    4: 'Black Ice',
+    5: 'Snow Ice',
+  };
+
+  static const _defaults = <String, dynamic>{
+    'iceType': 0,
+    'scale': 14,
+    'transparency': 0.35,
+    'thickness': 0.5,
+    'frostiness': 0.35,
+    'crackIntensity': 0.35,
+    'bubbleAmount': 0.25,
+    'refractionStrength': 0.4,
+    'crystallization': 0.5,
+    'shininess': 0.75,
+    'temperature': 0.2,
+    'iceAge': 0.3,
+    'bevelWidth': 3.0,
+    'lightAngle': 225.0,
+    'iceColor': 0xFF9CE8FF,
+    'frostColor': 0xFFF2FBFF,
+    'deepColor': 0xFF1E5C8A,
+    'randomSeed': 42,
+    'opacity': 1.0,
+    'preserveAlpha': true,
+  };
 
   @override
-  Map<String, dynamic> getDefaultParameters() {
-    return {
-      'iceType': 0,
-      'transparency': 0.7,
-      'thickness': 0.5,
-      'frostiness': 0.3,
-      'crackIntensity': 0.2,
-      'bubbleAmount': 0.3,
-      'refractionStrength': 0.4,
-      'crystallization': 0.5,
-      'shininess': 0.8,
-      'temperature': 0.2,
-      'iceAge': 0.3,
-      'randomSeed': 42,
-    };
-  }
+  Map<String, dynamic> getDefaultParameters() => Map.of(_defaults);
 
   @override
-  Map<String, dynamic> getMetadata() {
-    return {
-      'iceType': {
-        'label': 'Ice Type',
-        'description': 'Select the type of ice surface to simulate.',
-        'type': 'select',
-        'options': {
-          0: 'Clear Ice',
-          1: 'Frosted Ice',
-          2: 'Crystal Ice',
-          3: 'Glacial Ice',
-          4: 'Black Ice',
-          5: 'Snow Ice',
+  Map<String, dynamic> getMetadata() => {
+        'iceType': <String, dynamic>{
+          'label': 'Ice Type',
+          'description': 'Optical and structural ice formation.',
+          'type': 'select',
+          'options': iceTypeOptions,
         },
-      },
-      'transparency': {
-        'label': 'Ice Transparency',
-        'description': 'How transparent the ice appears.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'thickness': {
-        'label': 'Ice Thickness',
-        'description': 'Thickness of the ice layer affecting opacity.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'frostiness': {
-        'label': 'Frost Amount',
-        'description': 'Amount of frost crystals on the ice surface.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'crackIntensity': {
-        'label': 'Crack Intensity',
-        'description': 'Intensity of cracks and stress fractures in the ice.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'bubbleAmount': {
-        'label': 'Air Bubbles',
-        'description': 'Amount of air bubbles trapped in the ice.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'refractionStrength': {
-        'label': 'Light Refraction',
-        'description': 'Strength of light bending and distortion effects.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'crystallization': {
-        'label': 'Crystal Formation',
-        'description': 'Amount of visible crystal structures in the ice.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'shininess': {
-        'label': 'Surface Shininess',
-        'description': 'How reflective and glossy the ice surface is.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'temperature': {
-        'label': 'Temperature',
-        'description': 'Visual temperature of ice (0=frozen solid, 1=near melting).',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'iceAge': {
-        'label': 'Ice Age',
-        'description': 'How old and weathered the ice appears.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'randomSeed': {
-        'label': 'Pattern Seed',
-        'description': 'Changes the random ice pattern.',
-        'type': 'slider',
-        'min': 1,
-        'max': 100,
-        'divisions': 99,
-      },
-    };
+        for (final spec in [
+          ('scale', 'Crystal Scale', 4, 64),
+          ('transparency', 'Artwork Clarity', 0.0, 1.0),
+          ('thickness', 'Ice Thickness', 0.0, 1.0),
+          ('frostiness', 'Surface & Rim Frost', 0.0, 1.0),
+          ('crackIntensity', 'Internal Fractures', 0.0, 1.0),
+          ('bubbleAmount', 'Trapped Air Bubbles', 0.0, 1.0),
+          ('refractionStrength', 'Light Refraction', 0.0, 1.0),
+          ('crystallization', 'Crystal Facets', 0.0, 1.0),
+          ('shininess', 'Specular Gloss', 0.0, 1.0),
+          ('temperature', 'Temperature', 0.0, 1.0),
+          ('iceAge', 'Glacial Weathering', 0.0, 1.0),
+          ('bevelWidth', 'Smart Rim Bevel', 0.0, 8.0),
+          ('lightAngle', 'Light Direction', 0.0, 360.0),
+          ('randomSeed', 'Pattern Seed', 0, 9999),
+          ('opacity', 'Opacity', 0.0, 1.0),
+        ])
+          spec.$1: <String, dynamic>{
+            'label': spec.$2,
+            'type': 'slider',
+            'min': spec.$3,
+            'max': spec.$4,
+            'divisions': spec.$3 is int ? (spec.$4 - spec.$3).toInt() : 100,
+          },
+        'iceColor': <String, dynamic>{
+          'label': 'Ice Color',
+          'type': 'color',
+        },
+        'frostColor': <String, dynamic>{
+          'label': 'Frost & Fracture Color',
+          'type': 'color',
+        },
+        'deepColor': <String, dynamic>{
+          'label': 'Deep Glacial Color',
+          'type': 'color',
+        },
+        'preserveAlpha': <String, dynamic>{
+          'label': 'Preserve Alpha',
+          'type': 'bool',
+          'description':
+              'Freeze within the artwork silhouette; disable to fill the canvas.',
+        },
+      };
+
+  double _number(String key, double min, double max) {
+    final value = (parameters[key] as num?)?.toDouble();
+    return (value != null && value.isFinite
+            ? value
+            : (_defaults[key] as num).toDouble())
+        .clamp(min, max);
   }
+
+  int _color(String key) {
+    final value = parameters[key];
+    return value is num ? value.toInt() : (_defaults[key] as int);
+  }
+
+  static int _typeTint(int iceType) => switch (iceType) {
+        0 => 0xFFB8F0FF, // Clear ice pale cyan
+        1 => 0xFFDCEEFF, // Frosted ice milky blue-white
+        2 => 0xFF88DCFF, // Crystal ice bright sky cyan
+        3 => 0xFF4CA8E0, // Glacial ice compressed cerulean
+        4 => 0xFF283A52, // Black ice dark abyssal slate-blue
+        5 => 0xFFF2F8FF, // Snow ice crisp neve white
+        _ => 0xFFB8F0FF,
+      };
 
   @override
   Uint32List apply(Uint32List pixels, int width, int height) {
-    final iceType = (parameters['iceType'] as int).clamp(0, 5);
-    final transparency = parameters['transparency'] as double;
-    final thickness = parameters['thickness'] as double;
-    final frostiness = parameters['frostiness'] as double;
-    final crackIntensity = parameters['crackIntensity'] as double;
-    final bubbleAmount = parameters['bubbleAmount'] as double;
-    final refractionStrength = parameters['refractionStrength'] as double;
-    final crystallization = parameters['crystallization'] as double;
-    final shininess = parameters['shininess'] as double;
-    final temperature = parameters['temperature'] as double;
-    final iceAge = parameters['iceAge'] as double;
-    final randomSeed = parameters['randomSeed'] as int;
+    final output = Uint32List.fromList(pixels);
+    if (width <= 0 || height <= 0 || pixels.length < width * height) {
+      return output;
+    }
+    final opacity = _number('opacity', 0, 1);
+    if (opacity == 0) return output;
 
-    final result = Uint32List(pixels.length);
-    final random = Random(randomSeed);
+    final iceType = _number('iceType', 0, 5).round();
+    final size = _number('scale', 4, 64);
+    final clarity = _number('transparency', 0, 1);
+    final thickness = _number('thickness', 0, 1);
+    final frostiness = _number('frostiness', 0, 1);
+    final cracks = _number('crackIntensity', 0, 1);
+    final bubbles = _number('bubbleAmount', 0, 1);
+    final refraction = _number('refractionStrength', 0, 1);
+    final crystallization = _number('crystallization', 0, 1);
+    final shininess = _number('shininess', 0, 1);
+    final temperature = _number('temperature', 0, 1);
+    final iceAge = _number('iceAge', 0, 1);
+    final bevelWidth = _number('bevelWidth', 0, 8);
+    final angle = _number('lightAngle', 0, 360) * math.pi / 180.0;
+    final lx = math.cos(angle), ly = math.sin(angle);
+    final seed =
+        ((parameters['randomSeed'] ?? parameters['seed']) as num?)?.round() ??
+            42;
+    final clampedSeed = seed.clamp(0, 9999);
+    final iceColor = _color('iceColor');
+    final frostColor = _color('frostColor');
+    final deepColor = _color('deepColor');
+    final preserve = parameters['preserveAlpha'] != false;
 
-    // Get base ice colors for the selected type
-    final iceColors = _getIceColors(iceType, temperature);
+    // Combine user iceColor with the optical signature of the selected iceType
+    // and temperature (colder = deeper cyan/cobalt, warmer = clearer melt tint).
+    final typeMixed = _textureBlendColor(
+      iceColor,
+      _typeTint(iceType),
+      iceType == 0 ? 0.25 : 0.6,
+      255,
+    );
+    final baseIce = _textureBlendColor(
+      deepColor,
+      typeMixed,
+      (0.72 - thickness * 0.35 + temperature * 0.18).clamp(0.15, 0.95),
+      255,
+    );
 
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final index = y * width + x;
-        final originalPixel = pixels[index];
-
-        // Skip transparent pixels
-        final originalAlpha = (originalPixel >> 24) & 0xFF;
-        if (originalAlpha == 0) {
-          result[index] = 0;
-          continue;
+    // Step 1: Capped silhouette distance transform (including transparent holes).
+    final distances = Uint8List(width * height);
+    if (bevelWidth > 0 || frostiness > 0) {
+      for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+          final i = y * width + x;
+          if (preserve && (pixels[i] >>> 24) == 0) continue;
+          var d =
+              x == 0 || y == 0 || x == width - 1 || y == height - 1 ? 1 : 10;
+          if (x > 0) d = math.min(d, distances[i - 1] + 1);
+          if (y > 0) {
+            d = math.min(d, distances[i - width] + 1);
+            if (x > 0) d = math.min(d, distances[i - width - 1] + 1);
+            if (x + 1 < width) d = math.min(d, distances[i - width + 1] + 1);
+          }
+          distances[i] = d;
         }
-
-        // Apply refraction displacement
-        final (refractedX, refractedY) = _calculateRefraction(x, y, width, height, refractionStrength, random);
-
-        // Sample original pixel with refraction
-        final refractedPixel = _samplePixelWithBounds(pixels, width, height, refractedX, refractedY, originalPixel);
-
-        // Calculate ice transformation
-        final icePixel = _calculateIceTexture(
-          x,
-          y,
-          width,
-          height,
-          iceType,
-          iceColors,
-          refractedPixel,
-          transparency,
-          thickness,
-          frostiness,
-          crackIntensity,
-          bubbleAmount,
-          crystallization,
-          shininess,
-          temperature,
-          iceAge,
-          random,
-        );
-
-        result[index] = icePixel;
+      }
+      for (var y = height - 1; y >= 0; y--) {
+        for (var x = width - 1; x >= 0; x--) {
+          final i = y * width + x;
+          if (preserve && (pixels[i] >>> 24) == 0) continue;
+          var d = distances[i];
+          if (x + 1 < width) d = math.min(d, distances[i + 1] + 1);
+          if (y + 1 < height) {
+            d = math.min(d, distances[i + width] + 1);
+            if (x > 0) d = math.min(d, distances[i + width - 1] + 1);
+            if (x + 1 < width) d = math.min(d, distances[i + width + 1] + 1);
+          }
+          distances[i] = d;
+        }
       }
     }
+    double distanceAt(int x, int y) =>
+        x < 0 || y < 0 || x >= width || y >= height
+            ? 0.0
+            : distances[y * width + x].toDouble();
 
-    return result;
-  }
+    // Step 2: Seeded Voronoi crystal cells with 3D optical normals and bubbles.
+    final jitter = 0.15 + crystallization * 0.22;
+    final cols = (width / size).ceil() + 6;
+    final rows = (height / size).ceil() + 6;
+    final sites = List.generate(cols * rows, (index) {
+      final cx = index % cols - 3, cy = index ~/ cols - 3;
+      final facetAngle = _textureHash(cx, cy, clampedSeed + 17) * math.pi * 2;
+      final facetTilt = 0.2 + _textureHash(cx, cy, clampedSeed + 23) * 0.8;
+      return (
+        x: (cx + 0.5 + (_textureHash(cx, cy, clampedSeed) * 2 - 1) * jitter) *
+            size,
+        y: (cy +
+                0.5 +
+                (_textureHash(cx, cy, clampedSeed + 11) * 2 - 1) * jitter) *
+            size,
+        nx: math.cos(facetAngle) * facetTilt,
+        ny: math.sin(facetAngle) * facetTilt,
+        tone: _textureHash(cx, cy, clampedSeed + 31) - 0.5,
+        stress: _textureHash(cx, cy, clampedSeed + 43),
+      );
+    });
 
-  /// Get color palette for different ice types
-  _IceColors _getIceColors(int iceType, double temperature) {
-    // Temperature affects ice color - warmer ice is more blue/clear
-    final tempFactor = temperature * 0.3;
+    final bubbleScale = math.max(4.0, size * 0.55);
 
-    switch (iceType) {
-      case 0: // Clear Ice
-        return _IceColors(
-          baseColor: Color.fromARGB(255, (240 + tempFactor * 15).round(), (248 + tempFactor * 7).round(), 255),
-          highlightColor: const Color(0xFFFFFFFF), // Pure white
-          shadowColor: Color.fromARGB(255, (200 - tempFactor * 20).round(), (230 - tempFactor * 10).round(), 255),
-          bubbleColor: const Color(0xFFE6F3FF), // Very light blue
-        );
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        final i = y * width + x;
+        final source = pixels[i];
+        final alpha = source >>> 24;
+        if (preserve && alpha == 0) continue;
 
-      case 1: // Frosted Ice
-        return _IceColors(
-          baseColor: Color.fromARGB(
-              255, (230 + tempFactor * 10).round(), (240 + tempFactor * 10).round(), (250 + tempFactor * 5).round()),
-          highlightColor: const Color(0xFFF5F5F5), // Off white
-          shadowColor: Color.fromARGB(
-              255, (180 - tempFactor * 15).round(), (200 - tempFactor * 15).round(), (220 - tempFactor * 10).round()),
-          bubbleColor: const Color(0xFFDDE7F0), // Light gray-blue
-        );
+        final px = x + 0.5, py = y + 0.5;
+        final gx = (px / size).floor() + 3, gy = (py / size).floor() + 3;
 
-      case 2: // Crystal Ice
-        return _IceColors(
-          baseColor: Color.fromARGB(255, (220 + tempFactor * 15).round(), (240 + tempFactor * 10).round(), 255),
-          highlightColor: const Color(0xFFCCE7FF), // Light blue
-          shadowColor: Color.fromARGB(
-              255, (150 - tempFactor * 30).round(), (200 - tempFactor * 20).round(), (255 - tempFactor * 10).round()),
-          bubbleColor: const Color(0xFFB3D9FF), // Medium light blue
-        );
-
-      case 3: // Glacial Ice
-        return _IceColors(
-          baseColor: Color.fromARGB(
-              255, (180 + tempFactor * 20).round(), (220 + tempFactor * 15).round(), (255 - tempFactor * 5).round()),
-          highlightColor: const Color(0xFFE0F0FF), // Very light blue
-          shadowColor: Color.fromARGB(
-              255, (120 - tempFactor * 20).round(), (180 - tempFactor * 20).round(), (240 - tempFactor * 15).round()),
-          bubbleColor: const Color(0xFF99CCFF), // Medium blue
-        );
-
-      case 4: // Black Ice
-        return _IceColors(
-          baseColor: Color.fromARGB(
-              255, (60 + tempFactor * 40).round(), (80 + tempFactor * 40).round(), (120 + tempFactor * 40).round()),
-          highlightColor: Color.fromARGB(
-              255, (180 + tempFactor * 20).round(), (200 + tempFactor * 20).round(), (230 + tempFactor * 15).round()),
-          shadowColor: Color.fromARGB(
-              255, (20 + tempFactor * 20).round(), (30 + tempFactor * 20).round(), (50 + tempFactor * 30).round()),
-          bubbleColor: const Color(0xFF4D6B99), // Dark blue
-        );
-
-      case 5: // Snow Ice
-        return _IceColors(
-          baseColor: Color.fromARGB(255, (250 - tempFactor * 10).round(), (250 - tempFactor * 5).round(), 255),
-          highlightColor: const Color(0xFFFFFFFF), // Pure white
-          shadowColor: Color.fromARGB(
-              255, (220 - tempFactor * 20).round(), (230 - tempFactor * 15).round(), (245 - tempFactor * 10).round()),
-          bubbleColor: const Color(0xFFF0F8FF), // Alice blue
-        );
-
-      default:
-        return _getIceColors(0, temperature);
-    }
-  }
-
-  /// Calculate refraction displacement
-  (double, double) _calculateRefraction(int x, int y, int width, int height, double strength, Random random) {
-    if (strength <= 0) return (x.toDouble(), y.toDouble());
-
-    // Create refraction pattern using noise
-    final refractionX = _perlinNoise(x * 0.02, y * 0.02, 1000) * strength * 3;
-    final refractionY = _perlinNoise(x * 0.02, y * 0.02, 2000) * strength * 3;
-
-    return (x + refractionX, y + refractionY);
-  }
-
-  /// Sample pixel with bounds checking
-  int _samplePixelWithBounds(Uint32List pixels, int width, int height, double x, double y, int fallback) {
-    final intX = x.round().clamp(0, width - 1);
-    final intY = y.round().clamp(0, height - 1);
-    final index = intY * width + intX;
-
-    return index < pixels.length ? pixels[index] : fallback;
-  }
-
-  /// Calculate complete ice texture for a pixel
-  int _calculateIceTexture(
-    int x,
-    int y,
-    int width,
-    int height,
-    int iceType,
-    _IceColors colors,
-    int originalPixel,
-    double transparency,
-    double thickness,
-    double frostiness,
-    double crackIntensity,
-    double bubbleAmount,
-    double crystallization,
-    double shininess,
-    double temperature,
-    double iceAge,
-    Random random,
-  ) {
-    // Start with base ice color
-    Color iceColor = colors.baseColor;
-
-    // Apply ice type-specific patterns
-    iceColor = _applyIceTypePattern(iceColor, x, y, iceType, colors, crystallization);
-
-    // Apply surface effects
-    iceColor = _applyFrost(iceColor, x, y, frostiness, colors.highlightColor, random);
-    iceColor = _applyCracks(iceColor, x, y, crackIntensity, colors.shadowColor, iceAge);
-    iceColor = _applyBubbles(iceColor, x, y, bubbleAmount, colors.bubbleColor, random);
-    iceColor = _applyShininess(iceColor, x, y, width, height, shininess, colors.highlightColor);
-
-    // Calculate final transparency
-    final baseTransparency = transparency * (1.0 - thickness * 0.3);
-    final finalTransparency =
-        _calculateFinalTransparency(x, y, baseTransparency, frostiness, bubbleAmount, crackIntensity);
-
-    // Blend with original pixel
-    return _blendIceWithOriginal(originalPixel, iceColor, finalTransparency);
-  }
-
-  /// Apply ice type-specific patterns
-  Color _applyIceTypePattern(Color baseColor, int x, int y, int iceType, _IceColors colors, double crystallization) {
-    switch (iceType) {
-      case 0: // Clear Ice - minimal pattern
-        final clearness = _perlinNoise(x * 0.01, y * 0.01, 3000) * 0.1;
-        return _adjustBrightness(baseColor, clearness);
-
-      case 1: // Frosted Ice - irregular frost patterns
-        final frostPattern = _perlinNoise(x * 0.05, y * 0.05, 3100) * 0.3;
-        if (frostPattern > 0.1) {
-          return Color.lerp(baseColor, colors.highlightColor, frostPattern * 0.6)!;
+        var nearest = double.infinity;
+        var winner = 0;
+        for (var oy = -2; oy <= 2; oy++) {
+          for (var ox = -2; ox <= 2; ox++) {
+            final idx = (gy + oy) * cols + gx + ox;
+            final site = sites[idx];
+            final dx = px - site.x, dy = py - site.y;
+            final d2 = dx * dx + dy * dy;
+            if (d2 < nearest) {
+              nearest = d2;
+              winner = idx;
+            }
+          }
         }
-        return baseColor;
-
-      case 2: // Crystal Ice - geometric crystal patterns
-        final crystalPattern = _generateCrystalPattern(x, y, crystallization);
-        return Color.lerp(baseColor, colors.highlightColor, crystalPattern * 0.8)!;
-
-      case 3: // Glacial Ice - layered, compressed ice
-        final layerPattern = sin(y * 0.02) * 0.2 + 0.8;
-        final agePattern = _perlinNoise(x * 0.003, y * 0.003, 3300) * 0.3;
-        final combined = layerPattern + agePattern;
-        return Color.lerp(colors.shadowColor, baseColor, combined.clamp(0.0, 1.0))!;
-
-      case 4: // Black Ice - very transparent with subtle patterns
-        final blackIcePattern = _perlinNoise(x * 0.008, y * 0.008, 3400) * 0.4 + 0.6;
-        return Color.lerp(colors.shadowColor, baseColor, blackIcePattern)!;
-
-      case 5: // Snow Ice - rough, opaque with snow texture
-        final snowPattern = _perlinNoise(x * 0.1, y * 0.1, 3500);
-        if (snowPattern > 0.3) {
-          return colors.highlightColor;
+        final center = sites[winner];
+        var edge = double.infinity;
+        var enx = 0.0, eny = 0.0;
+        var pairStress = 0.0;
+        for (var oy = -2; oy <= 2; oy++) {
+          for (var ox = -2; ox <= 2; ox++) {
+            final idx = (gy + oy) * cols + gx + ox;
+            if (idx == winner) continue;
+            final site = sites[idx];
+            final dx = site.x - center.x, dy = site.y - center.y;
+            final len = math.sqrt(dx * dx + dy * dy);
+            if (len == 0) continue;
+            final d = ((site.x + center.x) * 0.5 - px) * dx / len +
+                ((site.y + center.y) * 0.5 - py) * dy / len;
+            if (d < edge) {
+              edge = d;
+              enx = dx / len;
+              eny = dy / len;
+              pairStress = (center.stress + site.stress) * 0.5;
+            }
+          }
         }
-        return Color.lerp(colors.shadowColor, baseColor, snowPattern + 0.7)!;
 
-      default:
-        return baseColor;
+        // Jagged fracture perturbation scaled by iceAge.
+        final warp = (_textureNoise(px * 0.28, py * 0.28, clampedSeed + 59) -
+                0.5) *
+            (0.4 + iceAge * 1.6);
+        final warpedEdge = math.max(0.0, edge + warp);
+
+        // Combined surface normal from crystal facet + silhouette bevel.
+        var nx = center.nx * (0.35 + crystallization * 0.65);
+        var ny = center.ny * (0.35 + crystallization * 0.65);
+        var rimFactor = 0.0;
+        var rimDot = 0.0;
+        if (bevelWidth > 0 && distances[i] > 0 && distances[i] <= bevelWidth) {
+          final bnx = distanceAt(x - 1, y) - distanceAt(x + 1, y);
+          final bny = distanceAt(x, y - 1) - distanceAt(x, y + 1);
+          final blen = math.sqrt(bnx * bnx + bny * bny);
+          rimFactor = 1.0 - (distances[i] - 1) / bevelWidth;
+          if (blen > 0) {
+            rimDot = (bnx * lx + bny * ly) / blen;
+            nx += (bnx / blen) * rimFactor * 0.85;
+            ny += (bny / blen) * rimFactor * 0.85;
+          } else {
+            rimDot = ((px - width * 0.5) * lx + (py - height * 0.5) * ly) >= 0
+                ? 0.5
+                : -0.5;
+          }
+        }
+
+        final facetDot = center.nx * lx + center.ny * ly;
+        final ridgeSlope =
+            (1.0 - (warpedEdge / (size * 0.26)).clamp(0.0, 1.0));
+        final ridgeDot = (enx * lx + eny * ly) * ridgeSlope;
+        final micro = _textureHash(x, y, clampedSeed + 71) - 0.5;
+
+        // Type-specific structural modulation.
+        var typeShade = 0.0;
+        var extraFrost = 0.0;
+        switch (iceType) {
+          case 0: // Clear Ice: smooth optical bands
+            typeShade =
+                (_textureNoise(px / size, py / size, clampedSeed + 79) - 0.5) *
+                    0.12;
+          case 1: // Frosted Ice: dendritic surface frost blooms
+            extraFrost = 0.28;
+            typeShade = micro * 0.14;
+          case 2: // Crystal Ice: angular faceted contrast
+            typeShade =
+                (facetDot * 0.32 + center.tone * 0.25) *
+                    (0.5 + crystallization * 0.5);
+          case 3: // Glacial Ice: compressed horizontal/diagonal strata
+            final strata = math.sin(
+                (py / (size * 0.45) +
+                        _textureNoise(
+                                px / size, py / size, clampedSeed + 83) *
+                            1.5) *
+                    math.pi);
+            typeShade = strata * (0.16 + iceAge * 0.18) - thickness * 0.12;
+          case 4: // Black Ice: dark abyssal base with high-contrast sheen
+            typeShade = -0.22 + facetDot * 0.18;
+          case 5: // Snow Ice: packed granular neve sparkle
+          default:
+            extraFrost = 0.45;
+            typeShade = 0.12 + micro * 0.22;
+        }
+
+        // Glacial weathering compression bands & surface etching from iceAge.
+        final ageBand = (_textureFbm(
+                    px / (size * 0.8), py / (size * 1.4), clampedSeed + 89) -
+                0.5) *
+            iceAge *
+            0.32;
+
+        var shade = 0.88 +
+            typeShade +
+            ageBand +
+            center.tone * (0.12 + crystallization * 0.28) +
+            facetDot * (0.14 + crystallization * 0.26) +
+            ridgeDot * (0.15 + thickness * 0.2) +
+            rimDot * rimFactor * 0.42;
+
+        // Specular reflection across facets and beveled silhouette rims.
+        final lightAlign = math.max(
+          0.0,
+          facetDot * 0.65 + ridgeDot * 0.55 + rimDot * rimFactor * 0.85,
+        );
+        final specExp = iceType == 4 ? 8.0 : (4.0 + (1.0 - frostiness) * 6.0);
+        var specular =
+            math.pow(lightAlign, specExp).toDouble() * shininess * 0.85;
+        if (rimDot > 0 && rimFactor > 0) {
+          specular += rimDot * rimFactor * shininess * 0.45;
+        }
+
+        var color = baseIce;
+        // Deep glacial absorption in shadow-facing bevels and thick interiors.
+        final deepAmount = ((1.0 - shade) * (0.35 + thickness * 0.55) +
+                (rimDot < 0 ? -rimDot * rimFactor * 0.45 : 0.0))
+            .clamp(0.0, 0.85);
+        if (deepAmount > 0) {
+          color = _textureBlendColor(color, deepColor, deepAmount, 255);
+        }
+
+        // Trapped sub-surface spherical air bubbles with upper-light glint.
+        if (bubbles > 0) {
+          final bx = (px / bubbleScale).floor();
+          final by = (py / bubbleScale).floor();
+          final cellChance = _textureHash(bx, by, clampedSeed + 101);
+          if (cellChance > 1.0 - bubbles * 0.75) {
+            final cx = (bx +
+                    0.25 +
+                    _textureHash(bx, by, clampedSeed + 103) * 0.5) *
+                bubbleScale;
+            final cy = (by +
+                    0.25 +
+                    _textureHash(bx, by, clampedSeed + 107) * 0.5) *
+                bubbleScale;
+            final radius = (0.16 +
+                    _textureHash(bx, by, clampedSeed + 109) * 0.22) *
+                bubbleScale;
+            final dx = px - cx, dy = py - cy;
+            final distBubble = math.sqrt(dx * dx + dy * dy);
+            if (distBubble <= radius) {
+              final normR = distBubble / math.max(radius, 0.001);
+              final rim = normR > 0.62 ? 0.75 : 0.35;
+              final glint = (dx * lx + dy * ly) < 0 ? 0.25 : 0.0;
+              color = _textureBlendColor(
+                color,
+                frostColor,
+                (rim + glint) * bubbles,
+                255,
+              );
+              specular += glint * shininess * 0.5;
+            }
+          }
+        }
+
+        // Internal stress fractures: bright white/cyan reflection seam + dark shadow edge.
+        final crackWidth =
+            cracks * (0.45 + pairStress * 1.15 + iceAge * 0.45);
+        if (cracks > 0 && warpedEdge < crackWidth) {
+          final t =
+              (1.0 - warpedEdge / math.max(crackWidth, 0.001)).clamp(0.0, 1.0);
+          color = _textureBlendColor(
+            color,
+            frostColor,
+            (t * (0.55 + cracks * 0.4)).clamp(0.0, 1.0),
+            255,
+          );
+          shade += t * 0.22;
+        } else if (cracks > 0 && warpedEdge < crackWidth + 0.9) {
+          color = _textureBlendColor(color, deepColor, cracks * 0.35, 255);
+          shade *= 0.88;
+        }
+
+        // Surface & silhouette rim hoarfrost crystals.
+        final effectiveFrost = (frostiness + extraFrost).clamp(0.0, 1.0);
+        if (effectiveFrost > 0) {
+          final frostNoise = _textureFbm(
+            px / (size * 0.45),
+            py / (size * 0.45),
+            clampedSeed + 131,
+          );
+          final jointBoost =
+              (1.0 - warpedEdge / (size * 0.22)).clamp(0.0, 1.0) * 0.3;
+          final rimBoost = rimFactor * 0.45;
+          final frostMask = ((frostNoise +
+                      jointBoost +
+                      rimBoost +
+                      micro * 0.15 -
+                      (1.0 - effectiveFrost * 0.85)) *
+                  2.4)
+              .clamp(0.0, 1.0);
+          if (frostMask > 0) {
+            color = _textureBlendColor(
+              color,
+              frostColor,
+              (frostMask * (0.45 + effectiveFrost * 0.45)).clamp(0.0, 1.0),
+              255,
+            );
+            shade += frostMask * 0.12;
+          }
+        }
+
+        int channel(int shift) =>
+            (_textureChannel(color, shift) * shade + specular * 155)
+                .round()
+                .clamp(0, 255);
+        var icePixel =
+            0xFF000000 | (channel(16) << 16) | (channel(8) << 8) | channel(0);
+
+        // Optical artwork refraction & clarity: displace within solid pixels
+        // and never leak RGB from transparent neighbors.
+        if (alpha > 0) {
+          final disp = refraction * size * 0.28;
+          final sx = (x + nx * disp).round().clamp(0, width - 1);
+          final sy = (y + ny * disp).round().clamp(0, height - 1);
+          final sampled = pixels[sy * width + sx];
+          final artwork = _textureBlendColor(
+            source,
+            sampled,
+            (sampled >>> 24) / 255.0,
+            255,
+          );
+          final artLum = _textureLuminance(artwork);
+          final effectiveClarity =
+              (clarity * (1.0 - thickness * 0.35 - effectiveFrost * 0.25))
+                  .clamp(0.0, 0.92);
+          if (effectiveClarity > 0) {
+            icePixel = _textureBlendColor(
+              icePixel,
+              artwork,
+              effectiveClarity,
+              255,
+            );
+          }
+          // Preserve subtle frozen silhouette details even at low transparency.
+          final detailRelief = (artLum - 0.5) * 0.18;
+          if (detailRelief != 0) {
+            icePixel = _textureBlendColor(
+              icePixel,
+              detailRelief > 0 ? frostColor : deepColor,
+              detailRelief.abs(),
+              255,
+            );
+          }
+        }
+
+        final outAlpha =
+            preserve ? alpha : (alpha + (255 - alpha) * opacity).round();
+        output[i] = _textureBlendColor(source, icePixel, opacity, outAlpha);
+      }
     }
+    return output;
   }
-
-  /// Generate crystal formation patterns
-  double _generateCrystalPattern(int x, int y, double intensity) {
-    if (intensity <= 0) return 0.0;
-
-    // Hexagonal crystal pattern
-    final hexSize = 20;
-    final hexX = (x / hexSize).floor();
-    final hexY = (y / hexSize).floor();
-
-    // Create hexagonal grid effect
-    final centerX = hexX * hexSize + hexSize / 2;
-    final centerY = hexY * hexSize + hexSize / 2;
-    final distance = sqrt(pow(x - centerX, 2) + pow(y - centerY, 2));
-
-    if (distance < hexSize / 3) {
-      // Crystal center
-      return intensity * 0.8;
-    } else if (distance < hexSize / 2) {
-      // Crystal edges
-      return intensity * 0.4;
-    }
-
-    return 0.0;
-  }
-
-  /// Apply frost effect
-  Color _applyFrost(Color baseColor, int x, int y, double intensity, Color frostColor, Random random) {
-    if (intensity <= 0) return baseColor;
-
-    final frostNoise = _perlinNoise(x * 0.08, y * 0.08, 4000);
-    if (frostNoise > (1.0 - intensity)) {
-      final frostStrength = (frostNoise - (1.0 - intensity)) / intensity;
-      return Color.lerp(baseColor, frostColor, frostStrength * 0.7)!;
-    }
-
-    return baseColor;
-  }
-
-  /// Apply crack patterns
-  Color _applyCracks(Color baseColor, int x, int y, double intensity, Color crackColor, double iceAge) {
-    if (intensity <= 0) return baseColor;
-
-    // Stress crack patterns
-    final crackNoise1 = _perlinNoise(x * 0.01, y * 0.3, 5000);
-    final crackNoise2 = _perlinNoise(x * 0.3, y * 0.01, 5100);
-    final ageFactor = iceAge * 0.5 + 0.5; // More cracks in older ice
-
-    final crackValue = max(crackNoise1.abs(), crackNoise2.abs()) * ageFactor;
-
-    if (crackValue > (1.0 - intensity * 0.4)) {
-      final crackStrength = (crackValue - (1.0 - intensity * 0.4)) / (intensity * 0.4);
-      return Color.lerp(baseColor, crackColor, crackStrength * 0.6)!;
-    }
-
-    return baseColor;
-  }
-
-  /// Apply air bubbles
-  Color _applyBubbles(Color baseColor, int x, int y, double intensity, Color bubbleColor, Random random) {
-    if (intensity <= 0) return baseColor;
-
-    final bubbleNoise = _perlinNoise(x * 0.12, y * 0.12, 6000);
-    if (bubbleNoise > (1.0 - intensity * 0.3)) {
-      // This is a bubble
-      final bubbleStrength = (bubbleNoise - (1.0 - intensity * 0.3)) / (intensity * 0.3);
-      return Color.lerp(baseColor, bubbleColor, bubbleStrength * 0.8)!;
-    }
-
-    return baseColor;
-  }
-
-  /// Apply surface shininess and reflections
-  Color _applyShininess(Color baseColor, int x, int y, int width, int height, double intensity, Color highlightColor) {
-    if (intensity <= 0) return baseColor;
-
-    // Simple lighting calculation from top-left
-    final lightX = width * 0.3;
-    final lightY = height * 0.3;
-    final distance = sqrt(pow(x - lightX, 2) + pow(y - lightY, 2));
-    final maxDistance = sqrt(width * width + height * height);
-
-    final lightFactor = (1.0 - distance / maxDistance) * intensity * 0.4;
-
-    return Color.lerp(baseColor, highlightColor, lightFactor)!;
-  }
-
-  /// Calculate final transparency including all factors
-  double _calculateFinalTransparency(
-      int x, int y, double baseTransparency, double frostiness, double bubbleAmount, double crackIntensity) {
-    // Frost reduces transparency
-    final frostReduction = frostiness * 0.3;
-
-    // Bubbles reduce transparency
-    final bubbleReduction = bubbleAmount * 0.2;
-
-    // Cracks slightly reduce transparency
-    final crackReduction = crackIntensity * 0.1;
-
-    final finalTransparency = (baseTransparency - frostReduction - bubbleReduction - crackReduction).clamp(0.0, 1.0);
-
-    return finalTransparency;
-  }
-
-  /// Blend ice color with original pixel
-  int _blendIceWithOriginal(int originalPixel, Color iceColor, double transparency) {
-    final origA = (originalPixel >> 24) & 0xFF;
-    final origR = (originalPixel >> 16) & 0xFF;
-    final origG = (originalPixel >> 8) & 0xFF;
-    final origB = originalPixel & 0xFF;
-
-    // Blend original with ice color
-    final blendFactor = 1.0 - transparency;
-    final newR = (origR * transparency + iceColor.red * blendFactor).round().clamp(0, 255);
-    final newG = (origG * transparency + iceColor.green * blendFactor).round().clamp(0, 255);
-    final newB = (origB * transparency + iceColor.blue * blendFactor).round().clamp(0, 255);
-
-    // Preserve original alpha
-    return (origA << 24) | (newR << 16) | (newG << 8) | newB;
-  }
-
-  /// Adjust color brightness
-  Color _adjustBrightness(Color color, double adjustment) {
-    final hsv = HSVColor.fromColor(color);
-    final newValue = (hsv.value + adjustment).clamp(0.0, 1.0);
-    return hsv.withValue(newValue).toColor();
-  }
-
-  /// Perlin-like noise function
-  double _perlinNoise(double x, double y, int seed) {
-    final intX = x.floor();
-    final intY = y.floor();
-    final fracX = x - intX;
-    final fracY = y - intY;
-
-    // Sample corners
-    final a = _hash2D(intX, intY, seed);
-    final b = _hash2D(intX + 1, intY, seed);
-    final c = _hash2D(intX, intY + 1, seed);
-    final d = _hash2D(intX + 1, intY + 1, seed);
-
-    // Smooth interpolation
-    final u = fracX * fracX * (3 - 2 * fracX);
-    final v = fracY * fracY * (3 - 2 * fracY);
-
-    // Bilinear interpolation
-    final i1 = a * (1 - u) + b * u;
-    final i2 = c * (1 - u) + d * u;
-    final result = i1 * (1 - v) + i2 * v;
-
-    return result * 2 - 1; // -1 to 1
-  }
-
-  /// 2D hash function
-  double _hash2D(int x, int y, int seed) {
-    var h = x * 73856093 ^ y * 19349663 ^ seed;
-    h = ((h >> 16) ^ h) * 0x45d9f3b;
-    h = ((h >> 16) ^ h) * 0x45d9f3b;
-    h = (h >> 16) ^ h;
-    return (h & 0xFFFFFF) / 0xFFFFFF; // 0 to 1
-  }
-}
-
-/// Helper class for ice color palettes
-class _IceColors {
-  final Color baseColor;
-  final Color highlightColor;
-  final Color shadowColor;
-  final Color bubbleColor;
-
-  _IceColors({
-    required this.baseColor,
-    required this.highlightColor,
-    required this.shadowColor,
-    required this.bubbleColor,
-  });
 }

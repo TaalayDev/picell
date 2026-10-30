@@ -186,7 +186,7 @@ void main() {
           layer: layer,
           width: 2,
           height: 2,
-          workspace: EffectWorkspace.materials,
+          workspace: EffectWorkspace.textures,
           onLayerUpdated: (_) {},
         ),
       ),
@@ -199,7 +199,7 @@ void main() {
     expect(items.single.effect.type, EffectType.wood);
     expect(
         find.byKey(const ValueKey('effects-workspace-header')), findsOneWidget);
-    expect(find.text('Materials'), findsOneWidget);
+    expect(find.text('Textures'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('effects-workspace-count')),
@@ -224,14 +224,14 @@ void main() {
           layer: layer,
           width: 2,
           height: 2,
-          workspace: EffectWorkspace.materials,
+          workspace: EffectWorkspace.textures,
           onLayerUpdated: (_) {},
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Materials'), findsNWidgets(2));
+    expect(find.text('Textures'), findsNWidgets(2));
     expect(find.text('No effects applied'), findsOneWidget);
     expect(find.byKey(const ValueKey('effects-empty-add')), findsOneWidget);
     expect(

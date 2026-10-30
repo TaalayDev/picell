@@ -424,10 +424,10 @@ class ToolBar extends ConsumerWidget {
                 ],
               ),
               _TopBarMenuItem(
-                key: const ValueKey('toolbar-add-materials'),
-                value: _AddMenuAction.materials,
+                key: const ValueKey('toolbar-add-textures'),
+                value: _AddMenuAction.textures,
                 icon: const Icon(Icons.texture_outlined, size: 18),
-                title: Strings.of(context).effectWorkspaceMaterials,
+                title: Strings.of(context).effectWorkspaceTextures,
                 shortcut: _alt('2'),
               ),
               _TopBarMenuItem(
@@ -491,8 +491,8 @@ class ToolBar extends ConsumerWidget {
             ],
             onSelected: (action) {
               switch (action) {
-                case _AddMenuAction.materials:
-                  openEffectSelector(EffectWorkspace.materials);
+                case _AddMenuAction.textures:
+                  openEffectSelector(EffectWorkspace.textures);
                 case _AddMenuAction.generators:
                   openEffectSelector(EffectWorkspace.generators);
                 case _AddMenuAction.lighting:
@@ -526,26 +526,121 @@ class ToolBar extends ConsumerWidget {
                 builder: (context, tool, child) {
                   return Row(
                     children: [
-                      ValueListenableBuilder(
+                      ValueListenableBuilder<PixelModifier>(
                         valueListenable: currentModifier,
                         builder: (context, modifier, child) {
-                          return IconButton(
-                            icon: SvgPicture.asset(
-                              Assets.vectors.reflectSymmetry,
-                              colorFilter: ColorFilter.mode(
-                                modifier == PixelModifier.mirror
-                                    ? Colors.blue
-                                    : IconTheme.of(context).color ?? Theme.of(context).colorScheme.onSurface,
-                                BlendMode.srcIn,
-                              ),
-                              width: 24,
-                              height: 24,
-                            ),
-                            onPressed: () {
-                              onSelectModifier(
-                                modifier == PixelModifier.mirror ? PixelModifier.none : PixelModifier.mirror,
-                              );
+                          Widget iconForModifier(PixelModifier m, Color color) {
+                            switch (m) {
+                              case PixelModifier.mirror:
+                                return SvgPicture.asset(
+                                  Assets.vectors.reflectSymmetry,
+                                  colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                                  width: 22,
+                                  height: 22,
+                                );
+                              case PixelModifier.radial:
+                                return Icon(Icons.filter_vintage, color: color, size: 22);
+                              case PixelModifier.outline:
+                                return Icon(Icons.border_outer, color: color, size: 22);
+                              case PixelModifier.shadow:
+                                return Icon(Icons.layers, color: color, size: 22);
+                              case PixelModifier.glow:
+                                return Icon(Icons.auto_awesome, color: color, size: 22);
+                              case PixelModifier.none:
+                                return SvgPicture.asset(
+                                  Assets.vectors.reflectSymmetry,
+                                  colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                                  width: 22,
+                                  height: 22,
+                                );
+                            }
+                          }
+
+                          final isActive = modifier != PixelModifier.none;
+                          final activeColor = Colors.blue;
+                          final defaultColor = IconTheme.of(context).color ?? Theme.of(context).colorScheme.onSurface;
+
+                          return PopupMenuButton<PixelModifier>(
+                            key: const ValueKey('toolbar-modifier-menu'),
+                            tooltip: 'Drawing Modifiers',
+                            icon: iconForModifier(modifier, isActive ? activeColor : defaultColor),
+                            onSelected: (selected) {
+                              if (selected == modifier) {
+                                onSelectModifier(PixelModifier.none);
+                              } else {
+                                onSelectModifier(selected);
+                              }
                             },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: PixelModifier.none,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.block, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('None'),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: PixelModifier.mirror,
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      Assets.vectors.reflectSymmetry,
+                                      width: 20,
+                                      height: 20,
+                                      colorFilter: ColorFilter.mode(
+                                        IconTheme.of(context).color ?? Theme.of(context).colorScheme.onSurface,
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text('Mirror Symmetry'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: PixelModifier.radial,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.filter_vintage, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Radial Symmetry'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: PixelModifier.outline,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.border_outer, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Contour Outline'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: PixelModifier.shadow,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.layers, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Drop Shadow'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: PixelModifier.glow,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.auto_awesome, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Glow Aura'),
+                                  ],
+                                ),
+                              ),
+                            ],
                           );
                         },
                       ),
@@ -680,7 +775,7 @@ enum _ViewMenuAction {
 
 enum _AddMenuAction {
   tileset,
-  materials,
+  textures,
   generators,
   lighting,
   templates,

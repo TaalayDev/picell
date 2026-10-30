@@ -134,18 +134,18 @@ class _McpControlState extends State<McpControl> {
       child: Stack(
         children: [
           widget.child,
-          Positioned(
-            right: 12,
-            bottom: 12,
-            child: SafeArea(
-              child: FloatingActionButton.small(
-                heroTag: 'mcp-connection',
-                tooltip: 'AI connection (MCP)',
-                onPressed: _panelOpen ? null : _showPanel,
-                child: Icon(_connection?.running == true ? Icons.link : Icons.link_off),
-              ),
-            ),
-          )
+          // Positioned(
+          //   right: 12,
+          //   bottom: 12,
+          //   child: SafeArea(
+          //     child: FloatingActionButton.small(
+          //       heroTag: 'mcp-connection',
+          //       tooltip: 'AI connection (MCP)',
+          //       onPressed: _panelOpen ? null : _showPanel,
+          //       child: Icon(_connection?.running == true ? Icons.link : Icons.link_off),
+          //     ),
+          //   ),
+          // )
         ],
       ),
     );

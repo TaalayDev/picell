@@ -3,7 +3,7 @@ part of 'effects.dart';
 /// Primary user-facing area where an effect is discovered and managed.
 enum EffectWorkspace {
   filters,
-  materials,
+  textures,
   generators,
   animation,
   lighting,
@@ -180,8 +180,8 @@ class EffectCatalog {
       filterKind: FilterKind.filter,
     );
     addWorkspace(
-      _materials,
-      workspace: EffectWorkspace.materials,
+      _textures,
+      workspace: EffectWorkspace.textures,
       role: EffectRole.modifier,
       inputPolicy: EffectInputPolicy.requiresPixels,
     );
@@ -231,7 +231,7 @@ class EffectCatalog {
   }
 
   /// Only animations (and generators) care about the layer's content; filters,
-  /// materials and lighting can always be added, even to an empty layer.
+  /// textures and lighting can always be added, even to an empty layer.
   static EffectInputPolicy _inputPolicyFor(
     EffectType type,
     EffectWorkspace workspace,
@@ -239,7 +239,7 @@ class EffectCatalog {
   ) {
     switch (workspace) {
       case EffectWorkspace.filters:
-      case EffectWorkspace.materials:
+      case EffectWorkspace.textures:
       case EffectWorkspace.lighting:
         return EffectInputPolicy.anyLayer;
       case EffectWorkspace.animation:
@@ -341,7 +341,7 @@ class EffectCatalog {
     EffectType.colorShift,
   };
 
-  static const Set<EffectType> _materials = {
+  static const Set<EffectType> _textures = {
     EffectType.wood,
     EffectType.crystal,
     EffectType.metal,
@@ -356,6 +356,10 @@ class EffectCatalog {
     EffectType.crackedCeramic,
     EffectType.mossLichen,
     EffectType.paintPeeling,
+    EffectType.bricks,
+    EffectType.cobblestone,
+    EffectType.crackedEarth,
+    EffectType.patterns,
     EffectType.romanTravertine,
     EffectType.perlinWorms,
     EffectType.voronoi,

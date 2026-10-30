@@ -60,3 +60,32 @@ double _textureLuminance(int pixel) =>
         0.587 * _textureChannel(pixel, 8) +
         0.114 * _textureChannel(pixel, 0)) /
     255.0;
+
+/// Smoothstep between [a] and [b]; reversed edges give an inverted ramp.
+double _textureStep(double a, double b, double x) {
+  final t = ((x - a) / (b - a)).clamp(0.0, 1.0);
+  return t * t * (3 - 2 * t);
+}
+
+/// Worley noise: nearest and second-nearest feature distances plus the
+/// nearest cell's stable random id.
+({double f1, double f2, double id}) _textureCell(double x, double y, int seed, double jitter) {
+  final ix = x.floor(), iy = y.floor();
+  var f1 = 9.0, f2 = 9.0, id = 0.0;
+  for (var j = -1; j <= 1; j++) {
+    for (var i = -1; i <= 1; i++) {
+      final cx = ix + i, cy = iy + j;
+      final px = cx + 0.5 + (_textureHash(cx, cy, seed) - 0.5) * jitter;
+      final py = cy + 0.5 + (_textureHash(cy, cx, seed + 7) - 0.5) * jitter;
+      final d = sqrt((x - px) * (x - px) + (y - py) * (y - py));
+      if (d < f1) {
+        f2 = f1;
+        f1 = d;
+        id = _textureHash(cx, cy, seed + 13);
+      } else if (d < f2) {
+        f2 = d;
+      }
+    }
+  }
+  return (f1: f1, f2: f2, id: id);
+}

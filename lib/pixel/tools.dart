@@ -89,14 +89,18 @@ enum PixelTool {
 
 enum PixelModifier {
   none,
-  glow,
+  mirror,
+  radial,
+  outline,
   shadow,
-  mirror;
+  glow;
 
   bool get isNone => this == PixelModifier.none;
   bool get isMirror => this == PixelModifier.mirror;
-  bool get isGlow => this == PixelModifier.glow;
+  bool get isRadial => this == PixelModifier.radial;
+  bool get isOutline => this == PixelModifier.outline;
   bool get isShadow => this == PixelModifier.shadow;
+  bool get isGlow => this == PixelModifier.glow;
 }
 
 enum MirrorAxis { horizontal, vertical, both }
@@ -108,6 +112,10 @@ abstract class Modifier {
 
   bool get isNone => type == PixelModifier.none;
   bool get isMirror => type == PixelModifier.mirror;
+  bool get isRadial => type == PixelModifier.radial;
+  bool get isOutline => type == PixelModifier.outline;
+  bool get isShadow => type == PixelModifier.shadow;
+  bool get isGlow => type == PixelModifier.glow;
 
   List<PixelPoint<int>> apply(PixelPoint<int> point, int width, int height);
 }

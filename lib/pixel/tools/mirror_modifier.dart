@@ -20,7 +20,11 @@ class MirrorModifier extends Modifier {
       case MirrorAxis.both:
         final mirrorX = width - 1 - point.x;
         final mirrorY = height - 1 - point.y;
-        return [PixelPoint(mirrorX, mirrorY, color: point.color)];
+        return [
+          PixelPoint(mirrorX, point.y, color: point.color),
+          PixelPoint(point.x, mirrorY, color: point.color),
+          PixelPoint(mirrorX, mirrorY, color: point.color),
+        ];
     }
   }
 }

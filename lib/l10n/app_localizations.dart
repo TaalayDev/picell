@@ -953,11 +953,11 @@ abstract class Strings {
   /// **'Filters'**
   String get effectWorkspaceFilters;
 
-  /// No description provided for @effectWorkspaceMaterials.
+  /// No description provided for @effectWorkspaceTextures.
   ///
   /// In en, this message translates to:
-  /// **'Materials'**
-  String get effectWorkspaceMaterials;
+  /// **'Textures'**
+  String get effectWorkspaceTextures;
 
   /// No description provided for @effectWorkspaceGenerators.
   ///

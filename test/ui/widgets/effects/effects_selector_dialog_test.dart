@@ -49,7 +49,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Materials workspace exposes silhouette-preserving effects',
+  testWidgets('Textures workspace exposes silhouette-preserving effects',
       (tester) async {
     tester.view.physicalSize = const Size(1200, 900);
     tester.view.devicePixelRatio = 1;
@@ -72,7 +72,7 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text('Materials'));
+    await tester.tap(find.text('Textures'));
     await tester.pump();
 
     final search = find.byType(TextField);
@@ -124,7 +124,7 @@ void main() {
         null,
         'Isometric Extrusion'
       ),
-      (EffectWorkspace.materials, null, null, 'Rust & Corrosion'),
+      (EffectWorkspace.textures, null, null, 'Rust & Corrosion'),
       (EffectWorkspace.generators, null, null, 'Mountain Range'),
       (
         EffectWorkspace.animation,
@@ -248,7 +248,7 @@ void main() {
   });
 
   testWidgets(
-      'Frost Glaze & Crystal Freeze is in animation special effects and not materials',
+      'Frost Glaze & Crystal Freeze is in animation special effects and not textures',
       (tester) async {
     final descriptor = EffectCatalog.forType(EffectType.frostGlaze);
     expect(descriptor.workspace, EffectWorkspace.animation);
@@ -261,7 +261,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    // Verify not in materials
+    // Verify not in textures
     await tester.pumpWidget(
       ProviderScope(
         overrides: [currentChallengesProvider.overrideWith(_NoChallenges.new)],
@@ -270,7 +270,7 @@ void main() {
           supportedLocales: Strings.supportedLocales,
           home: Scaffold(
             body: EffectSelectorDialog(
-              initialWorkspace: EffectWorkspace.materials,
+              initialWorkspace: EffectWorkspace.textures,
               lockWorkspace: true,
               onEffectSelected: (_) {},
             ),

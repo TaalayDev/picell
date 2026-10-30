@@ -222,7 +222,7 @@
     "cropToSelection": "裁剪到选区",
     "effects": "特效",
     "effectWorkspaceFilters": "滤镜",
-    "effectWorkspaceMaterials": "材质",
+    "effectWorkspaceTextures": "纹理",
     "effectWorkspaceGenerators": "生成器",
     "effectWorkspaceAnimation": "动画",
     "animationTransformers": "变换",

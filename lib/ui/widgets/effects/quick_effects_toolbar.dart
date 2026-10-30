@@ -45,14 +45,14 @@ class QuickEffectsToolbar extends StatelessWidget {
   ) {
     final name = switch (workspace) {
       EffectWorkspace.filters => s.effectWorkspaceFilters,
-      EffectWorkspace.materials => s.effectWorkspaceMaterials,
+      EffectWorkspace.textures => s.effectWorkspaceTextures,
       EffectWorkspace.generators => s.effectWorkspaceGenerators,
       EffectWorkspace.animation => s.effectWorkspaceAnimation,
       EffectWorkspace.lighting => s.effectWorkspaceLighting,
     };
     final icon = switch (workspace) {
       EffectWorkspace.filters => Icons.filter_alt_outlined,
-      EffectWorkspace.materials => Icons.texture_outlined,
+      EffectWorkspace.textures => Icons.texture_outlined,
       EffectWorkspace.generators => Icons.auto_awesome_outlined,
       EffectWorkspace.animation => Icons.animation_outlined,
       EffectWorkspace.lighting => Icons.light_mode_outlined,

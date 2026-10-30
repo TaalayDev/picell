@@ -447,7 +447,7 @@ class StringsJa extends Strings {
   String get effectWorkspaceFilters => 'フィルター';
 
   @override
-  String get effectWorkspaceMaterials => 'マテリアル';
+  String get effectWorkspaceTextures => 'テクスチャ';
 
   @override
   String get effectWorkspaceGenerators => 'ジェネレーター';

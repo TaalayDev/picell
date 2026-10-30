@@ -59,7 +59,7 @@ void main() {
     expect(find.text('Invert'), findsNothing);
 
     await tester.tap(
-      find.byKey(const ValueKey('quick-effects-workspace-materials')),
+      find.byKey(const ValueKey('quick-effects-workspace-textures')),
     );
     await tester.pump(const Duration(milliseconds: 300));
     await tester.enterText(find.byType(TextField), 'Wood');

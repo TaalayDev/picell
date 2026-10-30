@@ -50,7 +50,7 @@ void main() {
 
     test('matches the approved workspace inventory', () {
       expect(_count(EffectWorkspace.filters), 60);
-      expect(_count(EffectWorkspace.materials), 18);
+      expect(_count(EffectWorkspace.textures), 22);
       expect(_count(EffectWorkspace.generators), 18);
       expect(_count(EffectWorkspace.animation), 80);
       expect(_count(EffectWorkspace.lighting), 18);
@@ -90,13 +90,13 @@ void main() {
       }
     });
 
-    test('materials do not paint pixels onto an empty layer', () {
+    test('textures do not paint pixels onto an empty layer', () {
       const width = 16;
       const height = 16;
       final emptyPixels = Uint32List(width * height);
 
       for (final descriptor
-          in EffectCatalog.inWorkspace(EffectWorkspace.materials)) {
+          in EffectCatalog.inWorkspace(EffectWorkspace.textures)) {
         final output = EffectsManager.createEffect(descriptor.type).apply(
           emptyPixels,
           width,

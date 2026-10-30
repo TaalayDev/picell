@@ -938,6 +938,16 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
         widget.effect.type == EffectType.glacialCrevasse ||
         widget.effect.type == EffectType.sandDunes ||
         widget.effect.type == EffectType.tidalRockPool ||
+        widget.effect.type == EffectType.treeBark ||
+        widget.effect.type == EffectType.wood ||
+        widget.effect.type == EffectType.stone ||
+        widget.effect.type == EffectType.ice ||
+        widget.effect.type == EffectType.metal ||
+        widget.effect.type == EffectType.crystal ||
+        widget.effect.type == EffectType.patterns ||
+        widget.effect.type == EffectType.crackedEarth ||
+        widget.effect.type == EffectType.cobblestone ||
+        widget.effect.type == EffectType.bricks ||
         widget.effect.type == EffectType.romanTravertine ||
         widget.effect.type == EffectType.kintsugiLacquer ||
         widget.effect.type == EffectType.petrifiedAgate ||
@@ -3851,6 +3861,267 @@ class _EffectEditorDialogState extends State<EffectEditorDialog> {
             'waterClarity': 0.85,
             'time': 0.0,
             'preserveAlpha': false,
+          },
+        };
+      case EffectType.treeBark:
+        return {
+          'Ancient Oak Trunk': TreeBarkEffect().getDefaultParameters(),
+          'Silver Paper Birch': {
+            ...TreeBarkEffect().getDefaultParameters(),
+            'barkType': 1,
+            'peeling': 0.75,
+            'roughness': 0.35,
+            'mossAmount': 0.05,
+          },
+          'Terracotta Ponderosa Pine': {
+            ...TreeBarkEffect().getDefaultParameters(),
+            'barkType': 2,
+            'scale': 16.0,
+            'grooving': 0.8,
+            'crackiness': 0.6,
+          },
+          'Towering Redwood': {
+            ...TreeBarkEffect().getDefaultParameters(),
+            'barkType': 3,
+            'grooving': 0.9,
+            'depth': 0.85,
+            'bevelWidth': 3.5,
+          },
+          'Mossy Willow Hollow': {
+            ...TreeBarkEffect().getDefaultParameters(),
+            'barkType': 4,
+            'mossAmount': 0.65,
+            'weathering': 0.6,
+            'grooving': 0.75,
+          },
+          'Polished Cherry Lenticels': {
+            ...TreeBarkEffect().getDefaultParameters(),
+            'barkType': 6,
+            'roughness': 0.25,
+            'grooving': 0.2,
+            'detailCarving': 0.6,
+          },
+          'Rainbow Eucalyptus': {
+            ...TreeBarkEffect().getDefaultParameters(),
+            'barkType': 7,
+            'peeling': 0.8,
+            'colorVariation': 0.8,
+            'roughness': 0.3,
+          },
+        };
+      case EffectType.wood:
+        return {
+          'Quarter-Sawn Oak': WoodEffect().getDefaultParameters(),
+          'Knotty Pine Plank': {
+            ...WoodEffect().getDefaultParameters(),
+            'woodType': 1,
+            'knotCount': 3,
+            'knotSize': 14.0,
+            'ringSpacing': 10.0,
+            'colorVariation': 0.5,
+          },
+          'Rich Dark Walnut': {
+            ...WoodEffect().getDefaultParameters(),
+            'woodType': 2,
+            'knotCount': 0,
+            'varnish': 0.7,
+            'roughness': 0.2,
+            'detailCarving': 0.5,
+          },
+          'Aged Mahogany Carving': {
+            ...WoodEffect().getDefaultParameters(),
+            'woodType': 4,
+            'detailCarving': 0.65,
+            'bevelWidth': 3.5,
+            'varnish': 0.6,
+          },
+          'Charred Shou Sugi Ban': {
+            ...WoodEffect().getDefaultParameters(),
+            'woodType': 6,
+            'weathering': 0.6,
+            'roughness': 0.7,
+            'varnish': 0.15,
+          },
+        };
+      case EffectType.stone:
+        return {
+          'Chiseled Granite': StoneEffect().getDefaultParameters(),
+          'Carrara Marble Statue': {
+            ...StoneEffect().getDefaultParameters(),
+            'stoneType': 0,
+            'stoneColor': 0xFFEFECE6,
+            'creviceColor': 0xFF6E6B66,
+            'weathering': 0.0,
+            'roughness': 0.15,
+            'detailCarving': 0.7,
+          },
+          'Desert Sandstone Ruin': {
+            ...StoneEffect().getDefaultParameters(),
+            'stoneType': 2,
+            'stoneColor': 0xFFD4A36A,
+            'creviceColor': 0xFF6B4824,
+            'weathering': 0.35,
+            'cracks': 0.45,
+          },
+          'Mossy Cleaved Slate': {
+            ...StoneEffect().getDefaultParameters(),
+            'stoneType': 3,
+            'stoneColor': 0xFF5A6875,
+            'weathering': 0.75,
+            'roughness': 0.6,
+          },
+          'Volcanic Obsidian': {
+            ...StoneEffect().getDefaultParameters(),
+            'stoneType': 5,
+            'stoneColor': 0xFF232530,
+            'creviceColor': 0xFF0A0B10,
+            'weathering': 0.0,
+            'relief': 0.85,
+          },
+        };
+      case EffectType.ice:
+        return {
+          'Clear Lake Ice': IceEffect().getDefaultParameters(),
+          'Rime Hoarfrost': {
+            ...IceEffect().getDefaultParameters(),
+            'iceType': 1,
+            'frostiness': 0.85,
+            'transparency': 0.15,
+            'shininess': 0.5,
+          },
+          'Ancient Glacier': {
+            ...IceEffect().getDefaultParameters(),
+            'iceType': 3,
+            'thickness': 0.85,
+            'iceAge': 0.8,
+            'crackIntensity': 0.65,
+            'deepColor': 0xFF0E4470,
+          },
+          'Abyssal Black Ice': {
+            ...IceEffect().getDefaultParameters(),
+            'iceType': 4,
+            'iceColor': 0xFF3A5678,
+            'deepColor': 0xFF0D1826,
+            'shininess': 0.95,
+            'frostiness': 0.1,
+          },
+          'Packed Alpine Snow': {
+            ...IceEffect().getDefaultParameters(),
+            'iceType': 5,
+            'frostiness': 0.9,
+            'thickness': 0.9,
+            'transparency': 0.05,
+          },
+        };
+      case EffectType.metal:
+        return {
+          'Brushed Steel': MetalEffect().getDefaultParameters(),
+          'Polished Chrome': {
+            ...MetalEffect().getDefaultParameters(),
+            'metalType': 1, 'roughness': 0.05, 'reflectivity': 1.0,
+            'scratchIntensity': 0.0, 'oxidation': 0.0,
+          },
+          'Weathered Iron': {
+            ...MetalEffect().getDefaultParameters(),
+            'metalType': 2, 'oxidation': 0.7, 'roughness': 0.8,
+            'color': 0xFF93918B, 'scratchIntensity': 0.6,
+          },
+          'Aged Copper': {
+            ...MetalEffect().getDefaultParameters(),
+            'metalType': 3, 'color': 0xFFCA8A59, 'oxidation': 0.6,
+          },
+          'Hammered Gold': {
+            ...MetalEffect().getDefaultParameters(),
+            'metalType': 4, 'color': 0xFFE4BA65, 'oxidation': 0.0,
+          },
+          'Industrial Tread': {
+            ...MetalEffect().getDefaultParameters(),
+            'metalType': 5, 'roughness': 0.5, 'reflectivity': 0.45,
+          },
+        };
+      case EffectType.crystal:
+        return {
+          'Blue Quartz': CrystalEffect().getDefaultParameters(),
+          'Amethyst Growth': {
+            ...CrystalEffect().getDefaultParameters(),
+            'color': 0xFFAC78DF, 'growth': 2.8, 'direction': 65.0,
+            'clarity': 0.15, 'innerGlow': 0.45,
+          },
+          'Ruby Facets': {
+            ...CrystalEffect().getDefaultParameters(),
+            'color': 0xFFDF4268, 'facets': 5, 'growth': 1.0,
+            'facetContrast': 0.85, 'prismEffect': 0.05,
+          },
+          'Prismatic Ice': {
+            ...CrystalEffect().getDefaultParameters(),
+            'color': 0xFFBDEAF2, 'prismEffect': 0.8,
+            'surfaceReflection': 0.9, 'clarity': 0.5,
+          },
+        };
+      case EffectType.patterns:
+        return {
+          'Classic Checkerboard': PatternsEffect().getDefaultParameters(),
+          'Golden Art Deco': {
+            ...PatternsEffect().getDefaultParameters(),
+            'pattern': 'scallops', 'foregroundColor': 0xFFD8B66E,
+            'backgroundColor': 0xFF23313E, 'scale': 16,
+          },
+          'Woven Fabric': {
+            ...PatternsEffect().getDefaultParameters(),
+            'pattern': 'weave', 'foregroundColor': 0xFF9E7762,
+            'backgroundColor': 0xFF463A35, 'variation': 0.2,
+          },
+          'Playful Confetti': {
+            ...PatternsEffect().getDefaultParameters(),
+            'pattern': 'confetti', 'foregroundColor': 0xFFF18DAD,
+            'backgroundColor': 0xFF253558, 'spacing': 3.0,
+          },
+          'Circuit Maze': {
+            ...PatternsEffect().getDefaultParameters(),
+            'pattern': 'truchet', 'foregroundColor': 0xFF78DDBB,
+            'backgroundColor': 0xFF173D42,
+          },
+        };
+      case EffectType.crackedEarth:
+        return {
+          'Sandy Broken Rims': CrackedEarthEffect().getDefaultParameters(),
+          'Parched Clay': {
+            ...CrackedEarthEffect().getDefaultParameters(),
+            'soilColor': 0xFFAA714C, 'rimColor': 0xFFD9A46C,
+            'crackColor': 0xFF42291F, 'crackWidth': 1.5,
+            'rimBreakup': 0.2, 'plateSize': 18,
+          },
+          'Fine Desert Crust': {
+            ...CrackedEarthEffect().getDefaultParameters(),
+            'plateSize': 7, 'rimWidth': 0.7, 'roughness': 0.5,
+          },
+        };
+      case EffectType.cobblestone:
+        return {
+          'Old Stone Path': CobblestoneEffect().getDefaultParameters(),
+          'Mossy Courtyard': {
+            ...CobblestoneEffect().getDefaultParameters(),
+            'moss': 0.8, 'roughness': 0.7, 'variation': 0.5,
+          },
+          'Smooth River Stones': {
+            ...CobblestoneEffect().getDefaultParameters(),
+            'roundness': 1.0, 'relief': 0.8, 'roughness': 0.1,
+            'stoneColor': 0xFF929DA5, 'moss': 0.0,
+          },
+        };
+      case EffectType.bricks:
+        return {
+          'Classic Red Brick': BricksEffect().getDefaultParameters(),
+          'Weathered English Wall': {
+            ...BricksEffect().getDefaultParameters(),
+            'bond': 'english', 'weathering': 0.75, 'roughness': 0.65,
+            'variation': 0.55, 'brickColor': 0xFF925442,
+          },
+          'Clean Stack Bond': {
+            ...BricksEffect().getDefaultParameters(),
+            'bond': 'stack', 'weathering': 0.0, 'roughness': 0.1,
+            'variation': 0.1, 'brickColor': 0xFFD3B18B,
+            'mortarColor': 0xFF625A50,
           },
         };
       case EffectType.romanTravertine:

@@ -449,7 +449,7 @@ class StringsRu extends Strings {
   String get effectWorkspaceFilters => 'Фильтры';
 
   @override
-  String get effectWorkspaceMaterials => 'Материалы';
+  String get effectWorkspaceTextures => 'Текстуры';
 
   @override
   String get effectWorkspaceGenerators => 'Генераторы';

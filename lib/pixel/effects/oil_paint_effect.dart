@@ -1,418 +1,284 @@
 part of 'effects.dart';
 
-/// Effect that simulates an oil painting style with textured brush strokes
+/// Oil painting made of individual brush dabs with lit impasto.
+///
+/// The image is repainted as overlapping elongated strokes. Each stroke takes
+/// one colour from the artwork under it, has a rounded paint ridge with bristle
+/// streaks, and is lit as thick paint. It is artwork-aware:
+///  * stroke direction follows the form (edges and silhouette contours) and
+///    falls back to `strokeDirection` in flat areas (`followForm`);
+///  * strokes prefer pixels of their own colour, so they stop at edges instead
+///    of smearing across them (more strictly with higher `detail`);
+///  * only opaque pixels are sampled or painted, so the silhouette is kept.
 class OilPaintEffect extends Effect {
-  OilPaintEffect([Map<String, dynamic>? parameters])
-      : super(
-          EffectType.oilPaint,
-          parameters ??
-              const {
-                'brushSize': 0.5, // Size of brush strokes
-                'detail': 0.6, // Amount of detail preserved
-                'textureAmount': 0.7, // Intensity of brush texture
-                'colorBlending': 0.5, // How much colors mix
-                'strokeDirection': 0.5, // Direction of brush strokes (0-1 maps to 0-360°)
-              },
-        );
+  OilPaintEffect([Map<String, dynamic>? parameters]) : super(EffectType.oilPaint, {..._defaults, ...?parameters});
+
+  static const _defaults = <String, dynamic>{
+    'brushSize': 0.5,
+    'detail': 0.6,
+    'textureAmount': 0.7,
+    'colorBlending': 0.5,
+    'strokeDirection': 0.5,
+    'followForm': 0.7,
+    'gloss': 0.25,
+    'lightDirection': 225.0,
+    'seed': 42,
+  };
 
   @override
-  Map<String, dynamic> getDefaultParameters() {
-    return {
-      'brushSize': 0.5, // Size of brush strokes (0-1)
-      'detail': 0.6, // Amount of detail preserved (0-1)
-      'textureAmount': 0.7, // Intensity of brush texture (0-1)
-      'colorBlending': 0.5, // How much colors mix (0-1)
-      'strokeDirection': 0.5, // Direction of brush strokes (0-1 maps to 0-360°)
-    };
-  }
+  Map<String, dynamic> getDefaultParameters() => Map.of(_defaults);
 
   @override
-  Map<String, dynamic> getMetadata() {
-    return {
-      'brushSize': {
-        'label': 'Brush Size',
-        'description': 'Controls the size of the brush strokes.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'detail': {
-        'label': 'Detail',
-        'description': 'Controls the amount of detail preserved.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'textureAmount': {
-        'label': 'Texture Amount',
-        'description': 'Controls the intensity of the brush texture.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'colorBlending': {
-        'label': 'Color Blending',
-        'description': 'Controls how much colors mix.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'strokeDirection': {
-        'label': 'Stroke Direction',
-        'description': 'Controls the direction of the brush strokes.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-    };
+  Map<String, dynamic> getMetadata() => {
+        for (final spec in [
+          ('brushSize', 'Brush Size', 'Size of the brush strokes.', 0.0, 1.0),
+          ('detail', 'Detail', 'Smaller strokes that hold the original colors and edges.', 0.0, 1.0),
+          ('textureAmount', 'Impasto', 'Thickness and bristle texture of the paint.', 0.0, 1.0),
+          ('colorBlending', 'Color Blending', 'Wet-on-wet mixing between neighboring strokes.', 0.0, 1.0),
+          ('strokeDirection', 'Stroke Direction', 'Base angle of the strokes (0 to 360 degrees).', 0.0, 1.0),
+          ('followForm', 'Follow Form', 'Make strokes follow edges and contours instead of one angle.', 0.0, 1.0),
+          ('gloss', 'Gloss', 'Wet highlights on the paint ridges.', 0.0, 1.0),
+          ('lightDirection', 'Light Direction', null, 0.0, 360.0),
+          ('seed', 'Stroke Seed', 'Changes stroke placement.', 0, 9999),
+        ])
+          spec.$1: {
+            'label': spec.$2,
+            if (spec.$3 != null) 'description': spec.$3,
+            'type': 'slider',
+            'min': spec.$4,
+            'max': spec.$5,
+            'divisions': spec.$4 is int ? (spec.$5 - spec.$4).toInt() : 100,
+          },
+      };
+
+  double _number(String key, double min, double max) {
+    final value = (parameters[key] as num?)?.toDouble();
+    return (value != null && value.isFinite ? value : (_defaults[key] as num).toDouble()).clamp(min, max);
   }
 
   @override
   Uint32List apply(Uint32List pixels, int width, int height) {
-    // Get parameters
-    final brushSizeFactor = parameters['brushSize'] as double;
-    final detailLevel = parameters['detail'] as double;
-    final textureAmount = parameters['textureAmount'] as double;
-    final colorBlending = parameters['colorBlending'] as double;
-    final strokeDirection = parameters['strokeDirection'] as double;
+    final result = Uint32List.fromList(pixels);
+    if (width <= 0 || height <= 0 || pixels.length < width * height) return result;
 
-    // Calculate brush size (1-5 pixels, scaled to image size)
-    final maxDimension = max(width, height);
-    final brushSize = (1 + brushSizeFactor * 4 * maxDimension / 100.0).round().clamp(1, 5);
+    final brushSize = _number('brushSize', 0, 1);
+    final detail = _number('detail', 0, 1);
+    final impasto = _number('textureAmount', 0, 1);
+    final blending = _number('colorBlending', 0, 1);
+    final baseAngle = _number('strokeDirection', 0, 1) * 2 * pi;
+    final follow = _number('followForm', 0, 1);
+    final gloss = _number('gloss', 0, 1);
+    final light = _number('lightDirection', 0, 360) * pi / 180;
+    final lx = cos(light), ly = sin(light);
+    final seed = _number('seed', 0, 9999).round();
 
-    // Create result buffer
-    final source = Uint32List.fromList(pixels);
-    final result = Uint32List(pixels.length);
+    final count = width * height;
+    final solid = Uint8List(count);
+    var any = false;
+    for (var i = 0; i < count; i++) {
+      if ((pixels[i] >>> 24) != 0) {
+        solid[i] = 1;
+        any = true;
+      }
+    }
+    if (!any) return result;
 
-    // Calculate stroke angle in radians
-    final angle = strokeDirection * 2 * pi;
-    final sinAngle = sin(angle);
-    final cosAngle = cos(angle);
+    // Stroke direction field: structure tensor of luminance and silhouette,
+    // pulled toward the base angle where the image is flat.
+    final signal = Float32List(count);
+    for (var i = 0; i < count; i++) {
+      signal[i] = solid[i] == 1 ? 0.2 + 0.6 * _textureLuminance(pixels[i]) : 0.0;
+    }
+    double sig(int x, int y) => signal[y.clamp(0, height - 1) * width + x.clamp(0, width - 1)];
+    final ta = Float32List(count), tb = Float32List(count);
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        final gx = sig(x + 1, y) - sig(x - 1, y), gy = sig(x, y + 1) - sig(x, y - 1);
+        final mag = sqrt(gx * gx + gy * gy);
+        if (mag < 0.02) continue;
+        final w = min(1.0, mag * 4);
+        final ux = gx / mag, uy = gy / mag;
+        ta[y * width + x] = w * (ux * ux - uy * uy);
+        tb[y * width + x] = w * 2 * ux * uy;
+      }
+    }
+    // Wide smoothing carries contour direction into the middle of broad shapes.
+    final radius = (1.5 + brushSize * 4.5) * (1.25 - detail * 0.55);
+    final reach = (radius * 2.4).round().clamp(3, 10);
+    final blurA = _silhouetteBlur(ta, width, height, reach), blurB = _silhouetteBlur(tb, width, height, reach);
+    final prior = 0.02 + (1 - follow) * (1 - follow) * 6.0;
+    final priorAxis = baseAngle + pi / 2;
+    final pa = prior * cos(2 * priorAxis), pb = prior * sin(2 * priorAxis);
+    final dirX = Float32List(count), dirY = Float32List(count);
+    for (var i = 0; i < count; i++) {
+      final a = 0.5 * atan2(blurB[i] + pb, blurA[i] + pa);
+      dirX[i] = -sin(a);
+      dirY[i] = cos(a);
+    }
 
-    // Step 1: Regional color averaging with edge preservation
-    _regionalColorAveraging(source, result, width, height, brushSize, detailLevel);
-
-    // Step 2: Apply brush stroke texture
-    _applyBrushTexture(result, width, height, textureAmount, brushSize, sinAngle, cosAngle);
-
-    // Step 3: Edge enhancement to define color regions
-    _enhanceEdges(result, width, height);
-
-    // Step 4: Color blending for paint-like mixing
-    _blendColors(result, width, height, colorBlending);
-
-    return result;
-  }
-
-  void _regionalColorAveraging(
-    Uint32List source,
-    Uint32List destination,
-    int width,
-    int height,
-    int brushSize,
-    double detailLevel,
-  ) {
-    // Using a modified mean-shift algorithm for regional color averaging
-    final radiusSquared = brushSize * brushSize;
-    final detailThreshold = (1.0 - detailLevel) * 100; // Higher detail level = lower threshold
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final centerIdx = y * width + x;
-        final centerPixel = source[centerIdx];
-
-        // Skip transparent pixels
-        if (((centerPixel >> 24) & 0xFF) == 0) {
-          destination[centerIdx] = 0;
-          continue;
+    // Strokes on a jittered grid.
+    final halfLen = radius * 1.7, halfWid = radius * 0.75, spacing = radius * 1.3;
+    final cols = (width / spacing).ceil() + 3, rows = (height / spacing).ceil() + 3;
+    final strokeCount = cols * rows;
+    final sx = Float32List(strokeCount), sy = Float32List(strokeCount);
+    final sdx = Float32List(strokeCount), sdy = Float32List(strokeCount);
+    final sr = Float32List(strokeCount), sg = Float32List(strokeCount), sb = Float32List(strokeCount);
+    final valid = Uint8List(strokeCount);
+    final sigma = 30 + (1 - detail) * 50, denom = 2 * sigma * sigma;
+    for (var j = 0; j < rows; j++) {
+      for (var i = 0; i < cols; i++) {
+        final k = j * cols + i;
+        final cx = (i - 1 + 0.5 + (_textureHash(i, j, seed + 1) - 0.5) * 0.8) * spacing;
+        final cy = (j - 1 + 0.5 + (_textureHash(j, i, seed + 2) - 0.5) * 0.8) * spacing;
+        sx[k] = cx;
+        sy[k] = cy;
+        final ci = cy.floor().clamp(0, height - 1) * width + cx.floor().clamp(0, width - 1);
+        final dx = dirX[ci], dy = dirY[ci];
+        sdx[k] = dx;
+        sdy[k] = dy;
+        // Colour: bilateral average of the artwork along and across the stroke.
+        double refR = -1, refG = 0, refB = 0, wr = 0, wg = 0, wb = 0, wt = 0;
+        if (solid[ci] == 1) {
+          refR = ((pixels[ci] >> 16) & 0xFF).toDouble();
+          refG = ((pixels[ci] >> 8) & 0xFF).toDouble();
+          refB = (pixels[ci] & 0xFF).toDouble();
         }
+        for (var s = -2; s <= 2; s++) {
+          for (var a = -1; a <= 1; a++) {
+            final x = (cx + dx * s * halfLen * 0.5 - dy * a * halfWid * 0.6).floor();
+            final y = (cy + dy * s * halfLen * 0.5 + dx * a * halfWid * 0.6).floor();
+            if (x < 0 || y < 0 || x >= width || y >= height || solid[y * width + x] == 0) continue;
+            final p = pixels[y * width + x];
+            final r = ((p >> 16) & 0xFF).toDouble(), g = ((p >> 8) & 0xFF).toDouble(), b = (p & 0xFF).toDouble();
+            if (refR < 0) {
+              refR = r;
+              refG = g;
+              refB = b;
+            }
+            final dr = r - refR, dg = g - refG, db = b - refB;
+            final w = exp(-(dr * dr + dg * dg + db * db) / denom);
+            wr += r * w;
+            wg += g * w;
+            wb += b * w;
+            wt += w;
+          }
+        }
+        if (wt > 0) {
+          valid[k] = 1;
+          // Each stroke carries a slightly different load of paint.
+          final jitter = 1 + (_textureHash(i, j, seed + 3) - 0.5) * 0.16 * impasto;
+          sr[k] = (wr / wt * jitter).clamp(0.0, 255.0);
+          sg[k] = (wg / wt * jitter).clamp(0.0, 255.0);
+          sb[k] = (wb / wt * jitter).clamp(0.0, 255.0);
+        }
+      }
+    }
 
-        // Extract center pixel components
-        final centerR = (centerPixel >> 16) & 0xFF;
-        final centerG = (centerPixel >> 8) & 0xFF;
-        final centerB = centerPixel & 0xFF;
-        final centerA = (centerPixel >> 24) & 0xFF;
-
-        int totalR = 0, totalG = 0, totalB = 0;
-        int count = 0;
-
-        // Sample region within brush radius
-        for (int ky = -brushSize; ky <= brushSize; ky++) {
-          for (int kx = -brushSize; kx <= brushSize; kx++) {
-            // Skip pixels outside brush circle
-            final distSquared = kx * kx + ky * ky;
-            if (distSquared > radiusSquared) continue;
-
-            final sampleX = x + kx;
-            final sampleY = y + ky;
-
-            // Skip out of bounds pixels
-            if (sampleX < 0 || sampleX >= width || sampleY < 0 || sampleY >= height) continue;
-
-            final sampleIdx = sampleY * width + sampleX;
-            final samplePixel = source[sampleIdx];
-
-            // Skip transparent pixels
-            final sampleA = (samplePixel >> 24) & 0xFF;
-            if (sampleA == 0) continue;
-
-            final sampleR = (samplePixel >> 16) & 0xFF;
-            final sampleG = (samplePixel >> 8) & 0xFF;
-            final sampleB = samplePixel & 0xFF;
-
-            // Calculate color difference for detail preservation
-            final colorDiff = _calculateColorDistance(
-              centerR,
-              centerG,
-              centerB,
-              sampleR,
-              sampleG,
-              sampleB,
-            );
-
-            // Only include pixels that are similar enough (within threshold)
-            if (colorDiff <= detailThreshold) {
-              totalR += sampleR;
-              totalG += sampleG;
-              totalB += sampleB;
-              count++;
+    // Assign every pixel to its best stroke: elongated distance plus a colour
+    // penalty, so strokes hug regions of their own colour.
+    final penalty = 2 + detail * 10;
+    final baseR = Float32List(count), baseG = Float32List(count), baseB = Float32List(count);
+    final heightMap = Float32List(count);
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        final p = y * width + x;
+        if (solid[p] == 0) continue;
+        final px = x + 0.5, py = y + 0.5;
+        final orig = pixels[p];
+        final or = ((orig >> 16) & 0xFF).toDouble(), og = ((orig >> 8) & 0xFF).toDouble(), ob = (orig & 0xFF).toDouble();
+        final ci = (px / spacing).floor() + 1, cj = (py / spacing).floor() + 1;
+        var best = -1, bestScore = double.infinity;
+        var bu = 0.0, bv = 0.0;
+        for (var j = max(0, cj - 2); j <= min(rows - 1, cj + 2); j++) {
+          for (var i = max(0, ci - 2); i <= min(cols - 1, ci + 2); i++) {
+            final k = j * cols + i;
+            if (valid[k] == 0) continue;
+            final ox = px - sx[k], oy = py - sy[k];
+            final u = (ox * sdx[k] + oy * sdy[k]) / halfLen, v = (-ox * sdy[k] + oy * sdx[k]) / halfWid;
+            final dr = (or - sr[k]) / 255, dg = (og - sg[k]) / 255, db = (ob - sb[k]) / 255;
+            final score = u * u + v * v + penalty * (dr * dr + dg * dg + db * db);
+            if (score < bestScore) {
+              bestScore = score;
+              best = k;
+              bu = u;
+              bv = v;
             }
           }
         }
-
-        // Calculate average color for this region
-        if (count > 0) {
-          final avgR = (totalR / count).round().clamp(0, 255);
-          final avgG = (totalG / count).round().clamp(0, 255);
-          final avgB = (totalB / count).round().clamp(0, 255);
-
-          destination[centerIdx] = (centerA << 24) | (avgR << 16) | (avgG << 8) | avgB;
-        } else {
-          destination[centerIdx] = centerPixel;
+        if (best < 0) {
+          baseR[p] = or;
+          baseG[p] = og;
+          baseB[p] = ob;
+          heightMap[p] = 0.3;
+          continue;
         }
+        baseR[p] = sr[best];
+        baseG[p] = sg[best];
+        baseB[p] = sb[best];
+        // Impasto profile: a ridge down the stroke, tapering at both ends, with
+        // bristle streaks running along it.
+        final across = bv.clamp(-1.0, 1.0);
+        final dome = 1 - across * across;
+        final taper = 1 - min(1.0, bu * bu) * 0.6;
+        final bristle = _textureNoise(bv * halfWid * 0.9 + best * 13.7, bu * 0.4, seed + 5);
+        heightMap[p] = (0.15 + 0.5 * dome * taper + (bristle - 0.5) * 0.5 * (0.4 + 0.6 * dome)).clamp(0.0, 1.0);
       }
     }
-  }
 
-  void _applyBrushTexture(
-    Uint32List pixels,
-    int width,
-    int height,
-    double textureAmount,
-    int brushSize,
-    double sinAngle,
-    double cosAngle,
-  ) {
-    final temp = Uint32List.fromList(pixels);
-    final random = Random(42); // Fixed seed for consistent texture
-
-    final textureIntensity = textureAmount * 30; // Scale to reasonable range
-    final strokeLength = brushSize * 2;
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final idx = y * width + x;
-        final pixel = temp[idx];
-
-        // Skip transparent pixels
-        final a = (pixel >> 24) & 0xFF;
-        if (a == 0) continue;
-
-        // Extract color components
-        final r = (pixel >> 16) & 0xFF;
-        final g = (pixel >> 8) & 0xFF;
-        final b = pixel & 0xFF;
-
-        // Apply directional texture using value noise
-        double noise = 0;
-
-        // Sample along brush stroke direction
-        for (int i = -strokeLength; i <= strokeLength; i++) {
-          // Calculate position along brush stroke
-          final noiseX = (x + i * cosAngle).round();
-          final noiseY = (y + i * sinAngle).round();
-
-          // Skip if out of bounds
-          if (noiseX < 0 || noiseX >= width || noiseY < 0 || noiseY >= height) continue;
-
-          // Add weighted noise contribution
-          final weight = 1.0 - min(1.0, i.abs() / strokeLength);
-          noise += (random.nextDouble() * 2 - 1) * weight;
-        }
-
-        // Normalize and apply intensity
-        noise = (noise / (strokeLength * 2)) * textureIntensity;
-
-        // Adjust color based on noise
-        int newR = (r + noise).round().clamp(0, 255);
-        int newG = (g + noise).round().clamp(0, 255);
-        int newB = (b + noise).round().clamp(0, 255);
-
-        // Store result
-        pixels[idx] = (a << 24) | (newR << 16) | (newG << 8) | newB;
-      }
-    }
-  }
-
-  void _enhanceEdges(
-    Uint32List pixels,
-    int width,
-    int height,
-  ) {
-    final temp = Uint32List.fromList(pixels);
-
-    for (int y = 1; y < height - 1; y++) {
-      for (int x = 1; x < width - 1; x++) {
-        final centerIdx = y * width + x;
-        final centerPixel = temp[centerIdx];
-
-        // Skip transparent pixels
-        final a = (centerPixel >> 24) & 0xFF;
-        if (a == 0) continue;
-
-        // Calculate gradient (simple Sobel-like operation)
-        int gradientX = 0, gradientY = 0;
-
-        // Sample neighboring pixels
-        final leftIdx = y * width + (x - 1);
-        final rightIdx = y * width + (x + 1);
-        final topIdx = (y - 1) * width + x;
-        final bottomIdx = (y + 1) * width + x;
-
-        final leftPixel = temp[leftIdx];
-        final rightPixel = temp[rightIdx];
-        final topPixel = temp[topIdx];
-        final bottomPixel = temp[bottomIdx];
-
-        // Calculate intensity gradient (simplified)
-        final int leftIntensity = _getIntensity(leftPixel);
-        final int rightIntensity = _getIntensity(rightPixel);
-        final int topIntensity = _getIntensity(topPixel);
-        final int bottomIntensity = _getIntensity(bottomPixel);
-
-        gradientX = rightIntensity - leftIntensity;
-        gradientY = bottomIntensity - topIntensity;
-
-        final gradientMagnitude = sqrt(gradientX * gradientX + gradientY * gradientY);
-
-        // Apply edge enhancement proportional to gradient magnitude
-        if (gradientMagnitude > 10) {
-          // Threshold to only enhance strong edges
-          final edgeFactor = min(1.0, gradientMagnitude / 50.0) * 0.6; // Scale factor
-
-          final r = (centerPixel >> 16) & 0xFF;
-          final g = (centerPixel >> 8) & 0xFF;
-          final b = centerPixel & 0xFF;
-
-          // Darken edges slightly to create definition
-          final newR = (r * (1.0 - edgeFactor)).round().clamp(0, 255);
-          final newG = (g * (1.0 - edgeFactor)).round().clamp(0, 255);
-          final newB = (b * (1.0 - edgeFactor)).round().clamp(0, 255);
-
-          pixels[centerIdx] = (a << 24) | (newR << 16) | (newG << 8) | newB;
-        }
-      }
-    }
-  }
-
-  void _blendColors(
-    Uint32List pixels,
-    int width,
-    int height,
-    double blendAmount,
-  ) {
-    final temp = Uint32List.fromList(pixels);
-    final blendRadius = (blendAmount * 2).round().clamp(1, 2);
-    final blendIntensity = blendAmount * 0.5; // Scale down for subtlety
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final centerIdx = y * width + x;
-        final centerPixel = temp[centerIdx];
-
-        // Skip transparent pixels
-        final a = (centerPixel >> 24) & 0xFF;
-        if (a == 0) continue;
-
-        // Extract center pixel components
-        final centerR = (centerPixel >> 16) & 0xFF;
-        final centerG = (centerPixel >> 8) & 0xFF;
-        final centerB = centerPixel & 0xFF;
-
-        int totalR = centerR, totalG = centerG, totalB = centerB;
-        int count = 1;
-
-        // Sample neighborhood for color blending
-        for (int ky = -blendRadius; ky <= blendRadius; ky++) {
-          for (int kx = -blendRadius; kx <= blendRadius; kx++) {
-            // Skip center pixel
-            if (kx == 0 && ky == 0) continue;
-
-            final sampleX = x + kx;
-            final sampleY = y + ky;
-
-            // Skip out of bounds pixels
-            if (sampleX < 0 || sampleX >= width || sampleY < 0 || sampleY >= height) continue;
-
-            final sampleIdx = sampleY * width + sampleX;
-            final samplePixel = temp[sampleIdx];
-
-            // Skip transparent pixels
-            final sampleA = (samplePixel >> 24) & 0xFF;
-            if (sampleA == 0) continue;
-
-            // Weight samples by distance (closer pixels have more influence)
-            final distance = sqrt(kx * kx + ky * ky);
-            final weight = 1.0 - min(1.0, distance / blendRadius);
-
-            totalR += (((samplePixel >> 16) & 0xFF) * weight).round();
-            totalG += (((samplePixel >> 8) & 0xFF) * weight).round();
-            totalB += ((samplePixel & 0xFF) * weight).round();
-            count += weight.round();
+    // Wet-on-wet mixing with neighbouring strokes.
+    var mr = baseR, mg = baseG, mb = baseB;
+    if (blending > 0) {
+      mr = Float32List(count);
+      mg = Float32List(count);
+      mb = Float32List(count);
+      final amount = blending * 0.45;
+      for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+          final p = y * width + x;
+          if (solid[p] == 0) continue;
+          var ar = 0.0, ag = 0.0, ab = 0.0, n = 0;
+          for (final q in [if (x > 0) p - 1, if (x + 1 < width) p + 1, if (y > 0) p - width, if (y + 1 < height) p + width]) {
+            if (solid[q] == 0) continue;
+            ar += baseR[q];
+            ag += baseG[q];
+            ab += baseB[q];
+            n++;
           }
+          mr[p] = n == 0 ? baseR[p] : baseR[p] + (ar / n - baseR[p]) * amount;
+          mg[p] = n == 0 ? baseG[p] : baseG[p] + (ag / n - baseG[p]) * amount;
+          mb[p] = n == 0 ? baseB[p] : baseB[p] + (ab / n - baseB[p]) * amount;
         }
-
-        // Calculate blended color
-        final avgR = (totalR / count).round().clamp(0, 255);
-        final avgG = (totalG / count).round().clamp(0, 255);
-        final avgB = (totalB / count).round().clamp(0, 255);
-
-        // Blend between original and averaged color
-        final newR = _interpolate(centerR, avgR, blendIntensity);
-        final newG = _interpolate(centerG, avgG, blendIntensity);
-        final newB = _interpolate(centerB, avgB, blendIntensity);
-
-        // Store result
-        pixels[centerIdx] = (a << 24) | (newR << 16) | (newG << 8) | newB;
       }
     }
-  }
 
-  // Helper method to calculate color distance
-  double _calculateColorDistance(int r1, int g1, int b1, int r2, int g2, int b2) {
-    final diffR = r1 - r2;
-    final diffG = g1 - g2;
-    final diffB = b1 - b2;
+    double heightAt(int x, int y, double fallback) {
+      if (x < 0 || y < 0 || x >= width || y >= height) return fallback;
+      final q = y * width + x;
+      return solid[q] == 1 ? heightMap[q] : fallback;
+    }
 
-    return sqrt(diffR * diffR + diffG * diffG + diffB * diffB);
-  }
+    // Light the paint and blend back some of the original for detail.
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        final p = y * width + x;
+        if (solid[p] == 0) continue;
+        final orig = pixels[p];
+        final h = heightMap[p];
+        final relief = -((heightAt(x + 1, y, h) - heightAt(x - 1, y, h)) * lx + (heightAt(x, y + 1, h) - heightAt(x, y - 1, h)) * ly) *
+            impasto *
+            2.2;
+        final shade = 1 + relief.clamp(-0.55, 0.55) * 0.8 + (h - 0.4) * impasto * 0.3;
+        final keep = detail * 0.45;
+        final spec = gloss > 0 ? max(0.0, relief - 0.3) * gloss * 1.5 : 0.0;
+        int channel(double mixed, int shift) {
+          final o = (orig >> shift) & 0xFF;
+          final c = (mixed + (o - mixed) * keep) * shade;
+          return (c + (255 - c) * spec).round().clamp(0, 255);
+        }
 
-  // Helper method to get pixel intensity (brightness)
-  int _getIntensity(int pixel) {
-    final r = (pixel >> 16) & 0xFF;
-    final g = (pixel >> 8) & 0xFF;
-    final b = pixel & 0xFF;
-
-    return ((0.299 * r) + (0.587 * g) + (0.114 * b)).round();
-  }
-
-  // Helper method for linear interpolation
-  int _interpolate(int a, int b, double t) {
-    return (a * (1 - t) + b * t).round().clamp(0, 255);
+        result[p] = (orig & 0xFF000000) | (channel(mr[p], 16) << 16) | (channel(mg[p], 8) << 8) | channel(mb[p], 0);
+      }
+    }
+    return result;
   }
 }

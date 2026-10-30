@@ -95,7 +95,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
   }
 
   List<_SidePanelTab> _tabsForState(PixelCanvasState state) {
-    return [_SidePanelTab.layers, _SidePanelTab.filters, _SidePanelTab.materials, _SidePanelTab.lighting];
+    return [_SidePanelTab.layers, _SidePanelTab.filters, _SidePanelTab.textures, _SidePanelTab.lighting];
   }
 
   bool _sameTabs(List<_SidePanelTab> left, List<_SidePanelTab> right) {
@@ -368,7 +368,7 @@ class _DesktopSidePanelState extends ConsumerState<DesktopSidePanel> with Ticker
 enum _SidePanelTab {
   layers,
   filters,
-  materials,
+  textures,
   generators,
   animation,
   lighting,
@@ -376,7 +376,7 @@ enum _SidePanelTab {
 
   EffectWorkspace? get workspace => switch (this) {
         filters => EffectWorkspace.filters,
-        materials => EffectWorkspace.materials,
+        textures => EffectWorkspace.textures,
         generators => EffectWorkspace.generators,
         animation => EffectWorkspace.animation,
         lighting => EffectWorkspace.lighting,
@@ -386,7 +386,7 @@ enum _SidePanelTab {
   IconData get icon => switch (this) {
         layers => Icons.layers_outlined,
         filters => Icons.filter_alt_outlined,
-        materials => Icons.texture_outlined,
+        textures => Icons.texture_outlined,
         generators => Icons.auto_awesome_outlined,
         animation => Icons.animation_outlined,
         lighting => Icons.light_mode_outlined,
@@ -398,7 +398,7 @@ enum _SidePanelTab {
     return switch (this) {
       layers => strings.layers,
       filters => strings.effectWorkspaceFilters,
-      materials => strings.effectWorkspaceMaterials,
+      textures => strings.effectWorkspaceTextures,
       generators => strings.effectWorkspaceGenerators,
       animation => strings.effectWorkspaceAnimation,
       lighting => strings.effectWorkspaceLighting,
@@ -410,7 +410,7 @@ enum _SidePanelTab {
     return switch (workspace) {
       null => null,
       EffectWorkspace.filters => filters,
-      EffectWorkspace.materials => materials,
+      EffectWorkspace.textures => textures,
       EffectWorkspace.generators => generators,
       EffectWorkspace.animation => animation,
       EffectWorkspace.lighting => lighting,

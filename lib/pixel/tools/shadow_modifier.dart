@@ -1,84 +1,68 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:picell/pixel/tools.dart';
-
 import '../pixel_point.dart';
+import '../tools.dart';
 
+/// Real-time directional drop-shadow modifier.
 class ShadowModifier extends Modifier {
   final int offsetX;
   final int offsetY;
   final double intensity;
   final int spread;
   final bool softShadow;
+  final int? shadowColor;
 
   const ShadowModifier({
     this.offsetX = 1,
     this.offsetY = 1,
     this.intensity = 0.5,
-    this.spread = 1,
-    this.softShadow = true,
+    this.spread = 0,
+    this.softShadow = false,
+    this.shadowColor,
   }) : super(PixelModifier.shadow);
 
   @override
   List<PixelPoint<int>> apply(PixelPoint<int> point, int width, int height) {
     final points = <PixelPoint<int>>[];
+    final sx = point.x + offsetX;
+    final sy = point.y + offsetY;
+    final baseColor = shadowColor ?? _computeShadowColor(point.color);
 
-    // Add the original pixel first
-    points.add(point);
-
-    // Calculate base shadow position
-    final shadowX = point.x + offsetX;
-    final shadowY = point.y + offsetY;
-
-    // If out of bounds, just return original point
-    if (shadowX < 0 || shadowX >= width || shadowY < 0 || shadowY >= height) {
+    if (!softShadow || spread <= 0) {
+      if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+        points.add(PixelPoint(sx, sy, color: baseColor));
+      }
       return points;
     }
 
-    if (softShadow) {
-      // Create soft shadow with spread
-      for (int dy = -spread; dy <= spread; dy++) {
-        for (int dx = -spread; dx <= spread; dx++) {
-          final newX = shadowX + dx;
-          final newY = shadowY + dy;
-
-          // Skip if out of bounds
-          if (newX < 0 || newX >= width || newY < 0 || newY >= height) {
-            continue;
-          }
-
-          // Calculate distance from shadow center for alpha
-          final distance = sqrt(dx * dx + dy * dy);
-          if (distance > spread) continue;
-
-          // Create shadow pixel with calculated alpha
-          points.add(PixelPoint(
-            newX,
-            newY,
-            color: _createShadowColor(),
-          ));
-        }
+    for (int dy = -spread; dy <= spread; dy++) {
+      for (int dx = -spread; dx <= spread; dx++) {
+        final nx = sx + dx;
+        final ny = sy + dy;
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+        final dist = sqrt(dx * dx + dy * dy);
+        if (dist > spread) continue;
+        final alphaFactor = 1.0 - (dist / (spread + 1.0));
+        final color = _tintAlpha(baseColor, alphaFactor * intensity);
+        points.add(PixelPoint(nx, ny, color: color));
       }
-    } else {
-      points.add(PixelPoint(
-        shadowX,
-        shadowY,
-        color: _createShadowColor(),
-      ));
     }
 
     return points;
   }
 
-  int _createShadowColor() {
-    return Colors.black.value;
+  int _computeShadowColor(int sourceColor) {
+    final r = ((sourceColor >> 16) & 0xFF) ~/ 3;
+    final g = ((sourceColor >> 8) & 0xFF) ~/ 3;
+    final b = (sourceColor & 0xFF) ~/ 3;
+    final a = (255 * intensity).round().clamp(0, 255);
+    return (a << 24) | (r << 16) | (g << 8) | b;
   }
 
-  @override
-  bool get isNone => false;
-
-  @override
-  bool get isMirror => false;
+  int _tintAlpha(int color, double factor) {
+    final curAlpha = (color >> 24) & 0xFF;
+    final newAlpha = (curAlpha * factor).round().clamp(0, 255);
+    return (newAlpha << 24) | (color & 0x00FFFFFF);
+  }
 
   ShadowModifier copyWith({
     int? offsetX,
@@ -86,6 +70,7 @@ class ShadowModifier extends Modifier {
     double? intensity,
     int? spread,
     bool? softShadow,
+    int? shadowColor,
   }) {
     return ShadowModifier(
       offsetX: offsetX ?? this.offsetX,
@@ -93,28 +78,7 @@ class ShadowModifier extends Modifier {
       intensity: intensity ?? this.intensity,
       spread: spread ?? this.spread,
       softShadow: softShadow ?? this.softShadow,
+      shadowColor: shadowColor ?? this.shadowColor,
     );
-  }
-}
-
-/// Extension to add shadow-specific utilities for colors
-extension ShadowColorUtils on int {
-  /// Creates a shadow version of the color
-  int toShadowColor(double opacity) {
-    final alpha = (opacity * 255).round().clamp(0, 255);
-    return (alpha << 24); // Black color with specified alpha
-  }
-
-  /// Darkens the color by a specified amount
-  int darken(double amount) {
-    final r = ((this >> 16) & 0xFF);
-    final g = ((this >> 8) & 0xFF);
-    final b = (this & 0xFF);
-
-    final newR = (r * (1 - amount)).round().clamp(0, 255);
-    final newG = (g * (1 - amount)).round().clamp(0, 255);
-    final newB = (b * (1 - amount)).round().clamp(0, 255);
-
-    return (0xFF << 24) | (newR << 16) | (newG << 8) | newB;
   }
 }

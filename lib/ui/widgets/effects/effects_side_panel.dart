@@ -107,7 +107,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
     final strings = Strings.of(context);
     final workspaceLabel = switch (workspace) {
       EffectWorkspace.filters => strings.effectWorkspaceFilters,
-      EffectWorkspace.materials => strings.effectWorkspaceMaterials,
+      EffectWorkspace.textures => strings.effectWorkspaceTextures,
       EffectWorkspace.generators => strings.effectWorkspaceGenerators,
       EffectWorkspace.animation => strings.effectWorkspaceAnimation,
       EffectWorkspace.lighting => strings.effectWorkspaceLighting,
@@ -128,7 +128,7 @@ class _EffectsSidePanelState extends ConsumerState<EffectsSidePanel> {
 
   IconData get _workspaceIcon => switch (widget.workspace) {
         EffectWorkspace.filters => Icons.filter_alt_outlined,
-        EffectWorkspace.materials => Icons.texture_outlined,
+        EffectWorkspace.textures => Icons.texture_outlined,
         EffectWorkspace.generators => Icons.auto_awesome_outlined,
         EffectWorkspace.animation =>
           _selectedAnimationKind == AnimationKind.transformer ? Icons.transform : Icons.auto_awesome,

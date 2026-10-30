@@ -21,7 +21,7 @@ void main() {
       final emptyLayer = _layer([0x00000000]);
       final paintedLayer = _layer([0x01000000]);
 
-      // Filters, materials and lighting work on an empty layer.
+      // Filters, textures and lighting work on an empty layer.
       for (final effect in [
         BrightnessEffect(),
         EffectsManager.createEffect(EffectType.wood),

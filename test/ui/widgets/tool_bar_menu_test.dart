@@ -115,7 +115,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('toolbar-add-menu')));
     await tester.pumpAndSettle();
     expect(find.text('Filters'), findsOneWidget);
-    expect(find.text('Materials'), findsOneWidget);
+    expect(find.text('Textures'), findsOneWidget);
     expect(find.text('Generators'), findsOneWidget);
     expect(find.text('Animation'), findsOneWidget);
     expect(find.text('Lighting'), findsOneWidget);
@@ -138,7 +138,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('toolbar-add-menu')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Materials'));
+    await tester.tap(find.text('Textures'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Select Material'), findsOneWidget);
     expect(find.byType(ChoiceChip), findsNothing);

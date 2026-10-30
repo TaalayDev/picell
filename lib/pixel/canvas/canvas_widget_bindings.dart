@@ -5,7 +5,11 @@ import '../../data/models/layer.dart';
 import '../../data/models/selection_region.dart';
 import '../../data/models/selection_state.dart';
 import '../../pixel/tools.dart';
+import '../../pixel/tools/glowing_modifier.dart';
 import '../../pixel/tools/mirror_modifier.dart';
+import '../../pixel/tools/outline_modifier.dart';
+import '../../pixel/tools/radial_modifier.dart';
+import '../../pixel/tools/shadow_modifier.dart';
 import '../pixel_point.dart';
 import 'canvas_host_runtime.dart';
 import 'canvas_runtime_config.dart';
@@ -97,10 +101,20 @@ class PixelCanvasWidgetBindings {
   }
 
   static Modifier? _resolveModifier(PixelModifier modifier, MirrorAxis mirrorAxis) {
-    if (modifier == PixelModifier.mirror) {
-      return MirrorModifier(mirrorAxis);
+    switch (modifier) {
+      case PixelModifier.mirror:
+        return MirrorModifier(mirrorAxis);
+      case PixelModifier.radial:
+        return const RadialModifier();
+      case PixelModifier.outline:
+        return const OutlineModifier();
+      case PixelModifier.shadow:
+        return const ShadowModifier();
+      case PixelModifier.glow:
+        return const GlowModifier();
+      case PixelModifier.none:
+        return null;
     }
-    return null;
   }
 
   static MouseCursor _resolveCursor(PixelTool tool) {

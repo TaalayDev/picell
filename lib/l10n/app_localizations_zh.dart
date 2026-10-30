@@ -445,7 +445,7 @@ class StringsZh extends Strings {
   String get effectWorkspaceFilters => '滤镜';
 
   @override
-  String get effectWorkspaceMaterials => '材质';
+  String get effectWorkspaceTextures => '纹理';
 
   @override
   String get effectWorkspaceGenerators => '生成器';

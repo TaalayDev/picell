@@ -70,7 +70,7 @@ class _EffectIconGeneratorScreenState extends State<EffectIconGeneratorScreen> {
     return switch (workspace) {
       null => strings.all,
       EffectWorkspace.filters => strings.effectWorkspaceFilters,
-      EffectWorkspace.materials => strings.effectWorkspaceMaterials,
+      EffectWorkspace.textures => strings.effectWorkspaceTextures,
       EffectWorkspace.generators => strings.effectWorkspaceGenerators,
       EffectWorkspace.animation => strings.effectWorkspaceAnimation,
       EffectWorkspace.lighting => strings.effectWorkspaceLighting,

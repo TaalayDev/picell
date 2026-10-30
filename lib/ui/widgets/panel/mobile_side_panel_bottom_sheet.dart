@@ -17,7 +17,7 @@ import '../notifications/app_notification.dart';
 enum _MobilePanelTab {
   layers,
   filters,
-  materials,
+  textures,
   generators,
   animation,
   lighting;
@@ -25,7 +25,7 @@ enum _MobilePanelTab {
   EffectWorkspace? get workspace => switch (this) {
         layers => null,
         filters => EffectWorkspace.filters,
-        materials => EffectWorkspace.materials,
+        textures => EffectWorkspace.textures,
         generators => EffectWorkspace.generators,
         animation => EffectWorkspace.animation,
         lighting => EffectWorkspace.lighting,
@@ -34,7 +34,7 @@ enum _MobilePanelTab {
   IconData get icon => switch (this) {
         layers => Icons.layers_outlined,
         filters => Icons.filter_alt_outlined,
-        materials => Icons.texture_outlined,
+        textures => Icons.texture_outlined,
         generators => Icons.auto_awesome_outlined,
         animation => Icons.animation_outlined,
         lighting => Icons.light_mode_outlined,
@@ -45,7 +45,7 @@ enum _MobilePanelTab {
     return switch (this) {
       layers => strings.layers,
       filters => strings.effectWorkspaceFilters,
-      materials => strings.effectWorkspaceMaterials,
+      textures => strings.effectWorkspaceTextures,
       generators => strings.effectWorkspaceGenerators,
       animation => strings.effectWorkspaceAnimation,
       lighting => strings.effectWorkspaceLighting,
@@ -142,7 +142,7 @@ class _MobileSidePanelBottomSheetState extends State<MobileSidePanelBottomSheet>
     return [
       _MobilePanelTab.layers,
       _MobilePanelTab.filters,
-      _MobilePanelTab.materials,
+      _MobilePanelTab.textures,
       if (usedWorkspaces.contains(EffectWorkspace.generators)) _MobilePanelTab.generators,
       if (usedWorkspaces.contains(EffectWorkspace.animation)) _MobilePanelTab.animation,
       _MobilePanelTab.lighting,

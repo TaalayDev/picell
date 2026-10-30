@@ -216,7 +216,7 @@
     "noCustomColors": "Пользовательские цвета еще не добавлены.\nДобавьте цвета с помощью кнопки + выше.",
     "effects": "Эффекты",
     "effectWorkspaceFilters": "Фильтры",
-    "effectWorkspaceMaterials": "Материалы",
+    "effectWorkspaceTextures": "Текстуры",
     "effectWorkspaceGenerators": "Генераторы",
     "effectWorkspaceAnimation": "Анимация",
     "animationTransformers": "Трансформаторы",

@@ -158,6 +158,10 @@ part 'glacial_crevasse_effect.dart';
 part 'sand_dunes_effect.dart';
 part 'tidal_rock_pool_effect.dart';
 part 'roman_travertine_effect.dart';
+part 'bricks_effect.dart';
+part 'cobblestone_effect.dart';
+part 'cracked_earth_effect.dart';
+part 'patterns_effect.dart';
 part 'kintsugi_lacquer_effect.dart';
 part 'petrified_agate_effect.dart';
 part 'voronoi_shatter_effect.dart';
@@ -399,6 +403,10 @@ enum EffectType {
   smartShading,
   selectiveOutline,
   antiJaggies,
+  bricks,
+  cobblestone,
+  crackedEarth,
+  patterns,
 }
 
 /// Base abstract class for all effects
@@ -578,6 +586,10 @@ abstract class Effect {
         EffectType.glacialCrevasse => 'Glacial Crevasse & Serac Ice',
         EffectType.sandDunes => 'Wind-Sculpted Sand Dunes',
         EffectType.tidalRockPool => 'Tidal Rock Pool & Anemone',
+        EffectType.patterns => 'Patterns',
+        EffectType.crackedEarth => 'Cracked Earth',
+        EffectType.cobblestone => 'Cobblestone',
+        EffectType.bricks => 'Bricks',
         EffectType.romanTravertine => 'Roman Travertine & Ashlar Stone',
         EffectType.kintsugiLacquer => 'Cracked Kintsugi Gold Lacquer',
         EffectType.petrifiedAgate => 'Petrified Wood & Banded Agate',
@@ -668,17 +680,17 @@ abstract class Effect {
 
         // Nature Effects
         EffectType.fire => 'Dynamic fire flames',
-        EffectType.wood => 'Natural wood grain texture',
+        EffectType.wood => 'Organic wood grain with growth rings, knots, smart carving, and silhouette bevels',
         EffectType.rain => 'Falling rain animation',
-        EffectType.ice => 'Frozen ice crystal texture',
-        EffectType.stone => 'Rough stone surface',
+        EffectType.ice => 'Frozen crystal facets, optical refraction, trapped bubbles, and smart silhouette frost bevels',
+        EffectType.stone => 'Sculpted stone formations with fracture facets, geological grain, and smart silhouette bevels',
         EffectType.mountainRange => 'Mountain silhouette backdrop',
         EffectType.oceanWaves => 'Rolling ocean waves',
         EffectType.forest => 'Dense forest background',
         EffectType.ocean => 'Calm ocean surface',
         EffectType.cloudFormation => 'Dynamic cloud formation',
         EffectType.clouds => 'Floating cloud layers',
-        EffectType.treeBark => 'Detailed tree bark texture',
+        EffectType.treeBark => 'Shape-aware bark: grain follows limbs, cylinder shading, artwork tint and carving',
         EffectType.leafVenation => 'Leaf vein pattern overlay',
         EffectType.fog => 'Misty fog atmosphere',
         EffectType.sky => 'Beautiful sky gradient',
@@ -697,8 +709,8 @@ abstract class Effect {
         EffectType.wipe => 'Directional wipe transition',
 
         // Texture Effects
-        EffectType.crystal => 'Crystalline surface texture',
-        EffectType.metal => 'Metallic surface finish',
+        EffectType.crystal => 'Interlocking crystal growth with planar facets, directional reflections, and artwork refraction',
+        EffectType.metal => 'Directional metal reflections, surface finishes, coherent wear, and silhouette bevels',
         EffectType.noise => 'Random noise texture',
         EffectType.groundTexture => 'Natural ground surface',
         EffectType.wallTexture => 'Various wall surface textures',
@@ -877,6 +889,10 @@ abstract class Effect {
           'Sweeping crescent barchan sand dunes with razor slipface crests, wind micro-ripples, and blowing sand plumes',
         EffectType.tidalRockPool =>
           'Low-tide coastal granite basin holding saltwater with dancing caustics, swaying kelp, anemones, and white salt rims',
+        EffectType.patterns => 'Configurable geometric, woven, and decorative pixel patterns',
+        EffectType.crackedEarth => 'Dry soil plates with jagged cracks and broken sandy rims',
+        EffectType.cobblestone => 'Fitted irregular cobblestones with rounded edges, recessed joints, and natural stone relief',
+        EffectType.bricks => 'Procedural brick masonry with staggered bonds, recessed mortar, and weathered clay',
         EffectType.romanTravertine =>
           'Honed porous travertine limestone with dissolved karst pore cavities, bedding bands, and mortar joints',
         EffectType.kintsugiLacquer =>
@@ -1204,6 +1220,10 @@ abstract class Effect {
         Icon(Icons.ac_unit, size: size, color: color),
       EffectType.sandDunes => Icon(Icons.terrain, size: size, color: color),
       EffectType.tidalRockPool => Icon(Icons.pool, size: size, color: color),
+      EffectType.patterns => Icon(Icons.grid_view, size: size, color: color),
+      EffectType.crackedEarth => Icon(Icons.terrain, size: size, color: color),
+      EffectType.cobblestone => Icon(Icons.bubble_chart, size: size, color: color),
+      EffectType.bricks => Icon(Icons.view_module, size: size, color: color),
       EffectType.romanTravertine =>
         Icon(Icons.view_quilt, size: size, color: color),
       EffectType.kintsugiLacquer =>
@@ -1502,6 +1522,10 @@ abstract class Effect {
       EffectType.sandDunes => const Color(0xFFFF9800), // Dune Amber
       EffectType.tidalRockPool =>
         const Color(0xFF00BCD4), // Tidepool Saltwater Cyan
+      EffectType.patterns => const Color(0xFF9575CD),
+      EffectType.crackedEarth => const Color(0xFFA98257),
+      EffectType.cobblestone => const Color(0xFF858782),
+      EffectType.bricks => const Color(0xFFB65C42),
       EffectType.romanTravertine =>
         const Color(0xFFD7CCC8), // Travertine Limestone Warm Grey
       EffectType.kintsugiLacquer =>
@@ -2085,6 +2109,14 @@ class EffectsManager {
         return SandDunesEffect(params);
       case EffectType.tidalRockPool:
         return TidalRockPoolEffect(params);
+      case EffectType.patterns:
+        return PatternsEffect(params);
+      case EffectType.crackedEarth:
+        return CrackedEarthEffect(params);
+      case EffectType.cobblestone:
+        return CobblestoneEffect(params);
+      case EffectType.bricks:
+        return BricksEffect(params);
       case EffectType.romanTravertine:
         return RomanTravertineEffect(params);
       case EffectType.kintsugiLacquer:

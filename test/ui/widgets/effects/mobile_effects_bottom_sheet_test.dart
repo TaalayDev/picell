@@ -118,7 +118,7 @@ void main() {
         find.byKey(const ValueKey('mobile-side-panel-tab-layers')), findsOneWidget);
     expect(find.byKey(const ValueKey('mobile-side-panel-tab-filters')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey('mobile-side-panel-tab-materials')),
+    expect(find.byKey(const ValueKey('mobile-side-panel-tab-textures')),
         findsOneWidget);
     expect(find.byKey(const ValueKey('mobile-side-panel-tab-animation')),
         findsOneWidget);

@@ -141,7 +141,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
     return switch (workspace) {
       null => strings.categoryAll,
       EffectWorkspace.filters => strings.effectWorkspaceFilters,
-      EffectWorkspace.materials => strings.effectWorkspaceMaterials,
+      EffectWorkspace.textures => strings.effectWorkspaceTextures,
       EffectWorkspace.generators => strings.effectWorkspaceGenerators,
       EffectWorkspace.animation => strings.effectWorkspaceAnimation,
       EffectWorkspace.lighting => strings.effectWorkspaceLighting,
@@ -168,7 +168,7 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           'ky' => 'Фильтр тандаңыз',
           _ => 'Select Filter',
         };
-      case EffectWorkspace.materials:
+      case EffectWorkspace.textures:
         return switch (lang) {
           'ru' => 'Выбор материала',
           'zh' => '选择材质',
@@ -242,13 +242,13 @@ class _EffectSelectorDialogState extends ConsumerState<EffectSelectorDialog> {
           'ky' => 'Фильтрлерди издөө',
           _ => 'Search filters',
         };
-      case EffectWorkspace.materials:
+      case EffectWorkspace.textures:
         return switch (lang) {
           'ru' => 'Поиск материалов',
           'zh' => '搜索材质',
           'ja' => 'マテリアルを検索',
           'ky' => 'Материалдарды издөө',
-          _ => 'Search materials',
+          _ => 'Search textures',
         };
       case EffectWorkspace.generators:
         return switch (lang) {

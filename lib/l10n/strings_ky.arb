@@ -250,7 +250,7 @@
     "noCustomColors": "Өзгөчө түстөр али кошула элек.\nЖогорудагы + баскычын колдонуп түстөрдү кошуңуз.",
     "effects": "Эффекттер",
     "effectWorkspaceFilters": "Чыпкалар",
-    "effectWorkspaceMaterials": "Материалдар",
+    "effectWorkspaceTextures": "Текстуралар",
     "effectWorkspaceGenerators": "Генераторлор",
     "effectWorkspaceAnimation": "Анимация",
     "animationTransformers": "Трансформаторлор",

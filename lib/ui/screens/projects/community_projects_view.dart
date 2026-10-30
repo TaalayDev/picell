@@ -71,7 +71,10 @@ class CloudProjectsView extends HookConsumerWidget {
                           },
                         )
                       : PvSectionHeader(
-                          icon: Icons.public, title: Strings.of(context).community, padding: EdgeInsets.zero),
+                          icon: Icons.public,
+                          title: Strings.of(context).community,
+                          padding: EdgeInsets.zero,
+                        ),
                 ),
                 const SizedBox(width: 8),
                 IconButton(

@@ -220,7 +220,7 @@
     "cropToSelection": "選択範囲でトリミング",
     "effects": "エフェクト",
     "effectWorkspaceFilters": "フィルター",
-    "effectWorkspaceMaterials": "マテリアル",
+    "effectWorkspaceTextures": "テクスチャ",
     "effectWorkspaceGenerators": "ジェネレーター",
     "effectWorkspaceAnimation": "アニメーション",
     "animationTransformers": "変形",

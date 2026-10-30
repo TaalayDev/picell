@@ -92,7 +92,7 @@ void main() {
     expect(
         find.byKey(const ValueKey('side-panel-tab-filters')), findsOneWidget);
     expect(
-        find.byKey(const ValueKey('side-panel-tab-materials')), findsOneWidget);
+        find.byKey(const ValueKey('side-panel-tab-textures')), findsOneWidget);
     expect(
         find.byKey(const ValueKey('side-panel-tab-animation')), findsOneWidget);
     expect(

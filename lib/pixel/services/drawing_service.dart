@@ -5,7 +5,11 @@ import 'package:flutter/material.dart';
 import '../../data/models/selection_region.dart';
 import '../pixel_point.dart';
 import '../tools.dart';
+import '../tools/glowing_modifier.dart';
 import '../tools/mirror_modifier.dart';
+import '../tools/outline_modifier.dart';
+import '../tools/radial_modifier.dart';
+import '../tools/shadow_modifier.dart';
 
 class DrawingService {
   void setPixelMutable({
@@ -240,9 +244,15 @@ class DrawingService {
     switch (modifierType) {
       case PixelModifier.mirror:
         return MirrorModifier(mirrorAxis);
-      case PixelModifier.none:
-      case PixelModifier.glow:
+      case PixelModifier.radial:
+        return const RadialModifier();
+      case PixelModifier.outline:
+        return const OutlineModifier();
       case PixelModifier.shadow:
+        return const ShadowModifier();
+      case PixelModifier.glow:
+        return const GlowModifier();
+      case PixelModifier.none:
         return null;
     }
   }

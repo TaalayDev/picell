@@ -1,233 +1,300 @@
 part of 'effects.dart';
 
-/// An effect that generates a dynamic and animated fire simulation.
+/// Pixel-art fire that burns the artwork.
 ///
-/// This effect uses Perlin-like noise to create a realistic fire pattern,
-/// with customizable parameters for intensity, flare, smoke, and flame height.
-/// It's designed to be applied over the existing pixels of an image, creating a fiery overlay.
+/// Flames rise from every upward-facing surface of the sprite (or from the
+/// bottom of the canvas in ground mode), break into tongues that taper and
+/// flicker, and are drawn in a few crisp colour bands. The artwork is
+/// aware-lit by the fire, and smoke and embers rise above it.
+///
+///  * Flame height is measured up from the nearest opaque pixel below, so
+///    ledges, overhangs and gaps each get their own flames.
+///  * Tongue noise is periodic in the rise direction and scrolls a whole
+///    number of periods per loop, so the animation is a seamless loop
+///    (`time` in [0, 1)).
+///  * Heat glow tints the sprite's surface and haloes the transparent area.
 class FireEffect extends Effect {
-  FireEffect([Map<String, dynamic>? parameters])
-      : super(
-          EffectType.fire,
-          parameters ??
-              const {
-                'intensity': 0.8, // How bright and dense the fire is
-                'flare': 0.6, // The amount of bright, flaring parts
-                'ash': 0.4, // The amount of dark ash/soot particles
-                'smoke': 0.5, // The density of the smoke above the fire
-                'flameHeight': 0.7, // The vertical reach of the flames
-                'time': 0.0, // Animation time for flickering effect
-                'animated': true, // Whether the fire is animated
-              },
-        );
+  FireEffect([Map<String, dynamic>? parameters]) : super(EffectType.fire, {..._defaults, ...?parameters});
+
+  static const _defaults = <String, dynamic>{
+    'source': 0,
+    'intensity': 0.8,
+    'flameHeight': 0.7,
+    'flameWidth': 0.5,
+    'flare': 0.6,
+    'ash': 0.4,
+    'smoke': 0.5,
+    'embers': 0.4,
+    'glow': 0.5,
+    'wind': 0.0,
+    'palette': 0,
+    'bands': 5,
+    'speed': 1,
+    'seed': 42,
+    'time': 0.0,
+    'animated': true,
+  };
 
   @override
-  Map<String, dynamic> getDefaultParameters() {
-    return {
-      'intensity': 0.8,
-      'flare': 0.6,
-      'ash': 0.4,
-      'smoke': 0.5,
-      'flameHeight': 0.7,
-      'time': 0.0,
-      'animated': true,
-    };
+  bool get isSeamlessLoop => true;
+
+  @override
+  int? get preferredFrameCount => 12;
+
+  /// Five stops from the cool edge of the flame to its hot core.
+  static const _palettes = <int, List<int>>{
+    0: [0xFF7A1208, 0xFFC8280C, 0xFFF26A10, 0xFFFFB820, 0xFFFFF0A0],
+    1: [0xFF10206A, 0xFF1F4FD0, 0xFF38A0F0, 0xFF9CE0FF, 0xFFF4FFFF],
+    2: [0xFF0C4A14, 0xFF1C8A22, 0xFF4CD030, 0xFFB4F050, 0xFFF4FFC0],
+    3: [0xFF3A0C5C, 0xFF6C1CA8, 0xFFB040E0, 0xFFE890FF, 0xFFFFF0FF],
+  };
+
+  @override
+  Map<String, dynamic> getDefaultParameters() => Map.of(_defaults);
+
+  @override
+  Map<String, dynamic> getMetadata() => {
+        'source': {
+          'label': 'Fire Source',
+          'description': 'Burn the artwork, or light a fire along the bottom of the canvas.',
+          'type': 'select',
+          'options': {0: 'Burning Artwork', 1: 'Ground Fire'},
+        },
+        'palette': {
+          'label': 'Flame Color',
+          'type': 'select',
+          'options': {0: 'Classic', 1: 'Blue Gas', 2: 'Witch Green', 3: 'Violet'},
+        },
+        for (final spec in [
+          ('intensity', 'Intensity', 'Brightness and density of the fire.', 0.0, 1.0),
+          ('flameHeight', 'Flame Height', 'How far the flames reach.', 0.0, 1.0),
+          ('flameWidth', 'Tongue Width', 'Width of individual flame tongues.', 0.0, 1.0),
+          ('flare', 'Flare', 'Size of the white-hot core.', 0.0, 1.0),
+          ('ash', 'Ash & Soot', 'Dark specks flickering in the flames.', 0.0, 1.0),
+          ('smoke', 'Smoke', 'Smoke rising above the flames.', 0.0, 1.0),
+          ('embers', 'Embers', 'Sparks drifting upward.', 0.0, 1.0),
+          ('glow', 'Heat Glow', 'Firelight on the artwork and a halo around it.', 0.0, 1.0),
+          ('wind', 'Wind', 'Leans flames, smoke and sparks sideways.', -1.0, 1.0),
+          ('bands', 'Color Bands', 'Number of flat colors in the flame.', 3, 8),
+          ('speed', 'Flicker Speed', 'Rise cycles per loop.', 1, 3),
+          ('seed', 'Pattern Seed', null, 0, 9999),
+        ])
+          spec.$1: {
+            'label': spec.$2,
+            if (spec.$3 != null) 'description': spec.$3,
+            'type': 'slider',
+            'min': spec.$4,
+            'max': spec.$5,
+            'divisions': spec.$4 is int ? (spec.$5 - spec.$4).toInt() : 100,
+          },
+        'animated': {'label': 'Animated', 'description': 'Enables or disables the fire animation.', 'type': 'bool'},
+      };
+
+  double _number(String key, double min, double max) {
+    final value = (parameters[key] as num?)?.toDouble();
+    return (value != null && value.isFinite ? value : (_defaults[key] as num).toDouble()).clamp(min, max);
   }
 
-  @override
-  Map<String, dynamic> getMetadata() {
-    return {
-      'intensity': {
-        'label': 'Intensity',
-        'description': 'Controls the brightness and density of the fire.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'flare': {
-        'label': 'Flare',
-        'description': 'Adjusts the amount of bright, flaring sections in the fire.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'ash': {
-        'label': 'Ash & Soot',
-        'description': 'Controls the amount of dark, unburnt particles in the flames.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'smoke': {
-        'label': 'Smoke Density',
-        'description': 'Adjusts the density of the smoke rising from the fire.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'flameHeight': {
-        'label': 'Flame Height',
-        'description': 'Determines the vertical reach of the flames.',
-        'type': 'slider',
-        'min': 0.0,
-        'max': 1.0,
-        'divisions': 100,
-      },
-      'animated': {
-        'label': 'Animated',
-        'description': 'Enables or disables the fire animation.',
-        'type': 'bool',
-      },
-    };
+  /// Value noise that repeats every [period] lattice cells along v.
+  static double _periodic(double u, double v, int period, int seed) {
+    final u0 = u.floor(), v0 = v.floor();
+    final tu = u - u0, tv = v - v0;
+    final su = tu * tu * (3 - 2 * tu), sv = tv * tv * (3 - 2 * tv);
+    double h(int i, int j) => _textureHash(i, ((j % period) + period) % period, seed);
+    final top = h(u0, v0) + (h(u0 + 1, v0) - h(u0, v0)) * su;
+    final bottom = h(u0, v0 + 1) + (h(u0 + 1, v0 + 1) - h(u0, v0 + 1)) * su;
+    return top + (bottom - top) * sv;
   }
 
   @override
   Uint32List apply(Uint32List pixels, int width, int height) {
-    final intensity = parameters['intensity'] as double;
-    final flare = parameters['flare'] as double;
-    final ash = parameters['ash'] as double;
-    final smoke = parameters['smoke'] as double;
-    final flameHeight = parameters['flameHeight'] as double;
-    final time = parameters['time'] as double;
-    final animated = parameters['animated'] as bool;
-
     final result = Uint32List.fromList(pixels);
-    final random = Random(123); // Seed for ash particles
+    if (width <= 0 || height <= 0 || pixels.length < width * height) return result;
+    final intensity = _number('intensity', 0, 1);
+    if (intensity == 0) return result;
 
-    // Animation offset for flickering effect
-    final animOffset = animated ? time * 5.0 : 0.0;
+    final ground = _number('source', 0, 1).round() == 1;
+    final flameHeight = _number('flameHeight', 0, 1);
+    final flameWidth = _number('flameWidth', 0, 1);
+    final flare = _number('flare', 0, 1);
+    final ash = _number('ash', 0, 1);
+    final smoke = _number('smoke', 0, 1);
+    final embers = _number('embers', 0, 1);
+    final glow = _number('glow', 0, 1);
+    final wind = _number('wind', -1, 1);
+    final stops = _palettes[_number('palette', 0, 3).round()]!;
+    final bands = _number('bands', 3, 8).round();
+    final speed = _number('speed', 1, 3).round();
+    final seed = _number('seed', 0, 9999).round();
+    final time = parameters['animated'] == false ? 0.0 : (_number('time', -1000, 1000) % 1.0);
 
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final index = y * width + x;
-        final originalPixel = Color(pixels[index]);
+    int ramp(double t) {
+      final p = t.clamp(0.0, 1.0) * (stops.length - 1);
+      final k = min(p.floor(), stops.length - 2);
+      return _textureBlendColor(stops[k], stops[k + 1], p - k, 255);
+    }
 
-        // The effect is now applied to all pixels, regardless of transparency.
+    final count = width * height;
+    final solid = Uint8List(count);
+    for (var i = 0; i < count; i++) {
+      if ((pixels[i] >>> 24) != 0) solid[i] = 1;
+    }
 
-        // Calculate a fire value based on noise and vertical position
-        // This creates the classic rising flame shape
-        double fireValue = _calculateFireValue(x, y, width, height, animOffset, flameHeight);
-        fireValue *= intensity;
+    // Height above the nearest fuel (opaque pixel) below, per pixel.
+    const far = 1e6;
+    final rise = Float32List(count);
+    final root = List<int>.filled(width, -1); // top of the fuel in each column
+    for (var x = 0; x < width; x++) {
+      var d = ground ? 0.0 : far;
+      for (var y = height - 1; y >= 0; y--) {
+        final i = y * width + x;
+        if (ground) {
+          d += 1;
+        } else if (solid[i] == 1) {
+          d = 0;
+          root[x] = y;
+        } else if (d < far) {
+          d += 1;
+        }
+        rise[i] = d;
+      }
+      if (ground) root[x] = height - 1;
+    }
 
-        if (fireValue > 0.1) {
-          // Get the color for the fire at this point
-          Color fireColor = _getFireColor(fireValue, flare, ash, smoke, random);
+    // Tongues are fatter at the sides of fuel, and lean with the wind.
+    double riseAt(int x, int y) {
+      final i = y * width + x;
+      var d = rise[i];
+      if (!ground) {
+        for (var dx = -2; dx <= 2; dx++) {
+          final xx = x + dx;
+          if (dx == 0 || xx < 0 || xx >= width) continue;
+          d = min(d, rise[y * width + xx] + dx.abs() * 1.0);
+        }
+      }
+      return d;
+    }
 
-          // Blend the fire color with the original pixel
-          result[index] = _alphaBlend(originalPixel, fireColor).value;
+    final reach = max(6.0, height * (0.15 + flameHeight * 0.45));
+    final tongue = 3 + flameWidth * 8;
+    final flicker = 1 + 0.08 * sin(2 * pi * time * speed);
+    final scroll2 = time * 8 * speed, scroll3 = time * 16 * speed, scroll4 = time * 6 * speed;
+    final frameCell = (time * 8 * speed).floor() % (8 * speed);
+
+    // Pass 1: flame intensity and smoke density per pixel.
+    final flame = Float32List(count), smokeMap = Float32List(count);
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        final i = y * width + x;
+        if (!ground && solid[i] == 1) continue;
+        // Lean: look up the fuel column the flame leans away from.
+        var xs = x;
+        if (wind != 0) {
+          final d0 = rise[i];
+          if (d0 < far) xs = (x - wind * 0.45 * min(d0, reach)).round().clamp(0, width - 1);
+        }
+        final d = riseAt(xs, y);
+        if (d >= far) continue;
+
+        final colHeight = reach * (0.55 + 0.9 * _periodic(x / (tongue * 1.3), time * 4 * speed, 4, seed + 7)) * flicker;
+        final t = d / colHeight;
+        final u = x / tongue;
+        final n2 = _periodic(u, y / (tongue * 1.6) + scroll2, 8, seed + 11);
+        final n3 = _periodic(u * 2.1, y / (tongue * 0.9) + scroll3, 16, seed + 13);
+        final tongueNoise = n2 * 0.65 + n3 * 0.35;
+
+        final dense = (1 - t) * 1.15 + (tongueNoise - 0.5) * 1.2 - 0.3;
+        var value = dense * (0.6 + intensity * 0.6);
+        if (value > 0.1) {
+          // Soot flickers out single pixels at the cool edge.
+          if (ash > 0 && value < 0.55 && _textureHash(x, y, seed + 31 + frameCell) < ash * 0.22) value -= 0.25;
+          if (value > 0.1) flame[i] = value.clamp(0.0, 1.0);
+        }
+
+        if (smoke > 0 && t > 0.7 && t < 1.7) {
+          final puff = _periodic(x / (tongue * 1.6) - wind * t * 2, y / (tongue * 2.2) + scroll4, 6, seed + 17);
+          final fall = 1 - (t - 1.0).abs() / 0.7;
+          smokeMap[i] = (smoke * fall.clamp(0.0, 1.0) * (puff - 0.35) * 2.2).clamp(0.0, 1.0);
         }
       }
     }
 
+    // Heat glow: blurred flame light.
+    final glowMap = glow > 0 ? _silhouetteBlur(flame, width, height, 3) : flame;
+
+    // Pass 2: composite.
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        final i = y * width + x;
+        final source = pixels[i];
+        final onArt = solid[i] == 1;
+        final f = flame[i];
+
+        if (f > 0) {
+          // Most of the flame stays orange; only the core runs yellow to white.
+          var heat = pow(f, 1.6).toDouble() * 0.95 + flare * 0.25 * f * f * f;
+          if (ash > 0) heat -= ash * 0.04;
+          final band = (heat.clamp(0.0, 0.999) * bands).floor();
+          final color = ramp(band / (bands - 1));
+          final alpha = band == 0 ? 175 : 255;
+          result[i] = onArt || (source >>> 24) != 0 ? _firePut(source, color, alpha / 255) : (alpha << 24) | (color & 0xFFFFFF);
+          continue;
+        }
+
+        final s = smokeMap[i];
+        if (s > 0) {
+          // Two flat smoke tones, dithered at their edges.
+          final level = s > 0.5 ? 2 : 1;
+          if (s > 0.14 && _textureHash(x, y, seed + 41) < s * 1.4) {
+            final shade = level == 2 ? 0x3A : 0x55;
+            final alpha = level == 2 ? 120 : 80;
+            final color = 0xFF000000 | (shade << 16) | (shade << 8) | shade;
+            result[i] = _firePut(source, color, alpha / 255);
+            continue;
+          }
+        }
+
+        final g = glowMap[i] * glow;
+        if (g > 0.03) {
+          final warm = ramp(0.45 + g * 0.5);
+          if (onArt) {
+            result[i] = _firePut(source, warm, (g * 1.3).clamp(0.0, 0.6));
+          } else {
+            final alpha = (g * 190).round().clamp(0, 140);
+            if (alpha >= 18) result[i] = (alpha << 24) | (warm & 0xFFFFFF);
+          }
+        }
+      }
+    }
+
+    // Embers rise in loops, fading as they cool.
+    if (embers > 0) {
+      final n = (embers * width / 2).round().clamp(0, 60);
+      for (var k = 0; k < n; k++) {
+        final x0 = (_textureHash(k, 1, seed + 51) * width).floor().clamp(0, width - 1);
+        if (root[x0] < 0) continue;
+        final cycles = (1 + (_textureHash(k, 2, seed + 51) * 2).floor()) * speed;
+        final phase = _textureHash(k, 3, seed + 51);
+        final p = (time * cycles + phase) % 1.0;
+        final travel = reach * (1.2 + _textureHash(k, 4, seed + 51) * 0.9);
+        final y = (root[x0] - 1 - p * travel).round();
+        final x = (x0 + sin((p + phase) * 4 * pi) * 2 + wind * p * 8).round();
+        if (x < 0 || y < 0 || x >= width || y >= height) continue;
+        final i = y * width + x;
+        if (!ground && solid[i] == 1) continue;
+        final color = ramp(0.75 - p * 0.55);
+        final alpha = pow(1 - p, 0.7).toDouble();
+        if (alpha > 0.1) result[i] = _firePut(result[i], color, alpha);
+      }
+    }
     return result;
   }
 
-  /// Calculates the fire value for a given pixel using Perlin-like noise.
-  double _calculateFireValue(int x, int y, int width, int height, double time, double flameHeight) {
-    // Invert Y for flames that rise from the bottom
-    final invY = height - 1 - y;
-
-    // Use multiple layers of noise for a more detailed fire effect
-    final noise1 = _perlinNoise(x * 0.05, invY * 0.05 + time, 1);
-    final noise2 = _perlinNoise(x * 0.1, invY * 0.1 - time * 0.8, 2) * 0.5;
-    final noise3 = _perlinNoise(x * 0.02, invY * 0.02 + time * 0.3, 3) * 0.7;
-
-    // Combine noise layers
-    double combinedNoise = (noise1 + noise2 + noise3) / (1.0 + 0.5 + 0.7);
-
-    // Shape the flames to rise and narrow at the top
-    final verticalGradient = pow(invY / (height * (0.5 + flameHeight * 0.5)), 2).toDouble();
-    final horizontalGradient = 1.0 - (2.0 * x / width - 1.0).abs();
-    final shapeFactor = verticalGradient * horizontalGradient;
-
-    // Modulate noise with the shape
-    return (combinedNoise * shapeFactor).clamp(0.0, 1.0);
-  }
-
-  /// Determines the color of a fire pixel based on its value.
-  Color _getFireColor(double value, double flare, double ash, double smoke, Random random) {
-    Color color;
-    double alpha = 1.0;
-
-    // Color gradient for the fire: Black -> Red -> Orange -> Yellow -> White
-    if (value > 0.9 + (flare * 0.09)) {
-      color = Colors.white; // Brightest flare
-    } else if (value > 0.8) {
-      color = Color.lerp(Colors.yellow, Colors.white, (value - 0.8) / 0.2)!;
-    } else if (value > 0.6) {
-      color = Color.lerp(Colors.orange, Colors.yellow, (value - 0.6) / 0.2)!;
-    } else if (value > 0.3) {
-      color = Color.lerp(Colors.red, Colors.orange, (value - 0.3) / 0.3)!;
-    } else {
-      color = Color.lerp(Colors.black, Colors.red, value / 0.3)!;
-    }
-
-    // Add random ash/soot particles
-    if (random.nextDouble() < ash * 0.1) {
-      final sootAmount = random.nextDouble() * 0.5;
-      color = Color.lerp(color, Colors.black, sootAmount)!;
-    }
-
-    // Determine alpha based on fire value (makes edges softer)
-    alpha = pow(value, 0.8).toDouble();
-
-    // Add smoke at the top (less visible parts of the flame)
-    if (value < 0.4) {
-      final smokeFactor = (0.4 - value) / 0.4;
-      final smokeColor = Color.lerp(Colors.transparent, const Color(0xAA333333), smokeFactor * smoke)!;
-      color = _alphaBlend(Color(color.value), smokeColor);
-    }
-
-    return color.withValues(alpha: (alpha * 255).clamp(0, 255) / 255.0);
-  }
-
-  /// Alpha blends two colors together.
-  Color _alphaBlend(Color background, Color foreground) {
-    if (background.alpha == 0) return foreground;
-    if (foreground.alpha == 0) return background;
-
-    final double alpha = foreground.alpha / 255.0;
-    final double invAlpha = 1.0 - alpha;
-
-    final int r = (foreground.red * alpha + background.red * invAlpha).round();
-    final int g = (foreground.green * alpha + background.green * invAlpha).round();
-    final int b = (foreground.blue * alpha + background.blue * invAlpha).round();
-    final int a = (background.alpha).clamp(0, 255);
-
-    return Color.fromARGB(a, r, g, b);
-  }
-
-  /// 2D Perlin-like noise function for natural patterns.
-  double _perlinNoise(double x, double y, int seed) {
-    final intX = x.floor();
-    final intY = y.floor();
-    final fracX = x - intX;
-    final fracY = y - intY;
-
-    final a = _hash2D(intX, intY, seed);
-    final b = _hash2D(intX + 1, intY, seed);
-    final c = _hash2D(intX, intY + 1, seed);
-    final d = _hash2D(intX + 1, intY + 1, seed);
-
-    final u = fracX * fracX * (3 - 2 * fracX); // Smoothstep
-    final v = fracY * fracY * (3 - 2 * fracY); // Smoothstep
-
-    return _lerp(_lerp(a, b, u), _lerp(c, d, u), v);
-  }
-
-  /// Linear interpolation.
-  double _lerp(double a, double b, double t) {
-    return a + t * (b - a);
-  }
-
-  /// Simple 2D hash function for noise generation.
-  double _hash2D(int x, int y, int seed) {
-    var h = x * 374761393 + y * 668265263 + seed;
-    h = (h ^ (h >> 13)) * 1274126177;
-    return ((h ^ (h >> 16)) & 0x7FFFFFFF) / 0x7FFFFFFF;
+  /// Draws [color] over [base] at [alpha]; fully transparent bases take the
+  /// colour with that alpha.
+  static int _firePut(int base, int color, double alpha) {
+    final baseAlpha = base >>> 24;
+    if (baseAlpha == 0) return ((alpha * 255).round().clamp(0, 255) << 24) | (color & 0xFFFFFF);
+    return (_textureBlendColor(base, color, alpha, baseAlpha) & 0x00FFFFFF) | (baseAlpha << 24);
   }
 }

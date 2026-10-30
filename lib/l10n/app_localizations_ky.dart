@@ -450,7 +450,7 @@ class StringsKy extends Strings {
   String get effectWorkspaceFilters => 'Чыпкалар';
 
   @override
-  String get effectWorkspaceMaterials => 'Материалдар';
+  String get effectWorkspaceTextures => 'Текстуралар';
 
   @override
   String get effectWorkspaceGenerators => 'Генераторлор';
