@@ -1,7 +1,7 @@
 name: picell
 description: "Powerful and intuitive pixel art editor for all platforms."
 
-version: 4.0.0+37
+version: 4.0.0+38
 android_version: 3.0.0+12
 
 environment:
