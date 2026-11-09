@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../data/models/subscription_model.dart';
 import '../core/services/subscription_service.dart';
+import 'trial_provider.dart';
 
 part 'subscription_provider.g.dart';
 
@@ -40,13 +41,17 @@ class SubscriptionState extends _$SubscriptionState {
       service.initialize();
     }
 
+    // A server-granted plan trial rides on top of what the user owns; the
+    // service never sees it, so purchases stay the only thing it persists.
+    final trial = ref.watch(planTrialProvider);
+
     ref.listen(subscriptionStreamProvider, (previous, next) {
       if (next.valueOrNull != null) {
-        state = next.value!;
+        state = next.value!.copyWith(planTrial: trial, clearPlanTrial: trial == null);
       }
     });
 
-    return service.currentSubscription;
+    return service.currentSubscription.copyWith(planTrial: trial, clearPlanTrial: trial == null);
   }
 
   Future<void> purchase(String productId) async {

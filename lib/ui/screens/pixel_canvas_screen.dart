@@ -59,6 +59,9 @@ import '../widgets/tool_menu.dart';
 import '../../pixel/tileset/tileset_project.dart';
 import 'tileset_generator/tileset_geometry_picker.dart';
 import '../widgets/tools_bottom_bar.dart';
+import '../../providers/app_settings_provider.dart';
+import '../../providers/trial_provider.dart';
+import '../widgets/dialogs/trial_flow.dart';
 import '../widgets/wand_options_bar.dart';
 import '../widgets/gradient_options_bar.dart';
 
@@ -107,6 +110,8 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
   void initState() {
     super.initState();
     _shortcutsFocusNode.canRequestFocus = widget.isActive;
+    _container = ProviderScope.containerOf(context, listen: false);
+    if (widget.isActive) WidgetsBinding.instance.addPostFrameCallback((_) => _publishProjectKey());
     if (widget.openBoneRigExample && kEnableRigEditor) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -140,6 +145,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       _shortcutsFocusNode.unfocus();
       return;
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _publishProjectKey());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _shortcutsFocusNode.canRequestFocus) {
@@ -319,8 +325,25 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     );
   }
 
+  late final ProviderContainer _container;
+
+  /// Tells project-bound trials which project is being edited.
+  void _publishProjectKey() {
+    if (!mounted) return;
+    _container.read(currentProjectKeyProvider.notifier).state = widget.project.projectKey;
+  }
+
+  void _clearProjectKey() {
+    // Providers must not change while the tree is being torn down.
+    Future.microtask(() {
+      final current = _container.read(currentProjectKeyProvider.notifier);
+      if (current.state == widget.project.projectKey) current.state = null;
+    });
+  }
+
   @override
   void dispose() {
+    _clearProjectKey();
     _shortcutsFocusNode.dispose();
     _toolbarOnboardingNode.dispose();
     _toolsOnboardingNode.dispose();
@@ -962,9 +985,22 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     UserSubscription subscription, {
     bool example = false,
   }) async {
-    if (!subscription.hasFeatureAccess(SubscriptionFeature.advancedTools)) {
-      SubscriptionOfferScreen.show(context);
-      return;
+    // Editing a rig needs Pro, a trial on this very project, or the bundled
+    // example, which is always free. Baked frames stay usable either way.
+    if (!example && !widget.project.isExample && !subscription.hasFeatureAccess(SubscriptionFeature.advancedTools)) {
+      final projectKey = widget.project.projectKey;
+      final hasTrial = ref.read(trialsProvider).hasRigTrialFor(projectKey);
+      if (!hasTrial) {
+        final canOffer = projectKey != null &&
+            ref.read(appSettingsProvider).trialsEnabled &&
+            !ref.read(trialsProvider).rigTrialUsed;
+        if (canOffer && await offerRigTrial(context, ref, projectKey: projectKey)) {
+          if (!context.mounted) return;
+        } else {
+          if (context.mounted) SubscriptionOfferScreen.show(context);
+          return;
+        }
+      }
     }
 
     final session = notifier.prepareRigSession();

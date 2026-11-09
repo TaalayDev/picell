@@ -4728,4 +4728,40 @@ class StringsZh extends Strings {
 
   @override
   String get whatsNewGradientBody => '五种形状的像素风渐变，通过色带和抖动只使用你的颜色，也支持自定义色阶。拖动、调整控制点，按 Enter 确认。快捷键：Shift+G。';
+
+  @override
+  String trialStartPlan(int days) {
+    return 'Try free for $days days';
+  }
+
+  @override
+  String get trialSignInTitle => 'Sign in to start your free trial';
+
+  @override
+  String get trialSignInSubtitle => 'Free trials belong to your account, so each one can only be used once.';
+
+  @override
+  String get trialStarted => 'Free trial started';
+
+  @override
+  String get trialAlreadyUsed => 'You\'ve already used this free trial';
+
+  @override
+  String get trialUnavailable => 'Free trials aren\'t available right now';
+
+  @override
+  String get trialRigTitle => 'Try the rig editor free';
+
+  @override
+  String get trialRigBody =>
+      'Use it on one project of your choice. The Friendly Robot example is always free, and baked animations stay yours after the trial.';
+
+  @override
+  String get trialOnThisProject => 'Try free on this project';
+
+  @override
+  String get trialPackNote => 'Free on this project only';
+
+  @override
+  String get trialSeePlans => 'See plans';
 }

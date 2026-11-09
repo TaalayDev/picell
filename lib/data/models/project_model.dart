@@ -67,6 +67,13 @@ class Project with EquatableMixin {
   /// Versioned procedural tileset document; independent of legacy tilemaps.
   final String? tilesetData;
 
+  /// Stable id assigned by the database when the project is first stored.
+  /// Never exported or copied: a trial is spent on this key. Null until stored.
+  final String? projectKey;
+
+  /// A bundled example (e.g. the rig demo). Examples are always fully usable.
+  final bool isExample;
+
   Project({
     required this.id,
     required this.name,
@@ -90,6 +97,8 @@ class Project with EquatableMixin {
     this.tilemapData,
     this.rigData,
     this.tilesetData,
+    this.projectKey,
+    this.isExample = false,
   });
 
   Project copyWith({
@@ -122,6 +131,8 @@ class Project with EquatableMixin {
     bool clearTilesetData = false,
     String? rigData,
     bool clearRigData = false,
+    String? projectKey,
+    bool? isExample,
   }) {
     return Project(
       id: id ?? this.id,
@@ -146,6 +157,8 @@ class Project with EquatableMixin {
       tilemapData: clearTilemapData ? null : (tilemapData ?? this.tilemapData),
       tilesetData: clearTilesetData ? null : (tilesetData ?? this.tilesetData),
       rigData: clearRigData ? null : (rigData ?? this.rigData),
+      projectKey: projectKey ?? this.projectKey,
+      isExample: isExample ?? this.isExample,
     );
   }
 
@@ -244,6 +257,8 @@ class Project with EquatableMixin {
         tilemapData,
         rigData,
         tilesetData,
+        projectKey,
+        isExample,
         frames,
         states,
         selectedFrameId,

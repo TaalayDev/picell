@@ -6,12 +6,14 @@ part of 'discovery_slides_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$discoverySlidesHash() => r'd15b0480b76409187fbe498847e51b14d6b6b658';
+String _$discoverySlidesHash() => r'de885561414715869df914fe854c01f359ae9873';
 
-/// Combines cross-promo apps, featured projects, news, and trending community
-/// projects into one ordered slide list for [DiscoveryCarousel]. Each source
-/// is fetched independently and tolerates its own failure — a broken/empty
-/// source just contributes no slides rather than blanking the whole carousel.
+/// Combines cross-promo apps, featured projects and news into one ordered
+/// slide list for [DiscoveryCarousel]. Only projects marked as featured in the
+/// admin panel appear; recent or trending projects are never mixed in. Each
+/// source is fetched independently and tolerates its own failure — a
+/// broken/empty source just contributes no slides rather than blanking the
+/// whole carousel.
 ///
 /// Copied from [discoverySlides].
 @ProviderFor(discoverySlides)

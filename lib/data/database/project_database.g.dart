@@ -138,6 +138,22 @@ class $ProjectsTableTable extends ProjectsTable
   late final GeneratedColumn<String> tilesetData = GeneratedColumn<String>(
       'tileset_data', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _projectKeyMeta =
+      const VerificationMeta('projectKey');
+  @override
+  late final GeneratedColumn<String> projectKey = GeneratedColumn<String>(
+      'project_key', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isExampleMeta =
+      const VerificationMeta('isExample');
+  @override
+  late final GeneratedColumn<bool> isExample = GeneratedColumn<bool>(
+      'is_example', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_example" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -159,7 +175,9 @@ class $ProjectsTableTable extends ProjectsTable
         selectedFrameId,
         selectedLayerId,
         rigData,
-        tilesetData
+        tilesetData,
+        projectKey,
+        isExample
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -278,6 +296,16 @@ class $ProjectsTableTable extends ProjectsTable
           tilesetData.isAcceptableOrUnknown(
               data['tileset_data']!, _tilesetDataMeta));
     }
+    if (data.containsKey('project_key')) {
+      context.handle(
+          _projectKeyMeta,
+          projectKey.isAcceptableOrUnknown(
+              data['project_key']!, _projectKeyMeta));
+    }
+    if (data.containsKey('is_example')) {
+      context.handle(_isExampleMeta,
+          isExample.isAcceptableOrUnknown(data['is_example']!, _isExampleMeta));
+    }
     return context;
   }
 
@@ -327,6 +355,10 @@ class $ProjectsTableTable extends ProjectsTable
           .read(DriftSqlType.string, data['${effectivePrefix}rig_data']),
       tilesetData: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}tileset_data']),
+      projectKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}project_key']),
+      isExample: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_example'])!,
     );
   }
 
@@ -358,6 +390,8 @@ class ProjectsTableData extends DataClass
   final int? selectedLayerId;
   final String? rigData;
   final String? tilesetData;
+  final String? projectKey;
+  final bool isExample;
   const ProjectsTableData(
       {required this.id,
       required this.name,
@@ -378,7 +412,9 @@ class ProjectsTableData extends DataClass
       this.selectedFrameId,
       this.selectedLayerId,
       this.rigData,
-      this.tilesetData});
+      this.tilesetData,
+      this.projectKey,
+      required this.isExample});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -426,6 +462,10 @@ class ProjectsTableData extends DataClass
     if (!nullToAbsent || tilesetData != null) {
       map['tileset_data'] = Variable<String>(tilesetData);
     }
+    if (!nullToAbsent || projectKey != null) {
+      map['project_key'] = Variable<String>(projectKey);
+    }
+    map['is_example'] = Variable<bool>(isExample);
     return map;
   }
 
@@ -475,6 +515,10 @@ class ProjectsTableData extends DataClass
       tilesetData: tilesetData == null && nullToAbsent
           ? const Value.absent()
           : Value(tilesetData),
+      projectKey: projectKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(projectKey),
+      isExample: Value(isExample),
     );
   }
 
@@ -502,6 +546,8 @@ class ProjectsTableData extends DataClass
       selectedLayerId: serializer.fromJson<int?>(json['selectedLayerId']),
       rigData: serializer.fromJson<String?>(json['rigData']),
       tilesetData: serializer.fromJson<String?>(json['tilesetData']),
+      projectKey: serializer.fromJson<String?>(json['projectKey']),
+      isExample: serializer.fromJson<bool>(json['isExample']),
     );
   }
   @override
@@ -528,6 +574,8 @@ class ProjectsTableData extends DataClass
       'selectedLayerId': serializer.toJson<int?>(selectedLayerId),
       'rigData': serializer.toJson<String?>(rigData),
       'tilesetData': serializer.toJson<String?>(tilesetData),
+      'projectKey': serializer.toJson<String?>(projectKey),
+      'isExample': serializer.toJson<bool>(isExample),
     };
   }
 
@@ -551,7 +599,9 @@ class ProjectsTableData extends DataClass
           Value<int?> selectedFrameId = const Value.absent(),
           Value<int?> selectedLayerId = const Value.absent(),
           Value<String?> rigData = const Value.absent(),
-          Value<String?> tilesetData = const Value.absent()}) =>
+          Value<String?> tilesetData = const Value.absent(),
+          Value<String?> projectKey = const Value.absent(),
+          bool? isExample}) =>
       ProjectsTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -578,6 +628,8 @@ class ProjectsTableData extends DataClass
             : this.selectedLayerId,
         rigData: rigData.present ? rigData.value : this.rigData,
         tilesetData: tilesetData.present ? tilesetData.value : this.tilesetData,
+        projectKey: projectKey.present ? projectKey.value : this.projectKey,
+        isExample: isExample ?? this.isExample,
       );
   ProjectsTableData copyWithCompanion(ProjectsTableCompanion data) {
     return ProjectsTableData(
@@ -614,6 +666,9 @@ class ProjectsTableData extends DataClass
       rigData: data.rigData.present ? data.rigData.value : this.rigData,
       tilesetData:
           data.tilesetData.present ? data.tilesetData.value : this.tilesetData,
+      projectKey:
+          data.projectKey.present ? data.projectKey.value : this.projectKey,
+      isExample: data.isExample.present ? data.isExample.value : this.isExample,
     );
   }
 
@@ -639,33 +694,38 @@ class ProjectsTableData extends DataClass
           ..write('selectedFrameId: $selectedFrameId, ')
           ..write('selectedLayerId: $selectedLayerId, ')
           ..write('rigData: $rigData, ')
-          ..write('tilesetData: $tilesetData')
+          ..write('tilesetData: $tilesetData, ')
+          ..write('projectKey: $projectKey, ')
+          ..write('isExample: $isExample')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      name,
-      width,
-      height,
-      $driftBlobEquality.hash(thumbnail),
-      isCloudSynced,
-      remoteId,
-      createdAt,
-      editedAt,
-      projectType,
-      tileWidth,
-      tileHeight,
-      gridColumns,
-      gridRows,
-      tilemapData,
-      forkedFromId,
-      selectedFrameId,
-      selectedLayerId,
-      rigData,
-      tilesetData);
+  int get hashCode => Object.hashAll([
+        id,
+        name,
+        width,
+        height,
+        $driftBlobEquality.hash(thumbnail),
+        isCloudSynced,
+        remoteId,
+        createdAt,
+        editedAt,
+        projectType,
+        tileWidth,
+        tileHeight,
+        gridColumns,
+        gridRows,
+        tilemapData,
+        forkedFromId,
+        selectedFrameId,
+        selectedLayerId,
+        rigData,
+        tilesetData,
+        projectKey,
+        isExample
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -689,7 +749,9 @@ class ProjectsTableData extends DataClass
           other.selectedFrameId == this.selectedFrameId &&
           other.selectedLayerId == this.selectedLayerId &&
           other.rigData == this.rigData &&
-          other.tilesetData == this.tilesetData);
+          other.tilesetData == this.tilesetData &&
+          other.projectKey == this.projectKey &&
+          other.isExample == this.isExample);
 }
 
 class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
@@ -713,6 +775,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
   final Value<int?> selectedLayerId;
   final Value<String?> rigData;
   final Value<String?> tilesetData;
+  final Value<String?> projectKey;
+  final Value<bool> isExample;
   const ProjectsTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -734,6 +798,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.selectedLayerId = const Value.absent(),
     this.rigData = const Value.absent(),
     this.tilesetData = const Value.absent(),
+    this.projectKey = const Value.absent(),
+    this.isExample = const Value.absent(),
   });
   ProjectsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -756,6 +822,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     this.selectedLayerId = const Value.absent(),
     this.rigData = const Value.absent(),
     this.tilesetData = const Value.absent(),
+    this.projectKey = const Value.absent(),
+    this.isExample = const Value.absent(),
   })  : name = Value(name),
         width = Value(width),
         height = Value(height),
@@ -782,6 +850,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     Expression<int>? selectedLayerId,
     Expression<String>? rigData,
     Expression<String>? tilesetData,
+    Expression<String>? projectKey,
+    Expression<bool>? isExample,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -804,6 +874,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       if (selectedLayerId != null) 'selected_layer_id': selectedLayerId,
       if (rigData != null) 'rig_data': rigData,
       if (tilesetData != null) 'tileset_data': tilesetData,
+      if (projectKey != null) 'project_key': projectKey,
+      if (isExample != null) 'is_example': isExample,
     });
   }
 
@@ -827,7 +899,9 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       Value<int?>? selectedFrameId,
       Value<int?>? selectedLayerId,
       Value<String?>? rigData,
-      Value<String?>? tilesetData}) {
+      Value<String?>? tilesetData,
+      Value<String?>? projectKey,
+      Value<bool>? isExample}) {
     return ProjectsTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -849,6 +923,8 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
       selectedLayerId: selectedLayerId ?? this.selectedLayerId,
       rigData: rigData ?? this.rigData,
       tilesetData: tilesetData ?? this.tilesetData,
+      projectKey: projectKey ?? this.projectKey,
+      isExample: isExample ?? this.isExample,
     );
   }
 
@@ -915,6 +991,12 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
     if (tilesetData.present) {
       map['tileset_data'] = Variable<String>(tilesetData.value);
     }
+    if (projectKey.present) {
+      map['project_key'] = Variable<String>(projectKey.value);
+    }
+    if (isExample.present) {
+      map['is_example'] = Variable<bool>(isExample.value);
+    }
     return map;
   }
 
@@ -940,7 +1022,9 @@ class ProjectsTableCompanion extends UpdateCompanion<ProjectsTableData> {
           ..write('selectedFrameId: $selectedFrameId, ')
           ..write('selectedLayerId: $selectedLayerId, ')
           ..write('rigData: $rigData, ')
-          ..write('tilesetData: $tilesetData')
+          ..write('tilesetData: $tilesetData, ')
+          ..write('projectKey: $projectKey, ')
+          ..write('isExample: $isExample')
           ..write(')'))
         .toString();
   }
@@ -2422,6 +2506,8 @@ typedef $$ProjectsTableTableCreateCompanionBuilder = ProjectsTableCompanion
   Value<int?> selectedLayerId,
   Value<String?> rigData,
   Value<String?> tilesetData,
+  Value<String?> projectKey,
+  Value<bool> isExample,
 });
 typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
     Function({
@@ -2445,6 +2531,8 @@ typedef $$ProjectsTableTableUpdateCompanionBuilder = ProjectsTableCompanion
   Value<int?> selectedLayerId,
   Value<String?> rigData,
   Value<String?> tilesetData,
+  Value<String?> projectKey,
+  Value<bool> isExample,
 });
 
 final class $$ProjectsTableTableReferences extends BaseReferences<_$AppDatabase,
@@ -2604,6 +2692,16 @@ class $$ProjectsTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<String> get projectKey => $state.composableBuilder(
+      column: $state.table.projectKey,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get isExample => $state.composableBuilder(
+      column: $state.table.isExample,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ComposableFilter animationStateTableRefs(
       ComposableFilter Function($$AnimationStateTableTableFilterComposer f) f) {
     final $$AnimationStateTableTableFilterComposer composer =
@@ -2750,6 +2848,16 @@ class $$ProjectsTableTableOrderingComposer
       column: $state.table.tilesetData,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get projectKey => $state.composableBuilder(
+      column: $state.table.projectKey,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get isExample => $state.composableBuilder(
+      column: $state.table.isExample,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
 class $$ProjectsTableTableTableManager extends RootTableManager<
@@ -2795,6 +2903,8 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> selectedLayerId = const Value.absent(),
             Value<String?> rigData = const Value.absent(),
             Value<String?> tilesetData = const Value.absent(),
+            Value<String?> projectKey = const Value.absent(),
+            Value<bool> isExample = const Value.absent(),
           }) =>
               ProjectsTableCompanion(
             id: id,
@@ -2817,6 +2927,8 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             selectedLayerId: selectedLayerId,
             rigData: rigData,
             tilesetData: tilesetData,
+            projectKey: projectKey,
+            isExample: isExample,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2839,6 +2951,8 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             Value<int?> selectedLayerId = const Value.absent(),
             Value<String?> rigData = const Value.absent(),
             Value<String?> tilesetData = const Value.absent(),
+            Value<String?> projectKey = const Value.absent(),
+            Value<bool> isExample = const Value.absent(),
           }) =>
               ProjectsTableCompanion.insert(
             id: id,
@@ -2861,6 +2975,8 @@ class $$ProjectsTableTableTableManager extends RootTableManager<
             selectedLayerId: selectedLayerId,
             rigData: rigData,
             tilesetData: tilesetData,
+            projectKey: projectKey,
+            isExample: isExample,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

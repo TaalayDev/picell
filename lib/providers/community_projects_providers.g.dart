@@ -6,7 +6,7 @@ part of 'community_projects_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$communityProjectsHash() => r'81b59bbc15a043e15a297e57279679b0eff47eb6';
+String _$communityProjectsHash() => r'f450ea97f4a953c45bdd55402fa4cac2ef9445bb';
 
 /// See also [CommunityProjects].
 @ProviderFor(CommunityProjects)
@@ -54,7 +54,7 @@ final trendingProjectsProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$TrendingProjects = AutoDisposeAsyncNotifier<List<ApiProject>>;
-String _$communityProjectHash() => r'79f5787219ff0a373f6fdd7368f165cce2642d68';
+String _$communityProjectHash() => r'8d4a8cdc40a176f614fd62b6d81d1190ae5d02fa';
 
 /// Copied from Dart SDK
 class _SystemHash {

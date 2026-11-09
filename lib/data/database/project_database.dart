@@ -4,7 +4,9 @@ import 'dart:ui' show Offset;
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
+import '../../core/utils/copy_name.dart';
 import '../../data.dart';
 import '../../pixel/effects/effects.dart';
 
@@ -44,6 +46,11 @@ class ProjectsTable extends Table {
   TextColumn get rigData => text().nullable()();
   // version 11 - procedural tileset document
   TextColumn get tilesetData => text().nullable()();
+  // version 13 - stable identity that survives export/restore bookkeeping and
+  // lets the server bind a free trial to one project; set once on insert.
+  TextColumn get projectKey => text().nullable()();
+  // version 13 - bundled example project (e.g. the rig demo); always free.
+  BoolColumn get isExample => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -108,7 +115,7 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase() => instance;
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration {
@@ -163,6 +170,7 @@ class AppDatabase extends _$AppDatabase {
           ],
           if (from < 10) projectsTable.rigData,
           if (from < 11) projectsTable.tilesetData,
+          if (from < 13) ...[projectsTable.projectKey, projectsTable.isExample],
         ];
         if (projectColumns.isNotEmpty) {
           await migrator.alterTable(TableMigration(
@@ -170,8 +178,48 @@ class AppDatabase extends _$AppDatabase {
             newColumns: projectColumns,
           ));
         }
+
+        // v12: repeated duplication produced "Copy of Copy of ..." names that
+        // eventually exceeded the 100-char column limit and broke inserts.
+        if (from < 12) {
+          await normalizeCopyNamesForMigration();
+        }
+
+        // v13: every existing project gets its stable key.
+        if (from < 13) {
+          await backfillProjectKeys();
+        }
       },
     );
+  }
+
+  @visibleForTesting
+  Future<void> backfillProjectKeys() async {
+    final rows = await customSelect('SELECT id FROM projects_table WHERE project_key IS NULL').get();
+    for (final row in rows) {
+      await customUpdate(
+        'UPDATE projects_table SET project_key = ? WHERE id = ?',
+        variables: [Variable<String>(const Uuid().v4()), Variable<int>(row.read<int>('id'))],
+      );
+    }
+  }
+
+  @visibleForTesting
+  Future<void> normalizeCopyNamesForMigration() async {
+    for (final table in ['frames_table', 'layers_table']) {
+      final rows = await customSelect(
+        "SELECT id, name FROM $table WHERE name LIKE 'Copy of Copy of %' OR length(name) > $kMaxNameLength",
+      ).get();
+      for (final row in rows) {
+        final name = row.read<String>('name');
+        final fixed = normalizeCopyName(name);
+        if (fixed == name) continue;
+        await customUpdate(
+          'UPDATE $table SET name = ? WHERE id = ?',
+          variables: [Variable<String>(fixed), Variable<int>(row.read<int>('id'))],
+        );
+      }
+    }
   }
 
   static QueryExecutor _openConnection() {
@@ -285,6 +333,8 @@ class AppDatabase extends _$AppDatabase {
             tilemapData: projectRow.tilemapData,
             rigData: projectRow.rigData,
             tilesetData: projectRow.tilesetData,
+            projectKey: projectRow.projectKey,
+            isExample: projectRow.isExample,
             frames: [],
             states: [],
           );
@@ -382,6 +432,8 @@ class AppDatabase extends _$AppDatabase {
         tilemapData: project.tilemapData,
         rigData: project.rigData,
         tilesetData: project.tilesetData,
+        projectKey: project.projectKey,
+        isExample: project.isExample,
         states: [
           for (final state in stateRows)
             AnimationStateModel(
@@ -435,6 +487,8 @@ class AppDatabase extends _$AppDatabase {
       tilemapData: projectRow.tilemapData,
       rigData: projectRow.rigData,
       tilesetData: projectRow.tilesetData,
+      projectKey: projectRow.projectKey,
+      isExample: projectRow.isExample,
     );
   }
 
@@ -471,10 +525,15 @@ class AppDatabase extends _$AppDatabase {
       tilemapData: projectRow.tilemapData,
       rigData: projectRow.rigData,
       tilesetData: projectRow.tilesetData,
+      projectKey: projectRow.projectKey,
+      isExample: projectRow.isExample,
     );
   }
 
   Future<Project> insertProject(Project project) async {
+    // A fresh key per row: imports, downloads and copies are new projects, so
+    // they never inherit a trial that was spent on another one.
+    final projectKey = const Uuid().v4();
     final projectId = await into(projectsTable).insert(ProjectsTableCompanion(
       name: Value(project.name),
       width: Value(project.width),
@@ -495,6 +554,8 @@ class AppDatabase extends _$AppDatabase {
       tilemapData: Value(project.tilemapData),
       tilesetData: Value(project.tilesetData),
       rigData: const Value(null),
+      projectKey: Value(projectKey),
+      isExample: Value(project.isExample),
     ));
 
     final states = <AnimationStateModel>[];
@@ -575,6 +636,7 @@ class AppDatabase extends _$AppDatabase {
 
     return project.copyWith(
       id: projectId,
+      projectKey: projectKey,
       states: states,
       frames: frames,
       rigData: rigData,
@@ -587,7 +649,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> updateProject(Project project) async {
-    await update(projectsTable).replace(ProjectsTableCompanion(
+    // write(), not replace(): replace() would reset the columns left out here
+    // (project key, example flag) to their defaults.
+    await (update(projectsTable)..where((row) => row.id.equals(project.id))).write(ProjectsTableCompanion(
       id: Value(project.id),
       name: Value(project.name),
       width: Value(project.width),

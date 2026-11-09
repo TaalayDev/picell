@@ -6,7 +6,18 @@
     "dropImageMessage",
     "dropImageNewLayer",
     "dropImageThisLayer",
-    "dropImageNewProject"
+    "dropImageNewProject",
+    "trialStartPlan",
+    "trialSignInTitle",
+    "trialSignInSubtitle",
+    "trialStarted",
+    "trialAlreadyUsed",
+    "trialUnavailable",
+    "trialRigTitle",
+    "trialRigBody",
+    "trialOnThisProject",
+    "trialPackNote",
+    "trialSeePlans"
   ],
 
   "ky": [
@@ -16,7 +27,18 @@
     "dropImageMessage",
     "dropImageNewLayer",
     "dropImageThisLayer",
-    "dropImageNewProject"
+    "dropImageNewProject",
+    "trialStartPlan",
+    "trialSignInTitle",
+    "trialSignInSubtitle",
+    "trialStarted",
+    "trialAlreadyUsed",
+    "trialUnavailable",
+    "trialRigTitle",
+    "trialRigBody",
+    "trialOnThisProject",
+    "trialPackNote",
+    "trialSeePlans"
   ],
 
   "ru": [
@@ -36,6 +58,17 @@
     "dropImageMessage",
     "dropImageNewLayer",
     "dropImageThisLayer",
-    "dropImageNewProject"
+    "dropImageNewProject",
+    "trialStartPlan",
+    "trialSignInTitle",
+    "trialSignInSubtitle",
+    "trialStarted",
+    "trialAlreadyUsed",
+    "trialUnavailable",
+    "trialRigTitle",
+    "trialRigBody",
+    "trialOnThisProject",
+    "trialPackNote",
+    "trialSeePlans"
   ]
 }

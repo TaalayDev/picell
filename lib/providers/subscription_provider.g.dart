@@ -223,7 +223,7 @@ class _IsFeatureLockedProviderElement extends AutoDisposeProviderElement<bool>
       (origin as IsFeatureLockedProvider).feature;
 }
 
-String _$purchaseOffersHash() => r'5963730b075f4867aedb25cd79fa5a1876b1b314';
+String _$purchaseOffersHash() => r'9ad47dc0153e71400e73b57bb8df87db81dbe6b8';
 
 /// See also [purchaseOffers].
 @ProviderFor(purchaseOffers)

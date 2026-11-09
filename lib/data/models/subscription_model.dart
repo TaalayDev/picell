@@ -211,6 +211,23 @@ class TemporaryProAccess extends Equatable {
   }
 }
 
+/// A server-granted free trial of a whole plan. Unlike a purchase it expires
+/// and never includes cloud sync (data uploaded during a trial would be
+/// stranded when it ends).
+class PlanTrial extends Equatable {
+  final SubscriptionPlan tier;
+  final DateTime endsAt;
+
+  const PlanTrial({required this.tier, required this.endsAt});
+
+  bool isActiveAt(DateTime now) => now.isBefore(endsAt);
+  bool get isActive => isActiveAt(DateTime.now());
+  Duration get remaining => isActive ? endsAt.difference(DateTime.now()) : Duration.zero;
+
+  @override
+  List<Object?> get props => [tier, endsAt];
+}
+
 /// The user's purchases and temporary access.
 class UserSubscription extends Equatable {
   static const int _storageVersion = 2;
@@ -220,30 +237,39 @@ class UserSubscription extends Equatable {
   final bool isPurchasePending;
   final TemporaryProAccess? temporaryProAccess;
 
+  /// Set from the server's trial list; never persisted with the purchases.
+  final PlanTrial? planTrial;
+
   const UserSubscription({
     this.ownedProductIds = const {},
     this.isPurchasePending = false,
     this.temporaryProAccess,
+    this.planTrial,
   });
 
   const UserSubscription.free()
       : ownedProductIds = const {},
         isPurchasePending = false,
-        temporaryProAccess = null;
+        temporaryProAccess = null,
+        planTrial = null;
 
   /// Everything unlocked; used for debug builds and platforms without stores.
   const UserSubscription.unlocked()
       : ownedProductIds = const {SubscriptionProductIds.ultimate},
         isPurchasePending = false,
-        temporaryProAccess = null;
+        temporaryProAccess = null,
+        planTrial = null;
 
   UserSubscription copyWith({
     Set<String>? ownedProductIds,
     bool? isPurchasePending,
     TemporaryProAccess? temporaryProAccess,
     bool clearTemporaryProAccess = false,
+    PlanTrial? planTrial,
+    bool clearPlanTrial = false,
   }) {
     return UserSubscription(
+      planTrial: clearPlanTrial ? null : planTrial ?? this.planTrial,
       ownedProductIds: ownedProductIds ?? this.ownedProductIds,
       isPurchasePending: isPurchasePending ?? this.isPurchasePending,
       temporaryProAccess: clearTemporaryProAccess ? null : temporaryProAccess ?? this.temporaryProAccess,
@@ -271,14 +297,18 @@ class UserSubscription extends Equatable {
 
   bool get isPermanentPro => hasEntitlement(Entitlement.pro);
   bool get hasTemporaryPro => temporaryProAccess?.isActive ?? false;
+  bool get hasPlanTrial => planTrial?.isActive ?? false;
+  bool get _hasUltimateTrial => hasPlanTrial && planTrial!.tier == SubscriptionPlan.ultimate;
 
   /// Whether pro-level features (tools, formats, limits, no ads) are available.
-  bool get isPro => isPermanentPro || hasTemporaryPro;
+  bool get isPro => isPermanentPro || hasTemporaryPro || hasPlanTrial;
 
   bool ownsEffectPack(EffectPackId pack) {
     if (pack == EffectPackId.free) return true;
     final owned = entitlements;
-    return owned.contains(Entitlement.allEffects) || owned.contains(Entitlement.pack(pack));
+    if (owned.contains(Entitlement.allEffects) || owned.contains(Entitlement.pack(pack))) return true;
+    // The Pro product includes the basic filters; an Ultimate trial, every pack.
+    return hasPlanTrial && (_hasUltimateTrial || pack == EffectPackId.basicFilters);
   }
 
   bool canUseEffect(EffectType type) {
@@ -299,9 +329,9 @@ class UserSubscription extends Equatable {
         return isPro;
       case SubscriptionFeature.templates:
       case SubscriptionFeature.proTheme:
-        return isPermanentPro;
+        return isPermanentPro || hasPlanTrial;
       case SubscriptionFeature.effects:
-        return hasEntitlement(Entitlement.allEffects);
+        return hasEntitlement(Entitlement.allEffects) || _hasUltimateTrial;
       case SubscriptionFeature.cloudBackup:
         return hasEntitlement(Entitlement.cloud);
     }
@@ -349,5 +379,5 @@ class UserSubscription extends Equatable {
   }
 
   @override
-  List<Object?> get props => [ownedProductIds, isPurchasePending, temporaryProAccess];
+  List<Object?> get props => [ownedProductIds, isPurchasePending, temporaryProAccess, planTrial];
 }

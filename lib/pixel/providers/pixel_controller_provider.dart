@@ -1,3 +1,4 @@
+import '../../core/utils/copy_name.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -1479,7 +1480,7 @@ class PixelDrawController extends _$PixelDrawController {
     final newLayerData = await _layerService.createLayer(
       projectId: project.id,
       frameId: currentFrame.id,
-      name: 'Copy of ${layerToDuplicate.name}',
+      name: copyName(layerToDuplicate.name),
       width: state.width,
       height: state.height,
       order: _layerService.calculateNextLayerOrder(currentFrame.layers),
@@ -1522,7 +1523,7 @@ class PixelDrawController extends _$PixelDrawController {
       final created = await _layerService.createLayer(
         projectId: project.id,
         frameId: currentFrame.id,
-        name: 'Copy of ${source.name}',
+        name: copyName(source.name),
         width: state.width,
         height: state.height,
         order: layers.length,
@@ -1941,7 +1942,7 @@ class PixelDrawController extends _$PixelDrawController {
     for (final source in sources) {
       var created = await _frameService.createFrame(
         projectId: project.id,
-        name: 'Copy of ${source.name}',
+        name: copyName(source.name),
         stateId: source.stateId,
         width: state.width,
         height: state.height,

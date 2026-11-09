@@ -7,7 +7,7 @@ part of 'animation_frame_controller.dart';
 // **************************************************************************
 
 String _$animationControllerHash() =>
-    r'3b8f197f885f0915be3114c6d393c1c7095952ea';
+    r'c5af6a369d8e0b0c53eec474979b74d76a4a47df';
 
 /// See also [AnimationController].
 @ProviderFor(AnimationController)

@@ -4774,4 +4774,40 @@ class StringsKy extends Strings {
   @override
   String get whatsNewGradientBody =>
       'Беш формадагы пиксел-арт градиенттер: тилкелер жана дизеринг сиздин түстөрүңүздү гана колдонот, өзүңүздүн түс шкалаңызды да. Сүйрөңүз, туткаларды тууралаңыз, Enter басыңыз. Тез баскыч: Shift+G.';
+
+  @override
+  String trialStartPlan(int days) {
+    return 'Try free for $days days';
+  }
+
+  @override
+  String get trialSignInTitle => 'Sign in to start your free trial';
+
+  @override
+  String get trialSignInSubtitle => 'Free trials belong to your account, so each one can only be used once.';
+
+  @override
+  String get trialStarted => 'Free trial started';
+
+  @override
+  String get trialAlreadyUsed => 'You\'ve already used this free trial';
+
+  @override
+  String get trialUnavailable => 'Free trials aren\'t available right now';
+
+  @override
+  String get trialRigTitle => 'Try the rig editor free';
+
+  @override
+  String get trialRigBody =>
+      'Use it on one project of your choice. The Friendly Robot example is always free, and baked animations stay yours after the trial.';
+
+  @override
+  String get trialOnThisProject => 'Try free on this project';
+
+  @override
+  String get trialPackNote => 'Free on this project only';
+
+  @override
+  String get trialSeePlans => 'See plans';
 }

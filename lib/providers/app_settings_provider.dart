@@ -6,14 +6,35 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'providers.dart';
 
 class AppSettings {
-  const AppSettings({this.mobileBottomBannerEnabled = false});
+  const AppSettings({
+    this.mobileBottomBannerEnabled = false,
+    this.trialsEnabled = false,
+    this.trialProDays = 0,
+    this.trialUltimateDays = 0,
+  });
 
   final bool mobileBottomBannerEnabled;
 
-  factory AppSettings.fromJson(dynamic json) => AppSettings(
-        mobileBottomBannerEnabled:
-            json is Map && json['mobile_bottom_banner_enabled'] == true,
-      );
+  /// Release switch for free trials; off unless the server says otherwise.
+  final bool trialsEnabled;
+
+  /// Length of the Pro / Ultimate plan trial; 0 turns that trial off.
+  final int trialProDays;
+  final int trialUltimateDays;
+
+  factory AppSettings.fromJson(dynamic json) {
+    int days(String key) {
+      final value = json is Map ? json[key] : null;
+      return value is int ? value.clamp(0, 30) : 0;
+    }
+
+    return AppSettings(
+      mobileBottomBannerEnabled: json is Map && json['mobile_bottom_banner_enabled'] == true,
+      trialsEnabled: json is Map && json['trials_enabled'] == true,
+      trialProDays: days('trial_pro_days'),
+      trialUltimateDays: days('trial_ultimate_days'),
+    );
+  }
 }
 
 final appSettingsProvider =

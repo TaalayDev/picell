@@ -5035,4 +5035,41 @@ class StringsRu extends Strings {
   @override
   String get whatsNewGradientBody =>
       'Пиксельные градиенты пяти форм: полосы и дизеринг используют только ваши цвета, включая собственные цветовые шкалы. Протяните, подправьте ручки и нажмите Enter. Сочетание клавиш: Shift+G.';
+
+  @override
+  String trialStartPlan(int days) {
+    return 'Попробовать бесплатно $days дн.';
+  }
+
+  @override
+  String get trialSignInTitle => 'Войдите, чтобы начать пробный период';
+
+  @override
+  String get trialSignInSubtitle =>
+      'Пробный период привязан к аккаунту, поэтому его можно использовать только один раз.';
+
+  @override
+  String get trialStarted => 'Пробный период начался';
+
+  @override
+  String get trialAlreadyUsed => 'Вы уже использовали этот пробный период';
+
+  @override
+  String get trialUnavailable => 'Пробные периоды сейчас недоступны';
+
+  @override
+  String get trialRigTitle => 'Попробуйте риг бесплатно';
+
+  @override
+  String get trialRigBody =>
+      'Используйте его на одном проекте по выбору. Пример Friendly Robot всегда бесплатен, а готовые анимации остаются у вас после пробного периода.';
+
+  @override
+  String get trialOnThisProject => 'Попробовать бесплатно на этом проекте';
+
+  @override
+  String get trialPackNote => 'Бесплатно только на этом проекте';
+
+  @override
+  String get trialSeePlans => 'Смотреть тарифы';
 }

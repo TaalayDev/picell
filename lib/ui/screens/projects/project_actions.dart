@@ -217,6 +217,8 @@ mixin _ProjectsScreenActions {
         id: 0,
         createdAt: now,
         editedAt: now,
+        // The bundled demo is always free to rig; see Project.isExample.
+        isExample: true,
       );
       final newProject = await ref.read(projectsProvider.notifier).addProject(project, source: 'template');
       loader.remove();

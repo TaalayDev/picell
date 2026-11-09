@@ -1,3 +1,6 @@
+import '../../providers/app_settings_provider.dart';
+import '../../providers/trial_provider.dart';
+import '../widgets/dialogs/trial_flow.dart';
 import 'dart:math' as math;
 
 import '../../core/services/analytics_features.dart';
@@ -678,6 +681,21 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
     }
   }
 
+  /// A free trial of this pack on the project that is open, if the release
+  /// settings allow it and it hasn't been spent yet.
+  bool _canTryOnThisProject(bool alreadyOnTrial) {
+    if (alreadyOnTrial) return false;
+    if (!ref.watch(appSettingsProvider).trialsEnabled) return false;
+    if (ref.watch(currentProjectKeyProvider) == null) return false;
+    return ref.watch(trialsProvider).packTrialProjectKey(widget.packId.name) == null;
+  }
+
+  Future<void> _tryOnThisProject() async {
+    final projectKey = ref.read(currentProjectKeyProvider);
+    if (projectKey == null) return;
+    await startTrialFlow(context, ref, (trials) => trials.claimPack(widget.packId, projectKey));
+  }
+
   Future<void> _startTrial() async {
     final earned = await ref.read(rewardVideoAdProvider.notifier).showAdIfLoaded();
     if (!earned || !mounted) return;
@@ -778,6 +796,19 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
             ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
             : Text(price == null ? s.effectPackUnavailable : s.effectPackBuyFor(price)),
       ),
+      if (_canTryOnThisProject(onTrial)) ...[
+        const SizedBox(height: 8),
+        FilledButton.tonalIcon(
+          key: const ValueKey('try-pack-on-project'),
+          onPressed: _tryOnThisProject,
+          icon: const Icon(Icons.science_outlined),
+          label: Text(s.trialOnThisProject),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(s.trialPackNote, textAlign: TextAlign.center, style: noteStyle),
+        ),
+      ],
       const SizedBox(height: 8),
       OutlinedButton(
         key: const ValueKey('unlock-pack-with-coins'),

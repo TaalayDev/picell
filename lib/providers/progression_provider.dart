@@ -13,6 +13,7 @@ import 'auth_provider.dart';
 import 'challenges_provider.dart';
 import 'projects_provider.dart';
 import 'subscription_provider.dart';
+import 'trial_provider.dart';
 
 /// Something the user should be told about right away.
 sealed class ProgressionNotice {
@@ -245,10 +246,19 @@ class ProgressionNotifier extends Notifier<ProgressionState> {
 /// Whether [EffectType] can be used through a purchase, an earned unlock or a trial.
 final effectAccessProvider = Provider.autoDispose.family<bool, EffectType>((ref, type) {
   if (ref.watch(subscriptionStateProvider).canUseEffect(type)) return true;
+  if (ref.watch(packTrialAccessProvider(EffectPackCatalog.packIdOf(type)))) return true;
   return ref.watch(progressionProvider).canUseEffect(type, DateTime.now());
 });
 
 final effectPackAccessProvider = Provider.autoDispose.family<bool, EffectPackId>((ref, pack) {
   if (ref.watch(subscriptionStateProvider).ownsEffectPack(pack)) return true;
+  if (ref.watch(packTrialAccessProvider(pack))) return true;
   return ref.watch(progressionProvider).ownsPack(pack, DateTime.now());
+});
+
+/// A pack the account tried on the project that is open right now. The trial
+/// belongs to that one project, so it unlocks nothing anywhere else.
+final packTrialAccessProvider = Provider.autoDispose.family<bool, EffectPackId>((ref, pack) {
+  final projectKey = ref.watch(currentProjectKeyProvider);
+  return ref.watch(trialsProvider).hasPackTrialFor(pack.name, projectKey);
 });

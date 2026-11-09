@@ -6,7 +6,7 @@ part of 'feedback_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$feedbackNotifierHash() => r'84d1bbc47349a66fee553d624799133ed90b5b96';
+String _$feedbackNotifierHash() => r'408ec6ad1d3f7bc6cd5e3e255581cd85bb25cf0b';
 
 /// See also [FeedbackNotifier].
 @ProviderFor(FeedbackNotifier)

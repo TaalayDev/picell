@@ -8650,6 +8650,72 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'Pixel-art gradients in five shapes, banded and dithered so only your colors are used, including your own color ramps. Drag, adjust the handles, press Enter. Shortcut: Shift+G.'**
   String get whatsNewGradientBody;
+
+  /// No description provided for @trialStartPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Try free for {days} days'**
+  String trialStartPlan(int days);
+
+  /// No description provided for @trialSignInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to start your free trial'**
+  String get trialSignInTitle;
+
+  /// No description provided for @trialSignInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free trials belong to your account, so each one can only be used once.'**
+  String get trialSignInSubtitle;
+
+  /// No description provided for @trialStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Free trial started'**
+  String get trialStarted;
+
+  /// No description provided for @trialAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve already used this free trial'**
+  String get trialAlreadyUsed;
+
+  /// No description provided for @trialUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Free trials aren\'t available right now'**
+  String get trialUnavailable;
+
+  /// No description provided for @trialRigTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try the rig editor free'**
+  String get trialRigTitle;
+
+  /// No description provided for @trialRigBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use it on one project of your choice. The Friendly Robot example is always free, and baked animations stay yours after the trial.'**
+  String get trialRigBody;
+
+  /// No description provided for @trialOnThisProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Try free on this project'**
+  String get trialOnThisProject;
+
+  /// No description provided for @trialPackNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Free on this project only'**
+  String get trialPackNote;
+
+  /// No description provided for @trialSeePlans.
+  ///
+  /// In en, this message translates to:
+  /// **'See plans'**
+  String get trialSeePlans;
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

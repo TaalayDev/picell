@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:animated_reorderable_list/animated_reorderable_list.dart';
 
 import '../../data.dart';
 import '../../l10n/strings.dart';
@@ -12,6 +11,7 @@ import '../../pixel/services/pixel_transform_service.dart';
 import '../../providers/background_image_provider.dart';
 import '../utils/multi_selection.dart';
 import 'fancy_slider.dart';
+import 'handle_reorderable_list.dart';
 import 'layers_preview.dart';
 import 'panel_select_all_region.dart';
 
@@ -151,25 +151,21 @@ class LayersPanel extends HookConsumerWidget {
           const SizedBox(height: 4),
           const SizedBox(height: 4),
           Expanded(
-            child: AnimatedReorderableListView(
-              // Display order (top layer first). The list must be what the
-              // package diffs, otherwise removal animations target the wrong
-              // rows and multi-delete crashes with a null check.
+            child: HandleReorderableList<Layer>(
+              // Display order (top layer first).
               items: reversedLayers,
               controller: scrollController,
+              keyOf: (layer) => ValueKey(layer.id),
               onReorder: (oldIndex, newIndex) {
-                final reversedLength = layers.length;
-                final actualOldIndex = reversedLength - 1 - oldIndex;
-                final actualNewIndex = reversedLength - 1 - newIndex;
-                onLayerReordered(actualNewIndex, actualOldIndex);
+                final last = layers.length - 1;
+                onLayerReordered(last - newIndex, last - oldIndex);
               },
-              itemBuilder: (context, index) {
-                final layer = reversedLayers[index];
+              itemBuilder: (context, index, layer, dragHandle) {
                 final actualIndex = layers.length - 1 - index;
                 return _LayerTile(
-                  key: ValueKey(layer.id),
                   layer: layer,
                   index: actualIndex,
+                  dragHandle: dragHandle,
                   isSelected: effectiveSelection.contains(layer.id),
                   isActive: actualIndex == activeLayerIndex,
                   onLayerSelected: selectLayer,
@@ -187,11 +183,6 @@ class LayersPanel extends HookConsumerWidget {
                   canvasHeight: height,
                 );
               },
-              enterTransition: [FlipInX(), ScaleIn()],
-              exitTransition: [SlideInLeft()],
-              insertDuration: const Duration(milliseconds: 300),
-              removeDuration: const Duration(milliseconds: 300),
-              isSameItem: (a, b) => a.id == b.id,
             ),
           ),
           if (backgroundImage.image != null)
@@ -585,6 +576,7 @@ class _LayerThumbnailState extends State<_LayerThumbnail> {
 class _LayerTile extends StatelessWidget {
   final Layer layer;
   final int index;
+  final Widget dragHandle;
   final bool isSelected;
   final bool isActive;
   final Function(int) onLayerSelected;
@@ -596,9 +588,9 @@ class _LayerTile extends StatelessWidget {
   final int canvasHeight;
 
   const _LayerTile({
-    super.key,
     required this.layer,
     required this.index,
+    required this.dragHandle,
     required this.isSelected,
     required this.isActive,
     required this.onLayerSelected,
@@ -634,6 +626,13 @@ class _LayerTile extends StatelessWidget {
             onDoubleTap: onDoubleTap,
             child: Row(
               children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: IconTheme(
+                    data: IconThemeData(color: contentColor.withValues(alpha: 0.7)),
+                    child: dragHandle,
+                  ),
+                ),
                 ActionIconButton(
                   onPressed: () => onLayerVisibilityChanged(index),
                   icon: Icon(
