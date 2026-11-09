@@ -5,6 +5,7 @@ import '../../../core/snackbar.dart';
 import '../../../data/models/trial_model.dart';
 import '../../../l10n/strings.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/providers.dart';
 import '../../../providers/trial_provider.dart';
 import 'auth_dialog.dart';
 
@@ -14,11 +15,13 @@ import 'auth_dialog.dart';
 Future<bool> startTrialFlow(
   BuildContext context,
   WidgetRef ref,
-  Future<TrialClaimResult> Function(TrialsNotifier trials) claim,
-) async {
+  Future<TrialClaimResult> Function(TrialsNotifier trials) claim, {
+  required String kind,
+}) async {
   final strings = Strings.of(context);
 
   if (!ref.read(authProvider).isSignedIn) {
+    ref.read(analyticsProvider).logEvent(name: 'trial_sign_in_prompted', parameters: {'kind': kind});
     await AuthDialog.show(
       context,
       title: strings.trialSignInTitle,
@@ -45,6 +48,7 @@ Future<bool> startTrialFlow(
 /// user may go on and edit the rig (trial started or already running here).
 Future<bool> offerRigTrial(BuildContext context, WidgetRef ref, {required String projectKey}) async {
   final strings = Strings.of(context);
+  ref.read(analyticsProvider).logEvent(name: 'trial_prompt_shown', parameters: {'kind': 'rig'});
   final choice = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -65,5 +69,5 @@ Future<bool> offerRigTrial(BuildContext context, WidgetRef ref, {required String
     ),
   );
   if (choice != true || !context.mounted) return false;
-  return startTrialFlow(context, ref, (trials) => trials.claimRig(projectKey));
+  return startTrialFlow(context, ref, (trials) => trials.claimRig(projectKey), kind: 'rig');
 }

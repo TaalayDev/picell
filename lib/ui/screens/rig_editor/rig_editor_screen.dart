@@ -39,7 +39,12 @@ class RigEditorScreen extends StatefulWidget {
     required this.height,
     this.title = '',
     this.fps = 12,
+    this.commitGate,
   });
+
+  /// Asked before the work is kept (Done, saving a GIF). Returning false keeps
+  /// the user in the editor; null allows everything. Previewing is never gated.
+  final Future<bool> Function()? commitGate;
 
   /// The rig to edit; pass an empty `Rig` to start a new one.
   final Rig rig;
@@ -64,6 +69,7 @@ class RigEditorScreen extends StatefulWidget {
     required int height,
     String title = '',
     int fps = 12,
+    Future<bool> Function()? commitGate,
   }) {
     return Navigator.of(context).push<Rig>(
       MaterialPageRoute(
@@ -75,6 +81,7 @@ class RigEditorScreen extends StatefulWidget {
           height: height,
           title: title,
           fps: fps,
+          commitGate: commitGate,
         ),
       ),
     );
@@ -215,7 +222,7 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
         height: widget.height,
       );
       if (!mounted || !context.mounted) return;
-      await RigGifPreviewDialog.show(context, bytes: bytes, fileName: _gifFileName);
+      await RigGifPreviewDialog.show(context, bytes: bytes, fileName: _gifFileName, onBeforeSave: widget.commitGate);
     } catch (_) {
       if (context.mounted) {
         AppNotification.show(context, message: strings.rigPreviewFailed, type: AppNotificationType.error);
@@ -293,7 +300,11 @@ class _RigEditorScreenState extends State<RigEditorScreen> {
     if (discard == true && mounted && context.mounted) Navigator.of(context).pop();
   }
 
-  void _done() => Navigator.of(context).pop(_controller.rig);
+  Future<void> _done() async {
+    final gate = widget.commitGate;
+    if (gate != null && !await gate()) return;
+    if (mounted) Navigator.of(context).pop(_controller.rig);
+  }
 
   void _showPanelSheet(BuildContext context) {
     showModalBottomSheet<void>(

@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:picell/core/services/analytics_service.dart';
 import 'package:picell/core/utils/api_client.dart';
 import 'package:picell/data/models/api_models.dart';
 import 'package:picell/data/models/auth_api_models.dart';
+import 'package:picell/data/models/subscription_model.dart';
 import 'package:picell/data/models/trial_model.dart';
 import 'package:picell/pixel/effects/effect_pack_catalog.dart';
 import 'package:picell/providers/auth_provider.dart';
@@ -62,8 +64,29 @@ class _FakeApi implements ApiClient {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _Analytics implements AnalyticsService {
+  final events = <(String, Map<String, Object>)>[];
+
+  /// Compact form for assertions: `name kind/subject[/reason]`.
+  List<String> get summary => [
+        for (final (name, props) in events)
+          '$name ${[props['kind'], props['subject'], props['reason']].whereType<String>().join('/')}',
+      ];
+
+  @override
+  Future<void> logEvent({required String name, Map<String, Object>? parameters}) async =>
+      events.add((name, parameters ?? const {}));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+final _analytics = _Analytics();
+
 ProviderContainer _container(_FakeApi api, {bool signedIn = true, String? device = 'dev-1'}) {
+  _analytics.events.clear();
   final container = ProviderContainer(overrides: [
+    analyticsProvider.overrideWithValue(_analytics),
     apiClientProvider.overrideWithValue(api),
     authProvider.overrideWith(() => signedIn ? _SignedIn() : _SignedOut()),
     deviceIdLoaderProvider.overrideWithValue(() async => device),
@@ -115,5 +138,29 @@ void main() {
   test('no device id means trials are unavailable', () async {
     final container = _container(_FakeApi(), device: null);
     expect(await container.read(trialsProvider.notifier).claimRig(projectA), TrialClaimResult.unavailable);
+  });
+
+  test('starts and refusals are logged; re-claiming a running trial is not a new start', () async {
+    final container = _container(_FakeApi());
+    final trials = container.read(trialsProvider.notifier);
+
+    await trials.claimRig(projectA);
+    await trials.claimRig(projectA);
+    await trials.claimRig(projectB);
+    await trials.claimPack(EffectPackId.artistic, projectA);
+    await trials.claimPlan(SubscriptionPlan.ultimate);
+
+    expect(_analytics.summary, [
+      'trial_started rig/rig',
+      'trial_claim_failed rig/rig/already_used',
+      'trial_started pack/artistic',
+      'trial_started plan/ultimate',
+    ]);
+  });
+
+  test('a signed-out claim is logged with its reason', () async {
+    final container = _container(_FakeApi(), signedIn: false);
+    await container.read(trialsProvider.notifier).claimPlan(SubscriptionPlan.pro);
+    expect(_analytics.summary, ['trial_claim_failed plan/pro/not_signed_in']);
   });
 }

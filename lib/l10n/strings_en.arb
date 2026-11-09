@@ -2501,5 +2501,24 @@
     "trialRigBody": "Use it on one project of your choice. The Friendly Robot example is always free, and baked animations stay yours after the trial.",
     "trialOnThisProject": "Try free on this project",
     "trialPackNote": "Free on this project only",
-    "trialSeePlans": "See plans"
+    "trialSeePlans": "See plans",
+    "trialBannerDaysLeft": "{plan} trial · {days, plural, one{{days} day left} other{{days} days left}}",
+    "@trialBannerDaysLeft": {
+        "placeholders": {
+                "plan": {
+                        "type": "String"
+                },
+                "days": {
+                        "type": "int"
+                }
+        }
+},
+    "trialBannerEndsToday": "{plan} trial ends today",
+    "@trialBannerEndsToday": {
+        "placeholders": {
+                "plan": {
+                        "type": "String"
+                }
+        }
+}
 }

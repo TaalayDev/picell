@@ -5072,4 +5072,22 @@ class StringsRu extends Strings {
 
   @override
   String get trialSeePlans => 'Смотреть тарифы';
+
+  @override
+  String trialBannerDaysLeft(String plan, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'осталось $days дня',
+      many: 'осталось $days дней',
+      few: 'осталось $days дня',
+      one: 'остался $days день',
+    );
+    return 'Пробный $plan · $_temp0';
+  }
+
+  @override
+  String trialBannerEndsToday(String plan) {
+    return 'Пробный $plan заканчивается сегодня';
+  }
 }

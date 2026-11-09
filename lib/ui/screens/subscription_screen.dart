@@ -338,7 +338,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
 
     Widget button(SubscriptionPlan tier, int days) => FilledButton.tonal(
           key: ValueKey('start-trial-${tier.name}'),
-          onPressed: () => startTrialFlow(context, ref, (trials) => trials.claimPlan(tier)),
+          onPressed: () => startTrialFlow(context, ref, (trials) => trials.claimPlan(tier), kind: 'plan'),
           child: Text('${_planName(context, tier)} · ${s.trialStartPlan(days)}'),
         );
 

@@ -5001,4 +5001,20 @@ class StringsEn extends Strings {
 
   @override
   String get trialSeePlans => 'See plans';
+
+  @override
+  String trialBannerDaysLeft(String plan, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days left',
+      one: '$days day left',
+    );
+    return '$plan trial · $_temp0';
+  }
+
+  @override
+  String trialBannerEndsToday(String plan) {
+    return '$plan trial ends today';
+  }
 }

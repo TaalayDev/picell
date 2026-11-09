@@ -224,6 +224,12 @@ class PlanTrial extends Equatable {
   bool get isActive => isActiveAt(DateTime.now());
   Duration get remaining => isActive ? endsAt.difference(DateTime.now()) : Duration.zero;
 
+  /// Whole days left, rounded up, so the last partial day still counts as one.
+  int get daysLeft => (remaining.inMinutes / Duration.minutesPerDay).ceil();
+
+  /// Less than a full day remains.
+  bool get endsToday => remaining < const Duration(days: 1);
+
   @override
   List<Object?> get props => [tier, endsAt];
 }

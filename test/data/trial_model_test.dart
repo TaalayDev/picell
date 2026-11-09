@@ -71,4 +71,22 @@ void main() {
       expect(sub.ownsEffectPack(EffectPackId.artistic), isFalse);
     });
   });
+
+  group('PlanTrial countdown', () {
+    PlanTrial endingIn(Duration d) => PlanTrial(tier: SubscriptionPlan.pro, endsAt: DateTime.now().add(d));
+
+    test('partial days round up and the last day reads as ending today', () {
+      expect(endingIn(const Duration(days: 3, hours: 2)).daysLeft, 4);
+      expect(endingIn(const Duration(days: 2)).daysLeft, 2);
+      expect(endingIn(const Duration(days: 2)).endsToday, isFalse);
+      expect(endingIn(const Duration(hours: 5)).daysLeft, 1);
+      expect(endingIn(const Duration(hours: 5)).endsToday, isTrue);
+    });
+
+    test('an ended trial has nothing left', () {
+      final ended = endingIn(const Duration(hours: -1));
+      expect(ended.isActive, isFalse);
+      expect(ended.daysLeft, 0);
+    });
+  });
 }

@@ -1,3 +1,4 @@
+import '../widgets/trial_banner.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -170,6 +171,7 @@ class ProjectsScreen extends HookConsumerWidget with _ProjectsScreenActions {
                         onPro: () => _showSubscriptionScreen(context),
                         onFeedback: () => _navigateToFeedback(context, ref),
                       ),
+                      const TrialBanner(),
                       if (!subscription.isPro && showBadge.value)
                         SubscriptionPromoBanner(onDismiss: () => showBadge.value = false),
                       Expanded(
@@ -311,6 +313,7 @@ class ProjectsScreen extends HookConsumerWidget with _ProjectsScreenActions {
           ),
           body: Column(
             children: [
+              const TrialBanner(),
               if (!subscription.isPro && showBadge.value) ...[
                 SubscriptionPromoBanner(
                   onDismiss: () {

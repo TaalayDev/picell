@@ -974,10 +974,30 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     );
   }
 
+  /// The rig editor is free to open and to preview in; keeping the result
+  /// (saving the rig, baking it into frames, saving a GIF) needs Pro, a trial
+  /// on this very project, or the bundled example, which is always free.
+  /// Offers the trial or the plans when there is no access.
+  Future<bool> _ensureRigCommitAccess(BuildContext context, {bool example = false}) async {
+    if (example || widget.project.isExample) return true;
+    if (ref.read(subscriptionStateProvider).hasFeatureAccess(SubscriptionFeature.advancedTools)) return true;
+
+    final projectKey = widget.project.projectKey;
+    if (ref.read(trialsProvider).hasRigTrialFor(projectKey)) return true;
+
+    final canOffer =
+        projectKey != null && ref.read(appSettingsProvider).trialsEnabled && !ref.read(trialsProvider).rigTrialUsed;
+    if (canOffer && await offerRigTrial(context, ref, projectKey: projectKey)) return true;
+
+    if (context.mounted) await SubscriptionOfferScreen.show(context);
+    // A purchase made in the offer screen counts straight away.
+    return mounted && ref.read(subscriptionStateProvider).hasFeatureAccess(SubscriptionFeature.advancedTools);
+  }
+
   /// Opens the bone rig editor for the selected animation, then bakes the
   /// result into its rig animation. Works from either side of a rig: the
   /// animation holding the rest pose, or the one the baked frames live in.
-  /// Pro only: free users are shown the upgrade offer instead.
+  /// Free to open; see [_ensureRigCommitAccess] for what needs Pro.
   Future<void> _openRigEditor(
     BuildContext context,
     PixelCanvasNotifier notifier,
@@ -985,24 +1005,6 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     UserSubscription subscription, {
     bool example = false,
   }) async {
-    // Editing a rig needs Pro, a trial on this very project, or the bundled
-    // example, which is always free. Baked frames stay usable either way.
-    if (!example && !widget.project.isExample && !subscription.hasFeatureAccess(SubscriptionFeature.advancedTools)) {
-      final projectKey = widget.project.projectKey;
-      final hasTrial = ref.read(trialsProvider).hasRigTrialFor(projectKey);
-      if (!hasTrial) {
-        final canOffer = projectKey != null &&
-            ref.read(appSettingsProvider).trialsEnabled &&
-            !ref.read(trialsProvider).rigTrialUsed;
-        if (canOffer && await offerRigTrial(context, ref, projectKey: projectKey)) {
-          if (!context.mounted) return;
-        } else {
-          if (context.mounted) SubscriptionOfferScreen.show(context);
-          return;
-        }
-      }
-    }
-
     final session = notifier.prepareRigSession();
     if (session.frames.isEmpty) return;
     final source = session.source;
@@ -1028,6 +1030,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       height: project.height,
       title: '${source.name} · ${restFrame.name}',
       fps: source.frameRate,
+      commitGate: () => _ensureRigCommitAccess(context, example: example),
     );
     if (rig == null || !context.mounted) return;
 

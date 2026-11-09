@@ -8716,6 +8716,18 @@ abstract class Strings {
   /// In en, this message translates to:
   /// **'See plans'**
   String get trialSeePlans;
+
+  /// No description provided for @trialBannerDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{plan} trial · {days, plural, one{{days} day left} other{{days} days left}}'**
+  String trialBannerDaysLeft(String plan, int days);
+
+  /// No description provided for @trialBannerEndsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{plan} trial ends today'**
+  String trialBannerEndsToday(String plan);
 }
 
 class _StringsDelegate extends LocalizationsDelegate<Strings> {

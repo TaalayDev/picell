@@ -100,9 +100,15 @@ class TrialsNotifier extends StateNotifier<TrialsState> {
       _claim({'kind': 'pack', 'subject': pack.name, 'project_key': projectKey});
 
   Future<TrialClaimResult> _claim(Map<String, dynamic> body) async {
-    if (!_signedIn) return TrialClaimResult.notSignedIn;
+    if (!_signedIn) {
+      _log('trial_claim_failed', body, reason: 'not_signed_in');
+      return TrialClaimResult.notSignedIn;
+    }
     final deviceId = await _ref.read(deviceIdLoaderProvider)();
-    if (deviceId == null) return TrialClaimResult.unavailable;
+    if (deviceId == null) {
+      _log('trial_claim_failed', body, reason: 'no_device_id');
+      return TrialClaimResult.unavailable;
+    }
 
     final response = await _ref.read(apiClientProvider).request<Map<String, dynamic>>(
           '/api/v1/trials/claim',
@@ -114,10 +120,25 @@ class TrialsNotifier extends StateNotifier<TrialsState> {
     if (!response.success) {
       final details = response.details;
       final reason = details is Map ? details['code'] : null;
-      return reason == 'already_used' ? TrialClaimResult.alreadyUsed : TrialClaimResult.unavailable;
+      final result = reason == 'already_used' ? TrialClaimResult.alreadyUsed : TrialClaimResult.unavailable;
+      _log('trial_claim_failed', body, reason: result == TrialClaimResult.alreadyUsed ? 'already_used' : 'unavailable');
+      return result;
     }
     await refresh();
-    return response.data?['status'] == 'granted' ? TrialClaimResult.granted : TrialClaimResult.existing;
+    final granted = response.data?['status'] == 'granted';
+    // Re-claiming a running trial is not a new start.
+    if (granted) _log('trial_started', body);
+    return granted ? TrialClaimResult.granted : TrialClaimResult.existing;
+  }
+
+  /// kind is plan / rig / pack; subject is the tier, 'rig' or the pack id.
+  void _log(String event, Map<String, dynamic> body, {String? reason}) {
+    final kind = body['kind'] as String;
+    _ref.read(analyticsProvider).logEvent(name: event, parameters: {
+      'kind': kind,
+      'subject': (body['subject'] ?? body['tier'] ?? kind) as String,
+      if (reason != null) 'reason': reason,
+    });
   }
 
   @override

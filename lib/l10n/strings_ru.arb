@@ -2095,5 +2095,7 @@
     "trialRigBody": "Используйте его на одном проекте по выбору. Пример Friendly Robot всегда бесплатен, а готовые анимации остаются у вас после пробного периода.",
     "trialOnThisProject": "Попробовать бесплатно на этом проекте",
     "trialPackNote": "Бесплатно только на этом проекте",
-    "trialSeePlans": "Смотреть тарифы"
+    "trialSeePlans": "Смотреть тарифы",
+    "trialBannerDaysLeft": "Пробный {plan} · {days, plural, one{остался {days} день} few{осталось {days} дня} many{осталось {days} дней} other{осталось {days} дня}}",
+    "trialBannerEndsToday": "Пробный {plan} заканчивается сегодня"
 }

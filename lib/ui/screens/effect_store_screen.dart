@@ -693,7 +693,7 @@ class _EffectPackScreenState extends ConsumerState<EffectPackScreen> {
   Future<void> _tryOnThisProject() async {
     final projectKey = ref.read(currentProjectKeyProvider);
     if (projectKey == null) return;
-    await startTrialFlow(context, ref, (trials) => trials.claimPack(widget.packId, projectKey));
+    await startTrialFlow(context, ref, (trials) => trials.claimPack(widget.packId, projectKey), kind: 'pack');
   }
 
   Future<void> _startTrial() async {
