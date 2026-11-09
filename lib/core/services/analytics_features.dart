@@ -14,6 +14,8 @@ abstract final class AnalyticsFeature {
   static const editorSettings = 'editor_settings';
   static const challenges = 'challenges';
   static const feedback = 'feedback';
+  static const rigExample = 'rig_example';
+  static const rigEditor = 'rig_editor';
 }
 
 /// Records that the user opened a feature. Safe to call from `show` helpers

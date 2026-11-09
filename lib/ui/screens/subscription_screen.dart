@@ -241,7 +241,6 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
       if (owned.isPaid) _buildCurrentPlanCard(context, owned),
       if (ultimateOwner) _OwnEverythingCard(subtitle: Strings.of(context).ultimateOwnedSubtitle),
       if (_supportsRewardedAds && !subscription.isPermanentPro && !kIsWeb) _buildAdCard(context, subscription, adReady),
-      if (!kIsWeb) _buildTrialCard(context),
       if (loadingOffers)
         _PlanSkeletons(wide: wide)
       else if (offers.isNotEmpty)
@@ -325,36 +324,6 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
           ),
         ),
       ],
-    );
-  }
-
-  /// Free plan trial: shown while one is unused, or its time left while running.
-  Widget _buildTrialCard(BuildContext context) {
-    final s = Strings.of(context);
-    final pv = context.pv;
-    final proDays = ref.watch(planTrialOfferProvider(SubscriptionPlan.pro));
-    final ultimateDays = ref.watch(planTrialOfferProvider(SubscriptionPlan.ultimate));
-    if (proDays == null && ultimateDays == null) return const SizedBox.shrink();
-
-    Widget button(SubscriptionPlan tier, int days) => FilledButton.tonal(
-          key: ValueKey('start-trial-${tier.name}'),
-          onPressed: () => startTrialFlow(context, ref, (trials) => trials.claimPlan(tier), kind: 'plan'),
-          child: Text('${_planName(context, tier)} · ${s.trialStartPlan(days)}'),
-        );
-
-    return Container(
-      key: const ValueKey('plan-trial-card'),
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: pv.cardDecoration(),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 8,
-        children: [
-          if (proDays != null) button(SubscriptionPlan.pro, proDays),
-          if (ultimateDays != null) button(SubscriptionPlan.ultimate, ultimateDays),
-        ],
-      ),
     );
   }
 
@@ -760,6 +729,31 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
             onPressed: enabled && !_isLoading ? () => _handlePurchase(selected) : null,
           );
 
+    // A free trial of the plan that is selected, under its buy button.
+    final trialPlan = kIsWeb || isFree ? null : selected.plan;
+    final trialDays = trialPlan == null ? null : ref.watch(planTrialOfferProvider(trialPlan));
+    final action = trialDays == null || trialPlan == null
+        ? button
+        : Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              button,
+              const SizedBox(height: 8),
+              OutlinedButton(
+                key: ValueKey('start-trial-${trialPlan.name}'),
+                onPressed:
+                    _isLoading ? null : () => startTrialFlow(context, ref, (t) => t.claimPlan(trialPlan), kind: 'plan'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(40),
+                  foregroundColor: pv.primary,
+                  side: BorderSide(color: pv.primary.withValues(alpha: 0.7)),
+                ),
+                child: Text(s.trialStartPlan(trialDays), style: pv.pixelLabel(size: 13, color: pv.primary)),
+              ),
+            ],
+          );
+
     final caption = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -809,7 +803,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
                       children: [
                         Expanded(child: summary),
                         const SizedBox(width: 24),
-                        SizedBox(width: 340, child: button),
+                        SizedBox(width: 340, child: Center(child: action)),
                         const SizedBox(width: 24),
                         Expanded(child: caption),
                       ],
@@ -817,7 +811,7 @@ class _SubscriptionOfferScreenState extends ConsumerState<SubscriptionOfferScree
                   : Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [summary, const SizedBox(height: 12), button, const SizedBox(height: 4), caption],
+                      children: [summary, const SizedBox(height: 12), action, const SizedBox(height: 4), caption],
                     ),
             ),
           ),

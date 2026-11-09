@@ -1,3 +1,4 @@
+import '../../core/services/analytics_features.dart';
 import '../widgets/trial_banner.dart';
 import 'dart:async';
 import 'dart:convert';

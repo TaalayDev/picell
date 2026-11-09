@@ -1,3 +1,5 @@
+import '../../providers/providers.dart';
+import '../../core/services/analytics_features.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -1005,6 +1007,7 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
     UserSubscription subscription, {
     bool example = false,
   }) async {
+    trackFeature(context, AnalyticsFeature.rigEditor);
     final session = notifier.prepareRigSession();
     if (session.frames.isEmpty) return;
     final source = session.source;
@@ -1103,6 +1106,11 @@ class _PixelCanvasScreenState extends ConsumerState<PixelCanvasScreen> with Tick
       } finally {
         closeProgress();
       }
+      ref.read(analyticsProvider).logEvent(name: 'rig_saved', parameters: {
+        'example': example || widget.project.isExample,
+        'baked': bake && stored.outputStateId != null,
+        'bones': rig.bones.length,
+      });
       if (bake && stored.outputStateId != null && context.mounted) {
         AppNotification.show(
           context,

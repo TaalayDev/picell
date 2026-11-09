@@ -6,6 +6,7 @@ import 'package:picell/data/models/subscription_model.dart';
 import 'package:picell/data/storage/local_storage.dart';
 import 'package:picell/l10n/strings.dart';
 import 'package:picell/providers/subscription_provider.dart';
+import 'package:picell/providers/trial_provider.dart';
 import 'package:picell/ui/screens/subscription_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,7 @@ Future<void> _pumpPaywall(
   required List<PurchaseOffer> offers,
   Size size = const Size(360, 800),
   SubscriptionFeature? featurePrompt,
+  Map<SubscriptionPlan, int> trialDays = const {},
 }) async {
   tester.view.physicalSize = size * 3;
   tester.view.devicePixelRatio = 3;
@@ -34,6 +36,7 @@ Future<void> _pumpPaywall(
       overrides: [
         subscriptionStateProvider.overrideWith(() => _FixedSubscription(subscription)),
         purchaseOffersProvider.overrideWith((ref) => offers),
+        planTrialOfferProvider.overrideWith((ref, plan) => trialDays[plan]),
       ],
       child: MaterialApp(
         localizationsDelegates: Strings.localizationsDelegates,
@@ -87,6 +90,61 @@ void main() {
     await tester.tap(find.descendant(of: proCard, matching: find.text('Pro')));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Get Pro'), findsOneWidget);
+  });
+
+  testWidgets('the free trial button sits by Get and follows the selected plan', (tester) async {
+    await _pumpPaywall(
+      tester,
+      subscription: const UserSubscription.free(),
+      trialDays: const {SubscriptionPlan.pro: 3, SubscriptionPlan.ultimate: 7},
+      offers: const [
+        PurchaseOffer(plan: SubscriptionPlan.free),
+        PurchaseOffer(plan: SubscriptionPlan.pro, productId: SubscriptionProductIds.pro, price: r'$4.99'),
+        PurchaseOffer(
+          plan: SubscriptionPlan.ultimate,
+          productId: SubscriptionProductIds.ultimate,
+          price: r'$9.99',
+          isMostPopular: true,
+        ),
+      ],
+    );
+
+    // Ultimate is preselected: only its trial is offered, under the buy button.
+    expect(find.byKey(const ValueKey('start-trial-ultimate')), findsOneWidget);
+    expect(find.byKey(const ValueKey('start-trial-pro')), findsNothing);
+    expect(find.text('Try free for 7 days'), findsOneWidget);
+    final buy = tester.getCenter(find.byKey(const ValueKey('purchase-button')));
+    final trial = tester.getCenter(find.byKey(const ValueKey('start-trial-ultimate')));
+    expect(trial.dy, greaterThan(buy.dy));
+    expect((trial.dx - buy.dx).abs(), lessThan(1));
+
+    final proCard = find.byKey(const ValueKey('plan-card-pro'));
+    await tester.scrollUntilVisible(proCard, -300, scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.descendant(of: proCard, matching: find.text('Pro')));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const ValueKey('start-trial-pro')), findsOneWidget);
+    expect(find.byKey(const ValueKey('start-trial-ultimate')), findsNothing);
+    expect(find.text('Try free for 3 days'), findsOneWidget);
+
+    final freeCard = find.byKey(const ValueKey('plan-card-free'));
+    await tester.scrollUntilVisible(freeCard, -300, scrollable: find.byType(Scrollable).first);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tapAt(tester.getTopLeft(freeCard) + const Offset(60, 20));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const ValueKey('start-trial-pro')), findsNothing);
+    expect(find.byKey(const ValueKey('start-trial-ultimate')), findsNothing);
+  });
+
+  testWidgets('no trial button when trials are off', (tester) async {
+    await _pumpPaywall(
+      tester,
+      subscription: const UserSubscription.free(),
+      offers: const [
+        PurchaseOffer(plan: SubscriptionPlan.free),
+        PurchaseOffer(plan: SubscriptionPlan.ultimate, productId: SubscriptionProductIds.ultimate, price: r'$9.99'),
+      ],
+    );
+    expect(find.byKey(const ValueKey('start-trial-ultimate')), findsNothing);
   });
 
   testWidgets('desktop offers show rigging and omit ad promotions', (tester) async {

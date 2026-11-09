@@ -207,6 +207,7 @@ mixin _ProjectsScreenActions {
 
   /// Opens the bundled Friendly Robot project directly in the bone rig editor.
   Future<void> _openBoneRigExample(BuildContext context, WidgetRef ref) async {
+    trackFeature(context, AnalyticsFeature.rigExample);
     final strings = Strings.of(context);
     final navigator = Navigator.of(context);
     final loader = showLoader(context, loadingText: strings.creatingProject);
